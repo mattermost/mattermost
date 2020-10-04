@@ -569,6 +569,10 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	member := model.TeamMemberFromJson(r.Body)
+	if member == nil {
+		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJson()", http.StatusBadRequest)
+		return
+	}
 	if member.TeamId != c.Params.TeamId {
 		c.SetInvalidParam("team_id")
 		return
@@ -1324,8 +1328,8 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllEmailInvites(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 

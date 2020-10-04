@@ -159,10 +159,23 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 			}
 		} else {
 			if len(params.Terms) > 0 {
-				messageQ := bleve.NewMatchQuery(params.Terms)
-				messageQ.SetField("Message")
-				messageQ.SetOperator(termOperator)
-				termQueries = append(termQueries, messageQ)
+				terms := []string{}
+				for _, term := range strings.Split(params.Terms, " ") {
+					if strings.HasSuffix(term, "*") {
+						messageQ := bleve.NewWildcardQuery(term)
+						messageQ.SetField("Message")
+						termQueries = append(termQueries, messageQ)
+					} else {
+						terms = append(terms, term)
+					}
+				}
+
+				if len(terms) > 0 {
+					messageQ := bleve.NewMatchQuery(strings.Join(terms, " "))
+					messageQ.SetField("Message")
+					messageQ.SetOperator(termOperator)
+					termQueries = append(termQueries, messageQ)
+				}
 			}
 
 			if len(params.ExcludedTerms) > 0 {

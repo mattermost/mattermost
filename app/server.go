@@ -36,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -163,6 +164,7 @@ type Server struct {
 	DataRetention    einterfaces.DataRetentionInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
+	Cloud            einterfaces.CloudInterface
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
@@ -226,6 +228,16 @@ func NewServer(options ...Option) (*Server, error) {
 				Dsn:              SENTRY_DSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
+				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+					// sanitize data sent to sentry to reduce exposure of PII
+					if event.Request != nil {
+						event.Request.Cookies = ""
+						event.Request.QueryString = ""
+						event.Request.Headers = nil
+						event.Request.Data = ""
+					}
+					return event
+				},
 			}); err != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
 			}
@@ -513,6 +525,11 @@ func NewServer(options ...Option) (*Server, error) {
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
+	// if enabled - perform initial product notices fetch
+	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
+		go fakeApp.UpdateProductNotices()
+	}
+
 	return s, nil
 }
 
@@ -549,6 +566,10 @@ func (s *Server) RunJobs() {
 		}
 		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 			s.Jobs.StartSchedulers()
+		}
+
+		if *s.Config().ServiceSettings.EnableAWSMetering {
+			runReportToAWSMeterJob(s)
 		}
 	}
 }
@@ -711,6 +732,7 @@ func (s *Server) Shutdown() error {
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
+	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
@@ -1160,11 +1182,29 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
-func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
-	doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
-		doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	}, time.Hour*24*7)
+func runReportToAWSMeterJob(s *Server) {
+	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
+		doReportUsageToAWSMeteringService(s)
+	}, time.Hour*model.AWS_METERING_REPORT_INTERVAL)
+}
+
+func doReportUsageToAWSMeteringService(s *Server) {
+	awsMeter := awsmeter.New(s.Store, s.Config())
+	if awsMeter == nil {
+		mlog.Error("Cannot obtain instance of AWS Metering Service.")
+		return
+	}
+
+	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AWS_METERING_REPORT_INTERVAL*time.Hour).UTC())
+	awsMeter.ReportUserCategoryUsage(reports)
+}
+
+func runCheckWarnMetricStatusJob(a *App) {
+	doCheckWarnMetricStatus(a)
+	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
+		doCheckWarnMetricStatus(a)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
 func doSecurity(s *Server) {
@@ -1187,51 +1227,139 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
+func doCheckWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this check")
+		mlog.Debug("License is present, skip")
 		return
 	}
 
-	numberOfActiveUsers, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	// Get the system fields values from store
+	systemDataList, nErr := a.Srv().Store.System().Get()
+	if nErr != nil {
+		mlog.Error("No system properties obtained", mlog.Err(nErr))
+		return
+	}
+
+	warnMetricStatusFromStore := make(map[string]string)
+
+	for key, value := range systemDataList {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if _, ok := model.WarnMetricsTable[key]; ok {
+				warnMetricStatusFromStore[key] = value
+				if value == model.WARN_METRIC_STATUS_ACK {
+					// If any warn metric has already been acked, we return
+					mlog.Debug("Warn metrics have been acked, skip")
+					return
+				}
+			}
+		}
+	}
+
+	lastWarnMetricRunTimestamp, err := a.Srv().getLastWarnMetricTimestamp()
 	if err != nil {
-		mlog.Error("Error to get active registered users.", mlog.Err(err))
+		mlog.Debug("Cannot obtain last advisory run timestamp", mlog.Err(err))
+	} else {
+		currentTime := utils.MillisFromTime(time.Now())
+		// If the admin advisory has already been shown in the last 7 days
+		if (currentTime-lastWarnMetricRunTimestamp)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
+			mlog.Debug("No advisories should be shown during the wait interval time")
+			return
+		}
+	}
+
+	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err0 != nil {
+		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+	}
+
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	if err1 != nil {
+		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+	}
+
+	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	if err2 != nil {
+		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+	}
+
+	// If an account is created with a different email domain
+	// Search for an entry that has an email account different from the current domain
+	// Get domain account from site url
+	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
+	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
+	if err3 != nil {
+		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
-	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit {
+
+	if numberOfActiveUsers < model.WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25 {
 		return
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
-	} else {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5] != model.WARN_METRIC_STATUS_RUNONCE {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
+	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_MFA] != model.WARN_METRIC_STATUS_RUNONCE {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
+	} else if isDiffEmailAccount && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN] != model.WARN_METRIC_STATUS_RUNONCE {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN])
+	} else if openChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50] != model.WARN_METRIC_STATUS_RUNONCE {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
 	}
+
+	// If the system did not cross any of the thresholds for the Contextual Advisories
+	if len(warnMetrics) == 0 {
+		if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100] != model.WARN_METRIC_STATUS_RUNONCE {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200] != model.WARN_METRIC_STATUS_RUNONCE {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300] != model.WARN_METRIC_STATUS_RUNONCE {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
+			var tWarnMetric model.WarnMetric
+
+			if warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500] != model.WARN_METRIC_STATUS_RUNONCE {
+				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
+			}
+
+			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+			if err4 != nil {
+				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+			}
+
+			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
+				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M]
+			}
+
+			if tWarnMetric != (model.WarnMetric{}) {
+				warnMetrics = append(warnMetrics, tWarnMetric)
+			}
+		}
+	}
+
+	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE)) {
-			mlog.Debug("This metric warning has already been acked or it is bot only and ran once")
+		if nErr == nil && data != nil && warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
+			mlog.Debug("This metric warning is bot only and ran once")
 			continue
 		}
 
-		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
+		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
 		if !warnMetric.IsBotOnly {
-			// Banner and bot metrics - send websocket event
+			// Banner and bot metric types - send websocket event every interval
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
 
-			// Bot and banner metrics, do not send the bot message again
+			// Banner and bot metric types, send the bot message only once
 			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
 				continue
 			}
 		}
 
-		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		if nerr := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); nerr != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 
 		if warnMetric.IsRunOnce {
@@ -1419,4 +1547,8 @@ func (s *Server) TelemetryId() string {
 
 func (s *Server) HttpService() httpservice.HTTPService {
 	return s.HTTPService
+}
+
+func (s *Server) SetLog(l *mlog.Logger) {
+	s.Log = l
 }

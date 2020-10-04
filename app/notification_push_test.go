@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1360,6 +1362,49 @@ func TestAllPushNotifications(t *testing.T) {
 	assert.Equal(t, 8, numMessages)
 	assert.Equal(t, 3, numClears)
 	assert.Equal(t, 6, numUpdateBadges)
+}
+
+func TestPushNotificationRace(t *testing.T) {
+	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
+		IgnoreEnvironmentOverrides: true,
+	})
+	require.NoError(t, err, "failed to initialize memory store")
+	defer memoryStore.Close()
+
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get",
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string")).
+		Return(&model.Preference{Value: "test"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	s := &Server{
+		configStore: memoryStore,
+		Store:       mockStore,
+	}
+	app := New(ServerConnector(s))
+	require.NotPanics(t, func() {
+		s.createPushNotificationsHub()
+
+		s.StopPushNotificationsHubWorkers()
+
+		// Now we start sending messages after the PN hub is shut down.
+		// We test all 3 notification types.
+		app.clearPushNotification("currentSessionId", "userId", "channelId")
+
+		app.UpdateMobileAppBadge("userId")
+
+		notification := &PostNotification{
+			Post:    &model.Post{},
+			Channel: &model.Channel{},
+			ProfileMap: map[string]*model.User{
+				"userId": {},
+			},
+			Sender: &model.User{},
+		}
+		app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
+	})
 }
 
 // Run it with | grep -v '{"level"' to prevent spamming the console.

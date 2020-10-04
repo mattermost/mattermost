@@ -395,6 +395,22 @@ func (_m *Store) Preference() store.PreferenceStore {
 	return r0
 }
 
+// ProductNotices provides a mock function with given fields:
+func (_m *Store) ProductNotices() store.ProductNoticesStore {
+	ret := _m.Called()
+
+	var r0 store.ProductNoticesStore
+	if rf, ok := ret.Get(0).(func() store.ProductNoticesStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ProductNoticesStore)
+		}
+	}
+
+	return r0
+}
+
 // Reaction provides a mock function with given fields:
 func (_m *Store) Reaction() store.ReactionStore {
 	ret := _m.Called()
@@ -527,6 +543,22 @@ func (_m *Store) TermsOfService() store.TermsOfServiceStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.TermsOfServiceStore)
+		}
+	}
+
+	return r0
+}
+
+// Thread provides a mock function with given fields:
+func (_m *Store) Thread() store.ThreadStore {
+	ret := _m.Called()
+
+	var r0 store.ThreadStore
+	if rf, ok := ret.Get(0).(func() store.ThreadStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ThreadStore)
 		}
 	}
 

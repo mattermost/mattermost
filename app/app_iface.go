@@ -395,6 +395,7 @@ type AppIface interface {
 	ClearTeamMembersCache(teamID string)
 	ClientConfig() map[string]string
 	ClientConfigHash() string
+	Cloud() einterfaces.CloudInterface
 	Cluster() einterfaces.ClusterInterface
 	CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError)
@@ -435,6 +436,8 @@ type AppIface interface {
 	CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
 	CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
+	DBHealthCheckDelete() error
+	DBHealthCheckWrite() error
 	DataRetention() einterfaces.DataRetentionInterface
 	DeactivateGuests() *model.AppError
 	DeactivateMfa(userId string) *model.AppError
@@ -625,6 +628,7 @@ type AppIface interface {
 	GetPreferencesForUser(userId string) (model.Preferences, *model.AppError)
 	GetPrevPostIdFromPostList(postList *model.PostList) string
 	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
@@ -688,11 +692,11 @@ type AppIface interface {
 	GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError)
 	GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetUsersEtag(restrictionsHash string) string
-	GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError)
-	GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError)
+	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetUsersInTeamEtag(teamId string, restrictionsHash string) string
 	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
@@ -826,6 +830,7 @@ type AppIface interface {
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestId() string
+	RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
@@ -893,7 +898,6 @@ type AppIface interface {
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetIpAddress(s string)
-	SetLog(l *mlog.Logger)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
 	SetPluginKey(pluginId string, key string, value []byte) *model.AppError
@@ -968,6 +972,7 @@ type AppIface interface {
 	UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(userId string, preferences model.Preferences) *model.AppError
+	UpdateProductNotices() *model.AppError
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
@@ -984,6 +989,7 @@ type AppIface interface {
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
+	UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError
 	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)

@@ -33,6 +33,7 @@ type Store struct {
 	LicenseStore              mocks.LicenseStore
 	TokenStore                mocks.TokenStore
 	EmojiStore                mocks.EmojiStore
+	ThreadStore               mocks.ThreadStore
 	StatusStore               mocks.StatusStore
 	FileInfoStore             mocks.FileInfoStore
 	UploadSessionStore        mocks.UploadSessionStore
@@ -47,6 +48,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 }
 
@@ -57,6 +59,7 @@ func (s *Store) Channel() store.ChannelStore                       { return &s.C
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
 func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
+func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
@@ -70,6 +73,7 @@ func (s *Store) Preference() store.PreferenceStore                 { return &s.P
 func (s *Store) License() store.LicenseStore                       { return &s.LicenseStore }
 func (s *Store) Token() store.TokenStore                           { return &s.TokenStore }
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
+func (s *Store) Thread() store.ThreadStore                         { return &s.ThreadStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }
 func (s *Store) UploadSession() store.UploadSessionStore           { return &s.UploadSessionStore }
@@ -131,5 +135,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PluginStore,
 		&s.RoleStore,
 		&s.SchemeStore,
+		&s.ThreadStore,
+		&s.ProductNoticesStore,
 	)
 }

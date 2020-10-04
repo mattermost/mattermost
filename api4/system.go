@@ -62,6 +62,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/restart", api.ApiSessionRequired(restart)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
+	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -76,6 +79,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
+	testflag := c.App.Config().FeatureFlags.TestFeature
+	if testflag != "off" {
+		s["TestFeatureFlag"] = testflag
+	}
+
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
 		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
@@ -89,21 +97,14 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 
-		// Database Write Check
-		currentTime := fmt.Sprintf("%d", time.Now().Unix())
-		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
-
-		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
-			Name:  healthCheckKey,
-			Value: currentTime,
-		})
+		writeErr := c.App.DBHealthCheckWrite()
 		if writeErr != nil {
 			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
 
-		_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+		writeErr = c.App.DBHealthCheckDelete()
 		if writeErr != nil {
 			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
@@ -269,6 +270,11 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getLogs", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("getLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_REPORTING) {
 		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_REPORTING)
@@ -717,6 +723,76 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
 	if appErr != nil {
 		c.Err = appErr
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("requestTrialLicenseAndAckWarnMetric", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Not Enterprise Edition, skip.")
+		return
+	}
+
+	license := c.App.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip.")
+		return
+	}
+
+	if err := c.App.RequestLicenseAndAckWarnMetric(c.Params.WarnMetricId, false); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
+	if parseError != nil {
+		c.SetInvalidParam("client")
+		return
+	}
+	clientVersion := r.URL.Query().Get("clientVersion")
+	locale := r.URL.Query().Get("locale")
+
+	notices, err := c.App.GetProductNotices(c.App.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+	result, _ := notices.Marshal()
+	_, _ = w.Write(result)
+}
+
+func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("updateViewedProductNotices", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	ids := model.ArrayFromJson(r.Body)
+	err := c.App.UpdateViewedProductNotices(c.App.Session().UserId, ids)
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	auditRec.Success()

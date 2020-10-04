@@ -116,6 +116,7 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 }
 
 func NewAPIv4Client(url string) *Client4 {
+	url = strings.TrimRight(url, "/")
 	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
@@ -331,6 +332,10 @@ func (c *Client4) GetPluginRoute(pluginId string) string {
 
 func (c *Client4) GetSystemRoute() string {
 	return "/system"
+}
+
+func (c *Client4) GetCloudRoute() string {
+	return "/cloud"
 }
 
 func (c *Client4) GetTestEmailRoute() string {
@@ -5540,6 +5545,29 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
 	return results, BuildResponse(r)
 }
 
+func (c *Client4) GetNotices(lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response) {
+	url := fmt.Sprintf("/system/notices/%s?lastViewed=%d&client=%s&clientVersion=%s&locale=%s", teamId, lastViewed, client, clientVersion, locale)
+	r, appErr := c.DoApiGet(url, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	notices, err := UnmarshalProductNoticeMessages(r.Body)
+	if err != nil {
+		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	}
+	return notices, BuildResponse(r)
+}
+
+func (c *Client4) MarkNoticesViewed(ids []string) *Response {
+	r, err := c.DoApiPut("/system/notices/view", ArrayToJson(ids))
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
 	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())
@@ -5581,4 +5609,57 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	}
 	defer closeBody(r)
 	return FileInfoFromJson(r.Body), BuildResponse(r)
+}
+
+// Cloud Section
+
+func (c *Client4) GetCloudProducts() ([]*Product, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/products", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudProducts []*Product
+	json.NewDecoder(r.Body).Decode(&cloudProducts)
+
+	return cloudProducts, BuildResponse(r)
+}
+
+func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response) {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/payment", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var setupIntent *StripeSetupIntent
+	json.NewDecoder(r.Body).Decode(&setupIntent)
+
+	return setupIntent, BuildResponse(r)
+}
+
+func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) *Response {
+	json, _ := json.Marshal(confirmRequest)
+
+	r, appErr := c.doApiPostBytes(c.GetCloudRoute()+"/payment/confirm", json)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) GetSubscription() (*Subscription, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r)
 }
