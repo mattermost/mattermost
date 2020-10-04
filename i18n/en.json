@@ -1409,7 +1409,7 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Unable to create bucket."
   },
   {
@@ -1419,6 +1419,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error trying to list objects."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -3503,6 +3507,10 @@
     "translation": "Unable to get channel type counts."
   },
   {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members."
+  },
+  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
   },
@@ -3535,6 +3543,10 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
     "id": "app.channel.get_all_channels.app_error",
     "translation": "Unable to get all the channels."
   },
@@ -3543,12 +3555,20 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Unable to get all the direct channels."
+  },
+  {
     "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
     "translation": "Channel does not exist."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme."
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
@@ -3561,6 +3581,10 @@
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
@@ -3603,6 +3627,10 @@
     "translation": "Unable to get the channel members."
   },
   {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Unable to get the channel members."
+  },
+  {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -3619,8 +3647,16 @@
     "translation": "Unable to get public channels."
   },
   {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Unable to get the channel unread messages."
+  },
+  {
     "id": "app.channel.increment_mention_count.app_error",
     "translation": "Unable to increment the mention count."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Failed to select the batch of channel members."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3659,8 +3695,16 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel."
+  },
+  {
     "id": "app.channel.remove_member.app_error",
     "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "We could not reset the channel schemes."
   },
   {
     "id": "app.channel.restore.app_error",
@@ -3669,6 +3713,14 @@
   {
     "id": "app.channel.save_member.exists.app_error",
     "translation": ""
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "We encountered an error searching channels."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
@@ -3689,6 +3741,10 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -5803,6 +5859,10 @@
     "translation": "Failed to index the channel"
   },
   {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Unable to get the channels batch for indexing."
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
   },
@@ -6189,6 +6249,10 @@
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -7299,6 +7363,14 @@
     "translation": "An error occurred while trying to execute this command."
   },
   {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
@@ -7711,10 +7783,6 @@
     "translation": "select error"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query."
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },
@@ -7731,88 +7799,12 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Unable to get deleted channel type counts."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Unable to get all the direct channels."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -7837,34 +7829,6 @@
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
-  },
-  {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "We encountered an error searching channels."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Failed to insert record to database."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Unable to delete non-custom category."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
     "id": "store.sql_command.get.missing.app_error",

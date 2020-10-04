@@ -27,7 +27,7 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 	for _, db := range sqlStore.GetAllConns() {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
-		tableThreads.ColMap("Who").SetMaxSize(0)
+		tableThreads.ColMap("Participants").SetMaxSize(0)
 		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
 		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
 		tableThreadMemberships.ColMap("UserId").SetMaxSize(26)
@@ -37,7 +37,7 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 }
 
 func threadSliceColumns() []string {
-	return []string{"PostId", "LastReplyAt", "ReplyCount", "Who"}
+	return []string{"PostId", "LastReplyAt", "ReplyCount", "Participants"}
 }
 
 func threadToSlice(thread *model.Thread) []interface{} {
@@ -45,7 +45,7 @@ func threadToSlice(thread *model.Thread) []interface{} {
 		thread.PostId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
-		thread.Who,
+		thread.Participants,
 	}
 }
 

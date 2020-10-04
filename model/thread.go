@@ -8,10 +8,10 @@ import (
 )
 
 type Thread struct {
-	PostId      string      `json:"id"`
-	ReplyCount  int64       `json:"reply_count"`
-	LastReplyAt int64       `json:"last_reply_at"`
-	Who         StringArray `json:"who"`
+	PostId       string      `json:"id"`
+	ReplyCount   int64       `json:"reply_count"`
+	LastReplyAt  int64       `json:"last_reply_at"`
+	Participants StringArray `json:"participants"`
 }
 
 func (o *Thread) ToJson() string {

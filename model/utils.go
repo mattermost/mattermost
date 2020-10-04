@@ -39,7 +39,7 @@ type StringArray []string
 func (sa StringArray) Remove(input string) StringArray {
 	for index := range sa {
 		if sa[index] == input {
-			ret := make(StringArray, 0)
+			ret := make(StringArray, 0, len(sa)-1)
 			ret = append(ret, sa[:index]...)
 			return append(ret, sa[index+1:]...)
 		}
