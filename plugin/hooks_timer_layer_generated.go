@@ -150,3 +150,15 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	hooks.recordTime(startTime, "FileWillBeUploaded", true)
 	return _returnsA, _returnsB
 }
+
+func (hooks *hooksTimerLayer) ReactionHasBeenAdded(x *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenAdded(x, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenAdded", true)
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(x *Context, reaction *model.Reaction) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ReactionHasBeenRemoved(x, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
+}
