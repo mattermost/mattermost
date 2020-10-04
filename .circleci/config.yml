@@ -217,10 +217,11 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            export MM_SQLSETTINGS_DATASOURCE=<<parameters.dbsource>>
+            cd mattermost-server/build
+            export MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>"
             export MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>>
             docker run -it --net circleci_mm-test \
-              --env-file=mattermost-server/build/dotenv/test.env \
+              --env-file=dotenv/test.env \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
@@ -228,7 +229,7 @@ jobs:
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
-          when: always
+          when: alwayss
           command: |
             cd mattermost-server/build
             # Capture docker logs
