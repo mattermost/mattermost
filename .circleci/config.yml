@@ -229,7 +229,7 @@ jobs:
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
-          when: alwayss
+          when: always
           command: |
             cd mattermost-server/build
             # Capture docker logs
