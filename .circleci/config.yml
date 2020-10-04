@@ -282,9 +282,6 @@ jobs:
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
-            set -a
-            source dotenv/test-schema-validation-postgres.env
-            set +a
             docker run -it --net circleci_mm-test \
               --env-file="dotenv/test-schema-validation-postgres.env" \
               -v ~/mattermost:/mattermost \
@@ -312,9 +309,6 @@ jobs:
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
 
-            set -a
-            source dotenv/test-schema-validation-mysql.env
-            set +a
             docker run -it --net circleci_mm-test \
               --env-file="dotenv/test-schema-validation-mysql.env" \
               -v ~/mattermost:/mattermost \
