@@ -24,20 +24,21 @@ type mmPreviewExtractor struct {
 	pdfExtractor pdfExtractor
 }
 
+var mmpreviewSupportedExtensions = map[string]bool{
+	"ppt":  true,
+	"odp":  true,
+	"xls":  true,
+	"xlsx": true,
+	"ods":  true,
+}
+
 func newMMPreviewExtractor(url string, secret string, pdfExtractor pdfExtractor) *mmPreviewExtractor {
 	return &mmPreviewExtractor{url: url, secret: secret, pdfExtractor: pdfExtractor}
 }
 
 func (mpe *mmPreviewExtractor) Match(filename string) bool {
-	supportedExtensions := map[string]bool{
-		"ppt":  true,
-		"odp":  true,
-		"xls":  true,
-		"xlsx": true,
-		"ods":  true,
-	}
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
-	return supportedExtensions[extension]
+	return mmpreviewSupportedExtensions[extension]
 }
 
 func (mpe *mmPreviewExtractor) Extract(filename string, file io.Reader) (string, error) {
