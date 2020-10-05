@@ -48,16 +48,10 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, pos
 		rootID = post.RootId
 	}
 
-	parentID := post.Id
-	if post.ParentId != "" {
-		parentID = post.ParentId
-	}
-
 	autoResponderPost := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
 		RootId:    rootID,
-		ParentId:  parentID,
 		Type:      model.POST_AUTO_RESPONDER,
 		UserId:    receiver.Id,
 	}
