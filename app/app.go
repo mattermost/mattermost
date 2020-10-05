@@ -677,3 +677,7 @@ func (a *App) SetServer(srv *Server) {
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
 }
+
+func (a *App) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	return make(chan model.IntegrityCheckResult)
+}

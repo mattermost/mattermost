@@ -380,6 +380,7 @@ type AppIface interface {
 	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckForClientSideCert(r *http.Request) (string, string, string)
+	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
