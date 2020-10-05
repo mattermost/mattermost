@@ -42,7 +42,7 @@ In addition to the web interface, you can also download Mattermost clients for [
 
 Receive notifications of critical security updates. The sophistication of online attackers is perpetually increasing. If you are deploying Mattermost it is highly recommended you subscribe to the Mattermost Security Bulletin mailing list for updates on critical security releases.
 
-- [Subscribe here](https://mattermost.com/blog/category/security-updates/)
+- [Subscribe here now](https://mattermost.com/blog/category/security-updates/)
 
 ## Get Involved
 
@@ -54,7 +54,7 @@ Receive notifications of critical security updates. The sophistication of online
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
 - [Help translate Mattermost](http://docs.mattermost.com/developer/localization.html#translation-process)
 
-## Learn More
+## Learn More about Mattermost
 
 - [API Options - webhooks, slash commands, drivers and web service](https://api.mattermost.com/)
 - [See who's using Mattermost](https://mattermost.com/blog/category/customer-stories/)
@@ -69,3 +69,4 @@ Receive notifications of critical security updates. The sophistication of online
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
+## Thanks
