@@ -66,7 +66,6 @@ func getActualFileConfig(t *testing.T, path string) *model.Config {
 func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
 	assert.Equal(t, expectedCfg, actualCfg)
@@ -76,7 +75,6 @@ func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string
 func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
 	assert.NotEqual(t, expectedCfg, actualCfg)

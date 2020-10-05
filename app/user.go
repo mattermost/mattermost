@@ -2006,7 +2006,12 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 }
 
 func (a *App) userBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
-	return a.Srv().Store.Channel().UserBelongsToChannels(userId, channelIds)
+	belongs, err := a.Srv().Store.Channel().UserBelongsToChannels(userId, channelIds)
+	if err != nil {
+		return false, model.NewAppError("userBelongsToChannels", "app.channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return belongs, nil
 }
 
 func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {

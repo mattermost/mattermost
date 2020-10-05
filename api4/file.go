@@ -674,6 +674,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
+		return
 	}
 	defer fileReader.Close()
 

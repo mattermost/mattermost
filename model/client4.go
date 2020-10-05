@@ -116,6 +116,7 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 }
 
 func NewAPIv4Client(url string) *Client4 {
+	url = strings.TrimRight(url, "/")
 	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}, "", ""}
 }
 
@@ -331,6 +332,10 @@ func (c *Client4) GetPluginRoute(pluginId string) string {
 
 func (c *Client4) GetSystemRoute() string {
 	return "/system"
+}
+
+func (c *Client4) GetCloudRoute() string {
+	return "/cloud"
 }
 
 func (c *Client4) GetTestEmailRoute() string {
@@ -5604,4 +5609,70 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	}
 	defer closeBody(r)
 	return FileInfoFromJson(r.Body), BuildResponse(r)
+}
+
+// Cloud Section
+
+func (c *Client4) GetCloudProducts() ([]*Product, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/products", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudProducts []*Product
+	json.NewDecoder(r.Body).Decode(&cloudProducts)
+
+	return cloudProducts, BuildResponse(r)
+}
+
+func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response) {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/payment", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var setupIntent *StripeSetupIntent
+	json.NewDecoder(r.Body).Decode(&setupIntent)
+
+	return setupIntent, BuildResponse(r)
+}
+
+func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) *Response {
+	json, _ := json.Marshal(confirmRequest)
+
+	r, appErr := c.doApiPostBytes(c.GetCloudRoute()+"/payment/confirm", json)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/customer", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudCustomer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&cloudCustomer)
+
+	return cloudCustomer, BuildResponse(r)
+}
+
+func (c *Client4) GetSubscription() (*Subscription, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r)
 }

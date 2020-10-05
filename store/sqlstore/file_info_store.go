@@ -64,6 +64,24 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	return info, nil
 }
 
+func (fs SqlFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+	info.PreSave()
+	if err := info.IsValid(); err != nil {
+		return nil, err
+	}
+
+	n, err := fs.GetMaster().Update(info)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update FileInfo")
+	}
+	if n == 0 {
+		if err = fs.GetMaster().Insert(info); err != nil {
+			return nil, errors.Wrap(err, "failed to save FileInfo")
+		}
+	}
+	return info, nil
+}
+
 func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 

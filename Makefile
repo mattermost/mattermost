@@ -49,11 +49,6 @@ else
 	BUILD_CLIENT = false
 endif
 
-# these variables are used by QA to override location of InProduct Notices
-NOTICES_JSON_URL ?= https://notices.mattermost.com/
-NOTICES_FETCH_SECS ?= 3600
-NOTICES_SKIP_CACHE ?= false
-
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
@@ -66,9 +61,6 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_URL=$(NOTICES_JSON_URL)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS=$(NOTICES_FETCH_SECS)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_SKIP_CACHE=$(NOTICES_SKIP_CACHE)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -94,7 +86,7 @@ TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.4
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
@@ -123,9 +115,6 @@ ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
-
-# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD:=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -198,24 +187,15 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
-ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
-	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
-	@exit 1
-endif
-# Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
-	@echo mmctl installed
-else ifeq ($(PLATFORM),Darwin)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
-	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
-else ifeq ($(PLATFORM),Linux)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
-	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
-else ifeq ($(PLATFORM),Windows)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
-	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+	@echo "mmctl already exists in bin/mmctl not downloading a new version."
 else
-	@echo "mmctl error: can't detect OS"
+	@MMCTL_VERSION=$$(scripts/get_latest_release.sh mattermost/mmctl release-); if [ $$? -eq 0 ]; then \
+		scripts/download_mmctl_release.sh $$MMCTL_VERSION; \
+	else \
+		echo $$MMCTL_VERSION; \
+		exit 1; \
+	fi;
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
