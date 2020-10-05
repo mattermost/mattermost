@@ -351,7 +351,7 @@ func (h *Hub) Broadcast(message *model.WebSocketEvent) {
 	// `app.NewServer()` which returns a server, but only after that, we call
 	// `wsapi.Init()` to initialize the hub.  But in the `NewServer` call
 	// itself proceeds to broadcast some messages happily.  This needs to be
-	// fixed once the the wsapi cyclic dependency with server/app goes away.
+	// fixed once the wsapi cyclic dependency with server/app goes away.
 	// And possibly, we can look into doing the hub initialization inside
 	// NewServer itself.
 	if h != nil && message != nil {
