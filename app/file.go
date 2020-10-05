@@ -649,20 +649,13 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return nil, aerr
 	}
 
-	// Concurrently upload and update DB, and post-process the image.
-	wg := sync.WaitGroup{}
-
-	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.HasPreviewImage {
+	if !t.Raw && t.fileinfo.IsImage() {
 		file, aerr = a.FileReader(t.fileinfo.Path)
 		if aerr != nil {
 			return nil, aerr
 		}
 		defer file.Close()
-		wg.Add(1)
-		go func() {
-			t.postprocessImage(file)
-			wg.Done()
-		}()
+		t.postprocessImage(file)
 	}
 
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
@@ -674,8 +667,6 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-
-	wg.Wait()
 
 	return t.fileinfo, nil
 }
@@ -797,9 +788,12 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	h := decoded.Bounds().Dy()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
+		if !t.fileinfo.HasPreviewImage {
+			return
+		}
 		thumb := decoded
 		if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
 			if float64(h)/float64(w) < ImageThumbnailRatio {
@@ -813,11 +807,21 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 
 	go func() {
 		defer wg.Done()
+		if !t.fileinfo.HasPreviewImage {
+			return
+		}
 		preview := decoded
 		if w > ImagePreviewWidth {
 			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
 		}
 		writeJPEG(preview, t.fileinfo.PreviewPath)
+	}()
+
+	go func() {
+		defer wg.Done()
+		if t.fileinfo.MiniPreview == nil {
+			t.fileinfo.MiniPreview = model.GenerateMiniPreviewImage(decoded)
+		}
 	}()
 	wg.Wait()
 }
@@ -1071,6 +1075,41 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 }
 
+// generateMiniPreview updates mini preview if needed
+// will save fileinfo with the preview added
+func (a *App) generateMiniPreview(fi *model.FileInfo) {
+	if fi.IsImage() && fi.MiniPreview == nil {
+		data, err := a.ReadFile(fi.Path)
+		if err != nil {
+			mlog.Error("error reading image file", mlog.Err(err))
+			return
+		}
+		img, _, _ := prepareImage(data)
+		if img == nil {
+			return
+		}
+		fi.MiniPreview = model.GenerateMiniPreviewImage(img)
+		if _, appErr := a.Srv().Store.FileInfo().Upsert(fi); appErr != nil {
+			mlog.Error("creating mini preview failed", mlog.Err(appErr))
+		} else {
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
+		}
+	}
+}
+
+func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
+	wg := new(sync.WaitGroup)
+
+	wg.Add(len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		go func(fi *model.FileInfo) {
+			defer wg.Done()
+			a.generateMiniPreview(fi)
+		}(fileInfo)
+	}
+	wg.Wait()
+}
+
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
 	if err != nil {
@@ -1083,6 +1122,7 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 		}
 	}
 
+	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
 }
 
@@ -1100,6 +1140,8 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	a.generateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, nil
 }
