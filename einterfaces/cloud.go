@@ -8,12 +8,12 @@ import (
 )
 
 type CloudInterface interface {
-	GetCloudProducts() ([]*model.Product, *model.AppError)
+	GetCloudProducts(userID string) ([]*model.Product, *model.AppError)
 
-	CreateCustomerPayment() (*model.StripeSetupIntent, *model.AppError)
-	ConfirmCustomerPayment(*model.ConfirmPaymentMethodRequest) *model.AppError
+	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, *model.AppError)
+	ConfirmCustomerPayment(string, *model.ConfirmPaymentMethodRequest) *model.AppError
 
-	GetCloudCustomer() (*model.CloudCustomer, *model.AppError)
+	GetCloudCustomer(userID string) (*model.CloudCustomer, *model.AppError)
 
-	GetSubscription() (*model.Subscription, *model.AppError)
+	GetSubscription(userID string) (*model.Subscription, *model.AppError)
 }

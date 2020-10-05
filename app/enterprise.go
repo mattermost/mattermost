@@ -9,7 +9,10 @@ import (
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -120,9 +123,9 @@ func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInt
 	messageExportInterface = f
 }
 
-var cloudInterface func(*App) einterfaces.CloudInterface
+var cloudInterface func(configservice.ConfigService, store.Store, httpservice.HTTPService) einterfaces.CloudInterface
 
-func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
+func RegisterCloudInterface(f func(configservice.ConfigService, store.Store, httpservice.HTTPService) einterfaces.CloudInterface) {
 	cloudInterface = f
 }
 
@@ -202,6 +205,6 @@ func (a *App) initEnterprise() {
 		})
 	}
 	if cloudInterface != nil {
-		a.srv.Cloud = cloudInterface(a)
+		a.srv.Cloud = cloudInterface(a.Srv(), a.Srv().Store, a.HTTPService())
 	}
 }
