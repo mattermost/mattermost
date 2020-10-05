@@ -39,6 +39,12 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := setUserDataHeaders(c, w)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	subscription, appErr := c.App.Cloud().GetSubscription()
 
 	if appErr != nil {
@@ -63,6 +69,12 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := setUserDataHeaders(c, w)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -92,6 +104,12 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := setUserDataHeaders(c, w)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	customer, appErr := c.App.Cloud().GetCloudCustomer()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -115,6 +133,12 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := setUserDataHeaders(c, w)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -149,6 +173,12 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	err := setUserDataHeaders(c, w)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord("confirmCustomerPayment", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
@@ -173,4 +203,16 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+func setUserDataHeaders(c *Context, w http.ResponseWriter) error {
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Add("MM_CLOUD_USER_ID", user.Id)
+	w.Header().Add("MM_CLOUD_USER_EMAIL", user.Email)
+
+	return nil
 }
