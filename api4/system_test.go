@@ -25,10 +25,9 @@ func TestGetPing(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("basic ping", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
@@ -40,34 +39,36 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "basic ping")
 
-	})
-
-	t.Run("with server status", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
+
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
 
 		t.Run("unhealthy", func(t *testing.T) {
+			oldDriver := th.App.Config().FileSettings.DriverName
 			badDriver := "badDriverName"
 			th.App.Config().FileSettings.DriverName = &badDriver
+			defer func() {
+				th.App.Config().FileSettings.DriverName = oldDriver
+			}()
 
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "with server status")
 
-	})
-
-	t.Run("ping feature flag test", func(t *testing.T) {
-		resp, appErr := th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
@@ -86,7 +87,7 @@ func TestGetPing(t *testing.T) {
 		oldConfig := th.App.Config().Clone()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
 
-		resp, appErr = th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
@@ -94,7 +95,7 @@ func TestGetPing(t *testing.T) {
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
-	})
+	}, "ping feature flag test")
 }
 
 func TestGetAudits(t *testing.T) {
