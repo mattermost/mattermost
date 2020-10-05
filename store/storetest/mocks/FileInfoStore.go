@@ -252,3 +252,26 @@ func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
 	return r0, r1
 }
+
+// Upsert provides a mock function with given fields: info
+func (_m *FileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
+	ret := _m.Called(info)
+
+	var r0 *model.FileInfo
+	if rf, ok := ret.Get(0).(func(*model.FileInfo) *model.FileInfo); ok {
+		r0 = rf(info)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.FileInfo) error); ok {
+		r1 = rf(info)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

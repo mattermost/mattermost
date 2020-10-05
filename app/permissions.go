@@ -25,7 +25,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Reset all Channels to not have a scheme.
 	if err := a.Srv().Store.Channel().ResetAllChannelSchemes(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.channel.reset_all_channel_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Custom Role assignments to Users.
@@ -40,7 +40,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Reset all Custom Role assignments to ChannelMembers.
 	if err := a.Srv().Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.channel.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Purge all schemes from the database.
