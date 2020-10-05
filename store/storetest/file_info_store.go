@@ -434,7 +434,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		expected := []*model.FileInfo{info1, info2}
 		sort.Sort(byFileInfoId(expected))
 		sort.Sort(byFileInfoId(data))
-		assert.Equal(t, expected, data)
+		assert.EqualValues(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
@@ -488,7 +488,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
 		require.Nil(t, err)
 		info.PostId = postId
-		assert.Equal(t, []*model.FileInfo{info}, data)
+		assert.EqualValues(t, []*model.FileInfo{info}, data)
 	})
 }
 

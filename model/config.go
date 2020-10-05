@@ -875,6 +875,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -909,6 +910,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
+	}
+
+	if s.EnableSharedChannels == nil {
+		s.EnableSharedChannels = NewBool(false)
 	}
 }
 
@@ -2580,7 +2585,7 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
+	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
