@@ -209,12 +209,11 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 }
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "Limit": limit / 2}
+	props := map[string]interface{}{"StartTime": after, "Limit": limit}
 
-	var explictDeleteAtIndex, explictUpdateAtIndex string
+	var explictUpdateAtIndex string
 
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		explictDeleteAtIndex = "FORCE INDEX (idx_posts_delete_at)"
 		explictUpdateAtIndex = "FORCE INDEX (idx_posts_update_at)"
 	}
 
@@ -246,50 +245,18 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Users.Username,
 			Bots.UserId IS NOT NULL AS IsBot
 		FROM
-			Posts
+			Posts %s
 		LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			Posts.Id IN (
-				SELECT
-					*
-				FROM
-					(
-						(
-							SELECT
-								Id
-							FROM
-								Posts %s
-							WHERE
-								DeleteAt > :StartTime
-							ORDER BY
-								UpdateAt,
-								Id
-							LIMIT
-								:Limit
-						)
-						UNION
-						(
-							SELECT
-								Id
-							FROM
-								Posts %s
-							WHERE
-								UpdateAt > :StartTime
-							ORDER BY
-								UpdateAt,
-								Id
-							LIMIT
-								:Limit
-						)
-					) AS t1
-			)
+			Posts.UpdateAt > :StartTime
 			AND Posts.Type NOT LIKE 'system_%%'
 		ORDER BY
-			Posts.UpdateAt;
-	`, explictDeleteAtIndex, explictUpdateAtIndex)
+			Posts.UpdateAt
+		LIMIT :Limit;
+	`, explictUpdateAtIndex)
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
