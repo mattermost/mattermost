@@ -1909,8 +1909,8 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		cmc = append(cmc, &model.ChannelMemberCountByGroup{
 			GroupId:                     model.NewId(),
-			ChannelMemberCount:          1,
-			ChannelMemberTimezonesCount: 1,
+			ChannelMemberCount:          int64(i),
+			ChannelMemberTimezonesCount: int64(i),
 		})
 	}
 	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
@@ -1919,4 +1919,8 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, len(resp), 5)
+	for i := 0; i < 5; i++ {
+		assert.Equal(t, resp[i].ChannelMemberCount, int64(i))
+		assert.Equal(t, resp[i].ChannelMemberTimezonesCount, int64(i))
+	}
 }

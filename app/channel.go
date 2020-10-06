@@ -2858,7 +2858,7 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
 	channelMemberCounts, err := a.Srv().Store.Channel().GetMemberCountsByGroup(channelID, includeTimezones)
 	if err != nil {
-		return nil, model.NewAppError("Api4.GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return channelMemberCounts, nil
