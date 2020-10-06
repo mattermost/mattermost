@@ -5639,18 +5639,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
