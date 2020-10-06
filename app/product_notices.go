@@ -36,6 +36,20 @@ var cachedUserCount int64
 var cachedNotices model.ProductNotices
 var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
 
+func cleanupVersion(originalVersion string) string {
+	// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
+	version := strings.Replace(originalVersion, "release-", "", 1)
+	version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
+	versionParts := strings.Split(version, ".")
+	var versionPartsOut []string
+	for _, part := range versionParts {
+		if _, err := strconv.ParseInt(part, 10, 16); err == nil {
+			versionPartsOut = append(versionPartsOut, part)
+		}
+	}
+	return strings.Join(versionPartsOut, ".")
+}
+
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
@@ -81,17 +95,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if current server version is notice range
 	if cnd.ServerVersion != nil {
-		// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
-		version := strings.Replace(model.BuildNumber, "release-", "", 1)
-		version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
-		versionParts := strings.Split(version, ".")
-		var versionPartsOut []string
-		for _, part := range versionParts {
-			if _, err := strconv.ParseInt(part, 10, 16); err == nil {
-				versionPartsOut = append(versionPartsOut, part)
-			}
-		}
-		version = strings.Join(versionPartsOut, ".")
+		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
 			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
