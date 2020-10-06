@@ -1945,6 +1945,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 }
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
+	go s.handleAutoFollow(posts)
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {
@@ -2006,4 +2007,10 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 		}
 	}
 	return nil
+}
+
+func (s *SqlPostStore) handleAutoFollow(posts []*model.Post) {
+	for _, post := range posts {
+		post.GetExplicitMentions()
+	}
 }
