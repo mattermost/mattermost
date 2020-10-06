@@ -1906,15 +1906,17 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockChannelStore := mocks.ChannelStore{}
 	cmc := []*model.ChannelMemberCountByGroup{}
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 5; i++ {
 		cmc = append(cmc, &model.ChannelMemberCountByGroup{
-			GroupId:                     "1",
+			GroupId:                     model.NewId(),
 			ChannelMemberCount:          1,
 			ChannelMemberTimezonesCount: 1,
 		})
 	}
 	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
-	_, err := th.App.GetMemberCountsByGroup("channelID", true)
+	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
 	require.Nil(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, len(resp), 5)
 }
