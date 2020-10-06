@@ -1268,6 +1268,9 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
 	return nil
 }
 
+// UpdateLastTeamIconUpdate sets the last updated time for the icon based on the passed in teamId. The
+// LastTeamIconUpdate and UpdateAt fields are set to the passed in curTime. Returns nil on success and the error
+// otherwise
 func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) error {
 	query, args, err := s.getQueryBuilder().
 		Update("Teams").
@@ -1494,6 +1497,7 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]stri
 	return teamIds, nil
 }
 
+// GetTeamMembersForExport gets the various teams for which a user, denoted by userId, is a part of.
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
 	var members []*model.TeamMemberForExport
 	query, args, err := s.getQueryBuilder().
@@ -1514,6 +1518,7 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 	return members, nil
 }
 
+//UserBelongsToTeams returns true if the user denoted by userId is a member of the teams in the teamIds string array.
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, error) {
 	idQuery := sq.Eq{
 		"UserId":   userId,
@@ -1534,6 +1539,8 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 	return c > 0, nil
 }
 
+// UpdateMembersRole updates all the members of teamID in the userIds string array to be admins and setting all other
+// users to be not admin.
 func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 	query, args, err := s.getQueryBuilder().
 		Update("TeamMembers").
