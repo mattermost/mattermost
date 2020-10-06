@@ -5675,30 +5675,6 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "There was an error creating actiance warning text file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "There was an error writing to the actiance xml file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "There was an error writing to the actiance XML file"
-  },
-  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
