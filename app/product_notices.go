@@ -6,6 +6,8 @@ package app
 import (
 	"net/http"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,6 +33,21 @@ var cachedUserCount int64
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
+var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
+
+func cleanupVersion(originalVersion string) string {
+	// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
+	version := strings.Replace(originalVersion, "release-", "", 1)
+	version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
+	versionParts := strings.Split(version, ".")
+	var versionPartsOut []string
+	for _, part := range versionParts {
+		if _, err := strconv.ParseInt(part, 10, 16); err == nil {
+			versionPartsOut = append(versionPartsOut, part)
+		}
+	}
+	return strings.Join(versionPartsOut, ".")
+}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -65,7 +82,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC()
+		now := time.Now().UTC().Truncate(time.Hour * 24)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
@@ -76,10 +93,13 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	// check if current server version is notice range
-	serverVersion, err := semver.NewVersion(model.BuildNumber)
-	if err != nil {
-		mlog.Warn("Skipping server version check, build number is not in semver format", mlog.String("build_number", model.BuildNumber))
-	} else {
+	if cnd.ServerVersion != nil {
+		version := cleanupVersion(model.BuildNumber)
+		serverVersion, err := semver.NewVersion(version)
+		if err != nil {
+			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
+			return false, nil
+		}
 		for _, v := range cnd.ServerVersion {
 			c, err := semver.NewConstraint(v)
 			if err != nil {
