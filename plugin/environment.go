@@ -90,7 +90,6 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 		if info.Manifest != nil {
 			ret = append(ret, info)
 		}
-
 	}
 	return ret, nil
 }

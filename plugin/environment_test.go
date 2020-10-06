@@ -37,12 +37,8 @@ func TestAvaliablePlugins(t *testing.T) {
 		defer os.RemoveAll(filepath.Join(dir, "plugin1"))
 
 		path := filepath.Join(dir, "plugin1", "plugin.json")
-		f, err := os.Create(path)
+		err = ioutil.WriteFile(path, []byte(bundle1.Manifest.ToJson()), 0644)
 		require.NoError(t, err)
-
-		_, err = f.WriteString(bundle1.Manifest.ToJson())
-		require.NoError(t, err)
-		f.Close()
 
 		bundles, err := env.Available()
 		require.NoError(t, err)
@@ -55,12 +51,8 @@ func TestAvaliablePlugins(t *testing.T) {
 		defer os.RemoveAll(filepath.Join(dir, "plugin2"))
 
 		path := filepath.Join(dir, "plugin2", "manifest.json")
-		f, err := os.Create(path)
+		err = ioutil.WriteFile(path, []byte("{}"), 0644)
 		require.NoError(t, err)
-
-		_, err = f.WriteString("{}")
-		require.NoError(t, err)
-		f.Close()
 
 		bundles, err := env.Available()
 		require.NoError(t, err)
