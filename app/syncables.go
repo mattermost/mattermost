@@ -209,12 +209,15 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
 			// TODO: Should we change the key "store.update_error" to "app.update_error"? It is very general and changing it now will modify lots of files
-			return model.NewAppError("SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
-
 		return nil
 	case model.GroupSyncableTypeChannel:
-		return a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		if nErr != nil {
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+		return nil
 	default:
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
