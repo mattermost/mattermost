@@ -6,6 +6,8 @@ package app
 import (
 	"net/http"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +34,7 @@ var cachedUserCount int64
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
+var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -78,19 +81,29 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if current server version is notice range
 	if cnd.ServerVersion != nil {
-		serverVersion, err := semver.NewVersion(model.BuildNumber)
+		// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
+		version := strings.Replace(model.BuildNumber, "release-", "", 1)
+		version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
+		versionParts := strings.Split(version, ".")
+		var versionPartsOut []string
+		for _, part := range versionParts {
+			if _, err := strconv.ParseInt(part, 10, 16); err == nil {
+				versionPartsOut = append(versionPartsOut, part)
+			}
+		}
+		version = strings.Join(versionPartsOut, ".")
+		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
-			mlog.Warn("Build number is not in semver format", mlog.String("build_number", model.BuildNumber))
+			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
 			return false, nil
-		} else {
-			for _, v := range cnd.ServerVersion {
-				c, err := semver.NewConstraint(v)
-				if err != nil {
-					return false, errors.Wrapf(err, "Cannot parse version range %s", v)
-				}
-				if !c.Check(serverVersion) {
-					return false, nil
-				}
+		}
+		for _, v := range cnd.ServerVersion {
+			c, err := semver.NewConstraint(v)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
+			}
+			if !c.Check(serverVersion) {
+				return false, nil
 			}
 		}
 	}
