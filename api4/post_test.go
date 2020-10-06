@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +21,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
@@ -1354,6 +1357,26 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
 	CheckNoError(t, resp)
+
+	mockStore := mocks.Store{}
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(nil, errors.New("some-error"))
+	mockPostStore.On("ClearCaches").Return()
+	mockStore.On("Team").Return(th.App.Srv().Store.Team())
+	mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+	mockStore.On("User").Return(th.App.Srv().Store.User())
+	mockStore.On("Scheme").Return(th.App.Srv().Store.Scheme())
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+	mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+	mockStore.On("System").Return(th.App.Srv().Store.System())
+	mockStore.On("License").Return(th.App.Srv().Store.License())
+	mockStore.On("Role").Return(th.App.Srv().Store.Role())
+	mockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &mockStore
+
+	_, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckInternalErrorStatus(t, resp)
 }
 
 func TestGetPostsBefore(t *testing.T) {

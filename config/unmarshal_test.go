@@ -16,28 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func TestGetDefaultsFromStruct(t *testing.T) {
-	s := struct {
-		TestSettings struct {
-			IntValue    int
-			BoolValue   bool
-			StringValue string
-		}
-		PointerToTestSettings *struct {
-			Value int
-		}
-	}{}
-
-	defaults := getDefaultsFromStruct(s)
-
-	assert.Equal(t, defaults["TestSettings.IntValue"], 0)
-	assert.Equal(t, defaults["TestSettings.BoolValue"], false)
-	assert.Equal(t, defaults["TestSettings.StringValue"], "")
-	assert.Equal(t, defaults["PointerToTestSettings.Value"], 0)
-	assert.NotContains(t, defaults, "PointerToTestSettings")
-	assert.Len(t, defaults, 4)
-}
-
 func TestUnmarshalConfig(t *testing.T) {
 	_, _, err := unmarshalConfig(bytes.NewReader([]byte(``)), false)
 	require.EqualError(t, err, "parsing error at line 1, character 1: unexpected end of JSON input")
@@ -259,6 +237,26 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 		termsOfServiceLinkInEnv, ok := supportSettingsAsMap["TermsOfServiceLink"].(bool)
 		require.True(t, ok || termsOfServiceLinkInEnv, "TermsOfServiceLink should be in envConfig")
+	})
+
+	t.Run("feature flag", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "value")
+		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
+		require.Nil(t, err)
+		require.NotNil(t, cfg.FeatureFlags)
+
+		assert.Equal(t, "value", cfg.FeatureFlags.TestFeature)
+
+		featureFlags, ok := envCfg["FeatureFlags"]
+		require.True(t, ok, "FeatureFlags is missing from envConfig")
+
+		featureFlagsAsMap, ok := featureFlags.(map[string]interface{})
+		require.True(t, ok, "FeatureFlags is not a map in envConfig")
+
+		testFeatureInEnv, ok := featureFlagsAsMap["TestFeature"].(bool)
+		require.True(t, ok || testFeatureInEnv, "TestFeature should be in envConfig")
 	})
 
 	t.Run("plugin directory settings", func(t *testing.T) {
