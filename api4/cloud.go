@@ -39,10 +39,9 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	subscription, appErr := c.App.Cloud().GetSubscription(c.App.Session().UserId)
-
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	subscription, err := c.App.Cloud().GetSubscription(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -66,9 +65,9 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	products, appErr := c.App.Cloud().GetCloudProducts(c.App.Session().UserId)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	products, err := c.App.Cloud().GetCloudProducts(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -92,9 +91,9 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, appErr := c.App.Cloud().GetCloudCustomer(c.App.Session().UserId)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	customer, err := c.App.Cloud().GetCloudCustomer(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -121,9 +120,9 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createCustomerPayment", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	intent, appErr := c.App.Cloud().CreateCustomerPayment(c.App.Session().UserId)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	intent, err := c.App.Cloud().CreateCustomerPayment(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -164,9 +163,9 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appErr := c.App.Cloud().ConfirmCustomerPayment(c.App.Session().UserId, confirmRequest)
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+	err = c.App.Cloud().ConfirmCustomerPayment(c.App.Session().UserId, confirmRequest)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
