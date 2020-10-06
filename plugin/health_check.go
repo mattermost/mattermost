@@ -51,7 +51,7 @@ func (job *PluginHealthCheckJob) run() {
 // If the plugin passes the health check, do nothing.
 // If the plugin fails the health check, the function either restarts or deactivates the plugin, based on the quantity and frequency of its failures.
 func (job *PluginHealthCheckJob) CheckPlugin(id string) {
-	err := job.env.performHealthCheck(id)
+	err := job.env.PerformHealthCheck(id)
 	if err == nil {
 		return
 	}

@@ -20,6 +20,39 @@ func (api *API) InitCloud() {
 	// POST /api/v4/cloud/payment/confirm
 	api.BaseRoutes.Cloud.Handle("/payment", api.ApiSessionRequired(createCustomerPayment)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/payment/confirm", api.ApiSessionRequired(confirmCustomerPayment)).Methods("POST")
+
+	// GET /api/v4/cloud/customer
+	api.BaseRoutes.Cloud.Handle("/customer", api.ApiSessionRequired(getCloudCustomer)).Methods("GET")
+
+	// GET /api/v4/cloud/subscription
+	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
+}
+
+func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	subscription, appErr := c.App.Cloud().GetSubscription()
+
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(subscription)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -42,6 +75,32 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(products)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
+func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	customer, appErr := c.App.Cloud().GetCloudCustomer()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(customer)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getCloudCustomer", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

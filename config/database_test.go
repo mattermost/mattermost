@@ -100,7 +100,6 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	_, actualCfg := getActualDatabaseConfig(t)
 	assert.Equal(t, expectedCfg, actualCfg)
 }
@@ -109,7 +108,6 @@ func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	t.Helper()
 
-	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	_, actualCfg := getActualDatabaseConfig(t)
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }

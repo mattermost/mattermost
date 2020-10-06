@@ -436,6 +436,8 @@ type AppIface interface {
 	CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
 	CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
+	DBHealthCheckDelete() error
+	DBHealthCheckWrite() error
 	DataRetention() einterfaces.DataRetentionInterface
 	DeactivateGuests() *model.AppError
 	DeactivateMfa(userId string) *model.AppError
