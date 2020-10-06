@@ -1917,10 +1917,5 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockStore.On("Channel").Return(&mockChannelStore)
 	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
 	require.Nil(t, err)
-	require.NotNil(t, resp)
-	assert.Equal(t, len(resp), 5)
-	for i := 0; i < 5; i++ {
-		assert.Equal(t, resp[i].ChannelMemberCount, int64(i))
-		assert.Equal(t, resp[i].ChannelMemberTimezonesCount, int64(i))
-	}
+	require.ElementsMatch(t, cmc, resp)
 }
