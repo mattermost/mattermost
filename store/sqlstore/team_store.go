@@ -1539,8 +1539,8 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 	return c > 0, nil
 }
 
-// UpdateMembersRole updates all the members of teamID in the userIds string array to be admins and setting all other
-// users to be not admin.
+// UpdateMembersRole updates all the members of teamID in the userIds string array to be admins and sets all other
+// users as not being admin.
 func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 	query, args, err := s.getQueryBuilder().
 		Update("TeamMembers").
