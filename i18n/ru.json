@@ -7213,7 +7213,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Обновление до версии Mattermost Корпоративный"
+    "translation": "Масштабирование с Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
@@ -7221,7 +7221,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Интегрировать SAML 2.0"
+    "translation": "Масштабирование с Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
@@ -7229,7 +7229,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Интегрировать AD/LDAP"
+    "translation": "Масштабирование с Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
@@ -7730,5 +7730,61 @@
   {
     "id": "app.file_info.get.app_error",
     "translation": "Не удалось получить информацию о файле."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Невозможно получить каналы по идентификаторам."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Невозможно подсчитать сообщения с указанной даты."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Вход в CWS запрещен."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Не удалось получить загрузки."
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "Вы достигли лимита пользователей бесплатного уровня"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Не удалось проверить условия уведомления о продукте"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Не удалось получить уведомления о продукте"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Невозможно проанализировать тело запроса."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Произошла ошибка при записи в S3."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Произошла ошибка при дописывании в файл в S3."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Произошла ошибка при открытии файла."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Файл не существует."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Не удалось перенести хранилище конфигурации."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP недоступен."
   }
 ]
