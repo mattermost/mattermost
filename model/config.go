@@ -104,7 +104,7 @@ const (
 	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
 
 	TEAM_SETTINGS_DEFAULT_SITE_NAME                = "Mattermost"
-	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
+	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 1000
 	TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT        = ""
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
@@ -351,12 +351,7 @@ type ServiceSettings struct {
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
-		// If the site URL is also not present then assume this is a clean install
-		if s.SiteURL == nil {
-			s.EnableEmailInvitations = NewBool(false)
-		} else {
-			s.EnableEmailInvitations = NewBool(true)
-		}
+		s.EnableEmailInvitations = NewBool(true)
 	}
 
 	if s.SiteURL == nil {
@@ -686,7 +681,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
+		s.ExperimentalChannelSidebarOrganization = NewString("default_on")
 	}
 
 	if s.ExperimentalDataPrefetch == nil {
@@ -734,7 +729,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableBotAccountCreation == nil {
-		s.EnableBotAccountCreation = NewBool(false)
+		s.EnableBotAccountCreation = NewBool(true)
 	}
 
 	if s.EnableSVGs == nil {
@@ -814,11 +809,11 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
-		s.EnableExperimentalGossipEncryption = NewBool(false)
+		s.EnableExperimentalGossipEncryption = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -896,7 +891,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 	}
 
 	if s.RestrictSystemAdmin == nil {
-		s.RestrictSystemAdmin = NewBool(false)
+		s.RestrictSystemAdmin = NewBool(true)
 	}
 
 	if s.CloudUserLimit == nil {
@@ -1066,11 +1061,11 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxIdleConns == nil {
-		s.MaxIdleConns = NewInt(20)
+		s.MaxIdleConns = NewInt(10)
 	}
 
 	if s.MaxOpenConns == nil {
-		s.MaxOpenConns = NewInt(300)
+		s.MaxOpenConns = NewInt(100)
 	}
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
@@ -1434,7 +1429,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.RequireEmailVerification == nil {
-		s.RequireEmailVerification = NewBool(false)
+		s.RequireEmailVerification = NewBool(true)
 	}
 
 	if s.FeedbackName == nil {
@@ -1442,11 +1437,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.FeedbackEmail == nil {
-		s.FeedbackEmail = NewString("test@example.com")
+		s.FeedbackEmail = NewString("feedback@mattermost.com")
 	}
 
 	if s.ReplyToAddress == nil {
-		s.ReplyToAddress = NewString("test@example.com")
+		s.ReplyToAddress = NewString("noreply@mattermost.com")
 	}
 
 	if s.FeedbackOrganization == nil {
@@ -1482,7 +1477,7 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
-		s.ConnectionSecurity = NewString(CONN_SECURITY_NONE)
+		s.ConnectionSecurity = NewString(CONN_SECURITY_TLS)
 	}
 
 	if s.SendPushNotifications == nil {
@@ -2763,7 +2758,7 @@ type GuestAccountsSettings struct {
 
 func (s *GuestAccountsSettings) SetDefaults() {
 	if s.Enable == nil {
-		s.Enable = NewBool(false)
+		s.Enable = NewBool(true)
 	}
 
 	if s.AllowEmailAccounts == nil {
@@ -2953,11 +2948,7 @@ func (o *Config) SetDefaults() {
 	o.SamlSettings.SetDefaults()
 
 	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_USERNAME)
-
-		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
-			*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
-		}
+		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_FULLNAME)
 	}
 
 	o.SqlSettings.SetDefaults(isUpdate)

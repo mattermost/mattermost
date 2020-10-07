@@ -212,6 +212,13 @@ func Setup(tb testing.TB) *TestHelper {
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
 	th.InitLogin()
+
+	// Restoring defaults expected for tests
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		*cfg.EmailSettings.RequireEmailVerification = false
+	})
+
 	return th
 }
 
