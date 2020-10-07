@@ -8273,5 +8273,41 @@
   {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "Aantal berichten kan niet worden opgehaald."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin voor /{{.Command}} werkt niet. Contaceer je systeembeheerder"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashte de {{.PluginId}} plugin. Contacteer je systeembeheerder"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "We ontvingen een ongeldige tijd in het antwoord van de Identity Provider. Neem contact op met de beheerder."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "Fout bij het verwerken van het verzoek naar CWS"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "Interne fout bij het opmaken van het verzoek naar CWS"
+  },
+  {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "Authenticatie tegenover CWS mislukt"
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Fout bij het oplijsten van de objecten."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Fout bij het verwerken van het verzoek naar CWS."
   }
 ]
