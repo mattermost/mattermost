@@ -7243,7 +7243,7 @@
   },
   {
     "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。"
   },
   {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -7263,7 +7263,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost 強烈建議將使用者數量超過 {limit} 的佈署升級至企業版，企業版提供使用者管理、伺服器叢集、效能監控等功能。"
+    "translation": "Mattermost 強烈建議將使用者數量超過 {limit} 的佈署升級至企業版，企業版提供使用者管理、伺服器叢集、效能監控等功能。\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -7604,5 +7604,565 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "無效的 UserId"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "無效的 Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "無效的 ChannelId。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "取得訊息的檔案資訊失敗。"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "載入 LDAP TLS 金鑰檔案時發生錯誤。"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "更新上傳工作階段失敗。"
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "儲存上傳時失敗。"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "更新團隊時發生錯誤。"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "搜尋團隊時發生錯誤。"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "無法重置團隊配置。"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "由於團隊成員數量已達上限，無法建立新的團隊成員身份"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "無法取得團隊未讀訊息。"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "無效的路徑"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "無效的 FileOffset"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "無效的本地儲存目錄。不得為空。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "取得訊息的檔案資訊失敗。"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "無法從資料庫取得最老的實體 (使用者、頻道或訊息)"
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "讀取檔案失敗。"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "無法上傳至已刪除的頻道。"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "搜尋私人團隊時發生錯誤。"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "必須更新現存團隊。"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "無法刪除現存團隊。"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "無法建立新的團隊成員身份"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "無法取得團隊成員。"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "搜尋訊息發生錯誤"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "無效的類別"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "無效的 ID"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "無效的檔案大小"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "無效的建立時間"
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "所有的 IncludeDeletedChannels 參數必須有同樣的值。"
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "無效的模組 ID。"
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "取得訊息的檔案資訊失敗。"
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "建立金鑰組發生錯誤"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "載入 LDAP TLS 憑證檔案發生錯誤。"
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "無法轉換機器人至使用者。"
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "儲存檔案訊息失敗。"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} 尺寸超過限制 ({{.Width}}x{{.Height}} 像素)。"
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "上傳資料失敗。第一部份最少必須有 {{.Size}} 位元組。"
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "無法從一個以上的要求上傳資料。"
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "無法取得使用者的上傳檔。"
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "無法取得上傳檔。"
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "無法上傳檔案。檔案過大。"
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "無法上傳至指定頻道。"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "無法確定使用者是否屬於團隊列表。"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "無法尋找現有團隊以更新。"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "搜尋公開團隊時發生錯誤。"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "無法儲存團隊成員。"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "無法儲存團隊。"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "無法移除團隊成員。"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "更新團隊成員失敗。"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "由於已存在，無法建立新的團隊成員身份"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "無法取得使用者的團隊列表。"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "無法取得團隊成員。"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "找不到對應該使用者 ID 與團隊 ID 的團隊成員。"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "尋找現有團隊失敗。"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "無法計數團隊成員。"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "無法取得團隊成員。"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "尋找現有團隊失敗。"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "尋找現有團隊失敗。"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "無法取得全部的團隊。"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "無法取得分頁內全部的私人團隊。"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "無法取得全部的私人團隊。"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "無法取得全部的團隊。"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "無法計數團隊成員。"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "尋找團隊時發生錯誤。"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "尋找現有團隊失敗。"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "取得團隊成員失敗。"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "無法計數團隊。"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "無法計數公開團隊。"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "無法計數私人團隊。"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "無法取得頻道的訊息。"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "無法取得頻道的訊息。"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "無法取得指定時間附近的訊息。"
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "無法取得指定時間以後的訊息。"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "無法取得被標記的訊息。"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "由於團隊不允許更多成員，無法匯入團隊成員身份"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "無法匯入團隊成員身份"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "由於已存在，無法匯入新的團隊成員身份"
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "頻率限制發生錯誤。"
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "超過邀請電子郵件頻率限制。將在 {{.ResetAfter}} 秒後重置。請在 {{.ResetAfter}} 秒後重新嘗試。"
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "沒有設定頻率限制。"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "由於團隊不允許更多成員，無法建立預設團隊成員身份"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "由於已存在，無法建立預設團隊成員身份"
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "無法建立預設團隊成員身份"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "無法將頻道標為尚未閱讀。"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "無法更新最後觀看時間。"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "無法移除頻道成員。"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "無法移除頻道成員。"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "無法取得頻道數量。"
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "無法取得頻道類型數量。"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "無法取得公開頻道。"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "無法取得頻道成員數量。"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "無法取得頻道釘選訊息數量。"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "無法取得頻道成員。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "找不到頻道。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "無法根據 ID 取得頻道。"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "無法計數給定日期之後的訊息。"
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "只有系統管理員能設定已被雜湊運算過的密碼。"
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "無效的 CWS Token"
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "無效的 Content-Length。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "無法更新至企業版。無法驗證已下載執行檔的數位簽章。"
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "插入資料至資料庫失敗。"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "無法找到被釘選的訊息。"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "無法增加提及計數。"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "無法取得私人頻道。"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "無法取得頻道成員"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "找不到對應該使用者 ID 與頻道 ID 的頻道成員。"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "無法取得該投稿的頻道。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "無法取得頻道"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS 登入被禁止。"
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "無法取得上傳檔。"
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "無法取得上傳檔。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "無法升級至企業版。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "無法升級至企業版。此功能只能在 x86-64 架構下的 Linux 系統上工作。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "無法升級至企業版。Mattermost 系統使用者 {{.MattermostUsername}} 沒有必要執行檔的寫入權限。系統管理員可以在 Mattermost 伺服器上執行下列命令以更新檔案權限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\n變更檔案權限後，請重新嘗試升級。當完成升級並重新啟動後，記得還原執行檔權限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "無法升級至企業版。Mattermost 系統使用者 {{.MattermostUsername}} 沒有必要執行檔的寫入權限。系統管理員可以在 Mattermost 伺服器上執行下列命令以更新檔案權限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\n變更檔案權限後，請重新嘗試升級。當完成升級並重新啟動後，記得還原執行檔權限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "無法升級至企業版。Mattermost 系統使用者 {{.MattermostUsername}} 沒有必要執行檔的寫入權限。系統管理員可以在 Mattermost 伺服器上執行下列命令以更新檔案權限：\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n變更檔案權限後，請重新嘗試升級。當完成升級並重新啟動後，記得還原執行檔權限：\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "無法升級至企業版。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "正在升級至 Mattermost 企業版。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "無法升級，目前已運行 Mattermost 企業版。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "已升級至 Mattermost 企業版。請重新啟動伺服器以完成升級。"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+    "translation": "診斷 ID： "
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "使用者數量已達到免費層上限"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "遷移至 SAML 失敗。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+    "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+    "translation": "一共有 400 位使用者在此 Mattermost。當 Mattermost 連接您組織的單一登入提供者時，使用者可以在使用 Mattermost 時無須重新輸入密碼。我們建議將 Mattermost 與 SAML 2.0 提供者整合。\n\n[了解更多有關與 SAML 2.0 整合](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "無法解析要求本文。"
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "寫入 S3 時遇到錯誤"
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "在 S3 附加檔案時發生錯誤。"
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "開啟檔案時發生錯誤。"
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "檔案不存在。"
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "無法從工作階段 UserID 取得使用者。"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "遷移設定儲存失敗。"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "無法使用 LDAP。"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "解析 multiform 要求時發生錯誤"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "驗證產品通知條件失敗"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "解析產品通知失敗"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "擷取產品通知失敗"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "清除舊產品通知失敗"
   }
 ]
