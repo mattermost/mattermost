@@ -172,9 +172,6 @@ func (s *Server) initEnterprise() {
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
-	if cloudInterface != nil {
-		s.Cloud = cloudInterface(s, s.Store, s.HTTPService)
-	}
 }
 
 func (a *App) initEnterprise() {
