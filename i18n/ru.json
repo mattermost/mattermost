@@ -4952,10 +4952,6 @@
         "translation": "Не удалось получить количество удалённых каналов по типам."
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Не удалось получить количество каналов по типам."
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
@@ -4988,56 +4984,12 @@
         "translation": "Невозможно получить каналы по предоставленной схеме."
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Невозможно получить количество каналов."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Невозможно получить каналы."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Каналы не найдены."
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Мы не смогли получить канал для данного сообщения."
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Не удалось получить участника канала."
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Не найдено ни одного участника канала по данным идентификаторам пользователя и канала."
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Не удалось получить количество участников канала."
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Мы не смогли получить участника канала для данного сообщения."
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Не удалось получить участников канала."
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Не удалось получить участников канала."
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Невозможно получить публичные каналы."
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Не удалось получить список непрочитанных сообщений."
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Невозможно увеличить количество упоминаний."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5056,20 +5008,8 @@
         "translation": "Не удалось обновить участника канала."
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Невозможно удалить участника канала."
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Невозможно найти прикрепленные сообщения."
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Мы не смогли удалить деактивированных пользователей из канала."
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Невозможно удалить участника канала."
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5108,28 +5048,8 @@
         "translation": "Попытка создать канал, не являющийся личным с использованием SaveDirectChannel."
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию."
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Участник канала с таким идентификатором уже существует."
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию."
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Возникла проблема при поиске каналов."
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Ну удалось обновить время последнего просмотра."
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Возникла ошибка при обновлении участника канала."
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5164,24 +5084,12 @@
         "translation": "Невозможно получить количество пользователей с сообщениями."
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Невозможно получить помеченные сообщения."
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Не удалось получить родительский пост для канала."
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Превышен лимит для разделения по страницам."
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Не удалось получить сообщения для канала."
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Не удалось получить родительские сообщения для канала."
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5193,10 +5101,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Не удалось получить сообщения для канала."
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Не удалось получить сообщения для канала."
     },
     {
@@ -5216,160 +5120,8 @@
         "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Невозможно получить количество каналов для схемы."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Невозможно сосчитать команды."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию базы данных."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Не удалось начать транзакцию базы данных."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Не удалось получить участников команды."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Не удалось обновить участника команды."
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Не удалось найти существующую команду."
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Мы столкнулись с ошибкой при поиске команды."
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Не удалось получить все команды."
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Не удалось получить все команды."
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Не удалось найти существующую команду."
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Не удалось найти существующую команду."
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Не удалось найти существующую команду."
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Невозможно получить каналы по предоставленной схеме."
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Невозможно получить участника команды."
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Не найдено ни одного участника команды по данному идентификатору пользователя и канала."
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Не удалось подсчитать участников команды."
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Невозможно получить участников команды."
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Невозможно получить участников команды."
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Не удалось получить список непрочтённых сообщений для команд."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию базы данных."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Не удалось открыть транзакцию базы данных."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Не удалось выбрать партию участников команды."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Не удалось обновить участника команды."
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Невозможно удалить существующую команду."
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Невозможно удалить участника команды."
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Мы не могли сбросить схемы команды."
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Невозможно сохранить команду."
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Команда с таким именем уже существует."
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Необходимо вызвать обновление для существующей команды."
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Участник команды с таким идентификатором уже существует."
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Невозможно сохранить участника команды."
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Возникла проблема при поиске команд."
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Возникла проблема при поиске открытых команд."
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Невозможно обновить команду."
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "Невозможно найти существующую команду для обновления."
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Мы столкнулись с ошибкой при поиске команды."
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Мы столкнулись с ошибкой при обновлении команды."
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Невозможно обновить дату последнего обновления иконки команды."
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5478,10 +5230,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Необходимо вызвать обновление для существующего пользователя."
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Не удалось получить количество участников текущей команды."
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -6176,10 +5924,6 @@
         "translation": "Невозможно получить все каналы личных сообщений."
     },
     {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Невозможно получить каналы по идентификаторам."
-    },
-    {
         "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
         "translation": "Недопустимое обновление участника канала: вы не можете добавлять или удалять гостевую роль вручную."
     },
@@ -6612,10 +6356,6 @@
         "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
     },
     {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Не удалось подсчитать сообщения с указанной даты."
-    },
-    {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
         "translation": "Невозможно получить пакет каналов для индексации."
     },
@@ -6624,36 +6364,12 @@
         "translation": "Невозможно получить групповые каналы для данного пользователя и заданных условий."
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Невозможно пометить канал как непрочитанный."
-    },
-    {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "Не удалось получить личные сообщения."
     },
     {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
         "translation": "Не удалось получить время создания самого старого объекта."
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Невозможно получить сообщение в течение определенного времени."
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Не удалось подсчитать публичные команды."
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Не удалось найти существующую команду."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Невозможно получить список команд, в которых состоит пользователь."
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Возникла проблема при поиске приватных команд."
     },
     {
         "id": "store.sql_user.count.app_error",
@@ -6936,10 +6652,6 @@
         "translation": "Safari"
     },
     {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Не удалось получить количество прикрепленных сообщений."
-    },
-    {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
         "translation": "Невозможно определить, принадлежит ли пользователь к списку каналов."
     },
@@ -6956,36 +6668,8 @@
         "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
     },
     {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Невозможно получить сообщение после истечения времени."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Невозможно получить количество ответов на сообщение"
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Не удалось подсчитать приватные команды."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Не удалось подсчитать участников команды."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Не удалось получить все приватные команды."
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Не удалось получить команды по именам"
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Не удалось найти некоторые из запрошенных команд"
-    },
-    {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Невозможно определить, принадлежит ли пользователь к списку команд."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
@@ -7206,10 +6890,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Не удалось вставить запись в базу данных."
-    },
-    {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Невозможно получить приватные каналы."
     },
     {
         "id": "app.recover.save.app_error",
@@ -7754,10 +7434,6 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "Неверный идентификатор плагина."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Мы не могли получить все приватные команды на странице."
     },
     {
         "id": "app.role.save.invalid_role.app_error",

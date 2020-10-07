@@ -4952,10 +4952,6 @@
         "translation": "Imposibil de obținut numărul de canale șterse"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Imposibil de obținut numărul de canale"
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Nu s-a efectuat tranzacția bazei de date"
     },
@@ -4988,56 +4984,12 @@
         "translation": "Nu se pot obține canalele pentru schema furnizată"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Imposibil de obținut numărul de canale"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Nu pot obține canalele"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Nici un canal descoperit"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Nu se poate obține canalul pentru postarea dată"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Imposibil de obținut membrul canalului"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Nici un membru de canale găsite pentru acel utilizator ID-ul şi ID-ul de canal"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Nu se poate calcula numărul membrilor canalului"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Imposibil de obținut membrul canalului pentru postul dat"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Nu s-au putut obține membrii canalului"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Membrii canalului nu au putut fi contactați"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Nu se pot obține canale publice"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Imposibil de primit mesaje necitite ale canalului"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Nu se poate mări numărarea numelor"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5056,20 +5008,8 @@
         "translation": "Actualizarea elementului canal a eșuat"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Nu se poate elimina membrul canalului"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Nu s-au găsit posturile fixate"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Nu am putut elimina utilizatorii dezactivați din canal"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Nu se poate elimina membrul canalului"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5108,28 +5048,8 @@
         "translation": "Nu un canal directă a încercat să fi creat cu SaveDirectChannel"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Nu s-a putut efectua tranzacția"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Un membru de canal cu acel ID există deja"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Imposibilă deschiderea tranzacţiei"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Am întâmpinat o eroare în căutarea canalelor"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Imposibil de actualizat ultimele vizualizate la timp"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Am întâlnit o eroare la actualizarea membru canal"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5164,24 +5084,12 @@
         "translation": "Nu s-a putut obține conturile utilizatorilor cu postări"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Imposibil de obținut mesajele marcate"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Imposibil de obținut postul părinte pentru canal"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Limita depășită pentru paginare"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Nu se pot obține postările pentru canal"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Imposibil de obținut mesajele părinte pentru canal"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5193,10 +5101,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Nu se pot obține postările pentru canal"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Nu se pot obține postările pentru canal"
     },
     {
@@ -5216,160 +5120,8 @@
         "translation": "Căutarea a fost dezactivat pe acest server. Vă rugăm să contactaţi administratorul de sistem."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Nu am putut obține numărul canalelor pentru schemă."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Imposibilitatea de a număra echipele"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Nu s-a efectuat tranzacția bazei de date"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Nu a reușit să înceapă tranzacția bazei de date"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Nu am reușit să recupereze membrii echipei"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Nu se poate găsi echipa existentă"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Am intalnit o eroare găsirea echipei"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Nu am putut obţine toate echipele"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Nu am putut obţine toate echipele"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "În imposibilitatea de a găsi echipa existentă"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "În imposibilitatea de a găsi echipa existentă"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "În imposibilitatea de a găsi echipa existentă"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Nu se pot obține canalele pentru schema furnizată"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "În imposibilitatea de a obține membru al echipei"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Nici un membru al echipei găsit pentru acel utilizator ID-ul şi ID-ul echipei"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Am putut sa ma echipe mesajele necitite"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Nu s-a efectuat tranzacția bazei de date"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Nu a reuşit să deschidă tranzacţiei date"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Nu a reuşit să selecteze lotul de membrii ai echipei"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Noi nu a putut reseta scheme de echipa"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Imposibil de a salvat echipa"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "O echipă cu acest nume există deja"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Trebuie să plăteşti actualizare pentru echipa existentă"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Un membru al echipei cu acel ID există deja"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Nu a putut fi salvat membrul echipei"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Am intalnit o eroare caută echipe"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Am intalnit o eroare căutarea deschis echipe"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Imposibilitatea de a actualiza echipa"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "În imposibilitatea de a găsi echipa existentă pentru a actualiza"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Am intalnit o eroare găsirea echipei"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Am întâlnit o eroare la actualizarea echipa"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Imposibil de actualizat data ultimei actualizări a pictogramei echipei"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5478,10 +5230,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Trebuie să plăteşti actualizare pentru utilizator existent"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Nu pentru a obţine curent echipa membru conta"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5868,56 +5616,8 @@
         "translation": "UserCountOptions nu are sens."
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de echipe."
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Am întâlnit o eroare la căutarea echipelor private."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Imposibil de obținut lista echipelor unui utilizator."
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Nu am putut găsi unele dintre echipele solicitate"
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Imposibil de obținut echipele după nume"
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Nu se poate găsi echipa existentă"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Nu am putut obține toate echipele private."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Imposibil de actualizat membru al echipei"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Imposibil de numărat echipele publice."
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Imposibil de numărat echipele private."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Imposibil de a primi răspunsurile la postare"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Nu se poate obține postarea în timp."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Imposibil de obținut post după termenul stabilit."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5936,20 +5636,8 @@
         "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de canale."
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Imposibil de marcat canalul ca necitit."
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "Nu se pot obține canalele de grup pentru utilizatorul și termenul dat."
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Imposibil să obțineți numărul postării canalului."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Canalele nu pot fi obținute prin ID-uri."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -5958,10 +5646,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Nu se pot obține toate canalele directe."
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Imposibil de numărat mesaje de la data dată."
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7192,10 +6876,6 @@
         "translation": "Imposibil de mutat canale de mesaje directe sau de grup"
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Imposibil de obținut canale private."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
         "translation": "Nu a reuşit să deschidă tranzacţiei date"
     },
@@ -7754,10 +7434,6 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "ID-ul pluginului este invalid."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Nu am putut obține toate echipele private."
     },
     {
         "id": "model.config.is_valid.directory.app_error",

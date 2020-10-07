@@ -4947,10 +4947,6 @@
         "translation": "Impossible de récupérer le nombre de type de canaux supprimés"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Impossible de récupérer le nombre de type de canaux"
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Impossible de valider la transaction de la base de données"
     },
@@ -4983,56 +4979,12 @@
         "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Impossible de récupérer le nombre de canaux"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Impossible de récupérer les canaux"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Aucun canal trouvé"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Impossible de récupérer le canal pour le message spécifié"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Impossible de récupérer le membre du canal"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Aucun membre de canal trouvé pour cet ID utilisateur et cet ID de canal"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Impossible de récupérer le nombre de membres du canal"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Impossible de récupérer le membre du canal pour le message spécifié"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Impossible de récupérer les membres du canal"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Impossible de récupérer les membres du canal"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Impossible de récupérer les canaux publics"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Impossible de récupérer les messages non lus du canal"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Impossible d'incrémenter le nombre de mentions"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5051,20 +5003,8 @@
         "translation": "Impossible de mettre à jour le membre du canal"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Impossible de récupérer le membre du canal"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Impossible de trouver les messages épinglés"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Impossible de retirer du canal les utilisateurs désactivés"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Impossible de supprimer le membre du canal"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5103,28 +5043,8 @@
         "translation": "Tentative de création via SaveDirectChannel d'un canal de messages non personnels (groupe de messages privés ou groupe public)"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Un membre de canal avec cet ID existe déjà"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Impossible d'ouvrir la transaction"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Une erreur s'est produite lors de la recherche des canaux"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Impossible de mettre à jour la date de dernier affichage"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Une erreur s'est produite lors de la mise à jour du membre du canal"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5159,24 +5079,12 @@
         "translation": "Impossible de récupérer le nombre d'utilisateurs ayant envoyé des messages"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Impossible de récupérer les messages épinglés"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Impossible de récupérer le message parent pour le canal"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Limite dépassée pour la pagination"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Impossible de récupérer les messages pour le canal spécifié"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Impossible de récupérer les messages parents pour le canal spécifié"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5188,10 +5096,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Impossible de récupérer les messages pour le canal spécifié"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Impossible de récupérer les messages pour le canal spécifié"
     },
     {
@@ -5211,160 +5115,8 @@
         "translation": "La recherche a été désactivée sur ce serveur. Veuillez contacter votre administrateur."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Impossible de récupérer le nombre de canaux pour le schéma."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Impossible de compter les équipes"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction de la base de données"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Impossible d'ouvrir la transaction de la base de données"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Impossible de récupérer les membres de l'équipe"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Impossible de modifier le membre d'équipe"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Impossible de trouver l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche de l'équipe"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Impossible d'obtenir toutes les équipes"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Impossible d'obtenir toutes les équipes"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Impossible de trouver l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Impossible de trouver l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Impossible de trouver l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Impossible de récupérer les canaux pour le schéma de permissions spécifié"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Impossible de récupérer le membre d'équipe"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Aucun membre d'équipe trouvé pour cet ID utilisateur et cet ID d'équipe"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Impossible de compter les membres d'équipe"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Impossible de récupérer les membres d'équipe"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Impossible de récupérer les membres d'équipe"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Impossible de récupérer les messages non lus des équipes"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction de la base de données"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Impossible d'ouvrir la transaction de la base de données"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Impossible de sélectionner par lot les membres de l'équipe"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Impossible de modifier le membre d'équipe"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Impossible de supprimer l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Impossible de supprimer le membre d'équipe"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Impossible de restaurer les schéma de permissions d'équipe"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Impossible de sauvegarder l'équipe"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Une équipe portant le même nom existe déjà"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "La mise à jour doit être appelée pour une équipe existante"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Un membre d'équipe existe déjà avec cet ID"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Impossible de sauvegarder le membre d'équipe"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des équipes"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des équipes ouvertes"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Impossible de mettre à jour l'équipe"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "Impossible de trouver l'équipe existante à mettre à jour"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche de l'équipe"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Une erreur s'est produite lors de la mise à jour de l'équipe"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Impossible de modifier la date de la dernière modification de l'icône d'équipe"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5473,10 +5225,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "La mise à jour doit être appelée pour un utilisateur existant"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Impossible de récupérer le nombre de membres de l'équipe actuelle"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5863,56 +5611,8 @@
         "translation": "Les options de comptage d'utilisateur n'ont aucun sens."
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Impossible de déterminer si l'utilisateur apparient à une liste d'équipes."
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des équipes privées."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Impossible de récupérer la liste des équipes d'un utilisateur."
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Impossible de trouver certaines des équipes demandées."
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Impossible de récupérer les équipes par leur nom."
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Impossible de trouver l'équipe existante"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Impossible de récupérer toutes les équipes privées."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Impossible de compter les membres d'équipe"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Impossible de compter les équipes publiques."
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Impossible de compter les équipes privées."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Impossible de récupérer le message situé aux alentours de la limite de temps spécifiée."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Impossible de récupérer le message situé après la limite de temps spécifiée."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5931,20 +5631,8 @@
         "translation": "Impossible de déterminer si l'utilisateur appartient à une liste de canaux."
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Impossible de marquer le canal comme non lu."
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "Impossible de récupérer les canaux de groupe pour l'utilisateur et les termes spécifiés."
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Impossible de récupérer le nombre de messages épinglés au canal."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Impossible de récupérer les canaux par leur identifiant."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -5953,10 +5641,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Impossible de récupérer tous les canaux de messages personnels."
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Impossible de compter les messages à partir de la date indiquée."
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7235,10 +6919,6 @@
         "translation": "Impossible de supprimer le jeton."
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Impossible de récupérer tous les canaux."
-    },
-    {
         "id": "ent.elasticsearch.delete_user_posts.error",
         "translation": "Impossible de supprimer le message"
     },
@@ -7453,10 +7133,6 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Impossible de compter les webhooks entrants"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Impossible de récupérer toutes les équipes privées."
     },
     {
         "id": "app.role.save.invalid_role.app_error",

@@ -4947,10 +4947,6 @@
         "translation": "We kunnen de kanalen typen niet tellen"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "We kunnen de kanalen typen niet tellen"
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Failed to commit the database transaction"
     },
@@ -4983,56 +4979,12 @@
         "translation": "Unable to get the channels for the provided scheme"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Kan de kanalen niet ophalen"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "No channel found"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Unable to get the channel for the given post"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Geen kanaal lid gevonden voor deze gebruikers id en kanaal id"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "We kunnen het aantal leden van het kanaal niet tellen"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Unable to get the channel member for the given post"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Kan leden niet toevoegen aan het directe kanaal"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Kan de kanalen niet ophalen"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Unable to get the channel unread messages"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Unable to increment the mention count"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5051,20 +5003,8 @@
         "translation": "Kan leden niet toevoegen aan het directe kanaal"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Unable to find the pinned posts"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "We could not remove the deactivated users from the channel"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5103,28 +5043,8 @@
         "translation": "Geen poging om een direkt kanaal te maken met 'SaveDirectChannel'"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Kan de transactie niet opslaan"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Een kanaal lid met de opgegeven id bestaat al"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Kan de transactie niet openen"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "De laatst bekeken tijd kon niet worden bijgewerkt"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het bijwerken van de kanaal leden"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5159,24 +5079,12 @@
         "translation": "Unable to get user counts with posts"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "We kunnen het startbericht voor het kanaal niet ophalen"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Grens bereikt bij het opdelen in pagina's"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "We kunnen de berichten van het kanaal niet ophalen"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "We kunnen het start bericht voor het kanaal niet ophalen"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5188,10 +5096,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "We kunnen de berichten van het kanaal niet ophalen"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "We kunnen de berichten van het kanaal niet ophalen"
     },
     {
@@ -5211,160 +5115,8 @@
         "translation": "Searching has been disabled on this server. Please contact your System Administrator."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Unable to get the channel count for the scheme."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken van het team"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Niet alle teams kunnen opgehaald worden"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Niet alle teams kunnen opgehaald worden"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Unable to get the channels for the provided scheme"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Geen teamlid gevonden voor dit gebruikers id en kanaal id"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Unable to get the teams unread messages"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Failed to open the database transaction"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Failed to select the batch of team members"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "We could not reset the team schemes"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Een team met dat domein bestaat al"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Bijwerken moet aangeroepen worden voor bestaand team"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Een team lid met de opgegeven id bestaat al"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken van het team"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Er is een fout opgetreden tijdens het bijwerken van het team"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Unable to update the date of the last team icon update"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5473,10 +5225,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Fout bij het tellen van leden in dit team"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5887,56 +5635,8 @@
         "translation": "UserCountOptions maken geen zin."
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Kan niet vaststellen of de gebruiker tot een lijst van teams behoort."
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken naar privéteams."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "De lijst met teams van een gebruiker kan niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Enkele van de aangevraagde teams kunnen niet worden gevonden."
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Het teamlid kan niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "We konden niet alle private teams ophalen."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Kan leden niet toevoegen aan het directe kanaal"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "De openbare teams kunnen niet worden geteld."
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "De private teams kunnen niet worden geteld."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Fout bij het ophalen van het aantal antwoorden op het bericht"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Bericht kan niet rond de tijdsperiode worden opgehaald."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Bericht kan niet worden opgehaald na tijdsperiode."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5955,20 +5655,8 @@
         "translation": "Kan niet vaststellen of de gebruiker tot een lijst van kanalen behoort."
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Kan kanaal niet markeren als ongelezen."
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "De groepskanalen voor de opgegeven gebruiker en term kunnen niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Kan het aantal vastgemaakte berichten het kanaal niet ophalen."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Fout bij het ophalen van de kanalen per id."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -5977,10 +5665,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Fout bij het ophalen van alle directe kanalen."
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Kan berichten niet tellen vanaf de opgegeven datum."
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7179,10 +6863,6 @@
         "translation": "Je moet de Mattermost Evaluation Agreement en Privacy Policy aanvaarden om een licentie te kunnen aanvragen."
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Kan de privé-kanalen niet ophalen."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
         "translation": "Failed to open the database transaction"
     },
@@ -7749,10 +7429,6 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "Ongeldige plugin id."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "We konden niet alle private teams op de pagina krijgen."
     },
     {
         "id": "app.role.save.invalid_role.app_error",

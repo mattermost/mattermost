@@ -4952,10 +4952,6 @@
         "translation": "Nie można pobrać liczby usuniętych kanałów"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Nie można uzyskać informacji o typie kanału."
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Nie udało się zatwierdzić transakcji bazy danych"
     },
@@ -4988,56 +4984,12 @@
         "translation": "Nie można pobrać kanałów dla podanego schematu"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Nie można uzyskać liczby kanałów"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Nie można pobrać kanałów"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Nie znaleziono kanału"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Nie można uzyskać kanału dla danego wpisu"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Nie można uzyskać członka kanału"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Nie znaleziono uczestnika kanału dla tego ID użytkownika i ID kanału"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Nie można pobrać liczby członków kanału"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Nie można uzyskać członka kanału dla danego wpisu"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Nie można uzyskać członków kanału"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Nie można uzyskać członków kanału"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Nie można pobrać kanałów publicznych"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Nie można pobrać nieprzeczytanych wiadomości dla tego kanału"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Nie można zwiększyć liczby wzmianek"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5056,20 +5008,8 @@
         "translation": "Nie udało się zaktualizować członka kanału"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Nie można usunąć członka kanału"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Nie można znaleźć przypiętych wpisów"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Nie mogliśmy usunąć dezaktywowanych użytkowników z kanału"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Nie można usunąć członka kanału"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5108,28 +5048,8 @@
         "translation": "Próba utworzenia kanału innego typu niż kanał bezpośredni z SaveDirectChannel"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Nie można zatwierdzić transakcji"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Członek kanału z tym identyfikatorem już istnieje"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Nie można rozpocząć transakcji"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Wystąpił błąd podczas przeszukiwania kanałów"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Nie można zaktualizować ostatnio oglądanego"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Wystąpił błąd podczas aktualizowania użytkownika kanału"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5164,24 +5084,12 @@
         "translation": "Nie można uzyskać liczby użytkowników za pomocą postów"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Nie można uzyskać oznaczonych postów"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Nie można uzyskać postu nadrzędnego dla kanału"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Przekroczono limit stronicowania"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Nie można uzyskać wpisów do kanału"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Nie można uzyskać postów nadrzędnych dla kanału"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5193,10 +5101,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Nie można uzyskać wpisów do kanału"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Nie można uzyskać wpisów do kanału"
     },
     {
@@ -5216,160 +5120,8 @@
         "translation": "Wyszukiwanie zostało wyłączone na serwerze. Skontaktuj się z Administratorem."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Nie można uzyskać liczby kanałów dla schematu."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Nie można policzyć zespołów"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Nie można rozpocząć transakcji bazy danych"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Nie udało się uzyskać członków zespołu"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Nie udało się zaktualizować członka zespołu"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Napotkaliśmy błąd szukając zespołu"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Nie mogliśmy pobrać wszystkich zespołów"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Nie mogliśmy pobrać wszystkich zespołów"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Nie można uzyskać kanałów dla podanego schematu"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Nie można uzyskać członka zespołu"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Nie znaleziono członka zespołu dla tego identyfikatora użytkownika i identyfikatora zespołu"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Nie można policzyć członków zespołu"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Nie można uzyskać członków zespołu"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Nie można uzyskać członków zespołu"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Nie można uzyskać nieprzeczytanych wiadomości od zespołów"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Nie powiodło się otwarcie transakcji bazy danych"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Nie udało się wybrać partii członków zespołu"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Nie udało się zaktualizować członka zespołu"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Nie można usunąć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Nie można usunąć członka zespołu"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Nie mogliśmy zresetować schematów zespołowych"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Nie można zapisać zespołu"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Zespół o tej nazwie już istnieje"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Wymagana aktualizacja zespołu"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Użytkownik zespołu o takim ID już istnieje"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Nie można zapisać członka zespołu"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Napotkaliśmy błąd podczas wyszukiwania zespołów"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Nie można zaktualizować zespołu"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu do aktualizacji"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Napotkaliśmy błąd szukając zespołu"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Napotkaliśmy błąd aktualizując zespół"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Nie można zaktualizować daty ostatniej aktualizacji ikony zespołu"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5478,10 +5230,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Należy wywołać aktualizacja dla dotychczasowych użytkowników"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Nie udało się uzyskać aktualnej liczby członków zespołu"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5868,56 +5616,8 @@
         "translation": "UserCountOptions nie mają sensu"
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Nie można określić, czy użytkownik należy do listy zespołów"
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Napotkaliśmy błąd szukając prywatnych zespołów"
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Nie udało się pobrać listy zespołów użytkownika"
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Unable to find some of the requested teams"
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Nie można uzyskać członka zespołu"
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Nie można znaleźć istniejącego zespołu"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Nie można policzyć członków zespołu"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Nie można policzyć publicznych zespołów"
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Nie można policzyć prywatnych zespołów"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Nie można uzyskać posta w określonym czasie."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Nie można uzyskać posta po upływie określonego czasu"
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5936,20 +5636,8 @@
         "translation": "Nie można określić, czy użytkownik należy do listy zespołów"
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Nie można oznaczyć kanału jako nieprzeczytany."
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "Nie można uzyskać grupy kanałów dla wybranej nazwy użytkownika oraz kryterium"
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Nie można pobrać ilości przypiętych wiadomości na kanale"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Nie można uzyskać kanałów według identyfikatorów"
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -5958,10 +5646,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Nie można uzyskać wszystkich kanałów bezpośrednich"
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Nie można zliczać wiadomości od podanej daty."
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7256,10 +6940,6 @@
         "translation": "Nie można usunąć tokenu"
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Nie można pobrać wszystkich kanałów"
-    },
-    {
         "id": "ent.elasticsearch.delete_user_posts.error",
         "translation": "Nie udało się usunąć wiadomości"
     },
@@ -7470,10 +7150,6 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Nie można policzyć przychodzących webhooków"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
     },
     {
         "id": "app.role.save.invalid_role.app_error",

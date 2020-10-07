@@ -4942,10 +4942,6 @@
         "translation": "无法获取已删除的频道类型数"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "无法获取频道类型数"
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "提交数据库事务失败"
     },
@@ -4978,56 +4974,12 @@
         "translation": "无法用提供的方案获取频道"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "无法获取频道数"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "无法获取频道。"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "未找到频道"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "无法从提供的消息获得频道"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "无法获取频道成员"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "无法找到与此用户id和频道id相关联的频道成员"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "无法获得该频道成员数"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "无法从提供的消息获得频道成员"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "无法获取频道成员"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "无法获取频道成员"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "无法获取公开频道"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "无法获取频道未读消息"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "无法添加提及数"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5046,20 +4998,8 @@
         "translation": "无法更新频道成员"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "无法获取频道成员"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "无法找到指定消息"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "我们无法从频道移除已停用的用户"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "无法获取频道成员"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5098,28 +5038,8 @@
         "translation": "不能试图用SaveDirectChannel创建私聊频道"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "不能提交事务"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "该频道已存在拥有此 ID 的成员"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "不能开启事务"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "我们搜索频道时遇到错误"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "无法能更新最后查看时间"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "我们更新频道成员遇到了一个错误"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5154,24 +5074,12 @@
         "translation": "无法获取用户的消息数量"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "无法获取被标记的消息"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "无法获取这个频道的父消息"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "分页限制"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "无法获取这个频道的信息"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "无法获取这个频道的父消息"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5183,10 +5091,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "无法获取此频道的消息"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "无法获取此频道的消息"
     },
     {
@@ -5206,160 +5110,8 @@
         "translation": "此服务器已禁用搜索。请联系您的系统管理员。"
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "无法从方案获取频道数。"
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "无法团队计数"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "提交数据库事务失败"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "开始数据库事务失败"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "获取团队成员失败"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "更新团队成员失败"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "未找到现有的团队"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "我们查找团队时遇到错误"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "我们无法获取所有的团队"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "我们无法获取所有的团队"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "未找到现有的团队"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "未找到现有的团队"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "未找到现有的团队"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "无法用提供的方案获取频道"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "无法获取团队成员"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "无法找到此用户id和团队id相关联的团队成员"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "无法团队成员计数"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "无法获取团队成员"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "无法获取团队成员"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "无法获取团队未读消息"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "提交数据库事务失败"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "无法打开数据库事务"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " 批量选择团队成员失败"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "无法更新团队成员"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "无法删除现有的团队"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "无法移除团队成员"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "我们无法重置团队方案"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "无法保存团队"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "已有团队拥有此名称"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "必须对现有的团队执行更新"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "已存在拥有此 ID 的团队成员"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "无法保存团队成员"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "我们搜索团队时遇到错误"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "我们搜索公开团队时遇到错误"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "无法更新团队"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "没找到现有的团队以更新"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "我们查找该团队时遇到一个错误"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "我们更新该团队时遇到一个错误"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "无法更新团队图标更新日期"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5468,10 +5220,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "必须对现有的用户执行更新"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "未能获得当前的团队成员计数"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -6138,20 +5886,12 @@
         "translation": "建立查询失败。"
     },
     {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "无法以指定的日期计算消息数。"
-    },
-    {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "无法获取所有私信频道。"
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
         "translation": "无法为索引获取批量频道。"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "无法以 id 获得频道。"
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
@@ -6838,14 +6578,6 @@
         "translation": "无法统计频道数。"
     },
     {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "无法获得该频道置顶消息数。"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "无法标频道为未读。"
-    },
-    {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
         "translation": "无法确定用户是否属于这些频道。"
     },
@@ -7042,56 +6774,8 @@
         "translation": "UserCountOptions 不合理。"
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "无法确定用户是否属于这些团队。"
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "我们在搜索私有团队时遇到错误。"
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "无法列出用户的团队。"
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "无法找到一些请求的团队"
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "无法获取团队"
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "未找到现有的团队"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "我们无法获取所有私有团队。"
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "无法团队成员计数"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "无法统计公开团队数。"
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "无法统计私有团队数。"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "无法获取消息回复数"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "无法从时间附近获取消息。"
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "无法获取时间限制后的消息。"
     },
     {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
@@ -7328,10 +7012,6 @@
     {
         "id": "app.recover.delete.app_error",
         "translation": "无法删除令牌。"
-    },
-    {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "无法获取所有频道。"
     },
     {
         "id": "ent.get_users_in_channel_during",
@@ -7624,10 +7304,6 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "无法获得传入的 webhook 数"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "我们无法获取所有私有团队。"
     },
     {
         "id": "app.role.save.invalid_role.app_error",

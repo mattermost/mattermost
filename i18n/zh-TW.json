@@ -4942,10 +4942,6 @@
         "translation": "無法取得已刪除的頻道類別數量"
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "無法取得頻道類別數量"
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "認可資料庫交易時失敗"
     },
@@ -4978,56 +4974,12 @@
         "translation": "無法取得提供的配置當中的頻道"
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "無法取得頻道類別數量"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "無法取得頻道"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "找不到頻道"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "無法取得此發文的頻道"
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "無法取得頻道成員"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "相關的使用者 ID 與頻道 ID 找不到任何頻道成員"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "無法取得頻道成員數"
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "無法取得此發文的頻道成員"
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "無法取得頻道成員"
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "無法取得頻道成員"
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "無法取得公開頻道"
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "無法取得頻道未讀訊息"
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "無法增加提及的計數"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5046,20 +4998,8 @@
         "translation": "更新頻道成員時失敗"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "無法移除頻道成員"
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "找不到被釘選的訊息"
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "無法將已被停用的使用者從頻道中移除"
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "無法移除頻道成員"
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5098,28 +5038,8 @@
         "translation": "嘗試使用 SaveDirectChannel 建立的不是直接訊息頻道"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "無法提交交易"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "該 ID 的頻道使用者已存在"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "無法開啟交易"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "搜尋頻道時遇到錯誤"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "無法更新最後瀏覽時間"
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "更新頻道成員時遇到錯誤"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5154,24 +5074,12 @@
         "translation": "無法取得使用者訊息計數"
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "無法新增被標記的訊息"
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "無法取得該頻道的上層訊息"
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "分頁已達限制"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "無法取得該頻道的訊息"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "無法取得該頻道的上層訊息"
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5183,10 +5091,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "無法取得該頻道的訊息"
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "無法取得該頻道的訊息"
     },
     {
@@ -5206,160 +5110,8 @@
         "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "無法取得配置的頻道數量。"
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "無法計算團隊數量"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "認可資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "開啟資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "取得團隊成員時失敗"
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "更新團隊成員時失敗"
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "尋找團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "無法取得全部的團隊"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "無法取得全部的團隊"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "無法取得提供的配置當中的頻道"
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "無法取得團隊成員"
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "相關的使用者 ID 與團隊 ID 找不到任何團隊成員"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "無法計算團隊成員數量"
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "無法取得團隊成員"
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "無法取得團隊成員"
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "無法取得團隊未讀訊息"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "認可資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "開啟資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " 批次選取頻道成員時失敗"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "更新團隊成員時失敗"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "無法刪除已存在的團隊"
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "無法移除團隊成員"
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "無法重置團隊配置"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "無法儲存團隊"
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "已經存在相同名稱的團隊"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "必須為已存在的團隊執行更新"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "該 ID 的團隊成員已存在"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "無法儲存團隊成員"
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "搜尋團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "搜尋開放團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "無法更新團隊"
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "尋找團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "更新團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "無法更新最後一次團隊圖示更新的日期"
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5468,10 +5220,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "必須為已存在的使用者執行更新"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "取得目前團隊成員數量失敗"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5858,56 +5606,8 @@
         "translation": "UserCountOptions 無效"
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "無法判定使用者是否屬於團隊"
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "搜尋私人團隊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "無法取得使用者的團隊列表"
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "無法尋找部份要求的團隊"
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "無法根據名稱取得團隊"
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "找不到已存在的團隊來更新"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "無法取得全部的私人團隊"
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "無法計算團隊成員數量"
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "無法計算公開團隊數量"
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "無法計算私人團隊數量"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "無法取得訊息回應數量"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "無法取得時間限制附近的訊息"
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "無法取得時間限制之後的訊息"
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5926,20 +5626,8 @@
         "translation": "無法判定使用者是否屬於頻道"
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "無法將頻道標為尚未閱讀"
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "無法為指定的使用者跟詞取得群組頻道"
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "無法取得頻道釘選訊息數"
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "無法根據 ID 取得頻道"
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -5948,10 +5636,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "無法取得直接頻道"
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "無法計算自給定日期以來的訊息"
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7254,10 +6938,6 @@
         "translation": "插入資料至資料庫失敗。"
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "無法取得私人頻道。"
-    },
-    {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "需要服務提供者識別碼"
     },
@@ -7724,10 +7404,6 @@
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
         "translation": "整合 AD/LDAP"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "無法取得全部的私人團隊"
     },
     {
         "id": "app.role.save.invalid_role.app_error",

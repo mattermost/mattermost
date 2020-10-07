@@ -4947,10 +4947,6 @@
         "translation": "Silinmiş kanal türü sayıları alınamadı."
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Kanal türü sayıları alınamadı."
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Veritabanı hareketi işlenemedi."
     },
@@ -4983,56 +4979,12 @@
         "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Kanal sayıları alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Kanallar alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Herhangi bir kanal bulunamadı."
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Belirtilen iletinin kanalı alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Kanal üyesi alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Bu kullanıcı kodu ve kanal kodu için bir kanal üyesi bulunamadı."
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Kanal üye sayısı alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Belirtilen iletinin kanal üyesi alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Kanal üyeleri alınamadı."
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Kanal üyeleri alınamadı."
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Herkese açık kanallar alınamadı."
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Okunmamış kanal iletileri alınamadı."
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Anma sayısı arttırılamadı."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5051,20 +5003,8 @@
         "translation": "Kanal üyesi güncellenemedi."
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Üye kanaldan çıkarılamadı."
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Sabitlenmiş iletiler bulunamadı."
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı."
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Üye kanaldan çıkarılamadı."
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5103,28 +5043,8 @@
         "translation": "SaveDirectChannel ile doğrudan bir kanal eklenmeye çalışılmadı."
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Hareket işlenemedi."
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Aynı kodlu bir kanal üyesi zaten var."
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "İşlem açılamadı."
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Kanallar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Son görüntülenme zamanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Kanal üyesi güncellenirken bir sorun çıktı."
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5159,24 +5079,12 @@
         "translation": "İletilerin kullanıcı sayıları alınamadı."
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "İşaretlenmiş iletiler alınamadı."
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Kanalın üst iletisi alınamadı."
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Sayfalandırma sınırı aşıldı."
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Kanalın iletileri alınamadı."
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Kanalın üst iletileri alınamadı."
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5188,10 +5096,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Kanalın iletileri alınamadı."
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Kanalın iletileri alınamadı."
     },
     {
@@ -5211,160 +5115,8 @@
         "translation": "Bu sunucu üzerinde arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Şemanın kanal sayısı alınamadı."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Takımlar sayılamadı."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Veritabanı hareketi işlenemedi."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Veritabanı hareketi işlenmeye başlanamadı."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Takım üyeleri alınamadı."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Takım üyesi güncellenemedi."
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Takım aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Tüm takımlar alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Tüm takımlar alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Belirtilen şemaya uygun kanallar alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Takım üyesi alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Bu kullanıcı kodu ve takım kodu için bir takım üyesi bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Takım üyeleri sayılamadı."
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Takım üyeleri alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Takım üyeleri alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Takımların okunmamış iletileri alınamadı."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Veritabanı hareketi işlenemedi."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Veritabanı işlemi açılamadı."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Takım üyeleri topluluğu seçilemedi."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Takım üyesi güncellenemedi."
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Var olan takım silinemedi."
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Takım üyesi silinemedi."
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Takım şemaları sıfırlanamadı."
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Takım kaydedilemedi."
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Aynı adlı bir takım zaten var."
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Güncelleme var olan takım için çağrılmalı."
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Aynı kodlu bir takım üyesi zaten var."
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Takım üyesi kaydedilemedi."
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Takımlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Açık takımlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Takım güncellenemedi."
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "Güncellenecek var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Takım aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Takım güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Son takım simgesi güncelleme tarihi güncellenemedi."
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5473,10 +5225,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Güncelleme var olan kullanıcı için çağrılmalı."
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Güncel takım üyesi sayısı alınamadı."
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -6107,20 +5855,12 @@
         "translation": "sorgu oluşturulamadı."
     },
     {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Belirtilen tarihten sonraki iletilerin sayısı belirlenemedi."
-    },
-    {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Doğrudan kanalların tümü alınamadı."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
         "translation": "Dizine eklenecek kanal topluluğu alınamadı."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Kanallar kodlarına göre alınamadı."
     },
     {
         "id": "api.license.request-trial.bad-request",
@@ -6489,18 +6229,6 @@
     {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "İleti yanıtları sayısı alınamadı"
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Tüm özel takımlar alınamadı."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Bir kullanıcının takım listesi alınamadı."
-    },
-    {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Kullanıcının takım üyeliği olup olmadığı belirlenemedi."
     },
     {
         "id": "store.sql_user.count.app_error",
@@ -6911,56 +6639,12 @@
         "translation": "E-posta adresi geçersiz."
     },
     {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Sabitlenmiş kanal iletisi sayısı alınamadı."
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Kanal okunmamış olarak işaretlenemedi."
-    },
-    {
         "id": "store.sql_group.app_error",
         "translation": "sorgu oluşturulamadı."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "Doğrudan iletiler alınamadı."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "İlgili gönderi sonrası süresi alınamadı."
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "İlgili gönderim civarı süresi alınamadı."
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Özel takımlar sayılamadı."
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Herkese açık takımlar sayılamadı."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Takım üyeleri sayılamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Var olan takım bulunamadı."
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Takımlar adlarına göre alınamadı"
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "İstenilen takımların bazıları bulunamadı"
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Özel takımlar aranırken bir sorun çıktı."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
@@ -7185,10 +6869,6 @@
     {
         "id": "api.license.request-trial.bad-request.terms-not-accepted",
         "translation": "Lisans isteğinde bulunmak için Mattermost Yazılım Değerlendirme Sözleşmesi ve Gizlilik İllkesini kabul etmelisiniz."
-    },
-    {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Özel kanallar alınamadı."
     },
     {
         "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
@@ -7749,10 +7429,6 @@
     {
         "id": "app.webhooks.delete_outgoing.app_error",
         "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Tüm özel takımlar alınamadı."
     },
     {
         "id": "app.role.save.invalid_role.app_error",

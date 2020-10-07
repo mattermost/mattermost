@@ -4947,10 +4947,6 @@
         "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden."
     },
     {
-        "id": "store.sql_channel.analytics_type_count.app_error",
-        "translation": "Die Anzahl der Kanaltypen konnte nicht geladen werden."
-    },
-    {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
         "translation": "Konnte die Datenbanktransaktion nicht ausführen."
     },
@@ -4983,56 +4979,12 @@
         "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
     },
     {
-        "id": "store.sql_channel.get_channel_counts.get.app_error",
-        "translation": "Die Anzahl der Kanäle konnte nicht geladen werden."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-        "translation": "Konnte die Kanäle nicht abrufen."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-        "translation": "Kein Kanal gefunden"
-    },
-    {
-        "id": "store.sql_channel.get_for_post.app_error",
-        "translation": "Der Kanal für den angegebenen Beitrag konnte nicht abgerufen werden."
-    },
-    {
-        "id": "store.sql_channel.get_member.app_error",
-        "translation": "Konnte das Kanalmitglied nicht laden"
-    },
-    {
-        "id": "store.sql_channel.get_member.missing.app_error",
-        "translation": "Kein Kanalmitglied mit dieser Benutzer-ID und Kanal-ID gefunden"
-    },
-    {
-        "id": "store.sql_channel.get_member_count.app_error",
-        "translation": "Die Anzahl der Kanalmitglieder konnte nicht ermittelt werden."
-    },
-    {
-        "id": "store.sql_channel.get_member_for_post.app_error",
-        "translation": "Das Kanalmitglied konnte für den angegeben Beitrag nicht abgerufen werden."
-    },
-    {
-        "id": "store.sql_channel.get_members.app_error",
-        "translation": "Konnte Kanalmitglieder nicht abrufen."
-    },
-    {
         "id": "store.sql_channel.get_members_by_ids.app_error",
         "translation": "Konnte Kanalmitglieder nicht abrufen."
     },
     {
-        "id": "store.sql_channel.get_public_channels.get.app_error",
-        "translation": "Konnte die öffentlichen Kanäle nicht abrufen."
-    },
-    {
         "id": "store.sql_channel.get_unread.app_error",
         "translation": "Die ungelesenen Nachrichten des Kanals konnten nicht abgerufen werden."
-    },
-    {
-        "id": "store.sql_channel.increment_mention_count.app_error",
-        "translation": "Konnte Erwähnungs-Zähler nicht erhöhen."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -5051,20 +5003,8 @@
         "translation": "Konnte das Kanalmitglied nicht aktualisieren"
     },
     {
-        "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-        "translation": "Konnte das Kanalmitglied nicht entfernen."
-    },
-    {
-        "id": "store.sql_channel.pinned_posts.app_error",
-        "translation": "Konnte angeheftete Nachrichten nicht finden."
-    },
-    {
         "id": "store.sql_channel.remove_all_deactivated_members.app_error",
         "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
-    },
-    {
-        "id": "store.sql_channel.remove_member.app_error",
-        "translation": "Konnte das Kanalmitglied nicht entfernen."
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5103,28 +5043,8 @@
         "translation": "Bei SaveDirectChannel wurde kein direkter Kanal versucht anzulegen"
     },
     {
-        "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "Konnte die Transaktion nicht ausführen"
-    },
-    {
-        "id": "store.sql_channel.save_member.exists.app_error",
-        "translation": "Ein Kanalmitglied mit dieser ID existiert bereits"
-    },
-    {
-        "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Konnte die Transaktion nicht öffnen"
-    },
-    {
         "id": "store.sql_channel.search.app_error",
         "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
-    },
-    {
-        "id": "store.sql_channel.update_last_viewed_at.app_error",
-        "translation": "Der Zeitpunkt der letzten Betrachtung konnte nicht aktualisiert werden."
-    },
-    {
-        "id": "store.sql_channel.update_member.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der Kanalmitglieder auf"
     },
     {
         "id": "store.sql_command.save.get.app_error",
@@ -5159,24 +5079,12 @@
         "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
     },
     {
-        "id": "store.sql_post.get_flagged_posts.app_error",
-        "translation": "Konnte die markierten Nachrichten nicht abrufen."
-    },
-    {
         "id": "store.sql_post.get_parents_posts.app_error",
         "translation": "Konnte die übergeordnete Nachricht zu diesem Kanal nicht abrufen."
     },
     {
         "id": "store.sql_post.get_posts.app_error",
         "translation": "Die Grenze für Paging wurde überschritten"
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get.app_error",
-        "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-    },
-    {
-        "id": "store.sql_post.get_posts_around.get_parent.app_error",
-        "translation": "Konnte die übergeordneten Nachrichten des Kanals nicht abrufen."
     },
     {
         "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -5188,10 +5096,6 @@
     },
     {
         "id": "store.sql_post.get_posts_created_att.app_error",
-        "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-    },
-    {
-        "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
     },
     {
@@ -5211,160 +5115,8 @@
         "translation": "Suchen wurde auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator."
     },
     {
-        "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-        "translation": "Konnte die Kanalanzahl für das Schema nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Konnte die Anzahl der Teams nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Konnte Datenbanktransaktion nicht starten."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Konnte die Teammitglieder nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Konnte das Teammitglied nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_team.get.find.app_error",
-        "translation": "Konnte das existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.get.finding.app_error",
-        "translation": "Wir konnte das Team nicht finden"
-    },
-    {
-        "id": "store.sql_team.get_all.app_error",
-        "translation": "Konnte nicht alle Teams abrufen"
-    },
-    {
-        "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Konnte nicht alle Teams abrufen"
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Konnte das existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Konnte das existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Konnte das existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_member.app_error",
-        "translation": "Konnte das Teammitglied nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Kein Teammitglied mit dieser Benutzer-ID und Team-ID gefunden"
-    },
-    {
-        "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_members.app_error",
-        "translation": "Konnte die Teammitglieder nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Konnte die Teammitglieder nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_unread.app_error",
-        "translation": "Konnte die ungelesenen Nachrichten des Teams nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Konnte die Datenbanktransaktion nicht ausführen"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-        "translation": "Konnte die Datenbanktransaktion nicht öffnen"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Konnte den Stapel von Teammitgliedern nicht auswählen"
-    },
-    {
-        "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Konnte das Teammitglied nicht aktualisieren"
-    },
-    {
-        "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Konnte das existierende Team nicht löschen."
-    },
-    {
-        "id": "store.sql_team.remove_member.app_error",
-        "translation": "Konnte das Teammitglied nicht entfernen."
-    },
-    {
-        "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Konnte die Team-Schemas nicht zurücksetzen"
-    },
-    {
-        "id": "store.sql_team.save.app_error",
-        "translation": "Konnte das Team nicht speichern."
-    },
-    {
-        "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Ein Team mit diesem Namen existiert bereits"
-    },
-    {
-        "id": "store.sql_team.save.existing.app_error",
-        "translation": "Es muss Update für existierendes Team aufgerufen werden"
-    },
-    {
         "id": "store.sql_team.save_member.exists.app_error",
         "translation": "Ein Teammitglied mit dieser ID existiert bereits"
-    },
-    {
-        "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Konnte das Teammitglied nicht speichern."
-    },
-    {
-        "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach Teams auf"
-    },
-    {
-        "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf"
-    },
-    {
-        "id": "store.sql_team.update.app_error",
-        "translation": "Konnte das Team nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_team.update.find.app_error",
-        "translation": "Konnte das zu aktualisierende existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.update.finding.app_error",
-        "translation": "Wir konnte das Team nicht finden"
-    },
-    {
-        "id": "store.sql_team.update.updating.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf"
-    },
-    {
-        "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Team-Symbols nicht aktualisieren."
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -5473,10 +5225,6 @@
     {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Es muss Update für existierenden Benutzer aufgerufen werden"
-    },
-    {
-        "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Fehler beim Abruf der aktuellen Anzahl der Teammitglieder."
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -5919,56 +5667,8 @@
         "translation": "UserCountOptions machen keinen Sinn."
     },
     {
-        "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Teams gehört."
-    },
-    {
-        "id": "store.sql_team.search_private_team.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach privaten Teams auf."
-    },
-    {
-        "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": "Konnte die Liste der Team eines Benutzers nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Konnte einige der angeforderten Teams nicht finden."
-    },
-    {
-        "id": "store.sql_team.get_by_names.app_error",
-        "translation": "Konnte das Teammitglied nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Konnte das existierende Team nicht finden."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_listing.app_error",
-        "translation": "Konnte nicht alle privaten Teams abrufen."
-    },
-    {
-        "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.analytics_public_team_count.app_error",
-        "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.analytics_private_team_count.app_error",
-        "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
-    },
-    {
-        "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": "Konnte Nachricht nicht in dem ausgewählten Zeitraum abrufen."
-    },
-    {
-        "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": "Konnte Nachricht nicht nach dem ausgewählten Zeitraum abrufen."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5987,20 +5687,8 @@
         "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
     },
     {
-        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": "Konnte Kanal nicht als ungelesen markieren."
-    },
-    {
         "id": "store.sql_channel.search_group_channels.app_error",
         "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
-    },
-    {
-        "id": "store.sql_channel.get_pinnedpost_count.app_error",
-        "translation": "Konnte die Anzahl der angehefteten Nachrichten nicht ermitteln."
-    },
-    {
-        "id": "store.sql_channel.get_channels_by_ids.app_error",
-        "translation": "Konnte die Kanäle nicht nach IDs abrufen."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -6009,10 +5697,6 @@
     {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
-    },
-    {
-        "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": "Konnte Nachrichten seit dem angegebenen Datum nicht zählen."
     },
     {
         "id": "store.sql.build_query.app_error",
@@ -7235,10 +6919,6 @@
         "translation": "Konnte Token nicht löschen."
     },
     {
-        "id": "store.sql_channel.get_private_channels.get.app_error",
-        "translation": "Konnte nicht alle Kanäle abrufen."
-    },
-    {
         "id": "ent.elasticsearch.delete_user_posts.error",
         "translation": "Fehler beim Löschen der Nachricht."
     },
@@ -7473,10 +7153,6 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-        "translation": "Konnte nicht alle privaten Teams abrufen."
     },
     {
         "id": "app.role.save.invalid_role.app_error",
