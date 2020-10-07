@@ -716,6 +716,8 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
+		"admin_notices_enabled":       *cfg.AnnouncementSettings.AdminNoticesEnabled,
+		"user_notices_enabled":        *cfg.AnnouncementSettings.UserNoticesEnabled,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
