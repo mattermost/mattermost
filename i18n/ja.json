@@ -1016,13 +1016,13 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "other": "新しい通知があります。{{.Count}} の新しい通知があります。"
+      "other": "{{.Count}} 件の新しい通知があります。"
     }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
+      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
     }
   },
   {
