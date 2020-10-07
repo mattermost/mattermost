@@ -703,6 +703,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
+		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
 		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 	})
 
@@ -760,6 +761,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_DISPLAY, map[string]interface{}{
