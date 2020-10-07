@@ -199,6 +199,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 	return val == expectedValue
 }
 
+// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
@@ -274,6 +275,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	return filteredNotices, nil
 }
 
+// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
 	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
@@ -281,6 +283,19 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 	return nil
 }
 
+// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
+// user as viewed in order to avoid showing them imminently on first login
+func (a *App) UpdateViewedProductNoticesForNewUser(userId string) {
+	var noticeIds []string
+	for _, notice := range cachedNotices {
+		noticeIds = append(noticeIds, notice.ID)
+	}
+	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userId))
+	}
+}
+
+// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
