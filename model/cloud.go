@@ -77,4 +77,5 @@ type Subscription struct {
 	CreateAt   int64    `json:"create_at"`
 	Seats      int      `json:"seats"`
 	DNS        string   `json:"dns"`
+	IsPaidTier string   `json:"is_paid_tier"`
 }
