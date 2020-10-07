@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -196,6 +197,77 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
+
+		{
+			name: "notice with server version check that matches a const",
+			args: args{
+				serverVersion: "99.1.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has rc",
+			args: args{
+				serverVersion: "99.1.1-rc2",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has rc and hash",
+			args: args{
+				serverVersion: "99.1.1-rc2.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has release and hash",
+			args: args{
+				serverVersion: "release-99.1.1.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has cloud version",
+			args: args{
+				serverVersion: "cloud.54.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+
 		{
 			name: "notice with server version check that is invalid",
 			args: args{
@@ -248,7 +320,18 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
+		{
+			name: "notice with specific date check",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().Format("2006-01-02"))),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 		{
 			name: "notice with date check that doesn't match",
 			args: args{
