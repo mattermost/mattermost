@@ -408,6 +408,42 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("image embed using markdown", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message: `[This is our logo](` + server.URL + `/test-image2.png)`,
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		clientPost := th.App.PreparePostForClient(post, false, false)
+
+		// Reminder that only the first link gets an embed and dimensions
+
+		t.Run("populates embeds", func(t *testing.T) {
+			assert.ElementsMatch(t, []*model.PostEmbed{
+				{
+					Type: model.POST_EMBED_IMAGE,
+					URL:  server.URL + "/test-image2.png",
+				},
+			}, clientPost.Metadata.Embeds)
+		})
+
+		t.Run("populates image dimensions", func(t *testing.T) {
+			imageDimensions := clientPost.Metadata.Images
+			require.Len(t, imageDimensions, 1)
+			assert.Equal(t, &model.PostImage{
+				Format: "png",
+				Width:  1280,
+				Height: 1780,
+			}, imageDimensions[server.URL+"/test-image2.png"])
+		})
+	})
+
+
 	t.Run("opengraph embed", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
