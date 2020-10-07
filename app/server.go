@@ -313,8 +313,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	s.initEnterprise()
-
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
@@ -352,6 +350,8 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.Store = s.newStore()
+
+	s.initEnterprise()
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 

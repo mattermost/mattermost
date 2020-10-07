@@ -172,6 +172,9 @@ func (s *Server) initEnterprise() {
 	if elasticsearchInterface != nil {
 		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
 	}
+	if cloudInterface != nil {
+		s.Cloud = cloudInterface(s, s.Store, s.HTTPService)
+	}
 }
 
 func (a *App) initEnterprise() {
@@ -203,8 +206,5 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
-	}
-	if cloudInterface != nil {
-		a.srv.Cloud = cloudInterface(a.Srv(), a.Srv().Store, a.HTTPService())
 	}
 }
