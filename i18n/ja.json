@@ -7263,11 +7263,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。Mattermost Enterpriseエディションで利用可能なSAML 2.0連携の詳細についてはサポートまでお問い合わせください。\n\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。そのために、あなたのMattermostサーバーをSAML2.0プロバイダーと連携することをお勧めします。\n\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください\n\n承認をクリックすることで、あなたの情報がMattermost Inc. へ共有されます。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "あなたのMattermostには200ユーザーが登録しています。ユーザーが増加するにつれ、新規アカウントの払い出しに時間がかかる可能性があります。Mattermost Enterpriseエディションへアップグレードし、あなたの組織のActive Directory/LDAPと連携することをお勧めします。ユーザーは新たにユーザー名とパスワードを設定する必要なくログインすることができるようになるため、管理者のアカウント払い出しや管理にかかる時間を短縮できます。\n\nAD/LDAP連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報をMattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
@@ -7331,19 +7331,19 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermost Enterprise エディションへアップグレードする"
+    "translation": "Mattermostをスケーリングする"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能を持つMattermost Enterpriseエディションへのアップグレードを強く推奨します。\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\n問い合わせる をクリックすると、あなたの情報をMattermost Inc.へ共有します。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "SAML 2.0連携"
+    "translation": "Mattermostをスケーリングする"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "AD/LDAP連携"
+    "translation": "Mattermostをスケーリングする"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7355,7 +7355,7 @@
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "お問い合わせください"
+    "translation": "問い合わせ"
   },
   {
     "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
@@ -7363,7 +7363,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Mattermostへのお問い合わせありがとうございます。後ほど返信いたします。"
+    "translation": "Mattermostへお問い合わせていただき、ありがとうございます。すぐにこちらからご連絡いたします。"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7619,7 +7619,7 @@
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": "オプションのファイル情報を取得できませんでした。"
+    "translation": "オプションのファイル情報を取得できませんでした"
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -7632,5 +7632,737 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "チーム削除機能は有効になっていません。システム管理者に連絡してください。"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}}の大きさ({{.Width}} x {{.Height}} ピクセル)が制限を超えています。"
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "画像ファイルをアップロードできません。ファイルが大き過ぎます。"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "ユーザーがチームリストに所属するかどうか確認できませんでした。"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "チームを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "更新すべきチームが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "非公開チームを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "公開されているチームを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "チームを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "既存のチームの更新をしなくてはいけません。"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "チームスキームをリセットできませんでした。"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "既存のチームを削除できませんでした。"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "ユーザーのチーム一覧を取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "チームメンバーをカウントできませんでした。"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "そのユーザーIDとチームIDに合致するチームのメンバーが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "既存のチームが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "既存のチームが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "既存のチームが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "全てのチームを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "全てのチームを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "チームメンバーをカウントできませんでした。"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "チームを探す際にエラーが発生しました。"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "既存のチームが見付かりませんでした。"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "チームをカウントできませんでした。"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "公開チームをカウントできませんでした。"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "非公開チームをカウントできませんでした。"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "指定時刻周辺の投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "最終閲覧日時を更新できませんでした。"
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "データベースへレコードを挿入できませんでした。"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "ピン留めされた投稿が見付かりませんでした。"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "ピン留めされた投稿数を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "チャンネルのメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "そのユーザーIDとチャンネルIDに合致するチャンネルのメンバーが見付かりませんでした。"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "チャンネルのメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "その投稿のチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "チャンネルが見付かりませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "IDでチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "与えられた日付以降のメッセージをカウントできませんでした。"
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "チャンネル形式数を取得できませんでした。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。ダウンロードされたバイナリファイルのデジタル署名を検証できませんでした。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。この機能はx86-64アーキテクチャのLinux上でのみ動作します。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。Mattermostシステムユーザー {{.MattermostUsername}} がバイナリファイルへの書き込み権限を持っていません。システム管理者がMattermostがインストールされたサーバーで下記のコマンドを実行することにより、ファイルに対する権限を更新することができます。\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nファイルの権限を変更した後、Mattermostのアップグレードを再度試してみてください。アップグレードが完了し再起動を行うことができた場合、バイナリファイルの権限を元に戻すことを忘れないでください。\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。Mattermostシステムユーザー {{.MattermostUsername}} がバイナリファイルへの書き込み権限を持っていません。システム管理者がMattermostがインストールされたサーバーで下記のコマンドを実行することにより、ファイルに対する権限を更新することができます。\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nファイルの権限を変更した後、Mattermostのアップグレードを再度試してみてください。アップグレードが完了し再起動を行うことができた場合、バイナリファイルの権限を元に戻すことを忘れないでください。\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。Mattermostシステムユーザー {{.MattermostUsername}} がバイナリファイルへの書き込み権限を持っていません。システム管理者がMattermostがインストールされたサーバーで下記のコマンドを実行することにより、ファイルに対する権限を更新することができます。\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nファイルの権限を変更した後、Mattermostのアップグレードを再度試してみてください。アップグレードが完了し再起動を行うことができた場合、バイナリファイルの権限を元に戻すことを忘れないでください。\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "すでにMattermost Enterprise Editionが起動しているため、アップグレードできません。"
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "S3への書き込みでエラーが発生しました。"
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "データをアップロードできませんでした。最初の部分は少なくとも {{.Size}} バイト以上である必要があります。"
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "一つ以上のリクエストからデータをアップロードできませんでした。"
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "ユーザーに対するアップロードを取得できませんでした。"
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "アップロードを取得できませんでした。"
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "アップロードを保存できませんでした。"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "削除されたチャンネルにはアップロードできません。"
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "指定されたチャンネルにはアップロードできません。"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "チームメンバーを保存できませんでした。"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "チームを保存できませんでした。"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "チームメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "チームメンバーを更新できませんでした。"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "チームメンバー数の上限に達しているため、チームメンバーシップを作成できませんでした"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "すでに存在するチームメンバーシップは作成できません"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "新しいチームメンバーシップを作成できませんでした"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "チームの未読メッセージを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "チームメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "チームメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "チームメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "ページ内の全ての非公開チームを取得できませんでした。"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "全ての非公開チームを取得できませんでした。"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "チームメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "チャンネルの投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "チャンネルの投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "指定時刻以降の投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "フラグの立てられた投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "そのチームにはもうメンバーを追加できないため、デフォルトのチームメンバーシップは作成できません"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "チームメンバーシップをインポートできませんでした"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "すでに存在するチームメンバーシップはインポートできません"
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "頻度制限にエラーが発生しました。"
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "招待メールが頻度制限の上限を超えました。制限は{{.ResetAfter}}秒後にリセットされます。{{.RetryAfter}}秒後にリトライしてください。"
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "頻度制限が設定されていません。"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "そのチームにはもうメンバーを追加できないため、デフォルトのチームメンバーシップは作成できません"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "すでに存在するデフォルトのチームメンバーシップは作成できません"
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "デフォルトのチームメンバーシップを作成できませんでした"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "チャンネルを未読にできませんでした。"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "チャンネルメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "チャンネルメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "誰かについての投稿数を増加できませんでした。"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "公開チャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "非公開チャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "チャンネルメンバー数を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "チャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "チャンネル数を取得できませんでした。"
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "システム管理者のみがハッシュ化されたパスワードを設定できます。"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWSログインが見つかりませんでした。"
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWSトークンが不正です"
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "アップロードを取得できませんでした。"
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "不正なContent-Lengthです。"
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "アップロードを取得できませんでした。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "MattermostをEnterprise Editionにアップグレードできませんでした。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Mattermost Enterprise Editionへのアップグレードはすでに開始されています。"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "すでにMattermost Enterprise Editionにアップグレードされています。アップグレードを完了するにはサーバーを再起動してください。"
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "無料枠のユーザー数上限に達しました"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "リクエストボディを解析できませんでした。"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "SAMLへ移行できませんでした。"
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "ファイルをS3に追加する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "ファイルを開く際にエラーが発生しました。"
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "ファイルが存在しません。"
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "設定を移行できませんでした。"
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAPは利用できません。"
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "マルチフォームリクエストを解析する際にエラーが発生しました"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "投稿を検索中にエラーが発生しました"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "UserId に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Type に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Path に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Id に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Filename に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "FileSize に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "FileOffset に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "CreateAt に対する値が不正です"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "ChannelId に対する値が不正です。"
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "すべてのパラメータ IncludeDeletedChannels は同じ値となるはずです。"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "投稿に対するファイル情報を取得できませんでした。"
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "投稿に関するファイル情報を取得できませんでした。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "投稿に関するファイル情報を取得できませんでした。"
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "鍵ペアを作成する際にエラーが発生しました"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "LDAPのTLS鍵ファイルを読み込む際にエラーが発生しました。"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "LDAPのTLS証明書ファイルを読み込む際にエラーが発生しました。"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "最も古いエンティティ(ユーザー、チャンネル、投稿)をデータベースから取得できませんでした"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "アップロードセッションを更新できませんでした。"
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "ファイル情報を保存できませんでした。"
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "ファイルを読み込めませんでした。"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "製品に関する通知の状態を検証できませんでした"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "製品に関する通知を解析できませんでした"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "製品に関する通知を取得できませんでした"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "製品に関する過去の通知をクリアできませんでした"
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "ローカルドメインでないメールアドレスを持つユーザーをカウントできませんでした"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "LDAPユーザーが見つかりませんでした。ユーザーフィルターや証明書をチェックしてください。"
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "マルチパートデータを処理できませんでした。"
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "マルチパートアップロードのContent-Typeが不正です。"
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "リクエストボディを解析できませんでした。"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "トライアルを開始する"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "トライアル開始"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。**システムコンソール > ユーザー管理 > 権限**へ行き、高度な権限設定を有効にしてください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "高度な権限設定を利用する"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "あなたのMattermostにはいくつかのチームが存在します。多くのチームは、チャンネルの作成方法や、誰が新しいチームメイトを招待できるか、また、どのように統合機能を管理するかなどのチーム運営について各々が好む方法を持っています。チーム上書きスキームにより、それぞれの要求を満たすようチームごとにユーザー権限設定をカスタマイズできます。\n\n詳しくは[高度な権限設定に関する説明](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)を参照してください。\n\n問い合わせ をクリックすることで、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。チームスキームによる高度な権限設定に興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。Elasticsearchサーバーがある場合、**システムコンソール > 環境 > Elasticsearch**へ行き、Elasticsearchの設定をしてください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "パフォーマンス改善"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "あなたのMattermostシステムには非常に多くのメッセージがあります。Mattermostのデフォルトのデータベース検索は約250万投稿からパフォーマンスが劣化し始めます。500万投稿以上ある場合、Elasticsearchを導入することで、検索のタイムアウトなどの深刻なパフォーマンスの問題を回避することができます。Elasticsearchとの連携について詳しく知りたい場合や、何かサポートできることがないか私たちに問い合わせてください。\n\n詳しくは[パフォーマンス改善に関する説明](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)を参照してください\n\n問い合わせ をクリックすると、あなたの情報は Mattermost, Inc. へ共有されます。詳しくは[説明文書}(https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。Elasticsearchによるパフォーマンスの改善に興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。**システムコンソール > ユーザー管理 > 権限**へ行き、高度な権限設定を有効にしてください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。システムスキーマによる高度な権限設定に興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "チャンネルはコミュニケーションの改善をサポートするものですが、Mattermost全体でチャンネルの作成や参加が多くなるにつれ、システムを整理されたものにし続けることが課題になってきます。高度な権限設定により、どのユーザー、もしくはどの役割の人が何のアクションを実行可能かを設定することができます。例えば、チャンネル設定やメンバーの管理や、@channel、@hereなどのタグによるグループへの発信、新たなウェブフックの作成などを制限できます。\n\n詳しくは[高度な権限設定の利用に関する説明](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)を参照してください\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "高度な権限設定を利用する"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。システムコンソールへ行き、追加の機能を有効にしてください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermostに問い合わせる。我々のチームには500名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "閲覧専用の連絡チャンネル"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。チャンネルを作成し、**システムコンソール > ユーザー管理 > チャンネル** へ行き、投稿をチャンネル管理者に制限してください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "Mattermost全体で多くの会話がなされている場合、どこに重要な情報があるかを知るのは難しいことかもしれません。多くのユーザーに対してメッセージを配信したい場合、誰でも参加可能だがチャンネル管理者しかメッセージの投稿ができないような閲覧専用の連絡チャンネルを立てることができます。\n\n詳しくは[閲覧専用の連絡チャンネルの作成に関する説明](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)を参照してください\n\n問い合わせ をクリックすると、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。閲覧専用の連絡チャンネル機能に興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。 **システムコンソール > 利用登録 > SAML 2.0**へ行き、SAML 2.0 プロバイダーと連携してください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。我々のチームには200名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > AD/LDAP**へ行き、AD/LDAPサービスと連携してください。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Mattermostをスケールする"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "あなたのMattermostには100名以上のユーザーがいます。ユーザー数が増加するにつれ、新しいアカウントの準備などは時間のかかる作業となっていく可能性があります。組織のActive Directory/LDAPと連携し、誰でも組織のアカウントでMattermostにアクセス可能となるよう設定することをおすすめします。\n\n詳しくは[AD/LDAP連携に関する説明](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\n問い合わせ をクリックすると、あなたの情報を Mattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。我々のチームには100名以上のユーザーがおり、Mattermost Enterprise Editionを検討しています。\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > 他要素認証**へ行き、多要素認証を強制してください。"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをよりセキュアにすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/)に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "多要素認証を強制する"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "このMattermostでは多要素認証が有効になっており、ユーザーはパスワードとは別の認証を追加することで、アカウントをよりセキュアにすることを選択できます。システム全体のセキュリティを改善するために、すべてのアカウントに対して多要素認証の利用を要求することもできます。\n\n詳しくは[多要素認証の強制についての説明](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost, Inc. へ共有されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。多要素認証の強制機能について興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "エンタープライズトライアルは有効です。**システムコンソール > 利用登録 > ゲストアカウント** へ行き、ゲストアカウントを有効にしてください。"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\nトライアル開始 をクリックすると、[Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/) と [プライバシーポリシー](https://mattermost.com/privacy-policy/) に同意し、製品に関する電子メールを受信するようになります。"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "ゲストアカウントを作成する"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "プロジェクトには組織内、組織外の両方の人が参画することがあります。ゲストアカウント機能により、外部のパートナーをMattermostに参加させることができ、ゲストが閲覧可能な情報などの設定を行うことができます。\n\n詳しくは[ゲストアカウントに関する説明](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報が Mattermost Inc. へ送信されます。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermostへ問い合わせる。ゲストアカウント機能について興味があります。\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "トライアルライセンスを取得できませんでした。 https://mattermost.com/trial/ からライセンスをリクエストしてください。"
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "トライアルライセンスを取得できませんでした。 support@mattermost.comまで連絡してください。登録ユーザー数を取得できません。"
   }
 ]
