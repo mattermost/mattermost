@@ -1268,9 +1268,9 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
 	return nil
 }
 
-// UpdateLastTeamIconUpdate sets the last updated time for the icon based on the passed in teamId. The
-// LastTeamIconUpdate and UpdateAt fields are set to the passed in curTime. Returns nil on success and the error
-// otherwise
+// UpdateLastTeamIconUpdate sets the last updated time for the icon based on the parameter passed in teamId. The
+// LastTeamIconUpdate and UpdateAt fields are set to the parameter passed in curTime. Returns nil on success and an error
+// otherwise.
 func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) error {
 	query, args, err := s.getQueryBuilder().
 		Update("Teams").
