@@ -7753,5 +7753,257 @@
   {
     "id": "app.create_basic_user.save_member.app_error",
     "translation": "Incapaz de crear default afiliaciones de equipo"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "Las dimensiones de {{.Filename}} son ({{.Width}} por {{.Height}} pixels) exceden el limite."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "No se pudo cargar el archivo. El archivo es muy grande."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "No se puede determinar si el usuario pertenece a la lista de equipos."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Encontramos un error actualizando el equipo."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "No se puede encontrar el equipo a actualizar."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Encontramos un error buscando los equipos privados."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Encontramos un error buscando los equipos abiertos."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Encontramos un error buscando los equipos."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Falló al guardar el miembro del equipo."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Para un equipo existente debe ejecutarse una actualización."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "No se puede guardar el equipo."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "No pudimos restablecer los esquemas de equipo."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "No se puede eliminar el miembro del equipo."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "No se puede borrar el equipo existente."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Falló al actualizar el miembro del equipo."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "No se puede obtener la lista de equipos del usuario."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "No se puede obtener los mensajes sin leer de tus equipos."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "No se puede obtener los miembros del equipo."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "No se puede obtener los miembros del equipo."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "No se puede obtener la cantidad de miembros del equipo."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "No se encontró un miembro del equipo para el ID de usuario y el ID del equipo."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "No se puede obtener el miembro del equipo."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "No se puede obtener los canales para el esquema suministrado."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "No se puede encontrar el equipo existente."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "No se puede encontrar el equipo existente."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "No se puede encontrar el equipo existente."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "No pudimos obtener todos los equipos."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "No pudimos obtener todos los equipos privados."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "No pudimos obtener todos los equipos."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "No se puede obtener la cantidad de miembros del equipo."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Encontramos un error buscando el equipo."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "No se puede encontrar el equipo existente."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Falló al obtener los miembros del equipo."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "No se puede obtener la cantidad de equipos."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "No se puede obtener la cantidad de equipos públicos."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "No se puede obtener la cantidad de equipos privados."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "No se puede obtener los mensajes del canal."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "No se puede obtener los mensajes del canal."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "No se puede obtener el mensaje alrededor de un tiempo determinado."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "No se puede obtener el mensaje después de un tiempo determinado."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "No se pueden obtener los mensajes marcados."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "No se puede marcar el canal como no leído."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "No pudimos actualizar el tiempo de la última vista."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Ocurrió un error al insertar el registro en la base de datos."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Error al remover los miembros del canal."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "No se puede encontrar los mensajes destacados."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Error al remover los miembros del canal."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "No se puede incrementar el número de menciones."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "No se pudo obtener los canales públicos."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "No se pudo  obtener los canales privados."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "No pudimos obtener la cantidad de mensajes destacados del canal."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "No se puede obtener de los miembros del canal."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "No pudimos obtener la cantidad de miembros del canal."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "No se encontró un miembro con el ID de usuario y el ID del canal."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "No se puede obtener el miembro del canal."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "No pudimos obtener el canal del mensaje especificado."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No se encontró el canal."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "No se pudo obtener los canales."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "No se pudo obtener los canales por ids."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "No se puede obtener el número de canales."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "No se pueden contar los mensajes desde la fecha proporcionada."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "No se pudo obtener la cantidad de canales de este tipo."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Se encontró un error al escribir al S3."
   }
 ]
