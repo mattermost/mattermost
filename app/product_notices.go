@@ -4,33 +4,26 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/store"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	"github.com/reflog/dateconstraints"
+
+	"github.com/Masterminds/semver/v3"
+	date_constraints "github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
 const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
-
-// where to fetch notices from. setting as var to allow overriding during build/test
-var NOTICES_JSON_URL = "https://notices.mattermost.com/"
-
-// notice.json fetch frequency in seconds. setting as var to allow overriding during build/test
-var NOTICES_JSON_FETCH_FREQUENCY_SECONDS = "3600" // one hour by default
-
-// this variable can be set during build time for QA to skip caching JSON responses (to avoid CDN delay)
-var NOTICES_SKIP_CACHE = "false"
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -41,6 +34,21 @@ var cachedUserCount int64
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
+var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
+
+func cleanupVersion(originalVersion string) string {
+	// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
+	version := strings.Replace(originalVersion, "release-", "", 1)
+	version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
+	versionParts := strings.Split(version, ".")
+	var versionPartsOut []string
+	for _, part := range versionParts {
+		if _, err := strconv.ParseInt(part, 10, 16); err == nil {
+			versionPartsOut = append(versionPartsOut, part)
+		}
+	}
+	return strings.Join(versionPartsOut, ".")
+}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -64,9 +72,9 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	for _, v := range clientVersions {
-		c, err := semver.NewConstraint(v)
-		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse version range %s", v)
+		c, err2 := semver.NewConstraint(v)
+		if err2 != nil {
+			return false, errors.Wrapf(err2, "Cannot parse version range %s", v)
 		}
 		if !c.Check(clientVersionParsed) {
 			return false, nil
@@ -75,10 +83,10 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC()
-		c, err := date_constraints.NewConstraint(*cnd.DisplayDate)
-		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse date range %s", *cnd.DisplayDate)
+		now := time.Now().UTC().Truncate(time.Hour * 24)
+		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
+		if err2 != nil {
+			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
 		if !c.Check(&now) {
 			return false, nil
@@ -86,14 +94,21 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	// check if current server version is notice range
-	serverVersion, _ := semver.NewVersion(model.BuildNumber)
-	for _, v := range cnd.ServerVersion {
-		c, err := semver.NewConstraint(v)
+	if cnd.ServerVersion != nil {
+		version := cleanupVersion(model.BuildNumber)
+		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse version range %s", v)
-		}
-		if !c.Check(serverVersion) {
+			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
 			return false, nil
+		}
+		for _, v := range cnd.ServerVersion {
+			c, err := semver.NewConstraint(v)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse version range %s", v)
+			}
+			if !c.Check(serverVersion) {
+				return false, nil
+			}
 		}
 	}
 
@@ -190,7 +205,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
 
 	// check if notices for regular users are disabled
-	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isTeamAdmin && !isSystemAdmin {
+	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
 		return []model.NoticeMessage{}, nil
 	}
 
@@ -268,15 +283,14 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 }
 
 func (a *App) UpdateProductNotices() *model.AppError {
-	skip, err := strconv.ParseBool(NOTICES_SKIP_CACHE)
-	if err != nil {
-		skip = false
-	}
-	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL), mlog.Bool("skip_cache", skip))
+	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
+	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
+	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
 	var appErr *model.AppError
-	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	if appErr != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", appErr.Error()))
+	var err error
+	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if err != nil {
+		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
@@ -284,7 +298,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
 	}
 
-	data, err := utils.GetUrlWithCache(NOTICES_JSON_URL, &noticesCache, skip)
+	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
 	}

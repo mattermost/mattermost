@@ -99,6 +99,11 @@ type TelemetryService struct {
 	timestampLastTelemetrySent time.Time
 }
 
+type RudderConfig struct {
+	RudderKey    string
+	DataplaneUrl string
+}
+
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
 	service := &TelemetryService{
 		srv:          srv,
@@ -130,9 +135,24 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	ts.TelemetryID = id
 }
 
+func (ts *TelemetryService) getRudderConfig() RudderConfig {
+	if !strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") {
+		return RudderConfig{RUDDER_KEY, RUDDER_DATAPLANE_URL}
+	} else if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
+		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
+	} else {
+		return RudderConfig{}
+	}
+}
+
+func (ts *TelemetryService) telemetryEnabled() bool {
+	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader()
+}
+
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.HasPrefix(RUDDER_KEY, "placeholder") && !strings.HasPrefix(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
+	config := ts.getRudderConfig()
+	if ts.telemetryEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
+		ts.initRudder(config.DataplaneUrl, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -388,6 +408,8 @@ func (ts *TelemetryService) trackConfig() {
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
+		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
+		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
@@ -681,6 +703,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
+		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -1060,9 +1083,9 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Error(nErr.Error())
 	}
 
-	groupSyncedChannelCount, err := ts.dbStore.Channel().GroupSyncedChannelCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupMemberCount, err := ts.dbStore.Group().GroupMemberCount()
@@ -1290,7 +1313,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
 				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			} else {
 				for _, p := range marketplacePlugins {
