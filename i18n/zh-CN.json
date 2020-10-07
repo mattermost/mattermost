@@ -1154,10 +1154,6 @@
     "translation": "没有本地路径写入权限或其他错误。"
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "无法创建储存桶。"
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "检查储存桶是否存储错误。"
   },
@@ -4938,80 +4934,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "无法获取已删除的频道类型数"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "获取频道成员失败"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "更新频道成员失败"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "无法找到频道。"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "我们查找该频道时遇到了错误。"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "无法获取所有频道。"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "无法用提供的方案获取频道"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "无法获取频道成员"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "无法获取频道未读消息"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "无法提交数据库事务"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "打开数据库事务失败。"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "批量选择频道成员失败"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "无法更新频道成员"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "我们无法从频道移除已停用的用户"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "我们无法重置频道方案"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "无法提交事务"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "无法打开事务"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5038,10 +4966,6 @@
     "translation": "不能试图用SaveDirectChannel创建私聊频道"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "我们搜索频道时遇到错误"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "无法获取命令"
   },
@@ -5060,50 +4984,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "用户组成员已存在"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "无法获取消息数"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "无法获取以天计数的消息数"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "无法获取用户的消息数量"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "无法获取这个频道的父消息"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "分页限制"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "无法为索引获取批量消息"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "无法获取消息"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "无法获取此频道的消息"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "无法获取此频道的消息"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "无法覆盖消息"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "批量永久删除消息时遇到错误"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5882,18 +5762,6 @@
     "translation": "清除 Bleve 索引错误：引擎未启用"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "建立查询失败。"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "无法获取所有私信频道。"
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "无法为索引获取批量频道。"
-  },
-  {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "无法删除品牌图片，文件未找到。"
   },
@@ -6164,10 +6032,6 @@
   {
     "id": "model.user.is_valid.update_at.app_error",
     "translation": "更新时必须是有效时间。"
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "无法以指定的用户和关键字获取群组频道。"
   },
   {
     "id": "store.sql_group.app_error",
@@ -6578,14 +6442,6 @@
     "translation": "无法统计频道数。"
   },
   {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "无法确定用户是否属于这些频道。"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "无法获取私信。"
-  },
-  {
     "id": "model.group.name.invalid_length.app_error",
     "translation": "名称必须在 1 至 64 个的小写英文数字。"
   },
@@ -6774,14 +6630,6 @@
     "translation": "UserCountOptions 不合理。"
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "无法获取消息回复数"
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "无法获得最早的实体创建时间。"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "必须提供服务提供商标识"
   },
@@ -6828,14 +6676,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "无法移动私信或群组消息频道"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "打开数据库事务失败。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "无法提交事务"
   },
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
@@ -7030,14 +6870,6 @@
     "translation": "命令不存在。"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "无法删除非自定义分类。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "插入数据至数据库失败。"
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "无法迁移。"
   },
@@ -7122,10 +6954,6 @@
     "translation": "我们获取合规报告时遇到错误"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "无法复制附件到 zip 文件。"
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "清理批量标记时遇到错误。"
   },
@@ -7183,10 +7011,6 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "与 Mattermost 扩展"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
     "translation": "与 Mattermost 扩展"
   },
   {
@@ -7560,14 +7384,6 @@
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
     "translation": "永久删除这批帖子时遇到错误。"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "创建 actiance XML 文件时发生错误"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "创建 actiance 警告文本文件时出错"
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",
@@ -8010,10 +7826,6 @@
     "translation": "Mattermost 联络我们请求"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "如果您有其他的查询，请联络 support@mattermost.com"
   },
@@ -8046,20 +7858,12 @@
     "translation": "Mattermost 强烈建议超过 500 个用户的部署使用用户管理，服务器群集和性能监视等功能。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多]（https://mattermost.com/pl/default-admin-advisory）"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "您的 Mattermost 系统现在有 400 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 与 Mattermost 服务器整合。\n\n[了解更多关于整合 SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n通过单击确认，您将与Mattermost Inc. 分享您的信息以了解有关升级的更多信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "电子邮件我们"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.body",

@@ -1157,10 +1157,6 @@
     "translation": "Je hebt geen rechten om te schrijven naar het opgegeven lokale pad of een andere fout."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Fout bij het aanmaken van de bucket."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Fout bij het controleren of de bucket bestaat."
   },
@@ -4943,80 +4939,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "We kunnen de kanalen typen niet tellen"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Het kanaal kon niet gevonden worden"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Kan leden niet toevoegen aan het directe kanaal"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Kan transactie niet openen"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5043,10 +4971,6 @@
     "translation": "Geen poging om een direkt kanaal te maken met 'SaveDirectChannel'"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Bericht kan niet opgehaald worden"
   },
@@ -5065,50 +4989,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "We kunnen het startbericht voor het kanaal niet ophalen"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Grens bereikt bij het opdelen in pagina's"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "We kunnen de berichten van het kanaal niet ophalen"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5635,39 +5515,11 @@
     "translation": "UserCountOptions maken geen zin."
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Fout bij het ophalen van het aantal antwoorden op het bericht"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Directe berichten kunnen niet worden opgehaald."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "maken van query is mislukt."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Kan niet vaststellen of de gebruiker tot een lijst van kanalen behoort."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "De groepskanalen voor de opgegeven gebruiker en term kunnen niet worden opgehaald."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Fout bij het ophalen van alle directe kanalen."
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "maken van query is mislukt."
   },
   {
@@ -6767,10 +6619,6 @@
     "translation": "Fout bij het verwijden van de kanaalberichten"
   },
   {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Fout bij het ophalen van het aanmaakmoment van de oudste entiteit."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Service Provider Identifier is verplicht"
   },
@@ -6861,22 +6709,6 @@
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "Je moet de Mattermost Evaluation Agreement en Privacy Policy aanvaarden om een licentie te kunnen aanvragen."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "De transactie kan niet worden vastgelegt"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Fout bij het verwijderen van de niet-eigen categorie."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Fout bij het toevoegen van de record aan de databank."
   },
   {
     "id": "app.recover.save.app_error",
@@ -7159,10 +6991,6 @@
     "translation": "Mattermost Contacteer-ons-verzoek"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise editie."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Heb je nog verdere vragen, dan kan je contact met ons opnemen op support@mattermost.com"
   },
@@ -7191,14 +7019,6 @@
     "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor op Contacteer ons te klikken, deel je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integratie van SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Schalen met Mattermost"
   },
@@ -7213,10 +7033,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Contacteer ons"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise Editie.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7283,10 +7099,6 @@
     "translation": "Er is een probleem opgetreden bij het ophalen van het 'compliance' rapport"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Er is een fout opgetreden bij het opschonen van de reeks vlaggen."
   },
@@ -7313,26 +7125,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het bestand met de actiance waarschuwingen"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het actiance XML-bestand"
   },
   {
     "id": "api.job.unable_to_download_job",

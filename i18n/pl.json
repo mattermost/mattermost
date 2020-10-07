@@ -1160,10 +1160,6 @@
     "translation": "Nie ma uprawnień do zapisu na podaną lokalną ścieżkę lub innego błędu."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Nie udało się stworzyć wiadra."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Błąd podczas sprawdzania czy wiadro istnieje."
   },
@@ -4948,80 +4944,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Nie można pobrać liczby usuniętych kanałów"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Nie można rozpocząć transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Nie udało się pobrać członków kanału"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika kanału"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Nie można znaleźć istniejącego kanału"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Nie można pobrać wszystkich kanałów"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Nie można pobrać kanałów dla podanego schematu"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Nie można uzyskać członków kanału"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Nie można pobrać nieprzeczytanych wiadomości dla tego kanału"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Nie powiodło się otwarcie transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Nie udało się wybrać partii członków kanału"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Nie udało się zaktualizować członka kanału"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Nie mogliśmy usunąć dezaktywowanych użytkowników z kanału"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Nie udało się zresetować schematów kanałów"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Nie można dokonać transakcji"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Nie można wykonać transakcji"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5048,10 +4976,6 @@
     "translation": "Próba utworzenia kanału innego typu niż kanał bezpośredni z SaveDirectChannel"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Wystąpił błąd podczas przeszukiwania kanałów"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Nie można uzyskać komendy"
   },
@@ -5070,50 +4994,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "członek grupy już istnieje"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Nie można uzyskać liczby postów"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Nie można uzyskać liczby postów w danym dniu"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Nie można uzyskać liczby użytkowników za pomocą postów"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Nie można uzyskać postu nadrzędnego dla kanału"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Przekroczono limit stronicowania"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Nie można pobrać wiadomości"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Nie można uzyskać wpisów do kanału"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Nie można uzyskać wpisów do kanału"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Nie można zastąpić wpisu"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5616,39 +5496,11 @@
     "translation": "UserCountOptions nie mają sensu"
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Nie można pobrać wiadomości bezpośrednich"
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Możesz usuwać członków grupy z userId \"{{.UserId}}\""
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "nie udało się zbudować zapytania"
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Nie można określić, czy użytkownik należy do listy zespołów"
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Nie można uzyskać grupy kanałów dla wybranej nazwy użytkownika oraz kryterium"
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Nie można uzyskać wszystkich kanałów bezpośrednich"
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "nie udało się zbudować zapytania"
   },
   {
@@ -6740,14 +6592,6 @@
     "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Nie powiodło się otwarcie transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Nie można dokonać transakcji"
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
   },
@@ -7026,10 +6870,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Nie można skopiować załącznika do pliku zip."
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",

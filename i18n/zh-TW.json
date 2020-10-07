@@ -1154,10 +1154,6 @@
     "translation": "沒有寫入指定本地路徑的權限或是其他錯誤。"
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "無法建立儲存貯體。"
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "檢查儲存貯體是否存在時發生錯誤。"
   },
@@ -4938,80 +4934,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "無法取得已刪除的頻道類別數量"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "認可資料庫交易時失敗"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "開啟資料庫交易時失敗"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "取得頻道成員時失敗"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "更新頻道成員時失敗"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "找不到現有的頻道"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "尋找頻道時遇到錯誤"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "無法取得頻道"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "無法取得提供的配置當中的頻道"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "無法取得頻道成員"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "無法取得頻道未讀訊息"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "認可資料庫交易時失敗"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "開啟資料庫交易時失敗"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "批次選取頻道成員時失敗"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "更新頻道成員時失敗"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "無法將已被停用的使用者從頻道中移除"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "無法重置頻道配置"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "無法提交交易"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "無法開啟交易"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5038,10 +4966,6 @@
     "translation": "嘗試使用 SaveDirectChannel 建立的不是直接訊息頻道"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "搜尋頻道時遇到錯誤"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "無法取得指令"
   },
@@ -5060,50 +4984,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "群組成員已存在"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "無法取得訊息計數"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "無法取得每日訊息計數"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "無法取得使用者訊息計數"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "無法取得該頻道的上層訊息"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "分頁已達限制"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "無法取得文章以建立索引"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "無法取得訊息"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "無法取得該頻道的訊息"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "無法取得該頻道的訊息"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "無法覆蓋訊息"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5606,39 +5486,11 @@
     "translation": "UserCountOptions 無效"
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "無法取得訊息回應數量"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "無法取得直接訊息"
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "無法移除使用者 ID 為 \"{{.UserId}}\" 的群組成員"
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "建立查詢時失敗"
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "無法判定使用者是否屬於頻道"
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "無法為指定的使用者跟詞取得群組頻道"
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "無法取得頻道批次以建立索引"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "無法取得直接頻道"
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "建立查詢時失敗"
   },
   {
@@ -6714,14 +6566,6 @@
     "translation": "無法刪除品牌圖片，沒有找到檔案。"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "開啟資料庫交易時失敗"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "無法提交交易"
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "永久批次刪除回應時遇到錯誤"
   },
@@ -6914,10 +6758,6 @@
     "translation": "無法移動直接傳訊或群組頻道"
   },
   {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "無法取得最舊實體的建立時間。"
-  },
-  {
     "id": "store.sql_group.more_than_one_row_changed",
     "translation": "多於一筆資料列被改變。"
   },
@@ -6928,14 +6768,6 @@
   {
     "id": "store.sql_command.get.missing.app_error",
     "translation": "指令不存在。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "無法刪除非自訂類別。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "插入資料至資料庫失敗。"
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
@@ -7134,10 +6966,6 @@
     "translation": "聯絡我們"
   },
   {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "感謝您對 Mattermost 有興趣，我們會盡快聯絡。"
   },
@@ -7206,10 +7034,6 @@
     "translation": "取得規範報告時遇到錯誤"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "無法複製附加檔案至 zip 檔案中。"
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "永久批次清除標記時遇到錯誤"
   },
@@ -7242,10 +7066,6 @@
     "translation": "找不到警告計量。"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
     "translation": "站台網址："
   },
@@ -7268,26 +7088,6 @@
   {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "寫入 actiance XML 檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "建立 actiance XML 檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "寫入 actiance 警告文字檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "建立 actiance 警告文字檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "建立 actiance XML 檔案時發生錯誤"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -7396,10 +7196,6 @@
   {
     "id": "api.templates.warn_metric_ack.body.contact_name_header",
     "translation": "聯絡： "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "整合 SAML 2.0"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7704,10 +7500,6 @@
   {
     "id": "app.team.get_by_scheme.app_error",
     "translation": "無法取得提供的配置當中的頻道"
-  },
-  {
-    "id": "store.sql_post.search.app_error",
-    "translation": "搜尋訊息發生錯誤"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
@@ -8108,10 +7900,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "一共有 400 位使用者在此 Mattermost。當 Mattermost 連接您組織的單一登入提供者時，使用者可以在使用 Mattermost 時無須重新輸入密碼。我們建議將 Mattermost 與 SAML 2.0 提供者整合。\n\n[了解更多有關與 SAML 2.0 整合](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",

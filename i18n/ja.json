@@ -1154,10 +1154,6 @@
     "translation": "指定されたパスへの権限が無いか、もしくはその他のエラーが発生しました。"
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "バケットを作成できません。"
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "バケットが存在するかのチェックでエラーが発生しました。"
   },
@@ -4938,80 +4934,12 @@
     "translation": "Bot does not exist。"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "削除済みのチャンネル形式数を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "データベーストランザクションをコミットできませんでした。"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "データベーストランザクションを開始できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "チャンネルメンバーを抽出できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "チャンネルメンバーを更新できませんでした。"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "既存のチャンネルが見付かりませんでした。"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "チャンネルを探す際にエラーが発生しました。"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "全チャンネルを取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "チャンネルのメンバーを取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "チャンネルの未読メッセージを取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "データベーストランザクションをコミットできませんでした。"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "データベーストランザクションを開けませんでした。"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "チャンネルメンバーを選択できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "チャンネルメンバーを更新できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "無効化されたユーザーをチャンネルから削除できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "チャンネルスキームをリセットできませんでした。"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "トランザクションをコミットできませんでした。"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "トランザクションを開けませんでした。"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5038,10 +4966,6 @@
     "translation": "SaveDirectChannelで作成されようとしたダイレクトチャンネルではありません。"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "チャンネルを検索する際にエラーが発生しました。"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "コマンドを取得できませんでした。"
   },
@@ -5060,50 +4984,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "グループメンバーは既に存在しています"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "投稿数を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "日付ごとの投稿数を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "投稿をしたユーザー数を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "チャンネルの親に当たる投稿を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "これ以上のページを生成できません。"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "投稿を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "チャンネルの投稿を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "チャンネルの投稿を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "投稿を上書きできませんでした。"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "投稿バッチを完全に削除する際にエラーが発生しました。"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5606,39 +5486,11 @@
     "translation": "UserCountOptionsは効果がありません。"
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "投稿の返信数を取得できませんでした"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "ダイレクト投稿を取得できませんでした。"
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "ユーザーID \"{{.UserId}}\" のグループメンバーを削除できませんでした。"
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "クエリーを構築できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "ユーザーがチャンネルリストに所属するかどうか確認できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "指定されたユーザーと期間に対するグループチャンネルを取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "全ダイレクトチャンネルを取得できませんでした。"
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "クエリーを構築できませんでした。"
   },
   {
@@ -6714,10 +6566,6 @@
     "translation": "ブランド画像が見つからないため、削除できませんでした。"
   },
   {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "最も古いエンティティの作成時間を取得できませんでした。"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "サービスプロバイダー識別子が必要です"
   },
@@ -6856,14 +6704,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "ダイレクトメッセージチャンネル、もしくはグループメッセージチャンネルは移動できません"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "データベーストランザクションを開けませんでした。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "トランザクションをコミットできませんでした。"
   },
   {
     "id": "app.command.listteamcommands.internal_error",
@@ -7022,14 +6862,6 @@
     "translation": "トークンを削除できませんでした。"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "既定のカテゴリを削除できませんでした。"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "データベースへレコードを挿入できませんでした。"
-  },
-  {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
     "translation": "初期サイドバーカテゴリを作成できませんでした。"
   },
@@ -7136,10 +6968,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "添付ファイルをzipファイルにコピーできません。"
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",
@@ -7262,36 +7090,12 @@
     "translation": "内向きのウェブフックをカウントできませんでした。"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。そのために、あなたのMattermostサーバーをSAML2.0プロバイダーと連携することをお勧めします。\n\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください\n\n承認をクリックすることで、あなたの情報がMattermost Inc. へ共有されます。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報をMattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
     "translation": "不正なプラグインIDです。"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "ActianceXMLファイルを書き出す際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "ActianceXMLファイルを作成する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Actiance XMLファイルを書き出す際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Actiance警告テキストファイルを作成する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Actiance XMLファイルを作成する際にエラーが発生しました"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -7318,10 +7122,6 @@
     "translation": "config.json内のDownloadExportResultsが無効になっています。このジョブの結果をダウンロードするには有効にしてください。"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contact Usリクエストです。私のチームは現在 {{.Limit}}ユーザーが登録しており、Mattermost Enterprise Editionを検討しています。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "診断ID: "
   },
@@ -7338,10 +7138,6 @@
     "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\n問い合わせる をクリックすると、あなたの情報をMattermost Inc.へ共有します。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Mattermostをスケーリングする"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Mattermostをスケーリングする"
   },
@@ -7356,10 +7152,6 @@
   {
     "id": "api.server.warn_metric.contact_us",
     "translation": "問い合わせ"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contact Usリクエストです。私のチームは現在{{.Limit}}ユーザーが所属しており、Mattermost Enterprise Editionの利用を検討しています。\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -8064,10 +7856,6 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "マルチフォームリクエストを解析する際にエラーが発生しました"
-  },
-  {
-    "id": "store.sql_post.search.app_error",
-    "translation": "投稿を検索中にエラーが発生しました"
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",

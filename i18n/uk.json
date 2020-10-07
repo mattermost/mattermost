@@ -1160,10 +1160,6 @@
     "translation": "Не маєте прав на запис на зазначену локальну конфігурацію чи іншу помилку."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Неможливо створити бакет."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Помилка перевірки існування бакета."
   },
@@ -4948,80 +4944,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Неможливо видалити кількість скасованих каналів"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Не вдалося розпочати транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не вдається знайти канал"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Сталася помилка під час пошуку каналу"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Неможливо отримати всі канали"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Неможливо отримати канали для наданої схеми"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Не вдалося вибрати партію учасників каналу"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Не вдалося вилучити деактивованих користувачів із каналу"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Не вдалося скинути схеми каналів"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5048,10 +4976,6 @@
     "translation": "Не був створений прямий канал за допомогою SaveDirectChannel"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Не вдається отримати команду"
   },
@@ -5070,50 +4994,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Не вдається отримати кількість постів"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Не вдається отримати кількість постів за день"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Неможливо отримати кількість користувачів із повідомленнями"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Неможливо отримати батьківський допис для каналу"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Перевищене обмеження кількості сторінок"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Неможливо видалити роль"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5616,39 +5496,11 @@
     "translation": "UserCountOptions don't make sense."
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "failed to build query."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Неможливо отримати всі канали"
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "failed to build query."
   },
   {
@@ -6720,14 +6572,6 @@
     "translation": "Unable to delete brand image, not found."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
   },
@@ -7010,10 +6854,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Неможливо скопіювати вкладення у файл zip."
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",

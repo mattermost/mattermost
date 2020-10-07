@@ -1157,10 +1157,6 @@
     "translation": "Permessi insufficienti per scrivere nel percorso specificato, oppure si è verificato un errore nel controllo."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Impossibile creare il bucket."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Errore durante il controllo dell'esistenza del bucket."
   },
@@ -4943,80 +4939,12 @@
     "translation": "Il bot non esiste."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Impossibile recuperare il conteggio del tipo di canali eliminati."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione sul database."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Impossibile avviare una transazione sul database."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Impossibile recuperare i membri del canale."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Errore durante l'aggiornamento del membro del canale."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Non è stato possibile trovare il canale."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Riscontrato un errore nella ricerca del canale."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i canali."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Impossibile elencare i canali per lo schema fornito."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Impossibile ottenere i membri del canale."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Non è stato possibile recuperare i messaggi non letti del canale."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione a database."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Impossibile connettersi al database."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Impossibile selezionare l'insieme dei membri del canale."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Errore durante l'aggiornamento del membro del canale."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Impossibile rimuovere gli utenti disattivati dal canale."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Impossibile resettare gli schemi del canale."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Impossibile avviare la transazione."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5043,10 +4971,6 @@
     "translation": "Tentativo di creazione di un canale non diretto tramite SaveDirectChannel."
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Riscontrato un errore nella ricerca dei canali."
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Impossibile ottenere il comando."
   },
@@ -5065,50 +4989,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "il membro del gruppo esiste già"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Impossibile ottenere il numero delle pubblicazioni."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Impossibile ottenere il numero delle pubblicazioni per giorno."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Impossibile ottenere il numero degli utenti con pubblicazioni."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Impossibile recuperare la pubblicazione genitore per il canale."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Limite di paginazione superato."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni del canale."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni del canale."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Impossibile sovrascrivere la pubblicazione."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5823,14 +5703,6 @@
     "translation": "Un utente bot non può creare un utente bot."
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "errore nella costruzione della query."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Impossibile trovare il gruppo di canali da indicizzare."
-  },
-  {
     "id": "api.admin.delete_brand_image.storage.not_found",
     "translation": "Impossibile eliminare il logo, non trovato."
   },
@@ -6219,14 +6091,6 @@
     "translation": "Errore cancellazione indici Bleve: il motore non è attivo"
   },
   {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Impossibile recuperare tutti i canali diretti."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Impossibile ottenere i canali del gruppo per l'utente e il termine forniti."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Impossibile cancellare i membri del gruppo con UserID \"{{.UserId}}\"."
   },
@@ -6611,24 +6475,8 @@
     "translation": "Non ci sono canali eliminati."
   },
   {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Impossibile determinare se l'utente appartiene ad una lista di canali."
-  },
-  {
     "id": "store.sql_group.app_error",
     "translation": "errore nella costruzione della query."
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni dirette."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Impossibile ottenere la data di creazione elemento più vecchia."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Impossibile ottenere il conteggio delle risposte alla pubblicazione"
   },
   {
     "id": "store.sql_user.count.app_error",
@@ -6839,14 +6687,6 @@
     "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Impossibile connettersi al database"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione"
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
   },
@@ -7055,14 +6895,6 @@
     "translation": "Impossibile eliminare il token"
   },
   {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Impossibile eliminare una categoria non personalizzata."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Impossibile inserire la riga nel database."
-  },
-  {
     "id": "ent.get_users_in_channel_during",
     "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
   },
@@ -7135,14 +6967,6 @@
     "translation": "Mattermost consiglia caldamente che le installazioni con più di 500 utenti si aggiornino a Mattermost Enterprise Edition, che offre funzionalità avanzate come la gestione utenti, il server clustering e il monitore delle performance.\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integra SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Il tuo Mattermost adesso ha 400 utenti. Se colleghi Mattermost al tuo fornitore di autenticazione aziendale gli utenti potranno accedere a Mattermost senza reinserire le credenziali. Contatta il supporto per scoprire come integrare SAML 2.0, disponibile in Mattermost Enterprise Edition.\n\n[Scopri come integrare SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
   },
@@ -7161,10 +6985,6 @@
   {
     "id": "api.server.warn_metric.contact_us",
     "translation": "Contattaci"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7239,10 +7059,6 @@
     "translation": "Non è stato possibile recuperare i rapporti di compliance."
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Impossibile copiare l'allegato nel file zip."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Si è verificato un errore pulendo i flag"
   },
@@ -7273,10 +7089,6 @@
   {
     "id": "app.system.warn_metric.notification.invalid_metric.app_error",
     "translation": "Impossibile trovare la metrica di avviso."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
@@ -7427,10 +7239,6 @@
     "translation": "Migrazione impossibile."
   },
   {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Errore durante la creazione del file XML di actiance"
-  },
-  {
     "id": "app.user.convert_bot_to_user.app_error",
     "translation": "Impossibile convertire bot in utente."
   },
@@ -7505,22 +7313,6 @@
   {
     "id": "migrations.system.save.app_error",
     "translation": "Si è verificato un errore durante il salvataggio della proprietà di sistema."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Si è verificato un errore durante la scrittura del file XML di actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Si è verificato un errore durante la creazione del file XML di actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Si è verificato un errore durante la scrittura del file XML di actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Si è verificato un errore durante la creazione del file di avviso di actiance"
   },
   {
     "id": "app.system.save.app_error",

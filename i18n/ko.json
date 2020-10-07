@@ -1154,10 +1154,6 @@
     "translation": "지정된 로컬 경로를 쓸 권한이 없거나 다른 오류가 있습니다."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "버킷을 생성할 수 없습니다."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "버킷이 존재하는지 확인하는 동안 에러가 발생했습니다."
   },
@@ -4938,80 +4934,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "채널을 찾을 수 없습니다"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "존재하는 채널을 찾지 못했습니다."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "채널을 불러올 수 없습니다."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Unable to add direct channel members"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5038,10 +4966,6 @@
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "We encountered an error updating the channel"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "내용을 가져올수 없습니다."
   },
@@ -5060,50 +4984,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "We couldn't get the parent post for the channel"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Limit exceeded for paging"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "내용을 가져올수 없습니다."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "We couldn't get the posts for the channel"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "We couldn't get the posts for the channel"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "내용을 가져올수 없습니다."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5606,39 +5486,11 @@
     "translation": "UserCountOptions don't make sense."
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "내용을 가져올수 없습니다."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "사용자ID가 \"{{.UserId}}\"인 그룹 멤버를 제거 할 수 없습니다."
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "쿼리를 작성하지 못했습니다."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "사용자가 팀 목록에 속하는지 확인할 수 없습니다"
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "색인을 위해 채널 배치를 가져올 수 없습니다"
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "모든 다이렉트 메시지를 불러올 수 없습니다."
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "쿼리를 작성하지 못했습니다."
   },
   {
@@ -6714,14 +6566,6 @@
     "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제 할 수 없습니다."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions"
   },
@@ -7034,10 +6878,6 @@
     "translation": "We encountered an error retrieving the compliance reports"
   },
   {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "가장 오래된 엔티티 작성 시간을 얻을 수 없습니다."
-  },
-  {
     "id": "store.sql_group.more_than_one_row_changed",
     "translation": "둘 이상의 행이 변경되었습니다."
   },
@@ -7050,40 +6890,12 @@
     "translation": "명령이 존재하지 않습니다."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "비 사용자 정의 카테고리를 삭제할 수 없습니다."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "데이터베이스에 레코드를 삽입하지 못했습니다."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "서비스 제공자 식별자가 필요합니다"
   },
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "마이그레이션 할 수 없습니다."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Actiance xml 파일에 작성하는 중에 오류가 발생했습니다"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Actiance 경고 텍스트 파일을 작성하는 중에 오류가 발생했습니다"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -7154,10 +6966,6 @@
     "translation": "채널별로 자동 완성하려면 팀 ID 매개 변수가 필요합니다."
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}}명의 사용자가 있으며 Mattermost Enterprise Edition을 고려하고 있습니다."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "추가 문의 사항이 있으면 support@mattermost.com으로 문의하십시오"
   },
@@ -7190,16 +6998,8 @@
     "translation": "Mattermost는 사용자 관리, 서버 클러스터링 및 성능 모니터링과 같은 기능을 제공하는 Mattermost Enterprise E20으로 500명 이상의 사용자를 수용할 것을 강력히 권장합니다."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "현재 당신의 Mattermost 시스템에는 400명의 사용자가 있습니다. Mattermost를 조직의 single sign-on 공급자와 연결하면 사용자는 자격 증명을 다시 입력하지 않고도 Mattermost에 액세스 할 수 있습니다. Mattermost Enterprise E20에서 제공되는 SAML 2.0과의 통합에 대한 자세한 내용은 지원 부서에 문의하십시오.\n[SAML 2.0과의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "현재 당신의 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}} 명의 사용자가 있으며 Mattermost Enterprise Edition을 고려하고 있습니다.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7268,10 +7068,6 @@
   {
     "id": "api.job.unable_to_download_job",
     "translation": "이 작업을 다운로드할 수 없음"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",

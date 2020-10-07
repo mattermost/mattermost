@@ -1157,10 +1157,6 @@
     "translation": "Keine Berechtigungen zum Schreiben in lokalen Pfad oder anderer Fehler."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Konnte Bucket nicht erstellen."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Fehler bei der Überprüfung, ob Bucket existiert."
   },
@@ -4943,80 +4939,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Konnte die Kanalmitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Konnte das Kanalmitglied nicht aktualisieren."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Der bestehende Kanal konnte nicht gefunden werden."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Wir konnte den Kanal nicht finden"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Konnte nicht alle Kanäle abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Konnte Kanalmitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Die ungelesenen Nachrichten des Kanals konnten nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Konnte Stapel von Kanalmitgliedern nicht auswählen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Konnte das Kanalmitglied nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Konnte die Kanal-Schemas nicht zurücksetzen."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5043,10 +4971,6 @@
     "translation": "Bei SaveDirectChannel wurde kein direkter Kanal versucht anzulegen"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Konnte den Befehl nicht abrufen."
   },
@@ -5065,50 +4989,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "Gruppenmitglied existiert bereits"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Konnte die Anzahl an Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Konnte die Anzahl an Nachrichten pro Tag nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Konnte die übergeordnete Nachricht zu diesem Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Die Grenze für Paging wurde überschritten"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Konnte die Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Konnte die Nachricht nicht überschreiben."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5667,39 +5547,11 @@
     "translation": "UserCountOptions machen keinen Sinn."
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Konnte die Direktnachrichten nicht abrufen."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Konnte das Gruppenmitglied mit der Benutzer-ID \"{{.UserId}}\" nicht entfernen."
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "Fehler beim Erstellen der Abfrage."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "Fehler beim Erstellen der Abfrage."
   },
   {
@@ -6719,14 +6571,6 @@
     "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
   },
@@ -7025,10 +6869,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
   },
   {
     "id": "ent.data_retention.flags_batch.internal_error",

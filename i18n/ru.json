@@ -1160,10 +1160,6 @@
     "translation": "Нет разрешения на запись по указанному локальному пути или другая ошибка."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Невозможно создать bucket."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Ошибка проверки существования bucket."
   },
@@ -4948,80 +4944,12 @@
     "translation": "Бот не существует."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Не удалось получить количество удалённых каналов по типам."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не удалось получить участников канала."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не удалось обновить участника канала."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не удалось найти существующий канал."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Возникла проблема при поиске канала."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Невозможно получить все каналы."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Невозможно получить каналы по предоставленной схеме."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Не удалось получить участников канала."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Не удалось получить список непрочитанных сообщений."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Не удалось открыть транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Не удалось выбрать партию участников канала."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Не удалось обновить участника канала."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Мы не смогли удалить деактивированных пользователей из канала."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Мы не смогли сбросить схемы каналов."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Невозможно открыть транзакцию."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5048,10 +4976,6 @@
     "translation": "Попытка создать канал, не являющийся личным с использованием SaveDirectChannel."
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Возникла проблема при поиске каналов."
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Невозможно получить команду."
   },
@@ -5070,50 +4994,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "участник группы уже существует"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Невозможно получить количество сообщений."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Невозможно получить количество сообщений по дням."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Невозможно получить количество пользователей с сообщениями."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Не удалось получить родительский пост для канала."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Превышен лимит для разделения по страницам."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет сообщений для индексации."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Не удалось получить сообщения."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Не удалось получить сообщения для канала."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Не удалось получить сообщения для канала."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Невозможно перезаписать сообщение."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета сообщений."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5916,14 +5796,6 @@
     "translation": "Ошибка очистки индексов Bleve: движок отключен"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "не удалось построить запрос."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Невозможно получить все каналы личных сообщений."
-  },
-  {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
     "translation": "Недопустимое обновление участника канала: вы не можете добавлять или удалять гостевую роль вручную."
   },
@@ -6356,22 +6228,6 @@
     "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
   },
   {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Невозможно получить пакет каналов для индексации."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Невозможно получить групповые каналы для данного пользователя и заданных условий."
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Не удалось получить личные сообщения."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Не удалось получить время создания самого старого объекта."
-  },
-  {
     "id": "store.sql_user.count.app_error",
     "translation": "UserCountOptions не имеет смысла."
   },
@@ -6652,10 +6508,6 @@
     "translation": "Safari"
   },
   {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Невозможно определить, принадлежит ли пользователь к списку каналов."
-  },
-  {
     "id": "web.error.unsupported_browser.download",
     "translation": "Скачать приложение"
   },
@@ -6666,10 +6518,6 @@
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Невозможно получить количество ответов на сообщение"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
@@ -6874,22 +6722,6 @@
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "Вы должны принять Соглашение об оценке программного обеспечения Mattermost и Политику конфиденциальности, чтобы запросить лицензию."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Не удалось открыть транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Невозможно удалить ненастраиваемую категорию."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Не удалось вставить запись в базу данных."
   },
   {
     "id": "app.recover.save.app_error",
@@ -7172,14 +7004,6 @@
     "translation": "Контактное лицо: {{.Contact}}"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
     "translation": "Запрос Mattermost Свяжитесь с нами"
   },
@@ -7218,14 +7042,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
     "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Корпоративной редакции Mattermost, которая предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности.\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Масштабирование с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7286,30 +7102,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Возникла ошибка с получением комплаенс-отчетов."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Произошла ошибка при записи в XML-файл actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Произошла ошибка при создании файла XML actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Произошла ошибка при записи в xml-файл actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "При создании текстового файла actiance с предупреждением об ошибке произошла ошибка"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Произошла ошибка при создании файла XML actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Невозможно скопировать вложение в zip-файл."
   },
   {
     "id": "app.job.download_export_results_not_enabled",

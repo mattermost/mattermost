@@ -1160,10 +1160,6 @@
     "translation": "Nu aveți permisiuni de scriere pe calea locală specificată sau altă eroare."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Nu este posibilă crearea unei găleți."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Eroare la verificarea existenței unei găleți."
   },
@@ -4948,80 +4944,12 @@
     "translation": "Bot does not exist"
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Imposibil de obținut numărul de canale șterse"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Nu s-a efectuat tranzacția bazei de date"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Nu a reușit să înceapă tranzacția bazei de date"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Nu a reușit să se recupereze membrii canalului"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Imposibil de găsit canalul existent"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Am întâmpinat o eroare la găsirea canalului"
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Nu se pot obține toate canalele"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Nu se pot obține canalele pentru schema furnizată"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Membrii canalului nu au putut fi contactați"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Imposibil de primit mesaje necitite ale canalului"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Nu s-a efectuat tranzacția bazei de date"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Nu a reuşit să deschidă tranzacţiei date"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Nu a reuşit să selectaţi lotul de canal membri"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Actualizarea elementului canal a eșuat"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Nu am putut elimina utilizatorii dezactivați din canal"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Noi nu a putut reseta scheme de canal"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Nu s-a putut efectua tranzacția"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Imposibil de deschis tranzacția"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5048,10 +4976,6 @@
     "translation": "Nu un canal directă a încercat să fi creat cu SaveDirectChannel"
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Am întâmpinat o eroare în căutarea canalelor"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Nu se poate obține comanda"
   },
@@ -5070,50 +4994,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "membru al grupului există deja"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Nu se pot obține conturile postate"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Imposibil de obtinut numarul posturilor pe zi"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Nu s-a putut obține conturile utilizatorilor cu postări"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Imposibil de obținut postul părinte pentru canal"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Limita depășită pentru paginare"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Imposibil de obținut loturile pentru indexare"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Nu se pot obține postările"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Nu se pot obține postările pentru canal"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Nu se pot obține postările pentru canal"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Nu se poate suprascrie Postarea"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Am intalnit o eroare permanent a şterge lotul de mesaje"
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5616,39 +5496,11 @@
     "translation": "UserCountOptions nu are sens."
   },
   {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Imposibil de a primi răspunsurile la postare"
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Nu se pot primi postări directe."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Imposibil de eliminat membrul grupului cu UserID \"{{.UserId}}\"."
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "nu a reușit să creeze interogarea."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de canale."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Nu se pot obține canalele de grup pentru utilizatorul și termenul dat."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Nu se pot obține toate canalele directe."
-  },
-  {
-    "id": "store.sql.build_query.app_error",
     "translation": "nu a reușit să creeze interogarea."
   },
   {
@@ -6740,10 +6592,6 @@
     "translation": "Eroare la ștergerea înregistrărilor."
   },
   {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Nu se poate obține cel mai vechi timp de creație."
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "Identificatorul furnizorului de servicii este necesar"
   },
@@ -6874,14 +6722,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "Imposibil de mutat canale de mesaje directe sau de grup"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Nu a reuşit să deschidă tranzacţiei date"
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Nu s-a putut efectua tranzacția"
   },
   {
     "id": "app.command.listteamcommands.internal_error",
@@ -7128,10 +6968,6 @@
     "translation": "Mattermost Cererea de contact"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
   },
@@ -7164,14 +7000,6 @@
     "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să se actualizeze la Ediția Mattermost Enterprise, care oferă funcții precum gestionarea utilizatorilor, clusterarea serverului și monitorizarea performanței.\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrați SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 400 de utilizatori. Când conectați Mattermost cu furnizorul de conectare unic al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să re-introduceți datele de acreditare. Contactați asistența pentru a afla mai multe despre integrarea cu SAML 2.0, disponibil în Ediția Mattermost Enterprise.\n\n[Aflați mai multe despre integrarea cu SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Integrați AD/LDAP"
   },
@@ -7186,10 +7014,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Contactându-ne"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7260,10 +7084,6 @@
     "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Imposibil de copiat atașamentul în fișierul zip."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
   },
@@ -7304,36 +7124,8 @@
     "translation": "Comanda nu există."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Nu se poate șterge o categorie care nu este personalizată."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Eroare la introducerea înregistrării în baza de date."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "incapabil să migreze."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "A apărut o eroare la scrierea fișierului XML actianță"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului XML Actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "A apărut o eroare la scrierea fișierului xml actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului text de avertizare a actianței"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului XML Actiance"
   },
   {
     "id": "app.system.warn_metric.store.app_error",

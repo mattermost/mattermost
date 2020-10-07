@@ -1157,10 +1157,6 @@
     "translation": "Belirtilen yola yazma izni yok ya da başka bir sorun var."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Klasör eklenemedi."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
@@ -4943,80 +4939,12 @@
     "translation": "Bot bulunamadı."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Silinmiş kanal türü sayıları alınamadı."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Veritabanı hareketi işlenemedi."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Veritabanı hareketi işlenmeye başlanamadı."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kanal üyesi güncellenemedi."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Var olan kanal bulunamadı."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "Kanal aranırken bir sorun çıktı."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Kanalların tümü alınamadı."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Okunmamış kanal iletileri alınamadı."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Veritabanı hareketi işlenemedi."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Veritabanı işlemi açılamadı."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Kanal üyeleri topluluğu seçilemedi."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Kanal üyesi güncellenemedi."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Kanal şemaları sıfırlanamadı."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "İşlem tamamlanamadı."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "İşlem açılamadı."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -5043,10 +4971,6 @@
     "translation": "SaveDirectChannel ile doğrudan bir kanal eklenmeye çalışılmadı."
   },
   {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Kanallar aranırken bir sorun çıktı."
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Komut alınamadı."
   },
@@ -5065,50 +4989,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "grup üyesi zaten var"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "İleti sayıları alınamadı."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Güne göre ileti sayıları alınamadı."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "İletilerin kullanıcı sayıları alınamadı."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Kanalın üst iletisi alınamadı."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Sayfalandırma sınırı aşıldı."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "İletiler alınamadı."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Kanalın iletileri alınamadı."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Kanalın iletileri alınamadı."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "İletinin üzerine yazılamadı."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -5851,18 +5731,6 @@
     "translation": "Blave dizinleri boşaltılırken sorun çıktı: İşleyici devre dışı"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "sorgu oluşturulamadı."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Doğrudan kanalların tümü alınamadı."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
-  },
-  {
     "id": "api.license.request-trial.bad-request",
     "translation": "İstenilen kullanıcı sayısı geçersiz."
   },
@@ -6211,24 +6079,8 @@
     "translation": "Kullanıcılar alınamadı. Sıralama ölçütü geçersiz."
   },
   {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Belirtilen kullanıcı ve ifade için grup kanalları alınamadı."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Kullanıcının kanal üyeliği olup olmadığı belirlenemedi."
-  },
-  {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "\"{{.UserId}}\" kullanıcı kodlu grup üyesi çıkarılamadı."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "En eski varlık oluşturma zamanı alınamadı."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "İleti yanıtları sayısı alınamadı"
   },
   {
     "id": "store.sql_user.count.app_error",
@@ -6643,10 +6495,6 @@
     "translation": "sorgu oluşturulamadı."
   },
   {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Doğrudan iletiler alınamadı."
-  },
-  {
     "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
     "translation": "Kullanıcı kanalları üyelikleri güncellenemedi."
   },
@@ -6869,22 +6717,6 @@
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "Lisans isteğinde bulunmak için Mattermost Yazılım Değerlendirme Sözleşmesi ve Gizlilik İllkesini kabul etmelisiniz."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Veritabanı işlemi açılamadı."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "İşlem tamamlanamadı."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Özel olmayan kategori silinemedi."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Kayıt veritabanına eklenemedi."
   },
   {
     "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -7131,10 +6963,6 @@
     "translation": "SMTP sunucusu zorunludur"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
@@ -7195,10 +7023,6 @@
     "translation": "Mattermost Enterprise sürümüne yükseltin"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "SAML 2.0 ile bütünleştirin"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "AD/LDAP ile bütünleştirin"
   },
@@ -7209,14 +7033,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Bizimle İletişim Kurmak"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum."
   },
   {
     "id": "api.server.warn_metric.contact_us",
@@ -7281,30 +7097,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Uygunluk raporları alınırken bir sorun çıktı."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Actiance uyarı metin dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Ek dosya zip dosyasına kopyalanamadı."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
