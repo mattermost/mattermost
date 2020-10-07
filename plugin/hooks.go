@@ -200,7 +200,7 @@ type Hooks interface {
 	// added the reaction.
 	//
 	// Minimum server version: 5.29
-	ReactionHasBeenAdded(x *Context, reaction *model.Reaction)
+	ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
 
 	// ReactionHasBeenRemoved is invoked after the removal of the reaction has been committed to the database.
 	//
@@ -208,5 +208,5 @@ type Hooks interface {
 	// removed the reaction.
 	//
 	// Minimum server version: 5.29
-	ReactionHasBeenRemoved(x *Context, reaction *model.Reaction)
+	ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
 }

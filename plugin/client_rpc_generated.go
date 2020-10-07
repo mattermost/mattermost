@@ -476,8 +476,8 @@ type Z_ReactionHasBeenAddedArgs struct {
 type Z_ReactionHasBeenAddedReturns struct {
 }
 
-func (g *hooksRPCClient) ReactionHasBeenAdded(x *Context, reaction *model.Reaction) {
-	_args := &Z_ReactionHasBeenAddedArgs{x, reaction}
+func (g *hooksRPCClient) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
+	_args := &Z_ReactionHasBeenAddedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenAddedReturns{}
 	if g.implemented[ReactionHasBeenAddedId] {
 		if err := g.client.Call("Plugin.ReactionHasBeenAdded", _args, _returns); err != nil {
@@ -489,7 +489,7 @@ func (g *hooksRPCClient) ReactionHasBeenAdded(x *Context, reaction *model.Reacti
 
 func (s *hooksRPCServer) ReactionHasBeenAdded(args *Z_ReactionHasBeenAddedArgs, returns *Z_ReactionHasBeenAddedReturns) error {
 	if hook, ok := s.impl.(interface {
-		ReactionHasBeenAdded(x *Context, reaction *model.Reaction)
+		ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
 	}); ok {
 		hook.ReactionHasBeenAdded(args.A, args.B)
 	} else {
@@ -510,8 +510,8 @@ type Z_ReactionHasBeenRemovedArgs struct {
 type Z_ReactionHasBeenRemovedReturns struct {
 }
 
-func (g *hooksRPCClient) ReactionHasBeenRemoved(x *Context, reaction *model.Reaction) {
-	_args := &Z_ReactionHasBeenRemovedArgs{x, reaction}
+func (g *hooksRPCClient) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
+	_args := &Z_ReactionHasBeenRemovedArgs{c, reaction}
 	_returns := &Z_ReactionHasBeenRemovedReturns{}
 	if g.implemented[ReactionHasBeenRemovedId] {
 		if err := g.client.Call("Plugin.ReactionHasBeenRemoved", _args, _returns); err != nil {
@@ -523,7 +523,7 @@ func (g *hooksRPCClient) ReactionHasBeenRemoved(x *Context, reaction *model.Reac
 
 func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedArgs, returns *Z_ReactionHasBeenRemovedReturns) error {
 	if hook, ok := s.impl.(interface {
-		ReactionHasBeenRemoved(x *Context, reaction *model.Reaction)
+		ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
 	}); ok {
 		hook.ReactionHasBeenRemoved(args.A, args.B)
 	} else {

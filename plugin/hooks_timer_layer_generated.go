@@ -151,14 +151,14 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) ReactionHasBeenAdded(x *Context, reaction *model.Reaction) {
+func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
 	startTime := timePkg.Now()
-	hooks.hooksImpl.ReactionHasBeenAdded(x, reaction)
+	hooks.hooksImpl.ReactionHasBeenAdded(c, reaction)
 	hooks.recordTime(startTime, "ReactionHasBeenAdded", true)
 }
 
-func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(x *Context, reaction *model.Reaction) {
+func (hooks *hooksTimerLayer) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
 	startTime := timePkg.Now()
-	hooks.hooksImpl.ReactionHasBeenRemoved(x, reaction)
+	hooks.hooksImpl.ReactionHasBeenRemoved(c, reaction)
 	hooks.recordTime(startTime, "ReactionHasBeenRemoved", true)
 }
