@@ -8064,5 +8064,101 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "无法获得试用许可证，请重试或联系 support@mattermost.com。无法获取注册用户数。"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "无法为索引获取批量频道。"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "无法确定用户是否属于这些频道。"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "无法以指定的用户和关键字获取群组频道。"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "我们搜索频道时遇到错误。"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "我们无法重置频道方案。"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "我们无法从频道移除已停用的用户。"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "批量选择频道成员失败。"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "无法获取频道未读消息。"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "无法获取频道成员。"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "无法为索引获取批量频道。"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "无法用提供的方案获取频道。"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "无法获取所有私信频道。"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "无法获取所有频道。"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "获取频道成员失败。"
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "处理对 CWS 的请求时出错。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost 与我们联系的请求。我有兴趣了解有关将高级权限与系统方案结合使用的更多信息。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "改善性能"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "错误的 user_id 值。"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "错误的 id 值。"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "错误的 path 值。"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "错误的 id 值。"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "错误的 create_at 值。"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "无效的本地储存目录。不能为空字串。"
+  },
+  {
+    "id": "store.sql_group.more_than_one_row_changed",
+    "translation": "多于一条数据被改动。"
   }
 ]

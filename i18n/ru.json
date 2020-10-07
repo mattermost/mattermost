@@ -7578,5 +7578,425 @@
   {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP недоступен."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Невозможно получить пакет каналов для индексации."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку каналов."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Невозможно получить групповые каналы для данного пользователя и заданных условий."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Возникла проблема при поиске канала."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Мы не смогли сбросить схемы канала."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Мы не можем удалить деактивированных пользователей из канала."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Не удалось сделать выборку участников каналов."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Не удалось получить список непрочитанных сообщений в канале."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Не удалось получить участников канала."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Невозможно получить пакет каналов для индексации."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Невозможно получить каналы для предоставленной схемы."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Невозможно получить все каналы личных сообщений."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Невозможно получить все каналы."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не удалось получить участников канала."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Невозможно создать bucket."
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Получение пробной версии"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Начать использовать пробную версию"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Масштабирование с Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. По мере роста вашей пользовательской базы создание новых учетных записей может занять много времени. Мы рекомендуем вам интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учетная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав «Подтвердить», вы поделитесь своей информацией с Mattermost Inc., чтобы узнать больше об обновлении. [Подробнее…](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Принудительная многофакторная аутентификация:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Невозможно получить пакет сообщений для индексации."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Мы столкнулись с ошибкой окончательного удаления пакета сообщений."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Не удалось изменить сообщение."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Не удалось получить сообщения для канала."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Не удалось получить сообщения для канала."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Невозможно получить пакет сообщений для индексации."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Превышено ограничение количества страниц."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Не удалось получить личные сообщения."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Невозможно получить количество пользователей с сообщениями."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Невозможно получить количество сообщений по дням."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Невозможно получить количество сообщений."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Невозможно проанализировать тело запроса."
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Не удалось получить уведомления о продукте"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Не удалось сохранить участника команды."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Не удалось получить список непрочтённых сообщений для команд."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Не удалось получить участников команды."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Не удалось подсчитать участников команды."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Не найдено ни одного участника команды по данным идентификаторам пользователя и команды."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Не удалось получить участника команды."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Не удалось подсчитать участников команды."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Невозможно определить, принадлежит ли пользователь к списку команд."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Мы не смогли сбросить схемы команды."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Не получилось удалить участника команды."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Не удалось обновить участника команды."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Невозможно получить список команд, в которых состоит пользователь."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Не удалось получить участников команды."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Невозможно получить каналы для предоставленной схемы."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не удалось получить участников команды."
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Недопустимое значение для user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Недопустимое значение для идентификатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Недопустимое значение для пути."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Недопустимое значение для идентификатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Недопустимое значение для create_at."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "Размер файла {{.Filename}} ({{.Width}} на {{.Height}} пикселей) превышает лимиты."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Не удалось получить загрузки."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Невозможно загрузить файл. Он слишком большой."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Невозможно создать пост в удаленном канале."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Не удалось получить загрузки."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Невозможно пометить канал как непрочитанный."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Не удалось установить время последнего просмотра."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Невозможно удалить участника канала."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Не удалось найти прикрепленные сообщения."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Невозможно удалить участника канала."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Не удалось увеличить счетчик упоминаний."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Не удалось получить количество прикрепленных сообщений."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Не удалось получить участников канала."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Не удалось получить количество участников канала."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Не найдено ни одного участника канала по данному идентификатору пользователя и идентификатору канала."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Не удалось получить участника канала."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Не удалось получить количество типов каналов."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Не удалось получить сообщения для канала."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Не удалось получить сообщения для канала."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Невозможно получить сообщение в течение определенного времени."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Невозможно получить сообщение после истечения времени."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Не удалось получить отмеченные флагом сообщения."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Не удалось вставить запись в базу данных."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Не удалось получить публичные каналы."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Невозможно получить все каналы."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Не удалось получить канал для данного сообщения."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Каналы не найдены."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Невозможно получить каналы."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Невозможно получить количество каналов."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Возникла ошибка обновления команды."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Не удалось найти существующую команду для обновления."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Возникла проблема при поиске приватных команд."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Возникла проблема при поиске открытых команд."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Возникла проблема при поиске команд."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Необходимо вызвать обновление для существующей команды."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Не удалось сохранить команду."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Не получилось удалить существующую команду."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Не удалось найти существующую команду."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Не удалось найти существующую команду."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Не удалось найти существующую команду."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Не удалось получить все команды."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Мы не могли получить все приватные команды на странице."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Не удалось получить все приватные команды."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Не удалось получить все команды."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Возникла ошибка с обнаружением команды."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Не удалось найти существующую команду."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Не удалось подсчитать команды."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Не удалось подсчитать публичные команды."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Не удалось подсчитать приватные команды."
   }
 ]

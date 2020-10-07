@@ -7782,5 +7782,177 @@
   {
     "id": "api.file.append_file.writing.app_error",
     "translation": "A apărut o eroare la scrierea lui S3."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de canale."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Nu se pot obține canalele de grup pentru utilizatorul și termenul dat."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Am întâmpinat o eroare în căutarea canalelor."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Nu am putut reseta schemele de canale."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Nu am putut elimina utilizatorii dezactivați din canal."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Nu a reușit să selecteze lotul de membri ai canalului."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Imposibil de a primi mesajele necitite ale canalului."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Imposibil de obținut membrii canalului."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Imposibilitatea de a obține loturile de canale pentru indexare."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Nu se pot obține canalele pentru schema furnizată."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Nu se pot obține toate canalele directe."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Nu se pot obține toate canalele."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Eșuarea la preluarea membrilor canalului."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Nu este posibilă crearea unei găleți."
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Primeste versiune de test"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Solicitați versiune de test"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Treceți la ediția Mattermost Enterprise"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Aplicați autentificarea cu mai mulți factori:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Imposibil de obținut lotul de postări pentru indexare."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Am întâlnit o eroare ștergând definitiv lotul de postări."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Imposibil de suprascris Postarea."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Nu se pot obține postările pentru canal"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Nu se pot obține postările pentru canal"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Imposibil de obținut lotul de postări pentru indexare."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limita depășită pentru paginarea."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Nu se pot primi postări directe."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Imposibil de obținut un număr de utilizatori cu postări."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Imposibil de obținut numărul de posturi pe zi."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Imposibil de obținut numărul de posturi."
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Valoare invalidă pentru user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Valoare invalidă pentru identitate."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Valoare invalidă pentru cale."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Valoare invalidă pentru identitate."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Valoare invalidă pentru create_at."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Nu pot posta şterse canal."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Botul nu există."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Nu am putut obține toate echipele private."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Accesul la bot este interzis."
   }
 ]

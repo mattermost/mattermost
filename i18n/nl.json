@@ -8165,5 +8165,113 @@
   {
     "id": "api.cloud.app_error",
     "translation": "Interne fout gedurende cloud api request."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Kan niet vaststellen of de gebruiker tot een lijst van kanalen behoort."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "De groepskanalen voor de opgegeven gebruiker en term kunnen niet worden opgehaald."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Er is een fout opgetreden bij het doorzoeken van kanalen."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "We konden de kanaalschema's niet resetten."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "We konden de gedeactiveerde gebruikers niet uit het kanaal verwijderen."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Het selecteren van de batch van kanaalleden is mislukt."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Kan het kanaal ongelezen berichten niet ophalen."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Kanaalleden kunnen niet worden opgehaald."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "De kanalen voor het opgegeven schema kunnen niet worden opgehaald."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Fout bij het ophalen van alle directe kanalen."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Fout bij het ophalen van alle kanalen."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Ophalen van kanaalleden is mislukt."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Kan S3 bucket niet aanmaken."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Kan de berichten-batch niet ophalen voor indexering."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Er is een fout opgetreden bij het permanent wissen van de batch van berichten."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Fout bij het zoeken van berichten"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Kan het bericht niet overschrijven."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Fout bij het ophalen van berichten voor het kanaal."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Fout bij het ophalen van berichten voor het kanaal."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Kan de berichten-batch niet ophalen voor indexering."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limiet bereikt voor opdelen in pagina's."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Directe berichten kunnen niet worden opgehaald."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Aantal gebruikers met berichten kan niet worden opgehaald."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Aantal berichten per dag kan niet worden opgehaald."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Aantal berichten kan niet worden opgehaald."
   }
 ]

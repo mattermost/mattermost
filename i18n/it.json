@@ -7821,5 +7821,65 @@
   {
     "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
     "translation": "Impossibile assegnare a un gruppo di lavoro per default per raggiunta capacità del gruppo"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Impossibile trovare il gruppo di canali da indicizzare"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Impossibile determinare se l'utente appartiene ad una lista di canali"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Impossibile ottenere i canali del gruppo per l'utente e il termine forniti"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Riscontrato un errore nella ricerca dei canali"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Impossibile resettare gli schemi del canale"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Impossibile rimuovere gli utenti disattivati dal canale"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Impossibile selezionare l'insieme dei membri del canale"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Non è stato possibile recuperare i messaggi non letti del canale"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Impossibile ottenere i membri del canale"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Impossibile trovare il gruppo di canali da indicizzare"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Impossibile elencare i canali per lo schema fornito"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Impossibile recuperare tutti i canali diretti"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Impossibile recuperare tutti i canali"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Impossibile recuperare i membri del canale"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Impossibile creare il bucket."
   }
 ]

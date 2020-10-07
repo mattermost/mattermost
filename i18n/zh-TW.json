@@ -7952,5 +7952,149 @@
   {
     "id": "api.system.update_notices.clear_failed",
     "translation": "清除舊產品通知失敗"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "無法取得頻道批次以建立索引"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "無法判定使用者是否屬於頻道"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "無法為指定的使用者跟詞取得群組頻道"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "搜尋頻道時遇到錯誤"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "無法重置頻道配置"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "無法將已被停用的使用者從頻道中移除"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "批次選取頻道成員時失敗"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "無法取得頻道未讀訊息"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "無法取得頻道成員"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "無法取得頻道批次以建立索引"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "無法取得提供的配置當中的頻道"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "無法取得直接頻道"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "無法取得頻道"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "取得頻道成員時失敗"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "無法建立儲存貯體。"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "開始試用"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "要求測試"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "升級至企業版"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "強制使用多重要素驗證："
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "無法取得文章以建立索引"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "永久批次刪除訊息時遇到錯誤"
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "搜尋訊息發生錯誤"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "無法覆蓋訊息"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "無法取得該頻道的訊息"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "無法取得該頻道的訊息"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "無法取得文章以建立索引"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "分頁已達限制"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "無法取得直接訊息"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "無法取得使用者訊息計數"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "無法取得每日訊息計數"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "無法取得訊息計數"
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "無法解析要求本文。"
   }
 ]

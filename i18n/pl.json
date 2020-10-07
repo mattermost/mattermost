@@ -7186,5 +7186,401 @@
   {
     "id": "app.file_info.get.app_error",
     "translation": "Nie można uzyskać informacji o pliku"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Nie można określić, czy użytkownik należy do listy zespołów"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Nie można uzyskać grupy kanałów dla wybranej nazwy użytkownika oraz kryterium"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Wystąpił błąd podczas przeszukiwania kanałów"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Nie udało się zresetować schematów kanałów"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Nie mogliśmy usunąć dezaktywowanych użytkowników z kanału"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Nie udało się wybrać partii członków kanału"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Nie można pobrać nieprzeczytanych wiadomości dla tego kanału"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Nie można uzyskać członków kanału"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Nie można pobrać kanałów dla podanego schematu"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Nie można uzyskać wszystkich kanałów bezpośrednich"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Nie można pobrać wszystkich kanałów"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Nie udało się pobrać członków kanału"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Nie udało się stworzyć wiadra."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Request trial"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Nie można zastąpić wpisu"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Nie można uzyskać wpisów do kanału"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Nie można uzyskać wpisów do kanału"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Przekroczono limit stronicowania"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Nie można pobrać wiadomości bezpośrednich"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Nie można uzyskać liczby użytkowników za pomocą postów"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Nie można uzyskać liczby postów w danym dniu"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Nie można uzyskać liczby postów"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Nie można zapisać członka zespołu"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Nie można uzyskać nieprzeczytanych wiadomości od zespołów"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Nie można uzyskać członków zespołu"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Nie można policzyć członków zespołu"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Nie znaleziono członka zespołu dla tego identyfikatora użytkownika i identyfikatora zespołu"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Nie można uzyskać członka zespołu"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Nie można policzyć członków zespołu"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Nie można określić, czy użytkownik należy do listy zespołów"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Nie mogliśmy zresetować schematów zespołowych"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Nie można usunąć członka zespołu"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Nie udało się zaktualizować członka zespołu"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Nie udało się pobrać listy zespołów użytkownika"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Nie można uzyskać członków zespołu"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Nie można pobrać kanałów dla podanego schematu"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Nie udało się uzyskać członków zespołu"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Nieprawidłowa wartość dla user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Nieprawidłowa wartość dla id."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Nieprawidłowa wartość dla path."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Nieprawidłowa wartość dla id."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Nieprawidłowa wartość dla create_at"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} wymiary ({{.width}} według {{.Height}} pikseli) przekraczają limity"
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Nie udało się wgrać obrazu. Plik jest zbyt duży."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Nie można utworzyć wiadomości na usuniętym kanale."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Napotkano błąd podczas zapisu do usługi S3"
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Bot nie istnieje"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Nie można oznaczyć kanału jako nieprzeczytany."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Nie można zaktualizować ostatnio oglądanego"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Nie można usunąć członka kanału"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Nie można znaleźć przypiętych wpisów"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Nie można usunąć członka kanału"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Nie można zwiększyć liczby wzmianek"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Nie można pobrać ilości przypiętych wiadomości na kanale"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Nie można uzyskać członków kanału"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Nie można pobrać liczby członków kanału"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Nie znaleziono uczestnika kanału dla tego ID użytkownika i ID kanału"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Nie można uzyskać członka kanału"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Nie można zliczać wiadomości od podanej daty."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Nie można uzyskać informacji o typie kanału."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Nie można uzyskać wpisów do kanału"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Nie można uzyskać wpisów do kanału"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Nie można uzyskać posta w określonym czasie."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Nie można uzyskać posta po upływie określonego czasu"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Nie można uzyskać oznaczonych postów"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Nie można pobrać kanałów publicznych"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Nie można pobrać wszystkich kanałów"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Nie można uzyskać kanału dla danego wpisu"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Nie znaleziono kanału"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Nie można uzyskać kanałów"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Nie można uzyskać kanałów według identyfikatorów"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Nie można uzyskać liczby kanałów"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Napotkaliśmy błąd aktualizując zespół"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu do aktualizacji"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Napotkaliśmy błąd szukając prywatnych zespołów"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Napotkaliśmy błąd podczas wyszukiwania zespołów"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Wymagana aktualizacja zespołu"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Nie można zapisać zespołu"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Nie można usunąć istniejącego zespołu"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Nie mogliśmy pobrać wszystkich zespołów"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Nie mogliśmy pobrać wszystkich zespołów"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Napotkaliśmy błąd szukając zespołu"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Nie można znaleźć istniejącego zespołu"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Nie można policzyć zespołów"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Nie można policzyć publicznych zespołów"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Nie można policzyć prywatnych zespołów"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Logowanie bota jest zabronione"
   }
 ]

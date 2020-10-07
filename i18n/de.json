@@ -7197,5 +7197,397 @@
   {
     "id": "api.file.append_file.writing.app_error",
     "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Konnte die Kanal-Schemas nicht zurücksetzen."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Fehler beim Auswählen des Stapel von Kanalmitgliedern."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Konnte die ungelesenen Nachrichten des Kanals nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Konnte Kanalmitglieder nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fehler beim Abrufen der Kanalmitglieder."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Konnte Bucket nicht erstellen."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Request trial"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Multi-Faktor-Authentifizierung erzwingen:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Konnte die Nachricht nicht überschreiben."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Die Grenze für Paging wurde überschritten."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Konnte die Direktnachrichten nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Konnte die Anzahl an Nachrichten pro Tag nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Konnte die Anzahl an Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Konnte das Teammitglied nicht speichern."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Konnte die ungelesenen Nachrichten des Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Konnte die Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Kein Teammitglied mit dieser Benutzer-ID und Team-ID gefunden."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Konnte das Teammitglied nicht abrufen."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Teams gehört."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Konnte die Teamschemas nicht zurücksetzen."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Konnte das Teammitglied nicht entfernen."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Fehler beim Aktualisieren des Teammitglieds."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Konnte die Liste der Team eines Benutzers nicht abrufen."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Konnte die Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fehler beim Abrufen der Teammitglieder."
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Ungültiger Wert für user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Ungültiger Wert für ID."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Ungültiger Wert für path."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Ungültiger Wert für ID."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Ungültiger Wert für create_at."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} Dimensionen ({{.Width}} mal {{.Height}} Pixel) überschreiten die Limits."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Kann nicht in gelöschten Kanal senden."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Bot existiert nicht."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Konnte Kanal nicht als ungelesen markieren."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Konnte den Zeitpunkt der letzten Betrachtung nicht aktualisieren."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Konnte das Kanalmitglied nicht entfernen."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Konnte angeheftete Nachrichten nicht finden."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Konnte das Kanalmitglied nicht entfernen."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Konnte Erwähnungs-Zähler nicht erhöhen."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Konnte die Anzahl der angehefteten Nachrichten nicht ermitteln."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Konnte Kanalmitglieder nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Konnte die Anzahl der Kanalmitglieder nicht ermitteln."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Kein Kanalmitglied mit dieser Benutzer-ID und Kanal-ID gefunden."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Konnte das Kanalmitglied nicht laden."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Konnte Nachrichten seit dem angegebenen Datum nicht zählen."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Konnte die Anzahl der Kanaltypen nicht laden."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Konnte Nachricht nicht in dem ausgewählten Zeitraum abrufen."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Konnte Nachricht nicht nach dem ausgewählten Zeitraum abrufen."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Konnte die markierten Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Konnte die öffentlichen Kanäle nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Konnte den Kanal für den angegebenen Beitrag nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Kein Kanal gefunden."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Konnte die Kanäle nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Konnte die Kanäle nicht nach IDs abrufen."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Konnte die Anzahl der Kanäle nicht laden."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Konnte das zu aktualisierende existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach privaten Teams auf."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Teams auf."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Es muss Update für existierendes Team aufgerufen werden."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Konnte das Team nicht speichern."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Konnte das existierende Team nicht löschen."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Konnte nicht alle Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Konnte nicht alle privaten Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Konnte nicht alle privaten Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Konnte nicht alle Teams abrufen."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Konnte das Team nicht finden."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Bot-Anmeldung ist verboten."
   }
 ]

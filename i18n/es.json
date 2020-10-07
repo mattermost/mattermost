@@ -7793,5 +7793,521 @@
   {
     "id": "api.file.append_file.writing.app_error",
     "translation": "Se encontró un error al escribir al S3."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": " Recibimos un tiempo nulo en la respuesta del Proveedor de Identidad. Complacer contactar vuestro Administrador de Sistema."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "No se puede obtener los canales en lote para la indexación."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "No se puede determinar si el usuario pertenece a la lista de canales."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "No se puede obtener el grupo de canales para el usuario y término proporcionado."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Encontramos un error buscando en los canales."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "No hemos podido restablecer los esquemas de los canales."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "No se pudo eliminar el usuario desactivado del canal."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Error al seleccionar el lote de los miembros del canal."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "No pudimos obtener los mensajes sin leer del canal."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "No se puede obtener de los miembros del canal."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "No se puede obtener los canales en lote para la indexación."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "No se puede obtener los canales para el esquema suministrado."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "No se pudo obtener todos los canales directos."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "No se pudo obtener todos los canales."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Error al obtener los miembros del canal."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": " Recibimos una firma nula en la respuesta del Proveedor de Identidad. Complacer contactar vuestro Administrador de Sistema."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin Para /{{.La orden}} no está obrando. Complacer contactar vuestro administrador de sistema"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Orden}} de orden chocó el {{.PluginId}} plugin. Complacer contactar vuestro administrador de sistema"
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error intentando listar objetos."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "No se ha podido crear el Bucket."
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "Petición de tramitación del error a CWS"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "Error interno marshaling petición a CWS"
+  },
+  {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "Incapaz de autenticar a CWS"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Petición de tramitación del error a CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Vuestra licencia no apoya peticiones de nube."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Error interno durante nube api petición."
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "No podríamos contar los usuarios con no emails de ámbito local"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Obtener prueba"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Comenzar prueba"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *Gestión de Usuario > de Consola de Sistema > Permisos** para habilitar Adelantaron Permisos."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Vuestro Mattermost el sistema ahora tiene varios equipos. Muchos equipos tienen su manera preferida propia de coordinar y colaborando, incluyendo cómo los canales están creados, quiénes pueden invitar nuevos teammates, y cómo las integraciones están dirigidas. Equipo Override los esquemas te dejan para personalizar permisos de usuario dentro de cada equipo para cumplir sus necesidades concretas.\r\n\r\n[Aprende más aproximadamente utilizando Adelantó Permisos](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Utilizando Adelantó Permisos"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Vuestro Mattermost el sistema ahora tiene varios equipos. Muchos equipos tienen su manera preferida propia de coordinar y colaborando, incluyendo cómo los canales están creados, quiénes pueden invitar nuevos teammates, y cómo las integraciones están dirigidas. Equipo Override los esquemas te dejan para personalizar permisos de usuario dentro de cada equipo para cumplir sus necesidades concretas.\r\n\r\n[Aprende más aproximadamente utilizando Adelantó Permisos](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente Adelantó Permisos con Esquemas de Equipo."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Una vez  tienes un Elasticsearch servidor, va a *Entorno de Consola > del Sistema > Elasticsearch** para configurar Elasticsearch."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Vuestro Mattermost el sistema tiene un número grande de mensajes. El default Mattermost inicios de búsqueda de la base de datos para asomar degradación de actuación en alrededor 2.5 millones de postes. Con encima 5 millones de postes, Elasticsearch puede ayudar evitar asuntos de actuación significativa, como timeouts, con búsqueda y en-menciona. Nos contacto para aprender más y dejado nos saber cómo  podemos ayudar.\r\n\r\n[Aprende más aproximadamente mejorando actuación](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Mejorando Actuación"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Vuestro Mattermost el sistema tiene un número grande de mensajes. El default Mattermost inicios de búsqueda de la base de datos para asomar degradación de actuación en alrededor 2.5 millones de postes. Con encima 5 millones de postes, Elasticsearch puede ayudar evitar asuntos de actuación significativa, como timeouts, con búsqueda y en-menciona. Nos contacto para aprender más y dejado nos saber cómo  podemos ayudar.\r\n\r\n[Aprende más aproximadamente mejorando actuación](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente mejorando actuación con Elasticsearch."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *Gestión de Usuario > de Consola de Sistema > Permisos** para habilitar Adelantaron Permisos."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Ayuda de canales mejora comunicación, pero con usuarios a través de Mattermost uniendo y creando canales, el reto de mantener el sistema organizó aumentos. Adelantó los permisos te habilitan para poner qué usuarios o las funciones pueden actuar acciones seguras, incluyendo encuadres de canal gestor y miembros, utilizando @canal o @aquí a etiqueta grupos anchos de usuarios, y creando nuevos webhooks.\r\n\r\n[Aprende más aproximadamente utilizando Adelantó Permisos](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Utilizando Adelantó Permisos"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Ayuda de canales mejora comunicación, pero con usuarios a través de Mattermost uniendo y creando canales, el reto de mantener el sistema organizó aumentos. Adelantó los permisos te habilitan para poner qué usuarios o las funciones pueden actuar acciones seguras, incluyendo encuadres de canal gestor y miembros, utilizando @canal o @aquí a etiqueta grupos anchos de usuarios, y creando nuevos webhooks.\r\n\r\n[Aprende más aproximadamente utilizando Adelantó Permisos](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente utilizando Adelantó Permisos con Esquemas de Sistema."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a la Consola de Sistema para habilitar adelantó características."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Mattermost Fuertemente recomienda que despliegues de encima 500 usuarios aprovechan características como gestión de usuario, servidor clustering y control de actuación. Nos contacto para aprender más y dejado nos saber cómo  podemos ayudar.\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición. Mi equipo ahora tiene 500 usuarios, y  estoy considerando Mattermost Edición de Empresa."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Leído-Canales de Anuncio Único"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Crear un canal e ir a *Gestión de Usuario > de Consola de Sistema > Canales** para limitar posting a canal admins."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "Con tanta conversación pasando a través de Mattermost,  puede ser desafiar para saber dónde para buscar información importante. Si  quieres retransmitir un mensaje a una audiencia grande, puedes poner arriba leído-Canales de Anuncio único donde cualquiera puede unir pero canal único admins puede mensajes de poste.\r\n\r\n[Aprende más aproximadamente creando leído-Canales de Anuncio único](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "Con tanta conversación pasando a través de Mattermost,  puede ser desafiar para saber dónde para buscar información importante. Si  quieres retransmitir un mensaje a una audiencia grande, puedes poner arriba leído-Canales de Anuncio único donde cualquiera puede unir pero canal único admins puede mensajes de poste.\r\n\r\n[Aprende más aproximadamente creando leído-Canales de Anuncio único](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente creando leído-Canales de Anuncio único."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *Autentificación de Consola > del Sistema > SAML 2.0** para integrar con vuestro SAML 2.0 proveedor."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Vuestro Mattermost el sistema ahora tiene 200 usuarios. Cuándo  conectas Mattermost con el signo solo de vuestra organización-encima proveedor, los usuarios pueden acceder Mattermost sin teniendo que re-introducir su credentials. Recomendamos que integras vuestro SAML 2.0 proveedor con vuestro Mattermost servidor.[Aprende más aproximadamente integrando con SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición. Mi equipo ahora tiene 200 usuarios, y  estoy considerando Mattermost Edición de Empresa."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *ANUNCIO de Autentificación > de Consola > de Sistema/LDAP** para integrar vuestro ANUNCIO/LDAP servicio."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Vuestro Mattermost el sistema ha encima 100 usuarios. Como vuestra base de usuario crece, provisioning las cuentas nuevas pueden acaecer que consumen tiempo.  Recomendamos que  integras el directorio Activo de vuestra organización/LDAP, el cual dejará cualquiera con una cuenta para acceder Mattermost.\r\n\r\n[Aprende más aproximadamente integrando con ANUNCIO/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Actualizar a Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Vuestro Mattermost el sistema ha encima 100 usuarios. Como vuestra base de usuario crece, provisioning las cuentas nuevas pueden acaecer que consumen tiempo.  Recomendamos que  integras el directorio Activo de vuestra organización/LDAP, el cual dejará cualquiera con una cuenta para acceder Mattermost.\r\n\r\n[Aprende más aproximadamente integrando con ANUNCIO/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición. Mi equipo ahora tiene 100 usuarios, y  estoy considerando Mattermost Edición de Empresa."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *Autentificación de Consola > del Sistema > MFA** para aplicar multi-autentificación de factor."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "Vuestro Mattermost el sistema ha multi-autentificación de factor habilitó, dando usuarios la elección para asegurar sus cuentas con medio adicional de autentificación allende una contraseña. Para mejorar seguridad a través del sistema  puedes requerir todo Mattermost cuentas para utilizar multi-autentificación de factor.\r\n\r\n[Aprende más aproximadamente aplicando Multi-Autentificación de Factor](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Aplicando Multi-Autentificación de Factor"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "Vuestro Mattermost el sistema ha multi-autentificación de factor habilitó, dando usuarios la elección para asegurar sus cuentas con medio adicional de autentificación allende una contraseña. Para mejorar seguridad a través del sistema  puedes requerir todo Mattermost cuentas para utilizar multi-autentificación de factor.\r\n\r\n[Aprende más aproximadamente aplicando Multi-Autentificación de Factor](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente aplicando Multi-Autentificación de Factor."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Vuestra prueba de Empresa es ahora activa. Va a *Huésped de Autentificación > de Consola > de Sistema Acceso** para habilitar Cuentas de Huésped."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Los proyectos a menudo implican personas tanto interior y exterior de una organización. Con Cuentas de Huésped,  puedes traer socios externos a vuestro Mattermost sistema y especificar quién  pueden obrar con y qué  pueden ver.\r\n\r\n[Aprende más sobre Cuentas de Huésped #habilitante](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nPor clicking prueba de Inicio,  apalabro el [Mattermost Acuerdo de Evaluación del Software](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibiendo emails de producto."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Creando Cuentas de Huésped"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Los proyectos a menudo implican personas tanto interior y exterior de una organización. Con Cuentas de Huésped,  puedes traer socios externos a vuestro Mattermost sistema y especificar quién  pueden obrar con y qué  pueden ver.\r\n\r\n[Aprende más sobre Cuentas de Huésped #habilitante](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nPor clicking Nos Contacto,   serás compartir vuestra información  con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermost Nos contacto petición.  Estoy interesado en aprender más aproximadamente utilizando Cuentas de Huésped."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Licencia de prueba no podría ser recuperada. Visita https://mattermost.com/trial/ para pedir una licencia."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Incapaz de coger una licencia de prueba, complacer probar otra vez o contacto con support@mattermost.com. no Puede obtener el número de registró usuarios."
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Ningún LDAP los usuarios encontrados, control vuestro filtro de usuario y certificados."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Fallado para procesar el multipart dato."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Contenido nulo-Tipo para multipart carga."
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "No se puede obtener los mensajes en lote para la indexación."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "El error que busca postes"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "No se puede sobre escribir el mensaje."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "No se puede obtener los mensajes del canal."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "No se puede obtener los mensajes del canal."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "No se puede obtener los mensajes en lote para la indexación."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Límite de paginación excedido."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "No se puede obtener los mensajes directos."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "No se pudo obtener la cantidad de usuarios con mensajes."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "No se pudo obtener la cantidad de mensajes por día."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "No se pudo obtener la cantidad de mensajes."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Incapaz a parse el ente de petición."
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Validando afecciones de aviso del producto fallaron"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Parsing Avisos de producto fallaron"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Fetching Avisos de producto fallaron"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Aclarando avisos de producto viejo fallaron"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Valor nulo para UserId"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Valor nulo para Tipo"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Valor no válido para path."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Valor no válido para id."
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Valor nulo para Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Valor nulo para FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Valor nulo para FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Valor nulo para CreateAt"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Valor nulo para ChannelId."
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Fallado para actualizar el cargar sesión."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Fallado para salvar lima info."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Fallado para leer una lima."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Fallado para cargar dato. Primera parte tiene que ser al menos {{.Bytes}} de medida."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Incapaz de cargar dato de más de uno pide."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Fallado para coger carga para usuario."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Fallado para coger cargar."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Fallado para salvar cargar."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "No puede cargar al canal especificado."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "No puede cargar a un canal eliminado."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Fallado para coger carga."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Contenido nulo-#Periodo."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Fallado para coger cargar."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Encontrado un error que anexa a una lima en S3."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Encontrado un error que abre la lima."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "La lima no existe."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "El error que crea par clave"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "El error que carga LDAP TLS lima Clave."
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "El error que carga LDAP TLS lima de Certificado."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Error parsing multiform petición"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Incapaz a parse el ente de petición."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "No podríamos coger todos los equipos  privados en página."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS login Está prohibido."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS token No es válido"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Incapaz de emigrar SAML."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP No es disponible."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "Todo IncludeDeletedChannels params tendría que tener el mismo valor."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Administradores de sistema único pueden poner ya-hashed contraseñas."
   }
 ]
