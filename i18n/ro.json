@@ -7690,5 +7690,305 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP nu este disponibil."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Eroare la analizarea cererii multiforme"
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensiuni ({{.Width}} de {{.Height}} pixeli) depășesc limitele."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Imposibil de încărcat fișierul. Fișierul este prea mare."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Nu se poate stabili dacă utilizatorul aparține unei liste de echipe."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Am întâlnit o eroare la actualizarea echipa"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "În imposibilitatea de a găsi echipa existentă pentru a actualiza"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Am întâlnit o eroare la căutarea echipelor private."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Am intalnit o eroare căutarea deschis echipe"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Am intalnit o eroare caută echipe"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Nu a putut fi salvat membrul echipei"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Trebuie să plăteşti actualizare pentru echipa existentă"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Imposibil de a salvat echipa"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Noi nu a putut reseta scheme de echipa"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Nu am putut găsi echipa existentă pentru a actualiza"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Imposibil de obținut lista echipelor unui utilizator."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Am putut sa ma echipe mesajele necitite"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Nici un membru al echipei găsit pentru acel utilizator ID-ul şi ID-ul echipei"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "În imposibilitatea de a obține membru al echipei"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Nu se pot obține canalele pentru schema furnizată"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Nu se poate găsi echipa existentă"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Nu se poate găsi echipa existentă"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Nu se poate găsi echipa existentă"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Nu am putut obţine toate echipele"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Nu am putut obține toate echipele private."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Nu am putut obţine toate echipele"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Imposibil de actualizat membru al echipei"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Am intalnit o eroare găsirea echipei"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Nu se poate găsi echipa existentă"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Nu am reușit să recupereze membrii echipei"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Imposibilitatea de a număra echipele"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Imposibil de numărat echipele publice."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Imposibil de numărat echipele private."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Nu se pot obține postările pentru canal"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Nu se pot obține postările pentru canal"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Nu se poate obține postarea în timp."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Imposibil de obținut post după termenul stabilit."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Imposibil de obținut mesajele marcate"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Imposibil de marcat canalul ca necitit."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Imposibil de actualizat ultimele vizualizate la timp"
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Eroare la introducerea înregistrării în baza de date."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Nu se poate elimina membrul canalului"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Nu s-au găsit posturile fixate"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Nu se poate elimina membrul canalului"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Nu se poate mări numărarea numelor"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Nu se pot obține canale publice"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Imposibil de obținut canale private."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Imposibil să obțineți numărul postării canalului."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Nu s-au putut obține membrii canalului"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Nu se poate calcula numărul membrilor canalului"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Nici un membru de canale găsite pentru acel utilizator ID-ul şi ID-ul de canal"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Imposibil de obținut membrul canalului"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Nu se poate obține canalul pentru postarea dată"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Nici un canal descoperit"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Nu pot obține canalele"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Canalele nu pot fi obținute prin ID-uri."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Imposibil de obținut numărul de canale"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Imposibil de numărat mesaje de la data dată."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Imposibil de obținut numărul de canale"
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition. Semnătura digitală a fișierului binar descărcat nu a putut fi verificată."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition. Această caracteristică va funcționa numai pe sistemele Linux cu arhitectură x86-64."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition. Utilizatorul sistemului Mattermost {{.MattermostUsername}} nu are acces la scriere la fișierul binar necesar. Un administrator de sistem poate actualiza permisiunile fișierului executând următoarea comandă pe serverul pe care este instalat Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDupă modificarea permisiunilor fișierului, încercați să faceți upgrade Mattermost din nou. După ce ați făcut upgrade și reporniți, nu uitați să restaurați permisiunile originale ale fișierului binar:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition. Utilizatorul sistemului Mattermost {{.MattermostUsername}} nu are acces la scriere la fișierul binar necesar. Un administrator de sistem poate actualiza permisiunile fișierului executând următoarea comandă pe serverul pe care este instalat Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDupă modificarea permisiunilor fișierului, încercați să faceți upgrade Mattermost din nou. După ce ați făcut upgrade și reporniți, nu uitați să restaurați permisiunile originale ale fișierului binar:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition. Utilizatorul sistemului Mattermost {{.MattermostUsername}} nu are acces la scriere la fișierul binar necesar. Un administrator de sistem poate actualiza permisiunile fișierului executând următoarea comandă pe serverul pe care este instalat Mattermost:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDupă modificarea permisiunilor fișierului, încercați să faceți upgrade Mattermost din nou. După ce ați făcut upgrade și reporniți, nu uitați să restaurați permisiunile originale ale fișierului binar:\n\n```\nchmod +w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost nu a reușit să facă upgrade la Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Un upgrade la Mattermost Enterprise Edition rulează deja."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "Nu puteți face upgrade deoarece rulați deja Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "Ați trecut deja la Mattermost Enterprise Edition. Reporniți serverul pentru a finaliza actualizarea."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "A apărut o eroare la scrierea lui S3."
   }
 ]
