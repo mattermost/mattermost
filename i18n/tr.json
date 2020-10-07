@@ -7208,7 +7208,7 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Bizimle iletişim kurmak"
+    "translation": "Bizimle İletişim Kurmak"
   },
   {
     "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
@@ -7220,7 +7220,7 @@
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "Bizimle iletişim kurun"
+    "translation": "Bizimle İletişim Kurun"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7660,7 +7660,7 @@
   },
   {
     "id": "app.file_info.get_with_options.app_error",
-    "translation": "Yola göre dosya bilgileri alınamadı."
+    "translation": "Yola göre dosya bilgileri alınamadı"
   },
   {
     "id": "app.file_info.get_for_post.app_error",
@@ -7673,5 +7673,201 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Kanal okunmamış olarak işaretlenemedi."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Son görüntülenme zamanı güncellenemedi."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Kanal üyesi silinemedi."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Sabitlenmiş iletiler bulunamadı."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Kanal üyesi silinemedi."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Anma sayısı arttırılamadı."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Herkese açık kanallar alınamadı."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Özel kanallar alınamadı."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Kanalda sabitlenmiş ileti sayısı alınamadı."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Kanal üyelerinin sayısı alınamadı."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Bu kullanıcı kodu ve kanal kodu için bir kanal üyesi bulunamadı."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Kanal üyesi alınamadı."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Belirtilen ileti için bir kanal alınamadı."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Herhangi bir kanal bulunamadı."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Kodlara göre kanallar alınamadı."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Kanal sayıları alınamadı."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Belirtilen tarihten sonraki ileti sayıları hesaplanamadı."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Kanal türü sayıları alınamadı."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Yalnız sistem yöneticileri önceden karılmış parolalar ayarlayabilir."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS oturumu açmaya izin verilmiyor."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS kodu geçersiz"
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Yüklemeler alınamadı."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "İçerik uzunluğu geçersiz."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Yüklenemedi."
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Ürün bildirimleri işlenemedi"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Ürün bildirimleri alınamadı"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Eski ürün bildirimleri temizlenemedi"
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Bir dosya S3 üzerine eklenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Dosya açılırken bir sorun çıktı."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Dosya bulunamadı."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP kullanılamıyor."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} boyutları ({{.Width}} x {{.Height}} piksel) sınırını aşıyor."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Dosya yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Kanalın iletileri alınamadı."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Kanalın iletileri alınamadı."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Kayıt veritabanına eklenemedi."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Kanal üyeleri alınamadı."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Kanallar alınamadı."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "S3 üzerine yazılırken bir sorun çıktı."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Konuk Hesapları Ekleniyor"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermost iletişim kurma isteği. Konuk Hesaplarını kullanmak hakkında bilgi almak istiyorum.\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Deneme lisansı alınamadı. Lisans isteğinde bulunmak için https://mattermost.com/trial/ adresine gidin."
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "İstek gövdesi işlenemedi."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "SAML üzerine aktarılamadı."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Yapılandırma mağazası aktarılamadı."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Lisansınız bulut isteklerini desteklemiyor."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Bulut API isteği yapılırken bir iç sorun çıktı."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Çoklu form isteği işlenirken sorun çıktı"
   }
 ]
