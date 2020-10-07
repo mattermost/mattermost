@@ -349,9 +349,9 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 	}
 
 	for _, fileInfo := range mail.attachments {
-		bytes, err := fileBackend.ReadFile(fileInfo.Path)
-		if err != nil {
-			return model.NewAppError("SendMail", "api.file.read_file.app_error", nil, err.Error(), http.StatusInternalServerError)
+		bytes, nErr := fileBackend.ReadFile(fileInfo.Path)
+		if nErr != nil {
+			return model.NewAppError("SendMail", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
