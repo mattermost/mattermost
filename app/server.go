@@ -431,11 +431,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	backend, appErr := s.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+		}
 	}
 
 	model.AppErrorInit(utils.T)
@@ -1490,7 +1492,11 @@ func (s *Server) stopSearchEngine() {
 
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
-	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return backend, nil
 }
 
 func (s *Server) TotalWebsocketConnections() int {

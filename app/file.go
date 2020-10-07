@@ -76,12 +76,36 @@ func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	return a.Srv().FileBackend()
 }
 
+func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	err := filesstore.CheckMandatoryS3Fields(settings)
+	if err != nil {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (a *App) TestFilesStoreConnection() *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	nErr := backend.TestConnection()
+	if nErr != nil {
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {
 		return nil, err
 	}
-	return backend.ReadFile(path)
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 // Caller must close the first return value
@@ -90,7 +114,11 @@ func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppErr
 	if err != nil {
 		return nil, err
 	}
-	return backend.Reader(path)
+	result, nErr := backend.Reader(path)
+	if nErr != nil {
+		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) FileExists(path string) (bool, *model.AppError) {
@@ -98,7 +126,11 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 	if err != nil {
 		return false, err
 	}
-	return backend.FileExists(path)
+	result, nErr := backend.FileExists(path)
+	if nErr != nil {
+		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
@@ -106,7 +138,11 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	return backend.MoveFile(oldPath, newPath)
+	nErr := backend.MoveFile(oldPath, newPath)
+	if nErr != nil {
+		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -115,7 +151,11 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, err
 	}
 
-	return backend.WriteFile(fr, path)
+	result, nErr := backend.WriteFile(fr, path)
+	if nErr != nil {
+		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -124,7 +164,11 @@ func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, err
 	}
 
-	return backend.AppendFile(fr, path)
+	result, nErr := backend.AppendFile(fr, path)
+	if nErr != nil {
+		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
@@ -132,7 +176,11 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	return backend.RemoveFile(path)
+	nErr := backend.RemoveFile(path)
+	if nErr != nil {
+		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
@@ -140,12 +188,25 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	paths, err := backend.ListDirectory(path)
-	if err != nil {
-		return nil, err
+	paths, nErr := backend.ListDirectory(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return *paths, nil
+}
+
+func (a *App) RemoveDirectory(path string) *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	nErr := backend.RemoveDirectory(path)
+	if nErr != nil {
+		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, oldId, filename string) *model.FileInfo {
