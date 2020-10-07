@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -217,7 +216,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		explictUpdateAtIndex = "FORCE INDEX (idx_posts_update_at)"
 	}
 
-	query := fmt.Sprintf(`
+	query := `
 		SELECT
 			Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
@@ -245,19 +244,18 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Users.Username,
 			Bots.UserId IS NOT NULL AS IsBot
 		FROM
-			Posts %s
+			Posts ` + explictUpdateAtIndex + `
 		LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Posts.UpdateAt > :StartTime
-			AND Posts.Type NOT LIKE 'system_%%'
+			AND Posts.Type NOT LIKE 'system_%'
 		ORDER BY
 			Posts.UpdateAt, 
 			Posts.Id
-		LIMIT :Limit;
-	`, explictUpdateAtIndex)
+		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
