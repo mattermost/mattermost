@@ -7159,10 +7159,6 @@
     "translation": "Mattermost Contacteer-ons-verzoek"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise editie."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Heb je nog verdere vragen, dan kan je contact met ons opnemen op support@mattermost.com"
   },
@@ -7191,14 +7187,6 @@
     "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers gebruik maken van functies zoals gebruikersbeheer, serverclustering en prestatiebewaking. Neem contact met ons op voor meer informatie en laat ons weten hoe we kunnen helpen.\n\nDoor op Contacteer ons te klikken, deel je jouw informatie met Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integratie van SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Schalen met Mattermost"
   },
@@ -7213,10 +7201,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Contacteer ons"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise Editie.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7283,10 +7267,6 @@
     "translation": "Er is een probleem opgetreden bij het ophalen van het 'compliance' rapport"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Er is een fout opgetreden bij het opschonen van de reeks vlaggen."
   },
@@ -7313,26 +7293,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het bestand met de actiance waarschuwingen"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Er trad een fout op bij het aanmaken van het actiance XML-bestand"
   },
   {
     "id": "api.job.unable_to_download_job",

@@ -7128,10 +7128,6 @@
     "translation": "Mattermost Cererea de contact"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
   },
@@ -7164,14 +7160,6 @@
     "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să se actualizeze la Ediția Mattermost Enterprise, care oferă funcții precum gestionarea utilizatorilor, clusterarea serverului și monitorizarea performanței.\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrați SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 400 de utilizatori. Când conectați Mattermost cu furnizorul de conectare unic al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să re-introduceți datele de acreditare. Contactați asistența pentru a afla mai multe despre integrarea cu SAML 2.0, disponibil în Ediția Mattermost Enterprise.\n\n[Aflați mai multe despre integrarea cu SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Integrați AD/LDAP"
   },
@@ -7186,10 +7174,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Contactându-ne"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.message",
@@ -7260,10 +7244,6 @@
     "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Imposibil de copiat atașamentul în fișierul zip."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
   },
@@ -7314,26 +7294,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "incapabil să migreze."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "A apărut o eroare la scrierea fișierului XML actianță"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului XML Actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "A apărut o eroare la scrierea fișierului xml actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului text de avertizare a actianței"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "A apărut o eroare la crearea fișierului XML Actiance"
   },
   {
     "id": "app.system.warn_metric.store.app_error",

@@ -7172,14 +7172,6 @@
     "translation": "Контактное лицо: {{.Contact}}"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
     "translation": "Запрос Mattermost Свяжитесь с нами"
   },
@@ -7218,14 +7210,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
     "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Корпоративной редакции Mattermost, которая предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности.\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Масштабирование с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7286,30 +7270,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Возникла ошибка с получением комплаенс-отчетов."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Произошла ошибка при записи в XML-файл actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Произошла ошибка при создании файла XML actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Произошла ошибка при записи в xml-файл actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "При создании текстового файла actiance с предупреждением об ошибке произошла ошибка"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Произошла ошибка при создании файла XML actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Невозможно скопировать вложение в zip-файл."
   },
   {
     "id": "app.job.download_export_results_not_enabled",

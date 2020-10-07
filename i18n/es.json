@@ -7163,10 +7163,6 @@
     "translation": "Solicitud de Contacto de Mattermost"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Solicitud de contacto de Mattermost. Mi equipo ahora tiene {{.Limit}} usuarios y estoy considerando Mattermost Enterprise Edition."
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Si tiene alguna consulta adicional, comuníquese con support@mattermost.com"
   },
@@ -7199,14 +7195,6 @@
     "translation": "Mattermost recomienda encarecidamente que las implementaciones de más de 500 usuarios se actualicen a Mattermost Enterprise Edition, que ofrece características tales como administración de usuarios, agrupación de servidores y monitoreo del rendimiento.\n\nAl contactar a soporte se enviará tu información de contacto a Mattermost, Inc. [Conocer más](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrar SAML 2.0"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Tu sistema Mattermost ahora tiene 400 usuarios. Cuando conecta Mattermost con un proveedor de inicio de sesión único de su organización, los usuarios pueden acceder a Mattermost sin tener que volver a ingresar sus credenciales. Póngase en contacto con el soporte para obtener más información sobre la integración con SAML 2.0, disponible en Mattermost Enterprise Edition.\n\n[Obtenga más información sobre la integración con SAML 2.0] (https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAl contactar a soporte se enviará tu información de contacto a Mattermost, Inc. [Conocer más](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Integrar AD/LDAP"
   },
@@ -7225,10 +7213,6 @@
   {
     "id": "api.server.warn_metric.contact_us",
     "translation": "Contáctanos"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Solicitud de contacto de Mattermost. Mi equipo ahora tiene {{.Limit}} usuarios y estoy considerando Mattermost Enterprise Edition\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7291,10 +7275,6 @@
     "translation": "Error al enviar correo electrónico al administrador"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "No se puedo copiar el adjunto en el fichero comprimido."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados."
   },
@@ -7321,26 +7301,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Encontramos un error mientras se eliminaban las preferencias."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Había un error escribiendo al archivo XML de actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Había un error creando el archivo XML de actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Había un error escribiendo al archivo xml de actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Había un error creando archivo de texto de advertencia de actiance"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Había un error creando el archivo XML de actiance"
   },
   {
     "id": "api.context.get_user.app_error",

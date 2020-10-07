@@ -7122,10 +7122,6 @@
     "translation": "我们获取合规报告时遇到错误"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "无法复制附件到 zip 文件。"
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "清理批量标记时遇到错误。"
   },
@@ -7183,10 +7179,6 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "与 Mattermost 扩展"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
     "translation": "与 Mattermost 扩展"
   },
   {
@@ -7556,14 +7548,6 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "解析 multiform 请求出错"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "创建 actiance XML 文件时发生错误"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "创建 actiance 警告文本文件时出错"
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",
@@ -7962,10 +7946,6 @@
     "translation": "Mattermost 联络我们请求"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "如果您有其他的查询，请联络 support@mattermost.com"
   },
@@ -7998,20 +7978,12 @@
     "translation": "Mattermost 强烈建议超过 500 个用户的部署使用用户管理，服务器群集和性能监视等功能。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多]（https://mattermost.com/pl/default-admin-advisory）"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "您的 Mattermost 系统现在有 400 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 与 Mattermost 服务器整合。\n\n[了解更多关于整合 SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n通过单击确认，您将与Mattermost Inc. 分享您的信息以了解有关升级的更多信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "您的 Mattermost 系统现在有 200 个用户。当您将 Mattermost 与组织的单一登录提供商连接时，用户无需重新输入凭据即可访问 Mattermost。我们建议您将 SAML 2.0 提供商与 Mattermost 服务器集成。[了解有关与 SAML 2.0 集成的更多信息](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "电子邮件我们"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.body",

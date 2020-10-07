@@ -7011,10 +7011,6 @@
     "translation": "Une erreur s'est produite lors du chargement des rapports de conformité"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Impossible de copier le fichier joint dans le fichier zip."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "Une erreur s'est produite lors du nettoyage du lot des indicateurs."
   },

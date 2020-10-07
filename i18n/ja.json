@@ -7138,10 +7138,6 @@
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "添付ファイルをzipファイルにコピーできません。"
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "複数のフラグをクリーンアップする際にエラーが発生しました。"
   },
@@ -7262,36 +7258,12 @@
     "translation": "内向きのウェブフックをカウントできませんでした。"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。そのために、あなたのMattermostサーバーをSAML2.0プロバイダーと連携することをお勧めします。\n\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください\n\n承認をクリックすることで、あなたの情報がMattermost Inc. へ共有されます。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "あなたのMattermostには200ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。MattermostサーバーをSAML 2.0プロバイダーと連携することをおすすめします。詳しくは[SAML2.0連携に関する説明](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください。\n\n問い合わせ をクリックすると、あなたの情報をMattermost, Inc. へ共有します。詳しくは[説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
     "id": "model.command.is_valid.plugin_id.app_error",
     "translation": "不正なプラグインIDです。"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "ActianceXMLファイルを書き出す際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "ActianceXMLファイルを作成する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Actiance XMLファイルを書き出す際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Actiance警告テキストファイルを作成する際にエラーが発生しました"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Actiance XMLファイルを作成する際にエラーが発生しました"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -7318,10 +7290,6 @@
     "translation": "config.json内のDownloadExportResultsが無効になっています。このジョブの結果をダウンロードするには有効にしてください。"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contact Usリクエストです。私のチームは現在 {{.Limit}}ユーザーが登録しており、Mattermost Enterprise Editionを検討しています。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
     "translation": "診断ID: "
   },
@@ -7338,10 +7306,6 @@
     "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能の利用を強く推奨します。詳細についてはお問い合わせください。\n\n問い合わせる をクリックすると、あなたの情報をMattermost Inc.へ共有します。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Mattermostをスケーリングする"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Mattermostをスケーリングする"
   },
@@ -7356,10 +7320,6 @@
   {
     "id": "api.server.warn_metric.contact_us",
     "translation": "問い合わせ"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contact Usリクエストです。私のチームは現在{{.Limit}}ユーザーが所属しており、Mattermost Enterprise Editionの利用を検討しています。\n"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",

@@ -7134,10 +7134,6 @@
     "translation": "聯絡我們"
   },
   {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
-  },
-  {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
     "translation": "感謝您對 Mattermost 有興趣，我們會盡快聯絡。"
   },
@@ -7206,10 +7202,6 @@
     "translation": "取得規範報告時遇到錯誤"
   },
   {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "無法複製附加檔案至 zip 檔案中。"
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "永久批次清除標記時遇到錯誤"
   },
@@ -7242,10 +7234,6 @@
     "translation": "找不到警告計量。"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。"
-  },
-  {
     "id": "api.templates.warn_metric_ack.body.site_url_header",
     "translation": "站台網址："
   },
@@ -7268,26 +7256,6 @@
   {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "寫入 actiance XML 檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "建立 actiance XML 檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "寫入 actiance 警告文字檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "建立 actiance 警告文字檔案時發生錯誤"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "建立 actiance XML 檔案時發生錯誤"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -7396,10 +7364,6 @@
   {
     "id": "api.templates.warn_metric_ack.body.contact_name_header",
     "translation": "聯絡： "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "整合 SAML 2.0"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -8108,10 +8072,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "一共有 200 位使用者在此 Mattermost。隨著使用者數量的增長，準備新帳號將耗費更多的時間。我們建議與您組織的 Active Directory/LDAP 進行整合，如此將讓任何有帳號的人存取 Mattermost。\n\n[了解更多有關與 AD/LDAP 整合](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "一共有 400 位使用者在此 Mattermost。當 Mattermost 連接您組織的單一登入提供者時，使用者可以在使用 Mattermost 時無須重新輸入密碼。我們建議將 Mattermost 與 SAML 2.0 提供者整合。\n\n[了解更多有關與 SAML 2.0 整合](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n當點下聯絡我們時，將會把您的訊息分享給 Mattermost 公司，了解更多有關升級。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",

@@ -7131,10 +7131,6 @@
     "translation": "SMTP sunucusu zorunludur"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
     "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
@@ -7195,10 +7191,6 @@
     "translation": "Mattermost Enterprise sürümüne yükseltin"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "SAML 2.0 ile bütünleştirin"
-  },
-  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "AD/LDAP ile bütünleştirin"
   },
@@ -7209,14 +7201,6 @@
   {
     "id": "api.server.warn_metric.contacting_us",
     "translation": "Bizimle İletişim Kurmak"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum."
   },
   {
     "id": "api.server.warn_metric.contact_us",
@@ -7281,30 +7265,6 @@
   {
     "id": "app.compliance.get.finding.app_error",
     "translation": "Uygunluk raporları alınırken bir sorun çıktı."
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "Actiance uyarı metin dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Ek dosya zip dosyasına kopyalanamadı."
   },
   {
     "id": "app.job.download_export_results_not_enabled",
