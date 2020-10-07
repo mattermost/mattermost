@@ -1310,7 +1310,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Der Administrator hat den OAuth2 Service Provider deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1354,7 +1354,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "Der Administrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -7353,5 +7353,9 @@
   {
     "id": "app.file_info.get.app_error",
     "translation": "Konnte die Dateiinformationen nicht abrufen."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
   }
 ]
