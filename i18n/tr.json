@@ -7661,5 +7661,365 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Çoklu form isteği işlenirken sorun çıktı"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Kullanıcının kanal üyeliği olup olmadığı belirlenemedi."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Belirtilen kullanıcı ve ifade için grup kanalları alınamadı."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Kanallar aranırken bir sorun çıktı."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Kanal şemaları sıfırlanamadı."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Kanal üyeleri topluluğu seçilemedi."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Okunmamış kanal iletileri alınamadı."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Kanal üyeleri alınamadı."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Doğrudan kanalların tümü alınamadı."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Kanalların tümü alınamadı."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Kanal üyeleri alınamadı."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Klasör eklenemedi."
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Deneme sürümünü edinmek"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Denemeyi başlat"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Mattermost ile büyümek"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKabul et üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. Yükseltme hakkında ayrıntılı bilgi almak için [buraya tıklayın](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Çok Aşamalı Kimlik Doğrulama Dayatılsın:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "İletinin üzerine yazılamadı."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Kanalın iletileri alınamadı."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Kanalın iletileri alınamadı."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Sayfalandırma sınırı aşıldı."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Doğrudan iletiler alınamadı."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "İletilerin kullanıcı sayıları alınamadı."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Güne göre ileti sayıları alınamadı."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "İleti sayıları alınamadı."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "İstek gövdesi işlenemedi."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Takım üyesi kaydedilemedi."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Takımların okunmamış iletileri alınamadı."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Takım üyeleri alınamadı."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Takım üyeleri sayılamadı."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Bu kullanıcı kodu ve takım kodu için bir takım üyesi bulunamadı."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Takım üyesi alınamadı."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Takım üyeleri sayılamadı."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Kullanıcının takım üyeliği olup olmadığı belirlenemedi."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Takım şemaları sıfırlanamadı."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Takım üyesi silinemedi."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Takım üyesi güncellenemedi."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Bir kullanıcının takım listesi alınamadı."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Takım üyeleri alınamadı."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Takım üyeleri alınamadı."
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu değeri geçersiz."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Kod değeri geçersiz."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Yol değeri geçersiz."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Kod değeri geçersiz."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Eklenme zamanı değeri geçersiz."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Yüklenemedi."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Yüklenemedi."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Kanal silindiğinden gönderilemedi."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "İlgili gönderim civarı süresi alınamadı."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "İlgili gönderi sonrası süresi alınamadı."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "İşaretlenmiş iletiler alınamadı."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Takım güncellenirken bir sorun çıktı."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Güncellenecek var olan takım bulunamadı."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Özel takımlar aranırken bir sorun çıktı."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Açık takımlar aranırken bir sorun çıktı."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Takımlar aranırken bir sorun çıktı."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Güncelleme var olan takım için çağrılmalı."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Takım kaydedilemedi."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Var olan takım silinemedi."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Var olan takım bulunamadı."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Var olan takım bulunamadı."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Var olan takım bulunamadı."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Tüm takımlar alınamadı."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Tüm özel takımlar alınamadı."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Tüm özel takımlar alınamadı."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Tüm takımlar alınamadı."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Takım aranırken bir sorun çıktı."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Var olan takım bulunamadı."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Takımlar sayılamadı."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Herkese açık takımlar sayılamadı."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Özel takımlar sayılamadı."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. İndirilen dosyanın sayısal imzası doğrulanamadı."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. Bu özellik yalnız x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemi tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Mattermost Enterprise Sürümü için bir yükseltme işlemi zaten yapılıyor."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "Zaten Mattermost Enterprise Sürümünü kullandığınız için yükseltme yapamazsınız."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "Mattermost Enterprise Sürümüne zaten yükseltmişsiniz. Lütfen yükseltme işlemini tamamlamak için sunucuyu yeniden başlatın."
   }
 ]

@@ -7170,5 +7170,405 @@
   {
     "id": "app.file_info.get.app_error",
     "translation": "Не вдається отримати інформацію про файл"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Не вдалося скинути схеми каналів"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Не вдалося вилучити деактивованих користувачів із каналу"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Не вдалося вибрати партію учасників каналу"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Неможливо отримати канали для наданої схеми"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Неможливо створити бакет."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Request trial"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Забезпечити багатофакторну автентифікацію:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Неможливо видалити роль"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Перевищене обмеження кількості сторінок"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Неможливо отримати кількість користувачів із повідомленнями"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Не вдається отримати кількість постів за день"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Не вдається отримати кількість постів"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Не вдалося скинути командні схеми"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Неможливо отримати канали для наданої схеми"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не вдалося отримати учасників команди"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Неправильне значення для user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Недійсне значення ідентифікатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Недійсне значення для шляху."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Недійсне значення ідентифікатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Неприпустиме значення для часу очікування читання."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Неможливо завантажити файл. Він занадто великий."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Неможливо розмістити публікацію на видаленому каналі."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Виникла помилка запису в S3"
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Bot does not exist."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Ну вдалося встановити час останнього перегляду на"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Не вдається знайти прикріплені повідомлення"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Не вдається збільшити кількість згадок"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Не вдалося отримати кількість учасників каналу"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Не вдалося отримати кількість учасників каналу"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Неможливо отримати кількість каналів"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Не вдалося отримати канал для даної публікації"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Канали не знайдені"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Неможливо отримати кількість каналів"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Виникла помилка оновлення команди"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Не вдалося знайти дійсну команду для оновлення"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Виникла проблема при пошуку відкритих команд"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Виникла проблема при пошуку відкритих команд"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Виникла проблема при пошуку команд"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Необхідно викликати оновлення для існуючої команди"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Не вдається зберегти команду"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Не вдалося знайти дійсну команду для оновлення"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Виникла помилка з виявленням команди"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Bot login is forbidden."
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
   }
 ]

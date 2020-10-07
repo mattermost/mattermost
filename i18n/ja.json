@@ -8152,5 +8152,113 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "トライアルライセンスを取得できませんでした。 support@mattermost.comまで連絡してください。登録ユーザー数を取得できません。"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "ユーザーがチャンネルリストに所属するかどうか確認できませんでした。"
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "指定されたユーザーと期間に対するグループチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "チャンネルを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "チャンネルスキームをリセットできませんでした。"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "無効化されたユーザーをチャンネルから削除できませんでした。"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "複数のチャンネルメンバーを選択できませんでした。"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "チャンネルの未読メッセージを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "チャンネルのメンバーを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "与えられたスキームにおけるチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "全ダイレクトチャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "全チャンネルを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "チャンネルメンバーを抽出できませんでした。"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "バケットを作成できません。"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "複数の投稿を完全に削除する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "投稿を検索中にエラーが発生しました"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "投稿を上書きできませんでした。"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "チャンネルへの投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "チャンネルへの投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "これ以上のページを生成できません。"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "ダイレクト投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "投稿をしたユーザー数を取得できませんでした。"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "日付ごとの投稿数を取得できませんでした。"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "投稿数を取得できませんでした。"
   }
 ]

@@ -7449,5 +7449,377 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Ottieni prova"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Richiedi prova"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Aggiorna Mattermost a edizione enterprise"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Forza Autenticazione Multifattore:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Impossibile sovrascrivere la pubblicazione"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limite di paginazione superato"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Impossibile recuperare le pubblicazioni dirette"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Impossibile ottenere il numero degli utenti con pubblicazioni"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Impossibile ottenere il numero delle pubblicazioni per giorno"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Impossibile ottenere il numero delle pubblicazioni"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Impossibile salvare il membro della squadra"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Impossibile ottenere i messaggi non letti delle squadre"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Impossibile ottenere i membri della squadra"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Impossibile contare i membri della squadra"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Nessun membro trovato con l'ID utente e l'ID squadra specificati"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Impossibile ottenere il membro della squadra"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Impossibile contare i membri della squadra"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Impossibile determinare se un utente appartiene a una lista di squadre"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Impossibile resettare gli schemi della squadra"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Impossibile rimuovere il membro dalla squadra"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Errore durante l'aggiornamento del membro della squadra"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Impossibile elencare le squadre di un utente"
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Impossibile ottenere i membri della squadra"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Impossibile elencare i canali per lo schema fornito"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Errore recuperando i membri della squadra"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Valore non valido per user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Valore non valido per id."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Valore non valido per path."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Valore non valido per id."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Valore non valido per il parametro create_at."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}}: le dimensioni ({{.Width}} per {{.Height}} pixel) superano i limiti."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Impossibile caricare il file. Il file è troppo grande."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Impossibile inviare ad un canale eliminato."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Si è verificato un errore scrivendo su S3."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Il bot non esiste"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Impossibile segnare il canale come non letto"
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Non è stato possibile aggiornare la data dell'ultima visualizzazione"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Impossibile eliminare il membro del canale"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Impossibile trovare le pubblicazioni fissate"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Impossibile eliminare il membro del canale"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Impossibile incrementare il conteggio della citazione"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Impossibile recuperare il conteggio delle pubblicazione bloccate"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Impossibile ottenere i membri del canale"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Impossibile recuperare il conteggio dei membri del canale"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Nessun membro trovato con l'ID utente e l'ID canale specificati"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Impossibile ottenere i membri del canale"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Impossibile contare i messaggi dalla data specificata"
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Impossibile recuperare il conteggio dei canali eliminati"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Impossibile recuperare le pubblicazioni del canale"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Impossibile ottenere le pubblicazioni vicine alla data specificata"
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Impossibile ottenere le pubblicazioni successive alla data specificata"
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Impossibile ottenere le pubblicazioni segnate"
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Impossibile inserire la riga nel database."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Impossibile recuperare i canali pubblici"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Impossibile recuperare tutti i canali"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Non è stato possibile ottenere il canale per la pubblicazione specificata"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Nessun canale trovato"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Impossibile recuperare canali"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Impossibile recuperare canali per id"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Impossibile ottenere il numero dei canali"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Riscontrato un errore nell'aggiornamento della squadra"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Non è stato possibile trovare la squadra da aggiornare"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Riscontrato un errore nella ricerca delle squadre private"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Riscontrato un errore nella ricerca delle squadre aperte"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Riscontrato un errore nella ricerca delle squadre"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "L'aggiornamento deve essere invocato per la squadra esistente"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Impossibile salvare la squadra"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Impossibile cancellare la squadra esistente"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Non è stato possibile recuperare tutte le squadre"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Non è stato possibile recuperare tutte le squadre private"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Non è stato possibile recuperare tutte le squadre private"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Non è stato possibile recuperare tutte le squadre"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Errore riscontrato nel trovare la squadra"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Non è stato possibile trovare la squadra esistente"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Impossibile contare le squadre"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Impossibile contare le squadre pubbliche"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Impossibile contare le squadre private"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "L'accesso bot è proibito."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Impossibile assegnare a un gruppo di lavoro per default"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Impossibile assegnare a un gruppo di lavoro per default per raggiunta capacità del gruppo"
   }
 ]
