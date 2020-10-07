@@ -177,6 +177,8 @@ type AppIface interface {
 	// To get the plugins environment when the plugins are disabled, manually acquire the plugins
 	// lock instead.
 	GetPluginsEnvironment() *plugin.Environment
+	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
+	GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
 	// GetPublicKey will return the actual public key saved in the `name` file.
 	GetPublicKey(name string) ([]byte, *model.AppError)
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
@@ -314,6 +316,13 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
+	UpdateProductNotices() *model.AppError
+	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
+	UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError
+	// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
+	// user as viewed in order to avoid showing them imminently on first login
+	UpdateViewedProductNoticesForNewUser(userId string)
 	// UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
 	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	// UploadFile uploads a single file in form of a completely constructed byte array for a channel.
@@ -582,6 +591,7 @@ type AppIface interface {
 	GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 	GetLogs(page, perPage int) ([]string, *model.AppError)
 	GetLogsSkipSend(page, perPage int) ([]string, *model.AppError)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
 	GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError)
 	GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -628,7 +638,6 @@ type AppIface interface {
 	GetPreferencesForUser(userId string) (model.Preferences, *model.AppError)
 	GetPrevPostIdFromPostList(postList *model.PostList) string
 	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
-	GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
@@ -972,7 +981,6 @@ type AppIface interface {
 	UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(userId string, preferences model.Preferences) *model.AppError
-	UpdateProductNotices() *model.AppError
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
@@ -989,7 +997,6 @@ type AppIface interface {
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError
 	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
