@@ -7580,5 +7580,285 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "영구 팀 삭제 기능이 활성화되어 있지 않습니다. 시스템 관리자에게 문의하십시오."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "팀 구성원의 갯수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "지정된 날짜 이후로의 게시글 갯수를 계산할 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "유효하지 않은 로컬 스토리지 디렉터리입니다. 빈 문자열이어야 합니다."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "봇을 사용자로 변환할 수 없습니다."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}}의 해상도({{.Width}} x {{.Height}} 픽셀)가 제한 사항을 초과했습니다."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "파일을 업로드할 수 없습니다. 파일 크기가 너무 큽니다."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "사용자가 팀 목록에 속하는지 확인할 수 없습니다."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "팀을 갱신하는 중에 오류가 발생했습니다."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "업데이트할 기존 팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "비공개 팀을 찾는 중에 오류가 발생했습니다."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "공개 팀을 찾는 중에 오류가 발생했습니다."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "팀을 찾는 중에 오류가 발생했습니다."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "팀 구성원을 저장할 수 없습니다."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "기존 팀에 대한 업데이트를 호출해야 합니다."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "팀을 저장하지 못했습니다."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "팀 스키마를 재설정하지 못했습니다."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "팀 구성원을 제거할 수 없습니다."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "기존 팀을 삭제할 수 없습니다."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "팀 구성원을 갱신하지 못했습니다."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "사용자의 소속 팀을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "팀의 읽지 않은 게시글을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "팀 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "팀 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "해당 사용자 식별자와 팀 식별자에 대한 팀 구성원을 찾지 못했습니다."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "팀 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "제공된 스키마에 부합하는 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "기존 팀을 찾지 못했습니다."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "기존 팀을 찾지 못했습니다."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "기존 팀을 찾지 못했습니다."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "모든 팀을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "모든 팀을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "모든 비공개 팀을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "팀 구성원의 수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "팀을 찾는 동안에 오류가 발생했습니다."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "기존 팀을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "팀 구성원을 조회하지 못했습니다."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "팀의 갯수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "공개 팀의 갯수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "비공개 팀의 갯수를 계산할 수 없습니다."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "해당 채널에 대한 게시글을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "해당 채널에 대한 게시글을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "중요 게시글을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "채널을 읽지 않음 상태로 표시할 수 없습니다."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "최근 열람 시간을 갱신할 수 없습니다."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "레코드를 데이터베이스에 삽입할 수 없습니다."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "채널 구성원을 제거할 수 없습니다."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "고정된 게시글을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "채널 구성원을 제거할 수 없습니다."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "멘션 수를 증가시키지 못했습니다."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "공개 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "개인 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "채널 유형의 갯수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "채널 갯수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "채널 구성원 수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "채널의 고정 게시글 갯수를 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "채널 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "해당 사용자 식별자 및 채널 식별자에 대한 채널 구성원을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "채널 구성원을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "해당 게시글에 대한 채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "채널을 찾지 못했습니다."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "채널을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "식별자에 따른 채널들을 가져올 수 없습니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost를 엔터프라이즈 에디션으로 업그레이드하지 못했습니다. 다운로드된 바이너리 파일의 디지털 서명을 검증할 수 없습니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost를 엔터프라이즈 에디션으로 업그레이드하지 못했습니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost를 엔터프라이즈 에디션으로 업그레이드하지 못했습니다. 이 기능은 x86-64 아키텍처 기반의 리눅스 시스템에서만 동작합니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost를 엔터프라이즈 에디션으로 업그레이드하지 못했습니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Mattermost 엔터프라이즈 에디션 업그레이드가 이미 실행 중입니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "이미 Mattermost 엔터프라이즈 에디션이기 때문에 업그레이드를 할 수 없습니다."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "이미 Mattermost 엔터프라이즈 에디션으로 업그레이드 되었습니다. 업그레이드를 완료하기 위해서 서버를 재시작해주세요."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "S3에 쓰는 중 오류가 발생했습니다."
   }
 ]
