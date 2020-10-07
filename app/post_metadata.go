@@ -316,15 +316,15 @@ func getFirstLinkAndImages(str string) (string, []string) {
 			if firstLink == "" {
 				firstLink = v.Destination()
 			}
-        case *markdown.InlineLink:
-            if firstLink == "" {
-                firstLink = v.Destination()
-            }
-        case *markdown.InlineImage:
+		case *markdown.InlineLink:
+			if firstLink == "" {
+				firstLink = v.Destination()
+			}
+		case *markdown.InlineImage:
 			images = append(images, v.Destination())
 		case *markdown.ReferenceImage:
 			images = append(images, v.ReferenceDefinition.Destination())
-        }
+		}
 
 		return true
 	})

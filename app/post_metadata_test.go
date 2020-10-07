@@ -434,7 +434,7 @@ func TestPreparePostForClient(t *testing.T) {
 		post, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
-			Message: `[This is our logo](` + server.URL + `/test-image2.png)`,
+			Message:   `[This is our logo](` + server.URL + `/test-image2.png)`,
 		}, th.BasicChannel, false, true)
 		require.Nil(t, err)
 
@@ -461,7 +461,6 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions[server.URL+"/test-image2.png"])
 		})
 	})
-
 
 	t.Run("opengraph embed", func(t *testing.T) {
 		th := setup(t)
