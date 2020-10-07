@@ -7429,5 +7429,105 @@
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
     "translation": "O recurso de exclusão permanente da equipe não está ativado. Entre em contato com o Administrador do Sistema."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Aplicação de autenticação Multifator"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Sua avaliação Enterprise agora está ativa. Vá para **Console do Sistema > Autenticação > Acesso de Convidado** para habilitar as contas de convidado."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Criando Contas Convidado"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Solicitação de contato Mattermost. Estou interessado em saber mais sobre como usar contas de convidados.\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "A licença de teste não pôde ser recuperada. Visite https://mattermost.com/trial/ para solicitar uma licença."
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Não foi possível analisar o corpo da solicitação."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Não foi possível migrar SAML."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Não foi possível obter uma licença de teste, tente novamente ou entre em contato com support@mattermost.com. Não é possível obter o número de usuários registrados."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Erro ao tentar listar objetos."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Não foi possível criar o bucket."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Encontrado um erro ao adicionar a um arquivo no S3."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Encontrado um erro ao abrir o arquivo."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Arquivo não existe."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Falha ao migrar a configuração de armazenamento."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Erro ao processar a solicitação para CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Sua licença não oferece suporte a solicitações de nuvem."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Erro interno durante a solicitação da API da nuvem."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP não está disponível."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Erro ao analisar a solicitação multiforme"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. O usuário do sistema Mattermost {{.MattermostUsername}} não tem acesso de gravação ao arquivo binário necessário. Um administrador de sistema pode atualizar as permissões do arquivo executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do arquivo, tente atualizar o Mattermost novamente. Quando você tiver atualizado e reiniciado, lembre-se de restaurar as permissões do arquivo binário original: \n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "Uma atualização para o Mattermost Enterprise Edition já está em execução."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "Você não pode atualizar porque já está executando o Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "Você já atualizou para o Mattermost Enterprise Edition. Reinicie o servidor para concluir a atualização."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Encontrado um erro ao gravar no S3"
   }
 ]
