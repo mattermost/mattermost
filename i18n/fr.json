@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression de l'application OAuth2"
+    "translation": "Une erreur s'est produite lors de la suppression de l'application OAuth2."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "Aucune image transmise dans la requête"
+    "translation": "Aucune image transmise dans la requête."
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -6660,7 +6660,7 @@
   },
   {
     "id": "api.bot.set_bot_icon_image.array.app_error",
-    "translation": "Aucune image transmise dans la requête"
+    "translation": "Aucune image transmise dans la requête."
   },
   {
     "id": "api.bot.set_bot_icon_image.app_error",
