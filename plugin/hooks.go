@@ -199,7 +199,7 @@ type Hooks interface {
 	// Note that this method will be called for reactions added by plugins, including the plugin that
 	// added the reaction.
 	//
-	// Minimum server version: 5.29
+	// Minimum server version: 5.30
 	ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
 
 	// ReactionHasBeenRemoved is invoked after the removal of the reaction has been committed to the database.
@@ -207,6 +207,6 @@ type Hooks interface {
 	// Note that this method will be called for reactions removed by plugins, including the plugin that
 	// removed the reaction.
 	//
-	// Minimum server version: 5.29
+	// Minimum server version: 5.30
 	ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
 }
