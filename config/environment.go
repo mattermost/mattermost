@@ -17,7 +17,10 @@ func removeEnvOverrides(cfg, cfgWithoutEnv *model.Config, envOverrides map[strin
 	newCfg := cfg.Clone()
 	for _, path := range paths {
 		originalVal := getVal(cfgWithoutEnv, path)
-		getVal(newCfg, path).Set(originalVal)
+		newVal := getVal(newCfg, path)
+		if newVal.CanSet() {
+			newVal.Set(originalVal)
+		}
 	}
 	return newCfg
 }
