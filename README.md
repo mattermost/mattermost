@@ -22,8 +22,7 @@ Table of Contents
   * [Get Involved](#get-involved)
   * [Learn More](#learn-more)
   * [Get the Latest News](#get-the-latest-news)
-      
-      
+
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
