@@ -4,13 +4,17 @@
 package app
 
 import (
+	"net/http"
+	"sort"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"net/http"
-	"sort"
-	"strings"
+	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -74,7 +78,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		groups = result.Data.(map[string]*model.Group)
 	}
 
-	mentions := &model.ExplicitMentions{}
+	mentions := &ExplicitMentions{}
 	allActivityPushUserIds := []string{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
@@ -82,24 +86,24 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		_, ok := profileMap[otherUserId]
 		if ok {
-			mentions.AddMention(otherUserId, model.DMMention)
+			mentions.addMention(otherUserId, DMMention)
 		}
 
 		if post.GetProp("from_webhook") == "true" {
-			mentions.AddMention(post.UserId, model.DMMention)
+			mentions.addMention(post.UserId, DMMention)
 		}
 	} else {
 		allowChannelMentions := a.allowChannelMentions(post, len(profileMap))
 		keywords := a.getMentionKeywordsInChannel(profileMap, allowChannelMentions, channelMemberNotifyPropsMap)
 
-		mentions = post.GetExplicitMentions(keywords, groups)
+		mentions = getExplicitMentions(post, keywords, groups)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.POST_ADD_TO_CHANNEL {
 			addedUserId, ok := post.GetProp(model.POST_PROPS_ADDED_USER_ID).(string)
 			if ok {
-				mentions.AddMention(addedUserId, model.KeywordMention)
+				mentions.addMention(addedUserId, KeywordMention)
 			}
 		}
 
@@ -120,19 +124,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
 				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
-					mentionType := model.ThreadMention
+					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
-						mentionType = model.CommentMention
+						mentionType = CommentMention
 					}
 
-					mentions.AddMention(threadPost.UserId, mentionType)
+					mentions.addMention(threadPost.UserId, mentionType)
 				}
 			}
 		}
 
 		// prevent the user from mentioning themselves
 		if post.GetProp("from_webhook") != "true" {
-			mentions.RemoveMention(post.UserId)
+			mentions.removeMention(post.UserId)
 		}
 
 		go func() {
@@ -283,17 +287,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				mentionType := mentions.Mentions[id]
 
 				replyToThreadType := ""
-				if mentionType == model.ThreadMention {
+				if mentionType == ThreadMention {
 					replyToThreadType = model.COMMENTS_NOTIFY_ANY
-				} else if mentionType == model.CommentMention {
+				} else if mentionType == CommentMention {
 					replyToThreadType = model.COMMENTS_NOTIFY_ROOT
 				}
 
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
-					mentionType == model.KeywordMention || mentionType == model.ChannelMention || mentionType == model.DMMention,
-					mentionType == model.ChannelMention,
+					mentionType == KeywordMention || mentionType == ChannelMention || mentionType == DMMention,
+					mentionType == ChannelMention,
 					replyToThreadType,
 				)
 			} else {
@@ -587,6 +591,146 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 	return
 }
 
+type ExplicitMentions struct {
+	// Mentions contains the ID of each user that was mentioned and how they were mentioned.
+	Mentions map[string]MentionType
+
+	// Contains a map of groups that were mentioned
+	GroupMentions map[string]*model.Group
+
+	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
+	// a corresponding keyword.
+	OtherPotentialMentions []string
+
+	// HereMentioned is true if the message contained @here.
+	HereMentioned bool
+
+	// AllMentioned is true if the message contained @all.
+	AllMentioned bool
+
+	// ChannelMentioned is true if the message contained @channel.
+	ChannelMentioned bool
+}
+
+type MentionType int
+
+const (
+	// Different types of mentions ordered by their priority from lowest to highest
+
+	// A placeholder that should never be used in practice
+	NoMention MentionType = iota
+
+	// The post is in a thread that the user has commented on
+	ThreadMention
+
+	// The post is a comment on a thread started by the user
+	CommentMention
+
+	// The post contains an at-channel, at-all, or at-here
+	ChannelMention
+
+	// The post is a DM
+	DMMention
+
+	// The post contains an at-mention for the user
+	KeywordMention
+
+	// The post contains a group mention for the user
+	GroupMention
+)
+
+func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
+	if m.Mentions == nil {
+		m.Mentions = make(map[string]MentionType)
+	}
+
+	if currentType, ok := m.Mentions[userId]; ok && currentType >= mentionType {
+		return
+	}
+
+	m.Mentions[userId] = mentionType
+}
+
+func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model.Group) bool {
+	if strings.HasPrefix(word, "@") {
+		word = word[1:]
+	} else {
+		// Only allow group mentions when mentioned directly with @group-name
+		return false
+	}
+
+	group, groupFound := groups[word]
+	if !groupFound {
+		group = groups[strings.ToLower(word)]
+	}
+
+	if group == nil {
+		return false
+	}
+
+	if m.GroupMentions == nil {
+		m.GroupMentions = make(map[string]*model.Group)
+	}
+
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
+
+	return true
+}
+
+func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
+	for _, userId := range userIds {
+		m.addMention(userId, mentionType)
+	}
+}
+
+func (m *ExplicitMentions) removeMention(userId string) {
+	delete(m.Mentions, userId)
+}
+
+// Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
+// users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
+func getExplicitMentions(post *model.Post, keywords map[string][]string, groups map[string]*model.Group) *ExplicitMentions {
+	ret := &ExplicitMentions{}
+
+	buf := ""
+	mentionsEnabledFields := getMentionsEnabledFields(post)
+	for _, message := range mentionsEnabledFields {
+		markdown.Inspect(message, func(node interface{}) bool {
+			text, ok := node.(*markdown.Text)
+			if !ok {
+				ret.processText(buf, keywords, groups)
+				buf = ""
+				return true
+			}
+			buf += text.Text
+			return false
+		})
+	}
+	ret.processText(buf, keywords, groups)
+
+	return ret
+}
+
+// Given a post returns the values of the fields in which mentions are possible.
+// post.message, preText and text in the attachment are enabled.
+func getMentionsEnabledFields(post *model.Post) model.StringArray {
+	ret := []string{}
+
+	ret = append(ret, post.Message)
+	for _, attachment := range post.Attachments() {
+
+		if len(attachment.Pretext) != 0 {
+			ret = append(ret, attachment.Pretext)
+		}
+		if len(attachment.Text) != 0 {
+			ret = append(ret, attachment.Text)
+		}
+	}
+	return ret
+}
+
 // allowChannelMentions returns whether or not the channel mentions are allowed for the given post.
 func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_CHANNEL_MENTIONS) {
@@ -678,7 +822,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
-func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *model.ExplicitMentions) (bool, *model.AppError) {
+func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
 	var err *model.AppError
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
@@ -695,12 +839,12 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	if mentions.Mentions == nil {
-		mentions.Mentions = make(map[string]model.MentionType)
+		mentions.Mentions = make(map[string]MentionType)
 	}
 
 	for _, member := range groupMembers {
 		if _, ok := profileMap[member.Id]; ok {
-			mentions.Mentions[member.Id] = model.GroupMention
+			mentions.Mentions[member.Id] = GroupMention
 		} else {
 			outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
 		}
@@ -801,6 +945,127 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	return n.Sender.GetDisplayNameWithPrefix(userNameFormat, "@")
+}
+
+// checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
+func (m *ExplicitMentions) checkForMention(word string, keywords map[string][]string, groups map[string]*model.Group) bool {
+	var mentionType MentionType
+
+	switch strings.ToLower(word) {
+	case "@here":
+		m.HereMentioned = true
+		mentionType = ChannelMention
+	case "@channel":
+		m.ChannelMentioned = true
+		mentionType = ChannelMention
+	case "@all":
+		m.AllMentioned = true
+		mentionType = ChannelMention
+	default:
+		mentionType = KeywordMention
+	}
+
+	m.addGroupMention(word, groups)
+
+	if ids, match := keywords[strings.ToLower(word)]; match {
+		m.addMentions(ids, mentionType)
+		return true
+	}
+
+	// Case-sensitive check for first name
+	if ids, match := keywords[word]; match {
+		m.addMentions(ids, mentionType)
+		return true
+	}
+
+	return false
+}
+
+// isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
+func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
+	ids := []string{}
+	match := false
+	var multibyteKeywords []string
+	for keyword := range keywords {
+		if len(keyword) != utf8.RuneCountInString(keyword) {
+			multibyteKeywords = append(multibyteKeywords, keyword)
+		}
+	}
+
+	if len(word) != utf8.RuneCountInString(word) {
+		for _, key := range multibyteKeywords {
+			if strings.Contains(word, key) {
+				ids, match = keywords[key]
+			}
+		}
+	}
+	return ids, match
+}
+
+// Processes text to filter mentioned users and other potential mentions
+func (m *ExplicitMentions) processText(text string, keywords map[string][]string, groups map[string]*model.Group) {
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
+
+	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
+		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+	}) {
+		// skip word with format ':word:' with an assumption that it is an emoji format only
+		if word[0] == ':' && word[len(word)-1] == ':' {
+			continue
+		}
+
+		word = strings.TrimLeft(word, ":.-_")
+
+		if m.checkForMention(word, keywords, groups) {
+			continue
+		}
+
+		foundWithoutSuffix := false
+		wordWithoutSuffix := word
+
+		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
+
+			if m.checkForMention(wordWithoutSuffix, keywords, groups) {
+				foundWithoutSuffix = true
+				break
+			}
+		}
+
+		if foundWithoutSuffix {
+			continue
+		}
+
+		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			// No need to bother about unicode as we are looking for ASCII characters.
+			last := word[len(word)-1]
+			switch last {
+			// If the word is possibly at the end of a sentence, remove that character.
+			case '.', '-', ':':
+				word = word[:len(word)-1]
+			}
+			m.OtherPotentialMentions = append(m.OtherPotentialMentions, word[1:])
+		} else if strings.ContainsAny(word, ".-:") {
+			// This word contains a character that may be the end of a sentence, so split further
+			splitWords := strings.FieldsFunc(word, func(c rune) bool {
+				return c == '.' || c == '-' || c == ':'
+			})
+
+			for _, splitWord := range splitWords {
+				if m.checkForMention(splitWord, keywords, groups) {
+					continue
+				}
+				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					m.OtherPotentialMentions = append(m.OtherPotentialMentions, splitWord[1:])
+				}
+			}
+		}
+
+		if ids, match := isKeywordMultibyte(keywords, word); match {
+			m.addMentions(ids, KeywordMention)
+		}
+	}
 }
 
 func (a *App) GetNotificationNameFormat(user *model.User) string {
