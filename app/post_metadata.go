@@ -71,7 +71,11 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	if !ok || prop == nil {
 		return
 	}
-	emojiName := prop.(string)
+
+	emojiName, ok := prop.(string)
+	if !ok {
+		return
+	}
 
 	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
 		return
