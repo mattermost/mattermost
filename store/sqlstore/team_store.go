@@ -1119,7 +1119,7 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 	return count, nil
 }
 
-// GetMembersByIds returns a list of members from the database that matches the teamId and the list of userIds passed as parameters
+// GetMembersByIds returns a list of members from the database that matches the teamId and the list of userIds passed as parameters.
 // Expects a restrictions parameter of type ViewUsersRestrictions that defines a set of Teams and Channels that are visible to the caller of the query, and applies restrictions with a filtered result.
 func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
 	if len(userIds) == 0 {
