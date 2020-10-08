@@ -5611,6 +5611,16 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	return FileInfoFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) *Response {
+	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // Cloud Section
 
 func (c *Client4) GetCloudProducts() ([]*Product, *Response) {
@@ -5649,6 +5659,19 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	defer closeBody(r)
 
 	return BuildResponse(r)
+}
+
+func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/customer", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudCustomer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&cloudCustomer)
+
+	return cloudCustomer, BuildResponse(r)
 }
 
 func (c *Client4) GetSubscription() (*Subscription, *Response) {
