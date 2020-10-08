@@ -1,6 +1,8 @@
 package tagparser
 
 import (
+	"strings"
+
 	"github.com/vmihailenco/tagparser/internal/parser"
 )
 
@@ -31,6 +33,9 @@ type tagParser struct {
 }
 
 func (p *tagParser) setTagOption(key, value string) {
+	key = strings.TrimSpace(key)
+	value = strings.TrimSpace(value)
+
 	if !p.hasName {
 		p.hasName = true
 		if key == "" {
