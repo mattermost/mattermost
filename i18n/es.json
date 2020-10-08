@@ -7965,5 +7965,21 @@
   {
     "id": "api.file.append_file.writing.app_error",
     "translation": "Se encontró un error al escribir al S3."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Petición de contacto de Mattermost. Estoy interesado en aprender más acerca de hacer cumplir el Factor de Autenticación Multiple.\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Los proyectos a menudo implican personas tanto internas como externas a una organización. Con Cuentas de Huésped, puedes traer socios externos a tu sistema Mattermost y especificar con quién pueden trabajar y qué pueden ver.\n\n[Aprende más sobre Cuentas de Huésped](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nAl hacer clic en Iniciar prueba, estás de acuerdo con el [Acuerdo de Evaluación del Software Mattermost](https://mattermost.com/software-evaluation-agreement/), [Política de privacidad](https://mattermost.com/privacy-policy/), y recibir correos electrónicos del producto."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Los proyectos a menudo implican personas tanto internas como externas a una organización. Con Cuentas de Huésped, puedes traer socios externos a tu sistema Mattermost y especificar con quién pueden trabajar y qué pueden ver.\n\n[Aprende más sobre Cuentas de Huésped](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nAl hacer clic en Contáctanos, compartirás tu información con Mattermost, Inc. [Aprende más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Petición de contacto de Mattermost. Estoy interesado en aprender más acerca del uso de Cuentas de Huésped.\n"
   }
 ]
