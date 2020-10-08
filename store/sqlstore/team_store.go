@@ -1000,7 +1000,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 	return members[0], nil
 }
 
-// GetMember returns a single member of the team that matches the teamId and userId provided as parameters
+// GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
 func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
