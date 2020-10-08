@@ -472,6 +472,18 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
   },
   {
+    "id": "api.cloud.app_error",
+    "translation": "Internal error during cloud api request."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Your license does not support cloud requests."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Error processing request to CWS."
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -1397,7 +1409,7 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Unable to create bucket."
   },
   {
@@ -1407,6 +1419,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error trying to list objects."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -1563,6 +1579,10 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -2023,44 +2043,208 @@
     "translation": "Thank you for contacting Mattermost. We will follow up with you soon."
   },
   {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contact Us request. My team has now {{.Limit}} users and I am considering Mattermost Enterprise Edition.\r\n"
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "Acknowledge"
+    "translation": "Contact Us"
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Acknowledging"
+    "translation": "Contacting Us"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Creating Guest Accounts"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > Guest Access** to enable Guest Accounts."
   },
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Email us"
   },
   {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Enforcing Multi-Factor Authentication"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > MFA** to enforce multi-factor authentication."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 100 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > AD/LDAP** to integrate your AD/LDAP service."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 200 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+  },
+  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Acknowledge, you'll be sharing your information with Mattermost Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate SAML 2.0 provider with your Mattermost server.\r\n\r\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Acknowledge, you'll be sharing your information with Mattermost Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Scaling with Mattermost"
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > SAML 2.0** to integrate with your SAML 2.0 provider."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about creating read-only Announcement Channels.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Create a channel and go to **System Console > User Management > Channels** to limit posting to channel admins."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Read-Only Announcement Channels"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 500 users, and I'm considering Mattermost Enterprise Edition.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Acknowledge, you'll be sharing your information with Mattermost Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
     "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to the System Console to enable advanced features."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Using Advanced Permissions"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Improving Performance"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Once you have an Elasticsearch server, go to **System Console > Environment > Elasticsearch** to configure Elasticsearch."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Using Advanced Permissions"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Start Trial"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Getting Trial"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2181,6 +2365,10 @@
   {
     "id": "api.team.add_members.user_denied",
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2647,10 +2835,6 @@
     "translation": "If you have any additional inquiries, please contact support@mattermost.com"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contact Us request. My team has now {{ .Limit }} users and I am considering Mattermost Enterprise Edition."
-  },
-  {
     "id": "api.templates.warn_metric_ack.subject",
     "translation": "Mattermost Contact Us request"
   },
@@ -2729,6 +2913,14 @@
   {
     "id": "api.upload.upload_data.invalid_content_length",
     "translation": "Invalid Content-Length."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Invalid Content-Type for multipart upload."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Failed to process the multipart data."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -3315,6 +3507,10 @@
     "translation": "Unable to get channel type counts."
   },
   {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members."
+  },
+  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
   },
@@ -3347,6 +3543,10 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
     "id": "app.channel.get_all_channels.app_error",
     "translation": "Unable to get all the channels."
   },
@@ -3355,12 +3555,20 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Unable to get all the direct channels."
+  },
+  {
     "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
     "translation": "Channel does not exist."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme."
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
@@ -3373,6 +3581,10 @@
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
@@ -3415,6 +3627,10 @@
     "translation": "Unable to get the channel members."
   },
   {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Unable to get the channel members."
+  },
+  {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -3431,8 +3647,16 @@
     "translation": "Unable to get public channels."
   },
   {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Unable to get the channel unread messages."
+  },
+  {
     "id": "app.channel.increment_mention_count.app_error",
     "translation": "Unable to increment the mention count."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Failed to select the batch of channel members."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3471,8 +3695,16 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel."
+  },
+  {
     "id": "app.channel.remove_member.app_error",
     "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "We could not reset the channel schemes."
   },
   {
     "id": "app.channel.restore.app_error",
@@ -3481,6 +3713,14 @@
   {
     "id": "app.channel.save_member.exists.app_error",
     "translation": ""
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "We encountered an error searching channels."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
@@ -3501,6 +3741,10 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -4563,12 +4807,28 @@
     "translation": "Could not save or update plugin key value."
   },
   {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Unable to get post counts."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Unable to get post counts by day."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Unable to get user counts with posts."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
   {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Unable to get direct posts."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -4583,12 +4843,32 @@
     "translation": "Unable to get post around time bound."
   },
   {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
     "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the posts batch for indexing."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Unable to overwrite the Post."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -4605,6 +4885,10 @@
   {
     "id": "app.post.save.existing.app_error",
     "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Error searching posts"
   },
   {
     "id": "app.post.update.app_error",
@@ -5355,6 +5639,18 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "Unable to authenticate to CWS"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "Internal error marshaling request to CWS"
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "Error processing request to CWS"
+  },
+  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -5377,30 +5673,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "There was an error creating actiance warning text file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "There was an error writing to the actiance xml file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "There was an error writing to the actiance XML file"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -5487,6 +5759,10 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of posts."
+  },
+  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
@@ -5559,6 +5835,10 @@
     "translation": "Failed to index the channel"
   },
   {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Unable to get the channels batch for indexing."
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
   },
@@ -5585,6 +5865,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Unable to get the posts batch for indexing."
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -5745,6 +6029,10 @@
   {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "Error creating key pair"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "No LDAP users found, check your user filter and certificates."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
@@ -5937,6 +6225,14 @@
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -7047,6 +7343,14 @@
     "translation": "An error occurred while trying to execute this command."
   },
   {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
@@ -7459,10 +7763,6 @@
     "translation": "select error"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query."
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },
@@ -7479,88 +7779,12 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Unable to get deleted channel type counts."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Unable to get all the direct channels."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -7585,34 +7809,6 @@
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
-  },
-  {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "We encountered an error searching channels."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Failed to insert record to database."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Unable to delete non-custom category."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
     "id": "store.sql_command.get.missing.app_error",
@@ -7655,66 +7851,6 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Unable to get direct posts."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Unable to get the oldest entitiy creation time."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Unable to get the parent post for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Unable to get the posts."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Unable to overwrite the Post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "store.sql_post.search.app_error",
-    "translation": "Error searching posts"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
@@ -7725,6 +7861,10 @@
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "Unable to get the active users during the requested period."
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "We could not count the users with non local domain emails"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

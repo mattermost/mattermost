@@ -596,8 +596,8 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
-	require.Nil(t, err)
+	postList, nErr := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	require.Nil(t, nErr)
 
 	if assert.Len(t, postList.Order, 1) {
 		post := postList.Posts[postList.Order[0]]
@@ -1897,4 +1897,25 @@ func TestClearChannelMembersCache(t *testing.T) {
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	th.App.ClearChannelMembersCache("channelID")
+}
+
+func TestGetMemberCountsByGroup(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	cmc := []*model.ChannelMemberCountByGroup{}
+	for i := 0; i < 5; i++ {
+		cmc = append(cmc, &model.ChannelMemberCountByGroup{
+			GroupId:                     model.NewId(),
+			ChannelMemberCount:          int64(i),
+			ChannelMemberTimezonesCount: int64(i),
+		})
+	}
+	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
+	require.Nil(t, err)
+	require.ElementsMatch(t, cmc, resp)
 }

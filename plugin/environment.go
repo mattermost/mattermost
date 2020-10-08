@@ -86,7 +86,8 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 		if !file.IsDir() || file.Name()[0] == '.' {
 			continue
 		}
-		if info := model.BundleInfoForPath(filepath.Join(path, file.Name())); info.ManifestPath != "" {
+		info := model.BundleInfoForPath(filepath.Join(path, file.Name()))
+		if info.Manifest != nil {
 			ret = append(ret, info)
 		}
 	}
@@ -472,8 +473,8 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	}
 }
 
-// performHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
-func (env *Environment) performHealthCheck(id string) error {
+// PerformHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
+func (env *Environment) PerformHealthCheck(id string) error {
 	p, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return nil

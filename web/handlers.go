@@ -162,12 +162,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
 	}
 
+	cloudCSP := ""
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		cloudCSP = " js.stripe.com/v3"
+	}
+
 	if h.IsStatic {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s%s",
+			cloudCSP,
 			h.cspShaDirective,
 		))
 	} else {

@@ -26,11 +26,15 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	license := s.License()
 	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		if info := s.Cluster.GetMyClusterInfo(); info != nil {
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, info.Hostname)
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		} else {
+			mlog.Error("Could not get cluster info")
+		}
 	}
 
 	melines, err := s.GetLogsSkipSend(page, perPage)
