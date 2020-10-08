@@ -188,7 +188,13 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+
+	channelList, nErr := a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+	if nErr != nil {
+		return nil, model.NewAppError("GetChannelsForScheme", "app.channel.get_by_scheme.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (s *Server) IsPhase2MigrationCompleted() *model.AppError {

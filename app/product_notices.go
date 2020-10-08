@@ -6,6 +6,8 @@ package app
 import (
 	"net/http"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +34,21 @@ var cachedUserCount int64
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
+var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
+
+func cleanupVersion(originalVersion string) string {
+	// clean up BuildNumber to remove release- prefix, -rc suffix and a hash part of the version
+	version := strings.Replace(originalVersion, "release-", "", 1)
+	version = rcStripRegexp.ReplaceAllString(version, `$1$3`)
+	versionParts := strings.Split(version, ".")
+	var versionPartsOut []string
+	for _, part := range versionParts {
+		if _, err := strconv.ParseInt(part, 10, 16); err == nil {
+			versionPartsOut = append(versionPartsOut, part)
+		}
+	}
+	return strings.Join(versionPartsOut, ".")
+}
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
@@ -66,7 +83,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC()
+		now := time.Now().UTC().Truncate(time.Hour * 24)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
@@ -77,10 +94,13 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	// check if current server version is notice range
-	serverVersion, err := semver.NewVersion(model.BuildNumber)
-	if err != nil {
-		mlog.Warn("Skipping server version check, build number is not in semver format", mlog.String("build_number", model.BuildNumber))
-	} else {
+	if cnd.ServerVersion != nil {
+		version := cleanupVersion(model.BuildNumber)
+		serverVersion, err := semver.NewVersion(version)
+		if err != nil {
+			mlog.Warn("Build number is not in semver format", mlog.String("build_number", version))
+			return false, nil
+		}
 		for _, v := range cnd.ServerVersion {
 			c, err := semver.NewConstraint(v)
 			if err != nil {
@@ -180,6 +200,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 	return val == expectedValue
 }
 
+// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
@@ -255,6 +276,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	return filteredNotices, nil
 }
 
+// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
 	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
@@ -262,6 +284,19 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 	return nil
 }
 
+// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
+// user as viewed in order to avoid showing them imminently on first login
+func (a *App) UpdateViewedProductNoticesForNewUser(userId string) {
+	var noticeIds []string
+	for _, notice := range cachedNotices {
+		noticeIds = append(noticeIds, notice.ID)
+	}
+	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userId))
+	}
+}
+
+// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
