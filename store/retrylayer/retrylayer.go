@@ -7642,6 +7642,26 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 }
 
+func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) Delete(postId string) error {
 
 	tries := 0
@@ -7837,26 +7857,6 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerThreadStore) UpdateMembershipFromMention(userId string, postId string) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.UpdateMembershipFromMention(userId, postId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
 		}
 	}
 

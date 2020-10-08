@@ -7,7 +7,9 @@ import (
 	"database/sql"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -160,23 +162,27 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) UpdateMembershipFromMention(userId, postId string) error {
+func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-
-		if !errors.As(err, &nfErr) {
-			return errors.Wrap(err, "failed to get thread membership")
-		}
-		_, err = s.SaveMembership(&model.ThreadMembership{
-			PostId:      postId,
-			UserId:      userId,
-			Following:   true,
-			LastViewed:  0,
-			LastUpdated: 0,
-		})
+	now := utils.MillisFromTime(time.Now())
+	if err == nil {
+		membership.Following = true
+		membership.LastUpdated = now
+		_, err = s.UpdateMembership(membership)
 		return err
 	}
-	_, err = s.UpdateMembership(membership)
+
+	var nfErr *store.ErrNotFound
+
+	if !errors.As(err, &nfErr) {
+		return errors.Wrap(err, "failed to get thread membership")
+	}
+	_, err = s.SaveMembership(&model.ThreadMembership{
+		PostId:      postId,
+		UserId:      userId,
+		Following:   true,
+		LastViewed:  0,
+		LastUpdated: now,
+	})
 	return err
 }

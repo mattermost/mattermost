@@ -14,6 +14,20 @@ type ThreadStore struct {
 	mock.Mock
 }
 
+// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId
+func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+	ret := _m.Called(userId, postId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userId, postId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: postId
 func (_m *ThreadStore) Delete(postId string) error {
 	ret := _m.Called(postId)
@@ -231,18 +245,4 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	}
 
 	return r0, r1
-}
-
-// UpdateMembershipFromMention provides a mock function with given fields: userId, postId
-func (_m *ThreadStore) UpdateMembershipFromMention(userId string, postId string) error {
-	ret := _m.Called(userId, postId)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, postId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

@@ -6872,6 +6872,22 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CreateMembershipIfNeeded", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) Delete(postId string) error {
 	start := timemodule.Now()
 
@@ -7030,22 +7046,6 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateMembership", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerThreadStore) UpdateMembershipFromMention(userId string, postId string) error {
-	start := timemodule.Now()
-
-	err := s.ThreadStore.UpdateMembershipFromMention(userId, postId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateMembershipFromMention", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerTokenStore) Cleanup() {

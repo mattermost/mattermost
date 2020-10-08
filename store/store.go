@@ -258,7 +258,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
-	UpdateMembershipFromMention(userId, postId string) error
+	CreateMembershipIfNeeded(userId, postId string) error
 }
 
 type PostStore interface {

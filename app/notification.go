@@ -172,7 +172,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				return
 			}
 			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
-				nErr = a.Srv().Store.Thread().UpdateMembershipFromMention(userId, post.RootId)
+				nErr = a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
 				if nErr != nil {
 					umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
