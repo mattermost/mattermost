@@ -16,7 +16,7 @@
 //
 // To achieve this coordination, each server instead checks the status of its peers after unpacking. If it finds peers with
 // differing versions of the plugin, it skips the notification. If it finds all peers with the same version of the plugin,
-// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the the last
+// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the last
 // server to finish unpacking dies before it can announce. There is also a chance that multiple servers decide to notify,
 // but the webapp handles this idempotently.
 //

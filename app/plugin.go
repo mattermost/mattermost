@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -670,6 +671,8 @@ func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 	if model.BuildEnterpriseReady == "true" {
 		filter.BuildEnterpriseReady = true
 	}
+
+	filter.Platform = runtime.GOOS + "-" + runtime.GOARCH
 
 	return filter
 }
