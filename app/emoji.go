@@ -140,9 +140,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
 			}
 
-			if _, err := a.WriteFile(newbuf, getEmojiImagePath(id)); err != nil {
-				return err
-			}
+			buf = newbuf
 		} else {
 			img, _, err := image.Decode(bytes.NewReader(data))
 			if err != nil {
@@ -153,9 +151,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 			if err := png.Encode(newbuf, resized_image); err != nil {
 				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
 			}
-			if _, err := a.WriteFile(newbuf, getEmojiImagePath(id)); err != nil {
-				return err
-			}
+			buf = newbuf
 		}
 	}
 
