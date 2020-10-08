@@ -868,8 +868,8 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
@@ -896,11 +896,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.CloudUserLimit == nil {
 		// User limit 0 is treated as no limit
-		s.CloudUserLimit = NewInt64(0)
+		s.CloudUserLimit = NewInt64(10)
 	}
 
 	if s.CloudBilling == nil {
-		s.CloudBilling = NewBool(false)
+		s.CloudBilling = NewBool(true)
 	}
 
 	if s.UseNewSAMLLibrary == nil {
