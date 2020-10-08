@@ -5555,6 +5555,30 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
+    "id": "ent.compliance.actiance.attachment.copy.appError",
+    "translation": ""
+  },
+  {
+    "id": "ent.compliance.actiance.file.creation.appError",
+    "translation": ""
+  },
+  {
+    "id": "ent.compliance.actiance.warning.creation.appError",
+    "translation": ""
+  },
+  {
+    "id": "ent.compliance.actiance.warning.write.appError",
+    "translation": ""
+  },
+  {
+    "id": "ent.compliance.actiance.xml.creation.appError",
+    "translation": ""
+  },
+  {
+    "id": "ent.compliance.actiance.xml.write.appError",
+    "translation": ""
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
