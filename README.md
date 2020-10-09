@@ -10,6 +10,19 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 
 <img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/13119842/56807911-1bf66f00-67fe-11e9-9b7b-96ce9ceab645.png">
 
+Table of Contents
+=================
+
+  * [Try out Mattermost](#try-out-mattermost)
+  * [Deploy on Heroku](#deploy-on-heroku)
+  * [Deploy on a Cloud Platform via Bitnami](#deploy-on-a-cloud-platform-via-bitnami)
+  * [Install on Your Own Machine](#install-on-your-own-machine)
+  * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
+  * [Get Security Bulletins](#get-security-bulletins)
+  * [Get Involved](#get-involved)
+  * [Learn More](#learn-more)
+  * [Get the Latest News](#get-the-latest-news)
+
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more

@@ -1457,10 +1457,6 @@
     "translation": "Unable to upload file(s). Error reading or parsing request data."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
-  },
-  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Unable to upload file. Image storage is not configured."
   },
@@ -5335,6 +5331,14 @@
     "translation": "Failed to get uploads for user."
   },
   {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Failed to move file."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.upload.upload_data.concurrent.app_error",
     "translation": "Unable to upload data from more than one request."
   },
@@ -5829,30 +5833,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "There was an error creating actiance warning text file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "There was an error writing to the actiance xml file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "There was an error writing to the actiance XML file"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -6409,6 +6389,10 @@
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",

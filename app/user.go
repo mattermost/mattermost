@@ -323,6 +323,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		mlog.Error("Encountered error saving tutorial preference", mlog.Err(err))
 	}
 
+	go a.UpdateViewedProductNoticesForNewUser(ruser.Id)
 	ruser.Sanitize(map[string]bool{})
 	return ruser, nil
 }
