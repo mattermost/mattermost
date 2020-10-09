@@ -20,12 +20,12 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should honor channel restrictions when autocompleting users",
 		Fn:   testHonorChannelRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should honor team restrictions when autocompleting users",
 		Fn:   testHonorTeamRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name:        "Should return nothing if the user can't access the channels of a given search",
@@ -238,7 +238,7 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 	})
 	t.Run("Autocomplete users with all channels restricted", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
-		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{}}
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
@@ -246,7 +246,7 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 	})
 	t.Run("Autocomplete users with all channels restricted but with empty team", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
-		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{}}
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
 		users, apperr := th.Store.User().AutocompleteUsersInChannel("", th.ChannelBasic.Id, "", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
@@ -273,7 +273,7 @@ func testHonorTeamRestrictionsAutocompletingUsers(t *testing.T, th *SearchTestHe
 	})
 	t.Run("Should return empty because we're filtering all the teams", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
-		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{}}
+		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{}, Channels: []string{}}
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
