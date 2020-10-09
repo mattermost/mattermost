@@ -178,6 +178,14 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		a.Srv().uploadLockMapMut.Unlock()
 	}()
 
+	// fetch the session from store to check for inconsistencies.
+	if storedSession, err := a.GetUploadSession(us.Id); err != nil {
+		return nil, err
+	} else if us.FileOffset != storedSession.FileOffset {
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
+			nil, "FileOffset mismatch", http.StatusBadRequest)
+	}
+
 	// make sure it's not possible to upload more data than what is expected.
 	lr := &io.LimitedReader{
 		R: rd,
