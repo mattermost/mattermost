@@ -784,39 +784,20 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		}
 	}
 
-	w := decoded.Bounds().Dx()
-	h := decoded.Bounds().Dy()
-
 	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
-		defer wg.Done()
-		if !t.fileinfo.HasPreviewImage {
-			return
-		}
-		thumb := decoded
-		if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
-			if float64(h)/float64(w) < ImageThumbnailRatio {
-				thumb = imaging.Resize(decoded, 0, ImageThumbnailHeight, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(decoded, ImageThumbnailWidth, 0, imaging.Lanczos)
-			}
-		}
-		writeJPEG(thumb, t.fileinfo.ThumbnailPath)
-	}()
+	wg.Add(1)
+	if t.fileinfo.HasPreviewImage {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
+		}()
 
-	go func() {
-		defer wg.Done()
-		if !t.fileinfo.HasPreviewImage {
-			return
-		}
-		preview := decoded
-		if w > ImagePreviewWidth {
-			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
-		}
-		writeJPEG(preview, t.fileinfo.PreviewPath)
-	}()
-
+		go func() {
+			defer wg.Done()
+			writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
+		}()
+	}
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
@@ -1027,22 +1008,8 @@ func getImageOrientation(input io.Reader) (int, error) {
 }
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
-	thumbWidth := float64(IMAGE_THUMBNAIL_PIXEL_WIDTH)
-	thumbHeight := float64(IMAGE_THUMBNAIL_PIXEL_HEIGHT)
-	imgWidth := float64(width)
-	imgHeight := float64(height)
-
-	var thumbnail image.Image
-	if imgHeight < IMAGE_THUMBNAIL_PIXEL_HEIGHT && imgWidth < thumbWidth {
-		thumbnail = img
-	} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
-		thumbnail = imaging.Resize(img, 0, IMAGE_THUMBNAIL_PIXEL_HEIGHT, imaging.Lanczos)
-	} else {
-		thumbnail = imaging.Resize(img, IMAGE_THUMBNAIL_PIXEL_WIDTH, 0, imaging.Lanczos)
-	}
-
 	buf := new(bytes.Buffer)
-	if err := jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90}); err != nil {
+	if err := jpeg.Encode(buf, genThumbnail(img), &jpeg.Options{Quality: 90}); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
@@ -1054,13 +1021,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 }
 
 func (a *App) generatePreviewImage(img image.Image, previewPath string, width int) {
-	var preview image.Image
-
-	if width > IMAGE_PREVIEW_PIXEL_WIDTH {
-		preview = imaging.Resize(img, IMAGE_PREVIEW_PIXEL_WIDTH, 0, imaging.Lanczos)
-	} else {
-		preview = img
-	}
+	preview := genPreview(img)
 
 	buf := new(bytes.Buffer)
 
