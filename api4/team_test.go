@@ -2810,6 +2810,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ExperimentalSettings.CloudUserLimit = model.NewInt64(0) })
+
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		_, resp := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 		require.NotNil(t, resp.Error, "Should be disabled")
