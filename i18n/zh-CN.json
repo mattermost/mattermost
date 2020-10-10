@@ -2367,11 +2367,11 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "更新密码失败因为 user_id 提供用户ID不匹配"
+    "translation": "更新密码失败因为 user_id 提供用户ID不匹配。"
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "更新密码失败"
+    "translation": "更新密码失败。"
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
@@ -2383,19 +2383,19 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "因为用户登录通过OAuth服务更新密码失败"
+    "translation": "更新密码失败，因为用户通过 OAuth 服务登录。"
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "更新密码失败，因为我们无法找到有效的帐户"
+    "translation": "更新密码失败，因为无法找到有效的帐户。"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "根据“图像”请求的空数组"
+    "translation": "根据“图像”请求的空数组。"
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "无法解码配置文件"
+    "translation": "无法解码个人头像。"
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
@@ -2403,11 +2403,11 @@
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "无法编码图像"
+    "translation": "无法编码个人头像。"
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "请求中图像不是文件"
+    "translation": "请求中缺失图片文件。"
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
@@ -2427,7 +2427,7 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "无法上传配置文件"
+    "translation": "无法上传个人头像。"
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -7155,7 +7155,7 @@
   },
   {
     "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "总活动用户"
+    "translation": "总活动用户： "
   },
   {
     "id": "api.templates.warn_metric_ack.body.contact_email_header",
@@ -7187,7 +7187,7 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "正在联系我们"
+    "translation": "联系我们"
   },
   {
     "id": "api.server.warn_metric.contact_us",
@@ -8071,7 +8071,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "您的企业试用版已激活。创建一个频道后转到**系统控制台>用户管理>频道 **，以将发布限制为频道管理员。"
+    "translation": "您的企业试用版已激活。创建一个频道后转到**系统控制台>用户管理>频道 **以将发布限制为频道管理员。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
@@ -8087,7 +8087,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "您的企业试用版已激活。转到“系统控制台>验证> SAML 2.0”，以与您的 SAML 2.0 提供商集成。"
+    "translation": "您的企业试用版已激活。转到**系统控制台>验证> SAML 2.0**以与您的 SAML 2.0 提供商集成。"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
@@ -8119,7 +8119,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "您的企业试用版已激活。转到“系统控制台>验证> 多重验证”以强制执行多重身份验证。"
+    "translation": "您的企业试用版已激活。转到**系统控制台>验证> 多重验证**以强制执行多重身份验证。"
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
@@ -8164,5 +8164,161 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "无法获得试用许可证，请重试或联系 support@mattermost.com。无法获取注册用户数。"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "搜索消息错误"
+  },
+  {
+    "id": "store.sql_group.more_than_one_row_changed",
+    "translation": "多于一条数据被改动。"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "无效的 UserId"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "无效的类型"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "无效的路径"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "无效的 Id"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "无效的 Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "无效的 FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "无效的创建时间"
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "所有 IncludeDeletedChannels 参数必须有相同的值。"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "无效的本地储存目录。不能为空字串。"
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "无法获取帖子的文件信息。"
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "创建密钥对时出错"
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "加载 LDAP TLS 证书文件时出错。"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "更新上传会话失败。"
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "上传数据失败。第一部分必须至少为 {{.Size}} 字节。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost 与我们联系的请求。我有兴趣了解有关试用团队方案实现高级权限的更多信息。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "改善性能"
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "无法计算非本地域电子邮件的用户数"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "无效的 FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "无效的 ChannelId。"
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "无效的插件 id。"
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "无法获取帖子的文件信息。"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "找不到 LDAP 用户，请检查您的用户过滤器和证书。"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "加载 LDAP TLS 密钥文件错误。"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "无法从数据库中获取最早的实体（用户，频道或帖子）"
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "读取文件失败。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "使用高级权限"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "使用高级权限"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "您的企业试用版已激活。转到**系统控制台>用户管理>权限**以启用高级权限。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "您的 Mattermost 系统现有几个团队。许多团队都有自己喜欢的协调和协作方式，包括如何创建频道，谁可以邀请新的团队成员以及如何管理集成。使用团队覆盖方案，您可以自定义每个团队中的用户权限，以满足他们的特定需求。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)。\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "您的企业试用版已激活。拥有 Elasticsearch 服务器后，转到**系统控制台>环境> Elasticsearch**以配置 Elasticsearch。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/) ，并接收产品电子邮件。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "您的 Mattermost 系统包含大量消息。默认的 Mattermost 数据库搜索在大约 250 万个帖子市开始显示性能下降。 Elasticsearch 在拥有超过 500 万个帖子时可以帮助避免重大性能问题，例如超时，搜索和提示问题。与我们联系以了解更多信息，并让我们知道我们将如何提供帮助。\n\n[了解有关提高性能的更多信息](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermost 与我们联系的请求。我有兴趣了解更多有关使用 Elasticsearch 提高性能的信息。\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "您的企业试用版已激活。转到**系统控制台>用户管理>权限**以启用高级权限。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n单击“开始试用”，即表示我同意[Mattermost 软件评估协议t](https://mattermost.com/software-evaluation-agreement/)，[隐私权政策](https://mattermost.com/privacy-policy/)，并接收产品电子邮件。"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
   }
 ]
