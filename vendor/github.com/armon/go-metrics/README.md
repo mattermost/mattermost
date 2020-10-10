@@ -38,7 +38,7 @@ which is global to all metrics.
 * If `Config.BlockedLabels` is not nil, any label specified in this value will not be sent to underlying Sinks.
 
 By default, both `Config.AllowedLabels` and `Config.BlockedLabels` are nil, meaning that
-no tags are filetered at all, but it allow to a user to globally block some tags with high
+no tags are filtered at all, but it allow to a user to globally block some tags with high
 cardinality at application level.
 
 Examples
