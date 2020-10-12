@@ -21,6 +21,8 @@ func TestAutocompleteData(t *testing.T) {
 	assert.Nil(t, ad.IsValid())
 	ad.AddNamedTextArgument("name", "help", "[text]", "", true)
 	assert.Nil(t, ad.IsValid())
+	ad.AddNamedBoolArgument("name", "help", "hint", "t", true)
+	assert.Nil(t, ad.IsValid())
 
 	ad = getAutocompleteData()
 	assert.Nil(t, ad.IsValid())
@@ -63,6 +65,13 @@ func TestAutocompleteData(t *testing.T) {
 	command = NewAutocompleteData("Disconnect", "", "")
 	ad.AddCommand(command)
 	assert.NotNil(t, ad.IsValid())
+
+	ad = getAutocompleteData()
+	command = NewAutocompleteData("disconnect", "", "disconnect")
+	command.AddBoolArgument("help", "hint", "t", true)
+	command.AddNamedBoolArgument("name", "help", "hint", "t", true)
+	ad.AddCommand(command)
+	assert.Nil(t, ad.IsValid())
 }
 
 func TestAutocompleteDataJSON(t *testing.T) {

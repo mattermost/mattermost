@@ -22,6 +22,7 @@ const (
 	AutocompleteArgTypeText        AutocompleteArgType = "TextInput"
 	AutocompleteArgTypeStaticList  AutocompleteArgType = "StaticList"
 	AutocompleteArgTypeDynamicList AutocompleteArgType = "DynamicList"
+	AutocompleteArgTypeBool        AutocompleteArgType = "BoolInput"
 )
 
 // AutocompleteData describes slash command autocomplete information.
@@ -82,6 +83,12 @@ type AutocompleteStaticListArg struct {
 // AutocompleteDynamicListArg is used when user wants to download possible argument list from the URL.
 type AutocompleteDynamicListArg struct {
 	FetchURL string
+}
+
+// AutocompleteBoolArg is used to input one of the arguments like t,f,true or false
+type AutocompleteBoolArg struct {
+	Hint      string
+	BoolValue string
 }
 
 // AutocompleteSuggestion describes a single suggestion item sent to the front-end
@@ -167,6 +174,23 @@ func (ad *AutocompleteData) AddNamedDynamicListArgument(name, helpText, url stri
 		Type:     AutocompleteArgTypeDynamicList,
 		Required: required,
 		Data:     &AutocompleteDynamicListArg{FetchURL: url},
+	}
+	ad.Arguments = append(ad.Arguments, &argument)
+}
+
+// AddBoolArgument adds positional AutocompleteArgTypeBool argument to the command.
+func (ad *AutocompleteData) AddBoolArgument(helpText, hint, BoolValue string, required bool) {
+	ad.AddNamedBoolArgument("", helpText, hint, BoolValue, required)
+}
+
+// AddNamedBoolArgument adds named AutocompleteArgTypeBool argument to the command.
+func (ad *AutocompleteData) AddNamedBoolArgument(name, helpText, hint, BoolValue string, required bool) {
+	argument := AutocompleteArg{
+		Name:     name,
+		HelpText: helpText,
+		Type:     AutocompleteArgTypeBool,
+		Required: required,
+		Data:     &AutocompleteBoolArg{Hint: hint, BoolValue: BoolValue},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
