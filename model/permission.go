@@ -521,7 +521,7 @@ func initializePermissions() {
 		"manage_shared_channels",
 		"authentication.permissions.manage_shared_channels.name",
 		"authentication.permissions.manage_shared_channels.description",
-		PermissionScopeChannel,
+		PermissionScopeSystem,
 	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
 		"remove_user_from_team",
@@ -919,6 +919,7 @@ func initializePermissions() {
 		PERMISSION_PROMOTE_GUEST,
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_EDIT_BRAND,
+		PERMISSION_MANAGE_SHARED_CHANNELS,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -974,7 +975,6 @@ func initializePermissions() {
 		PERMISSION_DELETE_OTHERS_POSTS,
 		PERMISSION_USE_CHANNEL_MENTIONS,
 		PERMISSION_USE_GROUP_MENTIONS,
-		PERMISSION_MANAGE_SHARED_CHANNELS,
 	}
 
 	DeprecatedPermissions = []*Permission{
