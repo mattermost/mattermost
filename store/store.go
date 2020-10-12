@@ -24,6 +24,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	Thread() ThreadStore
 	User() UserStore
 	Bot() BotStore
 	Audit() AuditStore
@@ -197,46 +198,46 @@ type ChannelStore interface {
 	AnalyticsTypeCount(teamId string, channelType string) (int64, error)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, error)
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, error)
-	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
-	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
-	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
-	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
-	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
-	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError)
-	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
+	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error)
+	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, error)
+	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error)
+	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error)
+	SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, error)
+	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, error)
+	SearchMore(userId string, teamId string, term string) (*model.ChannelList, error)
+	SearchGroupChannels(userId, term string) (*model.ChannelList, error)
+	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error)
+	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error)
+	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error)
 	ClearCaches()
-	GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, *model.AppError)
-	MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, *model.AppError)
-	ResetAllChannelSchemes() *model.AppError
-	ClearAllCustomRoleAssignments() *model.AppError
+	GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error)
+	MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error)
+	ResetAllChannelSchemes() error
+	ClearAllCustomRoleAssignments() error
 	MigratePublicChannels() error
 	CreateInitialSidebarCategories(userId, teamId string) error
-	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
-	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
-	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
-	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
-	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
-	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, error)
+	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error)
+	GetSidebarCategoryOrder(userId, teamId string) ([]string, error)
+	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) error
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
-	DeleteSidebarCategory(categoryId string) *model.AppError
-	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
-	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
-	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
-	RemoveAllDeactivatedMembers(channelId string) *model.AppError
-	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
-	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
+	DeleteSidebarCategory(categoryId string) error
+	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, error)
+	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, error)
+	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, error)
+	RemoveAllDeactivatedMembers(channelId string) error
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, error)
+	UserBelongsToChannels(userId string, channelIds []string) (bool, error)
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(channelID string, userIDs []string) *model.AppError
+	UpdateMembersRole(channelID string, userIDs []string) error
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
-	GroupSyncedChannelCount() (int64, *model.AppError)
+	GroupSyncedChannelCount() (int64, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -244,6 +245,13 @@ type ChannelMemberHistoryStore interface {
 	LogLeaveEvent(userId string, channelId string, leaveTime int64) error
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+}
+type ThreadStore interface {
+	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
+	Save(thread *model.Thread) (*model.Thread, error)
+	Update(thread *model.Thread) (*model.Thread, error)
+	Get(id string) (*model.Thread, error)
+	Delete(postId string) error
 }
 
 type PostStore interface {
@@ -327,6 +335,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
 	GetUnreadCount(userId string) (int64, *model.AppError)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
@@ -539,6 +548,7 @@ type StatusStore interface {
 
 type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, error)
+	Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
