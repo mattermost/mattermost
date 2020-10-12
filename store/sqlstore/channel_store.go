@@ -3321,6 +3321,8 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return count, nil
 }
 
+/*
 func (s SqlChannelStore) CreateSharedChannel() (*model.SharedChannel, error) {
 
 }
+*/

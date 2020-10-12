@@ -40,6 +40,7 @@ type RetryLayer struct {
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
+	RemoteClusterStore        store.RemoteClusterStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
 	SessionStore              store.SessionStore
@@ -134,6 +135,10 @@ func (s *RetryLayer) ProductNotices() store.ProductNoticesStore {
 
 func (s *RetryLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *RetryLayer) RemoteCluster() store.RemoteClusterStore {
+	return s.RemoteClusterStore
 }
 
 func (s *RetryLayer) Role() store.RoleStore {
@@ -289,6 +294,11 @@ type RetryLayerProductNoticesStore struct {
 
 type RetryLayerReactionStore struct {
 	store.ReactionStore
+	Root *RetryLayer
+}
+
+type RetryLayerRemoteClusterStore struct {
+	store.RemoteClusterStore
 	Root *RetryLayer
 }
 
@@ -5604,6 +5614,106 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
+func (s *RetryLayerRemoteClusterStore) Cleanup() error {
+
+	tries := 0
+	for {
+		err := s.RemoteClusterStore.Cleanup()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.Delete(rc)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) Save(rc *model.RemoteCluster) error {
+
+	tries := 0
+	for {
+		err := s.RemoteClusterStore.Save(rc)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) SetLastPingAt(rc *model.RemoteCluster) error {
+
+	tries := 0
+	for {
+		err := s.RemoteClusterStore.SetLastPingAt(rc)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 
 	tries := 0
@@ -9187,6 +9297,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PreferenceStore = &RetryLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &RetryLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}

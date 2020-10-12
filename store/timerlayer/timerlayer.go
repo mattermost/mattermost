@@ -38,6 +38,7 @@ type TimerLayer struct {
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
+	RemoteClusterStore        store.RemoteClusterStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
 	SessionStore              store.SessionStore
@@ -132,6 +133,10 @@ func (s *TimerLayer) ProductNotices() store.ProductNoticesStore {
 
 func (s *TimerLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *TimerLayer) RemoteCluster() store.RemoteClusterStore {
+	return s.RemoteClusterStore
 }
 
 func (s *TimerLayer) Role() store.RoleStore {
@@ -287,6 +292,11 @@ type TimerLayerProductNoticesStore struct {
 
 type TimerLayerReactionStore struct {
 	store.ReactionStore
+	Root *TimerLayer
+}
+
+type TimerLayerRemoteClusterStore struct {
+	store.RemoteClusterStore
 	Root *TimerLayer
 }
 
@@ -5211,6 +5221,86 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) Cleanup() error {
+	start := timemodule.Now()
+
+	err := s.RemoteClusterStore.Cleanup()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.Cleanup", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.Delete(rc)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.Delete", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.GetAll()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) error {
+	start := timemodule.Now()
+
+	err := s.RemoteClusterStore.Save(rc)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.Save", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRemoteClusterStore) SetLastPingAt(rc *model.RemoteCluster) error {
+	start := timemodule.Now()
+
+	err := s.RemoteClusterStore.SetLastPingAt(rc)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.SetLastPingAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	start := timemodule.Now()
 
@@ -8899,6 +8989,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.RemoteClusterStore = &TimerLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}

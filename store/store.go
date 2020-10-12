@@ -29,6 +29,7 @@ type Store interface {
 	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
+	RemoteCluster() RemoteClusterStore
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
@@ -406,6 +407,14 @@ type ClusterDiscoveryStore interface {
 	Exists(discovery *model.ClusterDiscovery) (bool, error)
 	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, error)
 	SetLastPingAt(discovery *model.ClusterDiscovery) error
+	Cleanup() error
+}
+
+type RemoteClusterStore interface {
+	Save(rc *model.RemoteCluster) error
+	Delete(rc *model.RemoteCluster) (bool, error)
+	GetAll() ([]*model.RemoteCluster, error)
+	SetLastPingAt(rc *model.RemoteCluster) error
 	Cleanup() error
 }
 
