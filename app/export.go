@@ -79,11 +79,6 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 		return err
 	}
 
-	mlog.Info("Bulk export: exporting emoji")
-	if err := a.exportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
-		return err
-	}
-
 	mlog.Info("Bulk export: exporting direct channels")
 	if err := a.exportAllDirectChannels(writer); err != nil {
 		return err
@@ -91,6 +86,11 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 
 	mlog.Info("Bulk export: exporting direct posts")
 	if err := a.exportAllDirectPosts(writer); err != nil {
+		return err
+	}
+
+	mlog.Info("Bulk export: exporting emoji")
+	if err := a.exportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		return err
 	}
 
