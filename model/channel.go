@@ -109,6 +109,30 @@ type ChannelModeratedRolesPatch struct {
 	Members *bool `json:"members"`
 }
 
+// SharedChannel represents a channel that can be shared with a remote cluster.
+type SharedChannel struct {
+	Channel
+	Home             bool   `json:"home"`
+	ReadOnly         bool   `json:"readonly"`
+	ShareName        string `json:"sharename"`
+	ShareDisplayName string `json:"sharedisplayname"`
+	SharePurpose     string `json:"sharepurpose"`
+	Shareheader      string `json:"shareheader"`
+	URL              string `json:"url"`
+	Token            string `json:"token"`
+}
+
+// SharedChannelRemote represents a remote cluster that has been invited
+// to a shared channel.
+type SharedChannelRemote struct {
+	Id                string `json:"id"`
+	ChannelId         string `json:"channel_id"`
+	Token             string `json:"token"`
+	Description       string `json:"description"`
+	IsInviteAccepted  bool   `json:"is_invite_accepted"`
+	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.

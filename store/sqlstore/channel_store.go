@@ -334,6 +334,20 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
+// sharedChannel is a subset of the metadata corresponding to shared channels only.
+type sharedChannel struct {
+	Id               string `json:"id"`
+	TeamId           string `json:"team_id"`
+	Home             bool   `json:"home"`
+	ReadOnly         bool   `json:"readonly"`
+	ShareName        string `json:"sharename"`
+	ShareDisplayName string `json:"sharedisplayname"`
+	SharePurpose     string `json:"sharepurpose"`
+	ShareHeader      string `json:"shareheader"`
+	URL              string `json:"url"`
+	Token            string `json:"token"`
+}
+
 var allChannelMembersForUserCache = cache.NewLRU(&cache.LRUOptions{
 	Size: ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE,
 })
@@ -389,6 +403,23 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.SetUniqueTogether("Name", "TeamId")
 		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
+
+		tableSharedChannels := db.AddTableWithName(sharedChannel{}, "SharedChannels").SetKeys(false, "Id")
+		tableSharedChannels.ColMap("Id").SetMaxSize(26)
+		tableSharedChannels.ColMap("TeamId").SetMaxSize(26)
+		tableSharedChannels.ColMap("ShareName").SetMaxSize(64)
+		tableSharedChannels.SetUniqueTogether("ShareName", "TeamId")
+		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
+		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
+		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
+		tableSharedChannels.ColMap("URL").SetMaxSize(1024)
+		tableSharedChannels.ColMap("Token").SetMaxSize(26)
+
+		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id")
+		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
 		tableSidebarCategories.ColMap("Id").SetMaxSize(26)
@@ -3288,4 +3319,8 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 	}
 
 	return count, nil
+}
+
+func (s SqlChannelStore) CreateSharedChannel() (*model.SharedChannel, error) {
+
 }
