@@ -6391,10 +6391,6 @@
     "translation": "A url de imagem solicitada não pode ser analisada."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Não foi possível enviar o arquivo {{.Filename}}. Rejeitado pelo plugin: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Servidor está ocupado, os serviços não críticos estão temporariamente indisponíveis."
   },

@@ -6386,10 +6386,6 @@
     "translation": "要求された画像URLを解析できません。"
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "ファイル {{.FIlename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "サーバーが混雑しているため、重要でないサービスは一時的に利用不可となっています。"
   },

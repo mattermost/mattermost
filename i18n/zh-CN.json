@@ -5814,10 +5814,6 @@
     "translation": "无法上传文件。不正确的频道 ID：{{.channelId}}"
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "无法上传文件 {{.Filename}}。被插件拒绝：{{.Reason}}"
-  },
-  {
     "id": "api.plugin.add_public_key.open.app_error",
     "translation": "打开公钥文件时遇到错误。"
   },
