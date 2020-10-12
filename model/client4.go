@@ -4094,7 +4094,7 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 
 // UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
 func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, LDAP_PUBIC_CERTIFICATE_NAME)
+	body, writer, err := fileToMultipart(data, LDAP_PUBLIC_CERTIFICATE_NAME)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
