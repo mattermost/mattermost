@@ -278,6 +278,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 
 	// Verify that only 1 request was able to perform the upload.
 	require.Equal(t, int32(n-1), nErrs)
+	nErrs = 0
 
 	wg.Add(n)
 
@@ -300,7 +301,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	wg.Wait()
 
 	// Verify that only 1 request was able to finish the upload.
-	require.Equal(t, int32(n*2-2), nErrs)
+	require.Equal(t, int32(n-1), nErrs)
 
 	d, err := th.App.ReadFile(us.Path)
 	require.Nil(t, err)
