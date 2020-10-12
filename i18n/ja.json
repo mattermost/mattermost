@@ -8256,5 +8256,57 @@
   {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "投稿数を取得できませんでした。"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "/{{.Command}} を処理するプラグインが動作していません。システム管理者に連絡してください"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} コマンドによりプラグイン {{.PluginId}} がクラッシュしました。システム管理者に連絡してください"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "認証プロバイダからのレスポンスに不正な時刻が見つかりました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "認証プロバイダからのレスポンスに不正な署名が見つかりました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWSへのリクエストを処理する際にエラーが発生しました。"
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "CWSへのリクエストを処理する際にエラーが発生しました"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "CWSへのリクエストを変換する際に内部エラーが発生しました"
+  },
+  {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "CWSに対する認証ができませんでした"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "ファイル {{.Filename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "ファイルを移動できませんでした。"
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "オブジェクトを一覧化する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "あなたのライセンスはクラウドリクエストをサポートしていません。"
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "クラウドAPIリクエスト中に内部エラーが発生しました。"
   }
 ]
