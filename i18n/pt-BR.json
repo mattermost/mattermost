@@ -8077,5 +8077,117 @@
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
     "translation": "Os projetos geralmente envolvem pessoas dentro e fora de uma organização. Com contas de convidados, você pode trazer parceiros externos para seu sistema Mattermost e especificar com quem eles podem trabalhar e o que podem ver.\n\n[Saiba mais sobre como habilitar contas de convidados](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nAo clicar em Fale conosco, você compartilhará suas informações com a Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Falha ao obter upload."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Não foi possível criar novo membro a equipe porque ele já existe"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Não é possível criar novo membro da equipe"
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Erro ao pesquisar publicações"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Não é possível importar membros a equipe porque nenhum outro membro é permitido nessa equipe"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Não é possível importar membros a equipe"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Não é possível importar o novo membro na equipe porque ela já existe"
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Ocorreu um erro no limitador de taxa."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "O limite da taxa de e-mails de convite foi excedido. O cronômetro será redefinido após {{.ResetAfter}} segundos. Tente novamente após {{.RetryAfter}} segundos."
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "O limitador de velocidade não está configurado."
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Não foi possível criar associação de equipe padrão porque nenhum outro membro é permitido nessa equipe"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Não é possível criar membros da equipe padrão porque eles já existem"
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Não foi possível criar associações de equipe padrão"
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Somente administradores de sistema podem definir senhas que estão com hash."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "O token CWS não é válido"
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Falha ao obter uploads."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Falha ao processar os dados multipartes."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Content-Type inválido para upload de várias partes."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Content-Length inválido."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Falha ao obter upload."
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "Você atingiu o limite de usuários do nível gratuito"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "A validação das condições do aviso do produto falhou"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "A análise dos avisos do produto falhou"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Falha ao buscar avisos do produto"
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Falha ao limpar avisos de produtos antigos"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Seu sistema Mattermost agora tem várias equipes. Muitas equipes têm sua própria maneira preferida de coordenação e colaboração, incluindo como os canais são criados, quem pode convidar novos colegas de equipe e como as integrações são gerenciadas. Os Esquemas de Substituição de Equipe permitem que você personalize as permissões do usuário dentro de cada equipe para atender às suas necessidades específicas.\n\n[Saiba mais sobre como usar as permissões avançadas](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nAo clicar em Iniciar avaliação, concordo com o [Contrato de avaliação do software Mattermost](https://mattermost.com/software-evaluation-agreement/), [Política de privacidade](https://mattermost.com/privacy-policy/) e receber e-mails de produtos."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Seu sistema Mattermost agora tem várias equipes. Muitas equipes têm sua própria maneira preferida de coordenação e colaboração, incluindo como os canais são criados, quem pode convidar novos colegas de equipe e como as integrações são gerenciadas. Os Esquemas de Substituição de Equipe permitem que você personalize as permissões do usuário dentro de cada equipe para atender às suas necessidades específicas.\n\n[Saiba mais sobre como usar as permissões avançadas](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nAo clicar em Fale conosco, você compartilhará suas informações com a Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Solicitação de contato do Mattermost. Estou interessado em aprender mais sobre permissões avançadas com esquemas de equipe.\n"
   }
 ]
