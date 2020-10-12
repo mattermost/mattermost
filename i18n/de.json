@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "actiance.export.marshalToXml.appError",
-    "translation": "Konnte Export nicht in XML konvertieren."
-  },
-  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "Keine Datei unter 'certificate' in der Anfrage."
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Für die Erstellung eines Direktnachrichtenkanals muss der createDirectChannel-API-Service verwendet werden."
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Ungültiges Zeichen '__' im Kanalnamen für Nicht-Direktnachrichtenkanal."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -338,10 +330,6 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Kommando '{{.Trigger}}' konnte keine Antwort senden. Bitte kontaktieren Sie ihren Systemadministrator."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Befehl cmd=%v von userId=%v wird ausgeführt"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -753,10 +741,6 @@
   {
     "id": "api.command_logout.desc",
     "translation": "Von Mattermost abmelden"
-  },
-  {
-    "id": "api.command_logout.fail_message",
-    "translation": "Abmelden fehlgeschlagen"
   },
   {
     "id": "api.command_logout.name",
@@ -1173,10 +1157,6 @@
     "translation": "Keine Berechtigungen zum Schreiben in lokalen Pfad oder anderer Fehler."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Konnte Bucket nicht erstellen."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Fehler bei der Überprüfung, ob Bucket existiert."
   },
@@ -1215,10 +1195,6 @@
   {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto Speicherort ist nicht eingerichtet."
-  },
-  {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Dateiupload nicht möglich. Datei ist zu groß."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1330,7 +1306,7 @@
   },
   {
     "id": "api.oauth.get_access_token.disabled.app_error",
-    "translation": "Der Administrator hat den OAuth2 Service Provider deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.get_access_token.expired_code.app_error",
@@ -1374,7 +1350,7 @@
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
-    "translation": "Der Administrator hat die OAuth2 Authentifizierung deaktiviert."
+    "translation": "Der Systemadministrator hat den OAuth2 Service Provider deaktiviert."
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1458,7 +1434,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht löschen."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1476,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1512,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1592,7 +1568,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Diese Aktion ist Administratoren mit eingeschränkten Rechten nicht erlaubt."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1777,10 +1753,6 @@
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "Die folgenden E-Mail-Adressen gehören nicht zu einer akzeptierten Domäne: {{.Addresses}}. Bitte kontaktieren Sie ihren Systemadministrator für Details."
-  },
-  {
-    "id": "api.team.invite_members.member",
-    "translation": "Mitglied"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2159,10 +2131,6 @@
     "translation": "Nicht unterstützter OAuth-Service-Provider"
   },
   {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Ungültige Team ID."
-  },
-  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Ihr Konto ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie ihr Passwort zurück."
   },
@@ -2223,14 +2191,6 @@
     "translation": "Die Erstellung von Benutzern ist deaktiviert."
   },
   {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Fehlende Invite Id."
-  },
-  {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Fehlendes Token."
-  },
-  {
     "id": "api.user.create_user.no_open_server",
     "translation": "Dieser Server erlaubt keine offenen Registrierungen.  Bitte wenden Sie sich an ihren Administrator, um eine Einladung zu erhalten."
   },
@@ -2257,10 +2217,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Nicht unterstützter OAuth-Service-Provider"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Profilbild konnte nicht abgerufen werden, Benutzer nicht gefunden."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2295,10 +2251,6 @@
     "translation": "Anmeldung nicht möglich, weil ihr Konto deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "Benutzername oder Passwort inkorrekt."
-  },
-  {
     "id": "api.user.login.not_verified.app_error",
     "translation": "Anmelden aufgrund unbestätigter E-Mail-Adresse fehlgeschlagen"
   },
@@ -2331,10 +2283,6 @@
     "translation": "Authentifizierungs-Transfer auf diesem Server nicht konfiguriert oder verfügbar."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Fehlerhafter akzeptierter Wert"
-  },
-  {
     "id": "api.user.reset_password.broken_token.app_error",
     "translation": "Das Token zum Zurücksetzen des Passwortes scheint nicht gültig zu sein."
   },
@@ -2353,22 +2301,6 @@
   {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
-  },
-  {
-    "id": "api.user.saml.app_error",
-    "translation": "Konnte SAML-Anmeldungs-Anfrage nicht verarbeiten."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Ungültige Erweiterungs-ID"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Erweiterungen sind nicht unterstützt."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "Erweiterung mit extension_id={{.ExtensionId}} ist nicht unterstützt."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2599,10 +2531,6 @@
     "translation": "%s hat den Kanalzweck aktualisiert zu: %s"
   },
   {
-    "id": "app.cluster.404.app_error",
-    "translation": "Cluster-API-Endpunkt nicht gefunden."
-  },
-  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Es trat ein Fehler beim Schreiben der Exportdaten auf."
   },
@@ -2655,16 +2583,8 @@
     "translation": "Konnte Gruppenkanal nicht erstellen"
   },
   {
-    "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Konnte Kanalmitglied beim Import des Direktnachrichtenkanals nicht finden"
-  },
-  {
     "id": "app.import.import_direct_channel.update_header_failed.error",
     "translation": "Konnte Direktkanalüberschrift nicht aktualisieren"
-  },
-  {
-    "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Konnte Kanalmitglied beim Import des Direktnachrichtenkanals nicht finden"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
@@ -2673,14 +2593,6 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Konnte Gruppenkanal nicht abrufen."
-  },
-  {
-    "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Fehler beim Import der Direktnachricht. Einstellungen konnten nicht gespeichert werden."
-  },
-  {
-    "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Benutzer der Nachricht existiert nicht"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -2725,10 +2637,6 @@
   {
     "id": "app.import.import_post.save_preferences.error",
     "translation": "Fehler beim Import der Nachricht. Einstellungen konnten nicht gespeichert werden."
-  },
-  {
-    "id": "app.import.import_post.team_not_found.error",
-    "translation": "Fehler beim Importieren der Nachricht. Team mit dem Namen \"{{.TeamName}}\" konnte nicht gefunden werden."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
@@ -3303,10 +3211,6 @@
     "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
   },
   {
-    "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Konnte SAML-Anmeldung nicht mit leerer E-Mail-Adresse durchführen."
-  },
-  {
     "id": "app.user_access_token.disabled",
     "translation": "Persönliche Zugriffs-Token sind auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator für Details."
   },
@@ -3443,10 +3347,6 @@
     "translation": "Fehler beim Einrichten des ElasticSearch-Client"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Konnte ElasticSearch-Index nicht erstellen"
-  },
-  {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
     "translation": "Konnte Elasticsearch-Index nicht löschen"
   },
@@ -3465,10 +3365,6 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Indizierung der Nachricht fehlgeschlagen"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3771,24 +3667,12 @@
     "translation": "Fehler bei der Signierung der generierten Auslöse-ID für interaktiven Dialog."
   },
   {
-    "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
-    "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Konnte Abbruch für Job, der sich nicht in einem abbrechbaren Status befindet, nicht anfordern."
   },
   {
     "id": "jobs.set_job_error.update.error",
     "translation": "Konnte Job-Status nicht auf fehlerhaft setzen"
-  },
-  {
-    "id": "jobs.start_synchronize_job.timeout",
-    "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3991,82 +3875,6 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
-    "id": "model.client.connecting.app_error",
-    "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
-  },
-  {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Die Emoji-Daten können der Anfrage nicht angefügt werden"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "Das Bild kann der Anfrage nicht beigefügt werden"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Problem beim Schreiben der Anfrage"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Fehlender Kanal-Parameter"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Fehelender Team-Parameter"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "Konnte das Team-Symbol nicht aus der Body-Anwort lesen."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "Es trat ein Fehler beim Lesen der Datei auf"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "Keine Datei unter 'image' in der Anfrage"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "Problem beim Schreiben der Anfrage"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "Keine Datei unter 'image' in der Anfrage."
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Problem beim Schreiben der Anfrage."
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Fehler beim Schreiben der Kanal-ID in Multipart Form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Fehler beim Schreiben von File in Multipart Form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Fehler beim Schreiben von fileSize in Multipart Form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Fehler beim Schreiben von importForm in Multipart Form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Fehler beim Schließen des Mulitpart Writer"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Fehler bei der Erstellung der SAML Zertifikat Multipart Form Anfrage"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Konnte Multipart-Anfrage nicht erstellen"
-  },
-  {
     "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt muss gesetzt sein."
   },
@@ -4263,10 +4071,6 @@
     "translation": "Ungültiger Inhaltstyp für E-Mail-Benachrichtigungen in E-Mail-Einstellungen. Muss entweder 'full' oder 'generic' sein."
   },
   {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Ungültiger Salt für Einladung in E-Mail-Einstellungen. Muss 32 Zeichen oder mehr sein."
-  },
-  {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Ungültige Verbindungssicherheit in E-Mail-Einstellungen. Muss '', 'TLS' oder 'STARTTLS' sein."
   },
@@ -4459,10 +4263,6 @@
     "translation": "E-Mail-Stapelverarbeitung lässt sich nicht aktivieren, wenn SiteURL nicht gesetzt ist."
   },
   {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
-  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Der Name der Site darf bis zu {{.MaxLength}} Zeichen lang sein."
   },
@@ -4627,10 +4427,6 @@
     "translation": "Ungültige Eigenschaft \"type\" für synchronisierbaren Objekte."
   },
   {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "Typenidentifizierer existiert bereits: Vielleicht enthält JSON sowohl 'team_id' als auch 'channel_id'"
-  },
-  {
     "id": "model.incoming_hook.channel_id.app_error",
     "translation": "Ungültige Kanal-ID"
   },
@@ -4705,10 +4501,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Link-Metadaten entsprechen nicht dem angegebenen Typen."
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link-Metadaten-Id ungültig."
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4991,22 +4783,6 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: create_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Ungültige Nutzungsbedingungen-ID"
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Benutzerdefinierte Nutzungsbedingungen sind zu lang. Maximal {{.MaxLength}} Zeichen erlaubt."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: user_id."
-  },
-  {
     "id": "model.token.is_valid.expiry",
     "translation": "Ungültiges Token-Ablaufdatum"
   },
@@ -5103,18 +4879,6 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: create_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: service_terms_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: user_id."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "Konnte nicht dekodieren"
   },
@@ -5171,80 +4935,8 @@
     "translation": "FromDb: Konnte StringMap nicht zu *string konvertieren"
   },
   {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Die Grenze für Paging wurde überschritten"
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "Es trat ein Fehler beim Löschen der Audits auf"
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "Es trat ein Fehler beim Speichern der Audits auf"
-  },
-  {
-    "id": "store.sql_bot.delete.app_error",
-    "translation": "Konnte die Nachricht nicht löschen."
-  },
-  {
-    "id": "store.sql_bot.get.app_error",
-    "translation": "Konnte die Nachricht nicht abrufen."
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
-  },
-  {
-    "id": "store.sql_bot.get_all.app_error",
-    "translation": "Konnte die Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_bot.save.app_error",
-    "translation": "Konnte die Nachricht nicht speichern."
-  },
-  {
-    "id": "store.sql_bot.update.app_error",
-    "translation": "Konnte die Nachricht nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
-  },
-  {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden."
-  },
-  {
-    "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Die Anzahl der Kanaltypen konnte nicht geladen werden."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht rückgängig machen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Konnte die Kanalmitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Konnte das Kanalmitglied nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Konnte den Kanal nicht löschen."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -5255,220 +4947,12 @@
     "translation": "Wir konnte den Kanal nicht finden"
   },
   {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Konnte nicht alle Kanäle abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Kanal existiert nicht"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Die Anzahl der Kanäle konnte nicht geladen werden."
-  },
-  {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Konnte die Kanäle nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "Es wurden keine Kanäle gefunden"
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Konnte die Kanäle nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "Kein Kanal gefunden"
-  },
-  {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Der bestehende gelöschte Kanal konnte nicht gefunden werden."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "Es existieren keine gelöschten Kanäle."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Der bestehende gelöschte Kanal konnte nicht gefunden werden."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "Es existieren keine gelöschten Kanäle mit dem Namen"
-  },
-  {
-    "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Der Kanal für den angegebenen Beitrag konnte nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_channel.get_member.app_error",
-    "translation": "Konnte das Kanalmitglied nicht laden"
-  },
-  {
-    "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Kein Kanalmitglied mit dieser Benutzer-ID und Kanal-ID gefunden"
-  },
-  {
-    "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Die Anzahl der Kanalmitglieder konnte nicht ermittelt werden."
-  },
-  {
-    "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Das Kanalmitglied konnte für den angegeben Beitrag nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_channel.get_members.app_error",
-    "translation": "Konnte Kanalmitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Konnte Kanalmitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Konnte die Kanäle nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Konnte die öffentlichen Kanäle nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Es konnten nicht die Zeitzonen der Kanalmitglieder abgerufen werden."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Die ungelesenen Nachrichten des Kanals konnten nicht abgerufen werden."
-  },
-  {
-    "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Konnte Erwähnungs-Zähler nicht erhöhen."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht rückgängig machen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Konnte Stapel von Kanalmitgliedern nicht auswählen"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Konnte das Kanalmitglied nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Konnte den Kanal nicht löschen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Konnte materialisierten öffentlichen Kanal nicht löschen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Konnte die Kanäle nicht löschen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Konnte materialisierte öffentliche Kanäle nicht löschen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Konnte das Kanalmitglied nicht entfernen."
-  },
-  {
-    "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Konnte angeheftete Nachrichten nicht finden."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
-  },
-  {
-    "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Konnte das Kanalmitglied nicht entfernen."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Konnte die Kanal-Schemas nicht zurücksetzen."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "Das des Datum der letzen Nachricht im Kanal konnte nicht zurücksetzt werden."
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
-  },
-  {
     "id": "store.sql_channel.save.archived_channel.app_error",
     "translation": "Sie können einen archivierten Kanal nicht modifizieren."
   },
   {
-    "id": "store.sql_channel.save.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
     "id": "store.sql_channel.save.direct_channel.app_error",
     "translation": "Verwenden Sie SaveDirectChannel um einen Direktkanal zu erstellen"
-  },
-  {
-    "id": "store.sql_channel.save.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Konnte materialisierten öffentlichen Kanal nicht upserten."
-  },
-  {
-    "id": "store.sql_channel.save_channel.current_count.app_error",
-    "translation": "Fehler beim Abrufen der aktuellen Kanalanzahl."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
@@ -5483,272 +4967,12 @@
     "translation": "Sie haben die maximale Anzahl an erlaubten Kanälen erreicht."
   },
   {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Es wurde schon ein Kanal mit der URL erstellt"
-  },
-  {
-    "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Konnte den Kanal nicht speichern."
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Hinzufügen von Direktkanalmitgliedern nicht möglich"
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.commit.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Bei SaveDirectChannel wurde kein direkter Kanal versucht anzulegen"
   },
   {
-    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.save_member.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "Ein Kanalmitglied mit dieser ID existiert bereits"
-  },
-  {
-    "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Konnte das Kanalmitglied nicht speichern."
-  },
-  {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf"
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Konnte den materialisierten öffentlichen Kanal nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_channel.update.app_error",
-    "translation": "Konnte den Kanal nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "Sie können einen archivierten Kanal nicht modifizieren."
-  },
-  {
-    "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_channel.update.exists.app_error",
-    "translation": "Ein Kanal mit diesem Handle existiert bereits"
-  },
-  {
-    "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen."
-  },
-  {
-    "id": "store.sql_channel.update.previously.app_error",
-    "translation": "Es wurde schon ein Kanal mit dem Handle erstellt"
-  },
-  {
-    "id": "store.sql_channel.update.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren des Kanals auf"
-  },
-  {
-    "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Konnte materialisierten öffentlichen Kanal nicht upserten."
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Der Zeitpunkt der letzten Betrachtung konnte nicht aktualisiert werden."
-  },
-  {
-    "id": "store.sql_channel.update_member.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der Kanalmitglieder auf"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Konnte Mitglieder des Kanals während der spezifizierten Zeitperiode nicht abrufen."
-  },
-  {
-    "id": "store.sql_channel_member_history.log_join_event.app_error",
-    "translation": "Konnte Historie der Kanalmitglieder nicht speichern"
-  },
-  {
-    "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Konnte Historie der Kanalmitglieder nicht speichern. Konnte bestehenden Beitrittsdatensatz nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
-    "translation": "Konnte Datensätze nicht leeren"
-  },
-  {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Konnte ClusterDiscovery-Zeile nicht speichern."
-  },
-  {
-    "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Fehler beim Löschen."
-  },
-  {
-    "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Fehler beim Überprüfen, ob es exisitert"
-  },
-  {
-    "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Konnte nicht alle Discovery-Zeile abrufen."
-  },
-  {
-    "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Fehler beim Speichern von ClusterDiscovery-Zeile."
-  },
-  {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Fehler beim Aktualisieren von \"last ping at\"."
-  },
-  {
-    "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Konnte die Anzahl der Befehle nicht abrufen."
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Konnte den Befehl nicht abrufen."
-  },
-  {
-    "id": "store.sql_command.save.delete.app_error",
-    "translation": "Konnte den Befehl nicht löschen."
-  },
-  {
-    "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Konnte den Befehl nicht löschen."
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Konnte den Befehl nicht abrufen."
-  },
-  {
-    "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Konnte den Befehl nicht abrufen."
-  },
-  {
-    "id": "store.sql_command.save.saving.app_error",
-    "translation": "Konnte den Befehl nicht speichern."
-  },
-  {
-    "id": "store.sql_command.save.saving_overwrite.app_error",
-    "translation": "Sie können keinen existierenden Befehl überschreiben"
-  },
-  {
-    "id": "store.sql_command.save.update.app_error",
-    "translation": "Konnte den Befehl nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Konnte den Webhook nicht abrufen."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Konnte den CommandWebhook nicht speichern."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "Sie können einen existierenden CommandWebhook nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Kann den Webhook nicht verwenden"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Ungültiger Webhook"
-  },
-  {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_emoji.delete.app_error",
-    "translation": "Konnte das Emoji nicht löschen."
-  },
-  {
-    "id": "store.sql_emoji.delete.no_results",
-    "translation": "Das zu löschende Emoji konnte nicht gefunden werden"
-  },
-  {
-    "id": "store.sql_emoji.get.app_error",
-    "translation": "Konnte das Emoji nicht abrufen."
-  },
-  {
-    "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Konnte das Emoji nicht abrufen."
-  },
-  {
-    "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Konnte das Emoji nicht abrufen."
-  },
-  {
-    "id": "store.sql_emoji.save.app_error",
-    "translation": "Konnte das Emoji nicht speichern."
-  },
-  {
-    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Die Anhänge des Benutzers konnten nicht gelöscht werden."
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Die Dateiinformationen konnten nicht an den Beitrag angehängt werden."
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Die Dateiinformationen konnten nicht aus dem Beitrag gelöscht werden."
-  },
-  {
-    "id": "store.sql_file_info.get.app_error",
-    "translation": "Konnte die Dateiinformationen nicht abrufen."
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Konnte die Dateiinformationen über Pfad abrufen."
-  },
-  {
-    "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Konnte die Dateiinformationen für den Beitrag nicht abgerufen."
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Konnte die Dateiinformationen für den Benutzer nicht abgerufen."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Konnte die Dateiinformationen nicht permanent löschen."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten"
-  },
-  {
-    "id": "store.sql_file_info.save.app_error",
-    "translation": "Konnte die Dateiinformationen nicht speichern."
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -5759,14 +4983,6 @@
     "translation": "Keine passende Gruppe gefunden"
   },
   {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "Keine Reihen geändert"
-  },
-  {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "Nichts zu aktualisieren für Gruppe der synchronisierbaren Objekte"
-  },
-  {
     "id": "store.sql_group.unique_constraint",
     "translation": "Eine Gruppe mit diesem Namen existiert bereits"
   },
@@ -5775,756 +4991,12 @@
     "translation": "Gruppenmitglied existiert bereits"
   },
   {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Konnte den Job nicht löschen."
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Konnte den Job nicht abrufen."
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Konnte die Jobs nicht abrufen."
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Die Anzahl der Jobs konnte nicht über Status und Typ abgerufen werden."
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Die neuesten Jobs konnten nicht über Status und Typ abgerufen werden."
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Konnte den Job nicht speichern."
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Konnte den Job nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_license.get.app_error",
-    "translation": "Es trat ein Fehler beim Abruf der Lizenz auf"
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "Eine Lizenz mit dieser ID wurde nicht gefunden"
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "Es trat ein Fehler beim Speichern der Lizenz auf"
-  },
-  {
-    "id": "store.sql_oauth.delete.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_oauth.delete.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen um die OAuth2 App zu entfernen"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "Konnte Transaktion nicht rückgängig machen um die OAuth2 App zu entfernen"
-  },
-  {
-    "id": "store.sql_oauth.delete_app.app_error",
-    "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten"
-  },
-  {
-    "id": "store.sql_oauth.get_access_data.app_error",
-    "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Konnte die angeforderte Anwendung nicht finden."
-  },
-  {
-    "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "Es trat ein Fehler beim Auffinden der App auf"
-  },
-  {
-    "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Konnte keine existierende Anwendung finden."
-  },
-  {
-    "id": "store.sql_oauth.get_apps.find.app_error",
-    "translation": "Es ist ein Fehler beim Suchen nach der OAuth2 App aufgetreten"
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "Konnte den existierenden Authorisationscode nicht finden."
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.finding.app_error",
-    "translation": "Es trat ein Fehler auf den Authorisationscode zu finden"
-  },
-  {
-    "id": "store.sql_oauth.get_previous_access_data.app_error",
-    "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Konnte den Autorisationscode nicht entfernen."
-  },
-  {
-    "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Konnte das Zugriffstoken nicht entfernen."
-  },
-  {
-    "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "Konnte den Authorisationscode nicht entfernen."
-  },
-  {
-    "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Konnte das Zugriffstoken nicht speichern."
-  },
-  {
-    "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Es muss Update für existierende App aufgerufen werden"
-  },
-  {
-    "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Konnte die Anwendung nicht speichern."
-  },
-  {
-    "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "Konnte den Autorisationcode nicht speichern."
-  },
-  {
-    "id": "store.sql_oauth.update_access_data.app_error",
-    "translation": "Beim Aktualisieren des Zugangs-Tokens wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Konnte die zu aktualisierende bestehende App nicht finden."
-  },
-  {
-    "id": "store.sql_oauth.update_app.finding.app_error",
-    "translation": "Wir konnte die App nicht finden"
-  },
-  {
-    "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Konnte die Anwendung nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Konnte Plugin-Key-Value nicht löschen"
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Konnte Plugin-Key-Value nicht abrufen"
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Konnte die Anzahl an Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Konnte die Anzahl an Nachrichten pro Tag nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Konnte die Compliance-Export-Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Konnte die Nachricht nicht löschen."
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Konnte die Nachricht nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Konnte die markierten Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Konnte die übergeordnete Nachricht zu diesem Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Die Grenze für Paging wurde überschritten"
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Konnte die übergeordneten Nachrichten des Kanals nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Konnte die Nachrichten nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Konnte die Nachricht nicht überschreiben."
-  },
-  {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Konnte die Nachricht nicht löschen."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Konnte die Kommentare des Benutzers nicht löschen."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Konnte die Nachrichten nach Kanal nicht löschen."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen (zu viele), bitte wiederholen."
-  },
-  {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Konnte die Nachricht nicht speichern."
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "Sie können keine existierende Nachricht aktualisieren"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Suchen wurde auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Konnte die Nachricht nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten"
-  },
-  {
-    "id": "store.sql_preference.delete.app_error",
-    "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.get.app_error",
-    "translation": "Es trat ein Fehler beim Sichen der Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.get_all.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.get_category.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "Eine Einstellung mit dieser Benutzer-ID, Kategorie und Name existiert bereits"
-  },
-  {
-    "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Konnte die Einstellung nicht speichern."
-  },
-  {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Es trat ein Fehler während der Suche nach Pre-Release Feature-Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.permanent_delete_by_user.app_error",
-    "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Einstellungen nicht ausführen"
-  },
-  {
-    "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Öffnen der Transaktion zum Speichern der Einstellungen nicht möglich"
-  },
-  {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "Rollback der Transaktion zum Speichern der Einstellungen nicht möglich"
-  },
-  {
-    "id": "store.sql_preference.save.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-  },
-  {
-    "id": "store.sql_preference.update.app_error",
-    "translation": "Konnte die Einstellung nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
-  },
-  {
-    "id": "store.sql_reaction.delete.app_error",
-    "translation": "Konnte Reaktion nicht löschen."
-  },
-  {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Konnte Reaktion mit dem angegebenen Emoji-Namen nicht löschen."
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Konnte nicht alle Reaktionen mit dem gegebenen Emoji-Namen abrufen."
-  },
-  {
-    "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
-  },
-  {
-    "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
-  },
-  {
-    "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Konnte Reaktion nicht speichern"
-  },
-  {
-    "id": "store.sql_recover.delete.app_error",
-    "translation": "Konnte Token nicht löschen."
-  },
-  {
-    "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Konnte kein Token mit diesem Code abrufen."
-  },
-  {
-    "id": "store.sql_recover.save.app_error",
-    "translation": "Konnte das Token nicht speichern."
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Konnte die Rolle nicht löschen"
-  },
-  {
-    "id": "store.sql_role.get.app_error",
-    "translation": "Konnte die Rolle nicht abrufen."
-  },
-  {
-    "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Konnte die Rolle nicht abrufen."
-  },
-  {
-    "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Konnte die Rollen nicht abrufen."
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "Es konnten nicht alle Rollen permanent gelöscht werden"
-  },
-  {
-    "id": "store.sql_role.save.insert.app_error",
-    "translation": "Konnte die neue Rolle nicht speichern"
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "Die Rolle war ungültig"
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen, um die Rolle zu speichern"
-  },
-  {
-    "id": "store.sql_role.save.update.app_error",
-    "translation": "Konnte die Rolle nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Rolle nicht ausführen"
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Konnte die zu diesem Schema gehörenden Rollen nicht löschen"
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Konnte das Schema nicht löschen"
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Konnte das Schema nicht abrufen."
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "Die Schemas konnten permanent gelöscht werden"
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Konnte nicht alle Kanäle, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen"
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Konnte nicht alle Teams, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen"
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Konnte Schema nicht erstellen"
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "Das angegebene Schema ist ungültig"
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Konnte die Transaktion zum Speichern der Schemas nicht öffnen"
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Konnte die Standard-Schema-Rollen nicht abrufen"
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Konnte das Schema nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Konnte Transaktion zum Speichern des Schemas nicht ausführen"
-  },
-  {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
-  },
-  {
-    "id": "store.sql_session.get.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach Sitzungen auf"
-  },
-  {
-    "id": "store.sql_session.get_sessions.app_error",
-    "translation": "Es trat ein Fehler beim Finden von Benutzersitzungen auf"
-  },
-  {
-    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Konnte nicht alle Sitzungen des Benutzers entfernen."
-  },
-  {
-    "id": "store.sql_session.remove.app_error",
-    "translation": "Konnte die Sitzung nicht entfernen."
-  },
-  {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Konnte nicht alle Sitzungen entfernen."
-  },
-  {
-    "id": "store.sql_session.save.app_error",
-    "translation": "Konnte die Sitzung nicht speichern."
-  },
-  {
-    "id": "store.sql_session.save.existing.app_error",
-    "translation": "Konnte existierende Sitzung nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Konnte die Geräte-ID nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Konnte last_activity_at nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_session.update_roles.app_error",
-    "translation": "Konnte die Rollen nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_status.get.app_error",
-    "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
-  },
-  {
-    "id": "store.sql_status.get.missing.app_error",
-    "translation": "Es existiert kein Eintrag für diesen Status"
-  },
-  {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "Ein Fehler ist beim Abruf aller Online Status aufgetreten."
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Ein Fehler ist beim Abruf aller Online/Abwesend Status aufgetreten."
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Ein Fehler ist beim Abruf aller Status der Teammitglieder auf."
-  },
-  {
-    "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Die Anzahl der aktiven Benutzer konnte nicht gezählt werden"
-  },
-  {
-    "id": "store.sql_status.reset_all.app_error",
-    "translation": "Ein Fehler ist beim Zurücksetzen aller Status aufgetreten."
-  },
-  {
-    "id": "store.sql_status.save.app_error",
-    "translation": "Ein Fehler ist beim Speichern der Status aufgetreten."
-  },
-  {
-    "id": "store.sql_status.update.app_error",
-    "translation": "Ein Fehler ist beim Aktualisieren des Status auf."
-  },
-  {
-    "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Konnte den Zeitpunkt der letzten Aktivität des Benutzers nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_system.get.app_error",
-    "translation": "Es trat ein Fehler beim Finden der Systemeinstellungen auf"
-  },
-  {
-    "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Konnte die Systemvariable nicht finden."
-  },
-  {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
-  },
-  {
-    "id": "store.sql_system.save.app_error",
-    "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
-  },
-  {
-    "id": "store.sql_system.update.app_error",
-    "translation": "Es trat ein Fehler beim aktualisieren der Systemeinstellung auf"
-  },
-  {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Konnte die Kanalanzahl für das Schema nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Konnte die Anzahl der Teams nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht starten."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht rückgängig machen."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Konnte die Teammitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Konnte das Teammitglied nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_team.get.find.app_error",
-    "translation": "Konnte das existierende Team nicht finden."
-  },
-  {
-    "id": "store.sql_team.get.finding.app_error",
-    "translation": "Wir konnte das Team nicht finden"
-  },
-  {
-    "id": "store.sql_team.get_all.app_error",
-    "translation": "Konnte nicht alle Teams abrufen"
-  },
-  {
-    "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "Konnte nicht alle Teams abrufen"
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Konnte das existierende Team nicht finden."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Konnte das existierende Team nicht finden."
-  },
-  {
-    "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Konnte das existierende Team nicht finden."
-  },
-  {
-    "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.get_member.app_error",
-    "translation": "Konnte das Teammitglied nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Kein Teammitglied mit dieser Benutzer-ID und Team-ID gefunden"
-  },
-  {
-    "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.get_members.app_error",
-    "translation": "Konnte die Teammitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Konnte die Teammitglieder nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.get_unread.app_error",
-    "translation": "Konnte die ungelesenen Nachrichten des Teams nicht abrufen."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht ausführen"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht öffnen"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Konnte die Datenbanktransaktion nicht zurückrollen"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Konnte den Stapel von Teammitgliedern nicht auswählen"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Konnte das Teammitglied nicht aktualisieren"
-  },
-  {
-    "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Konnte das existierende Team nicht löschen."
-  },
-  {
-    "id": "store.sql_team.remove_member.app_error",
-    "translation": "Konnte das Teammitglied nicht entfernen."
-  },
-  {
-    "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "Konnte die Team-Schemas nicht zurücksetzen"
-  },
-  {
-    "id": "store.sql_team.save.app_error",
-    "translation": "Konnte das Team nicht speichern."
-  },
-  {
-    "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Ein Team mit diesem Namen existiert bereits"
-  },
-  {
-    "id": "store.sql_team.save.existing.app_error",
-    "translation": "Es muss Update für existierendes Team aufgerufen werden"
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "Ein Teammitglied mit dieser ID existiert bereits"
-  },
-  {
-    "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Konnte das Teammitglied nicht speichern."
-  },
-  {
-    "id": "store.sql_team.search_all_team.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach Teams auf"
-  },
-  {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf"
-  },
-  {
-    "id": "store.sql_team.update.app_error",
-    "translation": "Konnte das Team nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_team.update.find.app_error",
-    "translation": "Konnte das zu aktualisierende existierende Team nicht finden."
-  },
-  {
-    "id": "store.sql_team.update.finding.app_error",
-    "translation": "Wir konnte das Team nicht finden"
-  },
-  {
-    "id": "store.sql_team.update.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf"
-  },
-  {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Konnte den Team-Namen nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Team-Symbols nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "Keine Nutzungsbedingungen gefunden."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6539,10 +5011,6 @@
     "translation": "Konnte die Anzahl der Systemadministratoren nicht abrufen."
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Konnte die Anzahl der einzigartigen Benutzer nicht abrufen."
-  },
-  {
     "id": "store.sql_user.app_error",
     "translation": "Failed to build query"
   },
@@ -6553,10 +5021,6 @@
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
     "translation": "Konnte Datenbanktransaktion nicht starten."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Konnte Datenbanktransaktion nicht rückgängig machen."
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
@@ -6639,36 +5103,12 @@
     "translation": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse."
   },
   {
-    "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
-  },
-  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Es muss Update für existierenden Benutzer aufgerufen werden"
   },
   {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
-  },
-  {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Fehler beim Abruf der aktuellen Anzahl der Teammitglieder."
-  },
-  {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Es gibt bereits ein Konto mit diesem Benutzernamen."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -6739,172 +5179,12 @@
     "translation": "Es konnte das E-Mail-Adresse bestätigt Feld nicht aktualisiert werden"
   },
   {
-    "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
-  },
-  {
-    "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht abrufen."
-  },
-  {
-    "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht über den Token abrufen."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
-  },
-  {
-    "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
-  },
-  {
-    "id": "store.sql_user_access_token.search.app_error",
-    "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Konnte das Zugriffs-Token nicht aktivieren."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht löschen."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Keine Nutzungsbedingungen gefunden."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Konnte den Webhook nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Konnte die Webhooks nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Konnte den Webhook nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Konnte den Webhook nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Konnte die Webhooks nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Konnte die Webhooks nicht abrufen."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Konnte den Webhook nicht löschen."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Konnte den eingehenden Webhook nicht speichern."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Konnte den ausgehenden Webhook nicht speichern."
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
-  },
-  {
-    "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Konnte den Webhook nicht aktualisieren."
-  },
-  {
     "id": "store.update_error",
     "translation": "Aktualisierungsfehler"
   },
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden: Fügen Sie DefaultClientLocale zu AvailableLocales hinzu."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Fehler beim Dekodieren der Konfigurationsdatei={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Fehler beim Öffnen der Konfigurationsdatei={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "Es ist ein Fehler beim Speichern der Datei in {{.Filename}} aufgetreten"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden: AvailableLocales muss DefaultClientLocale enthalten. Setzen Sie AvailableLocales für alle Übersetzungen als Standardwert."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden: DefaultClientLocale muss eine der unterstützten Übersetzungen entsprechen. Setzen Sie DefaultClientLocale auf en als Standardwert."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden: DefaultServerLocale muss einer der unterstützten Übersetzungen entsprechen. Setzen Sie DefaultServerLocale auf en als Standardwert."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6975,20 +5255,8 @@
     "translation": "Der Befehl konnte nicht gefunden werden"
   },
   {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Ungültiger Webhook"
-  },
-  {
     "id": "web.command_webhook.parse.app_error",
     "translation": "Konnte eingehende Daten nicht verarbeiten"
-  },
-  {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Ihr aktueller Browser wird nicht unterstützt. Bitte aktualisieren Sie auf einen der folgenden Browser:"
-  },
-  {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Nicht unterstützter Browser"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -7029,5 +5297,2297 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Der Benutzer konnte nicht gefunden werden"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.app_error",
+    "translation": "Konnte Symbolbild nicht hochladen."
+  },
+  {
+    "id": "api.bot.get_bot_icon_image.read.app_error",
+    "translation": "Konnte Symbolbild-Datei nicht lesen."
+  },
+  {
+    "id": "api.bot.delete_bot_icon_image.app_error",
+    "translation": "Konnte Symbolbild nicht hochladen."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot-Erstellung wurde deaktiviert."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Fehlender Inhaltstyp."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Ungültiger Inhaltstyp."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Ungültiger Zertifikatstext."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Fehlender Identitätsanbieter-SSO-Services-Knoten in der XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Fehlender Identitätsanbieter-Schlüsseldeskriptorknoten in der XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Fehlender SSO-Deskriptorknoten für Identitätsanbieter in der XML-Datei."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Konnte die Zertifikatsdatei nicht speichern."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Fehler bei der Syntaxanalyse der Metadateninformationen, die vom Identitätsanbieter empfangen wurden."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Fehler beim Abrufen von Metadaten aus Identitätsanbieter-URL."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Konnte Markenbild nicht löschen, es wurde nicht gefunden."
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Der Name darf aus 1 bis 64 Kleinbuchstaben bestehen"
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "Das angegebene Schema ist ungültig."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Konnte Schema nicht erstellen."
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Die Schemas konnten permanent gelöscht werden."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Konnte das Schema nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Konnte die Kanäle nicht abrufen."
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "oder"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Standard festlegen"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Edge öffnen"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "Dieser Version ihres Browsers wird von Mattermost nicht mehr unterstützt."
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "Dieser Browser wird von Mattermost nicht mehr unterstützt."
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Erfahren Sie mehr über unterstützte Browser."
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Installationsanleitung"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Installationsanleitung"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Laden Sie die App herunter"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Laden Sie die Mattermost-App herunter oder verwenden Sie einen unterstützten Browser für ein besseres Erlebnis."
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Laden Sie die App herunter"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Holen Sie sich den neuesten Safari-Browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Holen Sie sich den neuesten Firefox-Browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Holen Sie sich den neuesten Chrome-Browser"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Konnte Gäste nicht deaktivieren."
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Konnte die Liste der deaktivierten Gäste-IDs nicht abrufen."
+  },
+  {
+    "id": "store.sql_user.promote_guest.user_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Benutzer."
+  },
+  {
+    "id": "store.sql_user.promote_guest.team_members_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Teammitgliedschaften des Benutzers."
+  },
+  {
+    "id": "store.sql_user.promote_guest.open_transaction.app_error",
+    "translation": "Konnte Datenbanktransaktion nicht öffnen."
+  },
+  {
+    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+    "translation": "Konnte die Datenbanktransaktion nicht ausführen."
+  },
+  {
+    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Kanalmitgliedschaften des Benutzers."
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Konnte die Benutzer-Stapel nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Konnte die Teammitglieder nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Konnte die Kanalmitglieder nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf"
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Konnte bekannte Benutzer nicht aus der Datenbank abrufen."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Benutzer."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Teammitgliedschaften des Benutzers."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+    "translation": "Konnte Datenbanktransaktion nicht öffnen."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+    "translation": "Konnte die Datenbanktransaktion nicht ausführen."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+    "translation": "Fehler beim Aktualisieren der Kanalmitgliedschaften des Benutzers."
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions machen keinen Sinn."
+  },
+  {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Konnte das Gruppenmitglied mit der Benutzer-ID \"{{.UserId}}\" nicht entfernen."
+  },
+  {
+    "id": "store.sql_group.app_error",
+    "translation": "Fehler beim Erstellen der Abfrage."
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot kann keinen Bot-Benutzer erstellen."
+  },
+  {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Konnte die Benutzer nicht finden, ungültige Sortierkriterien."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Aktualisier am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Ungültige Position: Darf nicht länger als 128 Zeichen sein."
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Konnte aufgrund der Einschränkungen von bcrypt kein Passwort mit mehr als 72 Zeichen setzen."
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Ungültiger Spitzname."
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Ungültiges Gebietsschema."
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Ungültiger Nachname."
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Ungültige Benutzer-ID."
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Ungültiger Vorname."
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Ungültiger Benutzer, Auth-Daten müssen mit Auth-Typ gesetzt sein."
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Ungültiger Benutzer, Passwort und Auth-Daten können nicht gesetzt werden."
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Ungültige Auth-Daten."
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Ungültige Einladungs-ID."
+  },
+  {
+    "id": "model.post.channel_notifications_disabled_in_channel.message",
+    "translation": "Kanalbenachrichtigungen sind in {{.ChannelName}} deaktiviert. {{.Mention}} hat keine Benachrichtigungen ausgelöst."
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Ungültiger alter Wert; er sollte nicht gesetzt werden, wenn die Operation nicht atomar ist."
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Ungültige E-Mail-Adressen."
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Ungültige E-Mail-Adresse"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Ungültige Kanäle."
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Ungültiger Kanal."
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "invalid characters in the name property for group"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Ungültiger Signaturalgorithmus."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Ungültiges Gastattribut. Muss in der Form 'feld=wert' vorliegen."
+  },
+  {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Ungültiger kanonischer Algorithmus."
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Ungültiges Admin-Attribut. Muss in der Form 'feld=wert' vorliegen."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Zeitfenster für Elasticsearch-Bulk-Indizierung muss mindestens eine Sekunde sein."
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "Invalid AutocompleteData"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Kanalnamen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt. "
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Fehler beim Dekodieren von base64 der Auslöse-ID für interaktiven Dialog."
+  },
+  {
+    "id": "groups.unsupported_syncable_type",
+    "translation": "Nicht unterstützter synchronisierbarer Typ '{{.Value}}'."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Ungültiger AD/LDAP-Gast-Filter."
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Ungültiger AD/LDAP-Admin-Filter."
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Größenbegrenzung überschritten. Überprüfen Sie Ihre [maximale Seitengröße](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+  },
+  {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "Fehler beim Löschen von Team- oder Kanalmitgliedschaften."
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Ihre Lizenz unterstützt keine ID-geladenen Push-Benachrichtigungen."
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Fehler beim Verarbeiten der Elasticsearch-Server-Version."
+  },
+  {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Fehler beim Abrufen der Elasticsearch-Server-Version."
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Konnte Suchergebnisse nicht dekodieren"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Suche konnte nicht abgeschlossen werden"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Konnte Suchergebnisse nicht dekodieren"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Suche konnte nicht abgeschlossen werden"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Fehler beim Abrufen des Elasticsearch-Index"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Versuche einen neunen Stapel zu indizieren, wenn alle Entitäten vollständig sind."
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Fehler beim Indizieren der Benutzer."
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Fehler beim Indizieren des Kanals."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Fehler beim Löschen des Benutzers."
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Fehler beim Löschen des Kanals."
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Benutzer."
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Nachrichten."
+  },
+  {
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Kanäle."
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Konnte die EML-Datei nicht erstellen."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Konnte die EML-Datei nicht erstellen."
+  },
+  {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "Der ausgehende Webhook wird gelöscht, aber aufgrund eines Fehlers kann kein neuer Webhook erstellt werden."
+  },
+  {
+    "id": "bleveengine.stop_user_index.error",
+    "translation": "Failed to close user index."
+  },
+  {
+    "id": "bleveengine.stop_post_index.error",
+    "translation": "Failed to close post index."
+  },
+  {
+    "id": "bleveengine.stop_channel_index.error",
+    "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Suche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Suche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Suche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Suche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Suche konnte nicht abgeschlossen werden."
+  },
+  {
+    "id": "bleveengine.purge_user_index.error",
+    "translation": "Failed to purge user indexes."
+  },
+  {
+    "id": "bleveengine.purge_post_index.error",
+    "translation": "Failed to purge post indexes."
+  },
+  {
+    "id": "bleveengine.purge_channel_index.error",
+    "translation": "Failed to purge channel indexes."
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Versuche einen neunen Stapel zu indizieren, wenn alle Entitäten vollständig sind."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
+    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Failed to run Bleve index job: engine is inactive."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+    "translation": "Failed to index user batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+    "translation": "Failed to index post batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+    "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Fehler beim Indizieren des Benutzers."
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Fehler beim Indizieren der Nachricht."
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Fehler beim Indizieren des Kanals."
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Fehler beim Löschen des Benutzers."
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Fehler beim Löschen der Nachricht."
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Fehler beim Löschen des Kanals."
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Error creating the bleve user index."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Error creating the bleve post index."
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "Error creating the bleve channel index."
+  },
+  {
+    "id": "bleveengine.already_started.error",
+    "translation": "Bleve is already started."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "Keine Nutzungsbedingungen gefunden."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht löschen."
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "Keine Nutzungsbedingungen gefunden."
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Konnte die Nutzungsbedingungen nicht speichern."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Konnte Team nicht umbenennen, der Name wird bereits verwendet."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Konnte einem gruppenbeschränkten Team durch Token nicht beitreten."
+  },
+  {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Konnte einem gruppenbeschränkten Team durch Einladung nicht beitreten."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Es ist ein Fehler beim Speichern der Datei aufgetreten."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Es ist ein Fehler beim Lesen der Datei aufgetreten."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Konnte Plugin-Webapp-Bundle nicht generieren."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Fehler beim Lesen des lokalen Plugin-Ordners."
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "Fehler beim Lesen von Dateien aus dem Plugin-Ordner im Dateispeicher."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Konnte die Plugin-Signatur nicht im konfigurierten Dateispeicher abspeichern."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Konnte das Plugin nicht im konfigurierten Dateispeicher abspeichern."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Konnte base64-Signatur nicht dekodieren."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Konnte das Plugin kann beim Upgrade nicht neu starten."
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Konnte Plugin-Bundle nicht aus dem Dateispeicher entfernen."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Saml-Dateien können nicht modifiziert werden."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Fehler beim Anordnen von Marktplatz-Plugins."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Die gesuchte Marktplatz-Plugin-Signatur konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Das gesuchte Marktplatz-Plugin konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Fehler bei der Entschlüsselung der Anforderung des Marktplatz-Plugins."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Marktplatz wurde deaktiviert. Bitte prüfen Sie ihre Logs für Details."
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Fehler beim Abrufen der Plugins vom Marktplatz-Server."
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Fehler beim Erstellen des Marktplatz-Clients."
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Die Plugin-Version konnte nicht verarbeitet werden."
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Fehler beim Installieren von Marktplatz-Plugin."
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen des öffentlichen Schlüssels aus dem Speicher aufgetreten."
+  },
+  {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "Konnte das Plugin nicht so einstellen, dass es vom Dateispeicher verwaltet wird."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Es ist ein Fehler beim Löschen des öffentlichen Schlüssels aufgetreten."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Ungültige Einstellung des Teammotivs für Benutzer."
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Ungültige Einstellung des Zeige-Ungelesene-Bereichs für Benutzer."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Ungültige Einstellung der Nachrichtenformatierung für Benutzer."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Ungültige Einstellung der Markdown-Vorschau für Benutzer."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Ungültige Einstellung des E-Mail-Stapelverarbeitungs-Intervalls für Benutzer."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Konnte die Einstellungen für das Teammotiv nicht speichern."
+  },
+  {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "Error importing user channels. Channel not found."
+  },
+  {
+    "id": "app.import.get_users_by_username.some_users_not_found.error",
+    "translation": "Einige Benutzer nicht gefunden"
+  },
+  {
+    "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+    "translation": "Einige Teams nicht gefunden"
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Konnte benutzerdefinierte Emoji-Bilder nicht kopieren."
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Konnte das Emoji nicht abrufen."
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "Konnte das Emoji nicht abrufen."
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "Konnte das Emoji nicht abrufen."
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "Das zu löschende Emoji konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Konnte das Emoji nicht löschen."
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Fehler beim Speichern der Historie der Kanalmitglieder. Fehler beim Aktualisieren des Beitrittsdatensatzes"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Fehler beim Speichern der Historie der Kanalmitglieder."
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Konnte den Kanal nicht aktualisieren."
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "Konnte den Kanal nicht löschen."
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "Es existieren keine gelöschten Kanäle."
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Konnte den bestehenden gelöschte Kanal nicht finden."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Es wurden keine Kanäle gefunden."
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Konnte die Kanäle nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Kanal existiert nicht."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "Wir konnte den Kanal nicht finden"
+  },
+  {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.channel.delete.app_error",
+    "translation": "Konnte den Kanal nicht löschen."
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Konnte den Kanal nicht speichern."
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Konnte den Kanal nicht speichern."
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Konnte den Bot nicht löschen."
+  },
+  {
+    "id": "app.bot.permanent_delete.internal_error",
+    "translation": "Unable to delete the bot permanently."
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Konnte den Bot nicht aktualisieren."
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Konnte die Bots nicht abrufen."
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Konnte den Bot nicht abrufen."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die nun deaktiviert wurden.\n\n{{.BotNames}}{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die nun deaktiviert wurden, darunter die folgenden:\n\n{{.BotNames}}{{end}}Sie können den Besitz jedes Bots übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die noch aktiviert sind.\n\n{{.BotNames}}\n{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die immer noch aktiviert sind, einschließlich der folgenden:\n\n{{.BotNames}}{{end}}Wir empfehlen Ihnen dringend, die Eigentumsrechte an jedem Bot zu übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** wieder aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation] (https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nWenn Sie möchten, dass Bot-Konten nach der Benutzerdeaktivierung automatisch deaktiviert werden, setzen Sie \"Bot-Konten nach der Benutzerdeaktivierung deaktivieren\" in **Systemkonsole > Integrationen > Bot-Konten** auf wahr.{{end}}"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Konnte den Bot nicht speichern."
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "Dies ist keine gültige Live-URL"
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Konnte die vom Identitätsanbieter empfangene Antwort nicht lesen."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Fehler beim Lesen der Antwortnutzdaten, die vom Identitätsanbieter empfangen wurden."
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Die XML-Metadateninformationen, die vom Identitätsanbieter empfangen wurden, konnten nicht decodiert werden."
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Der Server ist ausgelastet, unkritische Dienste sind vorübergehend nicht verfügbar."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains für Gastkonten. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "Sie können kein Gastkonto aktivieren, da die Funktion Gastzugang nicht aktiviert ist."
+  },
+  {
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Konnte Passwortrücksetzungs-Token nicht verarbeiten."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Der Gast kann nicht in einen regulären Benutzer umgewandelt werden, da er kein Gast ist."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Gültige E-Mail und/oder Passwort eingeben oder mit anderer Anmeldemethode anmelden."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Gültige E-Mail und/oder Passwort eingeben."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Gültige E-Mail und/oder Passwort eingeben"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Gastkonten sind deaktiviert"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Der Benutzer kann nicht in einen Gast umgewandelt werden, da er bereits ein Gast ist."
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Konnte Benutzer nicht erstellen, ungültige Einladung."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Gastkonten sind deaktiviert."
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Konnte Kennwortwiederherstellungs-Token nicht erstellen."
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Mattermost Enterprise license has been disabled."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Renew License"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Ungültige Aktualisierung von Teammitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Seitenumbruch nicht implementiert für die öffentliche Teamsuche."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Seitenumbruch nicht implementiert für die private Teamsuche."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Konnte Benutzer nicht aus einem gruppenbeschränkten Team entfernen."
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "Die Kanäle der Einladung müssen Teil des Teams der Einladung sein."
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Gastkonten sind deaktiviert"
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Fehler beim Annulieren von E-Mail-Einladungen."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "Sie haben nicht die nötigen Berechtigungen, um die Kanalüberschrift zu bearbeiten."
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Gastkonten sind deaktiviert."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Gäste dürfen einem Team nicht durch einen Einladungslink beitreten. Bitte fordern Sie eine Einladung in das Team per E-Mail an."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Dieses Team wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Team synchronisiert ist."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Fehler beim Hinzufügen von Teammitglied(ern)."
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID-geladene Push-Benachrichtigungen sind auf diesem Server nicht konfiguriert oder werden nicht unterstützt."
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} im Zip-Archiv zu groß für die Verarbeitung für den Slack-Import\r\n"
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "Es ist ein Fehler beim Erstellen der Push-Benachrichtigungs-Bestätigungs-Nachricht aufgetreten."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "Es ist ein Fehler beim Senden der Quittungslieferung an den Push-Benachrichtigungsdienst aufgetreten."
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "Es ist ein Fehler beim Erstellen der Push-Benachrichtigungsnachricht aufgetreten."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen der ID-geladenen Push-Benachrichtigung aufgetreten."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "Sie haben eine neue Nachricht erhalten."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push-Benachrichtigungen sind auf diesem Server deaktiviert."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn zu diesem Kanal hinzuzufügen, muss er zu den verknüpften Gruppen hinzugefügt werden."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie zu diesem Kanal hinzuzufügen, müssen sie zu den verknüpften Gruppen hinzugefügt werden."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupName}} has no members on this team"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Konnte Plugin-Signatur nicht verifizieren."
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "Es ist ein Fehler beim Herunterladen des Plugins aufgetreten."
+  },
+  {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Es ist ein Fehler beim Öffnen der öffentlichen Schlüsseldatei aufgetreten."
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Fehler beim Senden der Konto-Deaktivierungs-E-Mail"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "group name already exists as a user name"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "Gruppenmitglied existiert bereits"
+  },
+  {
+    "id": "api.image.get.app_error",
+    "translation": "Requested image url cannot be parsed."
+  },
+  {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Konnte Datei {{.Filename}} nicht hochladen. Zurückgewiesen durch Plugin: {{.Reason}}"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Der Server ist ausgelastet, unkritische Dienste sind vorübergehend nicht verfügbar."
+  },
+  {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "This endpoint requires a local request origin."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Fehler beim Zusammenführen der angegebenen Konfiguration."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Der Benutzer kann von ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Dem Wort für die Befehlsauslösung fehlt das führenden Slash-Zeichen."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Ungültige Aktualisierung von Teammitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "Der Standardkanal kann nicht privat gemacht werden."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Ungültige Aktualisierung von Kanalmitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Ungültige Aktualisierung von Kanalmitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Kanaltyp kann nicht aktualisiert werden."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} hat den Kanal wiederhergestellt."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Konnte Kanal nicht wiederherstellen. Der Kanal ist nicht archiviert."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Der Benutzer konnte nicht aus diesem Kanaltyp entfernt werden."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Entfernen der Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Konnte einen Benutzer nicht aus einem gruppenbeschränkten Kanal entfernen."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v hat den Kanal als Gast betreten."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Ihre Lizenz unterstützt Gruppen nicht"
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Fehler beim Hinzufügen von Kanalmitglied(ern)."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v wurde durch %v als Gast zum Kanal hinzugefügt."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Bitte fügen Sie mich den Teams und Kanälen hinzu, mit denen ich interagieren soll. Um dies zu tun, verwenden Sie den Browser oder die Mattermost-Desktop-App."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.too_large.app_error",
+    "translation": "Konnte Symbolbild-Datei nicht hochladen. Datei ist zu groß."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.parse.app_error",
+    "translation": "Kann Multipart-Formular nicht verarbeiten."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.open.app_error",
+    "translation": "Konnte Bilddatei nicht öffnen"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.no_file.app_error",
+    "translation": "Keine Datei unter 'image' in der Anfrage."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.array.app_error",
+    "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
+  },
+  {
+    "id": "ent.data_retention.reactions_batch.internal_error",
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Konnte Reaktion nicht speichern"
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Konnte nicht alle Reaktionen mit dem gegebenen Emoji-Namen abrufen."
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Es trat ein Fehler beim Speichern der Audits auf"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Es trat ein Fehler beim Löschen der Audits auf"
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Die Grenze für Paging wurde überschritten"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "Konnte den Befehl nicht abrufen."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Ungültiger Webhook."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Konnte den Webhook nicht verwenden."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Konnte eingehende Daten nicht verarbeiten."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Konnte den Webhook nicht abrufen."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Konnte den Webhook nicht abrufen."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Konnte den CommandWebhook nicht speichern."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "Sie können einen existierenden CommandWebhook nicht aktualisieren."
+  },
+  {
+    "id": "app.oauth.update_app.updating.app_error",
+    "translation": "Es trat ein Fehler beim Aktualisieren der App auf."
+  },
+  {
+    "id": "app.oauth.update_app.find.app_error",
+    "translation": "Konnte die zu aktualisierende bestehende App nicht finden."
+  },
+  {
+    "id": "app.oauth.save_app.save.app_error",
+    "translation": "Konnte die Anwendung nicht speichern."
+  },
+  {
+    "id": "app.oauth.save_app.existing.app_error",
+    "translation": "Es muss Update für existierende App aufgerufen werden."
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": "Konnte das Zugangs-Token nicht entfernen."
+  },
+  {
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "Konnte den Autorisationscode nicht entfernen."
+  },
+  {
+    "id": "app.oauth.get_apps.find.app_error",
+    "translation": "Es ist ein Fehler beim Suchen nach der OAuth2-App aufgetreten."
+  },
+  {
+    "id": "app.oauth.get_app_by_user.find.app_error",
+    "translation": "Konnte keine existierende Anwendung finden."
+  },
+  {
+    "id": "app.oauth.get_app.finding.app_error",
+    "translation": "Es trat ein Fehler beim Auffinden der App auf."
+  },
+  {
+    "id": "app.oauth.get_app.find.app_error",
+    "translation": "Konnte die angeforderte Anwendung nicht finden."
+  },
+  {
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt."
+  },
+  {
+    "id": "app.oauth.delete_app.app_error",
+    "translation": "Es ist ein Fehler beim Löschen der OAuth2-App aufgetreten."
+  },
+  {
+    "id": "app.user.permanentdeleteuser.internal_error",
+    "translation": "Konnte Token nicht löschen."
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": "Konnte Token nicht löschen."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Konnte die Geräte-ID nicht aktualisieren."
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "Konnte existierende Sitzung nicht aktualisieren."
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "Konnte die Sitzung nicht speichern."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Konnte nicht alle Sitzungen entfernen."
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "Konnte die Sitzung nicht entfernen."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Konnte nicht alle Sitzungen des Benutzers entfernen."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "Es trat ein Fehler beim Finden von Benutzersitzungen auf."
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Sitzungen auf."
+  },
+  {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "Konnte den Befehl nicht aktualisieren."
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "Konnte den Befehl nicht speichern."
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "Konnte den Befehl nicht abrufen."
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "Konnte den Befehl nicht abrufen."
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "Konnte den Befehl nicht löschen."
+  },
+  {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "Konnte den Befehl nicht speichern."
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Konnte den Token nicht speichern."
+  },
+  {
+    "id": "app.recover.delete.app_error",
+    "translation": "Konnte Token nicht löschen."
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Fehler beim Löschen der Nachricht."
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Fehler beim Löschen der Nachricht."
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Fehler beim Löschen der Nachricht."
+  },
+  {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Fehler beim Löschen der Nachricht."
+  },
+  {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Konnte das Schema nicht löschen."
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen."
+  },
+  {
+    "id": "ent.get_users_in_channel_during",
+    "translation": "Fehler beim Abrufen der Mitglieder im Kanals während der spezifizierten Zeitperiode."
+  },
+  {
+    "id": "ent.data_retention.channel_member_history_batch.internal_error",
+    "translation": "Fehler beim Leeren der Datensätze."
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "Konnte das Emoji nicht speichern."
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Konnte den Kanal nicht aktualisieren."
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Konnte den Kanal nicht löschen."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Konnte das Zugriffs-Token nicht aktivieren."
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
+  },
+  {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
+  },
+  {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "SMTP-Server wird benötigt"
+  },
+  {
+    "id": "api.emoji.create.internal_error",
+    "translation": "server_error: Es ist ein Interner Serverfehler beim Erstellen des Emojis aufgetreten."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "Konnte Warnmetrik nicht finden."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Fehler beim Senden der Administrator Bestätigungs-E-Mail"
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL kann nicht leer sein."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
+  },
+  {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
+  },
+  {
+    "id": "ent.data_retention.flags_batch.internal_error",
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf."
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
+  },
+  {
+    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+    "translation": "Warnmetrik konnte nicht gefunden werden."
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "Seiten-URL:"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Gesamte aktive Benutzer"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "E-Mail:"
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Konnte den Webhook nicht aktualisieren."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Konnte den ausgehenden Webhook nicht speichern."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Konnte den eingehenden Webhook nicht speichern."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "Konnte die Webhooks nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "Konnte die Webhooks nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "Konnte den Webhook nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "Konnte den Webhook nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "Konnte die Webhooks nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "Konnte den Webhook nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "Konnte den Webhook nicht löschen."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "Die Rolle war ungültig."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Konnte die neue Rolle nicht speichern."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "Es konnten nicht alle Rollen permanent gelöscht werden."
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Konnte die Rollen nicht abrufen."
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Konnte die Rolle nicht abrufen."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Konnte nicht alle Rollen abrufen."
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "Konnte die Rolle nicht abrufen."
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Konnte Benutzer nicht über die Benutzer-ID der Sitzung holen."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Konnte die Nachricht nicht aktualisieren."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Sie können keine existierende Nachricht aktualisieren"
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Konnte die Nachricht nicht speichern."
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Konnte die Nachrichten nach Kanal nicht löschen."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Konnte die Nachricht nicht abrufen."
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "Konnte die Nachricht nicht löschen."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "Es existiert kein Eintrag für diesen Status"
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht abrufen"
+  },
+  {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht löschen"
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Konnte die Systemvariable nicht finden."
+  },
+  {
+    "id": "app.system.get.app_error",
+    "translation": "Es trat ein Fehler beim Finden der Systemeinstellungen auf"
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Konnte SAML-Anmeldung nicht mit leerer E-Mail-Adresse durchführen."
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
+  },
+  {
+    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+    "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
+  },
+  {
+    "id": "ent.jobs.do_job.batch_size.parse_error",
+    "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
+  },
+  {
+    "id": "ent.cluster.model.client.connecting.app_error",
+    "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
+  },
+  {
+    "id": "ent.cluster.404.app_error",
+    "translation": "Cluster-API-Endpunkt nicht gefunden."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": " hat eine Datei hochgeladen."
+  },
+  {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "Konnte Export nicht in XML konvertieren."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Konnte den Job nicht aktualisieren."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Konnte den Job nicht speichern."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Konnte die neuesten Jobs nicht über Status und Typ abrufen."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Konnte die Anzahl der Jobs nicht über Status und Typ abrufen."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Konnte die Jobs nicht abrufen."
+  },
+  {
+    "id": "app.job.get.app_error",
+    "translation": "Konnte den Job nicht abrufen."
+  },
+  {
+    "id": "ent.data_retention.file_infos_batch.internal_error",
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Konnte die Dateiinformationen nicht speichern."
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Konnte die Anhänge des Benutzers nicht löschen."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Konnte die Dateiinformationen über Pfad abrufen."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Konnte die Dateiinformationen für den Beitrag nicht abgerufen."
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Konnte die Dateiinformationen nicht abrufen."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Kanälen auf."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Konnte die Kanal-Schemas nicht zurücksetzen."
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Deaktivierte Nutzer konnten nicht aus dem Kanal entfernt werden."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Fehler beim Auswählen des Stapel von Kanalmitgliedern."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Konnte die ungelesenen Nachrichten des Kanals nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Konnte Kanalmitglieder nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fehler beim Abrufen der Kanalmitglieder."
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Konnte Bucket nicht erstellen."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Request trial"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Multi-Faktor-Authentifizierung erzwingen:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Konnte die Nachricht nicht überschreiben."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Die Grenze für Paging wurde überschritten."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Konnte die Direktnachrichten nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Konnte die Anzahl an Nachrichten pro Tag nicht abrufen."
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Konnte die Anzahl an Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Konnte das Teammitglied nicht speichern."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Konnte die ungelesenen Nachrichten des Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Konnte die Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Kein Teammitglied mit dieser Benutzer-ID und Team-ID gefunden."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Konnte das Teammitglied nicht abrufen."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Teams gehört."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Konnte die Teamschemas nicht zurücksetzen."
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Konnte das Teammitglied nicht entfernen."
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Fehler beim Aktualisieren des Teammitglieds."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Konnte die Liste der Team eines Benutzers nicht abrufen."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Konnte die Teammitglieder nicht abrufen."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Konnte Kanäle für das angegebene Schema nicht abrufen."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fehler beim Abrufen der Teammitglieder."
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Ungültiger Wert für user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Ungültiger Wert für ID."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Ungültiger Wert für path."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Ungültiger Wert für ID."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Ungültiger Wert für create_at."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} Dimensionen ({{.Width}} mal {{.Height}} Pixel) überschreiten die Limits."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Kann nicht in gelöschten Kanal senden."
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Bot existiert nicht."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Konnte Kanal nicht als ungelesen markieren."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Konnte den Zeitpunkt der letzten Betrachtung nicht aktualisieren."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Konnte das Kanalmitglied nicht entfernen."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Konnte angeheftete Nachrichten nicht finden."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Konnte das Kanalmitglied nicht entfernen."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Konnte Erwähnungs-Zähler nicht erhöhen."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Konnte die Anzahl der angehefteten Nachrichten nicht ermitteln."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Konnte Kanalmitglieder nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Konnte die Anzahl der Kanalmitglieder nicht ermitteln."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Kein Kanalmitglied mit dieser Benutzer-ID und Kanal-ID gefunden."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Konnte das Kanalmitglied nicht laden."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Konnte Nachrichten seit dem angegebenen Datum nicht zählen."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Konnte die Anzahl der Kanaltypen nicht laden."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Konnte die Nachrichten für den Kanal nicht abrufen."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Konnte Nachricht nicht in dem ausgewählten Zeitraum abrufen."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Konnte Nachricht nicht nach dem ausgewählten Zeitraum abrufen."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Konnte die markierten Nachrichten nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Konnte die öffentlichen Kanäle nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Konnte nicht alle Kanäle abrufen."
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Konnte den Kanal für den angegebenen Beitrag nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Kein Kanal gefunden."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Konnte die Kanäle nicht abrufen."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Konnte die Kanäle nicht nach IDs abrufen."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Konnte die Anzahl der Kanäle nicht laden."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Konnte das zu aktualisierende existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach privaten Teams auf."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach Teams auf."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Es muss Update für existierendes Team aufgerufen werden."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Konnte das Team nicht speichern."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Konnte das existierende Team nicht löschen."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Konnte nicht alle Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Konnte nicht alle privaten Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Konnte nicht alle privaten Teams abrufen."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Konnte nicht alle Teams abrufen."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Konnte das Team nicht finden."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Konnte das existierende Team nicht finden."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Konnte die Anzahl der Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Bot-Anmeldung ist verboten."
   }
 ]

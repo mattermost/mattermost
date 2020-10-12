@@ -11,19 +11,18 @@ import (
 
 // Scope holds contextual data for the current scope.
 //
-// The scope is an object that can cloned efficiently and stores data that
-// is locally relevant to an event.  For instance the scope will hold recorded
+// The scope is an object that can cloned efficiently and stores data that is
+// locally relevant to an event. For instance the scope will hold recorded
 // breadcrumbs and similar information.
 //
-// The scope can be interacted with in two ways:
+// The scope can be interacted with in two ways. First, the scope is routinely
+// updated with information by functions such as AddBreadcrumb which will modify
+// the current scope. Second, the current scope can be configured through the
+// ConfigureScope function or Hub method of the same name.
 //
-// 1. the scope is routinely updated with information by functions such as
-//    `AddBreadcrumb` which will modify the currently top-most scope.
-// 2. the topmost scope can also be configured through the `ConfigureScope`
-//    method.
-//
-// Note that the scope can only be modified but not inspected.
-// Only the client can use the scope to extract information currently.
+// The scope is meant to be modified but not inspected directly. When preparing
+// an event for reporting, the current client adds information from the current
+// scope into the event.
 type Scope struct {
 	mu          sync.RWMutex
 	breadcrumbs []*Breadcrumb
@@ -47,6 +46,7 @@ type Scope struct {
 	eventProcessors []EventProcessor
 }
 
+// NewScope creates a new Scope.
 func NewScope() *Scope {
 	scope := Scope{
 		breadcrumbs: make([]*Breadcrumb, 0),
@@ -309,6 +309,7 @@ func (scope *Scope) Clone() *Scope {
 	clone.level = scope.level
 	clone.transaction = scope.transaction
 	clone.request = scope.request
+	clone.requestBody = scope.requestBody
 
 	return clone
 }

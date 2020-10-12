@@ -49,7 +49,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		v := url.Values{}
 
-		v.Set(PROP_SECURITY_ID, s.diagnosticId)
+		v.Set(PROP_SECURITY_ID, s.TelemetryId())
 		v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 		v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
 		v.Set(PROP_SECURITY_DATABASE, *s.Config().SqlSettings.DriverName)
@@ -115,7 +115,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 					for _, user := range users {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
-						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance)
+						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance, "")
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}

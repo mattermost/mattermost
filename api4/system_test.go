@@ -5,6 +5,7 @@ package api4
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -20,13 +22,12 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("basic ping", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
@@ -38,35 +39,67 @@ func TestGetPing(t *testing.T) {
 			}()
 
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-			status, resp := th.Client.GetPing()
+			status, resp := client.GetPing()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "basic ping")
 
-	})
-
-	t.Run("with server status", func(t *testing.T) {
-
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
+
 			CheckNoError(t, resp)
 			assert.Equal(t, model.STATUS_OK, status)
 		})
 
 		t.Run("unhealthy", func(t *testing.T) {
+			oldDriver := th.App.Config().FileSettings.DriverName
 			badDriver := "badDriverName"
 			th.App.Config().FileSettings.DriverName = &badDriver
+			defer func() {
+				th.App.Config().FileSettings.DriverName = oldDriver
+			}()
 
-			status, resp := th.Client.GetPingWithServerStatus()
+			status, resp := client.GetPingWithServerStatus()
 			CheckInternalErrorStatus(t, resp)
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
+	}, "with server status")
 
-	})
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err := ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		respString := string(respBytes)
+		require.NotContains(t, respString, "TestFeatureFlag")
+
+		// Run the enviroment variable override code to test
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalue")
+		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		memoryStore, err := config.NewMemoryStore()
+		require.Nil(t, err)
+		retrievedConfig := memoryStore.Get()
+
+		// replace config with generated config
+		oldConfig := th.App.Config().Clone()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
+
+		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err = ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		respString = string(respBytes)
+		require.Contains(t, respString, "testvalue")
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
+	}, "ping feature flag test")
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -94,22 +127,35 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
+
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: model.NewString(""),
 		},
 		EmailSettings: model.EmailSettings{
-			SMTPServer:             model.NewString(""),
-			SMTPPort:               model.NewString(""),
-			SMTPPassword:           model.NewString(""),
-			FeedbackName:           model.NewString(""),
-			FeedbackEmail:          model.NewString(""),
-			ReplyToAddress:         model.NewString(""),
-			SendEmailNotifications: model.NewBool(false),
+			SMTPServer:                        model.NewString(""),
+			SMTPPort:                          model.NewString(""),
+			SMTPPassword:                      model.NewString(""),
+			FeedbackName:                      model.NewString(""),
+			FeedbackEmail:                     model.NewString("some-addr@test.com"),
+			ReplyToAddress:                    model.NewString("some-addr@test.com"),
+			ConnectionSecurity:                model.NewString(""),
+			SMTPUsername:                      model.NewString(""),
+			EnableSMTPAuth:                    model.NewBool(false),
+			SkipServerCertificateVerification: model.NewBool(true),
+			SendEmailNotifications:            model.NewBool(false),
+			SMTPServerTimeout:                 model.NewInt(15),
+		},
+		FileSettings: model.FileSettings{
+			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
+			Directory:  model.NewString(dir),
 		},
 	}
 
@@ -128,9 +174,9 @@ func TestEmailTest(t *testing.T) {
 			inbucket_host = "localhost"
 		}
 
-		inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+		inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
 		if inbucket_port == "" {
-			inbucket_port = "9000"
+			inbucket_port = "10025"
 		}
 
 		*config.EmailSettings.SMTPServer = inbucket_host
@@ -148,7 +194,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestSiteURLTest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -189,7 +235,7 @@ func TestSiteURLTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -212,7 +258,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -238,40 +284,47 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
-	Client := th.Client
 
 	for i := 0; i < 20; i++ {
 		mlog.Info(strconv.Itoa(i))
 	}
 
-	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
-	CheckNoError(t, resp)
-	require.Len(t, logs, 10)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		logs, resp := c.GetLogs(0, 10)
+		CheckNoError(t, resp)
+		require.Len(t, logs, 10)
 
-	for i := 10; i < 20; i++ {
-		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
-	}
+		for i := 10; i < 20; i++ {
+			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		}
 
-	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
-	CheckNoError(t, resp)
-	require.Len(t, logs, 10)
+		logs, resp = c.GetLogs(1, 10)
+		CheckNoError(t, resp)
+		require.Len(t, logs, 10)
 
-	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
-	CheckNoError(t, resp)
-	require.NotEmpty(t, logs, "should not be empty")
+		logs, resp = c.GetLogs(-1, -1)
+		CheckNoError(t, resp)
+		require.NotEmpty(t, logs, "should not be empty")
+	})
 
-	_, resp = Client.GetLogs(0, 10)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp := th.Client.GetLogs(0, 10)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	_, resp := th.Client.GetLogs(0, 10)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetLogs(0, 10)
+	th.Client.Logout()
+	_, resp = th.Client.GetLogs(0, 10)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -380,7 +433,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -403,6 +456,7 @@ func TestS3TestConnection(t *testing.T) {
 			AmazonS3Bucket:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3Region:          model.NewString(""),
+			AmazonS3PathPrefix:      model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -419,6 +473,7 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckOKStatus(t, resp)
@@ -447,7 +502,7 @@ func TestS3TestConnection(t *testing.T) {
 }
 
 func TestSupportedTimezones(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -470,7 +525,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	mockBitlyLink := testServer.URL
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
@@ -515,7 +570,7 @@ func TestRedirectLocation(t *testing.T) {
 }
 
 func TestSetServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	const secs = 30
@@ -527,31 +582,31 @@ func TestSetServerBusy(t *testing.T) {
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.SetServerBusy(secs)
 		CheckNoError(t, resp)
 		require.True(t, ok, "should set server busy successfully")
 		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
-	})
+	}, "as system admin")
 }
 
 func TestSetServerBusyInvalidParam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("as system admin, invalid param", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
 		for _, p := range params {
-			ok, resp := th.SystemAdminClient.SetServerBusy(p)
+			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, ok, "should not set server busy due to invalid param ", p)
 			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
-	})
+	}, "as system admin, invalid param")
 }
 
 func TestClearServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -563,16 +618,16 @@ func TestClearServerBusy(t *testing.T) {
 	})
 
 	th.App.Srv().Busy.Set(time.Second * 30)
-	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.ClearServerBusy()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.ClearServerBusy()
 		CheckNoError(t, resp)
 		require.True(t, ok, "should clear server busy flag successfully")
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
-	})
+	}, "as system admin")
 }
 
 func TestGetServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -582,16 +637,16 @@ func TestGetServerBusy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		sbs, resp := th.SystemAdminClient.GetServerBusy()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		sbs, resp := c.GetServerBusy()
 		expires := time.Unix(sbs.Expires, 0)
 		CheckNoError(t, resp)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
-	})
+	}, "as system admin")
 }
 
 func TestGetServerBusyExpires(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -601,15 +656,15 @@ func TestGetServerBusyExpires(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		expires, resp := th.SystemAdminClient.GetServerBusyExpires()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		expires, resp := c.GetServerBusyExpires()
 		CheckNoError(t, resp)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
-	})
+	}, "as system admin")
 }
 
 func TestServerBusy503(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -648,7 +703,7 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()

@@ -8,10 +8,14 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -65,7 +69,7 @@ func (b byBundleInfoId) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Man
 
 func TestInstallPluginLocally(t *testing.T) {
 	t.Run("invalid tar", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		actualManifest, appErr := th.App.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
@@ -75,7 +79,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	})
 
 	t.Run("missing manifest", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		reader := makeInMemoryGzipTarFile(t, []testFile{
@@ -108,7 +112,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	}
 
 	t.Run("invalid plugin id", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		actualManifest, appErr := installPlugin(t, th, "invalid#plugin#id", "version", installPluginLocallyOnlyIfNew)
@@ -149,7 +153,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	}
 
 	t.Run("no plugins already installed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
@@ -161,7 +165,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	})
 
 	t.Run("different plugin already installed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
@@ -178,7 +182,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("same plugin already installed", func(t *testing.T) {
 		t.Run("install only if new", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -195,7 +199,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, but older", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -211,7 +215,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, but same version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -227,7 +231,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, newer version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -243,7 +247,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install always, old version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -258,4 +262,36 @@ func TestInstallPluginLocally(t *testing.T) {
 			assertBundleInfoManifests(t, th, []*model.Manifest{manifest})
 		})
 	})
+}
+
+func TestInstallPluginAlreadyActive(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	path, _ := fileutils.FindDir("tests")
+	reader, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	actualManifest, appError := th.App.InstallPlugin(reader, true)
+	require.NotNil(t, actualManifest)
+	require.Nil(t, appError)
+	appError = th.App.EnablePlugin(actualManifest.Id)
+	require.Nil(t, appError)
+
+	pluginsEnvironment := th.App.GetPluginsEnvironment()
+	require.NotNil(t, pluginsEnvironment)
+	bundleInfos, err := pluginsEnvironment.Available()
+	require.Nil(t, err)
+	require.NotEmpty(t, bundleInfos)
+	for _, bundleInfo := range bundleInfos {
+		if bundleInfo.Manifest.Id == actualManifest.Id {
+			err := os.RemoveAll(bundleInfo.Path)
+			require.NoError(t, err)
+		}
+	}
+
+	actualManifest, appError = th.App.InstallPlugin(reader, true)
+	require.NotNil(t, appError)
+	require.Nil(t, actualManifest)
+	require.Equal(t, "app.plugin.restart.app_error", appError.Id)
 }

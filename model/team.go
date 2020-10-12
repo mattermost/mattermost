@@ -234,7 +234,6 @@ func IsReservedTeamName(s string) bool {
 }
 
 func IsValidTeamName(s string) bool {
-
 	if !IsValidAlphaNum(s) {
 		return false
 	}

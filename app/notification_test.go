@@ -50,7 +50,7 @@ func TestSendNotifications(t *testing.T) {
 
 	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.InvalidateAllCaches()
+	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
 	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
@@ -1004,7 +1004,7 @@ func TestAllowGroupMentions(t *testing.T) {
 		assert.False(t, allowGroupMentions)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
@@ -1422,6 +1422,24 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.Contains(t, keywords["William"], user.Id)
 		assert.NotContains(t, keywords["william"], user.Id)
 		assert.NotContains(t, keywords["Robert"], user.Id)
+	})
+
+	t.Run("should not add case sensitive first name if enabled but empty First Name", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.NotContains(t, keywords[""], user.Id)
 	})
 
 	t.Run("should not add case sensitive first name if disabled", func(t *testing.T) {
@@ -2220,7 +2238,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {

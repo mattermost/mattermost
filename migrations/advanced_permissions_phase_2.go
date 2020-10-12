@@ -71,8 +71,8 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		if result, err := worker.app.Srv().Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
-			return false, progress.ToJson(), err
+		if result, err := worker.srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
+			return false, progress.ToJson(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			if result == nil {
 				// We haven't progressed. That means that we've reached the end of this stage of the migration, and should now advance to the next stage.
@@ -86,8 +86,8 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 		}
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		if data, err := worker.app.Srv().Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
-			return false, progress.ToJson(), err
+		if data, err := worker.srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
+			return false, progress.ToJson(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.channel.migrate_channel_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			if data == nil {
 				// We haven't progressed. That means we've reached the end of this final stage of the migration.

@@ -62,6 +62,17 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
 	}
 
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
+	}
+
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, activeUsersInterface.MakeScheduler())
+	}
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

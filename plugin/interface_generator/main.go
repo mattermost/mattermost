@@ -141,6 +141,28 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	return strings.Join(result, ", ")
 }
 
+func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+	if fieldList == nil || len(fieldList.List) == 0 {
+		return "true"
+	}
+
+	result := ""
+	nextLetter := 'A'
+	for _, field := range fieldList.List {
+		typeName := baseTypeName(field.Type)
+		if typeName == "error" || typeName == "AppError" {
+			result = structPrefix + string(nextLetter)
+			break
+		}
+		nextLetter++
+	}
+
+	if result == "" {
+		return "true"
+	}
+	return fmt.Sprintf("%s == nil", result)
+}
+
 func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) string {
 	result := []string{}
 	if fieldList == nil || len(fieldList.List) == 0 {
@@ -169,6 +191,24 @@ func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) str
 	}
 
 	return strings.Join(result, "\n\t")
+}
+
+func baseTypeName(x ast.Expr) string {
+	switch t := x.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.SelectorExpr:
+		if _, ok := t.X.(*ast.Ident); ok {
+			// only possible for qualified type names;
+			// assume type is imported
+			return t.Sel.Name
+		}
+	case *ast.ParenExpr:
+		return baseTypeName(t.X)
+	case *ast.StarExpr:
+		return baseTypeName(t.X)
+	}
+	return ""
 }
 
 func goList(dir string) ([]string, error) {
@@ -278,7 +318,7 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
-		{{if .Return}}{{encodeErrors "returns." .Return}}{{end}}
+		{{if .Return}}{{encodeErrors "returns." .Return}}{{end -}}
 	} else {
 		return encodableError(fmt.Errorf("Hook {{.Name}} called but not implemented."))
 	}
@@ -310,6 +350,7 @@ func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+		{{if .Return}}{{encodeErrors "returns." .Return}}{{end -}}
 	} else {
 		return encodableError(fmt.Errorf("API {{.Name}} called but not implemented."))
 	}
@@ -353,7 +394,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, succes
 func (api *apiTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} api.apiImpl.{{.Name}}({{valuesOnly .Params}})
-	api.recordTime(startTime, "{{.Name}}", true)
+	api.recordTime(startTime, "{{.Name}}", {{ shouldRecordSuccess "_returns" .Return }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{ end -}}
 }
 
@@ -395,7 +436,7 @@ func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, su
 func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} hooks.hooksImpl.{{.Name}}({{valuesOnly .Params}})
-	hooks.recordTime(startTime, "{{.Name}}", true)
+	hooks.recordTime(startTime, "{{.Name}}", {{ shouldRecordSuccess "_returns" .Return }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{end -}}
 }
 
@@ -423,6 +464,9 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 		},
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
+		},
+		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
 		},
 		"obscure": func(name string) string {
 			return "Z_" + name
@@ -469,6 +513,9 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, info.FileSet, true) },
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
+		},
+		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToRecordSuccess(structPrefix, fields, info.FileSet)
 		},
 	}
 

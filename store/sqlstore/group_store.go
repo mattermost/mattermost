@@ -232,8 +232,8 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 		}
 		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if rowsChanged != 1 {
-		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.no_rows_changed", nil, "", http.StatusInternalServerError)
+	if rowsChanged > 1 {
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.more_than_one_row_changed", nil, "", http.StatusInternalServerError)
 	}
 
 	return group, nil
@@ -427,8 +427,8 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		if rowsChanged, err = s.GetMaster().Update(member); err != nil {
 			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.update_error", nil, "group_id="+member.GroupId+", user_id="+member.UserId+", "+err.Error(), http.StatusInternalServerError)
 		}
-		if rowsChanged != 1 {
-			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.no_rows_changed", nil, "", http.StatusInternalServerError)
+		if rowsChanged > 1 {
+			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.more_than_one_row_changed", nil, "", http.StatusInternalServerError)
 		}
 	}
 
@@ -475,7 +475,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
 		if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("CreateGroupSyncable", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateGroupSyncable", "app.team.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))

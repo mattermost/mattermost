@@ -10,12 +10,19 @@ import (
 )
 
 func TestBlevePurgeIndexes(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {
 		_, resp := th.Client.PurgeBleveIndexes()
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("as system user with write experimental permission", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id, model.SYSTEM_USER_ROLE_ID)
+		_, resp := th.Client.PurgeBleveIndexes()
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("as system admin", func(t *testing.T) {

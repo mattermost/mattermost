@@ -36,6 +36,26 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
+func (sa StringArray) Remove(input string) StringArray {
+	for index := range sa {
+		if sa[index] == input {
+			ret := make(StringArray, 0, len(sa)-1)
+			ret = append(ret, sa[:index]...)
+			return append(ret, sa[index+1:]...)
+		}
+	}
+	return sa
+}
+
+func (sa StringArray) Contains(input string) bool {
+	for index := range sa {
+		if sa[index] == input {
+			return true
+		}
+	}
+
+	return false
+}
 func (sa StringArray) Equals(input StringArray) bool {
 
 	if len(sa) != len(input) {
@@ -496,7 +516,7 @@ func IsValidHttpUrl(rawUrl string) bool {
 		return false
 	}
 
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 
@@ -659,12 +679,12 @@ func AsStringBoolMap(list []string) map[string]bool {
 
 // SanitizeUnicode will remove undesirable Unicode characters from a string.
 func SanitizeUnicode(s string) string {
-	return strings.Map(filterBlacklist, s)
+	return strings.Map(filterBlocklist, s)
 }
 
-// filterBlacklist returns `r` if it is not in the blacklist, otherwise drop (-1).
-// Blacklist is taken from https://www.w3.org/TR/unicode-xml/#Charlist
-func filterBlacklist(r rune) rune {
+// filterBlocklist returns `r` if it is not in the blocklist, otherwise drop (-1).
+// Blocklist is taken from https://www.w3.org/TR/unicode-xml/#Charlist
+func filterBlocklist(r rune) rune {
 	const drop = -1
 	switch r {
 	case '\u0340', '\u0341': // clones of grave and acute; deprecated in Unicode

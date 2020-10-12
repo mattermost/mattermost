@@ -12,7 +12,6 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -22,19 +21,16 @@ jobs:
       - checkout
       - run: |
           cd ../
-          git clone https://github.com/mattermost/mattermost-webapp.git
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
+          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
-          if [[ $? == 0 ]]
-          then
-            mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
-          else
-            npm ci && make build
-          fi
+          mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          trap - ERR
       - persist_to_workspace:
           root: ~/mattermost
           paths:
@@ -56,7 +52,7 @@ jobs:
           at: ~/mattermost/
       - run:
           name: Checkout config
-          command: cd .. && git clone https://github.com/mattermost/security-automation-config
+          command: cd .. && git clone --depth=1 https://github.com/mattermost/security-automation-config
       - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
@@ -68,7 +64,12 @@ jobs:
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
-                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                command: |
+                  if ! ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly; then
+                    # Update failed, probably due to a bad DB version; delete cached DB and try again
+                    rm -rv ~/.owasp/dependency-check-data/*.db
+                    ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                  fi
             - owasp/store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
@@ -104,7 +105,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -117,7 +118,7 @@ jobs:
 
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -137,7 +138,7 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            git clone https://github.com/mattermost/mattermost-api-reference.git
+            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
             echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
             git checkout ${CIRCLE_BRANCH} || true
@@ -149,7 +150,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -158,7 +159,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1 # Keep this in sync with Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -166,12 +167,13 @@ jobs:
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
-            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
-            export VERSION=$(sentry-cli releases propose-version)
-            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
-            sentry-cli --log-level=debug releases set-commits --auto $VERSION
+            echo Sentry will use version `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -215,27 +217,15 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
             docker run -it --net circleci_mm-test \
-              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
-              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env-file=dotenv/test.env \
               --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
-              --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
-              bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE="
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
@@ -285,30 +275,22 @@ jobs:
       - run:
           name: Postgres schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
@@ -321,30 +303,22 @@ jobs:
       - run:
           name: MySQL schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
@@ -379,7 +353,7 @@ jobs:
 
   upload-s3:
     docker:
-    - image: 'circleci/python:2.7'
+      - image: 'circleci/python:2.7'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -418,9 +392,9 @@ workflows:
       - setup:
           filters:
             branches:
-                ignore:
-                  - master
-                  - /^release-.*/
+              ignore:
+                - master
+                - /^release-.*/
       - check-deps:
           context: sast-webhook
           requires:
@@ -458,14 +432,14 @@ workflows:
       - test:
           name: test-mysql
           dbdriver: mysql
-          dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8
           requires:
             - check-app-layers
             - check-store-layers
       - test:
           name: test-postgres
           dbdriver: postgres
-          dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
           requires:
             - check-app-layers
             - check-store-layers

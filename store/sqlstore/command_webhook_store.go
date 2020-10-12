@@ -5,11 +5,14 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
+
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlCommandWebhookStore struct {
@@ -36,9 +39,9 @@ func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
 }
 
-func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	if len(webhook.Id) > 0 {
-		return nil, model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("CommandWebhook", "id", webhook.Id)
 	}
 
 	webhook.PreSave()
@@ -47,33 +50,54 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 	}
 
 	if err := s.GetMaster().Insert(webhook); err != nil {
-		return nil, model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 
 	return webhook, nil
 }
 
-func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	var webhook model.CommandWebhook
 
 	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
-	var appErr *model.AppError
-	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
-		appErr = model.NewAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("CommandWebhooks").
+		Where(sq.Eq{"Id": id}).
+		Where(sq.Gt{"CreateAt": exptime})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&webhook, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
-			appErr.StatusCode = http.StatusNotFound
+			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
-		return nil, appErr
+		return nil, errors.Wrapf(err, "get: id=%s", id)
 	}
 
 	return &webhook, nil
 }
 
-func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
-	if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
-		return model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
+	query := s.getQueryBuilder().
+		Update("CommandWebhooks").
+		Set("UseCount", sq.Expr("UseCount + 1")).
+		Where(sq.Eq{"Id": id}).
+		Where(sq.Lt{"UseCount": limit})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "tryuse_tosql")
+	}
+
+	if sqlResult, err := s.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.invalid.app_error", nil, "id="+id, http.StatusBadRequest)
+		return store.NewErrInvalidInput("CommandWebhook", "id", id)
 	}
 
 	return nil
@@ -82,7 +106,18 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
 func (s SqlCommandWebhookStore) Cleanup() {
 	mlog.Debug("Cleaning up command webhook store.")
 	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
-	if _, err := s.GetMaster().Exec("DELETE FROM CommandWebhooks WHERE CreateAt < :ExpTime", map[string]interface{}{"ExpTime": exptime}); err != nil {
+
+	query := s.getQueryBuilder().
+		Delete("CommandWebhooks").
+		Where(sq.Lt{"CreateAt": exptime})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		mlog.Error("Failed to build query when trying to perform a cleanup in command webhook store.")
+		return
+	}
+
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		mlog.Error("Unable to cleanup command webhook store.")
 	}
 }

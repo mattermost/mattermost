@@ -72,6 +72,7 @@ type SqlSupplierStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
 	audit                store.AuditStore
@@ -89,6 +90,7 @@ type SqlSupplierStores struct {
 	emoji                store.EmojiStore
 	status               store.StatusStore
 	fileInfo             store.FileInfoStore
+	uploadSession        store.UploadSessionStore
 	reaction             store.ReactionStore
 	job                  store.JobStore
 	userAccessToken      store.UserAccessTokenStore
@@ -97,6 +99,7 @@ type SqlSupplierStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
+	productNotices       store.ProductNoticesStore
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
@@ -115,7 +118,7 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
-	licenseMutex   sync.Mutex
+	licenseMutex   sync.RWMutex
 }
 
 type TraceOnAdapter struct{}
@@ -157,6 +160,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.emoji = newSqlEmojiStore(supplier, metrics)
 	supplier.stores.status = newSqlStatusStore(supplier)
 	supplier.stores.fileInfo = newSqlFileInfoStore(supplier, metrics)
+	supplier.stores.uploadSession = newSqlUploadSessionStore(supplier)
+	supplier.stores.thread = newSqlThreadStore(supplier)
 	supplier.stores.job = newSqlJobStore(supplier)
 	supplier.stores.userAccessToken = newSqlUserAccessTokenStore(supplier)
 	supplier.stores.channelMemberHistory = newSqlChannelMemberHistoryStore(supplier)
@@ -168,7 +173,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.role = newSqlRoleStore(supplier)
 	supplier.stores.scheme = newSqlSchemeStore(supplier)
 	supplier.stores.group = newSqlGroupStore(supplier)
-
+	supplier.stores.productNotices = newSqlProductNoticesStore(supplier)
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
 		mlog.Critical("Error creating database tables.", mlog.Err(err))
@@ -186,6 +191,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	supplier.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	supplier.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	supplier.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	supplier.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	supplier.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	supplier.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
@@ -202,10 +208,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	supplier.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
 	supplier.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
+	supplier.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
 	supplier.stores.job.(*SqlJobStore).createIndexesIfNotExists()
 	supplier.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
 	supplier.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
+	supplier.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
@@ -330,7 +338,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
-	if ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
 		return ss.GetMaster()
 	}
 
@@ -343,7 +354,10 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
 		return ss.GetMaster()
 	}
 
@@ -786,7 +800,8 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 	var currentPrimaryKey string
 	var err error
 	// get the current primary key as a comma separated list of columns
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	switch ss.DriverName() {
+	case model.DATABASE_DRIVER_MYSQL:
 		query := `
 			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
 		FROM
@@ -798,13 +813,13 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		GROUP BY
 			index_name`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	case model.DATABASE_DRIVER_POSTGRES:
 		query := `
 			SELECT string_agg(a.attname, ',') AS pk
 		FROM
 			pg_constraint AS c
-		CROSS JOIN LATERAL
-			UNNEST(c.conkey) AS cols(colnum)
+		CROSS JOIN
+			(SELECT unnest(conkey) FROM pg_constraint WHERE conrelid='` + strings.ToLower(tableName) + `'::REGCLASS AND contype='p') AS cols(colnum)
 		INNER JOIN
 			pg_attribute AS a ON a.attrelid = c.conrelid
 		AND cols.colnum = a.attnum
@@ -812,7 +827,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+	case model.DATABASE_DRIVER_SQLITE:
 		// SQLite doesn't support altering primary key
 		return true
 	}
@@ -852,6 +867,10 @@ func (ss *SqlSupplier) CreateIndexIfNotExists(indexName string, tableName string
 
 func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
+}
+
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
 }
 
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
@@ -911,7 +930,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(err))
+			mlog.Critical("Failed to create index", mlog.String("table", tableName), mlog.String("index_name", indexName), mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
@@ -1123,6 +1142,10 @@ func (ss *SqlSupplier) FileInfo() store.FileInfoStore {
 	return ss.stores.fileInfo
 }
 
+func (ss *SqlSupplier) UploadSession() store.UploadSessionStore {
+	return ss.stores.uploadSession
+}
+
 func (ss *SqlSupplier) Reaction() store.ReactionStore {
 	return ss.stores.reaction
 }
@@ -1143,12 +1166,20 @@ func (ss *SqlSupplier) Plugin() store.PluginStore {
 	return ss.stores.plugin
 }
 
+func (ss *SqlSupplier) Thread() store.ThreadStore {
+	return ss.stores.thread
+}
+
 func (ss *SqlSupplier) Role() store.RoleStore {
 	return ss.stores.role
 }
 
 func (ss *SqlSupplier) TermsOfService() store.TermsOfServiceStore {
 	return ss.stores.TermsOfService
+}
+
+func (ss *SqlSupplier) ProductNotices() store.ProductNoticesStore {
+	return ss.stores.productNotices
 }
 
 func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {
@@ -1179,8 +1210,8 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	results := make(chan store.IntegrityCheckResult)
+func (ss *SqlSupplier) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
 }

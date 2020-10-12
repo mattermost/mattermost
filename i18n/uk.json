@@ -48,10 +48,6 @@
     "translation": "Вересень"
   },
   {
-    "id": "actiance.export.marshalToXml.appError",
-    "translation": "Не вдалося перетворити експорт в XML. "
-  },
-  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
   },
@@ -162,10 +158,6 @@
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Потрібно використовувати createDirectChannel з API для створення каналу особистих повідомлень"
-  },
-  {
-    "id": "api.channel.create_channel.invalid_character.app_error",
-    "translation": "Неприпустимий символ '__' в імені каналу не для особистих повідомлень"
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
@@ -338,10 +330,6 @@
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
-  },
-  {
-    "id": "api.command.execute_command.debug",
-    "translation": "Виконання cmd =% v userId =% v"
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -626,8 +614,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}",
-      "other": ""
+      "few": "",
+      "many": "",
+      "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}"
     }
   },
   {
@@ -753,10 +742,6 @@
   {
     "id": "api.command_logout.desc",
     "translation": "Вийти з Mattermost"
-  },
-  {
-    "id": "api.command_logout.fail_message",
-    "translation": "Не вдалося вийти"
   },
   {
     "id": "api.command_logout.name",
@@ -1033,15 +1018,17 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "Ви отримали нове повідомлення.У вас є {{.Count}} нові сповіщення.",
-      "other": "У вас є {{.Count}} нові сповіщення."
+      "few": "У вас є {{.Count}} нові сповіщення.",
+      "many": "",
+      "one": "Ви отримали нове повідомлення.У вас є {{.Count}} нові сповіщення."
     }
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
-      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}"
+      "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
+      "many": "",
+      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
   {
@@ -1173,10 +1160,6 @@
     "translation": "Не маєте прав на запис на зазначену локальну конфігурацію чи іншу помилку."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Неможливо створити бакет."
-  },
-  {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Помилка перевірки існування бакета."
   },
@@ -1217,10 +1200,6 @@
     "translation": "Неможливо завантажити зображення. Сховище зображень не налаштоване. "
   },
   {
-    "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Неможливо завантажити файл. Він занадто великий. "
-  },
-  {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
@@ -1254,7 +1233,7 @@
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "Редакція не підтримує Elasticsearch. "
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1483,15 +1462,17 @@
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
-      "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
-      "other": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
+      "few": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
+      "many": "",
+      "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
-      "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
-      "other": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
+      "few": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
+      "many": "",
+      "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
     }
   },
   {
@@ -1777,10 +1758,6 @@
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "Наступні адреси електронної пошти не належать до прийнятого домену: {{.Addresses}}. Будь ласка, зв'яжіться зі своїм системним адміністратором для деталей."
-  },
-  {
-    "id": "api.team.invite_members.member",
-    "translation": "учасник "
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2159,10 +2136,6 @@
     "translation": "Непідтримуваний постачальник послуг OAuth"
   },
   {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Недійсний ідентифікатор команди"
-  },
-  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Ваш обліковий запис заблоковано через надто багато невдалих спроб пароля. Будь ласка, скиньте свій пароль."
   },
@@ -2223,14 +2196,6 @@
     "translation": "Створення акаунтів відключено."
   },
   {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Відсутній ідентифікатор запрошення."
-  },
-  {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Відсутня токен."
-  },
-  {
     "id": "api.user.create_user.no_open_server",
     "translation": "Цей сервер не дозволяє відкрити реєстрацію. Будь ласка, зверніться до свого адміністратора, щоб отримати запрошення."
   },
@@ -2257,10 +2222,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Непідтримуваний постачальник послуг OAuth"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Не вдалося отримати зображення профілю, користувач не знайдений."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2295,10 +2256,6 @@
     "translation": "Вхід не вдалося, оскільки ваш обліковий запис було вимкнено. Будь ласка, зв'яжіться з адміністратором."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "Неправильний ідентифікатор користувача або пароль."
-  },
-  {
     "id": "api.user.login.not_verified.app_error",
     "translation": "Вхід не вдалося, оскільки адреса електронної пошти не була підтверджена"
   },
@@ -2331,10 +2288,6 @@
     "translation": "Автентифікація передачі не налаштовується або недоступна на цьому сервері."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Прийнято невірне значення"
-  },
-  {
     "id": "api.user.reset_password.broken_token.app_error",
     "translation": "Загальнодоступний зв'язок не вважається дійсним  "
   },
@@ -2353,22 +2306,6 @@
   {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "Неможливо скинути пароль для облікових записів SSO"
-  },
-  {
-    "id": "api.user.saml.app_error",
-    "translation": "Не вдається обробити запит на вхід SAML."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Недійсний ідентифікатор дії"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Розширення не підтримуються."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "Розширення з extension_id={{.ExtensionId}} не підтримується."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2599,10 +2536,6 @@
     "translation": "%s оновив заголовок каналу на: %s"
   },
   {
-    "id": "app.cluster.404.app_error",
-    "translation": "Не знайдена кінцева точка API кластера."
-  },
-  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Виникла помилка запису даних експорту."
   },
@@ -2655,16 +2588,8 @@
     "translation": "Не вдалося створити груповий канал"
   },
   {
-    "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Не вдалося знайти учасника каналу при імпорті прямого каналу"
-  },
-  {
     "id": "app.import.import_direct_channel.update_header_failed.error",
     "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Не вдалося знайти учасника каналу при імпорті публікації прямого каналу"
   },
   {
     "id": "app.import.import_direct_post.create_direct_channel.error",
@@ -2673,14 +2598,6 @@
   {
     "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Не вдалося отримати груповий канал"
-  },
-  {
-    "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Помилка імпортування прямого повідомлення. Не вдалося зберегти налаштування."
-  },
-  {
-    "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Користувач, який направив повідомлення, не існує"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -2725,10 +2642,6 @@
   {
     "id": "app.import.import_post.save_preferences.error",
     "translation": "Помилка імпорту публікації. Не вдалося зберегти налаштування."
-  },
-  {
-    "id": "app.import.import_post.team_not_found.error",
-    "translation": "Помилка імпорту публікації. Команду з назвою \"{{.TeamName}}\" не вдалося знайти."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
@@ -3303,10 +3216,6 @@
     "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
   },
   {
-    "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
-  },
-  {
     "id": "app.user_access_token.disabled",
     "translation": "Токени особистого доступу вимикаються на цьому сервері. Зверніться до свого системного адміністратора, щоб дізнатись більше."
   },
@@ -3443,10 +3352,6 @@
     "translation": "Налаштування клієнта Elasticsearch не вдалося"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Не вдалося створити індекс Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
     "translation": "Не вдалося видалити індекс Elasticsearch"
   },
@@ -3465,10 +3370,6 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Не вдалося індексувати публікацію"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "Найстаріший запис не може бути завантажений з бази даних."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3771,24 +3672,12 @@
     "translation": "Не вдалося підписати сформований ідентифікатор тригер для інтерактивного діалогу."
   },
   {
-    "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
-  },
-  {
-    "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Не вдалося скасувати запит на роботу, яка не перебуває у скасовуваному стані."
   },
   {
     "id": "jobs.set_job_error.update.error",
     "translation": "Не вдалося встановити статус роботи до помилки"
-  },
-  {
-    "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -3991,82 +3880,6 @@
     "translation": "Невірний ідентифікатор користувача"
   },
   {
-    "id": "model.client.connecting.app_error",
-    "translation": "Ми виявили помилку при підключенні до сервера"
-  },
-  {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Не вдалося прикріпити дані emoji до запиту"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "Не вдалося прикріпити зображення до запиту"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Не вдалося записати запит"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Відсутній параметр каналу"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Відсутній командний параметр"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "Неможливо прочитати значок команди з тіла відповідей."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "У запиті відсутній файл 'image'"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "Не вдалося записати запит"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Не вдається записати запит."
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Помилка введення ідентифікатора каналу у багаточастинковий формат"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Помилка запису файлу до багаточастинкової форми"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Помилка запису файла Size до багаточастинкової форми"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Помилка запису імпорту з різних форм"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Помилка при закритті багатосторінкового листа"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Помилка створення запиту на багаточастинний сертифікат SAML-сертифіката"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Неможливо створити багатосторінковий запит"
-  },
-  {
     "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt повинен бути встановлений"
   },
@@ -4263,10 +4076,6 @@
     "translation": "Неправильний тип вмісту сповіщення електронною поштою для налаштувань електронної пошти. Має бути одним із \"повних\" або \"загальних\"."
   },
   {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Неправильно запросити сіль для налаштувань електронної пошти. Має бути 32 символів або більше."
-  },
-  {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Недійсна безпека з'єднання для налаштувань електронної пошти. Має бути '', 'TLS' або 'STARTTLS'"
   },
@@ -4459,10 +4268,6 @@
     "translation": "Неможливо включити поштові об'єднання, якщо не заданий SiteURL."
   },
   {
-    "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
-  },
-  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Назва сайту має бути менше або дорівнює {{.MaxLength}} символів."
   },
@@ -4627,10 +4432,6 @@
     "translation": "invalid type property for group syncable"
   },
   {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
-  },
-  {
     "id": "model.incoming_hook.channel_id.app_error",
     "translation": "Неприпустимий ідентифікатор каналу"
   },
@@ -4705,10 +4506,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Link metadata data does not match the given type"
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4991,22 +4788,6 @@
     "translation": "Невірне ім'я користувача."
   },
   {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Недійсний термін служби id."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Текст користувацьких умов надання послуги задовгий. Максимум символів {{.MaxLength}} дозволено."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
-  },
-  {
     "id": "model.token.is_valid.expiry",
     "translation": "Недійсний термін дії токенів"
   },
@@ -5103,18 +4884,6 @@
     "translation": "Невірне ім'я користувача."
   },
   {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Відсутні необхідні користувацькі умови службової властивості: service_terms_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "неможливо декодувати"
   },
@@ -5171,80 +4940,8 @@
     "translation": "FromDb: Неможливо перетворити StringMap в * string"
   },
   {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Перевищене обмеження кількості сторінок"
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_bot.delete.app_error",
-    "translation": "Неможливо видалити публікацію"
-  },
-  {
-    "id": "store.sql_bot.get.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
-  },
-  {
-    "id": "store.sql_bot.get_all.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
-    "id": "store.sql_bot.save.app_error",
-    "translation": "Не вдається зберегти публікацію"
-  },
-  {
-    "id": "store.sql_bot.update.app_error",
-    "translation": "Не вдається оновити повідомлення"
-  },
-  {
-    "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Виникла помилка під час оновлення додатка"
-  },
-  {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Неможливо видалити кількість скасованих каналів"
-  },
-  {
-    "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Неможливо отримати кількість каналів"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Не вдалося розпочати транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Не вдалося відновити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Не вдається видалити канал"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
@@ -5255,220 +4952,12 @@
     "translation": "Сталася помилка під час пошуку каналу"
   },
   {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Неможливо отримати всі канали"
-  },
-  {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Не вдалося знайти канал"
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Каналу не існує"
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Неможливо отримати канали для наданої схеми"
-  },
-  {
-    "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Неможливо отримати кількість каналів"
-  },
-  {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "Канали не знайдені"
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Неможливо отримати канали"
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "Канали не знайдені"
-  },
-  {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Не вдається знайти існуючий видалений канал"
-  },
-  {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "Немає видалених каналів"
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Не вдається знайти існуючий видалений канал"
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "Не існує такого видаленого каналу з таким ім'ям"
-  },
-  {
-    "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Не вдалося отримати канал для даної публікації"
-  },
-  {
-    "id": "store.sql_channel.get_member.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
-  },
-  {
-    "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Не вдалося отримати кількість учасників каналу"
-  },
-  {
-    "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Не вдалося отримати члена каналу для даного повідомлення"
-  },
-  {
-    "id": "store.sql_channel.get_members.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
-  },
-  {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Неможливо отримати канали"
-  },
-  {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Не вдалося отримати часові пояси членів каналу"
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
-  },
-  {
-    "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Не вдається збільшити кількість згадок"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Не вдалося відновити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Не вдалося вибрати партію учасників каналу"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Неможливо видалити схему"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Неможливо видалити матеріалізований публічний канал"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Неможливо видалити схему"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Неможливо видалити матеріалізовані публічні канали"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Не вдається знайти прикріплені повідомлення"
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "Не вдалося вилучити деактивованих користувачів із каналу"
-  },
-  {
-    "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "Не вдалося скинути схеми каналів"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "Не вдалося скинути останній канал на дату"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
     "id": "store.sql_channel.save.archived_channel.app_error",
     "translation": "Ви не можете реагувати на архівований канал."
   },
   {
-    "id": "store.sql_channel.save.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
     "id": "store.sql_channel.save.direct_channel.app_error",
     "translation": "Використовуйте SaveDirectChannel для створення прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.save.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Не вдається видозмінити матеріалізований публічний канал"
-  },
-  {
-    "id": "store.sql_channel.save_channel.current_count.app_error",
-    "translation": "Не вдалося отримати поточний канал"
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
@@ -5483,272 +4972,12 @@
     "translation": "Ви досягли обмеження кількості дозволених каналів."
   },
   {
-    "id": "store.sql_channel.save_channel.previously.app_error",
-    "translation": "Канал з цією URL-адресою раніше був створений"
-  },
-  {
-    "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Не вдається зберегти канал"
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.save_direct_channel.commit.app_error",
-    "translation": "Чи не вдалося зафіксувати транзакцію"
-  },
-  {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Не був створений прямий канал за допомогою SaveDirectChannel"
   },
   {
-    "id": "store.sql_channel.save_direct_channel.open_transaction.app_error",
-    "translation": "Неможливо розпочати транзакцію"
-  },
-  {
-    "id": "store.sql_channel.save_member.commit_transaction.app_error",
-    "translation": "Не вдалося зафіксувати транзакцію"
-  },
-  {
-    "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "Канал з таким ID вже існує"
-  },
-  {
-    "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію "
-  },
-  {
-    "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Не вдається оновити матеріалізований публічний канал"
-  },
-  {
-    "id": "store.sql_channel.update.app_error",
-    "translation": "Не вдається оновити канал"
-  },
-  {
-    "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "Ви не можете реагувати на архівований канал."
-  },
-  {
-    "id": "store.sql_channel.update.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.update.exists.app_error",
-    "translation": "Канал з таким дескриптором вже існує"
-  },
-  {
-    "id": "store.sql_channel.update.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію"
-  },
-  {
-    "id": "store.sql_channel.update.previously.app_error",
-    "translation": "Канал з цією URL-адресою раніше був створений"
-  },
-  {
-    "id": "store.sql_channel.update.updating.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Не вдається видозмінити матеріалізований публічний канал"
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Ну вдалося встановити час останнього перегляду на"
-  },
-  {
-    "id": "store.sql_channel.update_member.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
-  },
-  {
-    "id": "store.sql_channel_member_history.log_join_event.app_error",
-    "translation": "Не вдалося записати історію учасників каналу"
-  },
-  {
-    "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Не вдалося записати історію учасників каналу. Не вдалося оновити існуючий запис"
-  },
-  {
-    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
-    "translation": "Не вдалося очистити записи"
-  },
-  {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-  },
-  {
-    "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Не вдалося видалити"
-  },
-  {
-    "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Не вдалося перевірити існування"
-  },
-  {
-    "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Не вдалося отримати всі рядки відкриття"
-  },
-  {
-    "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-  },
-  {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Не вдалося оновити останній ping у"
-  },
-  {
-    "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "store.sql_command.save.delete.app_error",
-    "translation": "Неможливо видалити команду"
-  },
-  {
-    "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Неможливо видалити команду"
-  },
-  {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Не вдається отримати команду"
-  },
-  {
-    "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Не вдається отримати команди"
-  },
-  {
-    "id": "store.sql_command.save.saving.app_error",
-    "translation": "Не вдається зберегти команду"
-  },
-  {
-    "id": "store.sql_command.save.saving_overwrite.app_error",
-    "translation": "Ви не можете переписати існуючу команду"
-  },
-  {
-    "id": "store.sql_command.save.update.app_error",
-    "translation": "Не вдається оновити команду"
-  },
-  {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Неможливо використовувати веб-ключ"
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Не вдається зберегти команду Webhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "Ви не можете оновити існуючий CommandWebhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Неможливо використовувати веб-ключа"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Неправильний веб-хокс"
-  },
-  {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Не вдалося вибрати дані експорту повідомлення"
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "Виникла помилка при спробі прочитати файл"
-  },
-  {
-    "id": "store.sql_emoji.delete.app_error",
-    "translation": "Неможливо видалити смайли"
-  },
-  {
-    "id": "store.sql_emoji.delete.no_results",
-    "translation": "Не вдалося знайти смайли для видалення"
-  },
-  {
-    "id": "store.sql_emoji.get.app_error",
-    "translation": "Неможливо отримати смайли"
-  },
-  {
-    "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Неможливо отримати смайли"
-  },
-  {
-    "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Неможливо отримати смайли"
-  },
-  {
-    "id": "store.sql_emoji.save.app_error",
-    "translation": "Не вдається зберегти смайли"
-  },
-  {
-    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Не вдалося видалити вкладення користувача"
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Ми не могли прикріпити інформацію про фото до посту"
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Ми не змогли видалити інформацію про фото в пості"
-  },
-  {
-    "id": "store.sql_file_info.get.app_error",
-    "translation": "Не вдається отримати інформацію про файл"
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
-  },
-  {
-    "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Не вдається отримати інформацію про файл для користувача"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Ми не змогли назавжди видалити інформацію про файл"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-  },
-  {
-    "id": "store.sql_file_info.save.app_error",
-    "translation": "Не вдається зберегти інформацію про файл"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -5759,14 +4988,6 @@
     "translation": "no matching group found"
   },
   {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
-  },
-  {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
-  },
-  {
     "id": "store.sql_group.unique_constraint",
     "translation": "Команда з таким ім'ям вже існує"
   },
@@ -5775,756 +4996,12 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Не вдається видалити завдання"
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Неможливо зберегти схему"
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Не вдається оновити схему"
-  },
-  {
-    "id": "store.sql_license.get.app_error",
-    "translation": "Сталася помилка під час отримання ліцензії"
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "Ліцензія з таким ідентифікатором не знайдено"
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "Ми зіткнулися з помилкою, зберігаючи ліцензію"
-  },
-  {
-    "id": "store.sql_oauth.delete.commit_transaction.app_error",
-    "translation": "Не вдається здійснити транзакцію"
-  },
-  {
-    "id": "store.sql_oauth.delete.open_transaction.app_error",
-    "translation": "Неможливо відкрити транзакцію для видалення додатка OAuth2"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "Неможливо відмінити транзакцію, щоб видалити додаток OAuth2"
-  },
-  {
-    "id": "store.sql_oauth.delete_app.app_error",
-    "translation": "Під час видалення додатка OAuth2 сталася помилка"
-  },
-  {
-    "id": "store.sql_oauth.get_access_data.app_error",
-    "translation": "Виникла помилка під час пошуку токену доступу"
-  },
-  {
-    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "Виникла помилка під час знаходження всіх токенів доступу"
-  },
-  {
-    "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Не вдалося знайти потрібний додаток"
-  },
-  {
-    "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "Виникла помилка під час знаходження додатку"
-  },
-  {
-    "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Не вдалося знайти дійсну команду для оновлення"
-  },
-  {
-    "id": "store.sql_oauth.get_apps.find.app_error",
-    "translation": "Під час пошуку додатків OAuth2 сталася помилка"
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "Не вдалося знайти дійсний код авторизації"
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.finding.app_error",
-    "translation": "Виникла помилка при пошуку коду авторизації"
-  },
-  {
-    "id": "store.sql_oauth.get_previous_access_data.app_error",
-    "translation": "У нас виникла помилка під час пошуку токену доступу"
-  },
-  {
-    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Не вдалося видалити код авторизації"
-  },
-  {
-    "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Неможливо видалити маркер доступу"
-  },
-  {
-    "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "Не вдалося видалити код авторизації"
-  },
-  {
-    "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Неможливо зберегти токен"
-  },
-  {
-    "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Необхідно викликати оновлення наявної програми"
-  },
-  {
-    "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Не вдається зберегти додаток."
-  },
-  {
-    "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "Не вдалося зберегти код авторизації."
-  },
-  {
-    "id": "store.sql_oauth.update_access_data.app_error",
-    "translation": "Ми виявили помилку під час оновлення токену доступу"
-  },
-  {
-    "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Неможливо знайти існуючу програму для оновлення"
-  },
-  {
-    "id": "store.sql_oauth.update_app.finding.app_error",
-    "translation": "Виникла помилка під час пошуку додатоку"
-  },
-  {
-    "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Не вдається оновити додаток"
-  },
-  {
-    "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "Виникла помилка під час оновлення додатка"
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Не вдалося видалити значення клавіші плагіна"
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Не вдалося отримати значення ключа плагіна"
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Не вдається отримати кількість постів"
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Не вдається отримати кількість постів за день"
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Неможливо отримати кількість користувачів із повідомленнями"
-  },
-  {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Ми не змогли отримати відповідні експортні повідомлення."
-  },
-  {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Неможливо видалити публікацію"
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
-    "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Не вдалося додати учасників прямого каналу"
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Неможливо отримати батьківський допис для каналу"
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Перевищене обмеження кількості сторінок"
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Не вдалося отримати батьківські пости для каналу"
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Не вдається отримати повідомлення"
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Не вдалося отримати пости для каналу"
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Неможливо видалити роль"
-  },
-  {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Неможливо видалити роль"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Невдала спроба видалити коментарі користувача"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Неможливо видалити повідомлення з каналу"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Не вдалося вибрати повідомлення, які потрібно видалити для користувача"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Не вдається вибрати повідомлення, які потрібно видалити для користувача (забагато), будь ласка, повторно запустіть"
-  },
-  {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Не вдається зберегти публікацію"
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "Ви не можете оновити існуючу публікацію "
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
   {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Не вдається оновити повідомлення"
-  },
-  {
-    "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
-  },
-  {
-    "id": "store.sql_preference.delete.app_error",
-    "translation": "Виникла помилка при видаленні налаштувань"
-  },
-  {
-    "id": "store.sql_preference.get.app_error",
-    "translation": "Виникла помилка при пошуку налаштувань"
-  },
-  {
-    "id": "store.sql_preference.get_all.app_error",
-    "translation": "Виникла помилка при пошуку налаштувань"
-  },
-  {
-    "id": "store.sql_preference.get_category.app_error",
-    "translation": "Виникла помилка під час пошуку налаштувань"
-  },
-  {
-    "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "Налаштування з таким ідентифікатором користувача, категорією і ім'ям вже існує"
-  },
-  {
-    "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Не вдається зберегти налаштування"
-  },
-  {
-    "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Виникла помилка при пошуку налаштувань пред-релізу функції"
-  },
-  {
-    "id": "store.sql_preference.permanent_delete_by_user.app_error",
-    "translation": "Виникла помилка при видаленні налаштувань"
-  },
-  {
-    "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Неможливо зафіксувати транзакцію по збереженню налаштувань"
-  },
-  {
-    "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "Виникла помилка при оновленні налаштувань"
-  },
-  {
-    "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Неможливо розпочати транзакцію по збереженню налаштувань"
-  },
-  {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "Неможливо відкинути транзакцію по збереженню налаштувань"
-  },
-  {
-    "id": "store.sql_preference.save.updating.app_error",
-    "translation": "Виникла помилка при оновленні налаштувань"
-  },
-  {
-    "id": "store.sql_preference.update.app_error",
-    "translation": "Не вдається зберегти налаштування"
-  },
-  {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Не вдалося отримати реакції для даного повідомлення"
-  },
-  {
-    "id": "store.sql_reaction.delete.app_error",
-    "translation": "Не вдається видалити реакцію"
-  },
-  {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Не вдалося відкрити транзакцію при видаленні реакції"
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Не вдалося зробити транзакцію при видаленні реакції"
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Неможливо видалити всі реакції за допомогою цієї назви смайлика"
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Не вдається отримати всі реакції за допомогою цієї назви"
-  },
-  {
-    "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Не вдалося отримати реакції для даного повідомлення"
-  },
-  {
-    "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-  },
-  {
-    "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Не вдалося відкрити транзакцію при збереженні реакції"
-  },
-  {
-    "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Не вдалося зробити транзакцію при збереженні реакції"
-  },
-  {
-    "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Неможливо зберегти реакцію"
-  },
-  {
-    "id": "store.sql_recover.delete.app_error",
-    "translation": "Неможливо видалити токен"
-  },
-  {
-    "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Неможливо отримати токен із цим кодом"
-  },
-  {
-    "id": "store.sql_recover.save.app_error",
-    "translation": "Неможливо зберегти токен"
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Неможливо видалити роль"
-  },
-  {
-    "id": "store.sql_role.get.app_error",
-    "translation": "Неможливо отримати роль"
-  },
-  {
-    "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Неможливо отримати роль"
-  },
-  {
-    "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Неможливо отримати роль"
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "Ми не змогли назавжди видалити всі ролі"
-  },
-  {
-    "id": "store.sql_role.save.insert.app_error",
-    "translation": "Не вдається зберегти нову роль"
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "Роль не була дійсною"
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію, щоб зберегти роль"
-  },
-  {
-    "id": "store.sql_role.save.update.app_error",
-    "translation": "Неможливо оновити роль"
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію для збереження ролі"
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Неможливо видалити ролі, що належать до цієї схеми"
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Неможливо видалити схему"
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Не вдається отримати схему"
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "Ми не змогли назавжди видалити схеми"
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Неможливо скинути всі канали за допомогою цієї схеми до схеми за замовчуванням"
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Неможливо скинути всі канали за допомогою цієї схеми до схеми за замовчуванням"
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Неможливо створити схему"
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "Надана схема недійсна"
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію для збереження схеми"
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Не вдається отримати ролі за замовчуванням"
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Не вдається оновити схему"
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію для збереження схеми"
-  },
-  {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Не вдається підрахувати сеанси"
-  },
-  {
-    "id": "store.sql_session.get.app_error",
-    "translation": "Виникла помилка при пошуку сесії"
-  },
-  {
-    "id": "store.sql_session.get_sessions.app_error",
-    "translation": "Виникла помилка при пошуку сесій користувача"
-  },
-  {
-    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Невдала спроба видалити всі сесії користувача"
-  },
-  {
-    "id": "store.sql_session.remove.app_error",
-    "translation": "Не вдається видалити сеанс"
-  },
-  {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Не вдається видалити всі сеанси"
-  },
-  {
-    "id": "store.sql_session.save.app_error",
-    "translation": "Не вдається зберегти сеанс"
-  },
-  {
-    "id": "store.sql_session.save.existing.app_error",
-    "translation": "Неможливо оновити існуючий сеанс"
-  },
-  {
-    "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Неможливо оновити ідентифікатор пристрою"
-  },
-  {
-    "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Не вдається оновити last_activity_at"
-  },
-  {
-    "id": "store.sql_session.update_roles.app_error",
-    "translation": "Не вдається оновити ролі"
-  },
-  {
-    "id": "store.sql_status.get.app_error",
-    "translation": "Виникла помилка при отриманні статусу"
-  },
-  {
-    "id": "store.sql_status.get.missing.app_error",
-    "translation": "Не існує запису для даного статусу"
-  },
-  {
-    "id": "store.sql_status.get_online.app_error",
-    "translation": "Виникла проблема при отриманні всіх статусів \"У мережі\""
-  },
-  {
-    "id": "store.sql_status.get_online_away.app_error",
-    "translation": "Виникла помилка при отриманні всіх статусів \"У мережі/Відійшов\""
-  },
-  {
-    "id": "store.sql_status.get_team_statuses.app_error",
-    "translation": "Виникла помилка з отриманням всіх статусів учасників команди"
-  },
-  {
-    "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Не вдалося підрахувати активних користувачів"
-  },
-  {
-    "id": "store.sql_status.reset_all.app_error",
-    "translation": "Виникла проблема при скиданні всіх статусів"
-  },
-  {
-    "id": "store.sql_status.save.app_error",
-    "translation": "Виникла помилка при збереженні статусу"
-  },
-  {
-    "id": "store.sql_status.update.app_error",
-    "translation": "Виникла помилка при оновленні статусу"
-  },
-  {
-    "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Не вдається оновити останню дату та час дії користувача"
-  },
-  {
-    "id": "store.sql_system.get.app_error",
-    "translation": "Виникла помилка при пошуку властивостей системи"
-  },
-  {
-    "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Не вдається знайти системну змінну."
-  },
-  {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "Ми не змогли назавжди видалити запис системної таблиці"
-  },
-  {
-    "id": "store.sql_system.save.app_error",
-    "translation": "Виникла помилка при збереженні властивості системи"
-  },
-  {
-    "id": "store.sql_system.update.app_error",
-    "translation": "Виникла помилка при оновленні властивості системи"
-  },
-  {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Не вдалося отримати номер каналу для схеми."
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Неможливо підрахувати команди"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Не вдалося розпочати транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Не вдалося відновити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не вдалося отримати учасників команди"
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.get.find.app_error",
-    "translation": "Не вдається знайти існуючу команду"
-  },
-  {
-    "id": "store.sql_team.get.finding.app_error",
-    "translation": "Виникла помилка з виявленням команди"
-  },
-  {
-    "id": "store.sql_team.get_all.app_error",
-    "translation": "Не вдалося отримати всі команди"
-  },
-  {
-    "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "Не вдалося отримати всі команди"
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Не вдається знайти існуючу команду"
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Не вдається знайти існуючу команду"
-  },
-  {
-    "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Не вдається знайти існуючу команду"
-  },
-  {
-    "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Неможливо отримати канали для наданої схеми"
-  },
-  {
-    "id": "store.sql_team.get_member.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
-  },
-  {
-    "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.get_members.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.get_unread.app_error",
-    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Не вдалося здійснити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Не вдалося відкрити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Не вдалося відновити транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": "Не вдалося вибрати партію учасників команди"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Не вдалося оновити учасників команди"
-  },
-  {
-    "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Не вдалося знайти дійсну команду для оновлення"
-  },
-  {
-    "id": "store.sql_team.remove_member.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "Не вдалося скинути командні схеми"
-  },
-  {
-    "id": "store.sql_team.save.app_error",
-    "translation": "Не вдається зберегти команду"
-  },
-  {
-    "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "Команда з таким ім'ям вже існує"
-  },
-  {
-    "id": "store.sql_team.save.existing.app_error",
-    "translation": "Необхідно викликати оновлення для існуючої команди"
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "Учасник команди з таким ідентифікатором вже існує"
-  },
-  {
-    "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Не вдалося оновити учасника команди"
-  },
-  {
-    "id": "store.sql_team.search_all_team.app_error",
-    "translation": "Виникла проблема при пошуку команд"
-  },
-  {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "Виникла проблема при пошуку відкритих команд"
-  },
-  {
-    "id": "store.sql_team.update.app_error",
-    "translation": "Не вдається оновити команду"
-  },
-  {
-    "id": "store.sql_team.update.find.app_error",
-    "translation": "Не вдалося знайти дійсну команду для оновлення"
-  },
-  {
-    "id": "store.sql_team.update.finding.app_error",
-    "translation": "Виникла помилка під час виявлення команди"
-  },
-  {
-    "id": "store.sql_team.update.updating.app_error",
-    "translation": "Виникла помилка оновлення команди"
-  },
-  {
-    "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Неможливо оновити назву команди"
-  },
-  {
-    "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Не вдалося оновити дату останнього оновлення піктограми команди"
-  },
-  {
-    "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6539,10 +5016,6 @@
     "translation": "Не вдається отримати систему адміністратора"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Не вдається отримати унікальний номер користувача"
-  },
-  {
     "id": "store.sql_user.app_error",
     "translation": "Failed to build query"
   },
@@ -6553,10 +5026,6 @@
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
     "translation": "Не вдалося розпочати транзакцію бази даних"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Не вдалося відновити транзакцію бази даних"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
@@ -6639,36 +5108,12 @@
     "translation": "Обліковий запис з такою електронною поштою вже існує."
   },
   {
-    "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
-  },
-  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Необхідно викликати оновлення для існуючого користувача"
   },
   {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
-  },
-  {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Не вдалося отримати кількість учасників поточної команди"
-  },
-  {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "Обліковий запис з таким ім'ям користувача вже існує."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з адміністратором."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -6739,172 +5184,12 @@
     "translation": "Неможливо оновити поле перевірки електронної пошти"
   },
   {
-    "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Не вдалося видалити персональний токен доступу"
-  },
-  {
-    "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Не вдалося отримати персональний токен доступу"
-  },
-  {
-    "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Не можливо отримати всі токени особистого доступу"
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Не вдалося отримати персональний токен доступу по токену"
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Не вдалося отримати персональні токени доступу для користувача"
-  },
-  {
-    "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Неможливо зберегти персональний токен доступу"
-  },
-  {
-    "id": "store.sql_user_access_token.search.app_error",
-    "translation": "Ми виявили помилку пошуку токенів доступу користувача"
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Неможливо зберегти токен"
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Неможливо зберегти токен"
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Неможливо видалити умови використання послуги."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Не вдається завантажити умови надання послуг."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Жодних умов служби не знайдено."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Не вдається зберегти умови обслуговування."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Неможливо використовувати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Неможливо використовувати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Неможливо видалити веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Неможливо видалити веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Не вдається отримати веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Неможливо видалити веб-ключа "
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Неможливо видалити веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Неможливо видалити веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Неможливо видалити веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Не вдається зберегти вхідний веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Не вдається зберегти Outgoing Webhook"
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
-  },
-  {
-    "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Неможливо оновити вхідний веб-ключа"
-  },
-  {
-    "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Неможливо оновити веб-ключа"
-  },
-  {
     "id": "store.update_error",
     "translation": "update error"
   },
   {
     "id": "system.message.name",
     "translation": "Система"
-  },
-  {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "Неможливо завантажити найважливіший файл конфігурації: Додавання DefaultClientLocale до AvailableLocales."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Помилка декодування конфігураційного файлу file = {{.Filename}}, err = {{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Помилка відкриття конфігурації file = {{.Filename}}, err = {{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "Виникла помилка при збереженні файлу в {{.Filename}}"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Не вдається завантажити mattermost файл конфігурації: AvailableLocales має включати DefaultClientLocale. Налаштування доступних посилання на всі локали як значення за замовчуванням."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Неможливо завантажити mattermost файл конфігурації: DefaultClientLocale повинна бути однією з підтримуваних локалей. Встановлення DefaultClientLocale у значення за замовчуванням."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Неможливо завантажити mattermost файл конфігурації: DefaultServerLocale повинен бути одним з підтримуваних локалей. Встановлення DefaultServerLocale в значення en як значення за замовчуванням."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6975,20 +5260,8 @@
     "translation": "Не вдалося знайти команду"
   },
   {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Невірний вебхук"
-  },
-  {
     "id": "web.command_webhook.parse.app_error",
     "translation": "Неможливо проаналізувати вхідні дані"
-  },
-  {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Ваш поточний веб-переглядач не підтримується. Будь ласка, оновіть до одного з таких веб-переглядачів:"
-  },
-  {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Непідтримуваний браузер"
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -7029,5 +5302,2273 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Не вдалося знайти користувача"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Ім'я повинно складатися з 2 або більше малих літер і цифр"
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "Надана схема недійсна"
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Неможливо створити схему"
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "Ми не змогли назавжди видалити схеми"
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Не вдається отримати схему"
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "або"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_make_default",
+    "translation": "Make default"
+  },
+  {
+    "id": "web.error.unsupported_browser.open_system_browser.edge",
+    "translation": "Open Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support_version",
+    "translation": "This version of your browser is no longer supported by Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "This browser is no longer supported by Mattermost"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 7+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 10.9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 12+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 60+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 44+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 61+"
+  },
+  {
+    "id": "web.error.unsupported_browser.learn_more",
+    "translation": "Learn more about supported browsers."
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.windows",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.install_guide.mac",
+    "translation": "Install Guide"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_the_app",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+  },
+  {
+    "id": "web.error.unsupported_browser.download",
+    "translation": "Download the App"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Get the latest Safari browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Get the latest Firefox browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Get the latest Chrome browser"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Неможливо вимкнути плагін"
+  },
+  {
+    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+    "translation": "Unable to get the list of deactivate guests ids."
+  },
+  {
+    "id": "store.sql_user.promote_guest.user_update.app_error",
+    "translation": "Не вдалося оновити користувача"
+  },
+  {
+    "id": "store.sql_user.promote_guest.team_members_update.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "store.sql_user.promote_guest.open_transaction.app_error",
+    "translation": "Не вдалося розпочати транзакцію бази даних"
+  },
+  {
+    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+    "translation": "Не вдалося здійснити транзакцію бази даних"
+  },
+  {
+    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing."
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing."
+  },
+  {
+    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Виникла помилка при пошуку профілів"
+  },
+  {
+    "id": "store.sql_user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
+    "translation": "Не вдалося оновити користувача"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+    "translation": "Не вдалося розпочати транзакцію бази даних"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+    "translation": "Не вдалося здійснити транзакцію бази даних"
+  },
+  {
+    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions don't make sense."
+  },
+  {
+    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
+  },
+  {
+    "id": "store.sql_group.app_error",
+    "translation": "failed to build query."
+  },
+  {
+    "id": "searchengine.bleve.disabled.error",
+    "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
+  },
+  {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Unable to get the users, invalid sorting criteria."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "\"Оновити в\" повинно бути коректним часом"
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Invalid position: must not be longer than 128 characters."
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Невірне ім'я користувача."
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Некоректна роль"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Невірне ім'я користувача."
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Недійсний ідентифікатор користувача"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Невірне ім'я користувача."
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "\"Створити в\" повинно бути коректним часом"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Invalid user, auth data must be set with auth type."
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Invalid user, password and auth data cannot both be set."
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Invalid auth data."
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Invalid invite id."
+  },
+  {
+    "id": "model.post.channel_notifications_disabled_in_channel.message",
+    "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+  },
+  {
+    "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+    "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Некоректна адреса електронної пошти"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Некоректна адреса електронної пошти"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Неприпустимий ідентифікатор каналу"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Неприпустимий ідентифікатор каналу"
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "invalid characters in the name property for group"
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Invalid Signature Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_guest_attribute.app_error",
+    "translation": "Invalid Guest attribute. Must be in the form 'field=value'."
+  },
+  {
+    "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+    "translation": "Invalid Canonical Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_admin_attribute.app_error",
+    "translation": "Invalid Admin attribute. Must be in the form 'field=value'."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.filename.app_error",
+    "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+    "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+    "translation": "Параметр Elastic Searching IndexingEnabled повинен бути встановлений як true, коли Elastic SearchEnabled встановлено як true."
+  },
+  {
+    "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Вікно масове індексування часу служби Elasticsearch повинно бути не менше 1 секунди."
+  },
+  {
+    "id": "model.command.is_valid.autocomplete_data.app_error",
+    "translation": "Invalid AutocompleteData"
+  },
+  {
+    "id": "model.channel.is_valid.name.app_error",
+    "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Не вдалося декодувати підпис бази64 під час запуску інтерактивного діалогу."
+  },
+  {
+    "id": "groups.unsupported_syncable_type",
+    "translation": "Unsupported syncable type '{{.Value}}'."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+  },
+  {
+    "id": "ent.ldap.validate_guest_filter.app_error",
+    "translation": "Недійсний фільтр AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.validate_admin_filter.app_error",
+    "translation": "Недійсний фільтр AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+  },
+  {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "error deleting team or channel memberships"
+  },
+  {
+    "id": "ent.id_loaded.license_disable.app_error",
+    "translation": "Your license does not support ID Loaded Push Notifications."
+  },
+  {
+    "id": "ent.elasticsearch.start.parse_server_version.app_error",
+    "translation": "Failed to parse Elasticsearch server version."
+  },
+  {
+    "id": "ent.elasticsearch.start.get_server_version.app_error",
+    "translation": "Failed to get Elasticsearch server version."
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+    "translation": "Не вдається розшифрувати результати пошуку"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Не вдається розшифрувати результати пошуку"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Пошук на сайті Elasticsearch вимкнено на цьому сервері"
+  },
+  {
+    "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+    "translation": "Не вдалося отримати індекси Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Не вдалося індексувати публікацію"
+  },
+  {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Не вдалося оновити заголовок прямого каналу "
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Не вдалося оновити заголовок прямого каналу "
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for users"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for posts"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for channels"
+  },
+  {
+    "id": "ent.compliance.csv.warning.appError",
+    "translation": "Неможливо створити файл eml."
+  },
+  {
+    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+    "translation": "Неможливо створити файл eml."
+  },
+  {
+    "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+    "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+  },
+  {
+    "id": "bleveengine.stop_user_index.error",
+    "translation": "Failed to close user index."
+  },
+  {
+    "id": "bleveengine.stop_post_index.error",
+    "translation": "Failed to close post index."
+  },
+  {
+    "id": "bleveengine.stop_channel_index.error",
+    "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.search_users_in_team.error",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.uchan.error",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "bleveengine.search_users_in_channel.nuchan.error",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "bleveengine.search_posts.error",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "bleveengine.search_channels.error",
+    "translation": "Пошук не вдалося завершити"
+  },
+  {
+    "id": "bleveengine.purge_user_index.error",
+    "translation": "Failed to purge user indexes."
+  },
+  {
+    "id": "bleveengine.purge_post_index.error",
+    "translation": "Failed to purge post indexes."
+  },
+  {
+    "id": "bleveengine.purge_channel_index.error",
+    "translation": "Failed to purge channel indexes."
+  },
+  {
+    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_start_time.error",
+    "translation": "Працівник індексації Elasticsearch не зміг розібрати початковий час"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.parse_end_time.error",
+    "translation": "Працівник індексації Elasticsearch не зміг розібрати час закінчення"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_post.error",
+    "translation": "Найстаріший запис не може бути завантажений з бази даних."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Failed to run Bleve index job: engine is inactive."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+    "translation": "Failed to index user batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+    "translation": "Failed to index post batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+    "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.index_user.error",
+    "translation": "Не вдалося індексувати публікацію"
+  },
+  {
+    "id": "bleveengine.index_post.error",
+    "translation": "Не вдалося індексувати публікацію"
+  },
+  {
+    "id": "bleveengine.index_channel.error",
+    "translation": "Не вдалося оновити заголовок прямого каналу "
+  },
+  {
+    "id": "bleveengine.delete_user.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "bleveengine.delete_post.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "bleveengine.delete_channel.error",
+    "translation": "Не вдалося оновити заголовок прямого каналу "
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Error creating the bleve user index."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Error creating the bleve post index."
+  },
+  {
+    "id": "bleveengine.create_channel_index.error",
+    "translation": "Error creating the bleve channel index."
+  },
+  {
+    "id": "bleveengine.already_started.error",
+    "translation": "Bleve is already started."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Не вдається зберегти умови обслуговування."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "Жодних умов служби не знайдено."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Не вдається завантажити умови надання послуг."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Неможливо видалити умови використання послуги."
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "Жодних умов служби не знайдено."
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Не вдається завантажити умови надання послуг."
+  },
+  {
+    "id": "app.terms_of_service.create.existing.app_error",
+    "translation": "Необхідно зателефонувати за збереженням існуючих умов надання послуг."
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Не вдається зберегти умови обслуговування."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by token."
+  },
+  {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by invite."
+  },
+  {
+    "id": "app.plugin.write_file.saving.app_error",
+    "translation": "Під час виходу з каналу сталася помилка."
+  },
+  {
+    "id": "app.plugin.write_file.read.app_error",
+    "translation": "Під час виходу з каналу сталася помилка."
+  },
+  {
+    "id": "app.plugin.webapp_bundle.app_error",
+    "translation": "Unable to generate plugin webapp bundle."
+  },
+  {
+    "id": "app.plugin.sync.read_local_folder.app_error",
+    "translation": "Error reading local plugins folder."
+  },
+  {
+    "id": "app.plugin.sync.list_filestore.app_error",
+    "translation": "Error reading files from the plugins folder in the file store."
+  },
+  {
+    "id": "app.plugin.store_signature.app_error",
+    "translation": "Unable to store the plugin signature to the configured file store."
+  },
+  {
+    "id": "app.plugin.store_bundle.app_error",
+    "translation": "Unable to store the plugin to the configured file store."
+  },
+  {
+    "id": "app.plugin.signature_decode.app_error",
+    "translation": "Unable to decode base64 signature."
+  },
+  {
+    "id": "app.plugin.restart.app_error",
+    "translation": "Unable to restart plugin on upgrade."
+  },
+  {
+    "id": "app.plugin.remove_bundle.app_error",
+    "translation": "Unable to remove plugin bundle from file store."
+  },
+  {
+    "id": "app.plugin.modify_saml.app_error",
+    "translation": "Can't modify saml files."
+  },
+  {
+    "id": "app.plugin.marshal.app_error",
+    "translation": "Failed to marshal marketplace plugins."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin signature."
+  },
+  {
+    "id": "app.plugin.marketplace_plugins.not_found.app_error",
+    "translation": "Could not find the requested marketplace plugin."
+  },
+  {
+    "id": "app.plugin.marketplace_plugin_request.app_error",
+    "translation": "Failed to decode the marketplace plugin request."
+  },
+  {
+    "id": "app.plugin.marketplace_disabled.app_error",
+    "translation": "Плагіни відключені. Будь ласка, перевірте свої журнали на деталі."
+  },
+  {
+    "id": "app.plugin.marketplace_client.failed_to_fetch",
+    "translation": "Failed to get plugins from the marketplace server."
+  },
+  {
+    "id": "app.plugin.marketplace_client.app_error",
+    "translation": "Failed to create marketplace client."
+  },
+  {
+    "id": "app.plugin.invalid_version.app_error",
+    "translation": "Plugin version could not be parsed."
+  },
+  {
+    "id": "app.plugin.install_marketplace_plugin.app_error",
+    "translation": "Failed to install marketplace plugin."
+  },
+  {
+    "id": "app.plugin.get_public_key.get_file.app_error",
+    "translation": "An error occurred while getting the public key from the store."
+  },
+  {
+    "id": "app.plugin.flag_managed.app_error",
+    "translation": "Unable to set plugin as managed by the file store."
+  },
+  {
+    "id": "app.plugin.delete_public_key.delete.app_error",
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Invalid team theme for the User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+    "translation": "User AuthService and AuthData are mutually inclusive."
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Invalid show unread section setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Invalid post formatting setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Invalid markdown preview setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Invalid email batching interval setting for User"
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Unable to save the team theme preferences"
+  },
+  {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "Error importing user channels. Channel not found."
+  },
+  {
+    "id": "app.import.get_users_by_username.some_users_not_found.error",
+    "translation": "Some users not found"
+  },
+  {
+    "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+    "translation": "Some teams not found"
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Unable to copy custom emoji images"
+  },
+  {
+    "id": "app.emoji.get_list.internal_error",
+    "translation": "Неможливо отримати смайли"
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "Неможливо отримати смайли"
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "Неможливо отримати смайли"
+  },
+  {
+    "id": "app.emoji.delete.no_results",
+    "translation": "Не вдалося знайти смайли для видалення"
+  },
+  {
+    "id": "app.emoji.delete.app_error",
+    "translation": "Неможливо видалити смайли"
+  },
+  {
+    "id": "app.channel_member_history.log_leave_event.internal_error",
+    "translation": "Не вдалося записати історію учасників каналу. Не вдалося оновити існуючий запис"
+  },
+  {
+    "id": "app.channel_member_history.log_join_event.internal_error",
+    "translation": "Не вдалося записати історію учасників каналу"
+  },
+  {
+    "id": "app.channel.update.bad_id",
+    "translation": "Не вдається оновити канал"
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "Не вдається видалити канал"
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "Немає видалених каналів"
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Не вдається знайти існуючий видалений канал"
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "Канали не знайдені"
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Каналу не існує"
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Не вдається знайти канал"
+  },
+  {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.get.find.app_error",
+    "translation": "Сталася помилка під час пошуку каналу"
+  },
+  {
+    "id": "app.channel.get.existing.app_error",
+    "translation": "Не вдається знайти канал"
+  },
+  {
+    "id": "app.channel.delete.app_error",
+    "translation": "Не вдається видалити канал"
+  },
+  {
+    "id": "app.channel.create_direct_channel.internal_error",
+    "translation": "Не вдається зберегти канал"
+  },
+  {
+    "id": "app.channel.create_channel.internal_error",
+    "translation": "Не вдається зберегти канал"
+  },
+  {
+    "id": "app.bot.permenent_delete.bad_id",
+    "translation": "Неможливо видалити публікацію"
+  },
+  {
+    "id": "app.bot.permanent_delete.internal_error",
+    "translation": "Unable to delete the bot permanently."
+  },
+  {
+    "id": "app.bot.patchbot.internal_error",
+    "translation": "Не вдається оновити повідомлення"
+  },
+  {
+    "id": "app.bot.getbots.internal_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "app.bot.getbot.internal_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+  },
+  {
+    "id": "app.bot.createbot.internal_error",
+    "translation": "Не вдається зберегти публікацію"
+  },
+  {
+    "id": "app.admin.test_site_url.failure",
+    "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Could not read the response received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Could not decode the XML metadata information received from the Identity Provider."
+  },
+  {
+    "id": "api.websocket_handler.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api.user.update_user.accepted_guest_domain.app_error",
+    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+  },
+  {
+    "id": "api.user.update_user.accepted_domain.app_error",
+    "translation": "Ваш електронний лист не належить до прийнятого домену. Будь ласка, зв'яжіться зі своїм адміністратором або зареєструйтеся за допомогою іншого електронного листа."
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
+  },
+  {
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Unable to parse the reset password token"
+  },
+  {
+    "id": "api.user.promote_guest_to_user.no_guest.app_error",
+    "translation": "Unable to convert the guest to regular user because is not a guest."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Редакція не підтримує Elasticsearch. "
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.user.demote_user_to_guest.already_guest.app_error",
+    "translation": "Unable to convert the user to guest because is already a guest."
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Unable to create the user, invalid invitation."
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Редакція не підтримує Elasticsearch. "
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Guest accounts are disabled."
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Unable to create password recovery token"
+  },
+  {
+    "id": "api.templates.remove_expired_license.subject",
+    "translation": "Mattermost Enterprise license has been disabled."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.title",
+    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Renew License"
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{.SiteName}}] {{.SenderName}} запросив вас приєднатися до команди {{.TeamDisplayName}}"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+    "translation": "Pagination not implemented for public-only team search."
+  },
+  {
+    "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+    "translation": "Pagination not implemented for private-only team search."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained team."
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Редакція не підтримує Elasticsearch. "
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
+  },
+  {
+    "id": "api.team.get_all_teams.insufficient_permissions",
+    "translation": "У вас немає відповідних прав для редагування заголовка каналу. "
+  },
+  {
+    "id": "api.team.demote_user_to_guest.license.error",
+    "translation": "Редакція не підтримує Elasticsearch. "
+  },
+  {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Guest accounts are disabled."
+  },
+  {
+    "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+    "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+  },
+  {
+    "id": "api.team.add_members.error",
+    "translation": "Error adding team member(s)."
+  },
+  {
+    "id": "api.system.id_loaded.not_available.app_error",
+    "translation": "ID Loaded Push Notifications are not configured or supported on this server."
+  },
+  {
+    "id": "api.push_notifications_ack.message.parse.app_error",
+    "translation": "An error occurred building the push notification ack message."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "An error occurred sending the receipt delivery to the push notification service."
+  },
+  {
+    "id": "api.push_notifications.message.parse.app_error",
+    "translation": "An error occurred building the push notification message."
+  },
+  {
+    "id": "api.push_notification.id_loaded.fetch.app_error",
+    "translation": "An error occurred fetching the ID-loaded push notification."
+  },
+  {
+    "id": "api.push_notification.id_loaded.default_message",
+    "translation": "You've received a new message."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push Notifications are disabled on this server."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_group_users.message.none",
+    "translation": "@{{.GroupName}} has no members on this team"
+  },
+  {
+    "id": "api.plugin.verify_plugin.app_error",
+    "translation": "Unable to verify plugin signature."
+  },
+  {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "An error occurred while downloading the plugin."
+  },
+  {
+    "id": "api.plugin.add_public_key.open.app_error",
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+  },
+  {
+    "id": "api.license.remove_expired_license.failed.error",
+    "translation": "Не вдалося успішно деактивувати електронну адресу облікового запису"
+  },
+  {
+    "id": "api.ldap_groups.existing_user_name_error",
+    "translation": "group name already exists as a user name"
+  },
+  {
+    "id": "api.ldap_groups.existing_reserved_name_error",
+    "translation": "group name already exists as a reserved name"
+  },
+  {
+    "id": "api.ldap_groups.existing_group_name_error",
+    "translation": "group name already exists"
+  },
+  {
+    "id": "api.image.get.app_error",
+    "translation": "Requested image url cannot be parsed."
+  },
+  {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
+    "id": "api.context.server_busy.app_error",
+    "translation": "Server is busy, non-critical services are temporarily unavailable."
+  },
+  {
+    "id": "api.context.local_origin_required.app_error",
+    "translation": "This endpoint requires a local request origin."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Username}} не є учасником цього каналу."
+  },
+  {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Command trigger word is missing the leading slash character"
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid team member update: You can't add or remove the guest role manually."
+  },
+  {
+    "id": "api.channel.update_channel_privacy.default_channel_error",
+    "translation": "The default channel cannot be made private."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid channel member update: You can't add or remove the guest role manually."
+  },
+  {
+    "id": "api.channel.update_channel.typechange.app_error",
+    "translation": "Channel type cannot be updated."
+  },
+  {
+    "id": "api.channel.restore_channel.unarchived",
+    "translation": "{{.Username}} unarchived the channel."
+  },
+  {
+    "id": "api.channel.restore_channel.restored.app_error",
+    "translation": "Unable to unarchive channel. The channel is not archived."
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Не можу додати учасника до каналу цього типу"
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained channel."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.license.error",
+    "translation": "Ліцензія не підтримує збереження даних. "
+  },
+  {
+    "id": "api.channel.guest_join_channel.post_and_forget",
+    "translation": "%v joined the channel as guest."
+  },
+  {
+    "id": "api.channel.get_channel_moderations.license.error",
+    "translation": "Ліцензія не підтримує збереження даних. "
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Редакція не підтримує Elasticsearch. "
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Error adding channel member(s)."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v доданний (а) в канал %v"
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.too_large.app_error",
+    "translation": "Неможливо завантажити файл. Він занадто великий. "
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.parse.app_error",
+    "translation": "Неможливо обробити форму з декількох частин"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.open.app_error",
+    "translation": "Не вдається відкрити файл зображення"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.no_file.app_error",
+    "translation": "У запиті відсутній файл під атрибутом \"сертифікат\"."
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.array.app_error",
+    "translation": "Порожній масив 'image' в запиті"
+  },
+  {
+    "id": "api.bot.set_bot_icon_image.app_error",
+    "translation": "Не вдалося завантажити зображення профілю"
+  },
+  {
+    "id": "api.bot.get_bot_icon_image.read.app_error",
+    "translation": "Unable to read icon image file."
+  },
+  {
+    "id": "api.bot.delete_bot_icon_image.app_error",
+    "translation": "Не вдалося завантажити зображення профілю"
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot creation has been disabled."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Missing content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Invalid content type."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Invalid certificate text."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Missing Identity Provider SSO Services node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Missing Identity Provider Key Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Файл сертифіката не може бути збережений."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Failed to obtain metadata from Identity Provider URL."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Unable to delete brand image, not found."
+  },
+  {
+    "id": "ent.data_retention.reactions_batch.internal_error",
+    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Неможливо зберегти реакцію"
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Не вдалося отримати реакції для даного повідомлення"
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Не вдається отримати всі реакції за допомогою цієї назви"
+  },
+  {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Не вдалося отримати реакції для даного повідомлення"
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Перевищене обмеження кількості сторінок"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "Не вдається отримати команди"
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Неправильний веб-хокс"
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Неможливо використовувати веб-ключа"
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Неможливо проаналізувати вхідні дані"
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Неможливо використовувати веб-ключ"
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Неможливо використовувати веб-ключ"
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Не вдається зберегти команду Webhook"
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "Ви не можете оновити існуючий CommandWebhook"
+  },
+  {
+    "id": "app.oauth.update_app.updating.app_error",
+    "translation": "Виникла помилка під час оновлення додатка"
+  },
+  {
+    "id": "app.oauth.update_app.find.app_error",
+    "translation": "Неможливо знайти існуючу програму для оновлення"
+  },
+  {
+    "id": "app.oauth.save_app.save.app_error",
+    "translation": "Не вдається зберегти додаток."
+  },
+  {
+    "id": "app.oauth.save_app.existing.app_error",
+    "translation": "Необхідно викликати оновлення наявної програми"
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": "Неможливо видалити маркер доступу"
+  },
+  {
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "Не вдалося видалити код авторизації"
+  },
+  {
+    "id": "app.oauth.get_apps.find.app_error",
+    "translation": "Під час пошуку додатків OAuth2 сталася помилка"
+  },
+  {
+    "id": "app.oauth.get_app_by_user.find.app_error",
+    "translation": "Не вдалося знайти дійсну команду для оновлення"
+  },
+  {
+    "id": "app.oauth.get_app.finding.app_error",
+    "translation": "Виникла помилка під час знаходження додатку"
+  },
+  {
+    "id": "app.oauth.get_app.find.app_error",
+    "translation": "Не вдалося знайти потрібний додаток"
+  },
+  {
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "Виникла помилка під час знаходження всіх токенів доступу"
+  },
+  {
+    "id": "app.oauth.delete_app.app_error",
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
+  },
+  {
+    "id": "app.user.permanentdeleteuser.internal_error",
+    "translation": "Неможливо видалити токен"
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": "Неможливо видалити токен"
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Неможливо оновити ідентифікатор пристрою"
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "Неможливо оновити існуючий сеанс"
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "Не вдається зберегти сеанс"
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Не вдається видалити всі сеанси"
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "Не вдається видалити сеанс"
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Невдала спроба видалити всі сесії користувача"
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "Виникла помилка при пошуку сесій користувача"
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "Виникла помилка при пошуку сесії"
+  },
+  {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "Не вдається підрахувати сеанси"
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "Не вдається оновити команду"
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "Не вдається зберегти команду"
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "Не вдається отримати команди"
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "Не вдається отримати схему"
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "Неможливо видалити команду"
+  },
+  {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "Не вдається зберегти команду"
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Неможливо зберегти токен"
+  },
+  {
+    "id": "app.recover.delete.app_error",
+    "translation": "Неможливо видалити токен"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Не вдалося видалити публікацію"
+  },
+  {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Неможливо видалити схему"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Неможливо видалити канали прямого або групового повідомлення"
+  },
+  {
+    "id": "ent.get_users_in_channel_during",
+    "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
+  },
+  {
+    "id": "ent.data_retention.channel_member_history_batch.internal_error",
+    "translation": "Не вдалося очистити записи"
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "Не вдається зберегти смайли"
+  },
+  {
+    "id": "app.channel.update_channel.internal_error",
+    "translation": "Не вдається оновити канал"
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Не вдається видалити канал"
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Неможливо зберегти токен"
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Неможливо зберегти токен"
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "Ми виявили помилку пошуку токенів доступу користувача"
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Неможливо зберегти персональний токен доступу"
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Не вдалося отримати персональні токени доступу для користувача"
+  },
+  {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Не можливо отримати всі токени особистого доступу"
+  },
+  {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Не вдалося видалити персональний токен доступу"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "Потрібно SMTP сервер"
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Не вдалося вибрати дані експорту повідомлення"
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "ent.data_retention.flags_batch.internal_error",
+    "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "Виникла помилка при оновленні налаштувань"
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "Виникла помилка при видаленні налаштувань"
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "Виникла помилка при пошуку налаштувань"
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "Виникла помилка при пошуку налаштувань"
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "Виникла помилка при пошуку налаштувань"
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "Виникла помилка при видаленні налаштувань"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "Адреса сайту:"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Усього активних користувачів"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "Адреса електронної пошти:"
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Неможливо оновити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Неможливо оновити вхідний веб-ключа"
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Не вдається зберегти Outgoing Webhook"
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Не вдається зберегти вхідний веб-ключа"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "Не вдається отримати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "Неможливо видалити веб-ключа"
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Неможливо використовувати веб-ключа"
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Неможливо використовувати веб-ключа"
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "Роль не була дійсною"
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Не вдається зберегти нову роль"
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "Ми не змогли назавжди видалити всі ролі"
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Неможливо отримати роль"
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Неможливо отримати роль"
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "Неможливо отримати роль"
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Не вдається оновити повідомлення"
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Ви не можете оновити існуючу публікацію "
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Не вдається зберегти публікацію"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Не вдалося вибрати повідомлення, які потрібно видалити для користувача"
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Неможливо видалити повідомлення з каналу"
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "Неможливо видалити публікацію"
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "Не існує запису для даного статусу"
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Виникла помилка при отриманні статусу"
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Не вдалося отримати значення ключа плагіна"
+  },
+  {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Не вдалося видалити значення клавіші плагіна"
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "Виникла помилка при збереженні властивості системи"
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "Виникла помилка при збереженні властивості системи"
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "Ми не змогли назавжди видалити запис системної таблиці"
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Не вдається знайти системну змінну."
+  },
+  {
+    "id": "app.system.get.app_error",
+    "translation": "Виникла помилка при пошуку властивостей системи"
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+  },
+  {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
+  },
+  {
+    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+    "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
+  },
+  {
+    "id": "ent.jobs.do_job.batch_size.parse_error",
+    "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
+  },
+  {
+    "id": "ent.cluster.model.client.connecting.app_error",
+    "translation": "Ми виявили помилку при підключенні до сервера"
+  },
+  {
+    "id": "ent.cluster.404.app_error",
+    "translation": "Не знайдена кінцева точка API кластера."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": "додається файл."
+  },
+  {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "Не вдалося перетворити експорт в XML. "
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Не вдається оновити схему"
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Неможливо зберегти схему"
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Не вдається отримати схему"
+  },
+  {
+    "id": "app.job.get.app_error",
+    "translation": "Не вдається отримати схему"
+  },
+  {
+    "id": "ent.data_retention.file_infos_batch.internal_error",
+    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Не вдається зберегти інформацію про файл"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Не вдалося видалити вкладення користувача"
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Не вдається отримати інформацію про файл"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "Не вдалося скинути схеми каналів"
+  },
+  {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "Не вдалося вилучити деактивованих користувачів із каналу"
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Не вдалося вибрати партію учасників каналу"
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Неможливо отримати канали для наданої схеми"
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
+    "translation": "Неможливо створити бакет."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Request trial"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Забезпечити багатофакторну автентифікацію:"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Неможливо видалити роль"
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Не вдалося отримати партію повідомлень для індексації"
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Перевищене обмеження кількості сторінок"
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Неможливо отримати кількість користувачів із повідомленнями"
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Не вдається отримати кількість постів за день"
+  },
+  {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Не вдається отримати кількість постів"
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Не вдалося отримати канали непрочитаних повідомлень"
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Не вдалося скинути командні схеми"
+  },
+  {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Не вдалося оновити учасника команди"
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Неможливо отримати канали для наданої схеми"
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Не вдалося отримати учасників команди"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Неправильне значення для user_id."
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Недійсне значення ідентифікатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Недійсне значення для шляху."
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Недійсне значення ідентифікатора."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Неприпустиме значення для часу очікування читання."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Неможливо завантажити файл. Він занадто великий."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Неможливо розмістити публікацію на видаленому каналі."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Виникла помилка запису в S3"
+  },
+  {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "Bot does not exist."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Ну вдалося встановити час останнього перегляду на"
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Не вдається знайти прикріплені повідомлення"
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Не вдалося оновити заголовок прямого каналу"
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Не вдається збільшити кількість згадок"
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Не вдалося отримати кількість учасників каналу"
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Не вдалося отримати кількість учасників каналу"
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "Не знайдено жодного учасника каналу за даним ідентифікатором користувача та каналу"
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Неможливо отримати кількість каналів"
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Не вдалося отримати пости для каналу"
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Не вдалося додати учасників прямого каналу"
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Неможливо отримати всі канали"
+  },
+  {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Не вдалося отримати канал для даної публікації"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Канали не знайдені"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Неможливо отримати канали"
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Неможливо отримати кількість каналів"
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "Виникла помилка оновлення команди"
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Не вдалося знайти дійсну команду для оновлення"
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "Виникла проблема при пошуку відкритих команд"
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "Виникла проблема при пошуку відкритих команд"
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "Виникла проблема при пошуку команд"
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Необхідно викликати оновлення для існуючої команди"
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Не вдається зберегти команду"
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Не вдалося знайти дійсну команду для оновлення"
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "Не вдалося отримати всі команди"
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "Виникла помилка з виявленням команди"
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Не вдається знайти існуючу команду"
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Неможливо підрахувати команди"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Bot login is forbidden."
+  },
+  {
+    "id": "api.slackimport.slack_import.zip.file_too_large",
+    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
   }
 ]

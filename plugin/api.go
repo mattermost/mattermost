@@ -37,6 +37,12 @@ type API interface {
 	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
 
+	// ExecuteSlashCommand executes a slash command with the given parameters.
+	//
+	// @tag Command
+	// Minimum server version: 5.26
+	ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error)
+
 	// GetSession returns the session object for the Session ID
 	//
 	// Minimum server version: 5.2
@@ -78,7 +84,7 @@ type API interface {
 	// Minimum server version: 5.10
 	GetBundlePath() (string, error)
 
-	// GetLicense returns the current license used by the Mattermost server. Returns nil if the
+	// GetLicense returns the current license used by the Mattermost server. Returns nil if
 	// the server does not have a license.
 	//
 	// @tag Server
@@ -102,6 +108,12 @@ type API interface {
 	// @tag Server
 	// Minimum server version: 5.10
 	GetDiagnosticId() string
+
+	// GetTelemetryId returns a unique identifier used by the server for telemetry reports.
+	//
+	// @tag Server
+	// Minimum server version: 5.28
+	GetTelemetryId() string
 
 	// CreateUser creates a user.
 	//
@@ -444,6 +456,12 @@ type API interface {
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
+	// SearchPostsInTeamForUser returns a list of posts by team and user that match the given
+	// search parameters.
+	// @tag Post
+	// Minimum server version: 5.26
+	SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
+
 	// AddChannelMember joins a user to a channel (as if they joined themselves)
 	// This means the user will not receive notifications for joining the channel.
 	//
@@ -511,8 +529,8 @@ type API interface {
 	// GetGroupByName gets a group by name.
 	//
 	// @tag Group
-	// Minimum server version: 5.24
-	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
+	// Minimum server version: 5.18
+	GetGroupByName(name string) (*model.Group, *model.AppError)
 
 	// GetGroupsForUser gets the groups a user is in.
 	//
@@ -953,6 +971,72 @@ type API interface {
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
+
+	// PublishUserTyping publishes a user is typing WebSocket event.
+	// The parentId parameter may be an empty string, the other parameters are required.
+	//
+	// @tag User
+	// Minimum server version: 5.26
+	PublishUserTyping(userId, channelId, parentId string) *model.AppError
+
+	// CreateCommand creates a server-owned slash command that is not handled by the plugin
+	// itself, and which will persist past the life of the plugin. The command will have its
+	// CreatorId set to "" and its PluginId set to the id of the plugin that created it.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	CreateCommand(cmd *model.Command) (*model.Command, error)
+
+	// ListCommands returns the list of all slash commands for teamID. E.g., custom commands
+	// (those created through the integrations menu, the REST api, or the plugin api CreateCommand),
+	// plugin commands (those created with plugin api RegisterCommand), and builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCommands(teamID string) ([]*model.Command, error)
+
+	// ListCustomCommands returns the list of slash commands for teamID that where created
+	// through the integrations menu, the REST api, or the plugin api CreateCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCustomCommands(teamID string) ([]*model.Command, error)
+
+	// ListPluginCommands returns the list of slash commands for teamID that were created
+	// with the plugin api RegisterCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListPluginCommands(teamID string) ([]*model.Command, error)
+
+	// ListBuiltInCommands returns the list of slash commands that are builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListBuiltInCommands() ([]*model.Command, error)
+
+	// GetCommand returns the command definition based on a command id string.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	GetCommand(commandID string) (*model.Command, error)
+
+	// UpdateCommand updates a single command (commandID) with the information provided in the
+	// updatedCmd model.Command struct. The following fields in the command cannot be updated:
+	// Id, Token, CreateAt, DeleteAt, and PluginId. If updatedCmd.TeamId is blank, it
+	// will be set to commandID's TeamId.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error)
+
+	// DeleteCommand deletes a slash command (commandID).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	DeleteCommand(commandID string) error
 }
 
 var handshake = plugin.HandshakeConfig{

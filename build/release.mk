@@ -28,7 +28,36 @@ else
 	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
 endif
 
+build-cmd-linux:
+	@echo Build Linux amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/linux_amd64
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+
+build-cmd-osx:
+	@echo Build OSX amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/darwin_amd64
+	env GOOS=darwin GOARCH=amd64 $(GO) build -o $(GOBIN)/darwin_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+
+build-cmd-windows:
+	@echo Build Windows amd64
+ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+else
+	mkdir -p $(GOBIN)/windows_amd64
+	env GOOS=windows GOARCH=amd64 $(GO) build -o $(GOBIN)/windows_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./cmd/...
+endif
+
 build: build-linux build-windows build-osx
+
+build-cmd: build-cmd-linux build-cmd-windows build-cmd-osx
 
 build-client:
 	@echo Building mattermost web app
@@ -37,7 +66,6 @@ build-client:
 
 package:
 	@ echo Packaging mattermost
-
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
@@ -68,6 +96,9 @@ package:
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
+
+	$(eval MMCTL_REL_TO_DOWNLOAD := $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-'))
+	@echo "Using mmctl version $(MMCTL_REL_TO_DOWNLOAD)"
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)

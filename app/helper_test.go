@@ -60,6 +60,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*config.LogSettings.EnableSentry = false // disable error reporting during tests
+	*config.AnnouncementSettings.AdminNoticesEnabled = false
+	*config.AnnouncementSettings.UserNoticesEnabled = false
 	memoryStore.Set(config)
 
 	buffer := &bytes.Buffer{}
@@ -80,7 +82,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               New(ServerConnector(s)),
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,
@@ -113,14 +115,16 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	th.App.InitServer()
 
 	return th
 }
@@ -163,17 +167,6 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
 	return th
-}
-
-func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	return setupTestHelper(dbStore, false, true, tb, configSet)
 }
 
 var initBasicOnce sync.Once
@@ -318,29 +311,6 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 		Type:        channelType,
 		TeamId:      team.Id,
 		CreatorId:   me.BasicUser.Id,
-	}
-
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = me.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	utils.EnableDebugLogForTest()
-	return channel
-}
-
-func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
-	id := model.NewId()
-
-	channel := &model.Channel{
-		DisplayName: "dn_" + id,
-		Name:        "name_" + id,
-		Type:        channelType,
-		TeamId:      team.Id,
-		CreatorId:   userId,
 	}
 
 	utils.DisableDebugLogForTest()
@@ -584,7 +554,7 @@ func (me *TestHelper) ShutdownApp() {
 func (me *TestHelper) TearDown() {
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 	me.ShutdownApp()
 	if me.tempWorkspace != "" {
@@ -604,7 +574,7 @@ func (me *TestHelper) ResetRoleMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

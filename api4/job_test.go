@@ -12,7 +12,7 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -39,7 +39,7 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -68,7 +68,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -115,7 +115,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -170,48 +170,4 @@ func TestGetJobsByType(t *testing.T) {
 
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
-}
-
-func TestCancelJob(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	jobs := []*model.Job{
-		{
-			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_PENDING,
-		},
-		{
-			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_IN_PROGRESS,
-		},
-		{
-			Id:     model.NewId(),
-			Type:   model.NewId(),
-			Status: model.JOB_STATUS_SUCCESS,
-		},
-	}
-
-	for _, job := range jobs {
-		_, err := th.App.Srv().Store.Job().Save(job)
-		require.Nil(t, err)
-		defer th.App.Srv().Store.Job().Delete(job.Id)
-	}
-
-	_, resp := th.Client.CancelJob(jobs[0].Id)
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.CancelJob(jobs[0].Id)
-	require.Nil(t, resp.Error)
-
-	_, resp = th.SystemAdminClient.CancelJob(jobs[1].Id)
-	require.Nil(t, resp.Error)
-
-	_, resp = th.SystemAdminClient.CancelJob(jobs[2].Id)
-	CheckInternalErrorStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.CancelJob(model.NewId())
-	CheckInternalErrorStatus(t, resp)
 }

@@ -4,6 +4,8 @@
 package app
 
 import (
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -14,7 +16,7 @@ import (
 func (a *App) SyncLdap() {
 	a.Srv().Go(func() {
 
-		if license := a.License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
+		if license := a.Srv().License(); license != nil && *license.Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap(); ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
@@ -25,7 +27,7 @@ func (a *App) SyncLdap() {
 }
 
 func (a *App) TestLdap() *model.AppError {
-	license := a.License()
+	license := a.Srv().License()
 	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
@@ -80,7 +82,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 }
 
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
-	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -107,7 +109,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 	}
 
 	a.Srv().Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	})
@@ -116,7 +118,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 }
 
 func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
-	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
+	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("ldapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -153,10 +155,120 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 	T := utils.GetUserTranslations(user.Locale)
 
 	a.Srv().Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	})
 
 	return "/login?extra=signin_change", nil
+}
+
+func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
+	if ldapI := a.Ldap(); ldapI != nil {
+		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+			switch err := err.(type) {
+			case *model.AppError:
+				return err
+			default:
+				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
+	}
+	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+}
+
+func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
+	file, err := fileData.Open()
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = a.Srv().configStore.SetFile(filename, data)
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
+	if err := a.writeLdapFile(model.LDAP_PUBIC_CERTIFICATE_NAME, fileData); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBIC_CERTIFICATE_NAME
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
+	if err := a.writeLdapFile(model.LDAP_PRIVATE_KEY_NAME, fileData); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PrivateKeyFile = model.LDAP_PRIVATE_KEY_NAME
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) removeLdapFile(filename string) *model.AppError {
+	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) RemoveLdapPublicCertificate() *model.AppError {
+	if err := a.removeLdapFile(*a.Config().LdapSettings.PublicCertificateFile); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PublicCertificateFile = ""
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
+	if err := a.removeLdapFile(*a.Config().LdapSettings.PrivateKeyFile); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PrivateKeyFile = ""
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
 }

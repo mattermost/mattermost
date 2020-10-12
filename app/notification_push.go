@@ -4,9 +4,12 @@
 package app
 
 import (
-	"hash/fnv"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 
@@ -22,13 +25,17 @@ const (
 	notificationTypeClear       notificationType = "clear"
 	notificationTypeMessage     notificationType = "message"
 	notificationTypeUpdateBadge notificationType = "update_badge"
+	notificationTypeDummy       notificationType = "dummy"
 )
 
-const PUSH_NOTIFICATION_HUB_WORKERS = 1000
-const PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER = 50
-
 type PushNotificationsHub struct {
-	Channels []chan PushNotification
+	notificationsChan chan PushNotification
+	app               *App // XXX: This will go away once push notifications move to their own package.
+	sema              chan struct{}
+	stopChan          chan struct{}
+	wg                *sync.WaitGroup
+	semaWg            *sync.WaitGroup
+	buffer            int
 }
 
 type PushNotification struct {
@@ -44,13 +51,6 @@ type PushNotification struct {
 	explicitMention    bool
 	channelWideMention bool
 	replyToThreadType  string
-}
-
-func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan PushNotification {
-	h := fnv.New32a()
-	h.Write([]byte(userId))
-	chanIdx := h.Sum32() % PUSH_NOTIFICATION_HUB_WORKERS
-	return hub.Channels[chanIdx]
 }
 
 func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
@@ -143,8 +143,8 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	c := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(user.Id)
-	c <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType:   notificationTypeMessage,
 		post:               post,
 		user:               user,
@@ -154,6 +154,9 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		explicitMention:    explicitMention,
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
@@ -217,12 +220,15 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 }
 
 func (a *App) clearPushNotification(currentSessionId, userId, channelId string) {
-	channel := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(userId)
-	channel <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
@@ -245,67 +251,113 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 }
 
 func (a *App) UpdateMobileAppBadge(userId string) {
-	channel := a.Srv().PushNotificationsHub.GetGoChannelFromUserId(userId)
-	channel <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeUpdateBadge,
 		userId:           userId,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
-func (a *App) createPushNotificationsHub() {
+func (s *Server) createPushNotificationsHub() {
+	buffer := *s.Config().EmailSettings.PushNotificationBuffer
+	// XXX: This can be _almost_ removed except that there is a dependency with
+	// a.ClearSessionCacheForUser(session.UserId) which invalidates caches,
+	// which then takes to web_hub code. It's a bit complicated, so leaving as is for now.
+	fakeApp := New(ServerConnector(s))
 	hub := PushNotificationsHub{
-		Channels: []chan PushNotification{},
+		notificationsChan: make(chan PushNotification, buffer),
+		app:               fakeApp,
+		wg:                new(sync.WaitGroup),
+		semaWg:            new(sync.WaitGroup),
+		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
+		stopChan:          make(chan struct{}),
+		buffer:            buffer,
 	}
-	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
-		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
-	}
-	a.Srv().PushNotificationsHub = hub
+	go hub.start()
+	s.PushNotificationsHub = hub
 }
 
-func (a *App) pushNotificationWorker(notifications chan PushNotification) {
-	for notification := range notifications {
-		var err *model.AppError
-		switch notification.notificationType {
-		case notificationTypeClear:
-			err = a.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
-		case notificationTypeMessage:
-			err = a.sendPushNotificationSync(
-				notification.post,
-				notification.user,
-				notification.channel,
-				notification.channelName,
-				notification.senderName,
-				notification.explicitMention,
-				notification.channelWideMention,
-				notification.replyToThreadType,
-			)
-		case notificationTypeUpdateBadge:
-			err = a.updateMobileAppBadgeSync(notification.userId)
-		default:
-			mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+func (hub *PushNotificationsHub) start() {
+	hub.wg.Add(1)
+	defer hub.wg.Done()
+	for {
+		select {
+		case notification := <-hub.notificationsChan:
+			// We just ignore dummy notifications.
+			// These are used to pump out any remaining notifications
+			// before we stop the hub.
+			if notification.notificationType == notificationTypeDummy {
+				continue
+			}
+			// Adding to the waitgroup first.
+			hub.semaWg.Add(1)
+			// Get token.
+			hub.sema <- struct{}{}
+			go func(notification PushNotification) {
+				defer func() {
+					// Release token.
+					<-hub.sema
+					// Now marking waitgroup as done.
+					hub.semaWg.Done()
+				}()
+
+				var err *model.AppError
+				switch notification.notificationType {
+				case notificationTypeClear:
+					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
+				case notificationTypeMessage:
+					err = hub.app.sendPushNotificationSync(
+						notification.post,
+						notification.user,
+						notification.channel,
+						notification.channelName,
+						notification.senderName,
+						notification.explicitMention,
+						notification.channelWideMention,
+						notification.replyToThreadType,
+					)
+				case notificationTypeUpdateBadge:
+					err = hub.app.updateMobileAppBadgeSync(notification.userId)
+				default:
+					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+				}
+
+				if err != nil {
+					mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+				}
+			}(notification)
+		case <-hub.stopChan:
+			return
 		}
+	}
+}
 
-		if err != nil {
-			mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+func (hub *PushNotificationsHub) stop() {
+	// Drain the channel.
+	for i := 0; i < hub.buffer+1; i++ {
+		hub.notificationsChan <- PushNotification{
+			notificationType: notificationTypeDummy,
 		}
 	}
+	close(hub.stopChan)
+	// We need to wait for the outer for loop to exit first.
+	// We cannot just send struct{}{} to stopChan because there are
+	// other listeners to the channel. And sending just once
+	// will cause a race.
+	hub.wg.Wait()
+	// And then we wait for the semaphore to finish.
+	hub.semaWg.Wait()
 }
 
-func (a *App) StartPushNotificationsHubWorkers() {
-	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
-		channel := a.Srv().PushNotificationsHub.Channels[x]
-		a.Srv().Go(func() { a.pushNotificationWorker(channel) })
-	}
-}
-
-func (a *App) StopPushNotificationsHubWorkers() {
-	for _, channel := range a.Srv().PushNotificationsHub.Channels {
-		close(channel)
-	}
+func (s *Server) StopPushNotificationsHubWorkers() {
+	s.PushNotificationsHub.stop()
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
-	msg.ServerId = a.DiagnosticId()
+	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Info("Notification will be sent",
 		mlog.String("ackId", msg.AckId),
@@ -363,18 +415,27 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return err
 	}
 
-	resp, err := a.HTTPService().MakeClient(true).Do(request)
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	// Reading the body to completion.
+	_, err = io.Copy(ioutil.Discard, resp.Body)
 	if err != nil {
 		return err
 	}
 
-	resp.Body.Close()
 	return nil
-
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	return a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	if err != nil {
+		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return sessions, nil
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {

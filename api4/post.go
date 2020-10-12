@@ -45,7 +45,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.UserId = c.App.Session().UserId
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post", post)
 
 	hasPermission := false
@@ -233,6 +233,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
+	if c.Params.LimitAfter == 0 {
+		c.SetInvalidUrlParam("limit_after")
+		return
+	}
+
 	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads)
 	if err != nil {
@@ -290,6 +295,10 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
@@ -316,12 +325,6 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
@@ -372,7 +375,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	post, err := c.App.GetSinglePost(c.Params.PostId)
@@ -461,7 +464,11 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := model.SearchParameterFromJson(r.Body)
+	params, jsonErr := model.SearchParameterFromJson(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if params.Terms == nil || len(*params.Terms) == 0 {
 		c.SetInvalidParam("terms")
@@ -532,7 +539,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
 	if post.Id != c.Params.PostId {
@@ -590,15 +597,10 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
-
-	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_POST) {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
-		return
-	}
 
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
@@ -607,11 +609,16 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("post", originalPost)
 
-	if c.App.Session().UserId != originalPost.UserId {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
-			return
-		}
+	var permission *model.Permission
+	if c.App.Session().UserId == originalPost.UserId {
+		permission = model.PERMISSION_EDIT_POST
+	} else {
+		permission = model.PERMISSION_EDIT_OTHERS_POSTS
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, permission) {
+		c.SetPermissionError(permission)
+		return
 	}
 
 	patchedPost, err := c.App.PatchPost(c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(post))
@@ -655,7 +662,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -682,7 +689,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		return
 	}
 
-	if c.App.License() != nil &&
+	if c.App.Srv().License() != nil &&
 		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!c.App.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {

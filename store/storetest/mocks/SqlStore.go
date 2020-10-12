@@ -247,6 +247,20 @@ func (_m *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, c
 	return r0
 }
 
+// CreateUniqueCompositeIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnNames
+func (_m *SqlStore) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	ret := _m.Called(indexName, tableName, columnNames)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, []string) bool); ok {
+		r0 = rf(indexName, tableName, columnNames)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // CreateUniqueIndexIfNotExists provides a mock function with given fields: indexName, tableName, columnName
 func (_m *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
 	ret := _m.Called(indexName, tableName, columnName)
@@ -768,6 +782,22 @@ func (_m *SqlStore) TermsOfService() store.TermsOfServiceStore {
 	return r0
 }
 
+// Thread provides a mock function with given fields:
+func (_m *SqlStore) Thread() store.ThreadStore {
+	ret := _m.Called()
+
+	var r0 store.ThreadStore
+	if rf, ok := ret.Get(0).(func() store.ThreadStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ThreadStore)
+		}
+	}
+
+	return r0
+}
+
 // Token provides a mock function with given fields:
 func (_m *SqlStore) Token() store.TokenStore {
 	ret := _m.Called()
@@ -829,6 +859,22 @@ func (_m *SqlStore) TotalSearchDbConnections() int {
 // UnlockFromMaster provides a mock function with given fields:
 func (_m *SqlStore) UnlockFromMaster() {
 	_m.Called()
+}
+
+// UploadSession provides a mock function with given fields:
+func (_m *SqlStore) UploadSession() store.UploadSessionStore {
+	ret := _m.Called()
+
+	var r0 store.UploadSessionStore
+	if rf, ok := ret.Get(0).(func() store.UploadSessionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UploadSessionStore)
+		}
+	}
+
+	return r0
 }
 
 // User provides a mock function with given fields:

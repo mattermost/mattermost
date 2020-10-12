@@ -31,6 +31,7 @@ type Params struct {
 	PostId                    string
 	FileId                    string
 	Filename                  string
+	UploadId                  string
 	PluginId                  string
 	CommandId                 string
 	HookId                    string
@@ -77,6 +78,8 @@ type Params struct {
 	IncludeDeleted            bool
 	FilterAllowReference      bool
 	FilterParentTeamPermitted bool
+	CategoryId                string
+	WarnMetricId              string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -91,6 +94,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["team_id"]; ok {
 		params.TeamId = val
+	}
+
+	if val, ok := props["category_id"]; ok {
+		params.CategoryId = val
 	}
 
 	if val, ok := props["invite_id"]; ok {
@@ -116,6 +123,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.Filename = query.Get("filename")
+
+	if val, ok := props["upload_id"]; ok {
+		params.UploadId = val
+	}
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val
@@ -309,6 +320,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
 		params.IncludeDeleted = val
+	}
+
+	if val, ok := props["warn_metric_id"]; ok {
+		params.WarnMetricId = val
 	}
 
 	return params

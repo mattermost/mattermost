@@ -21,6 +21,7 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 	t.Run("InsertIfExists", func(t *testing.T) {
 		testInsertIfExists(t, ss)
 	})
+	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, ss) })
 }
 
 func testSystemStore(t *testing.T, ss store.Store) {
@@ -53,6 +54,33 @@ func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.System().SaveOrUpdate(system)
 	require.Nil(t, err)
+}
+
+func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.Store) {
+	system := &model.System{Name: model.NewId(), Value: "value"}
+
+	err := ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.NotNil(t, err)
+
+	system.Name = "warn_metric_number_of_active_users_100"
+	system.Value = model.WARN_METRIC_STATUS_RUNONCE
+	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	val1, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.Nil(t, nerr)
+
+	system.Name = "warn_metric_number_of_active_users_100"
+	system.Value = model.WARN_METRIC_STATUS_ACK
+	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	val2, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.Nil(t, nerr)
+	assert.Equal(t, val1, val2)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
@@ -111,7 +139,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 		go func() {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "firstKey"}
-			var err *model.AppError
+			var err error
 			s2, err = ss.System().InsertIfExists(s1)
 			require.Nil(t, err)
 		}()
@@ -119,7 +147,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 		go func() {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "secondKey"}
-			var err *model.AppError
+			var err error
 			s3, err = ss.System().InsertIfExists(s1)
 			require.Nil(t, err)
 		}()

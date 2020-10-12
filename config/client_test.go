@@ -18,7 +18,7 @@ func TestGetClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticID   string
+		telemetryID    string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -190,7 +190,7 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
+			configMap := config.GenerateClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -206,7 +206,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticID   string
+		telemetryID    string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -236,6 +236,27 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"WebsocketSecurePort":              "443",
 			},
 		},
+		{
+			"password settings",
+			&model.Config{
+				PasswordSettings: model.PasswordSettings{
+					MinimumLength: iToP(15),
+					Lowercase:     bToP(true),
+					Uppercase:     bToP(true),
+					Number:        bToP(true),
+					Symbol:        bToP(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"PasswordMinimumLength":    "15",
+				"PasswordRequireLowercase": "true",
+				"PasswordRequireUppercase": "true",
+				"PasswordRequireNumber":    "true",
+				"PasswordRequireSymbol":    "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -248,7 +269,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
+			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.telemetryID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {

@@ -12,8 +12,8 @@ import (
 )
 
 // GenerateClientConfig renders the given configuration for a client.
-func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
-	props := GenerateLimitedClientConfig(c, diagnosticID, license)
+func GenerateClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
+	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
@@ -52,11 +52,14 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["ExperimentalEnablePostMetadata"] = "true"
 	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
 
+	props["ExperimentalCloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
 	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
 	} else {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
+	props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 
 	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
@@ -96,6 +99,8 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
@@ -114,11 +119,6 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["SamlPositionAttributeSet"] = "false"
 	props["EnableCluster"] = "false"
 	props["EnableMetrics"] = "false"
-	props["PasswordMinimumLength"] = "0"
-	props["PasswordRequireLowercase"] = "false"
-	props["PasswordRequireUppercase"] = "false"
-	props["PasswordRequireNumber"] = "false"
-	props["PasswordRequireSymbol"] = "false"
 	props["EnableBanner"] = "false"
 	props["BannerText"] = ""
 	props["BannerColor"] = ""
@@ -132,11 +132,6 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
-	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
-	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
-	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
-	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
-	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
@@ -205,7 +200,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 }
 
 // GenerateLimitedClientConfig renders the given configuration for an untrusted client.
-func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *model.License) map[string]string {
+func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *model.License) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -249,6 +244,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 
@@ -257,12 +253,19 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
-	props["DiagnosticId"] = diagnosticID
+	props["DiagnosticId"] = telemetryID
+	props["TelemetryId"] = telemetryID
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+
+	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"

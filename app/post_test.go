@@ -283,7 +283,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	post := &model.Post{}
 	post = th.BasicPost.Clone()
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
@@ -459,6 +459,7 @@ func TestImageProxy(t *testing.T) {
 	mockPostStore := storemocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -892,15 +893,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -1017,7 +1018,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		}
 
 		if enableElasticsearch {
-			th.App.SetLicense(model.NewTestLicense("elastic_search"))
+			th.App.Srv().SetLicense(model.NewTestLicense("elastic_search"))
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ElasticsearchSettings.EnableIndexing = true
@@ -1761,7 +1762,7 @@ func TestFillInPostProps(t *testing.T) {
 	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("ldap"))
+		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		user1 := th.BasicUser
 
@@ -1815,7 +1816,7 @@ func TestFillInPostProps(t *testing.T) {
 	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("ldap"))
+		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		id := model.NewId()
 		guest := &model.User{

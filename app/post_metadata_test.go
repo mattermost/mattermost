@@ -30,7 +30,7 @@ import (
 func TestPreparePostListForClient(t *testing.T) {
 	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	postList := model.NewPostList()
@@ -358,6 +358,25 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("post props has invalid fields", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "some post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		// this value expected to be a string
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, true)
+
+		require.NotPanics(t, func() {
+			_ = th.App.PreparePostForClient(post, false, false)
+		})
+	})
+
 	t.Run("proxy linked images", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
@@ -509,6 +528,7 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata“")
+		assert.Equal(t, "", clientPost.Message, "should've cleaned post content")
 		assert.Nil(t, clientPost.Metadata.Reactions, "should not have populated Reactions")
 		assert.Nil(t, clientPost.Metadata.Files, "should not have populated Files")
 	})
@@ -1491,7 +1511,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 
 func TestGetLinkMetadata(t *testing.T) {
 	setup := func(t *testing.T) *TestHelper {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
@@ -2075,7 +2095,7 @@ func TestResolveMetadataURL(t *testing.T) {
 }
 
 func TestParseLinkMetadata(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	imageURL := "http://example.com/test.png"

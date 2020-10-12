@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -146,8 +147,30 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 	*c1.SamlSettings.IdpUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	require.Nil(t, err)
+}
+
+func TestConfigServiceProviderDefault(t *testing.T) {
+	c1 := &Config{
+		SamlSettings: *&SamlSettings{
+			Enable:             NewBool(true),
+			Verify:             NewBool(false),
+			Encrypt:            NewBool(false),
+			IdpUrl:             NewString("http://test.url.com"),
+			IdpDescriptorUrl:   NewString("http://test2.url.com"),
+			IdpCertificateFile: NewString("certificatefile"),
+			EmailAttribute:     NewString("Email"),
+			UsernameAttribute:  NewString("Username"),
+		},
+	}
+
+	c1.SetDefaults()
+	assert.Equal(t, *c1.SamlSettings.ServiceProviderIdentifier, *c1.SamlSettings.IdpDescriptorUrl)
 
 	err := c1.SamlSettings.isValid()
 	require.Nil(t, err)
@@ -165,6 +188,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpMetadataUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"
 
@@ -281,6 +305,31 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 		c1.SetDefaults()
 
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+}
+
+func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
+	t.Run("should enable IncidentResponse plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+	})
+
+	t.Run("should not re-enable IncidentResponse plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.plugin-incident-response": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
 	})
 }
 
@@ -1245,6 +1294,50 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
 }
 
+func TestConfigFilteredByTag(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	// Remove entire sections but the map is still there
+	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, 0, len(clusterSettings))
+
+	// Some fields are removed if they have the filtering tag
+	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]interface{})
+	require.True(t, ok)
+	_, ok = serviceSettings["ListenAddress"]
+	require.False(t, ok)
+}
+
+func TestConfigToJSONFiltered(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	unmarshaledCfg := make(map[string]json.RawMessage)
+	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	require.NoError(t, err)
+
+	_, ok := unmarshaledCfg["SqlSettings"]
+	require.False(t, ok)
+
+	serviceSettingsRaw, ok := unmarshaledCfg["ServiceSettings"]
+	require.True(t, ok)
+
+	unmarshaledServiceSettings := make(map[string]json.RawMessage)
+	err = json.Unmarshal([]byte(serviceSettingsRaw), &unmarshaledServiceSettings)
+	require.NoError(t, err)
+
+	_, ok = unmarshaledServiceSettings["ListenAddress"]
+	require.False(t, ok)
+	_, ok = unmarshaledServiceSettings["SiteURL"]
+	require.True(t, ok)
+}
+
 func TestConfigMarketplaceDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -1277,4 +1370,22 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		require.True(t, *c.PluginSettings.EnableMarketplace)
 		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
 	})
+}
+
+func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "off", cfg.FeatureFlags.TestFeature)
+
+	cfg = Config{
+		FeatureFlags: &FeatureFlags{
+			TestFeature: "somevalue",
+		},
+	}
+	cfg.SetDefaults()
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
+
 }

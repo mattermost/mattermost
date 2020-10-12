@@ -14,9 +14,19 @@ import (
 )
 
 func (api *API) InitConfigLocal() {
-	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(getConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localGetConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localUpdateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiLocal(localPatchConfig)).Methods("PUT")
+	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiLocal(migrateConfig)).Methods("POST")
+}
+
+func localGetConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localGetConfig", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	cfg := c.App.GetSanitizedConfig()
+	auditRec.Success()
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Write([]byte(cfg.ToJson()))
 }
 
 func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {

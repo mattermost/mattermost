@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -25,6 +26,8 @@ var (
 	outputFile         string
 	inputFile          string
 	outputFileTemplate string
+	basicTypes         = map[string]bool{"int": true, "string": true, "float": true, "bool": true, "byte": true, "int64": true, "error": true}
+	textRegexp         = regexp.MustCompile(`\w+$`)
 )
 
 const (
@@ -77,6 +80,22 @@ type storeMetadata struct {
 	Methods map[string]methodData
 }
 
+func fixTypeName(t string) string {
+	// don't want to dive into AST to parse this, add exception
+	if t == "...func(*UploadFileTask)" {
+		t = "...func(*app.UploadFileTask)"
+	}
+	if strings.Contains(t, ".") || strings.Contains(t, "{}") {
+		return t
+	}
+	typeOnly := textRegexp.FindString(t)
+
+	if _, basicType := basicTypes[typeOnly]; !basicType {
+		t = t[:len(t)-len(typeOnly)] + "app." + typeOnly
+	}
+	return t
+}
+
 func formatNode(src []byte, node ast.Expr) string {
 	return string(src[node.Pos()-1 : node.End()-1])
 }
@@ -100,7 +119,7 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	if e.Params != nil {
 		for _, param := range e.Params.List {
 			for _, paramName := range param.Names {
-				paramType := (formatNode(src, param.Type))
+				paramType := fixTypeName(formatNode(src, param.Type))
 				params = append(params, methodParam{Name: paramName.Name, Type: paramType})
 			}
 		}
@@ -108,7 +127,8 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 
 	if e.Results != nil {
 		for _, r := range e.Results.List {
-			typeStr := formatNode(src, r.Type)
+			typeStr := fixTypeName(formatNode(src, r.Type))
+
 			if len(r.Names) > 0 {
 				for _, k := range r.Names {
 					results = append(results, fmt.Sprintf("%s %s", k.Name, typeStr))

@@ -28,7 +28,7 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		}
 
 		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
-		if err != nil && err.Id != "store.sql_team.get_member.missing.app_error" {
+		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
 			return err
 		}
 
@@ -36,6 +36,14 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		if tmem == nil {
 			_, err = a.AddTeamMember(channel.TeamId, userChannel.UserID)
 			if err != nil {
+				if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+					a.Log().Info("User not added to channel - the domain associated with the user is not in the list of allowed team domains",
+						mlog.String("user_id", userChannel.UserID),
+						mlog.String("channel_id", userChannel.ChannelID),
+						mlog.String("team_id", channel.TeamId),
+					)
+					continue
+				}
 				return err
 			}
 			a.Log().Info("added teammember",
@@ -77,6 +85,13 @@ func (a *App) createDefaultTeamMemberships(since int64, teamID *string) error {
 	for _, userTeam := range teamMembers {
 		_, err := a.AddTeamMember(userTeam.TeamID, userTeam.UserID)
 		if err != nil {
+			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+				a.Log().Info("User not added to team - the domain associated with the user is not in the list of allowed team domains",
+					mlog.String("user_id", userTeam.UserID),
+					mlog.String("team_id", userTeam.TeamID),
+				)
+				continue
+			}
 			return err
 		}
 
@@ -189,23 +204,23 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		mlog.Any("permitted_admins", permittedAdmins),
 	)
 
-	var updateFunc func(string, []string) *model.AppError
-
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		updateFunc = a.Srv().Store.Team().UpdateMembersRole
+		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		if nErr != nil {
+			// TODO: Should we change the key "store.update_error" to "app.update_error"? It is very general and changing it now will modify lots of files
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+		return nil
 	case model.GroupSyncableTypeChannel:
-		updateFunc = a.Srv().Store.Channel().UpdateMembersRole
+		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		if nErr != nil {
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+		return nil
 	default:
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
 	}
-
-	err = updateFunc(syncableID, permittedAdmins)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
