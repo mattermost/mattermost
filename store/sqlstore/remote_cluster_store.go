@@ -59,10 +59,14 @@ func (s sqlRemoteClusterStore) Delete(remoteCluster *model.RemoteCluster) (bool,
 	return true, nil
 }
 
-func (s sqlRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("RemoteClusters")
+
+	if !inclOffline {
+		query = query.Where(sq.Gt{"LastPingAt": model.GetMillis() - model.REMOTE_OFFLINE_AFTER_MILLIS})
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -89,22 +93,6 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteCluster *model.RemoteCluster)
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
 		return errors.Wrap(err, "failed to update RemoteCluster")
-	}
-	return nil
-}
-
-func (s sqlRemoteClusterStore) Cleanup() error {
-	query := s.getQueryBuilder().
-		Delete("RemoteClusters").
-		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.REMOTE_OFFLINE_AFTER_MILLIS})
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "remote_cluster_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return errors.Wrap(err, "failed to delete RemoteClusters")
 	}
 	return nil
 }

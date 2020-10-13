@@ -5765,24 +5765,6 @@ func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.R
 	return result, err
 }
 
-func (s *OpenTracingLayerRemoteClusterStore) Cleanup() error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.Cleanup")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.RemoteClusterStore.Cleanup()
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
 func (s *OpenTracingLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.Delete")
@@ -5801,7 +5783,7 @@ func (s *OpenTracingLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bo
 	return result, err
 }
 
-func (s *OpenTracingLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+func (s *OpenTracingLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -5810,7 +5792,7 @@ func (s *OpenTracingLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, e
 	}()
 
 	defer span.Finish()
-	result, err := s.RemoteClusterStore.GetAll()
+	result, err := s.RemoteClusterStore.GetAll(inclOffline)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

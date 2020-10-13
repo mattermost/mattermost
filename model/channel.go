@@ -109,7 +109,11 @@ type ChannelModeratedRolesPatch struct {
 	Members *bool `json:"members"`
 }
 
-// SharedChannel represents a channel that can be shared with a remote cluster.
+// SharedChannel represents a channel that can be synchronized with a remote cluster.
+// If "home" is true, then the shared channel is homed locally and "SharedChannelRemote"
+// table contains the remote clusters that have been invited.
+// If "home" is false, then the shared channel is homed remotely, and "RemoteClusterId"
+// field points to the remote cluster connection in "RemoteClusters" table.
 type SharedChannel struct {
 	Channel
 	Home             bool   `json:"home"`
@@ -118,8 +122,8 @@ type SharedChannel struct {
 	ShareDisplayName string `json:"sharedisplayname"`
 	SharePurpose     string `json:"sharepurpose"`
 	Shareheader      string `json:"shareheader"`
-	URL              string `json:"url"`
-	Token            string `json:"token"`
+	RemoteClusterId  string `json:"remote_cluster_id"` // if not "home"
+	Token            string `json:"token"`             // if not "home"
 }
 
 // SharedChannelRemote represents a remote cluster that has been invited
@@ -131,6 +135,7 @@ type SharedChannelRemote struct {
 	Description       string `json:"description"`
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
+	RemoteClusterId   string `json:"remote_cluster_id"`
 }
 
 // ChannelSearchOpts contains options for searching channels.

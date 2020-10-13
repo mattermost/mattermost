@@ -413,9 +413,8 @@ type ClusterDiscoveryStore interface {
 type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) error
 	Delete(rc *model.RemoteCluster) (bool, error)
-	GetAll() ([]*model.RemoteCluster, error)
+	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
 	SetLastPingAt(rc *model.RemoteCluster) error
-	Cleanup() error
 }
 
 type ComplianceStore interface {

@@ -14,20 +14,6 @@ type RemoteClusterStore struct {
 	mock.Mock
 }
 
-// Cleanup provides a mock function with given fields:
-func (_m *RemoteClusterStore) Cleanup() error {
-	ret := _m.Called()
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Delete provides a mock function with given fields: rc
 func (_m *RemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
 	ret := _m.Called(rc)
@@ -49,13 +35,13 @@ func (_m *RemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields:
-func (_m *RemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
-	ret := _m.Called()
+// GetAll provides a mock function with given fields: inclOffline
+func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(inclOffline)
 
 	var r0 []*model.RemoteCluster
-	if rf, ok := ret.Get(0).(func() []*model.RemoteCluster); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(bool) []*model.RemoteCluster); ok {
+		r0 = rf(inclOffline)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RemoteCluster)
@@ -63,8 +49,8 @@ func (_m *RemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
+		r1 = rf(inclOffline)
 	} else {
 		r1 = ret.Error(1)
 	}

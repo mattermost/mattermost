@@ -5614,26 +5614,6 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
-func (s *RetryLayerRemoteClusterStore) Cleanup() error {
-
-	tries := 0
-	for {
-		err := s.RemoteClusterStore.Cleanup()
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
-
-}
-
 func (s *RetryLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
 
 	tries := 0
@@ -5654,11 +5634,11 @@ func (s *RetryLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, er
 
 }
 
-func (s *RetryLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+func (s *RetryLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.GetAll()
+		result, err := s.RemoteClusterStore.GetAll(inclOffline)
 		if err == nil {
 			return result, nil
 		}

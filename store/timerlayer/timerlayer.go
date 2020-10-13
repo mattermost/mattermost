@@ -5221,22 +5221,6 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return result, err
 }
 
-func (s *TimerLayerRemoteClusterStore) Cleanup() error {
-	start := timemodule.Now()
-
-	err := s.RemoteClusterStore.Cleanup()
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.Cleanup", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
 	start := timemodule.Now()
 
@@ -5253,10 +5237,10 @@ func (s *TimerLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, er
 	return result, err
 }
 
-func (s *TimerLayerRemoteClusterStore) GetAll() ([]*model.RemoteCluster, error) {
+func (s *TimerLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 	start := timemodule.Now()
 
-	result, err := s.RemoteClusterStore.GetAll()
+	result, err := s.RemoteClusterStore.GetAll(inclOffline)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

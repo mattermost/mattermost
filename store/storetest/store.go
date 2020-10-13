@@ -22,6 +22,7 @@ type Store struct {
 	BotStore                  mocks.BotStore
 	AuditStore                mocks.AuditStore
 	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
+	RemoteClusterStore        mocks.RemoteClusterStore
 	ComplianceStore           mocks.ComplianceStore
 	SessionStore              mocks.SessionStore
 	OAuthStore                mocks.OAuthStore
@@ -62,6 +63,7 @@ func (s *Store) Bot() store.BotStore                               { return &s.B
 func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
+func (s *Store) RemoteCluster() store.RemoteClusterStore           { return &s.RemoteClusterStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
 func (s *Store) Session() store.SessionStore                       { return &s.SessionStore }
 func (s *Store) OAuth() store.OAuthStore                           { return &s.OAuthStore }
