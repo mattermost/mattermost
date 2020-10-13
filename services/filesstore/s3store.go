@@ -354,7 +354,15 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 		if object.Err != nil {
 			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
 		}
-		paths = append(paths, strings.Trim(object.Key, "/"))
+		// We strip the path prefix that gets applied,
+		// so that it remains transparent to the application.
+		if strings.HasPrefix(object.Key, b.pathPrefix) {
+			object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+		}
+		trimmed := strings.Trim(object.Key, "/")
+		if trimmed != "" {
+			paths = append(paths, trimmed)
+		}
 	}
 
 	return &paths, nil
