@@ -6386,10 +6386,6 @@
     "translation": "Requested image url cannot be parsed."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "파일을 업로드 할 수 없습니다. {{.Filename}}. 은 플러그인에 의해 거부되었습니다 : {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "서버의 사용량이 많아서, 중요하지 않은 서비스를 일시적으로 사용할 수 없습니다."
   },

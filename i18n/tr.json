@@ -5803,10 +5803,6 @@
     "translation": "Dosya yüklenemedi. Kanal kodu geçersiz: {{.channelId}}"
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "{{.Filename}} dosyası yüklenemedi. Uygulama eki tarafından reddedildi: {{.Reason}}"
-  },
-  {
     "id": "api.emoji.create.internal_error",
     "translation": "sunucu_sorunu: Emoji oluşturulurken sunucuda bir iç sorun çıktı."
   },
