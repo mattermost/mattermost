@@ -220,7 +220,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
-	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
+	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
