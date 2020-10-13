@@ -6447,10 +6447,6 @@
     "translation": "Requested image url cannot be parsed."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Konnte Datei {{.Filename}} nicht hochladen. Zurückgewiesen durch Plugin: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Der Server ist ausgelastet, unkritische Dienste sind vorübergehend nicht verfügbar."
   },

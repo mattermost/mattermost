@@ -6396,10 +6396,6 @@
     "translation": "Urlul de imagine solicitat nu poate fi analizat."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Imposibil de încărcat fișierul {{.Filename}}. Respins de plugin: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Serverul este ocupat, serviciile non-critice nu sunt disponibile temporar."
   },
