@@ -6255,10 +6255,6 @@
     "translation": "Il server è occupato, i servizi non critici saranno temporaneamente non disponibili."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Impossibile caricare il file {{.Filename}}. Rifiutato dal plugin: {{.Reason}}"
-  },
-  {
     "id": "api.image.get.app_error",
     "translation": "L'url dell'immagine richiesta non può essere interpretato."
   },
