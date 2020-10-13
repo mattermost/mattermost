@@ -164,6 +164,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	for id := range mentions.Mentions {
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
+			defer close(umc)
 			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
 				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
 				if nErr != nil {
@@ -171,6 +172,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					return
 				}
 			}
+			umc <- nil
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
