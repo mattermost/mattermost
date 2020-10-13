@@ -623,33 +623,41 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		}
 	}
 
-	aerr = t.readAll()
-	if aerr != nil {
-		return t.fileinfo, aerr
-	}
-
-	aerr = t.runPlugins()
-	if aerr != nil {
-		return t.fileinfo, aerr
-	}
-
-	// Concurrently post-process the image.
-	wg := sync.WaitGroup{}
-
-	if !t.Raw && t.fileinfo.IsImage() {
-		wg.Add(1)
-		go func() {
-			t.postprocessImage()
-			wg.Done()
-		}()
-	}
-
-	_, aerr = t.writeFile(t.newReader(), t.fileinfo.Path)
+	written, aerr := t.writeFile(io.MultiReader(t.buf, t.limitedInput), t.fileinfo.Path)
 	if aerr != nil {
 		return nil, aerr
 	}
 
-	wg.Wait()
+	if written > t.maxFileSize {
+		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+		}
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+	}
+
+	t.fileinfo.Size = written
+
+	file, aerr := a.FileReader(t.fileinfo.Path)
+	if aerr != nil {
+		return nil, aerr
+	}
+	defer file.Close()
+
+	aerr = a.runPluginsHook(t.fileinfo, file)
+	if aerr != nil {
+		return nil, aerr
+	}
+
+	if !t.Raw && t.fileinfo.IsImage() {
+		file, aerr = a.FileReader(t.fileinfo.Path)
+		if aerr != nil {
+			return nil, aerr
+		}
+		defer file.Close()
+		t.postprocessImage(file)
+	}
+
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
 		var appErr *model.AppError
 		switch {
@@ -663,69 +671,10 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	return t.fileinfo, nil
 }
 
-func (t *UploadFileTask) readAll() *model.AppError {
-	_, err := t.buf.ReadFrom(t.limitedInput)
-	if err != nil {
-		// Ugly hack: the error is not exported from net/http.
-		if err.Error() == "http: request body too large" {
-			return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-				"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
-		}
-		return t.newAppError("api.file.upload_file.read_request.app_error",
-			err.Error(), http.StatusBadRequest)
-	}
-	if int64(t.buf.Len()) > t.limit {
-		return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
-	}
-	t.fileinfo.Size = int64(t.buf.Len())
-
-	t.limitedInput = nil
-	t.teeInput = nil
-	return nil
-}
-
-func (t *UploadFileTask) runPlugins() *model.AppError {
-	if t.pluginsEnvironment == nil {
-		return nil
-	}
-
-	pluginContext := &plugin.Context{}
-	var rejectionError *model.AppError
-
-	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		buf := &bytes.Buffer{}
-		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
-			t.fileinfo, t.newReader(), buf)
-		if rejectionReason != "" {
-			rejectionError = t.newAppError("api.file.upload_file.rejected_by_plugin.app_error",
-				rejectionReason, http.StatusForbidden, "Reason", rejectionReason)
-			return false
-		}
-		if replacementInfo != nil {
-			t.fileinfo = replacementInfo
-		}
-		if buf.Len() != 0 {
-			t.buf = buf
-			t.teeInput = nil
-			t.limitedInput = nil
-			t.fileinfo.Size = int64(buf.Len())
-		}
-
-		return true
-	}, plugin.FileWillBeUploadedId)
-
-	if rejectionError != nil {
-		return rejectionError
-	}
-
-	return nil
-}
-
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.MimeType == "image/svg+xml" {
-		svgInfo, err := parseSVG(t.newReader())
+		svgInfo, err := parseSVG(t.teeInput)
 		if err != nil {
 			mlog.Error("Failed to parse SVG", mlog.Err(err))
 		}
@@ -738,7 +687,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	}
 
 	// If we fail to decode, return "as is".
-	config, _, err := image.DecodeConfig(t.newReader())
+	config, _, err := image.DecodeConfig(t.teeInput)
 	if err != nil {
 		return nil
 	}
@@ -762,7 +711,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = getImageOrientation(t.newReader()); err == nil &&
+	if t.imageOrientation, err = getImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
 		(t.imageOrientation == RotatedCWMirrored ||
 			t.imageOrientation == RotatedCCW ||
 			t.imageOrientation == RotatedCCWMirrored ||
@@ -773,13 +722,10 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		gifConfig, err := gif.DecodeAll(t.newReader())
+		gifConfig, err := gif.DecodeAll(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
 		if err == nil {
-			if len(gifConfig.Image) >= 1 {
-				t.fileinfo.HasPreviewImage = false
-
-			}
 			if len(gifConfig.Image) > 0 {
+				t.fileinfo.HasPreviewImage = false
 				t.decoded = gifConfig.Image[0]
 				t.imageType = "gif"
 			}
@@ -789,7 +735,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) postprocessImage() {
+func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// don't try to process SVG files
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		return
@@ -798,7 +744,7 @@ func (t *UploadFileTask) postprocessImage() {
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
-		decoded, typ, err = image.Decode(t.newReader())
+		decoded, typ, err = image.Decode(file)
 		if err != nil {
 			mlog.Error("Unable to decode image", mlog.Err(err))
 			return
@@ -838,33 +784,20 @@ func (t *UploadFileTask) postprocessImage() {
 		}
 	}
 
-	w := decoded.Bounds().Dx()
-	h := decoded.Bounds().Dy()
-
 	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
-		defer wg.Done()
-		thumb := decoded
-		if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
-			if float64(h)/float64(w) < ImageThumbnailRatio {
-				thumb = imaging.Resize(decoded, 0, ImageThumbnailHeight, imaging.Lanczos)
-			} else {
-				thumb = imaging.Resize(decoded, ImageThumbnailWidth, 0, imaging.Lanczos)
-			}
-		}
-		writeJPEG(thumb, t.fileinfo.ThumbnailPath)
-	}()
+	wg.Add(1)
+	if t.fileinfo.HasPreviewImage {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
+		}()
 
-	go func() {
-		defer wg.Done()
-		preview := decoded
-		if w > ImagePreviewWidth {
-			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
-		}
-		writeJPEG(preview, t.fileinfo.PreviewPath)
-	}()
-
+		go func() {
+			defer wg.Done()
+			writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
+		}()
+	}
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
@@ -872,14 +805,6 @@ func (t *UploadFileTask) postprocessImage() {
 		}
 	}()
 	wg.Wait()
-}
-
-func (t UploadFileTask) newReader() io.Reader {
-	if t.teeInput != nil {
-		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
-	} else {
-		return bytes.NewReader(t.buf.Bytes())
-	}
 }
 
 func (t UploadFileTask) pathPrefix() string {
@@ -1083,22 +1008,8 @@ func getImageOrientation(input io.Reader) (int, error) {
 }
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
-	thumbWidth := float64(IMAGE_THUMBNAIL_PIXEL_WIDTH)
-	thumbHeight := float64(IMAGE_THUMBNAIL_PIXEL_HEIGHT)
-	imgWidth := float64(width)
-	imgHeight := float64(height)
-
-	var thumbnail image.Image
-	if imgHeight < IMAGE_THUMBNAIL_PIXEL_HEIGHT && imgWidth < thumbWidth {
-		thumbnail = img
-	} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
-		thumbnail = imaging.Resize(img, 0, IMAGE_THUMBNAIL_PIXEL_HEIGHT, imaging.Lanczos)
-	} else {
-		thumbnail = imaging.Resize(img, IMAGE_THUMBNAIL_PIXEL_WIDTH, 0, imaging.Lanczos)
-	}
-
 	buf := new(bytes.Buffer)
-	if err := jpeg.Encode(buf, thumbnail, &jpeg.Options{Quality: 90}); err != nil {
+	if err := jpeg.Encode(buf, genThumbnail(img), &jpeg.Options{Quality: 90}); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
 		return
 	}
@@ -1110,13 +1021,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, widt
 }
 
 func (a *App) generatePreviewImage(img image.Image, previewPath string, width int) {
-	var preview image.Image
-
-	if width > IMAGE_PREVIEW_PIXEL_WIDTH {
-		preview = imaging.Resize(img, IMAGE_PREVIEW_PIXEL_WIDTH, 0, imaging.Lanczos)
-	} else {
-		preview = img
-	}
+	preview := genPreview(img)
 
 	buf := new(bytes.Buffer)
 
