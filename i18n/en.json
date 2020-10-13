@@ -1385,6 +1385,10 @@
     "translation": "Unable to move file locally."
   },
   {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Encountered an error opening a connection to S3."
+  },
+  {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
