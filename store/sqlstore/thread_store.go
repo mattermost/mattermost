@@ -166,9 +166,11 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
-		membership.Following = true
-		membership.LastUpdated = now
-		_, err = s.UpdateMembership(membership)
+		if !membership.Following {
+			membership.Following = true
+			membership.LastUpdated = now
+			_, err = s.UpdateMembership(membership)
+		}
 		return err
 	}
 

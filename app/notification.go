@@ -160,6 +160,21 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 
+	// for each mention, make sure to update thread autofollow
+	for id := range mentions.Mentions {
+		umc := make(chan *model.AppError, 1)
+		go func(userId string) {
+			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
+				if nErr != nil {
+					umc <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+		}(id)
+		updateMentionChans = append(updateMentionChans, umc)
+	}
+
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 
@@ -170,13 +185,6 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				return
-			}
-			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
-				nErr = a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
-				if nErr != nil {
-					umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-					return
-				}
 			}
 			umc <- nil
 		}(id)

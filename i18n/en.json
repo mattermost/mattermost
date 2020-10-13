@@ -3507,6 +3507,10 @@
     "translation": "Unable to get channel type counts."
   },
   {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Failed to update thread membership for mentioned user"
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
   },
@@ -6229,10 +6233,6 @@
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
     "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
-  },
-  {
-    "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
