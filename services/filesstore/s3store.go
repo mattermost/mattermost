@@ -356,9 +356,7 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 		}
 		// We strip the path prefix that gets applied,
 		// so that it remains transparent to the application.
-		if strings.HasPrefix(object.Key, b.pathPrefix) {
-			object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
-		}
+		object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
 		trimmed := strings.Trim(object.Key, "/")
 		if trimmed != "" {
 			paths = append(paths, trimmed)
