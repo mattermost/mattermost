@@ -18,17 +18,17 @@ type customTransport struct {
 	base   http.RoundTripper
 	host   string
 	scheme string
-	cli    http.Client
+	client http.Client
 }
 
-// RoundTrip implements the transport's roundtripper implementation.
+// RoundTrip implements the http.Roundtripper interface.
 func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Rountrippers should not modify the original request.
 	newReq := req.Clone(context.Background())
 	*newReq.URL = *req.URL
 	req.URL.Scheme = t.scheme
 	req.URL.Host = t.host
-	return t.cli.Do(req)
+	return t.client.Do(req)
 }
 
 // customProvider is a dummy credentials provider for the minio client to work
@@ -48,10 +48,7 @@ func (cp customProvider) Retrieve() (credentials.Value, error) {
 		sign = credentials.SignatureV2
 	}
 	return credentials.Value{
-		AccessKeyID:     "",
-		SecretAccessKey: "",
-		SessionToken:    "",
-		SignerType:      sign,
+		SignerType: sign,
 	}, nil
 }
 
