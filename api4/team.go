@@ -1200,8 +1200,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, _ := c.App.Cloud().GetSubscription()
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+			subscription, subErr := c.App.Cloud().GetSubscription()
+			if subErr != nil {
+				c.Err = subErr
+				return
+			}
 			if subscription == nil || subscription.IsPaidTier != "true" {
 				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
 			}
@@ -1284,9 +1288,13 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, _ := c.App.Cloud().GetSubscription()
-			if subscription == nil || subscription.IsPaidTier != "true"  {
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+			subscription, subErr := c.App.Cloud().GetSubscription()
+			if subErr != nil {
+				c.Err = subErr
+				return
+			}
+			if subscription == nil || subscription.IsPaidTier != "true" {
 				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
 			}
 		}
