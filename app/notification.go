@@ -163,19 +163,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// for each mention, make sure to update thread autofollow
 	for id := range mentions.Mentions {
-		umc := make(chan *model.AppError, 1)
+		mac := make(chan *model.AppError, 1)
 		go func(userId string) {
-			defer close(umc)
+			defer close(mac)
 			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
 				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
 				if nErr != nil {
-					umc <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
 				}
 			}
-			umc <- nil
+			mac <- nil
 		}(id)
-		mentionAutofollowChans = append(mentionAutofollowChans, umc)
+		mentionAutofollowChans = append(mentionAutofollowChans, mac)
 	}
 
 	for id := range mentions.Mentions {
