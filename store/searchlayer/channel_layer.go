@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -61,7 +63,7 @@ func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, err
 	return updatedChannel, err
 }
 
-func (c *SearchChannelStore) UpdateMember(cm *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (c *SearchChannelStore) UpdateMember(cm *model.ChannelMember) (*model.ChannelMember, error) {
 	member, err := c.ChannelStore.UpdateMember(cm)
 	if err == nil {
 		c.rootStore.indexUserFromID(cm.UserId)
@@ -75,7 +77,7 @@ func (c *SearchChannelStore) UpdateMember(cm *model.ChannelMember) (*model.Chann
 	return member, err
 }
 
-func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
+func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.ChannelMember, error) {
 	member, err := c.ChannelStore.SaveMember(cm)
 	if err == nil {
 		c.rootStore.indexUserFromID(cm.UserId)
@@ -89,7 +91,7 @@ func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.Channel
 	return member, err
 }
 
-func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *model.AppError {
+func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) error {
 	err := c.ChannelStore.RemoveMember(channelId, userIdToRemove)
 	if err == nil {
 		c.rootStore.indexUserFromID(userIdToRemove)
@@ -97,7 +99,7 @@ func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *mod
 	return err
 }
 
-func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) *model.AppError {
+func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) error {
 	if err := c.ChannelStore.RemoveMembers(channelId, userIds); err != nil {
 		return err
 	}
@@ -126,16 +128,17 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 	return channel, err
 }
 
-func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	var channelList *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
+	var nErr error
 
 	allFailed := true
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			channelList, err = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
-			if err != nil {
-				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			channelList, appErr = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
+			if appErr != nil {
+				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(appErr))
 				continue
 			}
 			allFailed = false
@@ -146,12 +149,17 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 
 	if allFailed {
 		mlog.Debug("Using database search because no other search engine is available")
-		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
-		if err != nil {
-			return nil, err
+		channelList, nErr = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+		if nErr != nil {
+			return nil, model.NewAppError("AutocompleteInTeam", "app.channel.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
-	return channelList, err
+
+	if appErr != nil {
+		return channelList, appErr
+	}
+
+	return channelList, nil
 }
 
 func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
@@ -164,8 +172,9 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("searchAutocompleteChannels", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+
 		for _, ch := range channels {
 			channelList = append(channelList, ch)
 		}
@@ -174,7 +183,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	return &channelList, nil
 }
 
-func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	err := c.ChannelStore.PermanentDeleteMembersByUser(userId)
 	if err == nil {
 		c.rootStore.indexUserFromID(userId)
@@ -182,7 +191,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) *model.
 	return err
 }
 
-func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
+func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(channelId, true)
 	if errProfiles != nil {
 		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
@@ -199,7 +208,7 @@ func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) *mode
 	return err
 }
 
-func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *model.AppError {
+func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) error {
 	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(channelId, true)
 	if errProfiles != nil {
 		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))

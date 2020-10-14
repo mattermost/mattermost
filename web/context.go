@@ -258,8 +258,8 @@ func NewServerBusyError() *model.AppError {
 	return err
 }
 
-func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.App.MakePermissionError(permission)
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	c.Err = c.App.MakePermissionError(permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -381,6 +381,18 @@ func (c *Context) RequireFileId() *Context {
 
 	if !model.IsValidId(c.Params.FileId) {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireUploadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.UploadId) {
+		c.SetInvalidUrlParam("upload_id")
 	}
 
 	return c

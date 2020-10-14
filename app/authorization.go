@@ -11,8 +11,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) MakePermissionError(permission *model.Permission) *model.AppError {
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+func (a *App) MakePermissionError(permissions []*model.Permission) *model.AppError {
+	permissionsStr := "permission="
+	for _, permission := range permissions {
+		permissionsStr += permission.Id
+		permissionsStr += ","
+	}
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+permissionsStr, http.StatusForbidden)
 }
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
@@ -20,6 +25,15 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 		return true
 	}
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+}
+
+func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool {
+	for _, perm := range permissions {
+		if a.SessionHasPermissionTo(session, perm) {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
@@ -44,9 +58,6 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if channelId == "" {
 		return false
 	}
-	if session.IsUnrestricted() {
-		return true
-	}
 
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
@@ -60,13 +71,17 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		}
 	}
 
-	channel, err := a.GetChannel(channelId)
-	if err == nil && channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
+	channel, appErr := a.GetChannel(channelId)
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+		return false
 	}
 
-	if err != nil && err.StatusCode == http.StatusNotFound {
-		return false
+	if session.IsUnrestricted() {
+		return true
+	}
+
+	if channel.TeamId != "" {
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
@@ -247,7 +262,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
+			return a.MakePermissionError([]*model.Permission{model.PERMISSION_MANAGE_BOTS})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
@@ -256,7 +271,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
+			return a.MakePermissionError([]*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
 		}
 	}
 

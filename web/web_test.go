@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -71,10 +72,13 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
-
+	*memoryStore.Get().AnnouncementSettings.AdminNoticesEnabled = false
+	*memoryStore.Get().AnnouncementSettings.UserNoticesEnabled = false
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	mlog.DisableZap()
 
 	s, err := app.NewServer(options...)
 	if err != nil {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"sort"
 	"strings"
 	"unicode"
@@ -32,7 +33,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	cmnchan := make(chan store.StoreResult, 1)
 	go func() {
 		props, err := a.Srv().Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-		cmnchan <- store.StoreResult{Data: props, Err: err}
+		cmnchan <- store.StoreResult{Data: props, NErr: err}
 		close(cmnchan)
 	}()
 
@@ -51,7 +52,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
 			fileInfos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			fchan <- store.StoreResult{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
 	}
@@ -63,8 +64,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	profileMap := result.Data.(map[string]*model.User)
 
 	result = <-cmnchan
-	if result.Err != nil {
-		return nil, result.Err
+	if result.NErr != nil {
+		return nil, result.NErr
 	}
 	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
@@ -164,7 +165,13 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
-			umc <- a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
+			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
+			if nErr != nil {
+				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			} else {
+				umc <- nil
+			}
+
 			close(umc)
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
@@ -349,8 +356,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
-		if result := <-fchan; result.Err != nil {
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		if result := <-fchan; result.NErr != nil {
+			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
@@ -866,7 +873,7 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 	}
 
 	// If turned on, add the user's case sensitive first name
-	if profile.NotifyProps[model.FIRST_NAME_NOTIFY_PROP] == "true" {
+	if profile.NotifyProps[model.FIRST_NAME_NOTIFY_PROP] == "true" && profile.FirstName != "" {
 		keywords[profile.FirstName] = append(keywords[profile.FirstName], profile.Id)
 	}
 

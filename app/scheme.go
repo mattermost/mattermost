@@ -171,7 +171,7 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 
 	teams, err := a.Srv().Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetTeamsForScheme", "app.team.get_by_scheme.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
 }
@@ -188,7 +188,13 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+
+	channelList, nErr := a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
+	if nErr != nil {
+		return nil, model.NewAppError("GetChannelsForScheme", "app.channel.get_by_scheme.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (s *Server) IsPhase2MigrationCompleted() *model.AppError {

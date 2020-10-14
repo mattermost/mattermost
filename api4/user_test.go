@@ -495,7 +495,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("NoInviteId", func(t *testing.T) {
@@ -516,7 +516,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
@@ -1599,7 +1599,7 @@ func TestUpdateUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	user.Nickname = "Joram Wilander"
-	user.Roles = model.SYSTEM_ADMIN_ROLE_ID
+	user.Roles = model.SYSTEM_USER_ROLE_ID
 	user.LastPasswordUpdate = 123
 
 	ruser, resp := th.Client.UpdateUser(user)
@@ -1989,8 +1989,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, err)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Greater(t, postCount, int64(0))
 
 		// Delete all users and their posts
@@ -2002,8 +2002,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Equal(t, postCount, int64(0))
 
 		// Check that the channel and team created by the user were not deleted
@@ -2804,6 +2804,29 @@ func TestUpdateUserPassword(t *testing.T) {
 
 	_, resp = th.Client.Login(th.BasicUser.Email, adminSetPassword)
 	CheckNoError(t, resp)
+}
+
+func TestUpdateUserHashedPassword(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	password := "SuperSecurePass23!"
+	passwordHash := "$2a$10$CiS1iWVPUj7rQNdY6XW53.DmaPLsETIvmW2p0asp4Dqpofs10UL5W"
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		pass, resp := client.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+		CheckNoError(t, resp)
+		require.True(t, pass)
+	})
+
+	_, resp := client.Login(th.BasicUser.Email, password)
+	CheckNoError(t, resp)
+
+	// Standard users should never be updating their passwords with already-
+	// hashed passwords.
+	pass, resp := client.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+	CheckUnauthorizedStatus(t, resp)
+	require.False(t, pass)
 }
 
 func TestResetPassword(t *testing.T) {
@@ -5157,5 +5180,56 @@ func TestConvertUserToBot(t *testing.T) {
 		bot, resp = client.GetBot(bot.UserId, "")
 		CheckNoError(t, resp)
 		require.NotNil(t, bot)
+	})
+}
+
+func TestMigrateAuthToLDAP(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToLdap("email", "a", false)
+	CheckForbiddenStatus(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToLdap("email", "a", false)
+		CheckNotImplementedStatus(t, err)
+	})
+}
+
+func TestMigrateAuthToSAML(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+	CheckForbiddenStatus(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+		CheckNotImplementedStatus(t, err)
+	})
+}
+func TestUpdatePassword(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
+		res := th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system user with requisite system permission, except if requested user is system admin", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		res := th.Client.UpdatePassword(th.TeamAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
+
+		res = th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
+		res := th.SystemAdminClient.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
 	})
 }

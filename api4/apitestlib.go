@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -29,8 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
 
-	s3 "github.com/minio/minio-go/v6"
-	"github.com/minio/minio-go/v6/pkg/credentials"
+	s3 "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,6 +84,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
 	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*config.AnnouncementSettings.AdminNoticesEnabled = false
+	*config.AnnouncementSettings.UserNoticesEnabled = false
 	if updateConfig != nil {
 		updateConfig(config)
 	}
@@ -116,6 +119,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.ServiceSettings.SiteURL = ""
 
 		// Disable sniffing, otherwise elastic client fails to connect to docker node
 		// More details: https://github.com/olivere/elastic/wiki/Sniffing
@@ -890,7 +894,13 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	} else {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
-	return s3.NewWithCredentials(endpoint, creds, secure, region)
+
+	opts := s3.Options{
+		Creds:  creds,
+		Secure: secure,
+		Region: region,
+	}
+	return s3.New(endpoint, &opts)
 }
 
 func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
@@ -907,18 +917,18 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 			return err
 		}
 		bucket := *cfg.FileSettings.AmazonS3Bucket
-		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
+		if err := s3Clnt.RemoveObject(context.Background(), bucket, info.Path, s3.RemoveObjectOptions{}); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.ThumbnailPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.ThumbnailPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.PreviewPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.PreviewPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}

@@ -90,10 +90,22 @@ func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface
 	jobsBleveIndexerInterface = f
 }
 
+var jobsActiveUsersInterface func(*App) tjobs.ActiveUsersJobInterface
+
+func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface) {
+	jobsActiveUsersInterface = f
+}
+
 var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
 
 func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
 	jobsExpiryNotifyInterface = f
+}
+
+var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
+
+func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
+	productNoticesJobInterface = f
 }
 
 var ldapInterface func(*App) einterfaces.LdapInterface
@@ -106,6 +118,12 @@ var messageExportInterface func(*Server) einterfaces.MessageExportInterface
 
 func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInterface) {
 	messageExportInterface = f
+}
+
+var cloudInterface func(*App) einterfaces.CloudInterface
+
+func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
+	cloudInterface = f
 }
 
 var metricsInterface func(*Server) einterfaces.MetricsInterface
@@ -167,6 +185,9 @@ func (a *App) initEnterprise() {
 		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
 			mlog.Debug("Loading new SAML2 library")
 			a.srv.Saml = samlInterfaceNew(a)
+		} else if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew == nil {
+			mlog.Debug("Ignoring configuration setting to use the Experimental SAML library")
+			a.srv.Saml = samlInterface(a)
 		} else {
 			mlog.Debug("Loading original SAML library")
 			a.srv.Saml = samlInterface(a)
@@ -179,5 +200,8 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
+	}
+	if cloudInterface != nil {
+		a.srv.Cloud = cloudInterface(a)
 	}
 }
