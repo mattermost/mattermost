@@ -1286,7 +1286,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var invitesOverLimit []*model.EmailInviteWithError
 		if *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
 			subscription, _ := c.App.Cloud().GetSubscription()
-			if subscription.IsPaidTier != "true" || subscription == nil {
+			if subscription == nil || subscription.IsPaidTier != "true"  {
 				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
 			}
 		}
