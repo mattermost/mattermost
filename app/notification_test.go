@@ -68,6 +68,42 @@ func TestSendNotifications(t *testing.T) {
 	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
+
+	t.Run("post created via webhook should not notify original poster", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		th.BasicUser, err = th.App.UpdateUser(th.BasicUser, false)
+
+		rootPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "a message",
+			Props:     model.StringInterface{"from_webhook": "true"},
+		}
+
+		rootPost, appErr := th.App.CreatePostMissingChannel(rootPost, false)
+		require.Nil(t, appErr)
+
+		childPost := &model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    rootPost.Id,
+			ParentId:  rootPost.Id,
+			Message:   "a reply",
+		}
+		childPost, appErr = th.App.CreatePostMissingChannel(childPost, false)
+		require.Nil(t, appErr)
+
+		postList := model.PostList{
+			Order: []string{rootPost.Id, childPost.Id},
+			Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
+		}
+		mentions, err := th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+		require.Nil(t, err)
+		require.False(t, utils.StringInSlice(th.BasicUser.Id, mentions))
+	})
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
