@@ -344,6 +344,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// Note that PreparePostForClient should've already been called by this point
 	message.Add("post", post.ToJson())
+	message.Add("channel", channel.ToJson())
 
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.SHOW_USERNAME, ""))
