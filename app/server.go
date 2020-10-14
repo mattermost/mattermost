@@ -300,27 +300,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
-		s.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
-
-		message.Add("config", s.ClientConfigWithComputed())
-		s.Go(func() {
-			s.Publish(message)
-		})
-	})
-	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", s.GetSanitizedClientLicense())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-	})
-
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -360,6 +339,27 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.Store = s.newStore()
+
+	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+
+		message.Add("config", s.ClientConfigWithComputed())
+		s.Go(func() {
+			s.Publish(message)
+		})
+	})
+	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message.Add("license", s.GetSanitizedClientLicense())
+		s.Go(func() {
+			s.Publish(message)
+		})
+
+	})
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
