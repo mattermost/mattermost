@@ -2212,8 +2212,8 @@ type SamlSettings struct {
 	// User Mapping
 	IdAttribute          *string `access:"authentication"`
 	GuestAttribute       *string `access:"authentication"`
-	EnableAdminAttribute *bool   `access:"authentication"`
-	AdminAttribute       *string `access:"authentication"`
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
 	FirstNameAttribute   *string `access:"authentication"`
 	LastNameAttribute    *string `access:"authentication"`
 	EmailAttribute       *string `access:"authentication"`
