@@ -89,9 +89,9 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 
 	if stream != nil {
 		return multipart.NewReader(stream, boundary), nil
-	} else {
-		return multipart.NewReader(req.Body, boundary), nil
 	}
+
+	return multipart.NewReader(req.Body, boundary), nil
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {

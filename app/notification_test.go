@@ -69,7 +69,7 @@ func TestSendNotifications(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, mentions)
 
-	t.Run("post created via webhook should not notify original poster", func(t *testing.T) {
+	t.Run("replies to post created via webhook should not notify original poster", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
