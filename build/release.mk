@@ -110,7 +110,7 @@ endif
 	cp README.md $(DIST_PATH)
 	if [ -f manifest.txt ]; then \
 		cp manifest.txt $(DIST_PATH); \
-	fi; \
+	fi
 
 	@# Import Mattermost plugin public key
 	gpg --import build/plugin-production-public-key.gpg
