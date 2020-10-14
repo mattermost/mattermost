@@ -1421,10 +1421,6 @@
     "translation": "Error checking if bucket exists."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
-  },
-  {
     "id": "api.file.test_connection.s3.list_objects.app_error",
     "translation": "Error trying to list objects."
   },
