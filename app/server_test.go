@@ -379,7 +379,9 @@ func TestSentry(t *testing.T) {
 
 	testDir, _ := fileutils.FindDir("tests")
 	s, err := NewServer(func(server *Server) error {
-		server.configStore = config.NewTestMemoryStore()
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore)
+		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = false
@@ -421,7 +423,9 @@ func TestSentry(t *testing.T) {
 	_, port, _ = net.SplitHostPort(server2.Listener.Addr().String())
 	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 	s2, err := NewServer(func(server *Server) error {
-		server.configStore = config.NewTestMemoryStore()
+		configStore, _ := config.NewFileStore("config.json", true)
+		store, _ := config.NewStoreFromBacking(configStore)
+		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"

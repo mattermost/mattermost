@@ -144,7 +144,6 @@ func NewTestMemoryStore() Store {
 	if err != nil {
 		panic("failed to initialize config store: " + err.Error())
 	}
-	configStore.(*storeImpl).ignoreEnvironmentOverrides = true
 
 	return configStore
 }
@@ -158,9 +157,6 @@ type storeImpl struct {
 	configNoEnv *model.Config
 
 	persistFeatureFlags bool
-
-	// For testing
-	ignoreEnvironmentOverrides bool
 }
 
 // Get fetches the current, cached configuration.
@@ -254,9 +250,7 @@ func (s *storeImpl) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Onc
 	s.configNoEnv = loadedConfig.Clone()
 	fixConfig(s.configNoEnv)
 
-	if !s.ignoreEnvironmentOverrides {
-		loadedConfig = *applyEnviromentMap(&loadedConfig, GetEnviroment())
-	}
+	loadedConfig = *applyEnviromentMap(&loadedConfig, GetEnviroment())
 
 	fixConfig(&loadedConfig)
 

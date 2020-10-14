@@ -27,8 +27,9 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg := &model.Config{}
-	cfg.SetDefaults()
+	store := config.NewTestMemoryStore()
+	cfg := store.Get()
+
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
@@ -45,8 +46,8 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg := model.Config{}
-	cfg.SetDefaults()
+	store := config.NewTestMemoryStore()
+	cfg := store.Get()
 
 	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
