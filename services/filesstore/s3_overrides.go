@@ -52,5 +52,5 @@ func (cp customProvider) Retrieve() (credentials.Value, error) {
 	}, nil
 }
 
-// IsExpired just returns true always.
+// IsExpired always returns false.
 func (cp customProvider) IsExpired() bool { return false }
