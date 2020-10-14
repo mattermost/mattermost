@@ -48,11 +48,11 @@ type CloudCustomer struct {
 
 // CloudCustomerPatch represents a patch of a customer.
 type CloudCustomerPatch struct {
-	Name             *string `json:"name"`
-	Email            *string `json:"email"`
-	ContactFirstName *string `json:"contact_first_name"`
-	ContactLastName  *string `json:"contact_last_name"`
-	NumEmployees     *int    `json:"num_employees"`
+	Name             string `json:"name"`
+	Email            string `json:"email"`
+	ContactFirstName string `json:"contact_first_name"`
+	ContactLastName  string `json:"contact_last_name"`
+	NumEmployees     int    `json:"num_employees"`
 }
 
 // Address model represents a customer's address.
