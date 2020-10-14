@@ -2732,6 +2732,7 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 	email1 := th.GenerateTestEmail()
 	email2 := th.GenerateTestEmail()
 	email3 := th.GenerateTestEmail()
+	th.App.Srv().SetLicense(model.NewTestLicense("Cloud"))
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.ExperimentalSettings.CloudUserLimit = 2
