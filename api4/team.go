@@ -1200,8 +1200,11 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if cloudUserLimit > 0 && c.IsSystemAdmin() {
-			emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+		if *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+			subscription, _ := c.App.Cloud().GetSubscription()
+			if subscription.IsPaidTier != "true" || subscription == nil {
+				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+			}
 		}
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
