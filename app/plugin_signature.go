@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -73,7 +72,7 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	return nil
 }
 
-var errMatched = errors.New("signature matched")
+var errMatched = model.NewAppError("", "", nil, "matched", http.StatusInternalServerError)
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.AppError {
@@ -82,14 +81,14 @@ func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.App
 		return model.NewAppError("VerifyPlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	matcherForPK := func(pk []byte) ccReaderFunc {
-		return func(clone io.Reader) error {
+	matcher := func(pk []byte) ccReaderFunc {
+		return func(clone io.Reader) *model.AppError {
 			return verifyOneSignatureMismatch(bytes.NewReader(pk), clone, bytes.NewReader(sig))
 		}
 	}
 
 	matchers := []ccReaderFunc{
-		matcherForPK(mattermostPluginPublicKey),
+		matcher(mattermostPluginPublicKey),
 	}
 
 	pkFiles, appErr := a.GetPluginPublicKeyFiles()
@@ -103,14 +102,17 @@ func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.App
 			mlog.Error("Unable to get public key for ", mlog.String("filename", file))
 			continue
 		}
-		matchers = append(matchers, matcherForPK(data))
+		matchers = append(matchers, matcher(data))
 	}
 
-	err = runWithCCReader(plugin, matchers...)
-	fmt.Printf("<><> VERIFY PLUGIN: %#v\n", err)
-	if err != nil {
-		// return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	appErr = runWithCCReader(plugin, matchers...)
+	if appErr != errMatched {
+		if appErr != nil {
+			return appErr
+		}
+		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "signature did not match", http.StatusInternalServerError)
 	}
+
 	return nil
 }
 
@@ -118,7 +120,7 @@ func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.App
 // concurrently. It reverses the logic, returning a nil error when there's no
 // match, and errMatched otherwise. Then, runWithCCReader can return a single
 // errMatched "error" if one match was successful.
-func verifyOneSignatureMismatch(publicKey, signed, signatrue io.Reader) error {
+func verifyOneSignatureMismatch(publicKey, signed, signatrue io.Reader) *model.AppError {
 	err := verifyOneSignature(publicKey, signed, signatrue)
 	if err == nil {
 		return errMatched

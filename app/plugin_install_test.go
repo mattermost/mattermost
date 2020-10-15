@@ -7,7 +7,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -300,21 +299,21 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 
 func TestRunWithCCReader(t *testing.T) {
 	const payload = "TEST"
-	failure := errors.New("test failure")
+	failure := model.NewAppError("", "", nil, "test error", 500)
 
-	consume := func(in io.Reader) error {
+	consume := func(in io.Reader) *model.AppError {
 		bb, err := ioutil.ReadAll(in)
 		require.NoError(t, err)
 		require.Equal(t, payload, string(bb))
 		return nil
 	}
 
-	quietConsume := func(in io.Reader) error {
+	quietConsume := func(in io.Reader) *model.AppError {
 		_, _ = ioutil.ReadAll(in)
 		return nil
 	}
 
-	consume1ThenFail := func(in io.Reader) error {
+	consume1ThenFail := func(in io.Reader) *model.AppError {
 		bb := make([]byte, 1)
 		_, err := in.Read(bb)
 		require.NoError(t, err)
@@ -322,7 +321,7 @@ func TestRunWithCCReader(t *testing.T) {
 		return failure
 	}
 
-	consumeAllThenFail := func(in io.Reader) error {
+	consumeAllThenFail := func(in io.Reader) *model.AppError {
 		bb, err := ioutil.ReadAll(in)
 		require.NoError(t, err)
 		require.Equal(t, payload, string(bb))
@@ -332,7 +331,7 @@ func TestRunWithCCReader(t *testing.T) {
 	for _, tc := range []struct {
 		name          string
 		funcs         []ccReaderFunc
-		expectedError error
+		expectedError *model.AppError
 	}{
 		{
 			name:  "happy simple",
@@ -355,8 +354,8 @@ func TestRunWithCCReader(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var in io.Reader = bytes.NewReader([]byte(payload))
-			err := runWithCCReader(in, tc.funcs...)
-			require.Equal(t, tc.expectedError, err)
+			appErr := runWithCCReader(in, tc.funcs...)
+			require.Equal(t, tc.expectedError, appErr)
 		})
 	}
 }

@@ -51,6 +51,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -82,13 +83,14 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signature []byte
+	var signature filesstore.ReadCloseSeeker
 	if *a.Config().PluginSettings.RequirePluginSignature {
-		signature, appErr = a.ReadFile(plugin.signaturePath)
+		signature, appErr = a.FileReader(plugin.signaturePath)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 			return
 		}
+		defer signature.Close()
 	}
 
 	manifest, appErr := a.installPluginLocally(reader, signature, installPluginLocallyAlways)
@@ -120,12 +122,7 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 
 // InstallPluginWithSignature verifies and installs plugin.
 func (a *App) InstallPluginWithSignature(pluginFile io.Reader, signatureFile io.Reader) (*model.Manifest, *model.AppError) {
-	sig, err := ioutil.ReadAll(signatureFile)
-	if err != nil {
-		return nil, model.NewAppError("InstallPluginWithSignature", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	return a.installPlugin(pluginFile, sig, installPluginLocallyAlways)
+	return a.installPlugin(pluginFile, signatureFile, installPluginLocallyAlways)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
@@ -138,21 +135,9 @@ func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 	return a.installPlugin(pluginFile, nil, installationStrategy)
 }
 
-func ccReader(in io.Reader) (io.Reader, io.ReadCloser) {
-	pipeReader, pipeWriter := io.Pipe()
-	r := io.TeeReader(in, pipeWriter)
-	return r, &struct {
-		io.Reader
-		io.Closer
-	}{
-		Reader: pipeReader,
-		Closer: pipeWriter,
-	}
-}
+type ccReaderFunc func(io.Reader) *model.AppError
 
-type ccReaderFunc func(io.Reader) error
-
-func runWithCCReader(in io.Reader, ff ...ccReaderFunc) error {
+func runWithCCReader(in io.Reader, ff ...ccReaderFunc) *model.AppError {
 	wg := errgroup.Group{}
 	closers := []io.Closer{}
 	for i := range ff {
@@ -162,11 +147,12 @@ func runWithCCReader(in io.Reader, ff ...ccReaderFunc) error {
 
 		f := ff[i]
 		wg.Go(func() error {
-			err := f(pipeReader)
-			if err != nil {
-				pipeWriter.CloseWithError(err)
+			appErr := f(pipeReader)
+			if appErr != nil {
+				pipeWriter.CloseWithError(appErr)
+				return appErr
 			}
-			return err
+			return nil
 		})
 	}
 
@@ -175,35 +161,58 @@ func runWithCCReader(in io.Reader, ff ...ccReaderFunc) error {
 	for _, cc := range closers {
 		cc.Close()
 	}
-	// if err != nil {
-	// 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	// }
-	return wg.Wait()
+
+	err := wg.Wait()
+	if err != nil {
+		appErr, ok := err.(*model.AppError)
+		if ok {
+			return appErr
+		}
+		return model.NewAppError("InstallPlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (a *App) installPlugin(f io.Reader, signature []byte, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (a *App) installPlugin(in, signature io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	// Signature is small, so it's easier to buffer it rather than doing the delicate pipe dance
+	var signatureClone io.Reader
+	if signature != nil {
+		data, err := ioutil.ReadAll(signature)
+		if err != nil {
+			return nil, model.NewAppError("readSignature", "app.plugin.store_signature.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		signature = bytes.NewReader(data)
+		signatureClone = bytes.NewReader(data)
+	}
+
 	fTempName := model.NewId()
 	var manifest *model.Manifest
-	runWithCCReader(f,
-		func(clone io.Reader) error {
+	appErr := runWithCCReader(in,
+		func(clone io.Reader) *model.AppError {
+			// Save a copy of the file into the file store, under a temp name
 			_, writeErr := a.WriteFile(clone, a.getBundleStorePath(fTempName))
 			return writeErr
 		},
-		func(clone io.Reader) error {
+		func(clone io.Reader) *model.AppError {
+			// Install (and validate) a copy of the plugin locally
 			var installErr *model.AppError
-			manifest, installErr = a.installPluginLocally(f, signature, installationStrategy)
+			manifest, installErr = a.installPluginLocally(clone, signature, installationStrategy)
 			return installErr
 		},
 	)
-
-	appErr := a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
 	if appErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return nil, appErr
 	}
-	if signature != nil {
-		if _, appErr := a.WriteFile(bytes.NewReader(signature), a.getSignatureStorePath(manifest.Id)); appErr != nil {
+
+	if signatureClone != nil {
+		if _, appErr := a.WriteFile(signatureClone, a.getSignatureStorePath(manifest.Id)); appErr != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
+	}
+
+	appErr = a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
+	if appErr != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.notifyClusterPluginEvent(
@@ -305,37 +314,25 @@ func (a *App) installPluginLocally(in, signatureFile io.Reader, installationStra
 	var manifest *model.Manifest
 	pluginDir := ""
 	ff := []ccReaderFunc{
-		func(clone io.Reader) error {
-			var appErr *model.AppError
-			manifest, pluginDir, appErr = extractPlugin(in, tmpDir)
-			if appErr != nil {
-				return appErr
-			}
-			return nil
+		func(clone io.Reader) (appErr *model.AppError) {
+			manifest, pluginDir, appErr = extractPlugin(clone, tmpDir)
+			return appErr
 		},
 	}
 
 	if signatureFile != nil {
-		ff = append(ff, func(clone io.Reader) error {
-			appErr := a.VerifyPlugin(clone, signatureFile)
-			if appErr != nil {
-				return appErr
-			}
-			return nil
+		ff = append(ff, func(clone io.Reader) *model.AppError {
+			return a.VerifyPlugin(clone, signatureFile)
 		})
 	}
 
-	err = runWithCCReader(in, ff...)
-	if err != nil {
-		if appErr, ok := err.(*model.AppError); ok {
-			return nil, appErr
-		} else {
-			return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	appErr := runWithCCReader(in, ff...)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// Signature verified, tar files saved and extracted
-	manifest, appErr := a.installExtractedPlugin(manifest, pluginDir, installationStrategy)
+	manifest, appErr = a.installExtractedPlugin(manifest, pluginDir, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}

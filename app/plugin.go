@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 
@@ -269,24 +270,18 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 			defer reader.Close()
 
-			var sig []byte
+			var signature filesstore.ReadCloseSeeker
 			if *a.Config().PluginSettings.RequirePluginSignature {
-				var rc io.ReadCloser
-				rc, appErr = a.FileReader(plugin.signaturePath)
+				signature, appErr = a.FileReader(plugin.signaturePath)
 				if appErr != nil {
 					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 					return
 				}
-				defer rc.Close()
-				sig, err = ioutil.ReadAll(rc)
-				if err != nil {
-					mlog.Error("Failed to read plugin signature from file store.", mlog.Err(err))
-					return
-				}
+				defer signature.Close()
 			}
 
 			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-			if _, err := a.installPluginLocally(reader, sig, installPluginLocallyAlways); err != nil {
+			if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
 				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
 			}
 		}(plugin)
