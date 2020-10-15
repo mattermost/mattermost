@@ -295,3 +295,122 @@ func TestInstallPluginAlreadyActive(t *testing.T) {
 	require.Nil(t, actualManifest)
 	require.Equal(t, "app.plugin.restart.app_error", appError.Id)
 }
+
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
+	"golang.org/x/sync/errgroup"
+)
+
+func TestRunWithCCReader(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	var in io.Reader = bytes.NewReader([]byte("TEST"))
+
+	g := &errgroup.Group{}
+
+
+	
+
+
+	in, pipeIn1 := CC(in)
+	sig, pipeSig1 := CC(sig)
+
+	g.Go(func() error {
+		return Match(pipeIn1, pipeSig1)
+		// err := Consume(pipeIn1)
+		// fmt.Printf("test 1: %v\n", err)
+		// if err != nil {
+		// 	return err
+		// }
+		// err = Consume(pipeSig1)
+		// fmt.Printf("test 2: %v\n", err)
+		// if err != nil {
+		// 	return err
+		// }
+		// return nil
+	})
+
+	err := Consume(in)
+	require.NoError(t, err)
+	pipeIn1.Close()
+
+	err = Consume(sig)
+	require.NoError(t, err)
+	pipeSig1.Close()
+
+	err = g.Wait()
+	require.NoError(t, err)
+}
+
+// func TestMain(t *testing.T) {
+// 	var in io.Reader = bytes.NewReader([]byte("TEST"))
+// 	var sig io.Reader = bytes.NewReader([]byte("NON-TEST"))
+
+// 	g := &errgroup.Group{}
+// 	in, sig, cleanup := CC2(in, sig, g, Match)
+
+// 	err := Consume(in)
+// 	require.NoError(t, err)
+
+// 	err = Consume(sig)
+// 	require.NoError(t, err)
+
+// 	cleanup()
+
+// 	g.Wait()
+// }
+
+func Match(in, sig io.Reader) error {
+	data, err := ioutil.ReadAll(in)
+	fmt.Printf("Match 1: %v\n", err)
+	if err != nil {
+		return err
+	}
+
+	sigData, err := ioutil.ReadAll(sig)
+	fmt.Printf("Match 2: %v\n", err)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Match 3: %q %q\n", string(data), string(sigData))
+	if string(data) != string(sigData) {
+		return errors.New("no match")
+	}
+	return nil
+}
+
+func Consume(in io.Reader) error {
+	bb, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Consume 1: %q\n", string(bb))
+	return nil
+}
+
+func ConsumeAndFail(in io.Reader) error {
+	bb, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
+	return errors.Errorf("failed after consuming %v bytes", len(bb))
+}
+
+func ConsumeOneAndFail(in io.Reader) error {
+	data := make([]byte, 1)
+	_, err := in.Read(data)
+	if err != nil {
+		return err
+	}
+	return errors.New("failed after 1 byte")
+}

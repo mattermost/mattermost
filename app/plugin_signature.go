@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -73,29 +74,60 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 }
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin, signature io.Reader) *model.AppError {
-	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
-		return nil
-	}
-	publicKeys, appErr := a.GetPluginPublicKeyFiles()
+func (a *App) VerifyPlugin(plugin io.Reader, sig []byte) *model.AppError {
+	publicKeys := [][]byte{mattermostPluginPublicKey}
+	pkFiles, appErr := a.GetPluginPublicKeyFiles()
 	if appErr != nil {
 		return appErr
 	}
-	for _, pk := range publicKeys {
-		pkBytes, appErr := a.GetPublicKey(pk)
+
+	for _, file := range pkFiles {
+		var data []byte
+		data, appErr = a.GetPublicKey(file)
 		if appErr != nil {
-			mlog.Error("Unable to get public key for ", mlog.String("filename", pk))
+			mlog.Error("Unable to get public key for ", mlog.String("filename", file))
 			continue
 		}
-		publicKey := bytes.NewReader(pkBytes)
-		if err := verifySignature(publicKey, plugin, signature); err == nil {
-			return nil
-		}
+		publicKeys = append(publicKeys, data)
 	}
-	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+
+	wg := sync.WaitGroup{}
+	closers := []io.Closer{}
+	matchOnce := sync.Once{}
+	matched := false
+	for _, pk := range publicKeys {
+		var cc io.ReadCloser
+		plugin, cc := ccReader(plugin)
+		closers = append(closers, cc)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := verifyOneSignature(bytes.NewReader(pk), cc, bytes.NewReader(sig)); err == nil {
+				matchOnce.Do(func() {
+					matched = true
+				})
+			}
+		}()
+	}
+
+	// CC all piped readers at once
+	_, err := io.Copy(ioutil.Discard, plugin)
+	for _, cc := range closers {
+		cc.Close()
+	}
+	if err != nil {
+		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	wg.Wait()
+	if !matched {
+		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func verifySignature(publicKey, message, signatrue io.Reader) error {
+func verifyOneSignature(publicKey, message, signatrue io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")

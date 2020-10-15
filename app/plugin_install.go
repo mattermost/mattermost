@@ -47,10 +47,10 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -82,14 +82,13 @@ func (a *App) InstallPluginFromData(data model.PluginEventData) {
 	}
 	defer reader.Close()
 
-	var signature filesstore.ReadCloseSeeker
+	var signature []byte
 	if *a.Config().PluginSettings.RequirePluginSignature {
-		signature, appErr = a.FileReader(plugin.signaturePath)
+		signature, appErr = a.ReadFile(plugin.signaturePath)
 		if appErr != nil {
 			mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
 			return
 		}
-		defer signature.Close()
 	}
 
 	manifest, appErr := a.installPluginLocally(reader, signature, installPluginLocallyAlways)
@@ -120,8 +119,8 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (a *App) InstallPluginWithSignature(pluginFile, signature io.Reader) (*model.Manifest, *model.AppError) {
-	return a.installPlugin(pluginFile, signature, installPluginLocallyAlways)
+func (a *App) InstallPluginWithSignature(pluginFile io.Reader, sig []byte) (*model.Manifest, *model.AppError) {
+	return a.installPlugin(pluginFile, sig, installPluginLocallyAlways)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
@@ -134,52 +133,68 @@ func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 	return a.installPlugin(pluginFile, nil, installationStrategy)
 }
 
-func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	fTempName := model.NewId()
-	fPipeReader, fPipeWriter := io.Pipe()
-	fReader := io.TeeReader(f, fPipeWriter)
-	go func() {
-		_, writeErr := a.WriteFile(fPipeReader, a.getBundleStorePath(fTempName))
-		if writeErr != nil {
-			fPipeWriter.CloseWithError(writeErr)
-		}
-	}()
+func ccReader(in io.Reader) (io.Reader, io.ReadCloser) {
+	pipeReader, pipeWriter := io.Pipe()
+	r := io.TeeReader(in, pipeWriter)
+	return r, &struct {
+		io.Reader
+		io.Closer
+	}{
+		Reader: pipeReader,
+		Closer: pipeWriter,
+	}
+}
 
-	sigTempName := model.NewId()
-	sigPipeReader, sigPipeWriter := io.Pipe()
-	var sigReader io.Reader = sig
-	if sig != nil {
-		sigReader = io.TeeReader(f, sigPipeWriter)
-		go func() {
-			_, writeErr := a.WriteFile(sigPipeReader, a.getBundleStorePath(sigTempName))
-			if writeErr != nil {
-				fPipeWriter.CloseWithError(writeErr)
-			}
-		}()
+func runWithCCReader(in io.Reader, ff ...func(io.Reader) error) *model.AppError {
+	wg := errgroup.Group{}
+	closers := []io.Closer{}
+	for _, f := range ff {
+		pipeReader, pipeWriter := io.Pipe()
+		in = io.TeeReader(in, pipeWriter)
+		closers = append(closers, pipeWriter)
+
+		wg.Go(func() error {
+			return f(pipeReader)
+		})
 	}
 
-	// installPluginLocally will read the (f, sig) input stream, and tee them to the file store
-	manifest, appErr := a.installPluginLocally(fReader, sigReader, installationStrategy)
-	if appErr != nil {
-		return nil, appErr
+	// CC all piped readers at once, and close all pipes
+	_, err := io.Copy(ioutil.Discard, in)
+	for _, cc := range closers {
+		cc.Close()
 	}
-
-	err := fPipeWriter.Close()
 	if err != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	appErr = a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
+	err = wg.Wait()
+	if err != nil {
+		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) installPlugin(f io.Reader, signature []byte, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	fTempName := model.NewId()
+	var manifest *model.Manifest
+	runWithCCReader(f,
+		func(clone io.Reader) error {
+			_, writeErr := a.WriteFile(clone, a.getBundleStorePath(fTempName))
+			return writeErr
+		},
+		func(clone io.Reader) error {
+			var installErr *model.AppError
+			manifest, installErr = a.installPluginLocally(f, signature, installationStrategy)
+			return installErr
+		},
+	)
+
+	appErr := a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
 	if appErr != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
-
-	if sig != nil {
-		err = sigPipeWriter.Close()
-		if err != nil {
-			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		appErr = a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
-		if appErr != nil {
+	if signature != nil {
+		if _, appErr := a.WriteFile(bytes.NewReader(signature), a.getSignatureStorePath(manifest.Id)); appErr != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -249,7 +264,11 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	manifest, appErr := a.InstallPluginWithSignature(pluginFile, signatureFile)
+	sig, err := ioutil.ReadAll(signatureFile)
+	if err != nil {
+		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
+	}
+	manifest, appErr := a.InstallPluginWithSignature(pluginFile, sig)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -268,17 +287,10 @@ const (
 	installPluginLocallyAlways
 )
 
-func (a *App) installPluginLocally(pluginFile, signature io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(in io.Reader, sig []byte, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	// verify signature
-	if signature != nil {
-		if err := a.VerifyPlugin(pluginFile, signature); err != nil {
-			return nil, err
-		}
 	}
 
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
@@ -287,12 +299,40 @@ func (a *App) installPluginLocally(pluginFile, signature io.Reader, installation
 	}
 	defer os.RemoveAll(tmpDir)
 
-	manifest, pluginDir, appErr := extractPlugin(pluginFile, tmpDir)
-	if appErr != nil {
-		return nil, appErr
+	var manifest *model.Manifest
+	pluginDir := ""
+	ff := []func(io.Reader) error{
+		func(clone io.Reader) error {
+			var appErr *model.AppError
+			manifest, pluginDir, appErr = extractPlugin(in, tmpDir)
+			if appErr != nil {
+				return appErr
+			}
+			return nil
+		},
 	}
 
-	manifest, appErr = a.installExtractedPlugin(manifest, pluginDir, installationStrategy)
+	if sig != nil {
+		ff = append(ff, func(clone io.Reader) error {
+			appErr := a.VerifyPlugin(clone, sig)
+			if appErr != nil {
+				return appErr
+			}
+			return nil
+		})
+	}
+
+	err = runWithCCReader(in, ff...)
+	if err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, appErr
+		} else {
+			return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	// Signature verified, tar files saved and extracted
+	manifest, appErr := a.installExtractedPlugin(manifest, pluginDir, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
