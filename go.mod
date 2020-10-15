@@ -112,6 +112,7 @@ require (
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
+	go.uber.org/goleak v1.1.10
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 	golang.org/x/image v0.0.0-20200801110659-972c09e46d76

@@ -78,7 +78,7 @@ func TestVerifySignature(t *testing.T) {
 		signatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
 		require.Nil(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.Nil(t, verifyOneSignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 	t.Run("verify non armored signature and armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, armoredPublicKeyFilename))
@@ -90,7 +90,7 @@ func TestVerifySignature(t *testing.T) {
 		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 		require.Nil(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.Nil(t, verifyOneSignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 	t.Run("verify armored signature and non armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
@@ -102,7 +102,7 @@ func TestVerifySignature(t *testing.T) {
 		armoredSignatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
 		require.Nil(t, err)
 		defer armoredSignatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, armoredSignatureFileReader))
+		require.Nil(t, verifyOneSignature(publicKeyFileReader, pluginFileReader, armoredSignatureFileReader))
 	})
 	t.Run("verify non armored signature and non armored public key", func(t *testing.T) {
 		publicKeyFileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
@@ -114,6 +114,6 @@ func TestVerifySignature(t *testing.T) {
 		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
 		require.Nil(t, err)
 		defer signatureFileReader.Close()
-		require.Nil(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+		require.Nil(t, verifyOneSignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
 	})
 }

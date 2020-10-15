@@ -119,7 +119,12 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (a *App) InstallPluginWithSignature(pluginFile io.Reader, sig []byte) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPluginWithSignature(pluginFile io.Reader, signatureFile io.Reader) (*model.Manifest, *model.AppError) {
+	sig, err := ioutil.ReadAll(signatureFile)
+	if err != nil {
+		return nil, model.NewAppError("InstallPluginWithSignature", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
+	}
+
 	return a.installPlugin(pluginFile, sig, installPluginLocallyAlways)
 }
 
@@ -145,33 +150,35 @@ func ccReader(in io.Reader) (io.Reader, io.ReadCloser) {
 	}
 }
 
-func runWithCCReader(in io.Reader, ff ...func(io.Reader) error) *model.AppError {
+type ccReaderFunc func(io.Reader) error
+
+func runWithCCReader(in io.Reader, ff ...ccReaderFunc) error {
 	wg := errgroup.Group{}
 	closers := []io.Closer{}
-	for _, f := range ff {
+	for i := range ff {
 		pipeReader, pipeWriter := io.Pipe()
 		in = io.TeeReader(in, pipeWriter)
 		closers = append(closers, pipeWriter)
 
+		f := ff[i]
 		wg.Go(func() error {
-			return f(pipeReader)
+			err := f(pipeReader)
+			if err != nil {
+				pipeWriter.CloseWithError(err)
+			}
+			return err
 		})
 	}
 
 	// CC all piped readers at once, and close all pipes
-	_, err := io.Copy(ioutil.Discard, in)
+	_, _ = io.Copy(ioutil.Discard, in)
 	for _, cc := range closers {
 		cc.Close()
 	}
-	if err != nil {
-		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	err = wg.Wait()
-	if err != nil {
-		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
+	// if err != nil {
+	// 	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
+	// }
+	return wg.Wait()
 }
 
 func (a *App) installPlugin(f io.Reader, signature []byte, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
@@ -264,11 +271,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	sig, err := ioutil.ReadAll(signatureFile)
-	if err != nil {
-		return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
-	}
-	manifest, appErr := a.InstallPluginWithSignature(pluginFile, sig)
+	manifest, appErr := a.InstallPluginWithSignature(pluginFile, signatureFile)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -287,7 +290,7 @@ const (
 	installPluginLocallyAlways
 )
 
-func (a *App) installPluginLocally(in io.Reader, sig []byte, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(in, signatureFile io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -301,7 +304,7 @@ func (a *App) installPluginLocally(in io.Reader, sig []byte, installationStrateg
 
 	var manifest *model.Manifest
 	pluginDir := ""
-	ff := []func(io.Reader) error{
+	ff := []ccReaderFunc{
 		func(clone io.Reader) error {
 			var appErr *model.AppError
 			manifest, pluginDir, appErr = extractPlugin(in, tmpDir)
@@ -312,9 +315,9 @@ func (a *App) installPluginLocally(in io.Reader, sig []byte, installationStrateg
 		},
 	}
 
-	if sig != nil {
+	if signatureFile != nil {
 		ff = append(ff, func(clone io.Reader) error {
-			appErr := a.VerifyPlugin(clone, sig)
+			appErr := a.VerifyPlugin(clone, signatureFile)
 			if appErr != nil {
 				return appErr
 			}

@@ -5,11 +5,11 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
-	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -73,14 +73,29 @@ func (a *App) DeletePublicKey(name string) *model.AppError {
 	return nil
 }
 
+var errMatched = errors.New("signature matched")
+
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-func (a *App) VerifyPlugin(plugin io.Reader, sig []byte) *model.AppError {
-	publicKeys := [][]byte{mattermostPluginPublicKey}
+func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.AppError {
+	sig, err := ioutil.ReadAll(signatureFile)
+	if err != nil {
+		return model.NewAppError("VerifyPlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	matcherForPK := func(pk []byte) ccReaderFunc {
+		return func(clone io.Reader) error {
+			return verifyOneSignatureMismatch(bytes.NewReader(pk), clone, bytes.NewReader(sig))
+		}
+	}
+
+	matchers := []ccReaderFunc{
+		matcherForPK(mattermostPluginPublicKey),
+	}
+
 	pkFiles, appErr := a.GetPluginPublicKeyFiles()
 	if appErr != nil {
 		return appErr
 	}
-
 	for _, file := range pkFiles {
 		var data []byte
 		data, appErr = a.GetPublicKey(file)
@@ -88,46 +103,30 @@ func (a *App) VerifyPlugin(plugin io.Reader, sig []byte) *model.AppError {
 			mlog.Error("Unable to get public key for ", mlog.String("filename", file))
 			continue
 		}
-		publicKeys = append(publicKeys, data)
+		matchers = append(matchers, matcherForPK(data))
 	}
 
-	wg := sync.WaitGroup{}
-	closers := []io.Closer{}
-	matchOnce := sync.Once{}
-	matched := false
-	for _, pk := range publicKeys {
-		var cc io.ReadCloser
-		plugin, cc := ccReader(plugin)
-		closers = append(closers, cc)
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := verifyOneSignature(bytes.NewReader(pk), cc, bytes.NewReader(sig)); err == nil {
-				matchOnce.Do(func() {
-					matched = true
-				})
-			}
-		}()
-	}
-
-	// CC all piped readers at once
-	_, err := io.Copy(ioutil.Discard, plugin)
-	for _, cc := range closers {
-		cc.Close()
-	}
+	err = runWithCCReader(plugin, matchers...)
+	fmt.Printf("<><> VERIFY PLUGIN: %#v\n", err)
 	if err != nil {
-		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	wg.Wait()
-	if !matched {
-		return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+		// return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func verifyOneSignature(publicKey, message, signatrue io.Reader) error {
+// verifyOneSignatureMismatch is a wrapper to use with runWithCCREader,
+// concurrently. It reverses the logic, returning a nil error when there's no
+// match, and errMatched otherwise. Then, runWithCCReader can return a single
+// errMatched "error" if one match was successful.
+func verifyOneSignatureMismatch(publicKey, signed, signatrue io.Reader) error {
+	err := verifyOneSignature(publicKey, signed, signatrue)
+	if err == nil {
+		return errMatched
+	}
+	return nil
+}
+
+func verifyOneSignature(publicKey, signed, signatrue io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")
@@ -136,15 +135,15 @@ func verifyOneSignature(publicKey, message, signatrue io.Reader) error {
 	if err != nil {
 		return errors.Wrap(err, "can't decode signature")
 	}
-	return verifyBinarySignature(pk, message, s)
+	return verifyBinarySignature(pk, signed, s)
 }
 
-func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
+func verifyBinarySignature(publicKey, signed, signature io.Reader) error {
 	keyring, err := openpgp.ReadKeyRing(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't read public key")
 	}
-	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature); err != nil {
+	if _, err = openpgp.CheckDetachedSignature(keyring, signed, signature); err != nil {
 		return errors.Wrap(err, "error while checking the signature")
 	}
 	return nil
