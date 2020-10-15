@@ -1,0 +1,10 @@
+_test
+*.test
+_testmain.go
+_obj
+*~
+*.6
+6.out
+gorptest.bin
+tmp
+*.swp

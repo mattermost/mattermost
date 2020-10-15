@@ -1,0 +1,3 @@
+language: nix
+
+script: nix-shell --pure --command "make lint test"

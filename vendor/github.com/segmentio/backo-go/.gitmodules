@@ -1,0 +1,3 @@
+[submodule "vendor/github.com/bmizerany/assert"]
+	path = vendor/github.com/bmizerany/assert
+	url = https://github.com/bmizerany/assert
