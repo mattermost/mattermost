@@ -210,12 +210,6 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	props := map[string]interface{}{"StartTime": after, "Limit": limit}
 
-	var explictUpdateAtIndex string
-
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		explictUpdateAtIndex = "FORCE INDEX (idx_posts_update_at)"
-	}
-
 	query := `
 		SELECT
 			Posts.Id AS PostId,
@@ -244,7 +238,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Users.Username,
 			Bots.UserId IS NOT NULL AS IsBot
 		FROM
-			Posts ` + explictUpdateAtIndex + `
+			Posts
 		LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
