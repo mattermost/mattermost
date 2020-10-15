@@ -209,9 +209,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	props := map[string]interface{}{"StartTime": after, "Limit": limit}
-
-	query := `
-		SELECT
+	query :=
+		`SELECT
 			Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
@@ -244,10 +243,9 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			Posts.UpdateAt > :StartTime
-			AND Posts.Type NOT LIKE 'system_%'
-		ORDER BY
-			PostUpdateAt
+			Posts.UpdateAt > :StartTime AND
+			Posts.Type NOT LIKE 'system_%'
+		ORDER BY PostUpdateAt
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
