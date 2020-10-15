@@ -9678,7 +9678,7 @@ func (a *OpenTracingAppLayer) InstallPluginFromData(data model.PluginEventData) 
 	a.app.InstallPluginFromData(data)
 }
 
-func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.Reader, signature io.Reader) (*model.Manifest, *model.AppError) {
+func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.Reader, signatureFile io.Reader) (*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPluginWithSignature")
 
@@ -9690,7 +9690,7 @@ func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.Reader, s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.InstallPluginWithSignature(pluginFile, signature)
+	resultVar0, resultVar1 := a.app.InstallPluginWithSignature(pluginFile, signatureFile)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15542,7 +15542,7 @@ func (a *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString strin
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.Reader, signature io.Reader) *model.AppError {
+func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyPlugin")
 
@@ -15554,7 +15554,7 @@ func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.Reader, signature io.Reader
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.VerifyPlugin(plugin, signature)
+	resultVar0 := a.app.VerifyPlugin(plugin, signatureFile)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

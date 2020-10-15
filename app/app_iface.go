@@ -208,7 +208,7 @@ type AppIface interface {
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
 	InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError)
 	// InstallPluginWithSignature verifies and installs plugin.
-	InstallPluginWithSignature(pluginFile, signature io.Reader) (*model.Manifest, *model.AppError)
+	InstallPluginWithSignature(pluginFile io.Reader, signatureFile io.Reader) (*model.Manifest, *model.AppError)
 	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
@@ -341,7 +341,7 @@ type AppIface interface {
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-	VerifyPlugin(plugin, signature io.Reader) *model.AppError
+	VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.AppError
 	//GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError)
 	AcceptLanguage() string
