@@ -6415,10 +6415,6 @@
     "translation": "De aangevraagde afbeeldings-URL kan niet worden ontleed."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Fout bij het opladen van bestand(en). Geweigerd door plugin: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is zwaar belast. Niet kritische diensten zijn tijdelijk uitgeschakeld."
   },
