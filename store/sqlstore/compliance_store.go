@@ -253,8 +253,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.UpdateAt > :StartTime
 			AND Posts.Type NOT LIKE 'system_%'
 		ORDER BY
-			Posts.UpdateAt, 
-			Posts.Id
+			Posts.UpdateAt
 		LIMIT :Limit`
 
 	var cposts []*model.MessageExport
