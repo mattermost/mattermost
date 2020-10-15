@@ -443,7 +443,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
-	if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId); err != nil {
 			return err
 		}

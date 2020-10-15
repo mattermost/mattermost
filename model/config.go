@@ -347,6 +347,7 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableAWSMetering                                 *bool
+	ThreadAutoFollow                                  *bool `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -764,6 +765,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableAWSMetering == nil {
 		s.EnableAWSMetering = NewBool(false)
 	}
+
+	if s.ThreadAutoFollow == nil {
+		s.ThreadAutoFollow = NewBool(true)
+	}
+
 }
 
 type ClusterSettings struct {
@@ -876,7 +882,6 @@ type ExperimentalSettings struct {
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
-	ThreadAutoFollow                *bool   `access:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -911,10 +916,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
-	}
-
-	if s.ThreadAutoFollow == nil {
-		s.ThreadAutoFollow = NewBool(true)
 	}
 
 	if s.EnableSharedChannels == nil {

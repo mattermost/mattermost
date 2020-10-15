@@ -166,7 +166,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		mac := make(chan *model.AppError, 1)
 		go func(userId string) {
 			defer close(mac)
-			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
+			if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
