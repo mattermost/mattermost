@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -628,11 +629,14 @@ func (s *Server) initLogging() error {
 		isJson := config.IsJsonMap(dsn)
 
 		// If this is a file based config we need the full path so it can be watched.
-		/*if !isJson {
-			if fs, ok := s.configStore.(*config.FileStore); ok {
-				dsn = fs.GetFilePath(dsn)
+		if !isJson {
+			if strings.HasPrefix(s.configStore.String(), "file://") {
+				if !filepath.IsAbs(dsn) {
+					configPath := strings.TrimPrefix(s.configStore.String(), "file://")
+					dsn = filepath.Join(filepath.Dir(configPath), dsn)
+				}
 			}
-		}*/
+		}
 
 		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
 		if err != nil {
