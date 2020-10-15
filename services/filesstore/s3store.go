@@ -47,7 +47,7 @@ const (
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
 
-	isCloud := os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
 	if isCloud {
 		creds = credentials.New(customProvider{isSignV2: b.signV2})
 	} else if b.accessKey == "" && b.secretKey == "" {
