@@ -3491,6 +3491,14 @@
     "translation": "Unable to get channel type counts."
   },
   {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Failed to update thread membership for mentioned user"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members."
+  },
+  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
   },
