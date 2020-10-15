@@ -161,19 +161,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
-			name: "notice with server version checkZZZ",
-			args: args{
-				notice: &model.ProductNotice{
-					Conditions: model.Conditions{
-						ServerVersion: []string{">2.0.0, ~2.4.0"},
-					},
-				},
-				serverVersion: "2.1.6",
-			},
-			wantErr: false,
-			wantOk:  true,
-		},
-		{
 			name: "notice with server version check",
 			args: args{
 				notice: &model.ProductNotice{
