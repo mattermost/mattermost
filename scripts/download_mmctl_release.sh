@@ -10,7 +10,7 @@ fi
 
 # strip whitespace
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ $THIS_BRANCH =~ 'release-' ]];
+if [[ "$THIS_BRANCH" =~ 'release-' ]];
 then
   RELEASE_TO_DOWNLOAD=$THIS_BRANCH
 else
