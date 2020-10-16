@@ -434,7 +434,6 @@ github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.12.0
 ## explicit
@@ -636,6 +635,9 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
+# golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
+## explicit
+golang.org/x/sync/errgroup
 # golang.org/x/sys v0.0.0-20200817155316-9781c653f443
 ## explicit
 golang.org/x/sys/cpu

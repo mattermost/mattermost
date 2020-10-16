@@ -83,7 +83,7 @@ func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.App
 
 	matcher := func(pk []byte) ccReaderFunc {
 		return func(clone io.Reader) *model.AppError {
-			return verifyOneSignatureMismatch(bytes.NewReader(pk), clone, bytes.NewReader(sig))
+			return verifySignatureMismatch(bytes.NewReader(pk), clone, bytes.NewReader(sig))
 		}
 	}
 
@@ -116,19 +116,19 @@ func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.App
 	return nil
 }
 
-// verifyOneSignatureMismatch is a wrapper to use with runWithCCREader,
+// verifySignatureMismatch is a wrapper to use with runWithCCREader,
 // concurrently. It reverses the logic, returning a nil error when there's no
 // match, and errMatched otherwise. Then, runWithCCReader can return a single
 // errMatched "error" if one match was successful.
-func verifyOneSignatureMismatch(publicKey, signed, signatrue io.Reader) *model.AppError {
-	err := verifyOneSignature(publicKey, signed, signatrue)
+func verifySignatureMismatch(publicKey, signed, signatrue io.Reader) *model.AppError {
+	err := verifySignature(publicKey, signed, signatrue)
 	if err == nil {
 		return errMatched
 	}
 	return nil
 }
 
-func verifyOneSignature(publicKey, signed, signatrue io.Reader) error {
+func verifySignature(publicKey, signed, signatrue io.Reader) error {
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")

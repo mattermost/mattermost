@@ -205,7 +205,7 @@ func (a *App) installPlugin(in, signature io.Reader, installationStrategy plugin
 	}
 
 	if signatureClone != nil {
-		if _, appErr := a.WriteFile(signatureClone, a.getSignatureStorePath(manifest.Id)); appErr != nil {
+		if _, appErr = a.WriteFile(signatureClone, a.getSignatureStorePath(manifest.Id)); appErr != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
 	}
