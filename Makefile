@@ -188,14 +188,9 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
-	@echo "mmctl already exists in bin/mmctl not downloading a new version."
+	@echo "MMCTL already exists in bin/mmctl not downloading a new version."
 else
-	@MMCTL_VERSION=$$(scripts/get_latest_release.sh mattermost/mmctl release-); if [ $$? -eq 0 ]; then \
-		scripts/download_mmctl_release.sh $$MMCTL_VERSION; \
-	else \
-		echo $$MMCTL_VERSION; \
-		exit 1; \
-	fi;
+	@scripts/download_mmctl_release.sh;
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
