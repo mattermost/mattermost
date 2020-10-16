@@ -1385,6 +1385,10 @@
     "translation": "Unable to move file locally."
   },
   {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Encountered an error opening a connection to S3."
+  },
+  {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
@@ -1415,10 +1419,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Error checking if bucket exists."
-  },
-  {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",
@@ -3501,6 +3501,10 @@
   {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Failed to update thread membership for mentioned user"
   },
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
