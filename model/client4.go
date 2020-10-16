@@ -788,6 +788,17 @@ func (c *Client4) CreateUser(user *User) (*User, *Response) {
 	return UserFromJson(r.Body), BuildResponse(r)
 }
 
+// CreateUserWithouNotifications creates a user in the system based on the
+// provided user struct but will not send the welcome em
+func (c *Client4) CreateUserWithoutNotifications(user *User) (*User, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"?notifications=false", user.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
+}
+
 // CreateUserWithToken creates a user in the system based on the provided tokenId.
 func (c *Client4) CreateUserWithToken(user *User, tokenId string) (*User, *Response) {
 	if tokenId == "" {
