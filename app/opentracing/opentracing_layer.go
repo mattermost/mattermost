@@ -2240,7 +2240,7 @@ func (a *OpenTracingAppLayer) CreateUserAccessToken(token *model.UserAccessToken
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserAsAdmin")
 
@@ -2252,7 +2252,7 @@ func (a *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User, redirect strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateUserAsAdmin(user, redirect)
+	resultVar0, resultVar1 := a.app.CreateUserAsAdmin(user, redirect, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2262,7 +2262,7 @@ func (a *OpenTracingAppLayer) CreateUserAsAdmin(user *model.User, redirect strin
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserFromSignup(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserFromSignup")
 
@@ -2274,7 +2274,7 @@ func (a *OpenTracingAppLayer) CreateUserFromSignup(user *model.User, redirect st
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateUserFromSignup(user, redirect)
+	resultVar0, resultVar1 := a.app.CreateUserFromSignup(user, redirect, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2284,7 +2284,7 @@ func (a *OpenTracingAppLayer) CreateUserFromSignup(user *model.User, redirect st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateUserWithInviteId(user *model.User, inviteId string, redirect string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateUserWithInviteId(user *model.User, inviteId string, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateUserWithInviteId")
 
@@ -2296,7 +2296,7 @@ func (a *OpenTracingAppLayer) CreateUserWithInviteId(user *model.User, inviteId 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateUserWithInviteId(user, inviteId, redirect)
+	resultVar0, resultVar1 := a.app.CreateUserWithInviteId(user, inviteId, redirect, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
