@@ -97,8 +97,8 @@ package:
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
-        #Download MMCTL
-	scripts/get_latest_release.sh
+	@#Download MMCTL
+	scripts/download_mmctl_release.sh
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
