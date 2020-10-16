@@ -190,7 +190,7 @@ prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo "MMCTL already exists in bin/mmctl not downloading a new version."
 else
-	@scripts/download_mmctl_release.sh;
+	@scripts/download_mmctl_release.sh
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
