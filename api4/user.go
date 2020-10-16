@@ -105,6 +105,15 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
 	redirect := r.URL.Query().Get("r")
+	// Flag used to avoid send the welcome email asking for verification
+	notifications := r.URL.Query().Get("notifications")
+
+	sendNotifications := true
+	if c.App.Srv().License() != nil && !*c.App.Srv().License().Features.Cloud {
+		if notifications != "" {
+			sendNotifications, _ = strconv.ParseBool(r.URL.Query().Get("notifications"))
+		}
+	}
 
 	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -142,12 +151,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
-		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
+		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect, sendNotifications)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
+		ruser, err = c.App.CreateUserAsAdmin(user, redirect, sendNotifications)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(user, redirect)
+		ruser, err = c.App.CreateUserFromSignup(user, redirect, sendNotifications)
 	}
 
 	if err != nil {

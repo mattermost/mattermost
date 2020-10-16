@@ -116,7 +116,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 	return ruser, nil
 }
 
-func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -153,27 +153,31 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-		mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Err(err))
+	if sendNotifications {
+		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+			mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Err(err))
+		}
 	}
 
 	return ruser, nil
 }
 
-func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserAsAdmin(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	ruser, err := a.CreateUser(user)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-		mlog.Error("Failed to send welcome email on create admin user", mlog.Err(err))
+	if sendNotifications {
+		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+			mlog.Error("Failed to send welcome email on create admin user", mlog.Err(err))
+		}
 	}
 
 	return ruser, nil
 }
 
-func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError) {
+func (a *App) CreateUserFromSignup(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -190,8 +194,10 @@ func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.Us
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
-		mlog.Error("Failed to send welcome email on create user from signup", mlog.Err(err))
+	if sendNotifications {
+		if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
+			mlog.Error("Failed to send welcome email on create user from signup", mlog.Err(err))
+		}
 	}
 
 	return ruser, nil

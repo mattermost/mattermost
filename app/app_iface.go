@@ -440,9 +440,9 @@ type AppIface interface {
 	CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError)
 	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError)
-	CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
+	CreateUserAsAdmin(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError)
+	CreateUserFromSignup(user *model.User, redirect string, sendNotifications bool) (*model.User, *model.AppError)
+	CreateUserWithInviteId(user *model.User, inviteId, redirect string, sendNotifications bool) (*model.User, *model.AppError)
 	CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
 	DBHealthCheckDelete() error
