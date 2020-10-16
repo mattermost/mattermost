@@ -9,7 +9,14 @@ else
 fi
 
 # strip whitespace
-RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
+THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ $THIS_BRANCH =~ 'release-' ]];
+then
+  RELEASE_TO_DOWNLOAD=$THIS_BRANCH
+else
+  RELEASE_TO_DOWNLOAD=master
+fi
+
 echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$RELEASE_TO_DOWNLOAD";
 
 case "$PLATFORM" in
