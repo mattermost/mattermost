@@ -36,9 +36,11 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 
 	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
 	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
+	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, ss, s) })
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, ss) })
+	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
@@ -3899,7 +3901,89 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
 	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
+}
 
+func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlSupplier) {
+
+	cleanupStatusStore(t, s)
+
+	// Create 5 users statuses u0, u1, u2, u3, u4.
+	// u4 is also a bot
+	u0, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u0" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u1, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u2, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u3, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, ss.User().PermanentDelete(u0.Id))
+		require.Nil(t, ss.User().PermanentDelete(u1.Id))
+		require.Nil(t, ss.User().PermanentDelete(u2.Id))
+		require.Nil(t, ss.User().PermanentDelete(u3.Id))
+		require.Nil(t, ss.User().PermanentDelete(u4.Id))
+	}()
+
+	_, nErr := ss.Bot().Save(&model.Bot{
+		UserId:   u4.Id,
+		Username: u4.Username,
+		OwnerId:  u1.Id,
+	})
+	require.Nil(t, nErr)
+
+	millis := model.GetMillis()
+	millisTwoDaysAgo := model.GetMillis() - (2 * DAY_MILLISECONDS)
+	millisTwoMonthsAgo := model.GetMillis() - (2 * MONTH_MILLISECONDS)
+
+	// u0 last activity status is two months ago.
+	// u1 last activity status is one month ago
+	// u2 last activiy is two days ago
+	// u2 last activity is one day ago
+	// u3 last activity is within last day
+	// u4 last activity is within last day
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MONTH_MILLISECONDS}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DAY_MILLISECONDS}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+
+	// Two months to two days (without bots)
+	count, nerr := ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	require.Nil(t, nerr)
+	assert.Equal(t, int64(2), count)
+
+	// Two months to two days (without bots)
+	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
+	require.Nil(t, nerr)
+	assert.Equal(t, int64(2), count)
+
+	// Two days to present - (with bots)
+	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
+	require.Nil(t, nerr)
+	assert.Equal(t, int64(2), count)
+
+	// Two days to present - (with bots, excluding deleted)
+	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
+	require.Nil(t, nerr)
+	assert.Equal(t, int64(2), count)
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
@@ -3986,6 +4070,44 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	result, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
+}
+
+func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
+	localHostDomain := "mattermost.com"
+	result, err := ss.User().AnalyticsGetExternalUsers(localHostDomain)
+	require.Nil(t, err)
+	assert.False(t, result)
+
+	u1 := model.User{}
+	u1.Email = "a@mattermost.com"
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = "b@example.com"
+	u2.Username = model.NewId()
+	u2.Roles = "system_user"
+
+	u3 := model.User{}
+	u3.Email = "c@test.com"
+	u3.Username = model.NewId()
+	u3.Roles = "system_guest"
+
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	_, err = ss.User().Save(&u3)
+	require.Nil(t, err, "couldn't save user")
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	result, err = ss.User().AnalyticsGetExternalUsers(localHostDomain)
+	require.Nil(t, err)
+	assert.True(t, result)
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {

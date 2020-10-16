@@ -97,6 +97,9 @@ package:
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
+	$(eval MMCTL_REL_TO_DOWNLOAD := $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-'))
+	@echo "Using mmctl version $(MMCTL_REL_TO_DOWNLOAD)"
+
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)

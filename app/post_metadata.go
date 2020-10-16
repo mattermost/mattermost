@@ -71,7 +71,11 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	if !ok || prop == nil {
 		return
 	}
-	emojiName := prop.(string)
+
+	emojiName, ok := prop.(string)
+	if !ok {
+		return
+	}
 
 	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
 		return
@@ -309,6 +313,10 @@ func getFirstLinkAndImages(str string) (string, []string) {
 	markdown.Inspect(str, func(blockOrInline interface{}) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
+			if firstLink == "" {
+				firstLink = v.Destination()
+			}
+		case *markdown.InlineLink:
 			if firstLink == "" {
 				firstLink = v.Destination()
 			}

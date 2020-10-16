@@ -1599,7 +1599,7 @@ func TestUpdateUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	user.Nickname = "Joram Wilander"
-	user.Roles = model.SYSTEM_ADMIN_ROLE_ID
+	user.Roles = model.SYSTEM_USER_ROLE_ID
 	user.LastPasswordUpdate = 123
 
 	ruser, resp := th.Client.UpdateUser(user)
@@ -1989,8 +1989,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, err)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Greater(t, postCount, int64(0))
 
 		// Delete all users and their posts
@@ -2002,8 +2002,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Equal(t, postCount, int64(0))
 
 		// Check that the channel and team created by the user were not deleted
@@ -5206,5 +5206,30 @@ func TestMigrateAuthToSAML(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, err = client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
 		CheckNotImplementedStatus(t, err)
+	})
+}
+func TestUpdatePassword(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
+		res := th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system user with requisite system permission, except if requested user is system admin", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		res := th.Client.UpdatePassword(th.TeamAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
+
+		res = th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
+		res := th.SystemAdminClient.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
 	})
 }

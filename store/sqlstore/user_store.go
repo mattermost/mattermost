@@ -13,6 +13,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1224,7 +1225,31 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 
 	v, err := us.GetReplica().SelectInt(queryStr, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCount", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return v, nil
+}
+
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > :StartTime AND LastActivityAt <= :EndTime", map[string]interface{}{"StartTime": startTime, "EndTime": endTime})
+
+	if !options.IncludeBotAccounts {
+		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+	}
+
+	queryStr, args, err := query.ToSql()
+
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to build query.")
+	}
+
+	v, err := us.GetReplica().SelectInt(queryStr, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")
 	}
 	return v, nil
 }
@@ -1429,6 +1454,14 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 		return int64(0), model.NewAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return count, nil
+}
+
+func (us SqlUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError) {
+	count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LOWER(Email) NOT LIKE :HostDomain", map[string]interface{}{"HostDomain": "%@" + strings.ToLower(hostDomain)})
+	if err != nil {
+		return false, model.NewAppError("SqlUserStore.AnalyticsGetExternalUsers", "store.sql_user.analytics_get_external_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count > 0, nil
 }
 
 func (us SqlUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
