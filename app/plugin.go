@@ -756,12 +756,22 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	return getPluginsFromFilePaths(fileStorePaths), nil
+	return a.getPluginsFromFilePaths(fileStorePaths), nil
 }
 
-func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
+func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
+
+	fsPrefix := ""
+	if *a.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		ptr := a.Config().FileSettings.AmazonS3PathPrefix
+		if ptr != nil && *ptr != "" {
+			fsPrefix = *ptr + "/"
+		}
+	}
+
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePath{
@@ -773,6 +783,7 @@ func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignatur
 		}
 	}
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
@@ -802,7 +813,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	pluginSignaturePathMap := a.getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
 

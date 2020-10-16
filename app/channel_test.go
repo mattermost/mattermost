@@ -1898,3 +1898,24 @@ func TestClearChannelMembersCache(t *testing.T) {
 
 	th.App.ClearChannelMembersCache("channelID")
 }
+
+func TestGetMemberCountsByGroup(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	cmc := []*model.ChannelMemberCountByGroup{}
+	for i := 0; i < 5; i++ {
+		cmc = append(cmc, &model.ChannelMemberCountByGroup{
+			GroupId:                     model.NewId(),
+			ChannelMemberCount:          int64(i),
+			ChannelMemberTimezonesCount: int64(i),
+		})
+	}
+	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
+	require.Nil(t, err)
+	require.ElementsMatch(t, cmc, resp)
+}
