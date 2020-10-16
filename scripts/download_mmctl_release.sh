@@ -12,7 +12,7 @@ fi
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$THIS_BRANCH" =~ 'release-' ]];
 then
-  RELEASE_TO_DOWNLOAD=$THIS_BRANCH
+  RELEASE_TO_DOWNLOAD="$THIS_BRANCH"
 else
   RELEASE_TO_DOWNLOAD=master
 fi
