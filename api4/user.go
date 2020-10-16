@@ -1750,7 +1750,7 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			// if user not found, create a new one
 			if user == nil {
 				user, err = c.App.CreateCasUser(userName)
-                fmt.Println("Create Cas User: ", user.ToJson(), userName)
+				fmt.Println("Create Cas User: ", user.ToJson(), userName)
 			}
 
 			if err != nil {
@@ -1760,7 +1760,7 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			if user.IsGuest() {
-				if c.App.License() == nil {
+				if c.App.Srv().License() == nil {
 					c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
 					return
 				}
@@ -1772,7 +1772,7 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			c.LogAuditWithUserId(user.Id, "authenticated")
 
-			err = c.App.DoLogin(w, r, user, "")
+			err = c.App.DoLogin(w, r, user, "", false, false, false)
 			if err != nil {
 				c.Err = err
 				return
@@ -1798,11 +1798,11 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			user.Sanitize(map[string]bool{})
 
-            fmt.Println("Return user json: ", user.ToJson())
+			fmt.Println("Return user json: ", user.ToJson())
 			w.Write([]byte(user.ToJson()))
 		} else {
 			// TODO: Handle case when userName is empty
-            fmt.Println("userName < 0")
+			fmt.Println("userName < 0")
 		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
