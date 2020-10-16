@@ -1200,8 +1200,15 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if cloudUserLimit > 0 && c.IsSystemAdmin() {
-			emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+			subscription, subErr := c.App.Cloud().GetSubscription()
+			if subErr != nil {
+				c.Err = subErr
+				return
+			}
+			if subscription == nil || subscription.IsPaidTier != "true" {
+				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+			}
 		}
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
@@ -1279,7 +1286,30 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	if graceful {
-		invitesWithError, err := c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.App.Session().UserId)
+		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+		var invitesOverLimit []*model.EmailInviteWithError
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+			subscription, subErr := c.App.Cloud().GetSubscription()
+			if subErr != nil {
+				c.Err = subErr
+				return
+			}
+			if subscription == nil || subscription.IsPaidTier != "true" {
+				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
+			}
+		}
+
+		var invitesWithError []*model.EmailInviteWithError
+		var err *model.AppError
+
+		if guestsInvite.Emails != nil {
+			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, guestsInvite, c.App.Session().UserId)
+		}
+
+		if len(invitesOverLimit) > 0 {
+			invitesWithError = append(invitesWithError, invitesOverLimit...)
+		}
+
 		if err != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
