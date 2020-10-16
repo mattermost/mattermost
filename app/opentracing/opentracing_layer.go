@@ -15653,3 +15653,6 @@ func (a *OpenTracingAppLayer) SetServer(srv *app.Server) {
 func (a *OpenTracingAppLayer) GetT() i18n.TranslateFunc {
 	return a.t
 }
+func (a *OpenTracingAppLayer) CreateCasUser(userName string) (*model.User, *model.AppError) {
+	return nil, nil
+}
