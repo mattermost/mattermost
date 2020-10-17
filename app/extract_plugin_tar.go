@@ -5,8 +5,11 @@ package app
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,6 +24,10 @@ func extractTarGz(gzipStream io.Reader, dst string) error {
 	if dst == "" {
 		return errors.New("no destination path provided")
 	}
+
+	data, eee := ioutil.ReadAll(gzipStream)
+	mlog.Warn(fmt.Sprintf("<><> extractTarGz: read %v bytes, error: %v\n", len(data), eee))
+	gzipStream = bytes.NewReader(data)
 
 	uncompressedStream, err := gzip.NewReader(gzipStream)
 	if err != nil {

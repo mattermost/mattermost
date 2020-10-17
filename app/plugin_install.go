@@ -149,6 +149,7 @@ func runWithCCReader(in io.Reader, ff ...ccReaderFunc) *model.AppError {
 		wg.Go(func() error {
 			appErr := f(pipeReader)
 			if appErr != nil {
+				mlog.Warn(fmt.Sprintf("<><> runWithCCReader 1: error %v\n", appErr))
 				pipeWriter.CloseWithError(appErr)
 				return appErr
 			}
@@ -157,7 +158,9 @@ func runWithCCReader(in io.Reader, ff ...ccReaderFunc) *model.AppError {
 	}
 
 	// CC all piped readers at once, and close all pipes
-	_, _ = io.Copy(ioutil.Discard, in)
+	// _, _ = io.Copy(ioutil.Discard, in)
+	data, eee := ioutil.ReadAll(in)
+	mlog.Warn(fmt.Sprintf("<><> installPluginLocally 2: flushed %v bytes, error: %v\n", len(data), eee))
 	for _, cc := range closers {
 		cc.Close()
 	}
@@ -310,6 +313,7 @@ func (a *App) installPluginLocally(in, signatureFile io.Reader, installationStra
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer os.RemoveAll(tmpDir)
+	a.Log().Warn(fmt.Sprintf("<><> installPluginLocally 1: tmp dir %s\n", tmpDir))
 
 	var manifest *model.Manifest
 	pluginDir := ""
@@ -321,6 +325,8 @@ func (a *App) installPluginLocally(in, signatureFile io.Reader, installationStra
 	}
 
 	if signatureFile != nil {
+		a.Log().Warn(fmt.Sprintf("<><> installPluginLocally 2: signature present %s\n", tmpDir))
+
 		ff = append(ff, func(clone io.Reader) *model.AppError {
 			return a.VerifyPlugin(clone, signatureFile)
 		})

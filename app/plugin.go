@@ -167,7 +167,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 
-	a.Log().Info("Starting up plugins")
+	a.Log().Info("<><> Starting up plugins")
 
 	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
@@ -220,7 +220,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 // SyncPlugins synchronizes the plugins installed locally
 // with the plugin bundles available in the file store.
 func (a *App) SyncPlugins() *model.AppError {
-	mlog.Info("Syncing plugins from the file store")
+	mlog.Info("<><> Syncing plugins from the file store")
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -252,14 +252,17 @@ func (a *App) SyncPlugins() *model.AppError {
 		}(plugin.Manifest.Id)
 	}
 	wg.Wait()
+	mlog.Info("<><> 1 Syncing plugins from the file store")
 
 	// Install plugins from the file store.
 	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
 	if appErr != nil {
 		return appErr
 	}
+	mlog.Info("<><> 2 Syncing plugins from the file store")
 
 	for _, plugin := range pluginSignaturePathMap {
+		mlog.Info("<><> 3 plugin path " + plugin.path)
 		wg.Add(1)
 		go func(plugin *pluginSignaturePath) {
 			defer wg.Done()
@@ -270,6 +273,10 @@ func (a *App) SyncPlugins() *model.AppError {
 			}
 			defer reader.Close()
 
+			mlog.Info("<><> 3 read " + plugin.path)
+			data, _ := a.ReadFile(plugin.path)
+			a.Log().Warn(fmt.Sprintf("<><> SyncPlugins: opened plugin %s, %v bytes", plugin.path, len(data)))
+
 			var signature filesstore.ReadCloseSeeker
 			if *a.Config().PluginSettings.RequirePluginSignature {
 				signature, appErr = a.FileReader(plugin.signaturePath)
@@ -279,6 +286,9 @@ func (a *App) SyncPlugins() *model.AppError {
 				}
 				defer signature.Close()
 			}
+
+			data, _ = a.ReadFile(plugin.signaturePath)
+			a.Log().Warn(fmt.Sprintf("<><> SyncPlugins: opened signature %s, %v bytes", plugin.signaturePath, len(data)))
 
 			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
 			if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {

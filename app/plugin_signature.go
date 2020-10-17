@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -76,11 +77,14 @@ var errMatched = model.NewAppError("", "", nil, "matched", http.StatusInternalSe
 
 // VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
 func (a *App) VerifyPlugin(plugin io.Reader, signatureFile io.Reader) *model.AppError {
+	data, eee := ioutil.ReadAll(plugin)
+	a.Log().Warn(fmt.Sprintf("<><> VerifyPlugin 1: read %v bytes, error: %v\n", len(data), eee))
+	plugin = bytes.NewReader(data)
+
 	sig, err := ioutil.ReadAll(signatureFile)
 	if err != nil {
 		return model.NewAppError("VerifyPlugin", "app.plugin.marketplace_plugins.signature_not_found.app_error", nil, "", http.StatusInternalServerError)
 	}
-
 	matcher := func(pk []byte) ccReaderFunc {
 		return func(clone io.Reader) *model.AppError {
 			return verifySignatureMismatch(bytes.NewReader(pk), clone, bytes.NewReader(sig))
@@ -129,6 +133,10 @@ func verifySignatureMismatch(publicKey, signed, signatrue io.Reader) *model.AppE
 }
 
 func verifySignature(publicKey, signed, signatrue io.Reader) error {
+	data, eee := ioutil.ReadAll(signed)
+	mlog.Warn(fmt.Sprintf("<><> verifySignature 1: read %v bytes, error: %v\n", len(data), eee))
+	signed = bytes.NewReader(data)
+
 	pk, err := decodeIfArmored(publicKey)
 	if err != nil {
 		return errors.Wrap(err, "can't decode public key")
