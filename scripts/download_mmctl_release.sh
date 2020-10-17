@@ -15,7 +15,8 @@ fi
 
 # strip whitespace
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$THIS_BRANCH" =~ 'release-' ]];
+THIS_BRANCH="release-notes"
+if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
 then
   RELEASE_TO_DOWNLOAD="$THIS_BRANCH"
 else
