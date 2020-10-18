@@ -7824,5 +7824,13 @@
   {
     "id": "api.file.append_file.writing.app_error",
     "translation": "S3에 쓰는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP를 사용할 수 없습니다."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "멀티 플랫폼 리퀘스트 파싱에 실패했습니다"
   }
 ]
