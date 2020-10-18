@@ -7048,6 +7048,22 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, channelLastUnreads)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateUnreadsByChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerTokenStore) Cleanup() {
 	start := timemodule.Now()
 

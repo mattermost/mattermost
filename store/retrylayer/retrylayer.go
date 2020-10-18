@@ -7862,6 +7862,26 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 
 }
 
+func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.UpdateUnreadsByChannel(userId, channelLastUnreads)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerTokenStore) Cleanup() {
 
 	s.TokenStore.Cleanup()

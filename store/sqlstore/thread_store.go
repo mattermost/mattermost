@@ -188,3 +188,47 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	})
 	return err
 }
+
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+	var channelIds []string
+	for k := range channelLastUnreads {
+		channelIds = append(channelIds, k)
+	}
+	var threadData []struct {
+		PostId      string
+		ChannelId   string
+		LastReplyAt int64
+	}
+	query, args, _ := s.getQueryBuilder().
+		Select("PostId, ChannelId, LastReplyAt").
+		From("Threads").
+		LeftJoin("Posts ON Threads.PostId=Posts.Id").
+		Where(sq.Eq{"Posts.ChannelId": channelIds}).
+		ToSql()
+	if _, err := s.GetMaster().Select(&threadData, query, args...); err != nil {
+		return errors.Wrap(err, "failed to fetch threads")
+	}
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	for _, data := range threadData {
+		if data.LastReplyAt < channelLastUnreads[data.ChannelId] {
+			updateQuery, updateArgs, _ := s.getQueryBuilder().
+				Update("ThreadMemberships").
+				Where(sq.Eq{"UserId": userId, "PostId": data.PostId}).
+				Set("LastUpdated", channelLastUnreads[data.ChannelId]).
+				ToSql()
+			if _, err := transaction.Exec(updateQuery, updateArgs...); err != nil {
+				return errors.Wrap(err, "failed to update thread membership")
+			}
+		}
+	}
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}

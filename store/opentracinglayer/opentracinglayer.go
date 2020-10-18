@@ -7810,6 +7810,24 @@ func (s *OpenTracingLayerThreadStore) UpdateMembership(membership *model.ThreadM
 	return result, err
 }
 
+func (s *OpenTracingLayerThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.UpdateUnreadsByChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, channelLastUnreads)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerTokenStore) Cleanup() {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Cleanup")

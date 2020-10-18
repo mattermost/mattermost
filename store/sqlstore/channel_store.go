@@ -2121,6 +2121,8 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
+	go s.Thread().UpdateUnreadsByChannel(userId, times)
+
 	return times, nil
 }
 
@@ -2225,10 +2227,13 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	if err = s.GetMaster().SelectOne(result, chanUnreadQuery, params); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s", unreadPost.ChannelId)
 	}
+
+	go s.Thread().UpdateUnreadsByChannel(userID, map[string]int64{result.ChannelId: result.LastViewedAt})
 	return result, nil
 }
 
 func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) error {
+	now := model.GetMillis()
 	_, err := s.GetMaster().Exec(
 		`UPDATE
 			ChannelMembers
@@ -2238,10 +2243,11 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 		WHERE
 			UserId = :UserId
 				AND ChannelId = :ChannelId`,
-		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": now})
 	if err != nil {
 		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
 	}
+	go s.Thread().UpdateUnreadsByChannel(userId, map[string]int64{channelId: now})
 
 	return nil
 }

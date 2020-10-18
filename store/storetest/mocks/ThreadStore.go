@@ -246,3 +246,17 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 
 	return r0, r1
 }
+
+// UpdateUnreadsByChannel provides a mock function with given fields: userId, channelLastUnreads
+func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+	ret := _m.Called(userId, channelLastUnreads)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, map[string]int64) error); ok {
+		r0 = rf(userId, channelLastUnreads)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
