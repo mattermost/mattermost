@@ -1385,6 +1385,10 @@
     "translation": "Unable to move file locally."
   },
   {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Encountered an error opening a connection to S3."
+  },
+  {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
@@ -1415,10 +1419,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
     "translation": "Error checking if bucket exists."
-  },
-  {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",
@@ -1455,10 +1455,6 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Unable to upload file(s). Error reading or parsing request data."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -3507,6 +3503,10 @@
     "translation": "Unable to get channel type counts."
   },
   {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Failed to update thread membership for mentioned user"
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
   },
@@ -5301,6 +5301,14 @@
   {
     "id": "app.upload.get_for_user.app_error",
     "translation": "Failed to get uploads for user."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Failed to move file."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.upload.upload_data.concurrent.app_error",

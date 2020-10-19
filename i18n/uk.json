@@ -6392,10 +6392,6 @@
     "translation": "Requested image url cannot be parsed."
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
