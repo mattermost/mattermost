@@ -358,6 +358,25 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("post props has invalid fields", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "some post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		// this value expected to be a string
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, true)
+
+		require.NotPanics(t, func() {
+			_ = th.App.PreparePostForClient(post, false, false)
+		})
+	})
+
 	t.Run("proxy linked images", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
@@ -1261,11 +1280,11 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "https://example.com",
 			ExpectedImages:    []string{"https://example.com/logo"},
 		},
-		"markdown links (not returned)": {
+		"markdown links": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
 [another page]: http://www.exaple.com/another_page`,
-			ExpectedFirstLink: "",
+			ExpectedFirstLink: "http://example.com",
 			ExpectedImages:    []string{},
 		},
 	} {
