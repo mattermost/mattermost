@@ -309,12 +309,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PENDING_POST_IDS_CACHE_TTL)
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
-	postCopy := rpost.Clone()
+	rPostCopy := rpost.Clone()
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginContext, postCopy)
+				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
 			}, plugin.MessageHasBeenPostedId)
 		})
