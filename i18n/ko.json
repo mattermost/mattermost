@@ -7844,5 +7844,25 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Mattermost Enterprise 버전으로 업그레이드"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS 리퀘스트를 처리 중에 에러가 발생했습니다."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "현재 라이센스가 클라우드 리퀘스트를 지원하지 않습니다."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "클라우드 API 리퀘스트 중에 내부 에러가 발생했습니다."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP를 사용할 수 없습니다."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "멀티 플랫폼 리퀘스트 파싱에 실패했습니다"
   }
 ]
