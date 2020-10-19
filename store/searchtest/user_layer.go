@@ -25,7 +25,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should honor team restrictions when autocompleting users",
 		Fn:   testHonorTeamRestrictionsAutocompletingUsers,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name:        "Should return nothing if the user can't access the channels of a given search",
@@ -279,17 +279,17 @@ func testHonorTeamRestrictionsAutocompletingUsers(t *testing.T, th *SearchTestHe
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
-	t.Run("Should return users that are in both teams at the same team when searching in one team and filtering by another", func(t *testing.T) {
+	t.Run("Should return empty when searching in one team and filtering by another", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
 		options.ViewRestrictions = &model.ViewUsersRestrictions{Teams: []string{th.AnotherTeam.Id}}
 		users, err := th.Store.User().Search(th.Team.Id, "", options)
 		require.Nil(t, err)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2}, users)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users)
 
 		acusers, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 		require.Nil(t, err)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, acusers.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, acusers.OutOfChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, acusers.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{}, acusers.OutOfChannel)
 	})
 }
 func testShouldReturnNothingWithoutProperAccess(t *testing.T, th *SearchTestHelper) {
