@@ -4,8 +4,8 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -77,7 +77,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileName := job.Id + ".zip"
-	filePath := filePath.join(FILE_PATH, fileName)
+	filePath := filepath.Join(FILE_PATH, fileName)
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
 		mlog.Error(err.Error())
