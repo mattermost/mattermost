@@ -1632,7 +1632,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+    "translation": "Kan Slackgebruiker {{.Username}} niet toevoegen aan het kanaal.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
