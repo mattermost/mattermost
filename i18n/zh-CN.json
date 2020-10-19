@@ -1158,10 +1158,6 @@
     "translation": "检查储存桶是否存储错误。"
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "无法连接 S3 或 minio。"
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
   },

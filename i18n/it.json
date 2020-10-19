@@ -1161,10 +1161,6 @@
     "translation": "Errore durante il controllo dell'esistenza del bucket."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Connessione poco stabile verso S3 o minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Impossibile caricare i file. Ci sono {{.NumClientIds}} client_ids per {{.NumFiles}} file."
   },
