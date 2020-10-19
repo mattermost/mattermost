@@ -1161,10 +1161,6 @@
     "translation": "Error al comprobar si el bucket existe."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Conexión a S3 o minio incorrecta."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
   },

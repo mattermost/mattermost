@@ -1161,10 +1161,6 @@
     "translation": "Fout bij het controleren of de bucket bestaat."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Slechte verbinding naar S3 of minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
   },

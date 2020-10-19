@@ -1158,10 +1158,6 @@
     "translation": "버킷이 존재하는지 확인하는 동안 에러가 발생했습니다."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "S3또는 minio에 접속할 수 없습니다."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
