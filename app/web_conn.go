@@ -4,6 +4,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -169,6 +171,11 @@ func (wc *WebConn) writePump() {
 		wc.WebSocket.Close()
 	}()
 
+	var buf bytes.Buffer
+	// 2k is seen to be a good heuristic under which 98.5% of message sizes remain.
+	buf.Grow(1024 * 2)
+	enc := json.NewEncoder(&buf)
+
 	for {
 		select {
 		case msg, ok := <-wc.send:
@@ -201,20 +208,20 @@ func (wc *WebConn) writePump() {
 				continue
 			}
 
-			var msgBytes []byte
+			buf.Reset()
 			if evtOk {
 				cpyEvt := evt.SetSequence(wc.Sequence)
-				msgBytes = []byte(cpyEvt.ToJson())
+				enc.Encode(cpyEvt)
 				wc.Sequence++
 			} else {
-				msgBytes = []byte(msg.ToJson())
+				enc.Encode(msg)
 			}
 
 			if len(wc.send) >= sendFullWarn {
 				logData := []mlog.Field{
 					mlog.String("user_id", wc.UserId),
 					mlog.String("type", msg.EventType()),
-					mlog.Int("size", len(msgBytes)),
+					mlog.Int("size", buf.Len()),
 				}
 				if evtOk {
 					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
@@ -224,7 +231,7 @@ func (wc *WebConn) writePump() {
 			}
 
 			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
+			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
