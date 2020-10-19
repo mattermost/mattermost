@@ -132,6 +132,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["CWSUrl"] = ""
+
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
@@ -193,6 +195,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+		}
+
+		if *license.Features.Cloud {
+			props["CWSUrl"] = *c.CloudSettings.CWSUrl
 		}
 	}
 
@@ -283,6 +289,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
+	props["CWSUrl"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText

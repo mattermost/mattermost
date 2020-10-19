@@ -6386,10 +6386,6 @@
     "translation": "無法解析要求圖片的 URL。"
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "無法上傳檔案 {{.Filename}}。被模組拒絕：{{.Reason}}"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "伺服器忙碌中，非必要服務將暫時無法使用"
   },
