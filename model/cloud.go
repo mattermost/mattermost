@@ -33,21 +33,17 @@ type ConfirmPaymentMethodRequest struct {
 
 // Customer model represents a customer on the system.
 type CloudCustomer struct {
-	ID               string         `json:"id"`
-	CreatorID        string         `json:"creator_id"`
-	CreateAt         int64          `json:"create_at"`
-	Email            string         `json:"email"`
-	Name             string         `json:"name"`
-	NumEmployees     int            `json:"num_employees"`
-	ContactFirstName string         `json:"contact_first_name"`
-	ContactLastName  string         `json:"contact_last_name"`
-	BillingAddress   *Address       `json:"billing_address"`
-	CompanyAddress   *Address       `json:"company_address"`
-	PaymentMethod    *PaymentMethod `json:"payment_method"`
+	CloudCustomerInfo
+	ID             string         `json:"id"`
+	CreatorID      string         `json:"creator_id"`
+	CreateAt       int64          `json:"create_at"`
+	BillingAddress *Address       `json:"billing_address"`
+	CompanyAddress *Address       `json:"company_address"`
+	PaymentMethod  *PaymentMethod `json:"payment_method"`
 }
 
-// CloudCustomerPatch represents a patch of a customer.
-type CloudCustomerPatch struct {
+// CloudCustomerInfo represents editable info of a customer.
+type CloudCustomerInfo struct {
 	Name             string `json:"name"`
 	Email            string `json:"email"`
 	ContactFirstName string `json:"contact_first_name"`

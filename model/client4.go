@@ -5687,8 +5687,8 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
-func (c *Client4) UpdateCloudCustomer(customerPatch *CloudCustomerPatch) (*CloudCustomer, *Response) {
-	customerBytes, _ := json.Marshal(customerPatch)
+func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
+	customerBytes, _ := json.Marshal(customerInfo)
 
 	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer", customerBytes)
 	if appErr != nil {

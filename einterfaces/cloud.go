@@ -14,7 +14,7 @@ type CloudInterface interface {
 	ConfirmCustomerPayment(*model.ConfirmPaymentMethodRequest) *model.AppError
 
 	GetCloudCustomer() (*model.CloudCustomer, *model.AppError)
-	UpdateCloudCustomer(customer *model.CloudCustomerPatch) (*model.CloudCustomer, *model.AppError)
+	UpdateCloudCustomer(customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, *model.AppError)
 	UpdateCloudCustomerAddress(address *model.Address) (*model.CloudCustomer, *model.AppError)
 
 	GetSubscription() (*model.Subscription, *model.AppError)

@@ -128,13 +128,13 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var customerPatch *model.CloudCustomerPatch
-	if err = json.Unmarshal(bodyBytes, &customerPatch); err != nil {
+	var customerInfo *model.CloudCustomerInfo
+	if err = json.Unmarshal(bodyBytes, &customerInfo); err != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomer(customerPatch)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomer(customerInfo)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
