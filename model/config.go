@@ -350,7 +350,7 @@ type ServiceSettings struct {
 	SplitKey                                          *string `access:"environment,write_restrictable"`
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
-	ThreadAutoFollow                                  *bool `access:"experimental"`
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -769,7 +769,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAWSMetering = NewBool(false)
 	}
 
-<<<<<<< HEAD
 	if s.SplitKey == nil {
 		s.SplitKey = NewString("")
 	}
@@ -781,12 +780,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.DebugSplit == nil {
 		s.DebugSplit = NewBool(false)
 	}
-=======
+
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewBool(true)
 	}
-
->>>>>>> master
 }
 
 type ClusterSettings struct {
