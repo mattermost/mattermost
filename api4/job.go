@@ -45,7 +45,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FILE_PATH = "export/%s"
+	const FILE_PATH = "export"
 	const FILE_MIME = "application/zip"
 
 	c.RequireJobId()
@@ -77,7 +77,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileName := job.Id + ".zip"
-	filePath := fmt.Sprintf(FILE_PATH, fileName)
+	filePath := filePath.join(FILE_PATH, fileName)
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
 		mlog.Error(err.Error())
