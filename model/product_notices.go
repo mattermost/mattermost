@@ -160,6 +160,9 @@ func (t *NoticeInstanceType) Matches(isCloud bool) bool {
 	if *t == NoticeInstanceType_Cloud && !isCloud {
 		return false
 	}
+	if *t == NoticeInstanceType_OnPrem && isCloud {
+		return false
+	}
 	return true
 }
 

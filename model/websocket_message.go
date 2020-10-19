@@ -57,6 +57,7 @@ const (
 	WEBSOCKET_EVENT_CONFIG_CHANGED                           = "config_changed"
 	WEBSOCKET_EVENT_OPEN_DIALOG                              = "open_dialog"
 	WEBSOCKET_EVENT_GUESTS_DEACTIVATED                       = "guests_deactivated"
+	WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE            = "user_activation_status_change"
 	WEBSOCKET_EVENT_RECEIVED_GROUP                           = "received_group"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM        = "received_group_associated_to_team"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM    = "received_group_not_associated_to_team"
@@ -68,6 +69,7 @@ const (
 	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED           = "sidebar_category_order_updated"
 	WEBSOCKET_WARN_METRIC_STATUS_RECEIVED                    = "warn_metric_status_received"
 	WEBSOCKET_WARN_METRIC_STATUS_REMOVED                     = "warn_metric_status_removed"
+	WEBSOCKET_EVENT_CLOUD_PAYMENT_STATUS_UPDATED             = "cloud_payment_status_updated"
 )
 
 type WebSocketMessage interface {
