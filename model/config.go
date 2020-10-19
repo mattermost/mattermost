@@ -350,6 +350,7 @@ type ServiceSettings struct {
 	SplitKey                                          *string `access:"environment,write_restrictable"`
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
+	ThreadAutoFollow                                  *bool `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -768,6 +769,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAWSMetering = NewBool(false)
 	}
 
+<<<<<<< HEAD
 	if s.SplitKey == nil {
 		s.SplitKey = NewString("")
 	}
@@ -779,6 +781,12 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.DebugSplit == nil {
 		s.DebugSplit = NewBool(false)
 	}
+=======
+	if s.ThreadAutoFollow == nil {
+		s.ThreadAutoFollow = NewBool(true)
+	}
+
+>>>>>>> master
 }
 
 type ClusterSettings struct {
@@ -2227,8 +2235,8 @@ type SamlSettings struct {
 	// User Mapping
 	IdAttribute          *string `access:"authentication"`
 	GuestAttribute       *string `access:"authentication"`
-	EnableAdminAttribute *bool   `access:"authentication"`
-	AdminAttribute       *string `access:"authentication"`
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
 	FirstNameAttribute   *string `access:"authentication"`
 	LastNameAttribute    *string `access:"authentication"`
 	EmailAttribute       *string `access:"authentication"`

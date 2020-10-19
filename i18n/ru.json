@@ -5832,10 +5832,6 @@
     "translation": "Невозможно загрузить файл. Неверный идентификатор канала: {{.channelId}}"
   },
   {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Невозможно загрузить файл {{.Filename}}. Отклонено плагином: {{.Reason}}"
-  },
-  {
     "id": "api.ldap_groups.existing_user_name_error",
     "translation": "имя группы уже существует как имя пользователя"
   },
