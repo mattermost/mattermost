@@ -91,7 +91,7 @@ func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.Autoc
 	}
 
 	if args[0].Required {
-		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(commandArgs, args[0], parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, suggestion := a.parseArgument(commandArgs, args, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, suggestion...)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -101,7 +101,7 @@ func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.Autoc
 
 	// Handling optional arguments. Optional argument can be inputted or not,
 	// so we have to pase both cases recursively and output combined suggestions.
-	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(commandArgs, args[0], parsed, toBeParsed)
+	foundWithOptional, changedParsedWithOptional, changedToBeParsedWithOptional, suggestionsWithOptional := a.parseArgument(commandArgs, args, parsed, toBeParsed)
 	if foundWithOptional {
 		suggestions = append(suggestions, suggestionsWithOptional...)
 	} else {
@@ -133,7 +133,8 @@ func (a *App) parseArguments(commandArgs *model.CommandArgs, args []*model.Autoc
 	return foundWithoutOptional, changedParsedWithoutOptional, changedToBeParsedWithoutOptional, suggestions
 }
 
-func (a *App) parseArgument(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+func (a *App) parseArgument(commandArgs *model.CommandArgs, argList []*model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+	arg := argList[0]
 	if arg.Name != "" { //Parse the --name first
 		found, changedParsed, changedToBeParsed, suggestion := parseNamedArgument(arg, parsed, toBeParsed)
 		if found {
@@ -151,7 +152,8 @@ func (a *App) parseArgument(commandArgs *model.CommandArgs, arg *model.Autocompl
 	}
 
 	if arg.Type == model.AutocompleteArgTypeText {
-		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed)
+		isLastArg := len(argList) == 1
+		found, changedParsed, changedToBeParsed, suggestion := parseInputTextArgument(arg, parsed, toBeParsed, isLastArg)
 		if found {
 			suggestions = append(suggestions, suggestion)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -198,7 +200,7 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
 }
 
-func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
+func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string, unquotedMultiWordAllowed bool) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(toBeParsed, " ")
 	a := arg.Data.(*model.AutocompleteTextArg)
 	if in == "" { //The user has not started typing the argument.
@@ -215,6 +217,13 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 			offset++
 		}
 		return false, parsed + in[:indexOfSecondQuote+offset], in[indexOfSecondQuote+offset:], model.AutocompleteSuggestion{}
+	}
+	if unquotedMultiWordAllowed {
+		if string(in[len(in)-1]) == " " { // last char is " "
+			return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{} // return a false thing w/ no suggestions
+		}
+		// always return a hint to prevent the suggestion box from toggling during typing of an unquoted multi-word argument
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
 	// input with a single word
 	index := strings.Index(in, " ")
