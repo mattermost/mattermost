@@ -71,11 +71,11 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		UserId: th.BasicUser.Id,
 	}
 
-	t.Run("basic user can access basic channel", func(t *testing.T){
+	t.Run("basic user can access basic channel", func(t *testing.T) {
 		assert.True(t, th.App.SessionHasPermissionToChannel(session, th.BasicChannel.Id, model.PERMISSION_ADD_REACTION))
 	})
 
-	t.Run("does not panic if fetching channel causes an error", func(t *testing.T){
+	t.Run("does not panic if fetching channel causes an error", func(t *testing.T) {
 		// Regression test for MM-29812
 		// Mock the channel store so getting the channel returns with an error, as per the bug report.
 		mockStore := mocks.Store{}
