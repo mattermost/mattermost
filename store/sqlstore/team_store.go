@@ -1398,7 +1398,7 @@ func (s SqlTeamStore) ResetAllTeamSchemes() error {
 // ClearCaches method not implemented.
 func (s SqlTeamStore) ClearCaches() {}
 
-// InvalidateAllTeamIdsForUser method not implemented
+// InvalidateAllTeamIdsForUser does not execute anything because the store does not handle the cache.
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 // ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers
