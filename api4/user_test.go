@@ -36,8 +36,8 @@ func TestCreateUser(t *testing.T) {
 	ruser, resp := th.Client.CreateUser(&user)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
-	// Creating user is not admin so we cannot set the email verified flag
-	require.Equal(t, false, ruser.EmailVerified)
+	// Creating a user as a regular user with verified flag should not verify the new user.
+	require.False(t, ruser.EmailVerified)
 
 	_, _ = th.Client.Login(user.Email, user.Password)
 
@@ -79,8 +79,8 @@ func TestCreateUser(t *testing.T) {
 		user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername(), EmailVerified: true}
 		ruser2, resp := client.CreateUser(user2)
 		CheckNoError(t, resp)
-		// Creating user is admin should allow set the email verified flag
-		require.Equal(t, true, ruser2.EmailVerified)
+		// Creating a user as sysadmin should verify the user with the EmailVerified flag.
+		require.True(t, ruser2.EmailVerified)
 
 		r, err := client.DoApiPost("/users", "garbage")
 		require.NotNil(t, err, "should have errored")
