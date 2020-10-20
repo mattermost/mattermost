@@ -5676,3 +5676,33 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 
 	return subscription, BuildResponse(r)
 }
+
+func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
+	customerBytes, _ := json.Marshal(customerInfo)
+
+	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer", customerBytes)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var customer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&customer)
+
+	return customer, BuildResponse(r)
+}
+
+func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, *Response) {
+	addressBytes, _ := json.Marshal(address)
+
+	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer/address", addressBytes)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var customer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&customer)
+
+	return customer, BuildResponse(r)
+}
