@@ -84,6 +84,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
 		mockStore.On("Channel").Return(&mockChannelStore)
 		mockStore.On("Role").Return(th.App.Srv().Store.Role())
+		mockStore.On("Team").Return(th.App.Srv().Store.Team())
 		th.App.Srv().Store = &mockStore
 
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
