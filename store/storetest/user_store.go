@@ -2322,7 +2322,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u1" + model.NewId(),
+		Username: "Yuka",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
@@ -2331,7 +2331,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u2" + model.NewId(),
+		Username: "Leia",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
@@ -2340,7 +2340,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u3" + model.NewId(),
+		Username: "Ali",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
