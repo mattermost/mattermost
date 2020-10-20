@@ -829,7 +829,7 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 }
 
 func TestSaveUserTermsOfService(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("Invalid data", func(t *testing.T) {
