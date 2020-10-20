@@ -82,6 +82,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockChannelStore := mocks.ChannelStore{}
 		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
 		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store.Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
+		mockChannelStore.On("ClearCaches").Return(th.App.Srv().Store.Channel().ClearCaches())
 		mockStore.On("Channel").Return(&mockChannelStore)
 		mockStore.On("Role").Return(th.App.Srv().Store.Role())
 		mockStore.On("Team").Return(th.App.Srv().Store.Team())
