@@ -114,13 +114,13 @@ func NewStoreFromBacking(backingStore BackingStore) (Store, error) {
 	}
 
 	if err := store.Load(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to load on store creation")
 	}
 
 	if err := backingStore.Watch(func() {
 		store.Load()
 	}); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to watch backing store")
 	}
 
 	return store, nil
@@ -226,7 +226,7 @@ func (s *storeImpl) Set(newCfg *model.Config) (*model.Config, error) {
 	}
 
 	if err := s.loadLockedWithOld(oldCfg, &unlockOnce); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to load on save")
 	}
 
 	return oldCfg, nil
@@ -261,11 +261,11 @@ func (s *storeImpl) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Onc
 	// Apply changes that may have happened on load to the backing store.
 	oldCfgBytes, err := json.Marshal(oldCfg)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to marshal old config")
 	}
 	newCfgBytes, err := json.Marshal(loadedConfig)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to marshal loaded config")
 	}
 	if len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes) {
 		if err := s.backingStore.Set(s.configNoEnv); err != nil {
