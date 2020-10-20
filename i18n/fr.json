@@ -1161,10 +1161,6 @@
     "translation": "Une erreur s'est produite lors de la vérification de l'existence du bucket."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Erreur de connexion à S3 ou minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Impossible d'envoyer les fichiers. Il y a {{.NumClientIds}} client_ids pour {{.NumFiles}} fichiers."
   },
