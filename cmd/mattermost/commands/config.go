@@ -140,7 +140,7 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func getConfigStore(command *cobra.Command) (config.Store, error) {
+func getConfigStore(command *cobra.Command) (*config.Store, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}

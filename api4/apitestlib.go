@@ -38,7 +38,7 @@ import (
 type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
-	ConfigStore config.Store
+	ConfigStore *config.Store
 
 	Client               *model.Client4
 	BasicUser            *model.User

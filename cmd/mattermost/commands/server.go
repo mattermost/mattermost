@@ -51,7 +51,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
 }
 
-func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.

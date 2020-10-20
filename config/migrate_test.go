@@ -46,7 +46,7 @@ func TestMigrate(t *testing.T) {
 		truncateTables(t)
 	}
 
-	setupSource := func(t *testing.T, source config.Store) {
+	setupSource := func(t *testing.T, source *config.Store) {
 		t.Helper()
 
 		cfg := source.Get()
@@ -74,7 +74,7 @@ func TestMigrate(t *testing.T) {
 		}
 	}
 
-	assertDestination := func(t *testing.T, destination config.Store, source config.Store) {
+	assertDestination := func(t *testing.T, destination *config.Store, source *config.Store) {
 		t.Helper()
 
 		for i, file := range files {

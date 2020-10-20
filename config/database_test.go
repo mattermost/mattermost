@@ -115,7 +115,7 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }
 
-func newTestDatabaseStore(t *testing.T) (config.Store, error) {
+func newTestDatabaseStore(t *testing.T) (*config.Store, error) {
 	sqlSettings := mainHelper.GetSQLSettings()
 	dss, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
