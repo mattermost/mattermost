@@ -57,6 +57,7 @@ const (
 	WEBSOCKET_EVENT_CONFIG_CHANGED                           = "config_changed"
 	WEBSOCKET_EVENT_OPEN_DIALOG                              = "open_dialog"
 	WEBSOCKET_EVENT_GUESTS_DEACTIVATED                       = "guests_deactivated"
+	WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE            = "user_activation_status_change"
 	WEBSOCKET_EVENT_RECEIVED_GROUP                           = "received_group"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_TEAM        = "received_group_associated_to_team"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM    = "received_group_not_associated_to_team"
