@@ -665,3 +665,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 
 	return string(result)
 }
+
+func (p *Post) IsFromOAuthBot() bool {
+	return p.GetProp("from_webhook") == "true" && p.GetProp("override_username") != ""
+}

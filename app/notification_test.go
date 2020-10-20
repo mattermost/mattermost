@@ -69,7 +69,7 @@ func TestSendNotifications(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, mentions)
 
-	t.Run("replies to post created via webhook should not notify original poster", func(t *testing.T) {
+	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -80,7 +80,7 @@ func TestSendNotifications(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{"from_webhook": "true"},
+			Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 		}
 
 		rootPost, appErr := th.App.CreatePostMissingChannel(rootPost, false)
