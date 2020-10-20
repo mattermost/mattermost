@@ -948,7 +948,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Foutief of ontrbrekend {{.Name}} in request body."
+    "translation": "Foutief of ontbrekend {{.Name}} in request body."
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -1632,7 +1632,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+    "translation": "Kan Slackgebruiker {{.Username}} niet toevoegen aan het kanaal.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
@@ -7948,11 +7948,11 @@
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
-    "translation": "Fout bij het kanaal markeren als ongelezen."
+    "translation": "Kan kanaal niet markeren als ongelezen."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
-    "translation": "Kan laatst gezien op niet bijwerken."
+    "translation": "De laatst bekeken tijd kon niet worden bijgewerkt."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -8000,7 +8000,7 @@
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": "Fout bij het ophalen van de kanaal per id."
+    "translation": "Fout bij het ophalen van de kanalen per id."
   },
   {
     "id": "app.channel.get_for_post.app_error",
@@ -8008,7 +8008,7 @@
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": "Geen kanaallid gevonden voor deze gebruikerID en kanaalID."
+    "translation": "Geen kanaallid gevonden voor deze gebruikersid en kanaalid."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -8028,7 +8028,7 @@
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": "Kan het aantal leden van het kanaal niet ophalen."
+    "translation": "We kunnen het aantal leden van het kanaal niet tellen."
   },
   {
     "id": "app.channel.get_member.app_error",
@@ -8040,11 +8040,11 @@
   },
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Fout bij het tellen van het berichten sinds de opgegeven datum."
+    "translation": "Kan berichten niet tellen vanaf de opgegeven datum."
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
@@ -8052,7 +8052,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost kon niet upgraden naar de Enterprise editie."
+    "translation": "Mattermost kon niet worden geüpgraded naar de Enterprise Editie."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
@@ -8076,11 +8076,11 @@
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Niet in staat om het aantal kanaal te verkrijgen."
+    "translation": "Kan het aantal kanalen niet tellen."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "Niet in staat om kanaaltype tellingen te verkrijgen."
+    "translation": "We kunnen de kanalen typen niet tellen."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -8100,11 +8100,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost was niet in staat om te upgraden naar Enterprise editie. De digitale handtekening van het gedownloade binaire bestand kon niet worden geverifieerd."
+    "translation": "Mattermost kon niet upgraden naar de Enterprise editie. De digitale handtekening van het gedownloade bestand kon niet worden geverifieerd."
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "Mattermost kon niet upgraden naar de Enterprise editie. Deze functie werkt enkel op Linuxsystemen met x86-64 architectuur."
+    "translation": "Mattermost kont niet upgraden naar de Enterprise editie. Dit werkt enkel op Linuxsystemen met een X86-64 architectuur."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
