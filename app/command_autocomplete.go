@@ -200,7 +200,8 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	return false, parsed + namedArg + " ", in[len(namedArg)+1:], model.AutocompleteSuggestion{}
 }
 
-func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string, unquotedMultiWordAllowed bool) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
+// If this is the last argument, we will ignore quoting rules.
+func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed string, isLast bool) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(toBeParsed, " ")
 	a := arg.Data.(*model.AutocompleteTextArg)
 	if in == "" { //The user has not started typing the argument.
@@ -218,7 +219,7 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 		}
 		return false, parsed + in[:indexOfSecondQuote+offset], in[indexOfSecondQuote+offset:], model.AutocompleteSuggestion{}
 	}
-	if unquotedMultiWordAllowed {
+	if isLast {
 		if string(in[len(in)-1]) == " " { // last char is " "
 			return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{} // return a false thing w/ no suggestions
 		}
