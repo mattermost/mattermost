@@ -72,6 +72,7 @@ type SqlSupplierStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
 	audit                store.AuditStore
@@ -160,6 +161,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.status = newSqlStatusStore(supplier)
 	supplier.stores.fileInfo = newSqlFileInfoStore(supplier, metrics)
 	supplier.stores.uploadSession = newSqlUploadSessionStore(supplier)
+	supplier.stores.thread = newSqlThreadStore(supplier)
 	supplier.stores.job = newSqlJobStore(supplier)
 	supplier.stores.userAccessToken = newSqlUserAccessTokenStore(supplier)
 	supplier.stores.channelMemberHistory = newSqlChannelMemberHistoryStore(supplier)
@@ -189,6 +191,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	supplier.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	supplier.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	supplier.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	supplier.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	supplier.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	supplier.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
@@ -1161,6 +1164,10 @@ func (ss *SqlSupplier) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 
 func (ss *SqlSupplier) Plugin() store.PluginStore {
 	return ss.stores.plugin
+}
+
+func (ss *SqlSupplier) Thread() store.ThreadStore {
+	return ss.stores.thread
 }
 
 func (ss *SqlSupplier) Role() store.RoleStore {

@@ -99,6 +99,11 @@ type TelemetryService struct {
 	timestampLastTelemetrySent time.Time
 }
 
+type RudderConfig struct {
+	RudderKey    string
+	DataplaneUrl string
+}
+
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
 	service := &TelemetryService{
 		srv:          srv,
@@ -130,9 +135,24 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	ts.TelemetryID = id
 }
 
+func (ts *TelemetryService) getRudderConfig() RudderConfig {
+	if !strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") {
+		return RudderConfig{RUDDER_KEY, RUDDER_DATAPLANE_URL}
+	} else if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
+		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
+	} else {
+		return RudderConfig{}
+	}
+}
+
+func (ts *TelemetryService) telemetryEnabled() bool {
+	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader()
+}
+
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.HasPrefix(RUDDER_KEY, "placeholder") && !strings.HasPrefix(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
+	config := ts.getRudderConfig()
+	if ts.telemetryEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
+		ts.initRudder(config.DataplaneUrl, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -683,6 +703,8 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
+		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
+		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -694,6 +716,8 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
+		"admin_notices_enabled":       *cfg.AnnouncementSettings.AdminNoticesEnabled,
+		"user_notices_enabled":        *cfg.AnnouncementSettings.UserNoticesEnabled,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
@@ -739,6 +763,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_DISPLAY, map[string]interface{}{
@@ -1062,9 +1087,9 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Error(nErr.Error())
 	}
 
-	groupSyncedChannelCount, err := ts.dbStore.Channel().GroupSyncedChannelCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupMemberCount, err := ts.dbStore.Group().GroupMemberCount()

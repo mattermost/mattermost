@@ -159,7 +159,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.31.0
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -170,9 +170,9 @@ jobs:
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
-            export VERSION=$(sentry-cli releases propose-version)
-            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
-            sentry-cli --log-level=debug releases set-commits --auto $VERSION
+            echo Sentry will use version `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
 
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
@@ -217,27 +217,15 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
             docker run -it --net circleci_mm-test \
-              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
-              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env-file=dotenv/test.env \
               --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
-              --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
+              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE="
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
@@ -287,30 +275,22 @@ jobs:
       - run:
           name: Postgres schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
@@ -323,30 +303,22 @@ jobs:
       - run:
           name: MySQL schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
@@ -460,14 +432,14 @@ workflows:
       - test:
           name: test-mysql
           dbdriver: mysql
-          dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8
           requires:
             - check-app-layers
             - check-store-layers
       - test:
           name: test-postgres
           dbdriver: postgres
-          dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
           requires:
             - check-app-layers
             - check-store-layers

@@ -311,6 +311,42 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		assert.NotContains(t, received[0].Channels, channel.Id)
 		assert.Equal(t, channelsCategory.Channels, received[0].Channels)
 	})
+
+	t.Run("should update order", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		categories, resp := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		_, resp = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], categories.Order[2]})
+		require.Nil(t, resp.Error)
+
+		categories, resp = client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory = categories.Categories[0]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		// validate order
+		newOrder, resp := client.GetSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.EqualValues(t, newOrder, categories.Order)
+
+		// try to update with missing category
+		_, resp = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0]})
+		require.NotNil(t, resp.Error)
+
+		// try to update with invalid category
+		_, resp = client.UpdateSidebarCategoryOrderForTeamForUser(user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], "asd"})
+		require.NotNil(t, resp.Error)
+	})
 }
 
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {

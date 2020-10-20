@@ -1322,6 +1322,23 @@ func (a *OpenTracingAppLayer) ClientConfigWithComputed() map[string]string {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) Cloud() einterfaces.CloudInterface {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.Cloud")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.Cloud()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompareAndDeletePluginKey")
@@ -2331,6 +2348,50 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(userId string, channel *model.Ch
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) DBHealthCheckDelete() error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DBHealthCheckDelete")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DBHealthCheckDelete()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) DBHealthCheckWrite() error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DBHealthCheckWrite")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DBHealthCheckWrite()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DeactivateGuests() *model.AppError {
@@ -6096,6 +6157,28 @@ func (a *OpenTracingAppLayer) GetMarketplacePlugins(filter *model.MarketplacePlu
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMemberCountsByGroup")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetMemberCountsByGroup(channelID, includeTimezones)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMessageForNotification")
@@ -8305,6 +8388,28 @@ func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfServic
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetTermsOfService(id)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadMembershipsForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetThreadMembershipsForUser(userId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13272,21 +13377,6 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetLog(l *mlog.Logger) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetLog")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SetLog(l)
-}
-
 func (a *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPhase2PermissionsMigrationStatus")
@@ -15178,6 +15268,21 @@ func (a *OpenTracingAppLayer) UpdateViewedProductNotices(userId string, noticeId
 	}
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) UpdateViewedProductNoticesForNewUser(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateViewedProductNoticesForNewUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UpdateViewedProductNoticesForNewUser(userId)
 }
 
 func (a *OpenTracingAppLayer) UpdateWebConnUserActivity(session model.Session, activityAt int64) {

@@ -443,6 +443,12 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId); err != nil {
+			return err
+		}
+	}
+
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
 		a.Srv().Go(func() {
 			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
@@ -1252,6 +1258,8 @@ func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.File
 		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	a.generateMiniPreviewForInfos(fileInfos)
+
 	return fileInfos, nil
 }
 
@@ -1447,4 +1455,8 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	return false
+}
+
+func (a *App) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId)
 }

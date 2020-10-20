@@ -362,14 +362,14 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 
 	tries := 0
 	for channels == nil {
-		var err *model.AppError
-		channels, err = worker.jobServer.Store.Channel().GetChannelsBatchForIndexing(progress.LastEntityTime, endTime, BATCH_SIZE)
-		if err != nil {
+		var nErr error
+		channels, nErr = worker.jobServer.Store.Channel().GetChannelsBatchForIndexing(progress.LastEntityTime, endTime, BATCH_SIZE)
+		if nErr != nil {
 			if tries >= 10 {
-				return progress, err
+				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 
-			mlog.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(err))
+			mlog.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(nErr))
 
 			// Wait a bit before trying again.
 			time.Sleep(15 * time.Second)

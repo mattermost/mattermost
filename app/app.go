@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
@@ -630,6 +631,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.srv.Saml
 }
+func (a *App) Cloud() einterfaces.CloudInterface {
+	return a.srv.Cloud
+}
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.srv.HTTPService
 }
@@ -675,7 +679,20 @@ func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
 }
 
-// TODO: change this to make a server method.
-func (a *App) SetLog(l *mlog.Logger) {
-	a.srv.Log = l
+func (a *App) DBHealthCheckWrite() error {
+	currentTime := strconv.FormatInt(time.Now().Unix(), 10)
+
+	return a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  a.dbHealthCheckKey(),
+		Value: currentTime,
+	})
+}
+
+func (a *App) DBHealthCheckDelete() error {
+	_, err := a.Srv().Store.System().PermanentDeleteByName(a.dbHealthCheckKey())
+	return err
+}
+
+func (a *App) dbHealthCheckKey() string {
+	return fmt.Sprintf("health_check_%s", a.GetClusterId())
 }

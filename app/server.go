@@ -36,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -163,6 +164,7 @@ type Server struct {
 	DataRetention    einterfaces.DataRetentionInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
+	Cloud            einterfaces.CloudInterface
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
@@ -226,6 +228,16 @@ func NewServer(options ...Option) (*Server, error) {
 				Dsn:              SENTRY_DSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
+				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+					// sanitize data sent to sentry to reduce exposure of PII
+					if event.Request != nil {
+						event.Request.Cookies = ""
+						event.Request.QueryString = ""
+						event.Request.Headers = nil
+						event.Request.Data = ""
+					}
+					return event
+				},
 			}); err != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
 			}
@@ -554,6 +566,10 @@ func (s *Server) RunJobs() {
 		}
 		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 			s.Jobs.StartSchedulers()
+		}
+
+		if *s.Config().ServiceSettings.EnableAWSMetering {
+			runReportToAWSMeterJob(s)
 		}
 	}
 }
@@ -1166,6 +1182,24 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
+func runReportToAWSMeterJob(s *Server) {
+	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
+		doReportUsageToAWSMeteringService(s)
+	}, time.Hour*model.AWS_METERING_REPORT_INTERVAL)
+}
+
+func doReportUsageToAWSMeteringService(s *Server) {
+	awsMeter := awsmeter.New(s.Store, s.Config())
+	if awsMeter == nil {
+		mlog.Error("Cannot obtain instance of AWS Metering Service.")
+		return
+	}
+
+	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AWS_METERING_REPORT_INTERVAL*time.Hour).UTC())
+	awsMeter.ReportUserCategoryUsage(reports)
+}
+
 func runCheckWarnMetricStatusJob(a *App) {
 	doCheckWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
@@ -1513,4 +1547,8 @@ func (s *Server) TelemetryId() string {
 
 func (s *Server) HttpService() httpservice.HTTPService {
 	return s.HTTPService
+}
+
+func (s *Server) SetLog(l *mlog.Logger) {
+	s.Log = l
 }
