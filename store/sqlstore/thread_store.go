@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
+	"math"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -191,19 +192,27 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 
 func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
 	var channelIds []string
-	for k := range channelLastUnreads {
+	minLastUpdate := int64(math.MaxInt64)
+	for k, v := range channelLastUnreads {
 		channelIds = append(channelIds, k)
+		if v < minLastUpdate {
+			minLastUpdate = v
+		}
 	}
 	var threadData []struct {
 		PostId      string
 		ChannelId   string
 		LastReplyAt int64
 	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("PostId, ChannelId, LastReplyAt").
 		From("Threads").
 		LeftJoin("Posts ON Threads.PostId=Posts.Id").
-		Where(sq.Eq{"Posts.ChannelId": channelIds}).
+		Where(sq.And{
+			sq.Eq{"Posts.ChannelId": channelIds},
+			sq.Lt{"Threads.LastReplyAt": minLastUpdate},
+		}).
 		ToSql()
 	if _, err := s.GetMaster().Select(&threadData, query, args...); err != nil {
 		return errors.Wrap(err, "failed to fetch threads")
