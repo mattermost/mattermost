@@ -29,6 +29,9 @@ func (rc *RemoteCluster) PreSave() {
 
 	if rc.CreateAt == 0 {
 		rc.CreateAt = GetMillis()
+	}
+
+	if rc.LastPingAt == 0 {
 		rc.LastPingAt = rc.CreateAt
 	}
 }

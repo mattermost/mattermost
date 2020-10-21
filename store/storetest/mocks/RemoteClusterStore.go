@@ -14,20 +14,20 @@ type RemoteClusterStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: rc
-func (_m *RemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
-	ret := _m.Called(rc)
+// Delete provides a mock function with given fields: remoteClusterId
+func (_m *RemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
+	ret := _m.Called(remoteClusterId)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) bool); ok {
-		r0 = rf(rc)
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(remoteClusterId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RemoteCluster) error); ok {
-		r1 = rf(rc)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteClusterId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,17 +59,26 @@ func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, 
 }
 
 // Save provides a mock function with given fields: rc
-func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) error {
+func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	ret := _m.Called(rc)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) error); ok {
+	var r0 *model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) *model.RemoteCluster); ok {
 		r0 = rf(rc)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.RemoteCluster) error); ok {
+		r1 = rf(rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // SetLastPingAt provides a mock function with given fields: rc

@@ -231,6 +231,48 @@ func (_m *ChannelStore) Delete(channelId string, time int64) error {
 	return r0
 }
 
+// DeleteSharedChannel provides a mock function with given fields: channelId
+func (_m *ChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
+	ret := _m.Called(channelId)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelId)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteSharedChannelRemote provides a mock function with given fields: id
+func (_m *ChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
+	ret := _m.Called(id)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteSidebarCategory provides a mock function with given fields: categoryId
 func (_m *ChannelStore) DeleteSidebarCategory(categoryId string) error {
 	ret := _m.Called(categoryId)
@@ -1139,6 +1181,119 @@ func (_m *ChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limi
 	return r0, r1
 }
 
+// GetSharedChannel provides a mock function with given fields: channelId
+func (_m *ChannelStore) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
+	ret := _m.Called(channelId)
+
+	var r0 *model.SharedChannel
+	if rf, ok := ret.Get(0).(func(string) *model.SharedChannel); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannel)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSharedChannelRemote provides a mock function with given fields: id
+func (_m *ChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.SharedChannelRemote
+	if rf, ok := ret.Get(0).(func(string) *model.SharedChannelRemote); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelRemote)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSharedChannelRemotes provides a mock function with given fields: channelId
+func (_m *ChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+	ret := _m.Called(channelId)
+
+	var r0 []*model.SharedChannelRemote
+	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelRemote); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelRemote)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSharedChannels provides a mock function with given fields: offset, limit, opts
+func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelSearchOpts) ([]*model.SharedChannel, error) {
+	ret := _m.Called(offset, limit, opts)
+
+	var r0 []*model.SharedChannel
+	if rf, ok := ret.Get(0).(func(int, int, store.SharedChannelSearchOpts) []*model.SharedChannel); ok {
+		r0 = rf(offset, limit, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannel)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, store.SharedChannelSearchOpts) error); ok {
+		r1 = rf(offset, limit, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSharedChannelsCount provides a mock function with given fields: opts
+func (_m *ChannelStore) GetSharedChannelsCount(opts store.SharedChannelSearchOpts) (int64, error) {
+	ret := _m.Called(opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(store.SharedChannelSearchOpts) int64); ok {
+		r0 = rf(opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(store.SharedChannelSearchOpts) error); ok {
+		r1 = rf(opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSidebarCategories provides a mock function with given fields: userId, teamId
 func (_m *ChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, error) {
 	ret := _m.Called(userId, teamId)
@@ -1570,6 +1725,52 @@ func (_m *ChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]*
 	return r0, r1
 }
 
+// SaveSharedChannel provides a mock function with given fields: sc
+func (_m *ChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	ret := _m.Called(sc)
+
+	var r0 *model.SharedChannel
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) *model.SharedChannel); ok {
+		r0 = rf(sc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannel)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannel) error); ok {
+		r1 = rf(sc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveSharedChannelRemote provides a mock function with given fields: remote
+func (_m *ChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+	ret := _m.Called(remote)
+
+	var r0 *model.SharedChannelRemote
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelRemote) *model.SharedChannelRemote); ok {
+		r0 = rf(remote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelRemote)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelRemote) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SearchAllChannels provides a mock function with given fields: term, opts
 func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
 	ret := _m.Called(term, opts)
@@ -1851,6 +2052,29 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 	var r1 error
 	if rf, ok := ret.Get(1).(func([]*model.ChannelMember) error); ok {
 		r1 = rf(members)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateSharedChannel provides a mock function with given fields: sc
+func (_m *ChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	ret := _m.Called(sc)
+
+	var r0 *model.SharedChannel
+	if rf, ok := ret.Get(0).(func(*model.SharedChannel) *model.SharedChannel); ok {
+		r0 = rf(sc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannel)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannel) error); ok {
+		r1 = rf(sc)
 	} else {
 		r1 = ret.Error(1)
 	}

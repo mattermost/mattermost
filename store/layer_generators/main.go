@@ -290,7 +290,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" || param.Type == "SharedChannelSearchOpts" {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				} else if param.Type == "*UserGetByIdsOpts" {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
@@ -303,7 +303,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParamsWithTypeOutsideStore": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" || param.Type == "SharedChannelSearchOpts" {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
 				} else if param.Type == "*UserGetByIdsOpts" {
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))

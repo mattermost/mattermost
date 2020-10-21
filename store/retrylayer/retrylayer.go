@@ -774,6 +774,46 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 
 }
 
+func (s *RetryLayerChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.DeleteSharedChannel(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.DeleteSharedChannelRemote(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) DeleteSidebarCategory(categoryId string) error {
 
 	tries := 0
@@ -1580,6 +1620,106 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 
 }
 
+func (s *RetryLayerChannelStore) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannel(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannelRemote(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannelRemotes(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelSearchOpts) ([]*model.SharedChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannels(offset, limit, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetSharedChannelsCount(opts store.SharedChannelSearchOpts) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannelsCount(opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, error) {
 
 	tries := 0
@@ -2048,6 +2188,46 @@ func (s *RetryLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 
 }
 
+func (s *RetryLayerChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.SaveSharedChannel(sc)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.SaveSharedChannelRemote(remote)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
 
 	tries := 0
@@ -2293,6 +2473,26 @@ func (s *RetryLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	tries := 0
 	for {
 		result, err := s.ChannelStore.UpdateMultipleMembers(members)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.UpdateSharedChannel(sc)
 		if err == nil {
 			return result, nil
 		}
@@ -5614,11 +5814,11 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
-func (s *RetryLayerRemoteClusterStore) Delete(rc *model.RemoteCluster) (bool, error) {
+func (s *RetryLayerRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.Delete(rc)
+		result, err := s.RemoteClusterStore.Delete(remoteClusterId)
 		if err == nil {
 			return result, nil
 		}
@@ -5654,21 +5854,21 @@ func (s *RetryLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.Remote
 
 }
 
-func (s *RetryLayerRemoteClusterStore) Save(rc *model.RemoteCluster) error {
+func (s *RetryLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		err := s.RemoteClusterStore.Save(rc)
+		result, err := s.RemoteClusterStore.Save(rc)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 

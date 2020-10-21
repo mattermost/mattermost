@@ -239,6 +239,18 @@ type ChannelStore interface {
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
+
+	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	GetSharedChannel(channelId string) (*model.SharedChannel, error)
+	GetSharedChannels(offset, limit int, opts SharedChannelSearchOpts) ([]*model.SharedChannel, error)
+	GetSharedChannelsCount(opts SharedChannelSearchOpts) (int64, error)
+	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	DeleteSharedChannel(channelId string) (bool, error)
+
+	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	DeleteSharedChannelRemote(id string) (bool, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -418,8 +430,8 @@ type ClusterDiscoveryStore interface {
 }
 
 type RemoteClusterStore interface {
-	Save(rc *model.RemoteCluster) error
-	Delete(rc *model.RemoteCluster) (bool, error)
+	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	Delete(remoteClusterId string) (bool, error)
 	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
 	SetLastPingAt(rc *model.RemoteCluster) error
 }
@@ -815,4 +827,11 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type SharedChannelSearchOpts struct {
+	TeamId        string
+	IncludeHome   bool
+	IncludeRemote bool
+	Token         string
 }

@@ -27,36 +27,38 @@ func newSqlRemoteClustersStore(sqlStore SqlStore) store.RemoteClusterStore {
 	return s
 }
 
-func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) error {
+func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.RemoteCluster, error) {
 	remoteCluster.PreSave()
 	if err := remoteCluster.IsValid(); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := s.GetMaster().Insert(remoteCluster); err != nil {
-		return errors.Wrap(err, "failed to save RemoteCluster")
+		return nil, errors.Wrap(err, "failed to save RemoteCluster")
 	}
-	return nil
+	return remoteCluster, nil
 }
 
-func (s sqlRemoteClusterStore) Delete(remoteCluster *model.RemoteCluster) (bool, error) {
-	query := s.getQueryBuilder().
+func (s sqlRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
+	squery, args, err := s.getQueryBuilder().
 		Delete("RemoteClusters").
-		Where(sq.Eq{"Id": remoteCluster.Id})
-
-	queryString, args, err := query.ToSql()
+		Where(sq.Eq{"Id": remoteClusterId}).
+		ToSql()
 	if err != nil {
-		return false, errors.Wrap(err, "remote_clusters_tosql")
+		return false, errors.Wrap(err, "delete_remote_cluster_tosql")
 	}
 
-	count, err := s.GetMaster().SelectInt(queryString, args...)
+	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to delete RemoteCluster")
 	}
-	if count == 0 {
-		return false, nil
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to determine rows affected")
 	}
-	return true, nil
+
+	return count > 0, nil
 }
 
 func (s sqlRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
