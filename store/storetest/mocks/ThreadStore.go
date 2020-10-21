@@ -14,6 +14,29 @@ type ThreadStore struct {
 	mock.Mock
 }
 
+// CollectThreadsWithNewerReplies provides a mock function with given fields: channelTimestamps, userId
+func (_m *ThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
+	ret := _m.Called(channelTimestamps, userId)
+
+	var r0 map[string]int64
+	if rf, ok := ret.Get(0).(func(map[string]int64, string) map[string]int64); ok {
+		r0 = rf(channelTimestamps, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]int64)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(map[string]int64, string) error); ok {
+		r1 = rf(channelTimestamps, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CreateMembershipIfNeeded provides a mock function with given fields: userId, postId
 func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
 	ret := _m.Called(userId, postId)
@@ -247,13 +270,13 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	return r0, r1
 }
 
-// UpdateUnreadsByChannel provides a mock function with given fields: userId, channelLastUnreads
-func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
-	ret := _m.Called(userId, channelLastUnreads)
+// UpdateUnreadsByChannel provides a mock function with given fields: userId, channelPrevUnreads, channelLastUnreads
+func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads map[string]int64, channelLastUnreads map[string]int64) error {
+	ret := _m.Called(userId, channelPrevUnreads, channelLastUnreads)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]int64) error); ok {
-		r0 = rf(userId, channelLastUnreads)
+	if rf, ok := ret.Get(0).(func(string, map[string]int64, map[string]int64) error); ok {
+		r0 = rf(userId, channelPrevUnreads, channelLastUnreads)
 	} else {
 		r0 = ret.Error(0)
 	}

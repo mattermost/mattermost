@@ -190,10 +190,35 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	return err
 }
 
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error {
+func (s *SqlThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
+	result := map[string]int64{}
+	for channelId, timestamp := range channelTimestamps {
+		var changedChannels []int64
+		query, args, _ := s.getQueryBuilder().
+			Select("ChannelMembers.LastUpdateAt").
+			From("Threads").
+			LeftJoin("Posts ON Threads.PostId=Posts.Id").
+			LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId").
+			Where(sq.And{
+				sq.Eq{"Posts.ChannelId": channelId},
+				sq.Eq{"ChannelMembers.UserId": userId},
+				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+			}).
+			ToSql()
+		if _, err := s.GetReplica().Select(&changedChannels, query, args...); err != nil {
+			return nil, errors.Wrap(err, "failed to fetch threads")
+		}
+		if len(changedChannels) == 1 {
+			result[channelId] = changedChannels[0]
+		}
+	}
+	return result, nil
+}
+
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads, channelLastUnreads map[string]int64) error {
 	var channelIds []string
 	minLastUpdate := int64(math.MaxInt64)
-	for k, v := range channelLastUnreads {
+	for k, v := range channelPrevUnreads {
 		channelIds = append(channelIds, k)
 		if v < minLastUpdate {
 			minLastUpdate = v
@@ -211,10 +236,10 @@ func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnread
 		LeftJoin("Posts ON Threads.PostId=Posts.Id").
 		Where(sq.And{
 			sq.Eq{"Posts.ChannelId": channelIds},
-			sq.Lt{"Threads.LastReplyAt": minLastUpdate},
+			sq.GtOrEq{"Threads.LastReplyAt": minLastUpdate},
 		}).
 		ToSql()
-	if _, err := s.GetMaster().Select(&threadData, query, args...); err != nil {
+	if _, err := s.GetReplica().Select(&threadData, query, args...); err != nil {
 		return errors.Wrap(err, "failed to fetch threads")
 	}
 	transaction, err := s.GetMaster().Begin()
@@ -229,6 +254,7 @@ func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelLastUnread
 				Update("ThreadMemberships").
 				Where(sq.Eq{"UserId": userId, "PostId": data.PostId}).
 				Set("LastUpdated", channelLastUnreads[data.ChannelId]).
+				Set("LastViewed", channelLastUnreads[data.ChannelId]).
 				ToSql()
 			if _, err := transaction.Exec(updateQuery, updateArgs...); err != nil {
 				return errors.Wrap(err, "failed to update thread membership")

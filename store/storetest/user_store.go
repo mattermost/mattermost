@@ -2168,7 +2168,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2179,7 +2179,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	p3 := model.Post{}
@@ -2189,7 +2189,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.Nil(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)

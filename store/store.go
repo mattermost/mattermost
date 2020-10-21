@@ -191,10 +191,10 @@ type ChannelStore interface {
 	RemoveMembers(channelId string, userIds []string) error
 	PermanentDeleteMembersByUser(userId string) error
 	PermanentDeleteMembersByChannel(channelId string) error
-	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error)
+	UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelId string, timestamp int64, userId string) (int, error)
-	IncrementMentionCount(channelId string, userId string) error
+	IncrementMentionCount(channelId string, userId string, updateThreads bool) error
 	AnalyticsTypeCount(teamId string, channelType string) (int64, error)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, error)
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, error)
@@ -259,7 +259,8 @@ type ThreadStore interface {
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
 	CreateMembershipIfNeeded(userId, postId string) error
-	UpdateUnreadsByChannel(userId string, channelLastUnreads map[string]int64) error
+	UpdateUnreadsByChannel(userId string, channelPrevUnreads, channelLastUnreads map[string]int64) error
+	CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error)
 }
 
 type PostStore interface {
