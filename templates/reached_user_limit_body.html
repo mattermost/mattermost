@@ -34,7 +34,7 @@
                                                 <p style="color: #3D3C40; font-size: 16px; line-height: 24px; font-family: Arial">
                                                     {{ .Props.Info1 }}</p>
                                                 <p style="margin: 31px 0 31px">
-                                                    <a href="{{.Props.VerifyUrl}}"
+                                                    <a href="{{.Props.SiteURL}}/admin_console/billing/subscription" target="_blank"
                                                         style="border-radius: 4px; background: #166DE0; color: #fff;outline: none; min-width: 200px; padding: 11px 24px 11px 24px; font-size: 14px; font-family: Arial; cursor: pointer; -webkit-appearance: none;text-decoration: none; margin-top: 16px;">{{ .Props.Button }}</a>
                                                 </p>
                                                 <p style="line-height: 20px; color: #3D3C40; margin-bottom: 24px; font-size: 14px; font-family: Arial">
@@ -57,7 +57,7 @@
                                 <tr>
                                     <td style="padding: 20px 20px 24px 48px; text-align:left;">
                                         <h3>Questions?</h3>
-                                        <p>Email us any time at <a href="mailto:feedback@mattermost.com">feedback@mattermost.com</a></p>
+                                        <p>{{ .Props.EmailUs }} <a href="mailto:feedback@mattermost.com">feedback@mattermost.com</a></p>
                                     </td>
                                 </tr>
                         </table>
@@ -69,7 +69,8 @@
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
                             style="font-family: Arial; line-height: 16px; font-size: 12px; background: #FFF;">
                             <tr>
-                                <td style="text-align: center;color: #AAA; font-size: 12px; padding-bottom: 10px;">
+                                <td
+                                    style="text-align: center;color: #AAA;font-size: 11px;padding-bottom: 10px;padding: 0;line-height: 16px;padding-bottom: 48px;padding-top: 4px;">
                                     <p>
                                         {{.Props.Organization}}<br>
                                         {{.Props.Footer}}

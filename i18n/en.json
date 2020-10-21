@@ -2863,8 +2863,27 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
-    "id": "api.templates.over_limit_subject",
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Email us any time at "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "You’ve reached the user limit for the free tier "
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+  }, {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud Workspace Over User Limit"
   },
   {
     "id": "api.templates.over_limit_title",
