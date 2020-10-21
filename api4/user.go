@@ -2052,6 +2052,12 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := c.App.CheckAndSendUserLimitWarningEmails()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	auditRec.Success()
 	c.LogAudit("Email Verified")
 

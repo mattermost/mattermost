@@ -2863,6 +2863,30 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud User Limit Reached"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Your workspace is over the user limit for the free tier"
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Upgrade"
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
