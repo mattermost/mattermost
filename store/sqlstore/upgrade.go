@@ -921,10 +921,8 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_29_0) {
 
-	sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
-	sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString("NULL"), model.NewString(""))
-	sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
-	sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString("NULL"), model.NewString(""))
+	sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(255)", "VARCHAR(128)")
+	sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(255)", "VARCHAR(128)")
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	// }
