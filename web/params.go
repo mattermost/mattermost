@@ -80,6 +80,9 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+
+	// Cloud
+	InvoiceId string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
