@@ -1158,10 +1158,6 @@
     "translation": "バケットが存在するかのチェックでエラーが発生しました。"
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "S3もしくはminioへ接続できません。"
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "ファイルをアップロードできませんでした。{{.NumFiles}}ファイルに対して {{.NumClientIds}} 個の client_ids が必要です。"
   },

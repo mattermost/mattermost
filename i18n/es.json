@@ -1161,10 +1161,6 @@
     "translation": "Error al comprobar si el bucket existe."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Conexión a S3 o minio incorrecta."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "No se pueden cargar los archivos. Se tienen {{.NumClientIds}} client_ids para un total de {{.NumFiles}} archivos."
   },
@@ -8313,5 +8309,13 @@
   {
     "id": "app.upload.run_plugins_hook.move_fail",
     "translation": "No se pudo mover el archivo."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "No se pudo actualizar la membresía de la conversación para el usuario mencionado"
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Se encontró un error al abrir una conexión a S3."
   }
 ]

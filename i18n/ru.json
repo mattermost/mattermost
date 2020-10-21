@@ -1164,10 +1164,6 @@
     "translation": "Ошибка проверки существования bucket."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Плохое соединение к S3 или minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Не удалось загрузить файл(ы). Есть {{.NumClientIds}} client_id для {{.NumFiles}} файлов."
   },
