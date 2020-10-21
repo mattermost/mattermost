@@ -1000,6 +1000,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 	return members[0], nil
 }
 
+// GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
 func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
@@ -1022,6 +1023,13 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	return dbMember.ToModel(), nil
 }
 
+// GetMembers returns a list of members from the database that matches the teamId passed as parameter and,
+// also expects teamMembersGetOptions to be passed as a parameter which allows to further filter what to show in the result.
+// TeamMembersGetOptions Model has following options->
+// 1. Sort through USERNAME [ if provided, which otherwise defaults to ID ]
+// 2. Sort through USERNAME [ if provided, which otherwise defaults to ID ] and exclude deleted members.
+// 3. Return all the members but, exclude deleted ones.
+// 4. Apply ViewUsersRestrictions to restrict what is visible to the user.
 func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
@@ -1063,6 +1071,8 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 	return dbMembers.ToModel(), nil
 }
 
+// GetTotalMemberCount returns the number of all members in a team for the teamId passed as a parameter.
+// Expects a restrictions parameter of type ViewUsersRestrictions that defines a set of Teams and Channels that are visible to the caller of the query, and applies restrictions with a filtered result.
 func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
@@ -1084,6 +1094,8 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 	return count, nil
 }
 
+// GetActiveMemberCount returns the number of active members in a team for the teamId passed as a parameter i.e. members with 'DeleteAt = 0'
+// Expects a restrictions parameter of type ViewUsersRestrictions that defines a set of Teams and Channels that are visible to the caller of the query, and applies restrictions with a filtered result.
 func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
@@ -1107,6 +1119,8 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 	return count, nil
 }
 
+// GetMembersByIds returns a list of members from the database that matches the teamId and the list of userIds passed as parameters.
+// Expects a restrictions parameter of type ViewUsersRestrictions that defines a set of Teams and Channels that are visible to the caller of the query, and applies restrictions with a filtered result.
 func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
 	if len(userIds) == 0 {
 		return nil, errors.New("invalid list of user ids")
@@ -1131,6 +1145,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 	return dbMembers.ToModel(), nil
 }
 
+// GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter.
 func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
