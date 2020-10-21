@@ -1352,7 +1352,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If activating, run cloud check for limit overages
 	if active {
-		_ = c.App.CheckAndSendUserLimitWarningEmails()
+		emailErr := c.App.CheckAndSendUserLimitWarningEmails()
+		if emailErr != nil {
+			c.Err = emailErr
+			return
+		}
 	}
 
 	ReturnStatusOK(w)
