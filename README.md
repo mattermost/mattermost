@@ -90,6 +90,7 @@ Copyright (C) 2020  Mattermost Inc
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```
+To read the complete license agreement visit [here](https://github.com/mattermost/mattermost-server/blob/master/LICENSE.txt)
 ## Get the Latest News
 
 - **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
