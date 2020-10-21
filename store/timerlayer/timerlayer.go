@@ -6872,10 +6872,10 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
+func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.CollectThreadsWithNewerReplies(channelTimestamps, userId)
+	result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userId, channelIds, timestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7064,10 +7064,10 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads map[string]int64, channelLastUnreads map[string]int64) error {
+func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.UpdateUnreadsByChannel(userId, channelPrevUnreads, channelLastUnreads)
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

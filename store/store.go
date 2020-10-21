@@ -259,8 +259,8 @@ type ThreadStore interface {
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
 	CreateMembershipIfNeeded(userId, postId string) error
-	UpdateUnreadsByChannel(userId string, channelPrevUnreads, channelLastUnreads map[string]int64) error
-	CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error)
+	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
+	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
 }
 
 type PostStore interface {

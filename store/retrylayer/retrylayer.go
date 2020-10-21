@@ -7642,11 +7642,11 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 }
 
-func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
+func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.CollectThreadsWithNewerReplies(channelTimestamps, userId)
+		result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userId, channelIds, timestamp)
 		if err == nil {
 			return result, nil
 		}
@@ -7882,11 +7882,11 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 
 }
 
-func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads map[string]int64, channelLastUnreads map[string]int64) error {
+func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.UpdateUnreadsByChannel(userId, channelPrevUnreads, channelLastUnreads)
+		err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp)
 		if err == nil {
 			return nil
 		}

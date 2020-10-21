@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	"math"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -190,79 +189,37 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	return err
 }
 
-func (s *SqlThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
-	result := map[string]int64{}
-	for channelId, timestamp := range channelTimestamps {
-		var changedChannels []int64
-		query, args, _ := s.getQueryBuilder().
-			Select("ChannelMembers.LastUpdateAt").
-			From("Threads").
-			LeftJoin("Posts ON Threads.PostId=Posts.Id").
-			LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId").
-			Where(sq.And{
-				sq.Eq{"Posts.ChannelId": channelId},
-				sq.Eq{"ChannelMembers.UserId": userId},
-				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
-			}).
-			ToSql()
-		if _, err := s.GetReplica().Select(&changedChannels, query, args...); err != nil {
-			return nil, errors.Wrap(err, "failed to fetch threads")
-		}
-		if len(changedChannels) == 1 {
-			result[channelId] = changedChannels[0]
-		}
-	}
-	return result, nil
-}
-
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads, channelLastUnreads map[string]int64) error {
-	var channelIds []string
-	minLastUpdate := int64(math.MaxInt64)
-	for k, v := range channelPrevUnreads {
-		channelIds = append(channelIds, k)
-		if v < minLastUpdate {
-			minLastUpdate = v
-		}
-	}
-	var threadData []struct {
-		PostId      string
-		ChannelId   string
-		LastReplyAt int64
-	}
-
+func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
+	var changedThreads []string
 	query, args, _ := s.getQueryBuilder().
-		Select("PostId, ChannelId, LastReplyAt").
+		Select("Threads.PostId").
 		From("Threads").
 		LeftJoin("Posts ON Threads.PostId=Posts.Id").
+		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId").
 		Where(sq.And{
 			sq.Eq{"Posts.ChannelId": channelIds},
-			sq.GtOrEq{"Threads.LastReplyAt": minLastUpdate},
+			sq.Eq{"ChannelMembers.UserId": userId},
+			sq.Or{
+				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
+				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+			},
 		}).
 		ToSql()
-	if _, err := s.GetReplica().Select(&threadData, query, args...); err != nil {
-		return errors.Wrap(err, "failed to fetch threads")
+	if _, err := s.GetReplica().Select(&changedThreads, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch threads")
 	}
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransaction(transaction)
+	return changedThreads, nil
+}
 
-	for _, data := range threadData {
-		if data.LastReplyAt < channelLastUnreads[data.ChannelId] {
-			updateQuery, updateArgs, _ := s.getQueryBuilder().
-				Update("ThreadMemberships").
-				Where(sq.Eq{"UserId": userId, "PostId": data.PostId}).
-				Set("LastUpdated", channelLastUnreads[data.ChannelId]).
-				Set("LastViewed", channelLastUnreads[data.ChannelId]).
-				ToSql()
-			if _, err := transaction.Exec(updateQuery, updateArgs...); err != nil {
-				return errors.Wrap(err, "failed to update thread membership")
-			}
-		}
-	}
-	if err := transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+	updateQuery, updateArgs, _ := s.getQueryBuilder().
+		Update("ThreadMemberships").
+		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
+		Set("LastUpdated", timestamp).
+		Set("LastViewed", timestamp).
+		ToSql()
+	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {
+		return errors.Wrap(err, "failed to update thread membership")
 	}
 
 	return nil

@@ -14,22 +14,22 @@ type ThreadStore struct {
 	mock.Mock
 }
 
-// CollectThreadsWithNewerReplies provides a mock function with given fields: channelTimestamps, userId
-func (_m *ThreadStore) CollectThreadsWithNewerReplies(channelTimestamps map[string]int64, userId string) (map[string]int64, error) {
-	ret := _m.Called(channelTimestamps, userId)
+// CollectThreadsWithNewerReplies provides a mock function with given fields: userId, channelIds, timestamp
+func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
+	ret := _m.Called(userId, channelIds, timestamp)
 
-	var r0 map[string]int64
-	if rf, ok := ret.Get(0).(func(map[string]int64, string) map[string]int64); ok {
-		r0 = rf(channelTimestamps, userId)
+	var r0 []string
+	if rf, ok := ret.Get(0).(func(string, []string, int64) []string); ok {
+		r0 = rf(userId, channelIds, timestamp)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]int64)
+			r0 = ret.Get(0).([]string)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(map[string]int64, string) error); ok {
-		r1 = rf(channelTimestamps, userId)
+	if rf, ok := ret.Get(1).(func(string, []string, int64) error); ok {
+		r1 = rf(userId, channelIds, timestamp)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -270,13 +270,13 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	return r0, r1
 }
 
-// UpdateUnreadsByChannel provides a mock function with given fields: userId, channelPrevUnreads, channelLastUnreads
-func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, channelPrevUnreads map[string]int64, channelLastUnreads map[string]int64) error {
-	ret := _m.Called(userId, channelPrevUnreads, channelLastUnreads)
+// UpdateUnreadsByChannel provides a mock function with given fields: userId, changedThreads, timestamp
+func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+	ret := _m.Called(userId, changedThreads, timestamp)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]int64, map[string]int64) error); ok {
-		r0 = rf(userId, channelPrevUnreads, channelLastUnreads)
+	if rf, ok := ret.Get(0).(func(string, []string, int64) error); ok {
+		r0 = rf(userId, changedThreads, timestamp)
 	} else {
 		r0 = ret.Error(0)
 	}

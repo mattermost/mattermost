@@ -33,6 +33,13 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		}, 999)
 		require.NoError(t, err2)
 
+		_, err44 := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   c.Id,
+			UserId:      u1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			MsgCount:    90,
+		})
+		require.NoError(t, err44)
 		o := model.Post{}
 		o.ChannelId = c.Id
 		o.UserId = u.Id
@@ -227,12 +234,19 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id))
 		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[2].Id))
-		m, err := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.Nil(t, err1)
+		thread, err := ss.Thread().Get(newPosts[0].Id)
 		require.Nil(t, err)
-		time.Sleep(time.Millisecond * 3)
+		thread.LastReplyAt += 10000
+		thread, err = ss.Thread().Update(thread)
+		require.Nil(t, err)
+
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, false)
+		require.Nil(t, err)
 		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true)
 		require.Nil(t, err)
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Millisecond * 10)
 		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err2)
 		require.Greater(t, m2.LastUpdated, m.LastUpdated)
