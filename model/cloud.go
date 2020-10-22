@@ -45,9 +45,9 @@ type CloudCustomer struct {
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name             string `json:"name"`
-	Email            string `json:"email"`
-	ContactFirstName string `json:"contact_first_name"`
-	ContactLastName  string `json:"contact_last_name"`
+	Email            string `json:"-"`
+	ContactFirstName string `json:"-"`
+	ContactLastName  string `json:"-"`
 	NumEmployees     int    `json:"num_employees"`
 }
 
