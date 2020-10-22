@@ -252,20 +252,20 @@ func (_m *ChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
 	return r0, r1
 }
 
-// DeleteSharedChannelRemote provides a mock function with given fields: id
-func (_m *ChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
-	ret := _m.Called(id)
+// DeleteSharedChannelRemote provides a mock function with given fields: remoteId
+func (_m *ChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
+	ret := _m.Called(remoteId)
 
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(string) bool); ok {
-		r0 = rf(id)
+		r0 = rf(remoteId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+		r1 = rf(remoteId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1204,13 +1204,13 @@ func (_m *ChannelStore) GetSharedChannel(channelId string) (*model.SharedChannel
 	return r0, r1
 }
 
-// GetSharedChannelRemote provides a mock function with given fields: id
-func (_m *ChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
-	ret := _m.Called(id)
+// GetSharedChannelRemote provides a mock function with given fields: remoteId
+func (_m *ChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
+	ret := _m.Called(remoteId)
 
 	var r0 *model.SharedChannelRemote
 	if rf, ok := ret.Get(0).(func(string) *model.SharedChannelRemote); ok {
-		r0 = rf(id)
+		r0 = rf(remoteId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.SharedChannelRemote)
@@ -1219,7 +1219,7 @@ func (_m *ChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelR
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(id)
+		r1 = rf(remoteId)
 	} else {
 		r1 = ret.Error(1)
 	}

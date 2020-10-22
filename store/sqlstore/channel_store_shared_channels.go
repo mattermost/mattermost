@@ -128,7 +128,19 @@ func (s SqlChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOp
 
 // UpdateSharedChannel updates the shared channel.
 func (s SqlChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	if err := sc.IsValid(); err != nil {
+		return nil, err
+	}
+
+	count, err := s.GetMaster().Update(sc)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to update shared channel with id=%s", sc.ChannelId)
+	}
+
+	if count != 1 {
+		return nil, fmt.Errorf("expected number of shared channels to be updated is 1 but was %d", count)
+	}
+	return sc, nil
 }
 
 // DeleteSharedChannel deletes a single shared channel plus associated SharedChannelRemotes.
@@ -181,21 +193,83 @@ func (s SqlChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
 
 // SaveSharedChannelRemote inserts a new shared channel remote record.
 func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	remote.PreSave()
+	if err := remote.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(remote); err != nil {
+		return nil, errors.Wrapf(err, "save_shared_channel_remote: channel_id=%s, id=%s", remote.ChannelId, remote.Id)
+	}
+	return remote, nil
 }
 
 // GetSharedChannelRemote fetches a shared channel by shared_channel_remote_id.
-func (s SqlChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
-	return nil, fmt.Errorf("not implemented yet")
+func (s SqlChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
+	var remote model.SharedChannelRemote
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelRemotes").
+		Where(sq.Eq{"SharedChannelRemotes.Id": remoteId})
+
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "get_shared_channel_remote_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&remote, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelRemote", remoteId)
+		}
+		return nil, errors.Wrapf(err, "failed to find remote with id=%s", remoteId)
+	}
+	return &remote, nil
 }
 
 // GetSharedChannelRemotes fetches all shared channel remotes associated with channel_id.
 func (s SqlChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	var remotes []*model.SharedChannelRemote
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelRemotes").
+		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId})
+
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "get_shared_channel_remotes_tosql")
+	}
+
+	if _, err := s.GetReplica().Select(&remotes, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelRemote", channelId)
+		}
+		return nil, errors.Wrapf(err, "failed to get remotes for channel_id=%s", channelId)
+	}
+	return remotes, nil
 }
 
 // DeleteSharedChannelRemote deletes a single shared channel remote.
 // Returns true if remote found and deleted, false if not found.
-func (s SqlChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
-	return false, fmt.Errorf("not implemented yet")
+func (s SqlChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
+	squery, args, err := s.getQueryBuilder().
+		Delete("SharedChannelRemotes").
+		Where(sq.Eq{"Id": remoteId}).
+		ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "delete_shared_channel_remote_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to delete SharedChannelRemote")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return false, errors.Wrap(err, "failed to determine rows affected")
+	}
+
+	return count > 0, nil
 }

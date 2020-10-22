@@ -794,11 +794,11 @@ func (s *RetryLayerChannelStore) DeleteSharedChannel(channelId string) (bool, er
 
 }
 
-func (s *RetryLayerChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
+func (s *RetryLayerChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.DeleteSharedChannelRemote(id)
+		result, err := s.ChannelStore.DeleteSharedChannelRemote(remoteId)
 		if err == nil {
 			return result, nil
 		}
@@ -1640,11 +1640,11 @@ func (s *RetryLayerChannelStore) GetSharedChannel(channelId string) (*model.Shar
 
 }
 
-func (s *RetryLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+func (s *RetryLayerChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSharedChannelRemote(id)
+		result, err := s.ChannelStore.GetSharedChannelRemote(remoteId)
 		if err == nil {
 			return result, nil
 		}

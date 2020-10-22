@@ -248,9 +248,9 @@ type ChannelStore interface {
 	DeleteSharedChannel(channelId string) (bool, error)
 
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
-	GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error)
 	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
-	DeleteSharedChannelRemote(id string) (bool, error)
+	DeleteSharedChannelRemote(remoteId string) (bool, error)
 }
 
 type ChannelMemberHistoryStore interface {

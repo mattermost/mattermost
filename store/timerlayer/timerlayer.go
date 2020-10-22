@@ -705,10 +705,10 @@ func (s *TimerLayerChannelStore) DeleteSharedChannel(channelId string) (bool, er
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
+func (s *TimerLayerChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.DeleteSharedChannelRemote(id)
+	result, err := s.ChannelStore.DeleteSharedChannelRemote(remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1393,10 +1393,10 @@ func (s *TimerLayerChannelStore) GetSharedChannel(channelId string) (*model.Shar
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+func (s *TimerLayerChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetSharedChannelRemote(id)
+	result, err := s.ChannelStore.GetSharedChannelRemote(remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1425,7 +1425,7 @@ func (s *TimerLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSharedChannels(offset, limit, opts)
@@ -1441,7 +1441,7 @@ func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts S
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannelsCount(opts SharedChannelFilterOpts) (int64, error) {
+func (s *TimerLayerChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSharedChannelsCount(opts)
