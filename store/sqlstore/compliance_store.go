@@ -220,7 +220,6 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.Props AS PostProps,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.RootId AS PostRootId,
-			Posts.Props AS PostProps,
 			Posts.FileIds AS PostFileIds,
 			Teams.Id AS TeamId,
 			Teams.Name AS TeamName,
@@ -244,7 +243,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			(Posts.CreateAt > :StartTime OR Posts.UpdateAt > :StartTime OR Posts.DeleteAt > :StartTime) AND
+			Posts.UpdateAt > :StartTime AND
 			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt
 		LIMIT :Limit`
