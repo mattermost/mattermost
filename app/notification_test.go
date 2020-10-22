@@ -96,7 +96,7 @@ func TestSendNotifications(t *testing.T) {
 				Order: []string{rootPost.Id, childPost.Id},
 				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
 			}
-			mentions, err := th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			mentions, err = th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
 			require.Nil(t, err)
 			require.False(t, utils.StringInSlice(user.Id, mentions))
 		}
