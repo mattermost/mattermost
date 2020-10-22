@@ -6,6 +6,7 @@ package storetest
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -229,26 +230,83 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, thread2)
 	})
 
-	t.Run("Thread last updated is changed when channel is updated", func(t *testing.T) {
+	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
 		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id))
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[2].Id))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err1)
-		thread, err := ss.Thread().Get(newPosts[0].Id)
-		require.Nil(t, err)
-		thread.LastReplyAt += 10000
-		thread, err = ss.Thread().Update(thread)
+		m.LastUpdated -= 1000
+		_, err := ss.Thread().UpdateMembership(m)
 		require.Nil(t, err)
 
-		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, false)
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
 		require.Nil(t, err)
+
+		assert.Eventually(t, func() bool {
+			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+			require.Nil(t, err2)
+			return m2.LastUpdated > m.LastUpdated
+		}, time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
+		newPosts := makeSomePosts()
+
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id))
+		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.Nil(t, err1)
+		m.LastUpdated -= 1000
+		_, err := ss.Thread().UpdateMembership(m)
+		require.Nil(t, err)
+
 		err = ss.Channel().IncrementMentionCount(newPosts[0].ChannelId, newPosts[0].UserId, true)
 		require.Nil(t, err)
-		time.Sleep(time.Millisecond * 10)
-		m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.Nil(t, err2)
-		require.Greater(t, m2.LastUpdated, m.LastUpdated)
+
+		assert.Eventually(t, func() bool {
+			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+			require.Nil(t, err2)
+			return m2.LastUpdated > m.LastUpdated
+		}, time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
+		newPosts := makeSomePosts()
+
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id))
+		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.Nil(t, err1)
+		m.LastUpdated -= 1000
+		_, err := ss.Thread().UpdateMembership(m)
+		require.Nil(t, err)
+
+		_, err = ss.Channel().UpdateLastViewedAt([]string{newPosts[0].ChannelId}, newPosts[0].UserId, true)
+		require.Nil(t, err)
+
+		assert.Eventually(t, func() bool {
+			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+			require.Nil(t, err2)
+			return m2.LastUpdated > m.LastUpdated
+		}, time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
+		newPosts := makeSomePosts()
+
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id))
+		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+		require.Nil(t, err1)
+		m.LastUpdated += 1000
+		_, err := ss.Thread().UpdateMembership(m)
+		require.Nil(t, err)
+
+		_, err = ss.Channel().UpdateLastViewedAtPost(newPosts[0], newPosts[0].UserId, 0, true)
+		require.Nil(t, err)
+
+		assert.Eventually(t, func() bool {
+			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
+			require.Nil(t, err2)
+			return m2.LastUpdated < m.LastUpdated
+		}, time.Second, 10*time.Millisecond)
 	})
 }

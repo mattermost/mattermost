@@ -52,12 +52,8 @@ func threadToSlice(thread *model.Thread) []interface{} {
 }
 
 func (s *SqlThreadStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_threads_last_reply_at", "Threads", "LastReplyAt")
-	s.CreateIndexIfNotExists("idx_threads_post_id", "Threads", "PostId")
-
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
-	s.CreateIndexIfNotExists("idx_thread_memberships_post_id", "ThreadMemberships", "PostId")
 	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
 }
 
