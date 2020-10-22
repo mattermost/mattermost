@@ -18,11 +18,7 @@ func (s *Server) setupFeatureFlags() {
 	splitKey := *s.Config().ServiceSettings.SplitKey
 	syncFeatureFlags := inCloud && splitKey != "" && s.IsLeader()
 
-	if inCloud {
-		s.configStore.PersistFeatures(true)
-	} else {
-		s.configStore.PersistFeatures(false)
-	}
+	s.configStore.PersistFeatures(inCloud)
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
