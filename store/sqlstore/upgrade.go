@@ -191,6 +191,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 
+	sqlStore.Migrate()
+
 	return nil
 }
 

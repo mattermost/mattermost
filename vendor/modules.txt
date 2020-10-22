@@ -120,8 +120,6 @@ github.com/blevesearch/zap/v12
 github.com/blevesearch/zap/v13
 # github.com/blevesearch/zap/v14 v14.0.0
 github.com/blevesearch/zap/v14
-# github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-## explicit
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/corpix/uarand v0.1.1
@@ -179,6 +177,17 @@ github.com/go-asn1-ber/asn1-ber
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
+# github.com/golang-migrate/migrate/v4 v4.13.0
+## explicit
+github.com/golang-migrate/migrate/v4
+github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/mysql
+github.com/golang-migrate/migrate/v4/database/postgres
+github.com/golang-migrate/migrate/v4/internal/url
+github.com/golang-migrate/migrate/v4/source
+github.com/golang-migrate/migrate/v4/source/file
+github.com/golang-migrate/migrate/v4/source/go_bindata
+github.com/golang-migrate/migrate/v4/source/httpfs
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 ## explicit
 github.com/golang/freetype
@@ -448,8 +457,6 @@ github.com/prometheus/procfs/internal/util
 # github.com/reflog/dateconstraints v0.2.1
 ## explicit
 github.com/reflog/dateconstraints
-# github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237
-## explicit
 # github.com/rs/cors v1.7.0
 ## explicit
 github.com/rs/cors
@@ -613,8 +620,6 @@ golang.org/x/image/tiff/lzw
 golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
-# golang.org/x/lint v0.0.0-20200302205851-738671d3881b
-## explicit
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
@@ -637,7 +642,6 @@ golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20200817155316-9781c653f443
-## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -683,11 +687,9 @@ golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-## explicit
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/appengine v1.6.6
-## explicit
 google.golang.org/appengine
 google.golang.org/appengine/datastore
 google.golang.org/appengine/datastore/internal/cloudkey
@@ -700,10 +702,8 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
 # google.golang.org/genproto v0.0.0-20200815001618-f69a88009b70
-## explicit
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.31.0
-## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -750,7 +750,6 @@ google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # google.golang.org/protobuf v1.25.0
-## explicit
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/descfmt
@@ -803,8 +802,6 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 ## explicit
 gopkg.in/yaml.v3
-# honnef.co/go/tools v0.0.1-2020.1.3
-## explicit
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize
 # willnorris.com/go/imageproxy v0.10.0

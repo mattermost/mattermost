@@ -232,6 +232,9 @@ telemetry-mocks: ## Creates mock files.
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
+store-migrations: ## Generate layers for the store
+	$(GO) generate $(GOFLAGS) ./store/sqlstore/migrations/
+
 filesstore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
