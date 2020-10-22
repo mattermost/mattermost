@@ -219,6 +219,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.RemoteId = val
 	}
 
+	if val, ok := props["invoice_id"]; ok {
+		params.InvoiceId = val
+	}
+
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
