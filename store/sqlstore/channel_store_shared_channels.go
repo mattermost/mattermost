@@ -51,13 +51,79 @@ func (s SqlChannelStore) GetSharedChannel(channelId string) (*model.SharedChanne
 }
 
 // GetSharedChannels fetches a paginated list of shared channels filtered by SharedChannelSearchOpts.
-func (s SqlChannelStore) GetSharedChannels(offset, limit int, opts store.SharedChannelSearchOpts) ([]*model.SharedChannel, error) {
-	return nil, fmt.Errorf("not implemented yet")
+func (s SqlChannelStore) GetSharedChannels(offset, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+	if opts.ExcludeHome && opts.ExcludeRemote {
+		return nil, errors.New("cannot exclude home and remote shared channels")
+	}
+
+	query := s.getSharedChannelsQuery(opts, false)
+	query = query.OrderBy("sc.ShareDisplayName, sc.ShareName").Limit(uint64(limit)).Offset(uint64(offset))
+
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create query")
+	}
+
+	var channels []*model.SharedChannel
+	_, err = s.GetReplica().Select(&channels, squery, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get channels")
+	}
+	return channels, nil
 }
 
 // GetSharedChannelsCount returns the number of shared channels that would be fetched using SharedChannelSearchOpts.
-func (s SqlChannelStore) GetSharedChannelsCount(opts store.SharedChannelSearchOpts) (int64, error) {
-	return 0, fmt.Errorf("not implemented yet")
+func (s SqlChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
+	if opts.ExcludeHome && opts.ExcludeRemote {
+		return 0, errors.New("cannot exclude home and remote shared channels")
+	}
+
+	query := s.getSharedChannelsQuery(opts, true)
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to create query")
+	}
+
+	count, err := s.GetReplica().SelectInt(squery, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count channels")
+	}
+	return count, nil
+}
+
+func (s SqlChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
+	var selectStr string
+	if forCount {
+		selectStr = "count(sc.ChannelId)"
+	} else {
+		selectStr = "sc.*"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("SharedChannels AS sc")
+
+	if opts.TeamId != "" {
+		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamId})
+	}
+
+	if opts.Token != "" {
+		query = query.Where(sq.Eq{"sc.Token": opts.Token})
+	}
+
+	if !opts.ExcludeHome && !opts.ExcludeRemote {
+		return query
+	}
+
+	if opts.ExcludeHome {
+		query = query.Where(sq.NotEq{"sc.Home": true})
+	}
+
+	if opts.ExcludeRemote {
+		query = query.Where(sq.Eq{"sc.Home": true})
+	}
+
+	return query
 }
 
 // UpdateSharedChannel updates the shared channel.

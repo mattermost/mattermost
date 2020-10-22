@@ -1251,11 +1251,11 @@ func (_m *ChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.Shar
 }
 
 // GetSharedChannels provides a mock function with given fields: offset, limit, opts
-func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelSearchOpts) ([]*model.SharedChannel, error) {
+func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	ret := _m.Called(offset, limit, opts)
 
 	var r0 []*model.SharedChannel
-	if rf, ok := ret.Get(0).(func(int, int, store.SharedChannelSearchOpts) []*model.SharedChannel); ok {
+	if rf, ok := ret.Get(0).(func(int, int, store.SharedChannelFilterOpts) []*model.SharedChannel); ok {
 		r0 = rf(offset, limit, opts)
 	} else {
 		if ret.Get(0) != nil {
@@ -1264,7 +1264,7 @@ func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.Shar
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, int, store.SharedChannelSearchOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(int, int, store.SharedChannelFilterOpts) error); ok {
 		r1 = rf(offset, limit, opts)
 	} else {
 		r1 = ret.Error(1)
@@ -1274,18 +1274,18 @@ func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.Shar
 }
 
 // GetSharedChannelsCount provides a mock function with given fields: opts
-func (_m *ChannelStore) GetSharedChannelsCount(opts store.SharedChannelSearchOpts) (int64, error) {
+func (_m *ChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
 	ret := _m.Called(opts)
 
 	var r0 int64
-	if rf, ok := ret.Get(0).(func(store.SharedChannelSearchOpts) int64); ok {
+	if rf, ok := ret.Get(0).(func(store.SharedChannelFilterOpts) int64); ok {
 		r0 = rf(opts)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(store.SharedChannelSearchOpts) error); ok {
+	if rf, ok := ret.Get(1).(func(store.SharedChannelFilterOpts) error); ok {
 		r1 = rf(opts)
 	} else {
 		r1 = ret.Error(1)

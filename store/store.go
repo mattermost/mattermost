@@ -242,8 +242,8 @@ type ChannelStore interface {
 
 	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	GetSharedChannel(channelId string) (*model.SharedChannel, error)
-	GetSharedChannels(offset, limit int, opts SharedChannelSearchOpts) ([]*model.SharedChannel, error)
-	GetSharedChannelsCount(opts SharedChannelSearchOpts) (int64, error)
+	GetSharedChannels(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetSharedChannelsCount(opts SharedChannelFilterOpts) (int64, error)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	DeleteSharedChannel(channelId string) (bool, error)
 
@@ -829,9 +829,9 @@ type UserGetByIdsOpts struct {
 	Since int64
 }
 
-type SharedChannelSearchOpts struct {
+type SharedChannelFilterOpts struct {
 	TeamId        string
-	IncludeHome   bool
-	IncludeRemote bool
+	ExcludeHome   bool
+	ExcludeRemote bool
 	Token         string
 }

@@ -15,7 +15,6 @@ func TestChannelStoreSharedChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
 	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, ss) })
 	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, ss) })
-	t.Run("GetSharedChannelsCount", func(t *testing.T) { testGetSharedChannelsCount(t, ss) })
 	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, ss) })
 	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
 
@@ -71,7 +70,112 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 }
 
 func testGetSharedChannels(t *testing.T, ss store.Store) {
-	t.Error("not implemented yet")
+	creator := model.NewId()
+	token := model.NewId()
+	team1 := model.NewId()
+	team2 := model.NewId()
+
+	data := []model.SharedChannel{
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team1, ShareName: "test1", Home: true},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team1, ShareName: "test2", Home: false},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team1, ShareName: "test3", Home: false},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team1, ShareName: "test4", Home: true},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team2, ShareName: "test5", Home: true},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team2, ShareName: "test6", Home: false},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team2, ShareName: "test7", Home: false},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team2, ShareName: "test8", Home: true},
+		{ChannelId: model.NewId(), CreatorId: creator, Token: token, TeamId: team2, ShareName: "test9", Home: true},
+	}
+
+	for _, sc := range data {
+		_, err := ss.Channel().SaveSharedChannel(&sc)
+		require.Nil(t, err, "error saving shared channel")
+	}
+
+	t.Run("Get shared channels home only", func(t *testing.T) {
+		opts := store.SharedChannelFilterOpts{
+			ExcludeRemote: true,
+			Token:         token,
+		}
+
+		count, err := ss.Channel().GetSharedChannelsCount(opts)
+		require.Nil(t, err, "error getting shared channels count")
+
+		remotes, err := ss.Channel().GetSharedChannels(0, 100, opts)
+		require.Nil(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 5, "should be 5 home channels")
+		for _, sc := range remotes {
+			require.True(t, sc.Home, "should be home channel")
+		}
+	})
+
+	t.Run("Get shared channels remote only", func(t *testing.T) {
+		opts := store.SharedChannelFilterOpts{
+			ExcludeHome: true,
+			Token:       token,
+		}
+
+		count, err := ss.Channel().GetSharedChannelsCount(opts)
+		require.Nil(t, err, "error getting shared channels count")
+
+		remotes, err := ss.Channel().GetSharedChannels(0, 100, opts)
+		require.Nil(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 4, "should be 4 remote channels")
+		for _, sc := range remotes {
+			require.False(t, sc.Home, "should be remote channel")
+		}
+	})
+
+	t.Run("Get shared channels bad opts", func(t *testing.T) {
+		opts := store.SharedChannelFilterOpts{
+			ExcludeHome:   true,
+			ExcludeRemote: true,
+		}
+		_, err := ss.Channel().GetSharedChannels(0, 100, opts)
+		require.NotNil(t, err, "error expected")
+	})
+
+	t.Run("Get shared channels by token", func(t *testing.T) {
+		opts := store.SharedChannelFilterOpts{
+			Token: token,
+		}
+
+		count, err := ss.Channel().GetSharedChannelsCount(opts)
+		require.Nil(t, err, "error getting shared channels count")
+
+		remotes, err := ss.Channel().GetSharedChannels(0, 100, opts)
+		require.Nil(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 9, "should be 9 matching channels")
+		for _, sc := range remotes {
+			require.Equal(t, token, sc.Token)
+		}
+	})
+
+	t.Run("Get shared channels by token and team", func(t *testing.T) {
+		opts := store.SharedChannelFilterOpts{
+			Token:  token,
+			TeamId: team1,
+		}
+
+		count, err := ss.Channel().GetSharedChannelsCount(opts)
+		require.Nil(t, err, "error getting shared channels count")
+
+		remotes, err := ss.Channel().GetSharedChannels(0, 100, opts)
+		require.Nil(t, err, "error getting shared channels")
+
+		require.Equal(t, int(count), len(remotes))
+		require.Len(t, remotes, 4, "should be 4 matching channels")
+		for _, sc := range remotes {
+			require.Equal(t, token, sc.Token)
+			require.Equal(t, team1, sc.TeamId)
+		}
+	})
 }
 
 func testGetSharedChannelsCount(t *testing.T, ss store.Store) {

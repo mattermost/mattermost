@@ -1425,7 +1425,7 @@ func (s *TimerLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelSearchOpts) ([]*model.SharedChannel, error) {
+func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSharedChannels(offset, limit, opts)
@@ -1441,7 +1441,7 @@ func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts s
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannelsCount(opts store.SharedChannelSearchOpts) (int64, error) {
+func (s *TimerLayerChannelStore) GetSharedChannelsCount(opts SharedChannelFilterOpts) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSharedChannelsCount(opts)
