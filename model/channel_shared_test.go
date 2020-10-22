@@ -27,6 +27,9 @@ func TestSharedChannelIsValid(t *testing.T) {
 	o.ChannelId = NewId()
 	require.Error(t, o.IsValid())
 
+	o.TeamId = NewId()
+	require.Error(t, o.IsValid())
+
 	o.CreateAt = GetMillis()
 	require.Error(t, o.IsValid())
 
