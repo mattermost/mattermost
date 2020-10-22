@@ -16,20 +16,20 @@ import (
 )
 
 type SqlFileInfoStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 }
 
 func (fs SqlFileInfoStore) ClearCaches() {
 }
 
-func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
+func newSqlFileInfoStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlSupplier: sqlSupplier,
+		metrics:     metrics,
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)

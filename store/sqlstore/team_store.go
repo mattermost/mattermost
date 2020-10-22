@@ -22,7 +22,7 @@ const (
 )
 
 type SqlTeamStore struct {
-	SqlStore
+	*SqlSupplier
 
 	teamsQuery sq.SelectBuilder
 }
@@ -201,16 +201,16 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func newSqlTeamStore(sqlSupplier *SqlSupplier) store.TeamStore {
 	s := &SqlTeamStore{
-		SqlStore: sqlStore,
+		SqlSupplier: sqlSupplier,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
 		Select("Teams.*").
 		From("Teams")
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
