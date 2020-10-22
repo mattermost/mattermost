@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -353,7 +354,10 @@ func TestUserSlice(t *testing.T) {
 }
 
 func TestGeneratePassword(t *testing.T) {
-	passwordRandomSource = rand.NewSource(12345)
+	passwordRandomSource = lockedSource{
+		src: rand.NewSource(12345),
+		mu:  sync.Mutex{},
+	}
 
 	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
 		password1 := GeneratePassword(5)

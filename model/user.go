@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -884,7 +885,24 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	return uwg
 }
 
-var passwordRandomSource = rand.NewSource(time.Now().Unix())
+type lockedSource struct {
+	mu  sync.Mutex
+	src rand.Source
+}
+
+func (r *lockedSource) Intn(n int) int {
+	r.mu.Lock()
+	rn := rand.New(r.src)
+	m := rn.Intn(n)
+	r.mu.Unlock()
+	return m
+}
+
+var passwordRandomSource = lockedSource{
+	src: rand.NewSource(time.Now().Unix()),
+	mu:  sync.Mutex{},
+}
+
 var passwordSpecialChars = "!$%^&*(),."
 var passwordNumbers = "0123456789"
 var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -892,16 +910,14 @@ var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
 var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
 
 func GeneratePassword(minimumLength int) string {
-	r := rand.New(passwordRandomSource)
-
 	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+	password := string([]rune(passwordUpperCaseLetters)[passwordRandomSource.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[passwordRandomSource.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[passwordRandomSource.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[passwordRandomSource.Intn(len(passwordSpecialChars))])
 
 	for len(password) < minimumLength {
-		i := r.Intn(len(passwordAllChars))
+		i := passwordRandomSource.Intn(len(passwordAllChars))
 		password = password + string([]rune(passwordAllChars)[i])
 	}
 
