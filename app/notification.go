@@ -166,20 +166,37 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
+	mentionAutofollowChans := []chan *model.AppError{}
+
+	// for each mention, make sure to update thread autofollow
+	for id := range mentions.Mentions {
+		mac := make(chan *model.AppError, 1)
+		go func(userId string) {
+			defer close(mac)
+			if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
+				if nErr != nil {
+					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+			mac <- nil
+		}(id)
+		mentionAutofollowChans = append(mentionAutofollowChans, mac)
+	}
 
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
+			defer close(umc)
 			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			} else {
-				umc <- nil
+				return
 			}
-
-			close(umc)
+			umc <- nil
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
@@ -261,6 +278,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	// Log the problems that might have occurred while auto following the thread
+	for _, mac := range mentionAutofollowChans {
+		if err := <-mac; err != nil {
+			mlog.Warn(
+				"Failed to update thread autofollow from mention",
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Err(err),
+			)
+		}
+	}
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
