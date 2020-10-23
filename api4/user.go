@@ -155,6 +155,15 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// New user created, check cloud limits and send emails if needed
+	if ruser != nil {
+		err = c.App.CheckAndSendUserLimitWarningEmails()
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
@@ -2059,12 +2068,6 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := c.App.VerifyEmailFromToken(token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err := c.App.CheckAndSendUserLimitWarningEmails()
-	if err != nil {
-		c.Err = err
 		return
 	}
 

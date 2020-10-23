@@ -41,6 +41,7 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 		return err
 	}
 
+	// -1 means they are 1 user over the limit - we only want to send the email for the 11th user
 	if remainingUsers == -1 {
 		// Over limit by 1 user
 		for admin := range sysAdmins {
