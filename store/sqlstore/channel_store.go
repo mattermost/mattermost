@@ -2057,12 +2057,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		}
 	}
 
-	defer func() {
-		if updateThreads {
-			go s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
-		}
-	}()
-
 	keys, props := MapStringsToQueryParams(channelIds, "Channel")
 	props["UserId"] = userId
 
@@ -2105,6 +2099,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		for _, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
 		}
+		if updateThreads {
+			go s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		}
 		return times, nil
 	}
 
@@ -2138,6 +2135,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
+	if updateThreads {
+		go s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+	}
 	return times, nil
 }
 
