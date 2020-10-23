@@ -28,6 +28,7 @@ type JobServer struct {
 	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
 	ProductNotices          tjobs.ProductNoticesJobInterface
 	ActiveUsers             tjobs.ActiveUsersJobInterface
+	ImportProcess           tjobs.ImportProcessInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

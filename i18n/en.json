@@ -1353,6 +1353,14 @@
     "translation": "Unable to check if the file exists."
   },
   {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "Unable to get the file size."
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "Unable to get the file size."
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
   },
@@ -4071,6 +4079,10 @@
     "translation": "Unable to save the team theme preferences"
   },
   {
+    "id": "app.import.marshal.app_error",
+    "translation": "Unable to marshal response."
+  },
+  {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Unable to read the version of the data import file."
   },
@@ -6283,6 +6295,30 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Unable to process import: file does not exists."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Unable to process import: import_file parameter is missing."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Unable to process import: JSONL file is missing."
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Unable to process import: failed to open file."
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "Unable to process import: failed to create temporary directory."
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "Unable to process import: failed to unzip file."
+  },
+  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Failed to decode base64 for trigger ID for interactive dialog."
   },
@@ -6777,6 +6813,14 @@
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Invalid value for Directory."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Invalid value for RetentionDays. Value is too low."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
