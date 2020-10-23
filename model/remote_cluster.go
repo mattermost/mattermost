@@ -20,6 +20,7 @@ type RemoteCluster struct {
 	Port        int32  `json:"port"`
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
+	Token       string `json:"token"`
 }
 
 func (rc *RemoteCluster) PreSave() {
