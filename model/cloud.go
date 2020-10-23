@@ -91,6 +91,7 @@ type Invoice struct {
 	Number         string             `json:"number"`
 	CreateAt       int64              `json:"create_at"`
 	Total          int64              `json:"total"`
+	Tax            int64              `json:"tax"`
 	Status         string             `json:"status"`
 	Description    string             `json:"description"`
 	PeriodStart    int64              `json:"period_start"`
@@ -106,5 +107,6 @@ type InvoiceLineItem struct {
 	Quantity     int64                  `json:"quantity"`
 	PricePerUnit int64                  `json:"price_per_unit"`
 	Description  string                 `json:"description"`
+	Type         string                 `json:"type"`
 	Metadata     map[string]interface{} `json:"metadata"`
 }
