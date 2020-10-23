@@ -199,12 +199,12 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 }
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(model.LDAP_PUBIC_CERTIFICATE_NAME, fileData); err != nil {
+	if err := a.writeLdapFile(model.LDAP_PUBLIC_CERTIFICATE_NAME, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBIC_CERTIFICATE_NAME
+	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBLIC_CERTIFICATE_NAME
 
 	if err := cfg.IsValid(); err != nil {
 		return err
