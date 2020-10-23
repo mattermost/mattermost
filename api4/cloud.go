@@ -31,7 +31,6 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/customer", api.ApiSessionRequired(getCloudCustomer)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/customer", api.ApiSessionRequired(updateCloudCustomer)).Methods("PUT")
 	api.BaseRoutes.Cloud.Handle("/customer/address", api.ApiSessionRequired(updateCloudCustomerAddress)).Methods("PUT")
-	api.BaseRoutes.Cloud.Handle("/customer/address", api.ApiSessionRequired(updateCloudCustomerAddress)).Methods("PUT")
 
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
@@ -273,13 +272,13 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	products, appErr := c.App.Cloud().GetInvoicesForSubscription()
+	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(products)
+	json, err := json.Marshal(invoices)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
