@@ -2047,6 +2047,22 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 }
 
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
+	var threadsToUpdate []string
+	now := model.GetMillis()
+	if updateThreads {
+		var err error
+		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, channelIds, now)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	defer func() {
+		if updateThreads {
+			go s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		}
+	}()
+
 	keys, props := MapStringsToQueryParams(channelIds, "Channel")
 	props["UserId"] = userId
 
@@ -2084,21 +2100,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 		return nil, store.NewErrInvalidInput("Channel", "Id", fmt.Sprintf("%v", channelIds))
 	}
 
-	var threadsToUpdate []string
-	now := model.GetMillis()
-	if updateThreads {
-		var err error
-		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, channelIds, now)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	defer func() {
-		if updateThreads {
-			go s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
-		}
-	}()
 	times := map[string]int64{}
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		for _, t := range lastPostAtTimes {
