@@ -7931,19 +7931,19 @@
   },
   {
     "id": "api.system.update_notices.validating_failed",
-    "translation": "製品に関する通知の状態を検証できませんでした"
+    "translation": "製品に関するお知らせの状態を検証できませんでした"
   },
   {
     "id": "api.system.update_notices.parse_failed",
-    "translation": "製品に関する通知を解析できませんでした"
+    "translation": "製品に関するお知らせを解析できませんでした"
   },
   {
     "id": "api.system.update_notices.fetch_failed",
-    "translation": "製品に関する通知を取得できませんでした"
+    "translation": "製品に関するお知らせを取得できませんでした"
   },
   {
     "id": "api.system.update_notices.clear_failed",
-    "translation": "製品に関する過去の通知をクリアできませんでした"
+    "translation": "製品に関する過去のお知らせをクリアできませんでした"
   },
   {
     "id": "store.sql_user.analytics_get_external_users.app_error",
