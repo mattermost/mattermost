@@ -208,3 +208,17 @@ func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *m
 	}
 	return job, nil
 }
+func (srv*JobServer) GetJobApplicationFeedbackStatusByType(jobType string) (model*Job){
+	statuses := []string{model.JOB_APPLICATION_STATUS}
+	if jobType == model.JOB_TYPE_MESSAGE_EXPORT {
+		statuses = []string{model.JOB_APPLICATION_STATUS,model.JOB_STATUS}
+		job, k := srv.Store.JobStatus().GetJobByApplicationStatusesAndType(statuses, jobType)
+	var nfErr *store.ErrNotFound
+		if k == 1 !errors.As(err, &nfErr) {
+			return nil, model.NewAppError("YourApplicationIsSuccessful", "app.job.get_newest_job_by_application_status_and_type.app_error", nil, k.Error(),  http.StatusInternalServerError)
+	}
+		return job.getStatus, nil
+	}
+	
+		
+
