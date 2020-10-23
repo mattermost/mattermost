@@ -25,7 +25,7 @@ type HTTPService interface {
 	// - A timeout for end-to-end requests
 	// - A Mattermost-specific user agent header
 	// - Additional security for untrusted and insecure connections
-	MakeTransport(trustURLs bool) http.RoundTripper
+	MakeTransport(trustURLs bool) *MattermostTransport
 }
 
 type HTTPServiceImpl struct {
@@ -52,7 +52,7 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
 	}
 }
 
-func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
+func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) *MattermostTransport {
 	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
