@@ -13,15 +13,15 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 		return nil
 	}
 
-	// subscription, subErr := a.Cloud().GetSubscription()
-	// if subErr != nil {
-	// 	return subErr
-	// }
+	subscription, subErr := a.Cloud().GetSubscription()
+	if subErr != nil {
+		return subErr
+	}
 
-	// if subscription != nil && subscription.IsPaidTier == "true" {
-	// 	// Paid subscription, do nothing
-	// 	return nil
-	// }
+	if subscription != nil && subscription.IsPaidTier == "true" {
+		// Paid subscription, do nothing
+		return nil
+	}
 
 	cloudUserLimit := *a.Config().ExperimentalSettings.CloudUserLimit
 	systemUserCount, _ := a.Srv().Store.User().Count(model.UserCountOptions{})
