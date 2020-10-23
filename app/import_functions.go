@@ -524,6 +524,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 		if err != nil {
 			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
 		}
+		defer file.Close()
 		if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
 			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
 		}
@@ -1733,6 +1734,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}
+	defer file.Close()
 
 	if _, err := a.WriteFile(file, getEmojiImagePath(emoji.Id)); err != nil {
 		return err

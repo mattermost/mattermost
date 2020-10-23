@@ -5,11 +5,11 @@ package app
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -141,7 +141,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 	lastLineType := ""
 
 	for scanner.Scan() {
-		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
+		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
 		lineNumber++
 
 		var line LineImportData
