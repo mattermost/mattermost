@@ -113,6 +113,9 @@ const (
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
 
+	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
+	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
+
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
 	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
@@ -2831,6 +2834,37 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	}
 }
 
+// ImportSettings defines configuration settings for file imports.
+type ImportSettings struct {
+	// The directory where to store the imported files.
+	Directory *string
+	// The number of days to retain the imported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ImportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ImportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(IMPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -2906,6 +2940,7 @@ type Config struct {
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings
 	FeatureFlags              *FeatureFlags `json:",omitempty"`
+	ImportSettings            ImportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -3009,6 +3044,7 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags = &FeatureFlags{}
 		o.FeatureFlags.SetDefaults()
 	}
+	o.ImportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3085,6 +3121,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ImageProxySettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ImportSettings.isValid(); err != nil {
 		return err
 	}
 	return nil
