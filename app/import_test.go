@@ -4,8 +4,11 @@
 package app
 
 import (
+	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -13,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -192,7 +196,7 @@ func TestImportBulkImport(t *testing.T) {
 
 	// Run bulk import using a valid and large input and a \r\n line break.
 	t.Run("", func(t *testing.T) {
-		posts := `{"type": "post"` + strings.Repeat(`, "post": {"team": "`+teamName+`", "channel": "`+channelName+`", "user": "`+username+`", "message": "Repeat after me", "create_at": 193456789012}`, 1E4) + "}"
+		posts := `{"type": "post"` + strings.Repeat(`, "post": {"team": "`+teamName+`", "channel": "`+channelName+`", "user": "`+username+`", "message": "Repeat after me", "create_at": 193456789012}`, 1e4) + "}"
 		data4 := `{"type": "version", "version": 1}
 {"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
@@ -262,4 +266,125 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	for _, file := range files {
 		assert.Contains(t, posts[0].FileIds, file.Id)
 	}
+}
+
+func TestRewriteFilePaths(t *testing.T) {
+	genAttachments := func() *[]AttachmentImportData {
+		return &[]AttachmentImportData{
+			{
+				Path: model.NewString("file.jpg"),
+			},
+			{
+				Path: model.NewString("somedir/file.jpg"),
+			},
+		}
+	}
+
+	line := LineImportData{
+		Type: "post",
+		Post: &PostImportData{
+			Attachments: genAttachments(),
+		},
+	}
+
+	line2 := LineImportData{
+		Type: "direct_post",
+		DirectPost: &DirectPostImportData{
+			Attachments: genAttachments(),
+		},
+	}
+
+	userLine := LineImportData{
+		Type: "user",
+		User: &UserImportData{
+			ProfileImage: model.NewString("profile.jpg"),
+		},
+	}
+
+	emojiLine := LineImportData{
+		Type: "emoji",
+		Emoji: &EmojiImportData{
+			Image: model.NewString("emoji.png"),
+		},
+	}
+
+	t.Run("empty path", func(t *testing.T) {
+		expected := &[]AttachmentImportData{
+			{
+				Path: model.NewString("file.jpg"),
+			},
+			{
+				Path: model.NewString("somedir/file.jpg"),
+			},
+		}
+		rewriteFilePaths(&line, "")
+		require.Equal(t, expected, line.Post.Attachments)
+		rewriteFilePaths(&line2, "")
+		require.Equal(t, expected, line2.DirectPost.Attachments)
+	})
+
+	t.Run("valid path", func(t *testing.T) {
+		expected := &[]AttachmentImportData{
+			{
+				Path: model.NewString("/tmp/file.jpg"),
+			},
+			{
+				Path: model.NewString("/tmp/somedir/file.jpg"),
+			},
+		}
+
+		t.Run("post attachments", func(t *testing.T) {
+			rewriteFilePaths(&line, "/tmp")
+			require.Equal(t, expected, line.Post.Attachments)
+		})
+
+		t.Run("direct post attachments", func(t *testing.T) {
+			rewriteFilePaths(&line2, "/tmp")
+			require.Equal(t, expected, line2.DirectPost.Attachments)
+		})
+
+		t.Run("profile image", func(t *testing.T) {
+			expected := "/tmp/profile.jpg"
+			rewriteFilePaths(&userLine, "/tmp")
+			require.Equal(t, expected, *userLine.User.ProfileImage)
+		})
+
+		t.Run("emoji", func(t *testing.T) {
+			expected := "/tmp/emoji.png"
+			rewriteFilePaths(&emojiLine, "/tmp")
+			require.Equal(t, expected, *emojiLine.Emoji.Image)
+		})
+	})
+}
+
+func BenchmarkBulkImport(b *testing.B) {
+	th := Setup(b)
+	defer th.TearDown()
+
+	testsDir, _ := fileutils.FindDir("tests")
+
+	importFile, err := os.Open(testsDir + "/import_test.zip")
+	require.Nil(b, err)
+	defer importFile.Close()
+
+	info, err := importFile.Stat()
+	require.Nil(b, err)
+
+	dir, err := ioutil.TempDir("", "testimport")
+	require.Nil(b, err)
+	defer os.RemoveAll(dir)
+
+	_, err = utils.UnzipToPath(importFile, info.Size(), dir)
+	require.Nil(b, err)
+
+	jsonFile, err := os.Open(dir + "/import.jsonl")
+	require.Nil(b, err)
+	defer jsonFile.Close()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err, _ := th.App.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), dir)
+		require.Nil(b, err)
+	}
+	b.StopTimer()
 }

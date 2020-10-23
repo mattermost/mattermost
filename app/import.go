@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -27,6 +28,46 @@ func stopOnError(err LineImportWorkerError) bool {
 		return false
 	}
 	return true
+}
+
+func rewriteAttachmentPaths(files *[]AttachmentImportData, basePath string) {
+	if files == nil {
+		return
+	}
+	for _, f := range *files {
+		if f.Path != nil {
+			*f.Path = filepath.Join(basePath, *f.Path)
+		}
+	}
+}
+
+func rewriteFilePaths(line *LineImportData, basePath string) {
+	switch line.Type {
+	case "post", "direct_post":
+		var replies []ReplyImportData
+		if line.Type == "direct_post" {
+			rewriteAttachmentPaths(line.DirectPost.Attachments, basePath)
+			if line.DirectPost.Replies != nil {
+				replies = *line.DirectPost.Replies
+			}
+		} else {
+			rewriteAttachmentPaths(line.Post.Attachments, basePath)
+			if line.Post.Replies != nil {
+				replies = *line.Post.Replies
+			}
+		}
+		for _, reply := range replies {
+			rewriteAttachmentPaths(reply.Attachments, basePath)
+		}
+	case "user":
+		if line.User.ProfileImage != nil {
+			*line.User.ProfileImage = filepath.Join(basePath, *line.User.ProfileImage)
+		}
+	case "emoji":
+		if line.Emoji.Image != nil {
+			*line.Emoji.Image = filepath.Join(basePath, *line.Emoji.Image)
+		}
+	}
 }
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
@@ -77,6 +118,14 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 }
 
 func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model.AppError, int) {
+	return a.bulkImport(fileReader, dryRun, workers, "")
+}
+
+func (a *App) BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	return a.bulkImport(fileReader, dryRun, workers, importPath)
+}
+
+func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -98,6 +147,10 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
 			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+		}
+
+		if importPath != "" {
+			rewriteFilePaths(&line, importPath)
 		}
 
 		if lineNumber == 1 {
