@@ -7041,7 +7041,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего поставщика SAML 2.0 с вашим сервером Mattermost. [Подробнее об интеграции с SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7990,5 +7990,101 @@
   {
     "id": "app.team.analytics_private_team_count.app_error",
     "translation": "Не удалось подсчитать приватные команды."
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "Мы не смогли подсчитать пользователей с электронной почтой не локального домена"
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Только системные администраторы могут устанавливать уже хешированные пароли."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "Токен CWS недействителен"
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Не удалось обработать составные данные."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Недопустимый Content-Type для составной загрузки."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Недопустимая длина содержимого."
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Не получилось удалить старые уведомления о продукте"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Каналы объявлений только для чтения"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше о включении многофакторной аутентификации.\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация >  Гостевой доступ**, чтобы включить гостевые учетные записи."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и буду получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Создание гостевых учетных записей"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше об использовании гостевых учетных записей.\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Не удалось получить пробную лицензию. Посетите https://mattermost.com/trial/, чтобы запросить лицензию."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Невозможно перенести SAML."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Не удалось получить пробную лицензию, попробуйте еще раз или свяжитесь с support@mattermost.com. Невозможно получить количество зарегистрированных пользователей."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Ошибка при попытке перечислить объекты."
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Произошла ошибка при открытии соединения с S3."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Ошибка обработки запроса к CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Ваша лицензия не поддерживает облачные запросы."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Внутренняя ошибка во время запроса облачного API."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Ошибка синтаксического анализа многоформатного запроса"
   }
 ]

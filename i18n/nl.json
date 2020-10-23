@@ -8272,7 +8272,7 @@
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Command}} command crashte de {{.PluginId}} plugin. Contacteer je systeembeheerder"
+    "translation": "/{{.Command}} opdracht heeft de plugin {{.PluginId}} gecrasht. Neem contact op met je systeembeheerder"
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
@@ -8305,5 +8305,17 @@
   {
     "id": "api.file.new_backend.s3.app_error",
     "translation": "Er trad een fout op bij het openen van een verbinding met S3."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Fout bij het bijwerken van het lidmaatschap van het draadje voor de genoemde gebruiker"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Kon het bestand niet opladen {{.Filename}}. Geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Fout bij het verplaatsen van het bestand."
   }
 ]
