@@ -8,7 +8,7 @@ import (
 )
 
 func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
-	if a.Srv().License() != nil && !*a.Srv().License().Features.Cloud {
+	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		// Not cloud instance, do nothing
 		return nil
 	}
