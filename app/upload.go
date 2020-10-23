@@ -108,19 +108,25 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
-	us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
+	if us.Type == model.UploadTypeAttachment {
+		us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
+	} else if us.Type == model.UploadTypeImport {
+		us.Path = *a.Config().ImportSettings.Directory + "/" + us.Id + "_" + filepath.Base(us.Filename)
+	}
 	if err := us.IsValid(); err != nil {
 		return nil, err
 	}
 
-	channel, err := a.GetChannel(us.ChannelId)
-	if err != nil {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
-			map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
-	}
-	if channel.DeleteAt != 0 {
-		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
-			map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+	if us.Type == model.UploadTypeAttachment {
+		channel, err := a.GetChannel(us.ChannelId)
+		if err != nil {
+			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.incorrect_channel_id.app_error",
+				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+		}
+		if channel.DeleteAt != 0 {
+			return nil, model.NewAppError("CreateUploadSession", "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+				map[string]interface{}{"channelId": us.ChannelId}, "", http.StatusBadRequest)
+		}
 	}
 
 	us, storeErr := a.Srv().Store.UploadSession().Save(us)

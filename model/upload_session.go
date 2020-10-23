@@ -29,7 +29,7 @@ type UploadSession struct {
 	// The id of the user performing the upload.
 	UserId string `json:"user_id"`
 	// The id of the channel to upload to.
-	ChannelId string `json:"channel_id"`
+	ChannelId string `json:"channel_id,omitempty"`
 	// The name of the file to upload.
 	Filename string `json:"filename"`
 	// The path where the file is stored.

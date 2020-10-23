@@ -8,9 +8,11 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -50,6 +52,41 @@ func TestCreateUpload(t *testing.T) {
 		require.Nil(t, resp.Error)
 		require.NotEmpty(t, u)
 		require.Equal(t, http.StatusCreated, resp.StatusCode)
+	})
+
+	t.Run("import file", func(t *testing.T) {
+		testsDir, _ := fileutils.FindDir("tests")
+
+		importFile, err := os.Open(testsDir + "/import_test.zip")
+		require.Nil(t, err)
+		defer importFile.Close()
+
+		info, err := importFile.Stat()
+		require.Nil(t, err)
+
+		t.Run("permissions error", func(t *testing.T) {
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     "import",
+			}
+			u, resp := th.Client.CreateUpload(us)
+			require.Nil(t, u)
+			require.Error(t, resp.Error)
+			require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
+		t.Run("success", func(t *testing.T) {
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     "import",
+			}
+			u, resp := th.SystemAdminClient.CreateUpload(us)
+			require.Nil(t, resp.Error)
+			require.NotEmpty(t, u)
+		})
 	})
 }
 
