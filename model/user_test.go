@@ -355,7 +355,7 @@ func TestUserSlice(t *testing.T) {
 
 func TestGeneratePassword(t *testing.T) {
 	passwordRandomSource = lockedSource{
-		src: rand.NewSource(12345),
+		src: rand.New(rand.NewSource(12345)),
 		mu:  sync.Mutex{},
 	}
 

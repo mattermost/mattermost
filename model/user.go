@@ -890,12 +890,11 @@ type lockedSource struct {
 	src rand.Source
 }
 
-func (r *lockedSource) Intn(n int) int {
-	r.mu.Lock()
-	rn := rand.New(r.src)
-	m := rn.Intn(n)
-	r.mu.Unlock()
-	return m
+func (s *lockedSource) new() *rand.Rand {
+	s.mu.Lock()
+	r := rand.New(s.src)
+	s.mu.Unlock()
+	return r
 }
 
 var passwordRandomSource = lockedSource{
@@ -910,14 +909,15 @@ var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
 var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
 
 func GeneratePassword(minimumLength int) string {
+	r := passwordRandomSource.new()
 	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[passwordRandomSource.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[passwordRandomSource.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[passwordRandomSource.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[passwordRandomSource.Intn(len(passwordSpecialChars))])
+	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
 
 	for len(password) < minimumLength {
-		i := passwordRandomSource.Intn(len(passwordAllChars))
+		i := r.Intn(len(passwordAllChars))
 		password = password + string([]rune(passwordAllChars)[i])
 	}
 
