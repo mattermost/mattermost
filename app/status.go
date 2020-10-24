@@ -289,9 +289,14 @@ func (a *App) UnsetStatusDoNotDisturb(userId string) {
 		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
-	currStatus = status.Status
+	if status.Status != model.STATUS_DND {
+		mlog.Info("DND status already unset manually by user", mlog.String("user_id", userId))
+		status.DNDEndTime = ""
+		return
+	}
+
 	status.Status = status.PrevStatus
-	status.PrevStatus = currStatus
+	status.PrevStatus = model.STATUS_DND
 	status.Manual = false
 	status.DNDEndTime = ""
 	a.SaveAndBroadcastStatus(status)
