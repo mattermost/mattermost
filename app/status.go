@@ -282,14 +282,14 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) UnsetStatusDoNotDisturb(userId, oldStatus string) {
+func (a *App) UnsetStatusDoNotDisturb(userId string) {
 	status, err := a.GetStatus(userId)
 
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
-	status.Status = oldStatus
+	status.Status = status.PrevStatus
 	status.Manual = false
 	a.SaveAndBroadcastStatus(status)
 }
@@ -305,9 +305,10 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
-	oldStatus := status.Status
+	status.PrevStatus = status.Status
 	status.Status = model.STATUS_DND
 	status.Manual = true
+	status.DNDEndTime = endtime
 
 	t1 := time.Now()
 	t2, er := time.Parse(time.RFC3339, endtime)
@@ -316,7 +317,7 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	}
 
 	model.CreateTask("Unset DND Status", func() {
-		a.UnsetStatusDoNotDisturb(userId, oldStatus)
+		a.UnsetStatusDoNotDisturb(userId)
 	}, t2.Sub(t1))
 
 	a.SaveAndBroadcastStatus(status)
