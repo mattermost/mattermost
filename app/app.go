@@ -99,6 +99,7 @@ func (a *App) InitServer() {
 			})
 		}
 		a.srv.RunJobs()
+		a.UpdateDNDStatusOfUsers()
 	})
 }
 

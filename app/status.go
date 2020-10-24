@@ -413,3 +413,40 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 func (a *App) IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
 }
+
+// UpdateDNDStatusOfUsers after server restart update all users DND status
+func (a *App) UpdateDNDStatusOfUsers() {
+	users, err := a.Srv().Store.User().GetAll()
+	if err != nil {
+		mlog.Error("Failed to get list of all users", mlog.Err(err))
+	}
+	for _, u := range users {
+		a.Srv().Go(func() {
+			status, err := a.GetStatus(u.Id)
+
+			if err != nil {
+				status = &model.Status{UserId: u.Id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			}
+
+			if status.Status != model.STATUS_DND {
+				return
+			}
+
+			t1 := time.Now()
+			t2, er := time.Parse(time.RFC3339, status.DNDEndTime)
+			if er != nil {
+				mlog.Error("Failed to parse endtime value", mlog.String("user_id", status.UserId), mlog.String("endtime", status.DNDEndTime), mlog.Err(err))
+			}
+
+			if t2.Sub(t1) < 0 {
+				a.UnsetStatusDoNotDisturb(u.Id)
+				return
+			}
+
+			model.CreateTask("Unset DND Status", func() {
+				a.UnsetStatusDoNotDisturb(u.Id)
+			}, t2.Sub(t1))
+
+		})
+	}
+}
