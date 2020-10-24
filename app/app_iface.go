@@ -316,6 +316,8 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateDNDStatusOfUsers after server restart update all users DND status
+	UpdateDNDStatusOfUsers()
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
@@ -925,7 +927,7 @@ type AppIface interface {
 	SetSession(s *model.Session)
 	SetStatusAwayIfNeeded(userId string, manual bool)
 	SetStatusDoNotDisturb(userId string)
-	SetStatusDoNotDisturbTimed(userId, endtime string)
+	SetStatusDoNotDisturbTimed(userId string, endtime string)
 	SetStatusOffline(userId string, manual bool)
 	SetStatusOnline(userId string, manual bool)
 	SetStatusOutOfOffice(userId string)
@@ -958,6 +960,7 @@ type AppIface interface {
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginId, teamId, trigger string)
 	UnregisterPluginCommands(pluginId string)
+	UnsetStatusDoNotDisturb(userId string)
 	UpdateActive(user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError)

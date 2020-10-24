@@ -14284,6 +14284,21 @@ func (a *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
 	a.app.UnregisterPluginCommands(pluginId)
 }
 
+func (a *OpenTracingAppLayer) UnsetStatusDoNotDisturb(userId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnsetStatusDoNotDisturb")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UnsetStatusDoNotDisturb(userId)
+}
+
 func (a *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateActive")
@@ -14539,6 +14554,21 @@ func (a *OpenTracingAppLayer) UpdateConfig(f func(*model.Config)) {
 
 	defer span.Finish()
 	a.app.UpdateConfig(f)
+}
+
+func (a *OpenTracingAppLayer) UpdateDNDStatusOfUsers() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateDNDStatusOfUsers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UpdateDNDStatusOfUsers()
 }
 
 func (a *OpenTracingAppLayer) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
