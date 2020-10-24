@@ -99,7 +99,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":
-		c.App.SetStatusDoNotDisturb(c.Params.UserId)
+		c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, c.Params.DNDEndTime)
 	default:
 		c.SetInvalidParam("status")
 		return

@@ -13650,6 +13650,21 @@ func (a *OpenTracingAppLayer) SetStatusDoNotDisturb(userId string) {
 	a.app.SetStatusDoNotDisturb(userId)
 }
 
+func (a *OpenTracingAppLayer) SetStatusDoNotDisturbTimed(userId string, endtime string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusDoNotDisturbTimed")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetStatusDoNotDisturbTimed(userId, endtime)
+}
+
 func (a *OpenTracingAppLayer) SetStatusLastActivityAt(userId string, activityAt int64) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetStatusLastActivityAt")

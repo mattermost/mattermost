@@ -925,6 +925,7 @@ type AppIface interface {
 	SetSession(s *model.Session)
 	SetStatusAwayIfNeeded(userId string, manual bool)
 	SetStatusDoNotDisturb(userId string)
+	SetStatusDoNotDisturbTimed(userId, endtime string)
 	SetStatusOffline(userId string, manual bool)
 	SetStatusOnline(userId string, manual bool)
 	SetStatusOutOfOffice(userId string)

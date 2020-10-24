@@ -80,7 +80,7 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
-
+	DNDEndTime                string
 	// Cloud
 	InvoiceId string
 }

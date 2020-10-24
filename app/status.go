@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -277,6 +278,46 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	status.Status = model.STATUS_AWAY
 	status.Manual = manual
 	status.ActiveChannel = ""
+
+	a.SaveAndBroadcastStatus(status)
+}
+
+func (a *App) UnsetStatusDoNotDisturb(userId, oldStatus string) {
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	status.Status = oldStatus
+	status.Manual = false
+	a.SaveAndBroadcastStatus(status)
+}
+
+func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
+		return
+	}
+
+	status, err := a.GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+
+	oldStatus := status.Status
+	status.Status = model.STATUS_DND
+	status.Manual = true
+
+	t1 := time.Now()
+	t2, er := time.Parse(time.RFC3339, endtime)
+	if er != nil {
+		mlog.Error("Failed to parse endtime value", mlog.String("user_id", status.UserId), mlog.String("endtime", endtime), mlog.Err(err))
+	}
+
+	model.CreateTask("Unset DND Status", func() {
+		a.UnsetStatusDoNotDisturb(userId, oldStatus)
+	}, t2.Sub(t1))
 
 	a.SaveAndBroadcastStatus(status)
 }
