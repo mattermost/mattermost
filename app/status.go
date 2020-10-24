@@ -289,8 +289,11 @@ func (a *App) UnsetStatusDoNotDisturb(userId string) {
 		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 
+	currStatus = status.Status
 	status.Status = status.PrevStatus
+	status.PrevStatus = currStatus
 	status.Manual = false
+	status.DNDEndTime = ""
 	a.SaveAndBroadcastStatus(status)
 }
 
