@@ -19,10 +19,8 @@ func convertToUTC(tzmap model.StringMap, endtime string) (time.Time, error) {
 	switch tzmap["useAutomaticTimezone"] {
 	case "true":
 		tz = tzmap["automaticTimezone"]
-		break
 	case "false":
 		tz = tzmap["manualTimezone"]
-		break
 	default:
 		return time.Time{}, errors.New("useAutomaticTimezone is having invalid value")
 	}
