@@ -2363,7 +2363,7 @@
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "更新密码失败"
+    "translation": "更新密码失败。"
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
@@ -2375,11 +2375,11 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "因为用户登录通过OAuth服务更新密码失败"
+    "translation": "更新密码失败，因为用户通过 OAuth 服务登录。"
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "更新密码失败，因为我们无法找到有效的帐户"
+    "translation": "更新密码失败，因为无法找到有效的帐户。"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2407,7 +2407,7 @@
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "无法解析多形式表单"
+    "translation": "无法解析混合表单。"
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -2439,7 +2439,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "未能升级WebSocket连接"
+    "translation": "未能升级 WebSocket 连接。"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2479,7 +2479,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "无法跨团队更新 webhook"
+    "translation": "无法跨团队更新 webhook。"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -7739,7 +7739,7 @@
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "无法获取频道类型数"
+    "translation": "无法获取频道类型数。"
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -8288,5 +8288,29 @@
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
     "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "封送 CWS 的请求出现内部错误"
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "更新提及用户的串成员失败"
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "创建连接至 S3 遇到错误。"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} 命令导致 {{.PluginId}} 插件崩溃。请联系系统管理员"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "无法获取帖子的文件信息。"
   }
 ]
