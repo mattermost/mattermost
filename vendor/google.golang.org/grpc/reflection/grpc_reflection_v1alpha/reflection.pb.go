@@ -4,8 +4,12 @@
 package grpc_reflection_v1alpha
 
 import (
+	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -631,4 +635,120 @@ var fileDescriptor_e8cf9f2921ad6c95 = []byte{
 	0x53, 0xb5, 0xb4, 0x63, 0xad, 0xf7, 0xf2, 0xd3, 0x0b, 0x9b, 0x31, 0xdb, 0xc5, 0xb6, 0xcd, 0x5c,
 	0xcb, 0xb3, 0xdb, 0x8c, 0xdb, 0xea, 0x53, 0xd5, 0xb9, 0xfd, 0xd3, 0x35, 0xdc, 0x54, 0xbe, 0x39,
 	0xfd, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x6c, 0x74, 0x3a, 0x67, 0xe7, 0x06, 0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConnInterface
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion6
+
+// ServerReflectionClient is the client API for ServerReflection service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type ServerReflectionClient interface {
+	// The reflection service is structured as a bidirectional stream, ensuring
+	// all related requests go to a single server.
+	ServerReflectionInfo(ctx context.Context, opts ...grpc.CallOption) (ServerReflection_ServerReflectionInfoClient, error)
+}
+
+type serverReflectionClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewServerReflectionClient(cc grpc.ClientConnInterface) ServerReflectionClient {
+	return &serverReflectionClient{cc}
+}
+
+func (c *serverReflectionClient) ServerReflectionInfo(ctx context.Context, opts ...grpc.CallOption) (ServerReflection_ServerReflectionInfoClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ServerReflection_serviceDesc.Streams[0], "/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &serverReflectionServerReflectionInfoClient{stream}
+	return x, nil
+}
+
+type ServerReflection_ServerReflectionInfoClient interface {
+	Send(*ServerReflectionRequest) error
+	Recv() (*ServerReflectionResponse, error)
+	grpc.ClientStream
+}
+
+type serverReflectionServerReflectionInfoClient struct {
+	grpc.ClientStream
+}
+
+func (x *serverReflectionServerReflectionInfoClient) Send(m *ServerReflectionRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *serverReflectionServerReflectionInfoClient) Recv() (*ServerReflectionResponse, error) {
+	m := new(ServerReflectionResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// ServerReflectionServer is the server API for ServerReflection service.
+type ServerReflectionServer interface {
+	// The reflection service is structured as a bidirectional stream, ensuring
+	// all related requests go to a single server.
+	ServerReflectionInfo(ServerReflection_ServerReflectionInfoServer) error
+}
+
+// UnimplementedServerReflectionServer can be embedded to have forward compatible implementations.
+type UnimplementedServerReflectionServer struct {
+}
+
+func (*UnimplementedServerReflectionServer) ServerReflectionInfo(srv ServerReflection_ServerReflectionInfoServer) error {
+	return status.Errorf(codes.Unimplemented, "method ServerReflectionInfo not implemented")
+}
+
+func RegisterServerReflectionServer(s *grpc.Server, srv ServerReflectionServer) {
+	s.RegisterService(&_ServerReflection_serviceDesc, srv)
+}
+
+func _ServerReflection_ServerReflectionInfo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ServerReflectionServer).ServerReflectionInfo(&serverReflectionServerReflectionInfoServer{stream})
+}
+
+type ServerReflection_ServerReflectionInfoServer interface {
+	Send(*ServerReflectionResponse) error
+	Recv() (*ServerReflectionRequest, error)
+	grpc.ServerStream
+}
+
+type serverReflectionServerReflectionInfoServer struct {
+	grpc.ServerStream
+}
+
+func (x *serverReflectionServerReflectionInfoServer) Send(m *ServerReflectionResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *serverReflectionServerReflectionInfoServer) Recv() (*ServerReflectionRequest, error) {
+	m := new(ServerReflectionRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+var _ServerReflection_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "grpc.reflection.v1alpha.ServerReflection",
+	HandlerType: (*ServerReflectionServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ServerReflectionInfo",
+			Handler:       _ServerReflection_ServerReflectionInfo_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "reflection/grpc_reflection_v1alpha/reflection.proto",
 }
