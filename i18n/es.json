@@ -7852,11 +7852,11 @@
   },
   {
     "id": "model.plugin_command_error.error.app_error",
-    "translation": "Plugin Para /{{.Command}} no está obrando. Complacer contactar vuestro administrador de sistema"
+    "translation": "El plugin del comando /{{.Command}} no funciona. Por favor, póngase en contacto con el administrador del sistema"
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Orden}} de orden chocó el {{.PluginId}} plugin. Complacer contactar vuestro administrador de sistema"
+    "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",
