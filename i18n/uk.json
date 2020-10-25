@@ -1164,10 +1164,6 @@
     "translation": "Помилка перевірки існування бакета."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Погане з'єднання до S3 або minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
@@ -6390,10 +6386,6 @@
   {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "api.context.server_busy.app_error",
