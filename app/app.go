@@ -99,7 +99,11 @@ func (a *App) InitServer() {
 			})
 		}
 		a.srv.RunJobs()
-		a.UpdateDNDStatusOfUsers()
+		if a.IsLeader() {
+			a.Srv().Go(func() {
+				a.UpdateDNDStatusOfUsers()
+			})
+		}
 	})
 }
 
