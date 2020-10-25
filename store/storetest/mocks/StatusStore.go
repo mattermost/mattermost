@@ -118,6 +118,29 @@ func (_m *StatusStore) ResetAll() error {
 	return r0
 }
 
+// SaveMultiple provides a mock function with given fields: statuses
+func (_m *StatusStore) SaveMultiple(statuses []*model.Status) ([]*model.Status, error) {
+	ret := _m.Called(statuses)
+
+	var r0 []*model.Status
+	if rf, ok := ret.Get(0).(func([]*model.Status) []*model.Status); ok {
+		r0 = rf(statuses)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Status)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*model.Status) error); ok {
+		r1 = rf(statuses)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveOrUpdate provides a mock function with given fields: status
 func (_m *StatusStore) SaveOrUpdate(status *model.Status) error {
 	ret := _m.Called(status)

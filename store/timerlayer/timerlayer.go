@@ -5834,6 +5834,22 @@ func (s *TimerLayerStatusStore) ResetAll() error {
 	return err
 }
 
+func (s *TimerLayerStatusStore) SaveMultiple(statuses []*model.Status) ([]*model.Status, error) {
+	start := timemodule.Now()
+
+	result, err := s.StatusStore.SaveMultiple(statuses)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.SaveMultiple", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	start := timemodule.Now()
 

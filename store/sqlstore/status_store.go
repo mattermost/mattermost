@@ -38,6 +38,39 @@ func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
+func statusSliceColumns() []string {
+	return []string{"UserId", "Status", "Manual", "LastActivityAt", "ActiveChannel", "DNDEndTime", "PrevStatus"}
+}
+
+func statusToSlice(status *model.Status) []interface{} {
+	return []interface{}{
+		status.UserId,
+		status.Status,
+		status.Manual,
+		status.LastActivityAt,
+		status.ActiveChannel,
+		status.DNDEndTime,
+		status.PrevStatus,
+	}
+}
+
+func (s SqlStatusStore) SaveMultiple(statuses []*model.Status) ([]*model.Status, error) {
+	builder := s.getQueryBuilder().Insert("Status").Columns(statusSliceColumns()...)
+	for _, status := range statuses {
+		builder = builder.Values(statusToSlice(status)...)
+	}
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to save Status")
+	}
+
+	return statuses, nil
+}
+
 func (s SqlStatusStore) SaveOrUpdate(status *model.Status) error {
 	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
 		if _, err := s.GetMaster().Update(status); err != nil {

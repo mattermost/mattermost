@@ -14284,21 +14284,6 @@ func (a *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
 	a.app.UnregisterPluginCommands(pluginId)
 }
 
-func (a *OpenTracingAppLayer) UnsetStatusDoNotDisturb(status *model.Status) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnsetStatusDoNotDisturb")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.UnsetStatusDoNotDisturb(status)
-}
-
 func (a *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateActive")

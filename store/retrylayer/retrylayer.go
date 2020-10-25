@@ -6370,6 +6370,26 @@ func (s *RetryLayerStatusStore) ResetAll() error {
 
 }
 
+func (s *RetryLayerStatusStore) SaveMultiple(statuses []*model.Status) ([]*model.Status, error) {
+
+	tries := 0
+	for {
+		result, err := s.StatusStore.SaveMultiple(statuses)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 
 	tries := 0
