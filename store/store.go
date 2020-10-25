@@ -549,6 +549,7 @@ type EmojiStore interface {
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) error
 	Get(userId string) (*model.Status, error)
+	GetExpiredDNDStatuses() ([]*model.Status, error)
 	GetByIds(userIds []string) ([]*model.Status, error)
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)

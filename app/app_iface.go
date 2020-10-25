@@ -316,7 +316,8 @@ type AppIface interface {
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 	// UpdateChannelScheme saves the new SchemeId of the channel passed.
 	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
-	// UpdateDNDStatusOfUsers after server restart update all users DND status
+	// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
+	// which unsets dnd status of users if needed and saves and broadcasts it
 	UpdateDNDStatusOfUsers()
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
@@ -960,7 +961,7 @@ type AppIface interface {
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginId, teamId, trigger string)
 	UnregisterPluginCommands(pluginId string)
-	UnsetStatusDoNotDisturb(userId string)
+	UnsetStatusDoNotDisturb(status *model.Status)
 	UpdateActive(user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError)

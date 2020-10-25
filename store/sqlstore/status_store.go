@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -75,6 +76,35 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 		Select("UserId, Status, Manual, LastActivityAt").
 		From("Status").
 		Where(sq.Eq{"UserId": userIds})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
+	}
+	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Statuses")
+	}
+	var statuses []*model.Status
+	defer rows.Close()
+	for rows.Next() {
+		var status model.Status
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
+			return nil, errors.Wrap(err, "unable to scan from rows")
+		}
+		statuses = append(statuses, &status)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed while iterating over rows")
+	}
+
+	return statuses, nil
+}
+
+func (s SqlStatusStore) GetExpiredDNDStatuses() ([]*model.Status, error) {
+	query := s.getQueryBuilder().
+		Select("UserId, Status, PrevStatus").
+		From("Status").
+		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTime": time.Now().UTC().Unix()})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")

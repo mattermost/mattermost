@@ -13,6 +13,30 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+// take a string in RFC3339 format and return utc time for it
+func convertToUTC(tzmap model.StringMap, endtime string) (time.Time, error) {
+	var tz string
+	switch tzmap["useAutomaticTimezone"] {
+	case "true":
+		tz = tzmap["automaticTimezone"]
+		break
+	case "false":
+		tz = tzmap["manualTimezone"]
+		break
+	default:
+		return time.Time{}, errors.New("useAutomaticTimezone is having invalid value")
+	}
+	tloc, err := time.LoadLocation(tz)
+	if err != nil {
+		return time.Time{}, err
+	}
+	ttz, terr := time.ParseInLocation(time.RFC3339, endtime, tloc)
+	if terr != nil {
+		return time.Time{}, terr
+	}
+	return ttz.UTC(), nil
+}
+
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
 	a.Srv().statusCache.Set(status.UserId, status)
 }
@@ -282,23 +306,18 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func (a *App) UnsetStatusDoNotDisturb(userId string) {
-	status, err := a.GetStatus(userId)
-
-	if err != nil {
-		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	}
+func (a *App) UnsetStatusDoNotDisturb(status *model.Status) {
 
 	if status.Status != model.STATUS_DND {
-		mlog.Info("DND status already unset manually by user", mlog.String("user_id", userId))
-		status.DNDEndTime = ""
+		mlog.Info("DND status already unset manually by user", mlog.String("user_id", status.UserId))
+		status.DNDEndTime = -1
 		return
 	}
 
 	status.Status = status.PrevStatus
 	status.PrevStatus = model.STATUS_DND
 	status.Manual = false
-	status.DNDEndTime = ""
+	status.DNDEndTime = -1
 	a.SaveAndBroadcastStatus(status)
 }
 
@@ -316,7 +335,20 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.PrevStatus = status.Status
 	status.Status = model.STATUS_DND
 	status.Manual = true
-	status.DNDEndTime = endtime
+
+	u, aErr := a.Srv().Store.User().Get(userId)
+	if aErr != nil {
+		mlog.Error("Failed to fetch user", mlog.String("user_id", userId), mlog.String("err", aErr.Error()))
+	}
+
+	utc, cErr := convertToUTC(u.Timezone, endtime)
+
+	if cErr != nil {
+		mlog.Error("Failed to conver user timezone to utc", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
+		return
+	}
+
+	status.DNDEndTime = utc.Unix()
 
 	a.SaveAndBroadcastStatus(status)
 }
@@ -407,37 +439,11 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
-	users, err := a.Srv().Store.User().GetAll()
+	statuses, err := a.Srv().Store.Status().GetExpiredDNDStatuses()
 	if err != nil {
-		mlog.Error("Failed to get list of all users", mlog.Err(err))
+		mlog.Error("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 	}
-	for _, u := range users {
-		a.Srv().Go(func() {
-			status, err := a.GetStatus(u.Id)
-
-			if err != nil {
-				status = &model.Status{UserId: u.Id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-			}
-
-			if status.Status != model.STATUS_DND {
-				return
-			}
-
-			t1 := time.Now()
-			t2, er := time.Parse(time.RFC3339, status.DNDEndTime)
-			if er != nil {
-				mlog.Error("Failed to parse endtime value", mlog.String("user_id", status.UserId), mlog.String("endtime", status.DNDEndTime), mlog.Err(err))
-			}
-
-			if t2.Sub(t1) < 0 {
-				a.UnsetStatusDoNotDisturb(u.Id)
-				return
-			}
-
-			model.CreateTask("Unset DND Status", func() {
-				a.UnsetStatusDoNotDisturb(u.Id)
-			}, t2.Sub(t1))
-
-		})
+	for _, s := range statuses {
+		a.UnsetStatusDoNotDisturb(s)
 	}
 }

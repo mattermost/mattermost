@@ -25,7 +25,7 @@ type Status struct {
 	Manual         bool   `json:"manual"`
 	LastActivityAt int64  `json:"last_activity_at"`
 	ActiveChannel  string `json:"active_channel,omitempty" db:"-"`
-	DNDEndTime     string `json:"dnd_end_time"`
+	DNDEndTime     int64  `json:"dnd_end_time"`
 	PrevStatus     string
 }
 

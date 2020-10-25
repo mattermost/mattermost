@@ -5786,6 +5786,22 @@ func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, err
 	return result, err
 }
 
+func (s *TimerLayerStatusStore) GetExpiredDNDStatuses() ([]*model.Status, error) {
+	start := timemodule.Now()
+
+	result, err := s.StatusStore.GetExpiredDNDStatuses()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("StatusStore.GetExpiredDNDStatuses", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	start := timemodule.Now()
 

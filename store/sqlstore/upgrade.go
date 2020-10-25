@@ -869,7 +869,7 @@ func upgradeDatabaseToVersion5281(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion5282(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_28_1, VERSION_5_28_2) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "VARCHAR(64)", "VARCHAR(64)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTime", "BIGINT", "BIGINT")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(12)", "VARCHAR(12)")
 		saveSchemaVersion(sqlStore, VERSION_5_28_2)
 	}
