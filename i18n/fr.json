@@ -1161,10 +1161,6 @@
     "translation": "Une erreur s'est produite lors de la vérification de l'existence du bucket."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Erreur de connexion à S3 ou minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Impossible d'envoyer les fichiers. Il y a {{.NumClientIds}} client_ids pour {{.NumFiles}} fichiers."
   },
@@ -6389,10 +6385,6 @@
   {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Impossible d'envoyer le fichier {{.Filename}}. Opération rejetée par le plugin : {{.Reason}}"
   },
   {
     "id": "api.context.server_busy.app_error",

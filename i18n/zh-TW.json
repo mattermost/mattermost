@@ -1158,10 +1158,6 @@
     "translation": "檢查儲存貯體是否存在時發生錯誤。"
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "與 S3 或 minio 之間的連線異常。"
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
   },
@@ -6384,10 +6380,6 @@
   {
     "id": "api.image.get.app_error",
     "translation": "無法解析要求圖片的 URL。"
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "無法上傳檔案 {{.Filename}}。被模組拒絕：{{.Reason}}"
   },
   {
     "id": "api.context.server_busy.app_error",
