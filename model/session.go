@@ -8,6 +8,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
@@ -227,4 +228,10 @@ func SessionsFromJson(data io.Reader) []*Session {
 	var o []*Session
 	json.NewDecoder(data).Decode(&o)
 	return o
+}
+
+var UserSessionPool = sync.Pool{
+	New: func() interface{} {
+		return &Session{}
+	},
 }

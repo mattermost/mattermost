@@ -5,6 +5,7 @@ package cache
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 	"time"
 
@@ -185,6 +186,12 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	return nil
 }
 
+// var UserSessionPool = sync.Pool{
+// 	New: func() interface{} {
+// 		return &model.Session{}
+// 	},
+// }
+
 func (l *LRU) get(key string, value interface{}) error {
 	if ent, ok := l.items[key]; ok {
 		e := ent.Value.(*entry)
@@ -198,6 +205,10 @@ func (l *LRU) get(key string, value interface{}) error {
 
 		// We use a fast path for hot structs.
 		if msgpVal, ok := value.(msgp.Unmarshaler); ok {
+			switch value.(type) {
+			case **model.Session:
+				fmt.Println("This is the user session object")
+			}
 			_, err := msgpVal.UnmarshalMsg(e.value)
 			return err
 		}
@@ -217,9 +228,11 @@ func (l *LRU) get(key string, value interface{}) error {
 			*v = &u
 			return err
 		case **model.Session:
-			var s model.Session
+			fmt.Println("Getting the user session object and unmarshalling")
+			var s = model.UserSessionPool.Get().(*model.Session)
+			// var s model.Session
 			_, err := s.UnmarshalMsg(e.value)
-			*v = &s
+			*v = s
 			return err
 		}
 

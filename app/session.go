@@ -7,7 +7,6 @@ import (
 	"errors"
 	"math"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -15,12 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
-
-var UserSessionPool = sync.Pool{
-	New: func() interface{} {
-		return &model.Session
-	}
-}
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	session.Token = ""
@@ -55,6 +48,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			metrics.IncrementMemCacheMissCounterSession()
 		}
 	}
+	// defer model.UserSessionPool.Put(session)
 
 	if session == nil {
 		var nErr error
