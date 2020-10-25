@@ -318,16 +318,6 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.Manual = true
 	status.DNDEndTime = endtime
 
-	t1 := time.Now()
-	t2, er := time.Parse(time.RFC3339, endtime)
-	if er != nil {
-		mlog.Error("Failed to parse endtime value", mlog.String("user_id", status.UserId), mlog.String("endtime", endtime), mlog.Err(err))
-	}
-
-	model.CreateTask("Unset DND Status", func() {
-		a.UnsetStatusDoNotDisturb(userId)
-	}, t2.Sub(t1))
-
 	a.SaveAndBroadcastStatus(status)
 }
 
@@ -414,7 +404,8 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
 }
 
-// UpdateDNDStatusOfUsers after server restart update all users DND status
+// UpdateDNDStatusOfUsers is a recurring task which is started when server starts
+// which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
 	users, err := a.Srv().Store.User().GetAll()
 	if err != nil {
