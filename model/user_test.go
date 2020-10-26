@@ -354,9 +354,9 @@ func TestUserSlice(t *testing.T) {
 }
 
 func TestGeneratePassword(t *testing.T) {
-	passwordRandomSource = lockedSource{
-		src: rand.New(rand.NewSource(12345)),
-		mu:  sync.Mutex{},
+	passwordRandom = lockedRand{
+		rn: rand.New(rand.NewSource(12345)),
+		mu: sync.Mutex{},
 	}
 
 	t.Run("Should be the minimum length or 4, whichever is less", func(t *testing.T) {
@@ -375,5 +375,11 @@ func TestGeneratePassword(t *testing.T) {
 		assert.Contains(t, []rune(passwordNumbers), []rune(password)[1])
 		assert.Contains(t, []rune(passwordLowerCaseLetters), []rune(password)[2])
 		assert.Contains(t, []rune(passwordSpecialChars), []rune(password)[3])
+	})
+
+	t.Run("Should not fail on concurrent calls", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			go GeneratePassword(10)
+		}
 	})
 }
