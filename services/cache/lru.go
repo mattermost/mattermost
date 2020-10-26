@@ -185,12 +185,6 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	return nil
 }
 
-// var UserSessionPool = sync.Pool{
-// 	New: func() interface{} {
-// 		return &model.Session{}
-// 	},
-// }
-
 func (l *LRU) get(key string, value interface{}) error {
 	if ent, ok := l.items[key]; ok {
 		e := ent.Value.(*entry)
