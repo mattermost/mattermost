@@ -390,10 +390,13 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
+		oldCfg := fs.Get().Clone()
+
 		newCfg := &model.Config{}
 
-		_, err = fs.Set(newCfg)
+		retCfg, err := fs.Set(newCfg)
 		require.NoError(t, err)
+		require.Equal(t, oldCfg, retCfg)
 
 		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 	})
