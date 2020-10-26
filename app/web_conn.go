@@ -269,6 +269,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 		}
 
 		session, err := wc.App.GetSession(wc.GetSessionToken())
+		defer model.UserSessionPool.Put(session)
 		if err != nil {
 			mlog.Error("Invalid session.", mlog.Err(err))
 			wc.SetSessionToken("")
@@ -397,7 +398,10 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 // is a member of the given teamId or not.
 func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 	currentSession := wc.GetSession()
-
+	defer func() {
+		fmt.Println("Inside the defer function")
+		model.UserSessionPool.Put(currentSession)
+	}()
 	if currentSession == nil || currentSession.Token == "" {
 		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {

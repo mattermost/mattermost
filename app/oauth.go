@@ -516,8 +516,13 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 }
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
+	fmt.Println("getting the session")
 	session, _ := a.GetSession(token)
 
+	defer func() {
+		fmt.Println("Putting the object bact to the pool")
+		model.UserSessionPool.Put(session)
+	}()
 	schan := make(chan error, 1)
 	go func() {
 		schan <- a.Srv().Store.Session().Remove(token)
