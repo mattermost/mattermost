@@ -2587,6 +2587,26 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
+    "id": "api.templates.at_limit_info1",
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloud User Limit Reached"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "You’ve reached the user limit for the free tier "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
     "id": "api.templates.deactivate_body.info",
     "translation": "You deactivated your account on {{ .SiteURL }}."
   },
@@ -2651,6 +2671,10 @@
     "translation": "Sent by "
   },
   {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Email us any time at "
+  },
+  {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
   },
@@ -2701,6 +2725,22 @@
   {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "Multi-factor authentication was removed"
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud Workspace Over User Limit"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Your workspace is over the user limit for the free tier"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2765,6 +2805,10 @@
   {
     "id": "api.templates.signin_change_email.subject",
     "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Upgrade"
   },
   {
     "id": "api.templates.user_access_token_body.info",
