@@ -6872,6 +6872,22 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CreateMembershipIfNeeded", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) Delete(postId string) error {
 	start := timemodule.Now()
 
@@ -6884,6 +6900,22 @@ func (s *TimerLayerThreadStore) Delete(postId string) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.DeleteMembershipForUser(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
 	}
 	return err
 }
@@ -6904,6 +6936,38 @@ func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postId string) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetMembershipForUser(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetMembershipsForUser(userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipsForUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 	start := timemodule.Now()
 
@@ -6916,6 +6980,22 @@ func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.SaveMembership(membership)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMembership", success, elapsed)
 	}
 	return result, err
 }
@@ -6948,6 +7028,22 @@ func (s *TimerLayerThreadStore) Update(thread *model.Thread) (*model.Thread, err
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.UpdateMembership(membership)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateMembership", success, elapsed)
 	}
 	return result, err
 }

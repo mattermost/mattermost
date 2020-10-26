@@ -549,10 +549,10 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
-	return user
+	return user, nil
 }
 
 func GenerateTestAppName() string {

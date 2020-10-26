@@ -1065,6 +1065,12 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	// Cannot update a system admin unless user making request is a systemadmin also.
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -1134,6 +1140,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", ouser)
 
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if c.App.Session().IsOAuth && patch.Email != nil {
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1198,6 +1210,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("user", user)
+
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
@@ -1286,7 +1304,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && c.Params.UserId == c.App.Session().UserId
 
-	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS) {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
@@ -1303,6 +1321,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("user", user)
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
@@ -1323,6 +1346,9 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		})
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE, "", "", "", nil)
+	c.App.Publish(message)
 	ReturnStatusOK(w)
 }
 
@@ -1493,8 +1519,15 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempted")
 
+	var canUpdatePassword bool
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
 		auditRec.AddMeta("user", user)
+
+		if user.IsSystemAdmin() {
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
+		} else {
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS)
+		}
 	}
 
 	var err *model.AppError
@@ -1502,7 +1535,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	// There are two main update flows depending on whether the provided password
 	// is already hashed or not.
 	if props["already_hashed"] == "true" {
-		if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		if canUpdatePassword {
 			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
 		} else if c.Params.UserId == c.App.Session().UserId {
 			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
@@ -1518,7 +1551,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 
 			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
-		} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		} else if canUpdatePassword {
 			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
 		} else {
 			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
@@ -2390,8 +2423,16 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.App.Session().UserId
-	termsOfServiceId := props["termsOfServiceId"].(string)
-	accepted := props["accepted"].(bool)
+	termsOfServiceId, ok := props["termsOfServiceId"].(string)
+	if !ok {
+		c.SetInvalidParam("termsOfServiceId")
+		return
+	}
+	accepted, ok := props["accepted"].(bool)
+	if !ok {
+		c.SetInvalidParam("accepted")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2492,6 +2533,12 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {

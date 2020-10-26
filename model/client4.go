@@ -4094,7 +4094,7 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 
 // UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
 func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, LDAP_PUBIC_CERTIFICATE_NAME)
+	body, writer, err := fileToMultipart(data, LDAP_PUBLIC_CERTIFICATE_NAME)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -5611,6 +5611,16 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	return FileInfoFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) *Response {
+	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // Cloud Section
 
 func (c *Client4) GetCloudProducts() ([]*Product, *Response) {
@@ -5651,6 +5661,19 @@ func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodReq
 	return BuildResponse(r)
 }
 
+func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/customer", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudCustomer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&cloudCustomer)
+
+	return cloudCustomer, BuildResponse(r)
+}
+
 func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
 	if appErr != nil {
@@ -5662,4 +5685,34 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	json.NewDecoder(r.Body).Decode(&subscription)
 
 	return subscription, BuildResponse(r)
+}
+
+func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
+	customerBytes, _ := json.Marshal(customerInfo)
+
+	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer", customerBytes)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var customer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&customer)
+
+	return customer, BuildResponse(r)
+}
+
+func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, *Response) {
+	addressBytes, _ := json.Marshal(address)
+
+	r, appErr := c.doApiPutBytes(c.GetCloudRoute()+"/customer/address", addressBytes)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var customer *CloudCustomer
+	json.NewDecoder(r.Body).Decode(&customer)
+
+	return customer, BuildResponse(r)
 }

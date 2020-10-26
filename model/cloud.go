@@ -31,6 +31,46 @@ type ConfirmPaymentMethodRequest struct {
 	StripeSetupIntentID string `json:"stripe_setup_intent_id"`
 }
 
+// Customer model represents a customer on the system.
+type CloudCustomer struct {
+	CloudCustomerInfo
+	ID             string         `json:"id"`
+	CreatorID      string         `json:"creator_id"`
+	CreateAt       int64          `json:"create_at"`
+	BillingAddress *Address       `json:"billing_address"`
+	CompanyAddress *Address       `json:"company_address"`
+	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+// CloudCustomerInfo represents editable info of a customer.
+type CloudCustomerInfo struct {
+	Name             string `json:"name"`
+	Email            string `json:"email,omitempty"`
+	ContactFirstName string `json:"contact_first_name,omitempty"`
+	ContactLastName  string `json:"contact_last_name,omitempty"`
+	NumEmployees     int    `json:"num_employees"`
+}
+
+// Address model represents a customer's address.
+type Address struct {
+	City       string `json:"city"`
+	Country    string `json:"country"`
+	Line1      string `json:"line1"`
+	Line2      string `json:"line2"`
+	PostalCode string `json:"postal_code"`
+	State      string `json:"state"`
+}
+
+// PaymentMethod represents methods of payment for a customer.
+type PaymentMethod struct {
+	Type      string `json:"type"`
+	LastFour  int    `json:"last_four"`
+	ExpMonth  int    `json:"exp_month"`
+	ExpYear   int    `json:"exp_year"`
+	CardBrand string `json:"card_brand"`
+	Name      string `json:"name"`
+}
+
 // Subscription model represents a subscription on the system.
 type Subscription struct {
 	ID         string   `json:"id"`
@@ -42,4 +82,5 @@ type Subscription struct {
 	CreateAt   int64    `json:"create_at"`
 	Seats      int      `json:"seats"`
 	DNS        string   `json:"dns"`
+	IsPaidTier string   `json:"is_paid_tier"`
 }

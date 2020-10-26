@@ -327,6 +327,18 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.EqualValues(t, emoji, s)
 		})
 
+		t.Run("overrides icon URL with name surrounded by colons", func(t *testing.T) {
+			colonEmoji := ":basketball:"
+			clientPost := prepare(true, url, colonEmoji)
+
+			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.True(t, ok)
+			assert.EqualValues(t, overridenUrl, s)
+			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			assert.True(t, ok)
+			assert.EqualValues(t, colonEmoji, s)
+		})
+
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {
@@ -355,6 +367,25 @@ func TestPreparePostForClient(t *testing.T) {
 				Width:  408,
 				Height: 336,
 			}, imageDimensions[server.URL+"/test-image1.png"])
+		})
+	})
+
+	t.Run("post props has invalid fields", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		post, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "some post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		// this value expected to be a string
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_EMOJI, true)
+
+		require.NotPanics(t, func() {
+			_ = th.App.PreparePostForClient(post, false, false)
 		})
 	})
 
@@ -1261,11 +1292,11 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "https://example.com",
 			ExpectedImages:    []string{"https://example.com/logo"},
 		},
-		"markdown links (not returned)": {
+		"markdown links": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
 [another page]: http://www.exaple.com/another_page`,
-			ExpectedFirstLink: "",
+			ExpectedFirstLink: "http://example.com",
 			ExpectedImages:    []string{},
 		},
 	} {

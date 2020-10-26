@@ -828,6 +828,17 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 	require.Equal(t, tos.Id, ruser.TermsOfServiceId, "Terms of service ID should match")
 }
 
+func TestSaveUserTermsOfService(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Invalid data", func(t *testing.T) {
+		resp, err := th.Client.DoApiPost("/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+}
+
 func TestGetUserByEmail(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -1599,7 +1610,7 @@ func TestUpdateUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	user.Nickname = "Joram Wilander"
-	user.Roles = model.SYSTEM_ADMIN_ROLE_ID
+	user.Roles = model.SYSTEM_USER_ROLE_ID
 	user.LastPasswordUpdate = 123
 
 	ruser, resp := th.Client.UpdateUser(user)
@@ -5206,5 +5217,30 @@ func TestMigrateAuthToSAML(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		_, err = client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
 		CheckNotImplementedStatus(t, err)
+	})
+}
+func TestUpdatePassword(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
+		res := th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system user with requisite system permission, except if requested user is system admin", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		res := th.Client.UpdatePassword(th.TeamAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
+
+		res = th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
+		res := th.SystemAdminClient.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
 	})
 }
