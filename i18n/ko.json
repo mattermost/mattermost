@@ -4990,16 +4990,8 @@
     "translation": "A team member with that id already exists"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "We could not get the unread message count for the user"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5008,10 +5000,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "This email is already taken. Please choose another."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "채널 업데이트에 실패하였습니다"
   },
   {
     "id": "store.update_error",
@@ -5252,10 +5240,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "최신 Chrome 브라우저를 받습니다"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "색인을 위해 채널 배치를 가져올 수 없습니다"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

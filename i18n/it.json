@@ -4995,16 +4995,8 @@
     "translation": "Un membro gruppo con quell'ID esiste già."
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Impossibile aggiornare l'utente."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Non è stato possibile ottenere il numero di messaggi non letti per l'utente."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5013,10 +5005,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Impossibile aggiornare update_at."
   },
   {
     "id": "store.update_error",
@@ -6293,10 +6281,6 @@
   {
     "id": "store.sql_group.app_error",
     "translation": "errore nella costruzione della query."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Impossibile trovare il gruppo di utenti da indicizzare."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",

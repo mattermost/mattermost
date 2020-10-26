@@ -5000,16 +5000,8 @@
     "translation": "Участник команды с таким идентификатором уже существует."
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не удалось обновить пользователя."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не удалось найти действительную учетную запись с соответствующими учетными данными. Эта команда может требовать приглашения от владельца команды для присоединения."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Не удалось получить количество непрочитанных сообщений для пользователя."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5018,10 +5010,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Этот e-mail уже зарегистрирован, выберите другой."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Невозможно обновить update_at."
   },
   {
     "id": "store.update_error",
@@ -6064,10 +6052,6 @@
     "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
   },
   {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Невозможно получить список идентификаторов отключенных гостей."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Установите последнюю версию браузера Chrome"
   },
@@ -6326,10 +6310,6 @@
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Не удалось обновить членство пользователя в командах."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",

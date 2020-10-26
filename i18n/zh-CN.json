@@ -4990,16 +4990,8 @@
     "translation": "已存在拥有此 ID 的团队成员"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "更新用户失败"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "我们无法为用户获取到未读信息数量"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5008,10 +5000,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "无法更新 update_at"
   },
   {
     "id": "store.update_error",
@@ -6392,10 +6380,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "获取最新的 Chrome 浏览器"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "无法为索引获取批量用户。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

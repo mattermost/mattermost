@@ -5000,16 +5000,8 @@
     "translation": "Un membru al echipei cu acel ID există deja"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Imposibil de actualizat utilizator"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Nu am putut obţine numărul de mesaj necitit pentru utilizator"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5018,10 +5010,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Imposibil de actualizat update_at"
   },
   {
     "id": "store.update_error",
@@ -5262,10 +5250,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obțineți cel mai recent browser Chrome"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Nu se poate obține lotul utilizatorilor pentru indexare."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

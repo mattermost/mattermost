@@ -4995,16 +4995,8 @@
     "translation": "Een team lid met de opgegeven id bestaat al"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5013,10 +5005,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
   },
   {
     "id": "store.update_error",
@@ -5281,10 +5269,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Download de nieuwste Chrome browser"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

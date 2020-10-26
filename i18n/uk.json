@@ -5000,16 +5000,8 @@
     "translation": "Учасник команди з таким ідентифікатором вже існує"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не вдалося оновити користувача"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Не вдалося отримати кількість непрочитаних повідомлень для користувача"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5018,10 +5010,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Цей e-mail вже зареєстрований, виберіть інший."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Не вдається оновити оновлення на"
   },
   {
     "id": "store.update_error",
@@ -5262,10 +5250,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Get the latest Chrome browser"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Не вдалося отримати партію повідомлень для індексації"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
