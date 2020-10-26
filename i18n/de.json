@@ -4995,32 +4995,16 @@
     "translation": "Ein Teammitglied mit dieser ID existiert bereits"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Fehler beim Aktualisieren der Benutzer."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Konnte kein existierendes Konto entsprechend ihres Benutzernamens für dieses Teams finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Konnte kein Konto mit den angegeben Zugangsdaten finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Es trat ein Fehler beim Abrufen der zuletzt aktiven Benutzer auf"
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Die Anzahl der ungelesenen Nachrichten für den Benutzer konnte nicht abgerufen werden"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Konnte das Konto nicht speichern."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5031,16 +5015,8 @@
     "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Dieser Benutzername ist schon vergeben. Bitte einen anderen wählen."
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "Konnte update_at nicht aktualisieren."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Konnte den Zeitpunkt der letzten Aktualisierung des Benutzers nicht aktualisieren."
   },
   {
     "id": "store.update_error",
@@ -5339,16 +5315,8 @@
     "translation": "Holen Sie sich den neuesten Chrome-Browser"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Fehler beim Aktualisieren der Teammitgliedschaften des Benutzers."
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Konnte die Benutzer-Stapel nicht zur Indizierung abrufen."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Konnte bekannte Benutzer nicht aus der Datenbank abrufen."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

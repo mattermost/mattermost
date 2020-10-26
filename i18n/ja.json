@@ -4990,32 +4990,16 @@
     "translation": "そのIDを持つチームのメンバーは既に存在します。"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "クエリを構築できませんでした。"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "ユーザーを更新できませんでした。"
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "あなたのユーザー名に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "あなたの認証情報に合致する既存のアカウントを見付けられませんでした。このチームに参加するには、チームのオーナーから招待を受ける必要があります。"
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "最近のアクティブユーザーを探す際にエラーが発生しました。"
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "ユーザーの未読のメッセージ数を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "アカウントを保存できませんでした。"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5026,16 +5010,8 @@
     "translation": "この電子メールアドレスは既に使用されています。他の電子メールアドレスを指定してください。"
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "このユーザー名は既に使用されています。他のユーザー名を指定してください。"
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "更新日時を更新できませんでした。"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "ユーザーの最終更新日を更新できませんでした。"
   },
   {
     "id": "store.update_error",
@@ -5278,16 +5254,8 @@
     "translation": "最新のChromeブラウザを取得してください"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "チームメンバーシップを更新できませんでした。"
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "インデックス付与のためのユーザーのバッチ処理を取得できませんでした。"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "データベースからユーザーを取得できませんでした。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

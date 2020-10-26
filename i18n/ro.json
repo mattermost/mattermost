@@ -5000,32 +5000,16 @@
     "translation": "Un membru al echipei cu acel ID există deja"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Imposibil de actualizat utilizator"
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Imposibil de găsit un cont existent care să corespundă cu numele dvs. de utilizator pentru această echipă. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Am întâlnit o eroare în timp ce găsirea activi recent"
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Nu am putut obţine numărul de mesaj necitit pentru utilizator"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Imposibil de salvat contul."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5036,16 +5020,8 @@
     "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Acest nume de utilizator este deja luat. Alegeți altul."
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "Imposibil de actualizat update_at"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Nu am putut actualiza data ultimei actualizări a utilizatorului"
   },
   {
     "id": "store.update_error",
@@ -5288,16 +5264,8 @@
     "translation": "Obțineți cel mai recent browser Chrome"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Nu a reușit să actualizeze membrii echipelor de utilizator."
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Nu se poate obține lotul utilizatorilor pentru indexare."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Imposibil de obținut utilizatorii cunoscuți din baza de date."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

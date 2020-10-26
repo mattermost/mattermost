@@ -4990,32 +4990,16 @@
     "translation": "該 ID 的團隊成員已存在"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "無法更新使用者"
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "在此團隊中找不到符合您的使用者名稱之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "找不到符合您的認證之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "在尋找近期活躍使用者時遭遇錯誤"
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "無法計算該使用者的未讀訊息數量"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "無法儲存帳號"
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5026,16 +5010,8 @@
     "translation": "這個電子郵件已經被使用。請選擇其他的。"
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "使用者名稱已被使用。請選擇其他的。"
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "無法更新更新時間"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "無法更新最後一次使用者更新的日期"
   },
   {
     "id": "store.update_error",
@@ -5278,16 +5254,8 @@
     "translation": "取得最新的 Chrome 瀏覽器"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "更新團隊成員時失敗"
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "無法取得使用者批次用以索引"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "無法從資料庫取得已知使用者。"
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

@@ -5000,32 +5000,16 @@
     "translation": "Участник команды с таким идентификатором уже существует."
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Не удалось построить запрос."
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Не удалось обновить пользователя."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Не удалось найти действительную учетную запись с соответствующим именем пользователя для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не удалось найти действительную учетную запись с соответствующими учетными данными. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Произошла ошибка при поиске недавно активных пользователей."
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Не удалось получить количество непрочитанных сообщений для пользователя."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Невозможно сохранить учетную запись."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5036,16 +5020,8 @@
     "translation": "Этот e-mail уже зарегистрирован, выберите другой."
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Это имя пользователя уже занято. Пожалуйста, выберите другое."
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "Невозможно обновить update_at."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Невозможно обновить дату последнего обновления пользователя."
   },
   {
     "id": "store.update_error",
@@ -6088,10 +6064,6 @@
     "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
   },
   {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Возникла ошибка при поиске пользовательских профилей."
-  },
-  {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
     "translation": "Невозможно получить список идентификаторов отключенных гостей."
   },
@@ -6354,10 +6326,6 @@
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Невозможно получить известных пользователей из базы данных."
   },
   {
     "id": "store.sql_user.promote_guest.team_members_update.app_error",

@@ -4995,32 +4995,16 @@
     "translation": "Ya existe un miembro del equipo con el mismo ID."
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Falla al construir la consulta."
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Error al actualizar el usuario."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "No se puede encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "No se puede encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Hemos encontrado un error al buscar a los usuarios recientemente activos."
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "No se puede guardar la cuenta."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5031,16 +5015,8 @@
     "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Este nombre de usuario ya está siendo utiizado. Por favor selecciona otro."
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "No se puede actualizar el campo update_at."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "No se puede actualizar la fecha de la última actualización del usuario."
   },
   {
     "id": "store.update_error",
@@ -5291,16 +5267,8 @@
     "translation": "Obtén la última versión del navegador Chrome"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Error al actualizar las membresías de los equipos del usuario."
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "No se puede obtener los usuarios en lote para la indexación."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "No se pudo obtener los usuarios conocidos desde la base de datos."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",

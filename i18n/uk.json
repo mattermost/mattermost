@@ -5000,32 +5000,16 @@
     "translation": "Учасник команди з таким ідентифікатором вже існує"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Не вдалося оновити користувача"
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Не вдалося знайти дійсний обліковий запис з відповідним ім'ям користувача для цієї команди. Ця команда може вимагати запрошення від власника команди для приєднання."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не вдалося знайти дійсний обліковий запис з відповідними обліковими даними. Ця команда може вимагати запрошення від власника команди для приєднання."
   },
   {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Помилка під час пошуку недавно активних користувачів"
-  },
-  {
     "id": "store.sql_user.get_unread_count.app_error",
     "translation": "Не вдалося отримати кількість непрочитаних повідомлень для користувача"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Не вдається зберегти обліковий запис."
   },
   {
     "id": "store.sql_user.search.app_error",
@@ -5036,16 +5020,8 @@
     "translation": "Цей e-mail вже зареєстрований, виберіть інший."
   },
   {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Це ім'я користувача вже зайнято. Будь ласка, виберіть інше."
-  },
-  {
     "id": "store.sql_user.update_last_picture_update.app_error",
     "translation": "Не вдається оновити оновлення на"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Не вдалося оновити дату останнього оновлення користувача"
   },
   {
     "id": "store.update_error",
@@ -5288,16 +5264,8 @@
     "translation": "Get the latest Chrome browser"
   },
   {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Не вдалося отримати партію повідомлень для індексації"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
   },
   {
     "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
