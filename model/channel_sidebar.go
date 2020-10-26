@@ -111,6 +111,8 @@ func (o OrderedSidebarCategories) ToJson() []byte {
 	}
 }
 
+var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
+
 func IsValidCategoryId(s string) bool {
 	// Category IDs can either be regular IDs
 	if IsValidId(s) {
@@ -118,5 +120,5 @@ func IsValidCategoryId(s string) bool {
 	}
 
 	// Or default categories can follow the pattern {type}_{userID}_{teamID}
-	return regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}").MatchString(s)
+	return categoryIdPattern.MatchString(s)
 }
