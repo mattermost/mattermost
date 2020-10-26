@@ -48,8 +48,8 @@ func (me *groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, messa
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		targetUser, err := a.Srv().Store.User().GetByUsername(username)
-		if err != nil {
+		targetUser, nErr := a.Srv().Store.User().GetByUsername(username)
+		if nErr != nil {
 			invalidUsernames = append(invalidUsernames, username)
 			continue
 		}
