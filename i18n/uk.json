@@ -1164,10 +1164,6 @@
     "translation": "Помилка перевірки існування бакета."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Погане з'єднання до S3 або minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },

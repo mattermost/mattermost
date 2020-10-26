@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -454,6 +455,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryNoRudderKey", func(t *testing.T) {
+		if !strings.Contains(RUDDER_KEY, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
 		telemetryService.sendDailyTelemetry(false)
 
 		select {
@@ -465,6 +469,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {
+		if !strings.Contains(RUDDER_KEY, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
 		*cfg.LogSettings.EnableDiagnostics = false
 		defer func() {
 			*cfg.LogSettings.EnableDiagnostics = true
@@ -507,6 +514,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
+		if !strings.Contains(RUDDER_KEY, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
 		os.Setenv("RUDDER_KEY", "abc123")
 		os.Setenv("RUDDER_DATAPLANE_URL", "arudderstackplace")
 		defer os.Unsetenv("RUDDER_KEY")

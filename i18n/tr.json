@@ -1161,10 +1161,6 @@
     "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "S3 ya da minio bağlantısı kötü."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Dosyalar yüklenemedi. {{.NumFiles}} dosya için {{.NumClientIds}} istemci kodu var."
   },
