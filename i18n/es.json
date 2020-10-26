@@ -8329,5 +8329,13 @@
   {
     "id": "api.server.warn_metric.mfa.notification_body",
     "translation": "El sistema Mattermost tiene habilitado el factor de autenticación multiple, lo que permite a los usuarios asegurar sus cuentas más allá que por medio de la autenticación con contraseña. Para mejorar la seguridad a través del sistema puedes requerir que todas las cuentas de Mattermost utilicen el factor de autenticación multiple.\n\n[Aprende más sobre hacer cumplir el Factor de Autenticación Multiple](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nAl hacer click en Contáctanos, estarás compartiendo tu información con Mattermost, Inc. [Conoce más](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "El plugin del comando /{{.Command}} no funciona. Por favor, póngase en contacto con el administrador del sistema"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
   }
 ]
