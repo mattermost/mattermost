@@ -84,3 +84,29 @@ type Subscription struct {
 	DNS        string   `json:"dns"`
 	IsPaidTier string   `json:"is_paid_tier"`
 }
+
+// Invoice model represents a cloud invoice
+type Invoice struct {
+	ID             string             `json:"id"`
+	Number         string             `json:"number"`
+	CreateAt       int64              `json:"create_at"`
+	Total          int64              `json:"total"`
+	Tax            int64              `json:"tax"`
+	Status         string             `json:"status"`
+	Description    string             `json:"description"`
+	PeriodStart    int64              `json:"period_start"`
+	PeriodEnd      int64              `json:"period_end"`
+	SubscriptionID string             `json:"subscription_id"`
+	Items          []*InvoiceLineItem `json:"line_items"`
+}
+
+// InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
+type InvoiceLineItem struct {
+	PriceID      string                 `json:"price_id"`
+	Total        int64                  `json:"total"`
+	Quantity     int64                  `json:"quantity"`
+	PricePerUnit int64                  `json:"price_per_unit"`
+	Description  string                 `json:"description"`
+	Type         string                 `json:"type"`
+	Metadata     map[string]interface{} `json:"metadata"`
+}
