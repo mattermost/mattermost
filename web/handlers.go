@@ -189,10 +189,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
-		defer func() {
-			fmt.Println("Putting the session back from the handler")
-			model.UserSessionPool.Put(session)
-		}()
+		defer model.UserSessionPool.Put(session)
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
