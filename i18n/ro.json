@@ -1164,10 +1164,6 @@
     "translation": "Eroare la verificarea existenței unei găleți."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Conectare necorespunzătoare la S3 sau minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Imposibil de a încărca fișier(e). Aveți {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
   },

@@ -71,7 +71,7 @@ func (s LocalCacheUserStore) InvalidateProfilesInChannelCache(channelId string) 
 	}
 }
 
-func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError) {
+func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
 		var cachedMap map[string]*model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
@@ -91,7 +91,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	return userMap, nil
 }
 
-func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, *model.AppError) {
+func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if !allowFromCache {
 		return s.UserStore.GetProfileByIds(userIds, options, false)
 	}
@@ -137,7 +137,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
-func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
+func (s LocalCacheUserStore) Get(id string) (*model.User, error) {
 	var cacheItem *model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
 		if s.rootStore.metrics != nil {
