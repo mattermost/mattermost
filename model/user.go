@@ -899,7 +899,6 @@ func (r *lockedRand) Intn(n int) int {
 
 var passwordRandom = lockedRand{
 	rn: rand.New(rand.NewSource(time.Now().Unix())),
-	mu: sync.Mutex{},
 }
 
 var passwordSpecialChars = "!$%^&*(),."
