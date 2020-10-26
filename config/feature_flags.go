@@ -34,7 +34,7 @@ var featureNames = getStructFields(model.FeatureFlags{})
 func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynchronizer, error) {
 	cfg := conf.Default()
 	if params.Log != nil {
-		cfg.Logger = &splitMlogAdapter{wrappedLog: params.Log.With(mlog.String("service", "split"))}
+		cfg.Logger = &splitLogger{wrappedLog: params.Log.With(mlog.String("service", "split"))}
 	} else {
 		cfg.LoggerConfig.LogLevel = math.MinInt32
 	}

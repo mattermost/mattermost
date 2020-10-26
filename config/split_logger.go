@@ -9,27 +9,27 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
-type splitMlogAdapter struct {
+type splitLogger struct {
 	wrappedLog *mlog.Logger
 }
 
-func (s *splitMlogAdapter) Error(msg ...interface{}) {
+func (s *splitLogger) Error(msg ...interface{}) {
 	s.wrappedLog.Error(fmt.Sprint(msg...))
 }
 
-func (s *splitMlogAdapter) Warning(msg ...interface{}) {
+func (s *splitLogger) Warning(msg ...interface{}) {
 	s.wrappedLog.Warn(fmt.Sprint(msg...))
 }
 
 // Ignoring more verbose messages from split
-func (s *splitMlogAdapter) Info(msg ...interface{}) {
+func (s *splitLogger) Info(msg ...interface{}) {
 	//s.wrappedLog.Info(fmt.Sprint(msg...))
 }
 
-func (s *splitMlogAdapter) Debug(msg ...interface{}) {
+func (s *splitLogger) Debug(msg ...interface{}) {
 	//s.wrappedLog.Debug(fmt.Sprint(msg...))
 }
 
-func (s *splitMlogAdapter) Verbose(msg ...interface{}) {
+func (s *splitLogger) Verbose(msg ...interface{}) {
 	//s.wrappedLog.Info(fmt.Sprint(msg...))
 }
