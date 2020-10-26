@@ -1,7 +1,7 @@
 # gRPC-Go
 
 [![Build Status](https://travis-ci.org/grpc/grpc-go.svg)](https://travis-ci.org/grpc/grpc-go)
-[![GoDoc](https://godoc.org/google.golang.org/grpc?status.svg)][API]
+[![GoDoc](https://pkg.go.dev/badge/google.golang.org/grpc)][API]
 [![GoReportCard](https://goreportcard.com/badge/grpc/grpc-go)](https://goreportcard.com/report/github.com/grpc/grpc-go)
 
 The [Go][] implementation of [gRPC][]: A high performance, open source, general
@@ -131,7 +131,7 @@ the root cause of the connection being closed is on the server side. Turn on
 logging on __both client and server__, and see if there are any transport
 errors.
 
-[API]: https://grpc.io/docs/languages/go/api
+[API]: https://pkg.go.dev/google.golang.org/grpc
 [Go]: https://golang.org
 [Go module]: https://github.com/golang/go/wiki/Modules
 [gRPC]: https://grpc.io

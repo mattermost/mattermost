@@ -4,8 +4,8 @@
 package mfa
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -42,8 +42,8 @@ func TestGenerateSecret(t *testing.T) {
 	t.Run("fail on store action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
-			return model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
+			return errors.New("failed to update mfa secret")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -56,7 +56,7 @@ func TestGenerateSecret(t *testing.T) {
 	t.Run("Successful generate secret", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
+		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
 			return nil
 		})
 		storeMock.On("User").Return(&userStoreMock)
@@ -130,8 +130,8 @@ func TestActivate(t *testing.T) {
 	t.Run("fail on store action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) *model.AppError {
-			return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
+			return errors.New("failed to update mfa active")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -144,7 +144,7 @@ func TestActivate(t *testing.T) {
 	t.Run("Successful activate", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) *model.AppError {
+		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
 			return nil
 		})
 		storeMock.On("User").Return(&userStoreMock)
@@ -177,11 +177,11 @@ func TestDeactivate(t *testing.T) {
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) *model.AppError {
-			return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
+			return errors.New("failed to update mfa active")
 		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) *model.AppError {
-			return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
+			return errors.New("failed to update mfa secret")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -194,11 +194,11 @@ func TestDeactivate(t *testing.T) {
 	t.Run("fail on store UpdateMfaSecret action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) *model.AppError {
+		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
 			return nil
 		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) *model.AppError {
-			return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
+			return errors.New("failed to update mfa secret")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -211,10 +211,10 @@ func TestDeactivate(t *testing.T) {
 	t.Run("Successful deactivate", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) *model.AppError {
+		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
 			return nil
 		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) *model.AppError {
+		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
 			return nil
 		})
 		storeMock.On("User").Return(&userStoreMock)

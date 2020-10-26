@@ -21,7 +21,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	var systemUserCount int64
 	systemUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
@@ -62,14 +62,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			userInactiveChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.User().AnalyticsGetInactiveUsersCount()
-				userInactiveChan <- store.StoreResult{Data: count, Err: err2}
+				userInactiveChan <- store.StoreResult{Data: count, NErr: err2}
 				close(userInactiveChan)
 			}()
 		} else {
 			userChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamId})
-				userChan <- store.StoreResult{Data: count, Err: err2}
+				userChan <- store.StoreResult{Data: count, NErr: err2}
 				close(userChan)
 			}()
 		}
@@ -94,14 +94,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
 			dailyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err2}
+			dailyActiveChan <- store.StoreResult{Data: dailyActive, NErr: err2}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
 			monthlyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err2}
+			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, NErr: err2}
 			close(monthlyActiveChan)
 		}()
 
@@ -131,8 +131,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[3].Value = float64(systemUserCount)
 		} else {
 			r = <-userChan
-			if r.Err != nil {
-				return nil, r.Err
+			if r.NErr != nil {
+				return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[3].Value = float64(r.Data.(int64))
 		}
@@ -141,8 +141,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[10].Value = -1
 		} else {
 			r = <-userInactiveChan
-			if r.Err != nil {
-				return nil, r.Err
+			if r.NErr != nil {
+				return nil, model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[10].Value = float64(r.Data.(int64))
 		}
@@ -181,14 +181,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 
 		r = <-dailyActiveChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[8].Value = float64(r.Data.(int64))
 
 		r = <-monthlyActiveChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[9].Value = float64(r.Data.(int64))
 
@@ -325,7 +325,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		r = <-commandChan
 		if r.NErr != nil {
-			return nil, model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[4].Value = float64(r.Data.(int64))
 
@@ -344,7 +344,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetRecentlyActiveUsersForTeam", "app.user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	userMap := make(map[string]*model.User)
@@ -359,7 +359,7 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetRecentlyActiveUsersForTeamPage", "app.user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
@@ -368,7 +368,7 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	users, err := a.Srv().Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetNewUsersForTeamPage", "app.user.get_new_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return a.sanitizeProfiles(users, asAdmin), nil
