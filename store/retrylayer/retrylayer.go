@@ -8912,6 +8912,26 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, e
 
 }
 
+func (s *RetryLayerUserStore) GetTimezone(userId string) (model.StringMap, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetTimezone(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) GetUnreadCount(userId string) (int64, error) {
 
 	tries := 0

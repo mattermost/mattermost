@@ -1988,3 +1988,12 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 
 	return userIds, nil
 }
+
+// GetTimezone returns timezone string map of user
+func (us SqlUserStore) GetTimezone(userId string) (model.StringMap, error) {
+	u, err := us.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+	return u.Timezone, nil
+}

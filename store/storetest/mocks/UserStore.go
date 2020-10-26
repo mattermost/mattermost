@@ -902,6 +902,29 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) ([]*model.User, error) {
 	return r0, r1
 }
 
+// GetTimezone provides a mock function with given fields: userId
+func (_m *UserStore) GetTimezone(userId string) (model.StringMap, error) {
+	ret := _m.Called(userId)
+
+	var r0 model.StringMap
+	if rf, ok := ret.Get(0).(func(string) model.StringMap); ok {
+		r0 = rf(userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.StringMap)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUnreadCount provides a mock function with given fields: userId
 func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 	ret := _m.Called(userId)

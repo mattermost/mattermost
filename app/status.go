@@ -319,12 +319,12 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
-	u, aErr := a.Srv().Store.User().Get(userId)
+	tz, aErr := a.Srv().Store.User().GetTimezone(userId)
 	if aErr != nil {
-		mlog.Error("Failed to fetch user", mlog.String("user_id", userId), mlog.String("err", aErr.Error()))
+		mlog.Error("Failed to fetch user's timezone", mlog.String("user_id", userId), mlog.String("err", aErr.Error()))
 	}
 
-	utc, cErr := convertToUTC(u.Timezone, endtime)
+	utc, cErr := convertToUTC(tz, endtime)
 
 	if cErr != nil {
 		mlog.Error("Failed to conver user timezone to utc", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
