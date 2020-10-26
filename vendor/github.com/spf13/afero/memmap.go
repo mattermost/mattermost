@@ -317,6 +317,11 @@ func (m *MemMapFs) Rename(oldname, newname string) error {
 	return nil
 }
 
+func (m *MemMapFs) LstatIfPossible(name string) (os.FileInfo, bool, error) {
+	fileInfo, err := m.Stat(name)
+	return fileInfo, false, err
+}
+
 func (m *MemMapFs) Stat(name string) (os.FileInfo, error) {
 	f, err := m.Open(name)
 	if err != nil {

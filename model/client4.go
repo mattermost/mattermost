@@ -3272,6 +3272,21 @@ func (c *Client4) GetPingWithServerStatus() (string, *Response) {
 	return MapFromJson(r.Body)["status"], BuildResponse(r)
 }
 
+// GetPingWithFullServerStatus will return the full status if several basic server
+// health checks all pass successfully.
+func (c *Client4) GetPingWithFullServerStatus() (map[string]string, *Response) {
+	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status="+c.boolString(true), "")
+	if r != nil && r.StatusCode == 500 {
+		defer r.Body.Close()
+		return map[string]string{"status": STATUS_UNHEALTHY}, BuildErrorResponse(r, err)
+	}
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return MapFromJson(r.Body), BuildResponse(r)
+}
+
 // TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail(config *Config) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetTestEmailRoute(), config.ToJson())
@@ -5685,6 +5700,19 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	json.NewDecoder(r.Body).Decode(&subscription)
 
 	return subscription, BuildResponse(r)
+}
+
+func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var invoices []*Invoice
+	json.NewDecoder(r.Body).Decode(&invoices)
+
+	return invoices, BuildResponse(r)
 }
 
 func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
