@@ -28,6 +28,7 @@ import (
 const MaxWriteLength = 4 * 1024 * 1024
 
 // DatabaseStore is a config store backed by a database.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type DatabaseStore struct {
 	originalDsn    string
 	driverName     string

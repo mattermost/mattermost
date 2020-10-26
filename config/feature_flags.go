@@ -29,6 +29,8 @@ type FeatureFlagSynchronizer struct {
 	stopped chan struct{}
 }
 
+var featureNames = getStructFields(model.FeatureFlags{})
+
 func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynchronizer, error) {
 	cfg := conf.Default()
 	if params.Log != nil {
@@ -59,7 +61,6 @@ func (f *FeatureFlagSynchronizer) EnsureReady() error {
 }
 
 func (f *FeatureFlagSynchronizer) UpdateFeatureFlagValues(base model.FeatureFlags) model.FeatureFlags {
-	featureNames := getStructFields(model.FeatureFlags{})
 	featuresMap := f.client.Treatments(f.ServerID, featureNames, nil)
 	ffm := featureFlagsFromMap(featuresMap, base)
 	return ffm
@@ -71,7 +72,7 @@ func (f *FeatureFlagSynchronizer) Close() {
 
 // featureFlagsFromMap sets the feature flags from a map[string]string.
 // It starts with baseFeatureFlags and only sets values that are
-// given by the upstream managment system.
+// given by the upstream management system.
 // Makes the assumption that all feature flags are strings for now.
 func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.FeatureFlags) model.FeatureFlags {
 	refStruct := reflect.ValueOf(&baseFeatureFlags).Elem()

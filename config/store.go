@@ -125,7 +125,7 @@ func (s *Store) GetNoEnv() *model.Config {
 
 // GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 func (s *Store) GetEnvironmentOverrides() map[string]interface{} {
-	return generateEnviromentMap(GetEnviroment())
+	return generateEnvironmentMap(GetEnvironment())
 }
 
 // RemoveEnvironmentOverrides returns a new config without the environment
@@ -200,7 +200,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	s.configNoEnv = loadedConfig.Clone()
 	fixConfig(s.configNoEnv)
 
-	loadedConfig = *applyEnviromentMap(&loadedConfig, GetEnviroment())
+	loadedConfig = *applyEnvironmentMap(&loadedConfig, GetEnvironment())
 
 	fixConfig(&loadedConfig)
 
@@ -276,8 +276,6 @@ func (s *Store) RemoveFile(name string) error {
 
 // String describes the backing store for the config.
 func (s *Store) String() string {
-	s.configLock.RLock()
-	defer s.configLock.RUnlock()
 	return s.backingStore.String()
 }
 

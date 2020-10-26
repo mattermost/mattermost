@@ -180,9 +180,10 @@ type Server struct {
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
 
-	featureFlagSynchronizer *config.FeatureFlagSynchronizer
-	featureFlagStop         chan struct{}
-	featureFlagStopped      chan struct{}
+	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagStop              chan struct{}
+	featureFlagStopped           chan struct{}
+	featureFlagSynchronizerMutex sync.Mutex
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -629,13 +630,9 @@ func (s *Server) initLogging() error {
 		isJson := config.IsJsonMap(dsn)
 
 		// If this is a file based config we need the full path so it can be watched.
-		if !isJson {
-			if strings.HasPrefix(s.configStore.String(), "file://") {
-				if !filepath.IsAbs(dsn) {
-					configPath := strings.TrimPrefix(s.configStore.String(), "file://")
-					dsn = filepath.Join(filepath.Dir(configPath), dsn)
-				}
-			}
+		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
+			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
+			dsn = filepath.Join(filepath.Dir(configPath), dsn)
 		}
 
 		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)

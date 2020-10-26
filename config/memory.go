@@ -12,6 +12,7 @@ import (
 )
 
 // MemoryStore implements the Store interface. It is meant primarily for testing.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type MemoryStore struct {
 	allowEnvironmentOverrides bool
 	validate                  bool

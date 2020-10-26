@@ -101,10 +101,27 @@ func TestRemoveEnvOverrides(t *testing.T) {
 				in.SqlSettings.DataSourceReplicas = []string{"otherthing", "alsothis"}
 			}),
 		},
+		{
+			name: "bad env",
+			inputConfig: modifiedDefault(func(in *model.Config) {
+			}),
+			env: map[string]string{
+				"MM_SERVICESETTINGS":        "huh?",
+				"NOTMM":                     "huh?",
+				"MM_NOTEXIST":               "huh?",
+				"MM_NOTEXIST_MORE_AND_MORE": "huh?",
+				"MM_":                       "huh?",
+				"MM":                        "huh?",
+				"MM__":                      "huh?",
+				"_":                         "huh?",
+			},
+			expectedConfig: modifiedDefault(func(in *model.Config) {
+			}),
+		},
 	}
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			require.Equal(t, testCase.expectedConfig, applyEnviromentMap(testCase.inputConfig, testCase.env))
+			require.Equal(t, testCase.expectedConfig, applyEnvironmentMap(testCase.inputConfig, testCase.env))
 		})
 	}
 }

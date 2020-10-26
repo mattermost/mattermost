@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func GetEnviroment() map[string]string {
+func GetEnvironment() map[string]string {
 	mmenv := make(map[string]string)
 	for _, env := range os.Environ() {
 		kv := strings.SplitN(env, "=", 2)
@@ -27,6 +27,9 @@ func GetEnviroment() map[string]string {
 
 func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 	keyParts := strings.SplitN(key, "_", 2)
+	if len(keyParts) < 1 {
+		return
+	}
 	rFieldValue := rValueSubject.FieldByNameFunc(func(candidate string) bool {
 		candidateUpper := strings.ToUpper(candidate)
 		return candidateUpper == keyParts[0]
@@ -45,6 +48,11 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 
 	switch rFieldValue.Kind() {
 	case reflect.Struct:
+		// If we have only one part left, we can't deal with a struct
+		// the env var is incomplete so give up.
+		if len(keyParts) < 2 {
+			return
+		}
 		applyEnvKey(keyParts[1], value, rFieldValue)
 	case reflect.String:
 		rFieldValue.Set(reflect.ValueOf(value))
@@ -68,7 +76,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 	}
 }
 
-func applyEnviromentMap(inputConfig *model.Config, env map[string]string) *model.Config {
+func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *model.Config {
 	appliedConfig := inputConfig.Clone()
 
 	rvalConfig := reflect.ValueOf(appliedConfig).Elem()
@@ -79,14 +87,14 @@ func applyEnviromentMap(inputConfig *model.Config, env map[string]string) *model
 	return appliedConfig
 }
 
-// generateEnviromentMap creates a map[string]interface{} containing true at the leaves mirroring the
+// generateEnvironmentMap creates a map[string]interface{} containing true at the leaves mirroring the
 // configuration structure so the client can know which env variables are overridden
-func generateEnviromentMap(env map[string]string) map[string]interface{} {
+func generateEnvironmentMap(env map[string]string) map[string]interface{} {
 	rType := reflect.TypeOf(model.Config{})
-	return generateEnviromnetMapWithBaseKey(env, rType, "MM")
+	return generateEnvironmentMapWithBaseKey(env, rType, "MM")
 }
 
-func generateEnviromnetMapWithBaseKey(env map[string]string, rType reflect.Type, base string) map[string]interface{} {
+func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type, base string) map[string]interface{} {
 	if rType.Kind() != reflect.Struct {
 		return nil
 	}
@@ -95,7 +103,7 @@ func generateEnviromnetMapWithBaseKey(env map[string]string, rType reflect.Type,
 	for i := 0; i < rType.NumField(); i++ {
 		rField := rType.Field(i)
 		if rField.Type.Kind() == reflect.Struct {
-			if val := generateEnviromnetMapWithBaseKey(env, rField.Type, base+"_"+rField.Name); val != nil {
+			if val := generateEnvironmentMapWithBaseKey(env, rField.Type, base+"_"+rField.Name); val != nil {
 				mapRepresentation[rField.Name] = val
 			}
 		} else {

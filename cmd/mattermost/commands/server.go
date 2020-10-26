@@ -43,7 +43,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnviroment()), !disableConfigWatch)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}

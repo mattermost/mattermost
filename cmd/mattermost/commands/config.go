@@ -145,7 +145,7 @@ func getConfigStore(command *cobra.Command) (*config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnviroment()), false)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}

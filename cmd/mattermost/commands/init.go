@@ -12,7 +12,7 @@ import (
 )
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnviroment()))
+	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
 
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic

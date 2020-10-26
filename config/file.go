@@ -24,6 +24,7 @@ var (
 // FileStore is a config store backed by a file such as config/config.json.
 //
 // It also uses the folder containing the configuration file for storing other configuration files.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type FileStore struct {
 	path     string
 	watch    bool

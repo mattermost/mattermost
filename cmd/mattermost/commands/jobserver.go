@@ -33,7 +33,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
 	// Initialize
-	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnviroment()))
+	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
 	if err != nil {
 		return err
 	}

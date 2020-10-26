@@ -11,8 +11,10 @@ import (
 )
 
 // setupFeatureFlags called on startup and when the cluster leader changes.
-// starts or stops the syncronization of feature flags from upstream managment.
+// Starts or stops the synchronization of feature flags from upstream management.
 func (s *Server) setupFeatureFlags() {
+	s.featureFlagSynchronizerMutex.Lock()
+	defer s.featureFlagSynchronizerMutex.Unlock()
 	license := s.License()
 	inCloud := license != nil && *license.Features.Cloud
 	splitKey := *s.Config().ServiceSettings.SplitKey
@@ -54,7 +56,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		log = s.Log
 	}
 
-	syncronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
+	synchronizer, err := config.NewFeatureFlagSynchronizer(config.FeatureFlagSyncParams{
 		ServerID: s.TelemetryId(),
 		SplitKey: *s.Config().ServiceSettings.SplitKey,
 		Log:      log,
@@ -65,12 +67,14 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 
 	s.featureFlagStop = make(chan struct{})
 	s.featureFlagStopped = make(chan struct{})
-	s.featureFlagSynchronizer = syncronizer
+	s.featureFlagSynchronizer = synchronizer
 	syncInterval := *s.Config().ServiceSettings.FeatureFlagSyncIntervalSeconds
 
 	go func() {
+		ticker := time.NewTicker(time.Duration(syncInterval) * time.Second)
+		defer ticker.Stop()
 		defer close(s.featureFlagStopped)
-		if err := syncronizer.EnsureReady(); err != nil {
+		if err := synchronizer.EnsureReady(); err != nil {
 			s.Log.Error("Problem connecting to feature flag managment. Will fallback to cloud cache.", mlog.Err(err))
 			return
 		}
@@ -79,7 +83,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 			select {
 			case <-s.featureFlagStop:
 				return
-			case <-time.After(time.Duration(syncInterval) * time.Second):
+			case <-ticker.C:
 				s.updateFeatureFlagValuesFromManagment()
 			}
 		}
