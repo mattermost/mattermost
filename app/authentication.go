@@ -52,7 +52,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 	if err := a.checkUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return passErr
+			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(user.Id)
@@ -65,7 +65,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		// about the MFA state of the user in question
 		if mfaToken != "" {
 			if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-				return passErr
+				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -75,7 +75,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
-		return passErr
+		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -95,7 +95,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 
 	if err := a.checkUserPassword(user, password); err != nil {
 		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return passErr
+			return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(user.Id)
@@ -104,7 +104,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	}
 
 	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
-		return passErr
+		return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, passErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
