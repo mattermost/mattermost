@@ -100,9 +100,7 @@ func (a *App) InitServer() {
 		}
 		a.srv.RunJobs()
 		if a.IsLeader() {
-			a.Srv().Go(func() {
-				a.UpdateDNDStatusOfUsers()
-			})
+			model.CreateRecurringTask("Unset DND Statuses", a.UpdateDNDStatusOfUsers, time.Duration(300)*time.Second)
 		}
 	})
 }
