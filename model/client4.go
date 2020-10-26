@@ -5702,6 +5702,19 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
+func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var invoices []*Invoice
+	json.NewDecoder(r.Body).Decode(&invoices)
+
+	return invoices, BuildResponse(r)
+}
+
 func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
 	customerBytes, _ := json.Marshal(customerInfo)
 
