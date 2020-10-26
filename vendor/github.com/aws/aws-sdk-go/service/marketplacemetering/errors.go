@@ -98,7 +98,7 @@ const (
 	// "PlatformNotSupportedException".
 	//
 	// AWS Marketplace does not support metering usage from the underlying platform.
-	// Currently, only Amazon ECS is supported.
+	// Currently, Amazon ECS, Amazon EKS, and AWS Fargate are supported.
 	ErrCodePlatformNotSupportedException = "PlatformNotSupportedException"
 
 	// ErrCodeThrottlingException for service response error code

@@ -2208,6 +2208,7 @@ type SamlSettings struct {
 	Enable                        *bool `access:"authentication"`
 	EnableSyncWithLdap            *bool `access:"authentication"`
 	EnableSyncWithLdapIncludeAuth *bool `access:"authentication"`
+	IgnoreGuestsLdapSync          *bool `access:"authentication"`
 
 	Verify      *bool `access:"authentication"`
 	Encrypt     *bool `access:"authentication"`
@@ -2260,6 +2261,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.IgnoreGuestsLdapSync == nil {
+		s.IgnoreGuestsLdapSync = NewBool(false)
 	}
 
 	if s.EnableAdminAttribute == nil {
