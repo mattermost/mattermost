@@ -256,7 +256,7 @@ func (s *Scorch) pausePersisterForMergerCatchUp(lastPersistedEpoch uint64,
 	// for sufficient in-memory segments to pile up for the next
 	// memory merge cum persist loop.
 	if numFilesOnDisk < uint64(po.PersisterNapUnderNumFiles) &&
-		po.PersisterNapTimeMSec > 0 && s.paused() == 0 {
+		po.PersisterNapTimeMSec > 0 && s.NumEventsBlocking() == 0 {
 		select {
 		case <-s.closeCh:
 		case <-time.After(time.Millisecond * time.Duration(po.PersisterNapTimeMSec)):
@@ -333,7 +333,7 @@ func (s *Scorch) persistSnapshot(snapshot *IndexSnapshot,
 	// Perform in-memory segment merging only when the memory pressure is
 	// below the configured threshold, else the persister performs the
 	// direct persistence of segments.
-	if s.paused() < po.MemoryPressurePauseThreshold {
+	if s.NumEventsBlocking() < po.MemoryPressurePauseThreshold {
 		persisted, err := s.persistSnapshotMaybeMerge(snapshot)
 		if err != nil {
 			return err
