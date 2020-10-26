@@ -48,7 +48,6 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			metrics.IncrementMemCacheMissCounterSession()
 		}
 	}
-	// defer model.UserSessionPool.Put(session)
 
 	if session == nil {
 		var nErr error
