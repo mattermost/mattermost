@@ -188,7 +188,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		return err
 	}
 
-	var loadedConfig model.Config
+	loadedConfig := &model.Config{}
 	if len(configBytes) != 0 {
 		if err = json.Unmarshal(configBytes, &loadedConfig); err != nil {
 			return jsonutils.HumanizeJsonError(err, configBytes)
@@ -200,9 +200,9 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	s.configNoEnv = loadedConfig.Clone()
 	fixConfig(s.configNoEnv)
 
-	loadedConfig = *applyEnvironmentMap(&loadedConfig, GetEnvironment())
+	loadedConfig = applyEnvironmentMap(loadedConfig, GetEnvironment())
 
-	fixConfig(&loadedConfig)
+	fixConfig(loadedConfig)
 
 	if err := loadedConfig.IsValid(); err != nil {
 		return errors.Wrap(err, "invalid config")
@@ -225,11 +225,11 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		}
 	}
 
-	s.config = &loadedConfig
+	s.config = loadedConfig
 
 	unlockOnce.Do(s.configLock.Unlock)
 
-	s.invokeConfigListeners(oldCfg, &loadedConfig)
+	s.invokeConfigListeners(oldCfg, loadedConfig)
 
 	return nil
 }
