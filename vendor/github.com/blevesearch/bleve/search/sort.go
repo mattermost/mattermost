@@ -427,7 +427,8 @@ func (s *SortField) filterTermsByType(terms [][]byte) [][]byte {
 				allTermsPrefixCoded = false
 			}
 		}
-		if allTermsPrefixCoded {
+		// reset the terms only when valid zero shift terms are found.
+		if allTermsPrefixCoded && len(termsWithShiftZero) > 0 {
 			terms = termsWithShiftZero
 			s.tmp = termsWithShiftZero[:0]
 		}

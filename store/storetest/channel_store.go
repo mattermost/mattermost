@@ -4470,8 +4470,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
-	_, err = ss.User().Save(u1)
-	require.Nil(t, err)
+	_, nErr = ss.User().Save(u1)
+	require.Nil(t, nErr)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
 	require.Nil(t, nErr)
 
@@ -4541,8 +4541,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			DeleteAt: 0,
 		}
-		_, err = ss.User().Save(u)
-		require.Nil(t, err)
+		_, nErr = ss.User().Save(u)
+		require.Nil(t, nErr)
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.Nil(t, nErr)
 
@@ -4592,8 +4592,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			DeleteAt: 0,
 		}
-		_, err = ss.User().Save(u)
-		require.Nil(t, err)
+		_, nErr = ss.User().Save(u)
+		require.Nil(t, nErr)
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.Nil(t, nErr)
 

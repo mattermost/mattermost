@@ -1161,10 +1161,6 @@
     "translation": "Errore durante il controllo dell'esistenza del bucket."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Connessione poco stabile verso S3 o minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Impossibile caricare i file. Ci sono {{.NumClientIds}} client_ids per {{.NumFiles}} file."
   },
@@ -6253,10 +6249,6 @@
   {
     "id": "api.context.server_busy.app_error",
     "translation": "Il server è occupato, i servizi non critici saranno temporaneamente non disponibili."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Impossibile caricare il file {{.Filename}}. Rifiutato dal plugin: {{.Reason}}"
   },
   {
     "id": "api.image.get.app_error",

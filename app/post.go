@@ -53,9 +53,15 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, userErr := a.Srv().Store.User().Get(post.UserId)
-			if userErr != nil {
-				return nil, userErr
+			user, nErr := a.Srv().Store.User().Get(post.UserId)
+			if nErr != nil {
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(nErr, &nfErr):
+					return nil, model.NewAppError("CreatePostAsUser", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				default:
+					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				}
 			}
 
 			T := utils.GetUserTranslations(user.Locale)
@@ -185,9 +191,15 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}()
 	}
 
-	user, err := a.Srv().Store.User().Get(post.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(post.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreatePost", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if user.IsBot {
@@ -443,9 +455,15 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId); err != nil {
+			return err
+		}
+	}
+
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
 		a.Srv().Go(func() {
-			_, err := a.SendAutoResponseIfNecessary(channel, user)
+			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
 			if err != nil {
 				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -1449,4 +1467,8 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	return false
+}
+
+func (a *App) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId)
 }

@@ -85,7 +85,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store.User().Get(upstreamRequest.UserId)
-		userChan <- store.StoreResult{Data: user, Err: err}
+		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -188,8 +188,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}()
 
 	ur := <-userChan
-	if ur.Err != nil {
-		return "", ur.Err
+	if ur.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(ur.NErr, &nfErr):
+			return "", model.NewAppError("DoPostActionWithCookie", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	user := ur.Data.(*model.User)
 	upstreamRequest.UserName = user.Username

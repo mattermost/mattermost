@@ -1164,10 +1164,6 @@
     "translation": "Błąd podczas sprawdzania czy wiadro istnieje."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Błąd połączenia do S3 lub minio."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Nie można załadować pliku (plików). Mam {{.NumClientIds}} client_ids dla plików {{.NumFiles}}."
   },
@@ -6394,10 +6390,6 @@
   {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Nie można wrzucić pliku {{.Filename}}. Odrzucony przez wtyczkę: {{.Reason}}"
   },
   {
     "id": "api.context.server_busy.app_error",
