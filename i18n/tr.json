@@ -1756,7 +1756,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Takım ekleme özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için Sistem Yöneticiniz ile görüşün."
+    "translation": "Takım ekleme özelliği devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -3204,7 +3204,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için Sistem Yöneticiniz ile görüşün."
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3588,11 +3588,11 @@
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcı isteği yapılırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcı isteği yapılırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcı isteği şifrelenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcı isteği şifrelenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -3600,7 +3600,7 @@
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Kimlik Sağlayıcının Herkese Açık Sertifika Dosyası bulunamadı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcının Herkese Açık Sertifika Dosyası bulunamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3608,23 +3608,23 @@
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "Kimlik Sağlayıcı yanıtı şifrelenmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcının yanıtı şifrelenmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Kimlik Sağlayıcı yanıtının şifresi çözülürken bir sorun çıktığından SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcı yanıtının şifresi çözülürken bir sorun çıktığından SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
-    "translation": "Kimlik Sağlayıcıdan boş bir yanıt alındı."
+    "translation": "Kimlik hizmeti sağlayıcıdan boş bir yanıt alındı."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Kimlik Sağlayıcıdan alınan yanıt işlenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt işlenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Kimlik Sağlayıcıdan alınan yanıt doğrulanırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt doğrulanırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -4228,11 +4228,11 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcının Herkese Açık Sertifikası eksik. Yüklemeyi mi unuttunuz?"
+    "translation": "Kimlik hizmeti sağlayıcının herkese açık sertifikası eksik. Yüklemeyi mi unuttunuz?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcı adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "translation": "Kimlik hizmeti sağlayıcı adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -5740,15 +5740,15 @@
   },
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcı adresinden üst veriler alınamadı."
+    "translation": "Kimlik hizmeti sağlayıcı adresinden üst veriler alınamadı."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcıdan alınan üst veri bilgileri bir sertifika için işlenirken sorun çıktı."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan üst veri bilgileri bir sertifika için işlenirken sorun çıktı."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "XML içinde Kimlik Hizmeti Sağlayıcı Tek Oturum Açma hizmetleri bölümü bulunamadı."
+    "translation": "XML içinde kimlik hizmeti sağlayıcı Tek Oturum Açma hizmetleri bölümü bulunamadı."
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -5888,7 +5888,7 @@
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcıdan alınan XML üst veri bilgilerinin kodu çözülemedi."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan XML üst veri bilgilerinin kodu çözülemedi."
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
@@ -6132,11 +6132,11 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "XML içinde Kimlik Hizmeti Sağlayıcı Tek Oturum Açma belirteçleri bölümü bulunamadı."
+    "translation": "XML içinde kimlik hizmeti sağlayıcı Tek Oturum Açma belirteçleri bölümü bulunamadı."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "XML içinde Kimlik Hizmeti Sağlayıcı Anahtar belirteçleri bölümü bulunamadı."
+    "translation": "XML içinde kimlik hizmeti sağlayıcı anahtar belirteçleri bölümü bulunamadı."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -6400,11 +6400,11 @@
   },
   {
     "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcıdan alınan yanıt paketi okunurken sorun çıktı."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt paketi okunurken sorun çıktı."
   },
   {
     "id": "app.admin.saml.invalid_response_from_idp.app_error",
-    "translation": "Kimlik Hizmeti Sağlayıcıdan alınan yanıt okunamadı."
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt okunamadı."
   },
   {
     "id": "app.admin.test_site_url.failure",
@@ -6908,11 +6908,11 @@
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
-    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.user.delete_user.not_enabled.app_error",
-    "translation": "Kullanıcıları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    "translation": "Kullanıcıları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
@@ -6956,7 +6956,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısı arasında bağlantı kurarak var olan kullanıcılarınızın kimlik doğrulama bilgilerini yeniden yazmasına gerek kalmadan Mattermost üzerine erişmesini sağlayabilirsiniz. Mattermost sunucunuz ile SAML 2.0 hizmeti sağlayıcınızı bütünleştirmenizi öneririz. [Buraya tıklayarak SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alabilirsiniz](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nBizimle İletişim Kurun üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
@@ -6968,7 +6968,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özellikler sunan Mattermost Enterprise sürümünün kullanılmasını önerir.\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özelliklerin kullanılmasını önerir. Ayrıntılı bilgi almak ve size nasıl yardımcı olabileceğimizi anlamamız için bizimle iletişim kurun.\n\nBizimle İletişim Kurun üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "app.system.warn_metric.store.app_error",
@@ -7012,11 +7012,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mattermost Enterprise sürümüne yükseltin"
+    "translation": "Mattermost ile büyümek"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "AD/LDAP ile bütünleştirin"
+    "translation": "Mattermost ile büyümek"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7456,7 +7456,7 @@
   },
   {
     "id": "api.user.delete_channel.not_enabled.app_error",
-    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7628,7 +7628,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Deneme lisansı alınamadı. Lisans isteğinde bulunmak için https://mattermost.com/trial/ adresine gidin."
+    "translation": "Deneme lisansı alınamadı. Lisans isteğinde bulunmak için https://mattermost.com/trial/ adresine bakabilirsiniz."
   },
   {
     "id": "api.post.search_posts.invalid_body.app_error",
@@ -7716,19 +7716,19 @@
   },
   {
     "id": "api.server.warn_metric.starting_trial",
-    "translation": "Deneme sürümünü edinmek"
+    "translation": "Deneme Sürümünü Edinmek"
   },
   {
     "id": "api.server.warn_metric.start_trial",
-    "translation": "Denemeyi başlat"
+    "translation": "Denemeyi Başlat"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+    "translation": "Mattermost iletişim kurma isteği. Takımım 500 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+    "translation": "Mattermost iletişim kurma isteği. Takımım 200 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7736,15 +7736,15 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nKabul et üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. Yükseltme hakkında ayrıntılı bilgi almak için [buraya tıklayın](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost sisteminiz 100 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak almanız ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesini sağlamanız önerilir.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBizimle İletişim Kurun üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. Yükseltme hakkında ayrıntılı bilgi almak için [buraya tıklayın](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştıya. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+    "translation": "Mattermost iletişim kurma isteği. Takımım 100 kullanıcıya ulaştı. Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Çok Aşamalı Kimlik Doğrulama Dayatılsın:"
+    "translation": "Çok Aşamalı Kimlik Doğrulama Dayatılıyor"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -7852,23 +7852,23 @@
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
-    "translation": "Kullanıcı kodu değeri geçersiz."
+    "translation": "Kullanıcı kodu değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.type.app_error",
-    "translation": "Kod değeri geçersiz."
+    "translation": "Kod değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.path.app_error",
-    "translation": "Yol değeri geçersiz."
+    "translation": "Yol değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
-    "translation": "Kod değeri geçersiz."
+    "translation": "Kod değeri geçersiz"
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",
-    "translation": "Eklenme zamanı değeri geçersiz."
+    "translation": "Eklenme zamanı değeri geçersiz"
   },
   {
     "id": "app.upload.get.app_error",
@@ -7992,7 +7992,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemini tamamlanıp sunucuyu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
@@ -8013,5 +8013,69 @@
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "Mattermost Enterprise Sürümüne zaten yükseltmişsiniz. Lütfen yükseltme işlemini tamamlamak için sunucuyu yeniden başlatın."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermost iletişim kurma isteği. Çok Aşamalı Kimlik Doğrulamasını dayatmak hakkında bilgi almak istiyorum.\n"
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Bir deneme sürümü lisansı alınamadı. Lütfen yeniden deneyin ya da support@mattermost.com e-posta adresine yazın. Kayıtlı kullanıcı sayısı alınamadı."
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "Ücretsiz sürüm kullanıcı sayısı sınırına ulaştınız"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Ürün bildirimi koşulları doğrulanamadı"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Enterprise sürümü denemeniz etkinleştirildi. **Sistem Panosu > Kullanıcı Yönetimi > İzinler** bölümüne giderek Gelişmiş İzinleri etkinleştirebilirsiniz."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Gelişmiş İzinleri Kullanmak"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Başarımı Arttırmak"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Gelişmiş İzinleri Kullanmak"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Salt Okunur Duyuru Kanalları"
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Nesneler listelenirken sorun çıktı."
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "S3 bağlantısı kurulurken bir sorun çıktı."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "CWS isteği işlenirken sorun çıktı."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "/{{.Command}} komutunun uygulama eki çalışmıyor. Lütfen sistem yöneticiniz ile görüşün"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} komutu {{.PluginId}} uygulama ekinin çökmesine neden oldu. Lütfen sistem yöneticiniz ile görüşün"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki zaman geçersiz. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki imza geçersiz. Lütfen sistem yöneticiniz ile görüşün."
   }
 ]
