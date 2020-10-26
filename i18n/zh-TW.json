@@ -4994,10 +4994,6 @@
     "translation": "找不到符合您的認證之帳號，此團隊需要從團隊擁有者取得邀請才可加入。"
   },
   {
-    "id": "store.sql_user.search.app_error",
-    "translation": "無法找到與搜尋條件相符的使用者"
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "這個電子郵件已經被使用。請選擇其他的。"
   },
@@ -5240,10 +5236,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "取得最新的 Chrome 瀏覽器"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "認可資料庫交易時失敗"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",

@@ -4999,10 +4999,6 @@
     "translation": "Bu takım için kimlik doğrulama bilgilerinizle eşleşen var olan bir hesap bulunamadı. Bu takıma katılmak için takım yöneticisinin çağrı göndermesi gerekiyor olabilir."
   },
   {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Arama ölçütlerine uygun bir kullanıcı bulunamadı."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Bu e-posta adresi zaten alınmış. Lütfen başka bir adres seçin."
   },

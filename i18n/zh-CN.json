@@ -4994,10 +4994,6 @@
     "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
-    "id": "store.sql_user.search.app_error",
-    "translation": "无法找到符合搜索条件的用户"
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "该邮箱已被使用。请重新选择。"
   },
@@ -6380,10 +6376,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "获取最新的 Chrome 浏览器"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
   },
   {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",

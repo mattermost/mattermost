@@ -5004,10 +5004,6 @@
     "translation": "Nu s-a putut găsi un cont existent care să corespundă acreditărilor dvs. Această echipă poate solicita o invitație din partea proprietarului echipei să se alăture."
   },
   {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Nu se poate găsi niciun utilizator care să corespundă parametrilor de căutare"
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
   },
@@ -5250,10 +5246,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obțineți cel mai recent browser Chrome"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Nu s-a efectuat tranzacția bazei de date"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
