@@ -44,13 +44,13 @@ func TestCreateUser(t *testing.T) {
 	ruser.Username = GenerateTestUsername()
 	ruser.Password = "passwd1"
 	_, resp = th.Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "store.sql_user.save.email_exists.app_error")
+	CheckErrorMessage(t, resp, "app.user.save.existing.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = th.GenerateTestEmail()
 	ruser.Username = user.Username
 	_, resp = th.Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "store.sql_user.save.username_exists.app_error")
+	CheckErrorMessage(t, resp, "app.user.save.existing.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = ""
@@ -1996,8 +1996,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, err)
 
 		// Check that we have users and posts in the database
-		users, err := th.App.Srv().Store.User().GetAll()
-		require.Nil(t, err)
+		users, nErr := th.App.Srv().Store.User().GetAll()
+		require.Nil(t, nErr)
 		require.Greater(t, len(users), 0)
 
 		postCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
@@ -2009,8 +2009,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, resp.Error)
 
 		// Check that both user and post tables are empty
-		users, err = th.App.Srv().Store.User().GetAll()
-		require.Nil(t, err)
+		users, nErr = th.App.Srv().Store.User().GetAll()
+		require.Nil(t, nErr)
 		require.Len(t, users, 0)
 
 		postCount, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
@@ -2673,14 +2673,14 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Fake user has MFA enabled
-		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.Nil(t, err)
+		nErr := th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		require.Nil(t, nErr)
 
-		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.Nil(t, err)
+		nErr = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		require.Nil(t, nErr)
 
-		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
-		require.Nil(t, err)
+		nErr = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+		require.Nil(t, nErr)
 
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckErrorMessage(t, resp, "mfa.validate_token.authenticate.app_error")
@@ -2706,11 +2706,11 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		assert.Nil(t, err)
 
 		// Fake user has MFA enabled
-		err = th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
-		require.Nil(t, err)
+		nErr := th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true)
+		require.Nil(t, nErr)
 
-		err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
-		require.Nil(t, err)
+		nErr = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
+		require.Nil(t, nErr)
 
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
