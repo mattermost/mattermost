@@ -24,14 +24,14 @@ func (s *Server) setupFeatureFlags() {
 
 	if syncFeatureFlags {
 		if err := s.startFeatureFlagUpdateJob(); err != nil {
-			s.Log.Error("Unable to setup synchronization with feature flag management. Will fallback to cloud cache.", mlog.Err(err))
+			s.Log.Warn("Unable to setup synchronization with feature flag management. Will fallback to cloud cache.", mlog.Err(err))
 		}
 	} else {
 		s.stopFeatureFlagUpdateJob()
 	}
 
 	if err := s.configStore.Load(); err != nil {
-		s.Log.Error("Unable to load config store after feature flag setup.", mlog.Err(err))
+		s.Log.Warn("Unable to load config store after feature flag setup.", mlog.Err(err))
 	}
 }
 
@@ -75,7 +75,7 @@ func (s *Server) startFeatureFlagUpdateJob() error {
 		defer ticker.Stop()
 		defer close(s.featureFlagStopped)
 		if err := synchronizer.EnsureReady(); err != nil {
-			s.Log.Error("Problem connecting to feature flag managment. Will fallback to cloud cache.", mlog.Err(err))
+			s.Log.Warn("Problem connecting to feature flag management. Will fallback to cloud cache.", mlog.Err(err))
 			return
 		}
 		s.updateFeatureFlagValuesFromManagment()
