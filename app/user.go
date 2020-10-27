@@ -2369,6 +2369,7 @@ func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts)
 	}
 	for _, thread := range threads.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeProps()
 	}
 	return threads, nil
 }

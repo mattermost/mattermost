@@ -522,13 +522,10 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
 	if err != nil && err != sql.ErrNoRows {
-		if err != sql.ErrNoRows {
-			return errors.Wrapf(err, "failed to get Post with id=%s", postId)
-		}
-
-		if err = s.cleanupThreads(post.Id, post.RootId, post.UserId, true); err != nil {
-			return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
-		}
+		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
+	}
+	if err = s.cleanupThreads(post.Id, post.RootId, post.UserId, true); err != nil {
+		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
 	if _, err = s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId}); err != nil {

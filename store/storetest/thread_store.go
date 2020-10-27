@@ -191,7 +191,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.EqualValues(t, thread1.ReplyCount, 1)
 		require.Len(t, thread1.Participants, 1)
 
-		err = ss.Post().Delete(rootPost.Id, 123, model.NewId())
+		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
 		require.Nil(t, err)
 
 		thread2, _ := ss.Thread().Get(rootPost.Id)
