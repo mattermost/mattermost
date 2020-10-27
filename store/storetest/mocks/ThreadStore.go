@@ -56,6 +56,20 @@ func (_m *ThreadStore) DeleteMembershipForUser(userId string, postId string) err
 	return r0
 }
 
+// Follow provides a mock function with given fields: userId, threadId, state
+func (_m *ThreadStore) Follow(userId string, threadId string, state bool) error {
+	ret := _m.Called(userId, threadId, state)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(userId, threadId, state)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *ThreadStore) Get(id string) (*model.Thread, error) {
 	ret := _m.Called(id)
@@ -123,6 +137,57 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMemb
 	}
 
 	return r0, r1
+}
+
+// GetThreadsForUser provides a mock function with given fields: userId, opts
+func (_m *ThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	ret := _m.Called(userId, opts)
+
+	var r0 *model.Threads
+	if rf, ok := ret.Get(0).(func(string, model.GetUserThreadsOpts) *model.Threads); ok {
+		r0 = rf(userId, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Threads)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, model.GetUserThreadsOpts) error); ok {
+		r1 = rf(userId, opts)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MarkAllAsRead provides a mock function with given fields: userId, state
+func (_m *ThreadStore) MarkAllAsRead(userId string, state bool) error {
+	ret := _m.Called(userId, state)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
+		r0 = rf(userId, state)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MarkAsRead provides a mock function with given fields: userId, threadId, state
+func (_m *ThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+	ret := _m.Called(userId, threadId, state)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(userId, threadId, state)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: thread

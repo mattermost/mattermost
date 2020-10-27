@@ -7702,6 +7702,26 @@ func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postId st
 
 }
 
+func (s *RetryLayerThreadStore) Follow(userId string, threadId string, state bool) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.Follow(userId, threadId, state)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) Get(id string) (*model.Thread, error) {
 
 	tries := 0
@@ -7757,6 +7777,66 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.T
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MarkAllAsRead(userId, state)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MarkAsRead(userId, threadId, state)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 

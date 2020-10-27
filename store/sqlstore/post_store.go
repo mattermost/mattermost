@@ -515,7 +515,7 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.cleanupThreads(post.Id, post.RootId, post.UserId)
+	return s.cleanupThreads(post.Id, post.RootId, post.UserId, false)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -526,7 +526,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 			return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 		}
 
-		if err = s.cleanupThreads(post.Id, post.RootId, post.UserId); err != nil {
+		if err = s.cleanupThreads(post.Id, post.RootId, post.UserId, true); err != nil {
 			return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 		}
 	}
@@ -552,7 +552,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, userId); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, userId, true); err != nil {
 			return err
 		}
 	}
@@ -608,7 +608,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId, true); err != nil {
 			return err
 		}
 	}
@@ -1921,7 +1921,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
-func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
+func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent bool) error {
 	if len(rootId) > 0 {
 		thread, err := s.Thread().Get(rootId)
 		if err != nil {
@@ -1937,11 +1937,13 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 			}
 		}
 	}
-	if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-		return errors.Wrap(err, "failed to delete Threads")
-	}
-	if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-		return errors.Wrap(err, "failed to delete ThreadMemberships")
+	if permanent {
+		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+			return errors.Wrap(err, "failed to delete Threads")
+		}
+		if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+			return errors.Wrap(err, "failed to delete ThreadMemberships")
+		}
 	}
 	return nil
 }

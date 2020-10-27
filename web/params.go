@@ -27,6 +27,7 @@ type Params struct {
 	TeamId                    string
 	InviteId                  string
 	TokenId                   string
+	ThreadId                  string
 	ChannelId                 string
 	PostId                    string
 	FileId                    string
@@ -106,6 +107,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["token_id"]; ok {
 		params.TokenId = val
+	}
+
+	if val, ok := props["thread_id"]; ok {
+		params.ThreadId = val
 	}
 
 	if val, ok := props["channel_id"]; ok {

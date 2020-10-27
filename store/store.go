@@ -251,7 +251,12 @@ type ThreadStore interface {
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
+	GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	Delete(postId string) error
+
+	MarkAllAsRead(userId string, state bool) error
+	MarkAsRead(userId, threadId string, state bool) error
+	Follow(userId, threadId string, state bool) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)

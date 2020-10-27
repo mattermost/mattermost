@@ -189,6 +189,14 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
+func (c *Client4) GetUserThreadsRoute(userId string) string {
+	return fmt.Sprintf(c.GetUsersRoute()+"/%v/threads", userId)
+}
+
+func (c *Client4) GetUserThreadRoute(userId, threadId string) string {
+	return fmt.Sprintf(c.GetUserThreadsRoute(userId)+"/%v", threadId)
+}
+
 func (c *Client4) GetUserCategoryRoute(userID, teamID string) string {
 	return c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/channels/categories"
 }
@@ -5715,4 +5723,87 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r)
+}
+
+func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Threads, *Response) {
+	v := url.Values{}
+	if options.Since != 0 {
+		v.Set("since", fmt.Sprintf("%d", options.Since))
+	}
+	if options.Page != 0 {
+		v.Set("page", fmt.Sprintf("%d", options.Page))
+	}
+	if options.PageSize != 0 {
+		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
+	}
+	if options.Extended {
+		v.Set("extended", "true")
+	}
+	if options.Deleted {
+		v.Set("deleted", "true")
+	}
+
+	url := c.GetUserThreadsRoute(userId)
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var threads Threads
+	json.NewDecoder(r.Body).Decode(&threads)
+
+	return &threads, BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadsReadForUser(userId string, state bool) *Response {
+	var appErr *AppError
+	var r *http.Response
+	if state {
+		r, appErr = c.DoApiPut(c.GetUserThreadsRoute(userId)+"/read", "")
+	} else {
+		r, appErr = c.DoApiDelete(c.GetUserThreadsRoute(userId) + "/read")
+	}
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadReadForUser(userId, threadId string, state bool) *Response {
+	var appErr *AppError
+	var r *http.Response
+	if state {
+		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, threadId)+"/read", "")
+	} else {
+		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, threadId) + "/read")
+	}
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadFollowForUser(userId, threadId string, state bool) *Response {
+	var appErr *AppError
+	var r *http.Response
+	if state {
+		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, threadId)+"/following", "")
+	} else {
+		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, threadId) + "/following")
+	}
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
 }

@@ -6920,6 +6920,22 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postId st
 	return err
 }
 
+func (s *TimerLayerThreadStore) Follow(userId string, threadId string, state bool) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.Follow(userId, threadId, state)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Follow", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 	start := timemodule.Now()
 
@@ -6966,6 +6982,54 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.T
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipsForUser", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.MarkAllAsRead(userId, state)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAllAsRead", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.MarkAsRead(userId, threadId, state)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAsRead", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
