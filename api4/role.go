@@ -92,6 +92,18 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("role", oldRole)
 
+	// manage_system permission is required to patch system_admin
+	var requiredPermission *model.Permission
+	if oldRole.Name == model.SYSTEM_ADMIN_ROLE_ID {
+		requiredPermission = model.PERMISSION_MANAGE_SYSTEM
+	} else {
+		requiredPermission = model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS
+	}
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), requiredPermission) {
+		c.SetPermissionError(requiredPermission)
+		return
+	}
+
 	if c.App.Srv().License() == nil && patch.Permissions != nil {
 		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
@@ -127,11 +139,6 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.Srv().License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.Srv().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
