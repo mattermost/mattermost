@@ -327,6 +327,18 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.EqualValues(t, emoji, s)
 		})
 
+		t.Run("overrides icon URL with name surrounded by colons", func(t *testing.T) {
+			colonEmoji := ":basketball:"
+			clientPost := prepare(true, url, colonEmoji)
+
+			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.True(t, ok)
+			assert.EqualValues(t, overridenUrl, s)
+			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			assert.True(t, ok)
+			assert.EqualValues(t, colonEmoji, s)
+		})
+
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {

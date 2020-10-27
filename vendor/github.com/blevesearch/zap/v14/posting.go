@@ -107,6 +107,8 @@ type PostingsList struct {
 	// 1-hit encoding, and only the docNum1Hit & normBits1Hit apply
 	docNum1Hit   uint64
 	normBits1Hit uint64
+
+	chunkSize uint64
 }
 
 // represents an immutable, empty postings list
@@ -206,12 +208,12 @@ func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool,
 
 	// initialize freq chunk reader
 	if rv.includeFreqNorm {
-		rv.freqNormReader = newChunkedIntDecoder(p.sb.mem, p.freqOffset)
+		rv.freqNormReader = newChunkedIntDecoder(p.sb.mem, p.freqOffset, rv.freqNormReader)
 	}
 
 	// initialize the loc chunk reader
 	if rv.includeLocs {
-		rv.locReader = newChunkedIntDecoder(p.sb.mem, p.locOffset)
+		rv.locReader = newChunkedIntDecoder(p.sb.mem, p.locOffset, rv.locReader)
 	}
 
 	rv.all = p.postings.Iterator()
@@ -273,6 +275,12 @@ func (rv *PostingsList) read(postingsOffset uint64, d *Dictionary) error {
 	_, err := rv.postings.FromBuffer(roaringBytes)
 	if err != nil {
 		return fmt.Errorf("error loading roaring bitmap: %v", err)
+	}
+
+	rv.chunkSize, err = getChunkSize(d.sb.chunkMode,
+		rv.postings.GetCardinality(), d.sb.numDocs)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -550,15 +558,10 @@ func (i *PostingsIterator) nextDocNumAtOrAfter(atOrAfter uint64) (uint64, bool, 
 
 	n := i.Actual.Next()
 	allN := i.all.Next()
-
-	chunkSize, err := getChunkSize(i.postings.sb.chunkMode, i.postings.postings.GetCardinality(), i.postings.sb.numDocs)
-	if err != nil {
-		return 0, false, err
-	}
-	nChunk := n / uint32(chunkSize)
+	nChunk := n / uint32(i.postings.chunkSize)
 
 	// when allN becomes >= to here, then allN is in the same chunk as nChunk.
-	allNReachesNChunk := nChunk * uint32(chunkSize)
+	allNReachesNChunk := nChunk * uint32(i.postings.chunkSize)
 
 	// n is the next actual hit (excluding some postings), and
 	// allN is the next hit in the full postings, and
@@ -600,21 +603,16 @@ func (i *PostingsIterator) nextDocNumAtOrAfterClean(
 		return uint64(i.Actual.Next()), true, nil
 	}
 
-	chunkSize, err := getChunkSize(i.postings.sb.chunkMode, i.postings.postings.GetCardinality(), i.postings.sb.numDocs)
-	if err != nil {
-		return 0, false, err
-	}
-
 	// freq-norm's needed, so maintain freq-norm chunk reader
 	sameChunkNexts := 0 // # of times we called Next() in the same chunk
 	n := i.Actual.Next()
-	nChunk := n / uint32(chunkSize)
+	nChunk := n / uint32(i.postings.chunkSize)
 
 	for uint64(n) < atOrAfter && i.Actual.HasNext() {
 		n = i.Actual.Next()
 
 		nChunkPrev := nChunk
-		nChunk = n / uint32(chunkSize)
+		nChunk = n / uint32(i.postings.chunkSize)
 
 		if nChunk != nChunkPrev {
 			sameChunkNexts = 0
