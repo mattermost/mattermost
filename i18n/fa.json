@@ -269,7 +269,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "بخث آزاد"
+    "translation": "بحث آزاد"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
