@@ -56,7 +56,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) *model.AppError {
 	}
 	_, err := a.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
 	if err != nil {
-		return err
+		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError

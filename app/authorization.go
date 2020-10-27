@@ -80,7 +80,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return true
 	}
 
-	if channel.TeamId != "" {
+	if appErr == nil && channel.TeamId != "" {
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 

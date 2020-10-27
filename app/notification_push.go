@@ -211,7 +211,7 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
@@ -242,7 +242,7 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
@@ -525,7 +525,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	msg.Badge = int(unreadCount)
 

@@ -2785,17 +2785,17 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, int(totalMemberCount), maxUsersPerTeam, "should start with 5 team members, had %v instead", totalMemberCount)
 
-	user, err := ss.User().Save(&model.User{
+	user, nErr := ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	newUserId := user.Id
 	defer func() {
 		ss.User().PermanentDelete(newUserId)
 	}()
 
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: newUserId,
 	}, maxUsersPerTeam)
@@ -2827,17 +2827,17 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should have 5 team members again, had %v instead", totalMemberCount)
 
 	// Deactivating a user should make them stop counting against max members
-	user2, err := ss.User().Get(userIds[1])
-	require.Nil(t, err)
+	user2, nErr := ss.User().Get(userIds[1])
+	require.Nil(t, nErr)
 	user2.DeleteAt = 1234
-	_, err = ss.User().Update(user2, true)
-	require.Nil(t, err)
+	_, nErr = ss.User().Update(user2, true)
+	require.Nil(t, nErr)
 
-	user, err = ss.User().Save(&model.User{
+	user, nErr = ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	newUserId2 := user.Id
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam)
 	require.Nil(t, nErr, "should've been able to save new member after deleting one")
