@@ -111,7 +111,7 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 		return err
 	}
 
-	schan := make(chan *model.AppError, 1)
+	schan := make(chan error, 1)
 	go func() {
 		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)

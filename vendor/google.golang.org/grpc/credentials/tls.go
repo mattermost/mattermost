@@ -27,7 +27,6 @@ import (
 	"net"
 	"net/url"
 
-	"google.golang.org/grpc/credentials/internal"
 	credinternal "google.golang.org/grpc/internal/credentials"
 )
 
@@ -73,7 +72,7 @@ func (c tlsCreds) Info() ProtocolInfo {
 
 func (c *tlsCreds) ClientHandshake(ctx context.Context, authority string, rawConn net.Conn) (_ net.Conn, _ AuthInfo, err error) {
 	// use local cfg to avoid clobbering ServerName if using multiple endpoints
-	cfg := cloneTLSConfig(c.config)
+	cfg := credinternal.CloneTLSConfig(c.config)
 	if cfg.ServerName == "" {
 		serverName, _, err := net.SplitHostPort(authority)
 		if err != nil {
@@ -108,7 +107,7 @@ func (c *tlsCreds) ClientHandshake(ctx context.Context, authority string, rawCon
 	if id != nil {
 		tlsInfo.SPIFFEID = id
 	}
-	return internal.WrapSyscallConn(rawConn, conn), tlsInfo, nil
+	return credinternal.WrapSyscallConn(rawConn, conn), tlsInfo, nil
 }
 
 func (c *tlsCreds) ServerHandshake(rawConn net.Conn) (net.Conn, AuthInfo, error) {
@@ -127,7 +126,7 @@ func (c *tlsCreds) ServerHandshake(rawConn net.Conn) (net.Conn, AuthInfo, error)
 	if id != nil {
 		tlsInfo.SPIFFEID = id
 	}
-	return internal.WrapSyscallConn(rawConn, conn), tlsInfo, nil
+	return credinternal.WrapSyscallConn(rawConn, conn), tlsInfo, nil
 }
 
 func (c *tlsCreds) Clone() TransportCredentials {
@@ -139,23 +138,10 @@ func (c *tlsCreds) OverrideServerName(serverNameOverride string) error {
 	return nil
 }
 
-const alpnProtoStrH2 = "h2"
-
-func appendH2ToNextProtos(ps []string) []string {
-	for _, p := range ps {
-		if p == alpnProtoStrH2 {
-			return ps
-		}
-	}
-	ret := make([]string, 0, len(ps)+1)
-	ret = append(ret, ps...)
-	return append(ret, alpnProtoStrH2)
-}
-
 // NewTLS uses c to construct a TransportCredentials based on TLS.
 func NewTLS(c *tls.Config) TransportCredentials {
-	tc := &tlsCreds{cloneTLSConfig(c)}
-	tc.config.NextProtos = appendH2ToNextProtos(tc.config.NextProtos)
+	tc := &tlsCreds{credinternal.CloneTLSConfig(c)}
+	tc.config.NextProtos = credinternal.AppendH2ToNextProtos(tc.config.NextProtos)
 	return tc
 }
 
@@ -241,19 +227,4 @@ var cipherSuiteLookup = map[uint16]string{
 	tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:   "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
 	tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305:    "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305",
 	tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305:  "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
-}
-
-// cloneTLSConfig returns a shallow clone of the exported
-// fields of cfg, ignoring the unexported sync.Once, which
-// contains a mutex and must not be copied.
-//
-// If cfg is nil, a new zero tls.Config is returned.
-//
-// TODO: inline this function if possible.
-func cloneTLSConfig(cfg *tls.Config) *tls.Config {
-	if cfg == nil {
-		return &tls.Config{}
-	}
-
-	return cfg.Clone()
 }
