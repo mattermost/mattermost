@@ -5435,6 +5435,10 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Unable to get user threads"
+  },
+  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
   },
@@ -5501,6 +5505,18 @@
   {
     "id": "app.user.update_password.app_error",
     "translation": "Unable to update the user password."
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Unable to update following state for thread"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Unable to update read state for thread"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Unable to update all user threads as read"
   },
   {
     "id": "app.user.update_update.app_error",
