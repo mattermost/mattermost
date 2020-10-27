@@ -4995,184 +4995,12 @@
     "translation": "Een team lid met de opgegeven id bestaat al"
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Unable to get the active users during the requested period"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "De gebruikers kunnen niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "We kunnen geen bestaand account vinden die inloggen bij dit team toe staat. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Er is een probleem opgetreden om een account te vinden op basis van authenticatie type."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "We vonden meerdere gebruikers die overeenkomen met uw referenties en waren niet in staat om u te laten inloggen. Neem contact op met een systeembeheerder."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Het aantal gebruikers kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker en kanaal kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Een account met dat e-mail adres bestaat al."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Een account met deze gebruikersnaam bestaat al."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters"
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Velden die gezet zijn door AD/LDAP kunnen niet gewijzigd worden"
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "We kunnen geen account vinden om bij te werken"
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Er is een fout opgestreden bij het bijwerken van het account"
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Deze gebruikersnaam is al in gebruik. Kies een andere."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het emailadres {{.Email}}."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het bijwerken van de MFA status van de gebruiker"
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Er is een probleem opgetreden bij het bijwerken van de gebruiker zijn MFA geheim"
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user"
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
   },
   {
     "id": "store.update_error",
@@ -5437,78 +5265,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Download de nieuwste Chrome browser"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Gasten kunnen niet worden gedeactiveerd."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "De lijst van deactiveren van gasten-ids kan niet worden opgehaald."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Het bijwerken van de teamlidmaatschappen van de gebruiker is mislukt."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "De teamleden voor de gebruikersbatch kunnen niet worden opgehaald voor indexering."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "De kanaalleden kunnen niet worden opgehaald voor de gebruikersbatch voor indexering."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "De gekende gebruikers kunnen niet worden opgehaald uit de database."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Het bijwerken van de teamlidmaatschappen van de gebruiker is mislukt."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions maken geen zin."
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
@@ -7887,10 +7643,6 @@
     "translation": "Kon het bestand niet lezen."
   },
   {
-    "id": "store.sql_user.analytics_get_external_users.app_error",
-    "translation": "Fout bij het tellen van het aantal gebruikers met niet lokale domeine-mails"
-  },
-  {
     "id": "model.upload_session.is_valid.user_id.app_error",
     "translation": "Ongeldige waarde voor UserId"
   },
@@ -8272,7 +8024,7 @@
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Command}} command crashte de {{.PluginId}} plugin. Contacteer je systeembeheerder"
+    "translation": "/{{.Command}} opdracht heeft de plugin {{.PluginId}} gecrasht. Neem contact op met je systeembeheerder"
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
@@ -8305,5 +8057,17 @@
   {
     "id": "api.file.new_backend.s3.app_error",
     "translation": "Er trad een fout op bij het openen van een verbinding met S3."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Fout bij het bijwerken van het lidmaatschap van het draadje voor de genoemde gebruiker"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Kon het bestand niet opladen {{.Filename}}. Geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Fout bij het verplaatsen van het bestand."
   }
 ]

@@ -16,10 +16,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
 
 	"github.com/Masterminds/semver/v3"
-	date_constraints "github.com/reflog/dateconstraints"
+	"github.com/pkg/errors"
+	"github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
@@ -301,16 +301,15 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
-	var appErr *model.AppError
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
 		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if appErr != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
+	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if err != nil {
+		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

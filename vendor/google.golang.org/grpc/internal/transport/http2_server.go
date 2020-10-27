@@ -611,6 +611,10 @@ func (t *http2Server) handleData(f *http2.DataFrame) {
 	if !ok {
 		return
 	}
+	if s.getState() == streamReadDone {
+		t.closeStream(s, true, http2.ErrCodeStreamClosed, false)
+		return
+	}
 	if size > 0 {
 		if err := s.fc.onData(size); err != nil {
 			t.closeStream(s, true, http2.ErrCodeFlowControl, false)

@@ -80,6 +80,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss, s) })
+	t.Run("SearchArchivedInTeam", func(t *testing.T) { testChannelStoreSearchArchivedInTeam(t, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -4470,8 +4471,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
-	_, err = ss.User().Save(u1)
-	require.Nil(t, err)
+	_, nErr = ss.User().Save(u1)
+	require.Nil(t, nErr)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
 	require.Nil(t, nErr)
 
@@ -4541,8 +4542,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			DeleteAt: 0,
 		}
-		_, err = ss.User().Save(u)
-		require.Nil(t, err)
+		_, nErr = ss.User().Save(u)
+		require.Nil(t, nErr)
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.Nil(t, nErr)
 
@@ -4592,8 +4593,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			DeleteAt: 0,
 		}
-		_, err = ss.User().Save(u)
-		require.Nil(t, err)
+		_, nErr = ss.User().Save(u)
+		require.Nil(t, nErr)
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.Nil(t, nErr)
 
@@ -4945,6 +4946,28 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 	}
 
 	return s[i].Id < s[j].Id
+}
+
+func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+	teamId := model.NewId()
+	userId := model.NewId()
+
+	t.Run("empty result", func(t *testing.T) {
+		list, err := ss.Channel().SearchArchivedInTeam(teamId, "term", userId)
+		require.Nil(t, err)
+		require.NotNil(t, list)
+		require.Empty(t, list)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		// trigger a SQL error
+		s.GetMaster().Exec("ALTER TABLE Channels RENAME TO Channels_renamed")
+		defer s.GetMaster().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
+
+		list, err := ss.Channel().SearchArchivedInTeam(teamId, "term", userId)
+		require.NotNil(t, err)
+		require.Nil(t, list)
+	})
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
