@@ -388,6 +388,7 @@ type AppIface interface {
 	CancelJob(jobId string) *model.AppError
 	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
+	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError

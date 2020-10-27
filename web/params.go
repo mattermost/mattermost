@@ -81,6 +81,9 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+
+	// Cloud
+	InvoiceId string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -219,6 +222,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["remote_id"]; ok {
 		params.RemoteId = val
+	}
+
+	if val, ok := props["invoice_id"]; ok {
+		params.InvoiceId = val
 	}
 
 	params.Scope = query.Get("scope")
