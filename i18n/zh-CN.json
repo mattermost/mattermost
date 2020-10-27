@@ -2363,7 +2363,7 @@
   },
   {
     "id": "api.user.update_password.failed.app_error",
-    "translation": "更新密码失败"
+    "translation": "更新密码失败。"
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
@@ -2375,11 +2375,11 @@
   },
   {
     "id": "api.user.update_password.oauth.app_error",
-    "translation": "因为用户登录通过OAuth服务更新密码失败"
+    "translation": "更新密码失败，因为用户通过 OAuth 服务登录。"
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "更新密码失败，因为我们无法找到有效的帐户"
+    "translation": "更新密码失败，因为无法找到有效的帐户。"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -2407,7 +2407,7 @@
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "无法解析多形式表单"
+    "translation": "无法解析混合表单。"
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -2439,7 +2439,7 @@
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "未能升级WebSocket连接"
+    "translation": "未能升级 WebSocket 连接。"
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
@@ -2479,7 +2479,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "无法跨团队更新 webhook"
+    "translation": "无法跨团队更新 webhook。"
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -4990,184 +4990,12 @@
     "translation": "已存在拥有此 ID 的团队成员"
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "无法在请求时间内获取活动用户"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "我们无法计算未活动的用户数"
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "无法获取系统管理数"
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "开始数据库事务失败。"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "获取用户失败"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "更新用户失败"
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "我们查找帐户遇到了一个错误"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "未找到符合您的验证方式的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "我们在尝试通过身份验证类型找到账户时遇到一个问题。"
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "未找到符合您的用户名的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "未找到符合您的凭证的帐号。此团队或许需要从团队拥有者获得邀请才可加入。"
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "我们发现多个用户的登陆凭据与你匹配，因此禁用了你的登陆权限。请与管理员联系。"
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "我们在查找新用户时发生错误"
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "我们查找用户配置文件遇到了一个错误"
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "查找最近活动的用户时遇到错误"
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "我们查找用户配置文件遇到了一个错误"
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "无法按照首个用户创建日期判断系统日期。"
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "我们无法计算用户数"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "我们无法为用户获取到未读信息数量"
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "我们无法为用户和频道获取未读信息数量"
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "无法找到该用户。"
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "无法删除现有的帐号"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "无法更新该帐号。"
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "已有帐号使用该电子邮件。"
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "必须对现有的用户执行更新"
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "已存在使用该用户名的账户。"
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "无法找到符合搜索条件的用户"
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "无法更新该帐号"
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "无法更改 AD/LDAP 设定的字段"
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "未找到现有的帐号以更新"
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "我们查找该用户时遇到一个错误"
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "我们更新用户时遇到了一个错误"
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "这个用户名已被使用。请重新选择。"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "无法更新验证数据"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "不能切换至 {{.Service}}账号。 使用此邮件{{.Email}}的账号已经存在。"
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "无法更新 failed_attempts"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "无法更新 update_at"
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "我们在更新用户的多重验证使用状态时遇到一个错误"
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "我们在更新用户的多重验证密码时遇到一个错误"
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "无法更新用户密码"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "我们无法更新用户最近更新的日期"
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "无法更新验证电子邮件字段"
   },
   {
     "id": "store.update_error",
@@ -6550,78 +6378,6 @@
     "translation": "获取最新的 Chrome 浏览器"
   },
   {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "无法停用访客。"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "无法获取已停用的访客 id 列表。"
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "更新用户失败"
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "更新团队成员失败。"
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "更新频道成员失败。"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "无法为索引获取批量用户。"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "无法为索引获取批量团队成员。"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "无法为索引获取频道成员。"
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "我们查找用户配置文件遇到了一个错误"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "无法从数据库获取已知用户。"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "更新用户失败"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "更新团队成员失败。"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "开始数据库事务失败"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "提交数据库事务失败"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "更新频道成员失败。"
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions 不合理。"
-  },
-  {
     "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
     "translation": "必须提供服务提供商标识"
   },
@@ -7739,7 +7495,7 @@
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "无法获取频道类型数"
+    "translation": "无法获取频道类型数。"
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -8186,10 +7942,6 @@
     "translation": "上传数据失败。第一部分必须至少为 {{.Size}} 字节。"
   },
   {
-    "id": "store.sql_user.analytics_get_external_users.app_error",
-    "translation": "无法计算非本地域电子邮件的用户数"
-  },
-  {
     "id": "model.upload_session.is_valid.file_size.app_error",
     "translation": "无效的 FileSize"
   },
@@ -8288,5 +8040,29 @@
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
     "translation": "频道有助于改善沟通，但是随着 Mattermost 的用户加入并创建频道，保持系统井井有条的挑战越来越大。使用高级权限，您可以设置哪些用户或角色可以执行某些操作，包括管理频道设置与成员，使用 @channel 或 @here 标记广泛的用户组以及创建新的 Webhook。\n\n[了解有关使用高级权限的更多信息](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\n通过单击“联系我们”，您将与 Mattermost，Inc. 分享您的信息。[了解更多](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "从身份提供商的回复中含有无效的时间。请与系统管理员联系。"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "封送 CWS 的请求出现内部错误"
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "更新提及用户的串成员失败"
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "创建连接至 S3 遇到错误。"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} 命令导致 {{.PluginId}} 插件崩溃。请联系系统管理员"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "无法获取帖子的文件信息。"
   }
 ]
