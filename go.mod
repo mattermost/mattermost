@@ -20,6 +20,7 @@ require (
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
+	github.com/dgraph-io/ristretto v0.0.4-0.20201023213945-72c2139ec27f
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
@@ -59,7 +60,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.2.2
+	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/klauspost/compress v1.11.1 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
 	github.com/lib/pq v1.8.0
@@ -85,14 +86,13 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.14.0 // indirect
 	github.com/prometheus/procfs v0.2.0 // indirect
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/rudderlabs/analytics-go v3.2.1+incompatible
-	github.com/russellhaering/goxmldsig v1.1.0
+	github.com/russellhaering/goxmldsig v1.1.0 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/sirupsen/logrus v1.7.0
@@ -120,7 +120,7 @@ require (
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0
-	golang.org/x/sys v0.0.0-20201007165808-a893ed343c85 // indirect
+	golang.org/x/sys v0.0.0-20201027090413-e1471140ff15 // indirect
 	golang.org/x/text v0.3.3
 	golang.org/x/tools v0.0.0-20201008025239-9df69603baec
 	google.golang.org/appengine v1.6.6 // indirect

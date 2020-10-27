@@ -143,6 +143,8 @@ github.com/blevesearch/zap/v14
 github.com/blevesearch/zap/v15
 # github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 ## explicit
+# github.com/cespare/xxhash v1.1.0
+github.com/cespare/xxhash
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/corpix/uarand v0.1.1
@@ -161,6 +163,10 @@ github.com/couchbase/vellum/utf8
 ## explicit
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/dgraph-io/ristretto v0.0.4-0.20201023213945-72c2139ec27f
+## explicit
+github.com/dgraph-io/ristretto
+github.com/dgraph-io/ristretto/z
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 ## explicit
 github.com/dgryski/dgoogauth
@@ -176,6 +182,8 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
+# github.com/dustin/go-humanize v1.0.0
+github.com/dustin/go-humanize
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 ## explicit
 github.com/dyatlov/go-opengraph/opengraph
@@ -481,7 +489,6 @@ github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.14.0
 ## explicit
@@ -746,7 +753,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20201007165808-a893ed343c85
+# golang.org/x/sys v0.0.0-20201027090413-e1471140ff15
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader

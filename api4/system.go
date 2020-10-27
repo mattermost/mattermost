@@ -29,7 +29,7 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = cache.NewLRU(&cache.LRUOptions{
+var redirectLocationDataCache = cache.NewLFU(&cache.LFUOptions{
 	Size: REDIRECT_LOCATION_CACHE_SIZE,
 })
 

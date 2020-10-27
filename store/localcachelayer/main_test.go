@@ -23,7 +23,7 @@ var mainHelper *testlib.MainHelper
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
 	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.LRUOptions{Size: 128}))
+		Return(cache.NewLFU(&cache.LFUOptions{Size: 128}))
 	return &mockCacheProvider
 }
 

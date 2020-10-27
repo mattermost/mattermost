@@ -554,7 +554,11 @@ const (
 	IFLA_NEW_IFINDEX        = 0x31
 	IFLA_MIN_MTU            = 0x32
 	IFLA_MAX_MTU            = 0x33
-	IFLA_MAX                = 0x36
+	IFLA_PROP_LIST          = 0x34
+	IFLA_ALT_IFNAME         = 0x35
+	IFLA_PERM_ADDRESS       = 0x36
+	IFLA_PROTO_DOWN_REASON  = 0x37
+	IFLA_MAX                = 0x37
 	IFLA_INFO_KIND          = 0x1
 	IFLA_INFO_DATA          = 0x2
 	IFLA_INFO_XSTATS        = 0x3
@@ -946,7 +950,10 @@ type PerfEventMmapPage struct {
 	Time_offset    uint64
 	Time_zero      uint64
 	Size           uint32
-	_              [948]uint8
+	_              uint32
+	Time_cycles    uint64
+	Time_mask      uint64
+	_              [928]uint8
 	Data_head      uint64
 	Data_tail      uint64
 	Data_offset    uint64
@@ -1145,10 +1152,12 @@ const (
 	PERF_RECORD_KSYMBOL                   = 0x11
 	PERF_RECORD_BPF_EVENT                 = 0x12
 	PERF_RECORD_CGROUP                    = 0x13
-	PERF_RECORD_MAX                       = 0x14
+	PERF_RECORD_TEXT_POKE                 = 0x14
+	PERF_RECORD_MAX                       = 0x15
 	PERF_RECORD_KSYMBOL_TYPE_UNKNOWN      = 0x0
 	PERF_RECORD_KSYMBOL_TYPE_BPF          = 0x1
-	PERF_RECORD_KSYMBOL_TYPE_MAX          = 0x2
+	PERF_RECORD_KSYMBOL_TYPE_OOL          = 0x2
+	PERF_RECORD_KSYMBOL_TYPE_MAX          = 0x3
 	PERF_BPF_EVENT_UNKNOWN                = 0x0
 	PERF_BPF_EVENT_PROG_LOAD              = 0x1
 	PERF_BPF_EVENT_PROG_UNLOAD            = 0x2
@@ -1465,7 +1474,7 @@ const (
 	NFT_MSG_DELOBJ                    = 0x14
 	NFT_MSG_GETOBJ_RESET              = 0x15
 	NFT_MSG_MAX                       = 0x19
-	NFTA_LIST_UNPEC                   = 0x0
+	NFTA_LIST_UNSPEC                  = 0x0
 	NFTA_LIST_ELEM                    = 0x1
 	NFTA_HOOK_UNSPEC                  = 0x0
 	NFTA_HOOK_HOOKNUM                 = 0x1
@@ -1904,9 +1913,12 @@ type XDPMmapOffsets struct {
 }
 
 type XDPStatistics struct {
-	Rx_dropped       uint64
-	Rx_invalid_descs uint64
-	Tx_invalid_descs uint64
+	Rx_dropped               uint64
+	Rx_invalid_descs         uint64
+	Tx_invalid_descs         uint64
+	Rx_ring_full             uint64
+	Rx_fill_ring_empty_descs uint64
+	Tx_ring_empty_descs      uint64
 }
 
 type XDPDesc struct {
@@ -2553,7 +2565,7 @@ const (
 	DEVLINK_ATTR_DPIPE_FIELD_MAPPING_TYPE     = 0x3c
 	DEVLINK_ATTR_PAD                          = 0x3d
 	DEVLINK_ATTR_ESWITCH_ENCAP_MODE           = 0x3e
-	DEVLINK_ATTR_MAX                          = 0x90
+	DEVLINK_ATTR_MAX                          = 0x94
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_NONE     = 0x0
 	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_IFINDEX  = 0x1
 	DEVLINK_DPIPE_MATCH_TYPE_FIELD_EXACT      = 0x0
