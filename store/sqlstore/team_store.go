@@ -1321,7 +1321,7 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 	return teams, nil
 }
 
-// This function does the Advanced Permissions Phase 2 migration for TeamMember objects. It performs the migration
+// MigrateTeamMembers performs the Advanced Permissions Phase 2 migration for TeamMember objects. Migration is done
 // in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
@@ -1387,6 +1387,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 	return data, nil
 }
 
+// ResetAllTeamSchemes Set all Team's SchemeId values to an empty string.
 func (s SqlTeamStore) ResetAllTeamSchemes() error {
 	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
 		return errors.Wrap(err, "failed to update Teams")
@@ -1397,8 +1398,10 @@ func (s SqlTeamStore) ResetAllTeamSchemes() error {
 // ClearCaches method not implemented.
 func (s SqlTeamStore) ClearCaches() {}
 
+// InvalidateAllTeamIdsForUser does not execute anything because the store does not handle the cache.
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
+// ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers.
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
 
 	builtInRoles := model.MakeDefaultRoles()
@@ -1633,6 +1636,7 @@ func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, teamI
 	return resultQuery
 }
 
+// GroupSyncedTeamCount returns the number of teams that are group constrained.
 func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
 	builder := s.getQueryBuilder().Select("COUNT(*)").From("Teams").Where(sq.Eq{"GroupConstrained": true, "DeleteAt": 0})
 

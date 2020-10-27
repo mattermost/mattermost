@@ -540,11 +540,11 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
 		u.AuthData = NewString("")
 		u.AuthService = ""
+		u.EmailVerified = false
 	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
-	u.EmailVerified = false
 	u.MfaActive = false
 	u.MfaSecret = ""
 }

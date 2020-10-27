@@ -663,3 +663,15 @@ func (c *Context) RequireBotUserId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireInvoiceId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InvoiceId) != 27 {
+		c.SetInvalidUrlParam("invoice_id")
+	}
+
+	return c
+}
