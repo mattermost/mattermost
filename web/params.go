@@ -223,6 +223,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.InvoiceId = val
 	}
 
+	if val, ok := props["dnd_end_time"]; ok {
+		params.DNDEndTime = val
+	}
+
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
