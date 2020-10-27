@@ -1,5 +1,12 @@
+# code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
+## explicit
+code.sajari.com/docconv
+code.sajari.com/docconv/iWork
+code.sajari.com/docconv/snappy
 # github.com/HdrHistogram/hdrhistogram-go v0.9.0
 ## explicit
+# github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198
+github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.0
 ## explicit
 github.com/Masterminds/semver/v3
@@ -9,9 +16,20 @@ github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
 ## explicit
 github.com/NYTimes/gziphandler
+# github.com/PuerkitoBio/goquery v1.5.1
+github.com/PuerkitoBio/goquery
 # github.com/RoaringBitmap/roaring v0.5.1
 ## explicit
 github.com/RoaringBitmap/roaring
+# github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad
+## explicit
+github.com/advancedlogic/GoOse
+# github.com/andybalholm/brotli v1.0.0
+github.com/andybalholm/brotli
+# github.com/andybalholm/cascadia v1.2.0
+github.com/andybalholm/cascadia
+# github.com/araddon/dateparse v0.0.0-20200409225146-d820a6159ab1
+github.com/araddon/dateparse
 # github.com/armon/go-metrics v0.3.4
 ## explicit
 github.com/armon/go-metrics
@@ -149,6 +167,13 @@ github.com/dgryski/dgoogauth
 # github.com/disintegration/imaging v1.6.2
 ## explicit
 github.com/disintegration/imaging
+# github.com/dsnet/compress v0.0.1
+github.com/dsnet/compress
+github.com/dsnet/compress/bzip2
+github.com/dsnet/compress/bzip2/internal/sais
+github.com/dsnet/compress/internal
+github.com/dsnet/compress/internal/errors
+github.com/dsnet/compress/internal/prefix
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 ## explicit
 github.com/dyatlov/go-opengraph/opengraph
@@ -161,6 +186,8 @@ github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.9.0
 ## explicit
 github.com/fatih/color
+# github.com/fatih/set v0.2.1
+github.com/fatih/set
 # github.com/felixge/httpsnoop v1.0.1
 github.com/felixge/httpsnoop
 # github.com/fortytw2/leaktest v1.3.0
@@ -175,12 +202,16 @@ github.com/fsnotify/fsnotify
 ## explicit
 github.com/getsentry/sentry-go
 github.com/getsentry/sentry-go/http
+# github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573
+github.com/gigawattio/window
 # github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a
 ## explicit
 github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.1
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-resty/resty/v2 v2.3.0
+github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -298,13 +329,25 @@ github.com/json-iterator/go
 # github.com/klauspost/compress v1.11.1
 ## explicit
 github.com/klauspost/compress/flate
+github.com/klauspost/compress/fse
 github.com/klauspost/compress/gzip
+github.com/klauspost/compress/huff0
+github.com/klauspost/compress/snappy
+github.com/klauspost/compress/zstd
+github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/klauspost/cpuid v1.3.1
 github.com/klauspost/cpuid
+# github.com/klauspost/pgzip v1.2.4
+github.com/klauspost/pgzip
 # github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 github.com/lann/builder
 # github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
 github.com/lann/ps
+# github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
+## explicit
+github.com/ledongthuc/pdf
+# github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5
+github.com/levigross/exp-html
 # github.com/lib/pq v1.8.0
 ## explicit
 github.com/lib/pq
@@ -355,13 +398,15 @@ github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
-## explicit
 github.com/mattn/go-runewidth
 # github.com/mattn/go-sqlite3 v2.0.3+incompatible
 ## explicit
 github.com/mattn/go-sqlite3
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/mholt/archiver/v3 v3.4.0
+## explicit
+github.com/mholt/archiver/v3
 # github.com/miekg/dns v1.1.31
 ## explicit
 github.com/miekg/dns
@@ -403,11 +448,12 @@ github.com/muesli/smartcrop/nfnt
 github.com/muesli/smartcrop/options
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 github.com/nfnt/resize
+# github.com/nwaples/rardecode v1.1.0
+github.com/nwaples/rardecode
 # github.com/oklog/run v1.1.0
 ## explicit
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.4
-## explicit
 github.com/olekukonko/tablewriter
 # github.com/olivere/elastic v6.2.35+incompatible
 ## explicit
@@ -422,6 +468,8 @@ github.com/oov/psd/color
 github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
+# github.com/otiai10/gosseract/v2 v2.2.4
+github.com/otiai10/gosseract/v2
 # github.com/pborman/uuid v1.2.1
 ## explicit
 github.com/pborman/uuid
@@ -430,6 +478,9 @@ github.com/pborman/uuid
 github.com/pelletier/go-toml
 # github.com/philhofer/fwd v1.0.0
 github.com/philhofer/fwd
+# github.com/pierrec/lz4/v3 v3.3.2
+github.com/pierrec/lz4/v3
+github.com/pierrec/lz4/v3/internal/xxh32
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -502,7 +553,6 @@ github.com/spf13/jwalterweatherman
 ## explicit
 github.com/spf13/pflag
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
-## explicit
 github.com/ssor/bom
 # github.com/steveyen/gtreap v0.1.0
 github.com/steveyen/gtreap
@@ -551,6 +601,11 @@ github.com/uber/jaeger-client-go/zipkin
 # github.com/uber/jaeger-lib v2.4.0+incompatible
 ## explicit
 github.com/uber/jaeger-lib/metrics
+# github.com/ulikunitz/xz v0.5.7
+github.com/ulikunitz/xz
+github.com/ulikunitz/xz/internal/hash
+github.com/ulikunitz/xz/internal/xlog
+github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack/v5 v5.0.0-beta.1
 ## explicit
 github.com/vmihailenco/msgpack/v5
@@ -573,6 +628,8 @@ github.com/wiggin77/srslog
 # github.com/willf/bitset v1.1.11
 ## explicit
 github.com/willf/bitset
+# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
+github.com/xi2/xz
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
