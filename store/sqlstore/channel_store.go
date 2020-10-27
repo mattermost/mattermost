@@ -2544,15 +2544,19 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		"UserId": userId,
 	})
 
-	output := *publicChannels
-	output = append(output, *privateChannels...)
-
 	outputErr := publicErr
 	if privateErr != nil {
 		outputErr = privateErr
 	}
 
-	return &output, outputErr
+	if outputErr != nil {
+		return nil, outputErr
+	}
+
+	output := *publicChannels
+	output = append(output, *privateChannels...)
+
+	return &output, nil
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {

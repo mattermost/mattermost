@@ -388,6 +388,7 @@ type AppIface interface {
 	CancelJob(jobId string) *model.AppError
 	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
+	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckForClientSideCert(r *http.Request) (string, string, string)
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
@@ -685,6 +686,7 @@ type AppIface interface {
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
+	GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userId string) (*model.User, *model.AppError)
@@ -883,8 +885,8 @@ type AppIface interface {
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
-	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
-	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
+	SendAutoResponse(channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError)
+	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError)
 	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
