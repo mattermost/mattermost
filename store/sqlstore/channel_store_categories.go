@@ -605,18 +605,19 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	return nil
 }
 
-func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
+		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
+	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
 		originalCategory, err2 := s.GetSidebarCategory(category.Id)
 		if err2 != nil {
-			return nil, errors.Wrap(err2, "failed to find SidebarCategories")
+			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
 
 		// Copy category to avoid modifying an argument
@@ -646,7 +647,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			Where(sq.Eq{"Id": updatedCategory.Id}).ToSql()
 
 		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
-			return nil, errors.Wrap(err, "failed to update SidebarCategories")
+			return nil, nil, errors.Wrap(err, "failed to update SidebarCategories")
 		}
 
 		// if we are updating DM category, it's order can't channel order cannot be changed.
@@ -667,11 +668,11 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				).ToSql()
 
 			if err2 != nil {
-				return nil, errors.Wrap(err2, "update_sidebar_catetories_tosql")
+				return nil, nil, errors.Wrap(err2, "update_sidebar_catetories_tosql")
 			}
 
 			if _, err = transaction.Exec(query, args...); err != nil {
-				return nil, errors.Wrap(err, "failed to delete SidebarChannels")
+				return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
 			}
 
 			var channels []interface{}
@@ -687,7 +688,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 
 			if err = transaction.Insert(channels...); err != nil {
-				return nil, errors.Wrap(err, "failed to save SidebarChannels")
+				return nil, nil, errors.Wrap(err, "failed to save SidebarChannels")
 			}
 		}
 
@@ -703,7 +704,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			).ToSql()
 
 			if _, err = transaction.Exec(sql, args...); err != nil {
-				return nil, errors.Wrap(err, "failed to delete Preferences")
+				return nil, nil, errors.Wrap(err, "failed to delete Preferences")
 			}
 
 			// And then add the new ones
@@ -716,7 +717,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 					Value:    "true",
 				}); err != nil {
-					return nil, errors.Wrap(err, "failed to save Preference")
+					return nil, nil, errors.Wrap(err, "failed to save Preference")
 				}
 			}
 		} else {
@@ -729,32 +730,33 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 				},
 			).ToSql()
 			if nErr != nil {
-				return nil, errors.Wrap(nErr, "update_sidebar_categories_tosql")
+				return nil, nil, errors.Wrap(nErr, "update_sidebar_categories_tosql")
 			}
 
 			if _, nErr = transaction.Exec(query, args...); nErr != nil {
-				return nil, errors.Wrap(nErr, "failed to delete Preferences")
+				return nil, nil, errors.Wrap(nErr, "failed to delete Preferences")
 			}
 		}
 
 		updatedCategories = append(updatedCategories, updatedCategory)
+		originalCategories = append(originalCategories, originalCategory)
 	}
 
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
 	for i, updatedCategory := range updatedCategories {
 		populated, nErr := s.completePopulatingCategoryChannelsT(transaction, updatedCategory)
 		if nErr != nil {
-			return nil, nErr
+			return nil, nil, nErr
 		}
 
 		updatedCategories[i] = populated
 	}
 
 	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		return nil, nil, errors.Wrap(err, "commit_transaction")
 	}
 
-	return updatedCategories, nil
+	return updatedCategories, originalCategories, nil
 }
 
 // UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync

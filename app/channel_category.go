@@ -144,7 +144,7 @@ func (a *App) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []
 }
 
 func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
-	result, err := a.Srv().Store.Channel().UpdateSidebarCategories(userId, teamId, categories)
+	result, _, err := a.Srv().Store.Channel().UpdateSidebarCategories(userId, teamId, categories)
 	if err != nil {
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
