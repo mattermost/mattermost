@@ -6,12 +6,14 @@ package cache
 import (
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 
 	"github.com/dgraph-io/ristretto"
 )
 
-// // LFU cache implementation using the Ristretto library.
+// LFU cache implementation using the Ristretto library.
 type LFU struct {
 	name                   string
 	size                   int
@@ -110,17 +112,30 @@ func (l *LFU) Name() string {
 }
 
 func (l *LFU) set(key string, value interface{}, ttl time.Duration) error {
-	buf, err := msgpack.Marshal(value)
+	var buf []byte
+	var err error
 
-	if err != nil {
-		return err
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Marshaler); ok {
+		buf, err = msgpVal.MarshalMsg(nil)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Slow path for other structs.
+		buf, err = msgpack.Marshal(value)
+		if err != nil {
+			return err
+		}
 	}
 
-	if !l.cache.SetWithTTL(key, buf, 1, ttl) {
-		return ErrKeyNotFound
+	set := l.cache.SetWithTTL(key, buf, 1, ttl)
+
+	if !set {
+		return ErrKeyNotSet
 	}
 
-	if l.len <= l.size {
+	if l.len < l.size {
 		l.len++
 	}
 
@@ -134,13 +149,35 @@ func (l *LFU) get(key string, value interface{}) error {
 		return ErrKeyNotFound
 	}
 
-	err := msgpack.Unmarshal(val.([]byte), value)
-
-	if err != nil {
-		panic(err)
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
+		_, err := msgpVal.UnmarshalMsg(val.([]byte))
+		return err
 	}
 
-	return nil
+	// This is ugly and makes the cache package aware of the model package.
+	// But this is due to 2 things.
+	// 1. The msgp package works on methods on structs rather than functions.
+	// 2. Our cache interface passes pointers to empty pointers, and not pointers
+	// to values. This is mainly how all our model structs are passed around.
+	// It might be technically possible to use values _just_ for hot structs
+	// like these and then return a pointer while returning from the cache function,
+	// but it will make the codebase inconsistent, and has some edge-cases to take care of.
+	switch v := value.(type) {
+	case **model.User:
+		var u model.User
+		_, err := u.UnmarshalMsg(val.([]byte))
+		*v = &u
+		return err
+	case **model.Session:
+		var s model.Session
+		_, err := s.UnmarshalMsg(val.([]byte))
+		*v = &s
+		return err
+	}
+
+	// Slow path for other structs.
+	return msgpack.Unmarshal(val.([]byte), value)
 }
 
 func (l *LFU) remove(key string) error {

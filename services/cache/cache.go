@@ -11,6 +11,9 @@ import (
 // ErrKeyNotFound is the error when the given key is not found
 var ErrKeyNotFound = errors.New("key not found")
 
+// ErrKeyNotSet is the error when given key is not set
+var ErrKeyNotSet = errors.New("key not set")
+
 // Cache is a representation of a cache store that aims to replace cache.Cache
 type Cache interface {
 	// Purge is used to completely clear the cache.
