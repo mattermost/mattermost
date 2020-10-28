@@ -209,12 +209,17 @@ func (wc *WebConn) writePump() {
 			}
 
 			buf.Reset()
+			var err error
 			if evtOk {
 				cpyEvt := evt.SetSequence(wc.Sequence)
-				enc.Encode(cpyEvt)
+				err = enc.Encode(cpyEvt)
 				wc.Sequence++
 			} else {
-				enc.Encode(msg)
+				err = enc.Encode(msg)
+			}
+			if err != nil {
+				mlog.Warn("Error in encoding websocket message", mlog.Err(err))
+				continue
 			}
 
 			if len(wc.send) >= sendFullWarn {
