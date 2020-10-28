@@ -36,7 +36,7 @@ type LFUOptions struct {
 func NewLFU(opts *LFUOptions) Cache {
 	lfu, err := ristretto.NewCache(&ristretto.Config{
 		NumCounters: int64(10 * opts.Size),
-		MaxCost:     int64(opts.Size),
+		MaxCost:     int64(opts.Size << 10),
 		Metrics:     opts.Metrics,
 		BufferItems: 64,
 	})
