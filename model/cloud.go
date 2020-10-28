@@ -83,7 +83,7 @@ type Subscription struct {
 	Seats       int      `json:"seats"`
 	DNS         string   `json:"dns"`
 	IsPaidTier  string   `json:"is_paid_tier"`
-	LastInvoice string   `json:"last_invoice"`
+	LastInvoice *Invoice `json:"last_invoice"`
 }
 
 // Invoice model represents a cloud invoice
