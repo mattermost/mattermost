@@ -5,11 +5,12 @@ package sqlstore
 
 import (
 	"database/sql"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -187,19 +188,18 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	var changedThreads []string
+	channelsFilter, channelsFilterArgs, _ := sq.And{sq.Eq{"ChannelMembers.ChannelId": channelIds}, sq.Eq{"ChannelMembers.UserId": userId}}.ToSql()
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads").
-		LeftJoin("Posts ON Threads.PostId=Posts.Id").
-		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId").
-		Where(sq.And{
-			sq.Eq{"Posts.ChannelId": channelIds},
-			sq.Eq{"ChannelMembers.UserId": userId},
+		Join("Posts ON Threads.PostId=Posts.Id").
+		Join("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId AND "+channelsFilter, channelsFilterArgs...).
+		Where(
 			sq.Or{
 				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
 				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
 			},
-		}).
+		).
 		ToSql()
 	if _, err := s.GetReplica().Select(&changedThreads, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch threads")
