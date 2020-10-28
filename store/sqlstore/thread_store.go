@@ -30,6 +30,7 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 	for _, db := range sqlStore.GetAllConns() {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
+		tableThreads.ColMap("ChannelId").SetMaxSize(26)
 		tableThreads.ColMap("Participants").SetMaxSize(0)
 		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
 		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
@@ -40,12 +41,13 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 }
 
 func threadSliceColumns() []string {
-	return []string{"PostId", "LastReplyAt", "ReplyCount", "Participants"}
+	return []string{"PostId", "ChannelId", "LastReplyAt", "ReplyCount", "Participants"}
 }
 
 func threadToSlice(thread *model.Thread) []interface{} {
 	return []interface{}{
 		thread.PostId,
+		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
 		thread.Participants,
@@ -56,6 +58,7 @@ func (s *SqlThreadStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
 	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
+	s.CreateIndexIfNotExists("idx_threads_channel_id", "Threads", "ChannelId")
 }
 
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
@@ -188,18 +191,18 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	var changedThreads []string
-	channelsFilter, channelsFilterArgs, _ := sq.And{sq.Eq{"ChannelMembers.ChannelId": channelIds}, sq.Eq{"ChannelMembers.UserId": userId}}.ToSql()
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads").
-		Join("Posts ON Threads.PostId=Posts.Id").
-		Join("ChannelMembers ON ChannelMembers.ChannelId=Posts.ChannelId AND "+channelsFilter, channelsFilterArgs...).
-		Where(
+		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Threads.ChannelId").
+		Where(sq.And{
+			sq.Eq{"Threads.ChannelId": channelIds},
+			sq.Eq{"ChannelMembers.UserId": userId},
 			sq.Or{
 				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
 				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
 			},
-		).
+		}).
 		ToSql()
 	if _, err := s.GetReplica().Select(&changedThreads, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch threads")
