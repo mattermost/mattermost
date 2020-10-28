@@ -1407,6 +1407,29 @@ func TestPushNotificationRace(t *testing.T) {
 	})
 }
 
+func TestPushNotificationAttachment(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	post := &model.Post{
+		Message: "hello world",
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					AuthorName: "testuser",
+					Text:       "test attachment",
+					Fallback:   "fallback text",
+				},
+			},
+		},
+	}
+	user := &model.User{}
+	ch := &model.Channel{}
+
+	pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+	assert.Equal(t, "test: hello world\nfallback text", pn.Message)
+}
+
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
