@@ -56,8 +56,23 @@ func (s SqlChannelStore) GetSharedChannels(offset, limit int, opts store.SharedC
 		return nil, errors.New("cannot exclude home and remote shared channels")
 	}
 
+	safeConv := func(offset, limit int) (uint64, uint64, error) {
+		if offset < 0 {
+			return 0, 0, errors.New("offset must be postive integer")
+		}
+		if limit < 0 {
+			return 0, 0, errors.New("limit must be postive integer")
+		}
+		return uint64(offset), uint64(limit), nil
+	}
+
+	safeOffset, safeLimit, err := safeConv(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
 	query := s.getSharedChannelsQuery(opts, false)
-	query = query.OrderBy("sc.ShareDisplayName, sc.ShareName").Limit(uint64(limit)).Offset(uint64(offset))
+	query = query.OrderBy("sc.ShareDisplayName, sc.ShareName").Limit(safeLimit).Offset(safeOffset)
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -107,12 +122,12 @@ func (s SqlChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOp
 		query = query.Where(sq.Eq{"sc.TeamId": opts.TeamId})
 	}
 
-	if opts.Token != "" {
-		query = query.Where(sq.Eq{"sc.Token": opts.Token})
+	if opts.CreatorId != "" {
+		query = query.Where(sq.Eq{"sc.CreatorId": opts.CreatorId})
 	}
 
-	if !opts.ExcludeHome && !opts.ExcludeRemote {
-		return query
+	if opts.Token != "" {
+		query = query.Where(sq.Eq{"sc.Token": opts.Token})
 	}
 
 	if opts.ExcludeHome {

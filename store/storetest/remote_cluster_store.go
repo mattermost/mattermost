@@ -75,10 +75,10 @@ func testRemoteClusterDelete(t *testing.T, ss store.Store) {
 
 func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 	data := []*model.RemoteCluster{
-		{ClusterName: "offline remote", Hostname: "somewhere.com", LastPingAt: model.GetMillis() - (model.REMOTE_OFFLINE_AFTER_MILLIS * 2)},
+		{ClusterName: "offline remote", Hostname: "somewhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 2)},
 		{ClusterName: "some remote", Hostname: "nowhere.com", LastPingAt: 0},
 		{ClusterName: "another remote", Hostname: "underwhere.com", LastPingAt: 0},
-		{ClusterName: "another offline remote", Hostname: "knowhere.com", LastPingAt: model.GetMillis() - (model.REMOTE_OFFLINE_AFTER_MILLIS * 3)},
+		{ClusterName: "another offline remote", Hostname: "knowhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 3)},
 	}
 
 	idsAll := make([]string, 0)

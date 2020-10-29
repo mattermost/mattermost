@@ -68,7 +68,7 @@ func (s sqlRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster,
 		From("RemoteClusters")
 
 	if !inclOffline {
-		query = query.Where(sq.Gt{"LastPingAt": model.GetMillis() - model.REMOTE_OFFLINE_AFTER_MILLIS})
+		query = query.Where(sq.Gt{"LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
 	}
 
 	queryString, args, err := query.ToSql()

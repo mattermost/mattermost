@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	REMOTE_OFFLINE_AFTER_MILLIS = 1000 * 60 * 30 // 30 minutes
+	RemoteOfflineAfterMillis = 1000 * 60 * 30 // 30 minutes
 )
 
 type RemoteCluster struct {
@@ -39,23 +39,23 @@ func (rc *RemoteCluster) PreSave() {
 
 func (rc *RemoteCluster) IsValid() *AppError {
 	if !IsValidId(rc.Id) {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.Id, http.StatusBadRequest)
 	}
 
-	if len(rc.ClusterName) == 0 {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "", http.StatusBadRequest)
+	if rc.ClusterName == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "cluster_name="+rc.ClusterName, http.StatusBadRequest)
 	}
 
-	if len(rc.Hostname) == 0 {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "", http.StatusBadRequest)
+	if rc.Hostname == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "host_name empty", http.StatusBadRequest)
 	}
 
 	if rc.CreateAt == 0 {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "create_at=0", http.StatusBadRequest)
 	}
 
 	if rc.LastPingAt == 0 {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.last_ping_at.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.last_ping_at.app_error", nil, "last_ping_at=0", http.StatusBadRequest)
 	}
 
 	return nil
@@ -70,13 +70,9 @@ func (rc *RemoteCluster) ToJson() string {
 	return string(b)
 }
 
-func RemoteClusterFromJson(data io.Reader) *RemoteCluster {
+func RemoteClusterFromJson(data io.Reader) (*RemoteCluster, error) {
 	decoder := json.NewDecoder(data)
 	var rc RemoteCluster
 	err := decoder.Decode(&rc)
-	if err == nil {
-		return &rc
-	}
-
-	return nil
+	return &rc, err
 }

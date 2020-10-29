@@ -831,6 +831,7 @@ type UserGetByIdsOpts struct {
 
 type SharedChannelFilterOpts struct {
 	TeamId        string
+	CreatorId     string
 	ExcludeHome   bool
 	ExcludeRemote bool
 	Token         string

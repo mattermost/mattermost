@@ -27,8 +27,8 @@ type SharedChannel struct {
 	CreatorId        string `json:"creator_id"`
 	CreateAt         int64  `json:"create_at"`
 	UpdateAt         int64  `json:"update_at"`
-	RemoteClusterId  string `json:"remote_cluster_id"` // if not "home"
-	Token            string `json:"token"`             // if not "home"
+	RemoteClusterId  string `json:"remote_cluster_id,omitempty"` // if not "home"
+	Token            string `json:"token,omitempty"`             // if not "home"
 }
 
 func (sc *SharedChannel) ToJson() string {
@@ -36,10 +36,10 @@ func (sc *SharedChannel) ToJson() string {
 	return string(b)
 }
 
-func SharedChannelFromJson(data io.Reader) *SharedChannel {
+func SharedChannelFromJson(data io.Reader) (*SharedChannel, error) {
 	var sc *SharedChannel
-	json.NewDecoder(data).Decode(&sc)
-	return sc
+	err := json.NewDecoder(data).Decode(&sc)
+	return sc, err
 }
 
 func (sc *SharedChannel) IsValid() *AppError {
@@ -78,6 +78,15 @@ func (sc *SharedChannel) IsValid() *AppError {
 	if len(sc.CreatorId) > 26 {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId="+sc.CreatorId, http.StatusBadRequest)
 	}
+
+	if !sc.Home {
+		if !IsValidId(sc.RemoteClusterId) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "RemoteClusterId="+sc.RemoteClusterId, http.StatusBadRequest)
+		}
+		if !IsValidId(sc.Token) {
+			return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "Token", http.StatusBadRequest)
+		}
+	}
 	return nil
 }
 
@@ -115,10 +124,10 @@ func (sc *SharedChannelRemote) ToJson() string {
 	return string(b)
 }
 
-func SharedChannelRemoteFromJson(data io.Reader) *SharedChannelRemote {
+func SharedChannelRemoteFromJson(data io.Reader) (*SharedChannelRemote, error) {
 	var sc *SharedChannelRemote
-	json.NewDecoder(data).Decode(&sc)
-	return sc
+	err := json.NewDecoder(data).Decode(&sc)
+	return sc, err
 }
 
 func (sc *SharedChannelRemote) IsValid() *AppError {

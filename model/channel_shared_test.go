@@ -7,59 +7,55 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSharedChannelJson(t *testing.T) {
 	o := SharedChannel{ChannelId: NewId(), ShareName: NewId()}
 	json := o.ToJson()
-	ro := SharedChannelFromJson(strings.NewReader(json))
+	ro, err := SharedChannelFromJson(strings.NewReader(json))
 
+	require.NoError(t, err)
 	require.Equal(t, o.ChannelId, ro.ChannelId)
 	require.Equal(t, o.ShareName, ro.ShareName)
 }
 
 func TestSharedChannelIsValid(t *testing.T) {
-	o := SharedChannel{}
+	id := NewId()
+	now := GetMillis()
+	data := []struct {
+		name  string
+		sc    *SharedChannel
+		valid bool
+	}{
+		{name: "Zero value", sc: &SharedChannel{}, valid: false},
+		{name: "Missing team_id", sc: &SharedChannel{ChannelId: id}, valid: false},
+		{name: "Missing create_at", sc: &SharedChannel{ChannelId: id, TeamId: id}, valid: false},
+		{name: "Missing update_at", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now}, valid: false},
+		{name: "Missing share_name", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now}, valid: false},
+		{name: "Invalid share_name", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: "@test@"}, valid: false},
+		{name: "Too long share_name", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: strings.Repeat("01234567890", 100)}, valid: false},
+		{name: "Missing creator_id", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: "test"}, valid: false},
+		{name: "Missing remote_cluster_id", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: "test", CreatorId: id}, valid: false},
+		{name: "Missing token", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: "test", CreatorId: id, RemoteClusterId: id}, valid: false},
+		{name: "Valid shared channel", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+			ShareName: "test", CreatorId: id, RemoteClusterId: id, Token: id}, valid: true},
+	}
 
-	require.Error(t, o.IsValid())
-
-	o.ChannelId = NewId()
-	require.Error(t, o.IsValid())
-
-	o.TeamId = NewId()
-	require.Error(t, o.IsValid())
-
-	o.CreateAt = GetMillis()
-	require.Error(t, o.IsValid())
-
-	o.UpdateAt = GetMillis()
-	require.Error(t, o.IsValid())
-
-	o.ShareDisplayName = strings.Repeat("01234567890", 20)
-	require.Error(t, o.IsValid())
-
-	o.ShareDisplayName = "1234"
-	o.ShareName = "ZZZZZZZ"
-	require.Error(t, o.IsValid())
-
-	o.ShareName = "zzzzz"
-	require.Error(t, o.IsValid())
-
-	o.ShareHeader = strings.Repeat("01234567890", 100)
-	require.Error(t, o.IsValid())
-
-	o.ShareHeader = "1234"
-	require.Nil(t, o.IsValid())
-
-	o.SharePurpose = strings.Repeat("01234567890", 30)
-	require.Error(t, o.IsValid())
-
-	o.SharePurpose = "1234"
-	require.Nil(t, o.IsValid())
-
-	o.SharePurpose = strings.Repeat("0123456789", 25)
-	require.Nil(t, o.IsValid())
+	for _, item := range data {
+		err := item.sc.IsValid()
+		if item.valid {
+			assert.Nil(t, err, item.name)
+		} else {
+			assert.NotNil(t, err, item.name)
+		}
+	}
 }
 
 func TestSharedChannelPreSave(t *testing.T) {
@@ -79,4 +75,15 @@ func TestSharedChannelPreUpdate(t *testing.T) {
 	o.PreUpdate()
 
 	require.GreaterOrEqual(t, o.UpdateAt, now)
+}
+
+func TestSharedChannelRemoteJson(t *testing.T) {
+	o := SharedChannelRemote{Id: NewId(), ChannelId: NewId(), Description: "Test"}
+	json := o.ToJson()
+	ro, err := SharedChannelRemoteFromJson(strings.NewReader(json))
+
+	require.NoError(t, err)
+	require.Equal(t, o.Id, ro.Id)
+	require.Equal(t, o.ChannelId, ro.ChannelId)
+	require.Equal(t, o.Description, ro.Description)
 }
