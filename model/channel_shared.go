@@ -75,7 +75,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.purpose.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if len(sc.CreatorId) > 26 {
+	if !IsValidId(sc.CreatorId) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId="+sc.CreatorId, http.StatusBadRequest)
 	}
 
@@ -147,7 +147,7 @@ func (sc *SharedChannelRemote) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if len(sc.CreatorId) > 26 {
+	if !IsValidId(sc.CreatorId) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId", http.StatusBadRequest)
 	}
 	return nil
