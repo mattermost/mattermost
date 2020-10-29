@@ -27,10 +27,9 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	fs, err := config.NewFileStore("config.json", false)
-	require.Nil(t, err)
+	store := config.NewTestMemoryStore()
+	cfg := store.Get()
 
-	cfg := fs.Get()
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
@@ -47,10 +46,8 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	fs, err := config.NewFileStore("config.json", false)
-	require.Nil(t, err)
-
-	cfg := fs.Get()
+	store := config.NewTestMemoryStore()
+	cfg := store.Get()
 
 	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -82,8 +79,8 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	)
 	require.Nil(t, err2, "Should get new SMTP client")
 
-	l, err := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
-	require.Nil(t, err, "Should've open a network socket and listen")
+	l, err3 := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
+	require.Nil(t, err3, "Should've open a network socket and listen")
 	defer l.Close()
 
 	connInfo := &SmtpConnectionInfo{
@@ -106,16 +103,16 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	_, err3 := NewSMTPClientAdvanced(
+	_, err4 := NewSMTPClientAdvanced(
 		ctx,
 		conn2,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		connInfo,
 	)
-	require.NotNil(t, err3, "Should get a timeout get while creating a new SMTP client")
-	assert.Equal(t, err3.Id, "utils.mail.connect_smtp.open_tls.app_error")
+	require.NotNil(t, err4, "Should get a timeout get while creating a new SMTP client")
+	assert.Equal(t, err4.Id, "utils.mail.connect_smtp.open_tls.app_error")
 
-	_, err4 := ConnectToSMTPServerAdvanced(
+	_, err5 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -124,13 +121,15 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             "553",
 		},
 	)
-	require.NotNil(t, err4, "Should not connect to the SMTP Server")
+	require.NotNil(t, err5, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
 	utils.T = utils.GetUserTranslations("en")
 
-	fs, err := config.NewFileStore("config.json", false)
+	fsInner, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+	fs, err := config.NewStoreFromBacking(fsInner)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -169,7 +168,9 @@ func TestSendMailUsingConfig(t *testing.T) {
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	utils.T = utils.GetUserTranslations("en")
 
-	fs, err := config.NewFileStore("config.json", false)
+	fsInner, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+	fs, err := config.NewStoreFromBacking(fsInner)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -214,7 +215,9 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	utils.T = utils.GetUserTranslations("en")
 
-	fs, err := config.NewFileStore("config.json", false)
+	fsInner, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+	fs, err := config.NewStoreFromBacking(fsInner)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
