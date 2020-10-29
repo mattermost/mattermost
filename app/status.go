@@ -331,7 +331,7 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 		return
 	}
 
-	status.DNDEndTime = utc.Unix()
+	status.DNDEndTimeUnix = utc.Unix()
 
 	a.SaveAndBroadcastStatus(status)
 }
@@ -429,13 +429,13 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	for i := range statuses {
 		if statuses[i].Status != model.STATUS_DND {
 			mlog.Info("DND status already unset manually by user", mlog.String("user_id", statuses[i].UserId))
-			statuses[i].DNDEndTime = -1
+			statuses[i].DNDEndTimeUnix = -1
 			continue
 		}
 		statuses[i].Status = statuses[i].PrevStatus
 		statuses[i].PrevStatus = model.STATUS_DND
 		statuses[i].Manual = false
-		statuses[i].DNDEndTime = -1
+		statuses[i].DNDEndTimeUnix = -1
 	}
 
 	statuses, err = a.Srv().Store.Status().SaveMultiple(statuses)

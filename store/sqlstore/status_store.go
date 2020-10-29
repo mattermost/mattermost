@@ -40,7 +40,7 @@ func (s SqlStatusStore) createIndexesIfNotExists() {
 }
 
 func statusSliceColumns() []string {
-	return []string{"UserId", "Status", "Manual", "LastActivityAt", "ActiveChannel", "DNDEndTime", "PrevStatus"}
+	return []string{"UserId", "Status", "Manual", "LastActivityAt", "ActiveChannel", "DNDEndTimeUnix", "PrevStatus"}
 }
 
 func statusToSlice(status *model.Status) []interface{} {
@@ -50,7 +50,7 @@ func statusToSlice(status *model.Status) []interface{} {
 		status.Manual,
 		status.LastActivityAt,
 		status.ActiveChannel,
-		status.DNDEndTime,
+		status.DNDEndTimeUnix,
 		status.PrevStatus,
 	}
 }
@@ -138,7 +138,7 @@ func (s SqlStatusStore) GetExpiredDNDStatuses() ([]*model.Status, error) {
 	query := s.getQueryBuilder().
 		Select("UserId, Status, PrevStatus").
 		From("Status").
-		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTime": time.Now().UTC().Unix()})
+		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
