@@ -92,6 +92,11 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("role", oldRole)
 
+	if oldRole.Name == model.SYSTEM_ADMIN_ROLE_ID {
+		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.admin_role.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if c.App.Srv().License() == nil && patch.Permissions != nil {
 		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
@@ -125,14 +130,45 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if patch.Permissions != nil {
+		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
+
+		notAllowedPermissions := []string{
+			model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id,
+			model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id,
+			model.PERMISSION_MANAGE_ROLES.Id,
+		}
+
+		for _, permission := range deltaPermissions {
+			notAllowed := false
+			for _, notAllowedPermission := range notAllowedPermissions {
+				if permission == notAllowedPermission {
+					notAllowed = true
+				}
+			}
+
+			if notAllowed {
+				c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
+				return
+			}
+		}
+	}
+
 	if c.App.Srv().License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.Srv().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
-		return
+	if oldRole.Name == "team_admin" || oldRole.Name == "channel_admin" || oldRole.Name == "system_user" || oldRole.Name == "team_user" || oldRole.Name == "channel_user" || oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES)
+			return
+		}
 	}
 
 	role, err := c.App.PatchRole(oldRole, patch)
