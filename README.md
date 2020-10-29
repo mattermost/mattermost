@@ -75,7 +75,7 @@ Receive notifications of critical security updates. The sophistication of online
 
 ## License
 
-To read the license agreement visit [here](https://github.com/mattermost/mattermost-server/blob/master/LICENSE.txt)
+See the [LICENSE file](LICENSE.txt) for license rights and limitations.
 
 ## Get the Latest News
 
