@@ -28,6 +28,7 @@ func newSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Status").SetMaxSize(32)
 		table.ColMap("ActiveChannel").SetMaxSize(26)
+		table.ColMap("PrevStatus").SetMaxSize(12)
 	}
 
 	return s
