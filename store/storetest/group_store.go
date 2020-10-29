@@ -374,8 +374,8 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	u1, err = ss.User().Save(u1)
-	require.Nil(t, err)
+	u1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
 	require.Nil(t, err)
@@ -386,8 +386,8 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	u2, err = ss.User().Save(u2)
-	require.Nil(t, err)
+	u2, nErr = ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
 	require.Nil(t, err)
@@ -571,8 +571,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
@@ -581,8 +581,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err := ss.User().Save(u2)
-	require.Nil(t, err)
+	user2, nErr := ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
@@ -623,8 +623,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
@@ -633,8 +633,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err := ss.User().Save(u2)
-	require.Nil(t, err)
+	user2, nErr := ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
@@ -643,8 +643,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err := ss.User().Save(u3)
-	require.Nil(t, err)
+	user3, nErr := ss.User().Save(u3)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
 	require.Nil(t, err)
@@ -923,8 +923,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	// Happy path
 	d2, err := ss.Group().UpsertMember(group.Id, user.Id)
@@ -981,8 +981,8 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	// Create member
 	d1, err := ss.Group().UpsertMember(group.Id, user.Id)
@@ -1321,8 +1321,8 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err = ss.User().Save(user)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(user)
+	require.Nil(t, nErr)
 
 	// Create GroupMember
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1339,7 +1339,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, nErr := ss.Team().Save(team)
+	team, nErr = ss.Team().Save(team)
 	require.Nil(t, nErr)
 
 	// Create GroupTeam
@@ -1490,22 +1490,22 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(user1)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err = ss.User().Save(user2)
-	require.Nil(t, err)
+	user2, nErr = ss.User().Save(user2)
+	require.Nil(t, nErr)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err = ss.User().Save(user3)
-	require.Nil(t, err)
+	user3, nErr = ss.User().Save(user3)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
 		_, err = ss.Group().UpsertMember(group1.Id, user.Id)
@@ -1524,7 +1524,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team1, nErr := ss.Team().Save(team1)
+	team1, nErr = ss.Team().Save(team1)
 	require.Nil(t, nErr)
 
 	team2 := &model.Team{
@@ -1574,8 +1574,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err = ss.User().Save(user)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(user)
+	require.Nil(t, nErr)
 
 	// Create GroupMember
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1588,7 +1588,7 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
-	channel, nErr := ss.Channel().Save(channel, 9999)
+	channel, nErr = ss.Channel().Save(channel, 9999)
 	require.Nil(t, nErr)
 
 	// Create GroupChannel
@@ -1749,22 +1749,22 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(user1)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err = ss.User().Save(user2)
-	require.Nil(t, err)
+	user2, nErr = ss.User().Save(user2)
+	require.Nil(t, nErr)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err = ss.User().Save(user3)
-	require.Nil(t, err)
+	user3, nErr = ss.User().Save(user3)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
 		_, err = ss.Group().UpsertMember(group1.Id, user.Id)
@@ -1778,7 +1778,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel1, nErr := ss.Channel().Save(channel1, 999)
+	channel1, nErr = ss.Channel().Save(channel1, 999)
 	require.Nil(t, nErr)
 
 	channel2 := &model.Channel{
@@ -2131,24 +2131,24 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userA, err = ss.User().Save(userA)
-	require.Nil(t, err)
+	userA, nErr := ss.User().Save(userA)
+	require.Nil(t, nErr)
 
 	// userB will not get removed from the group
 	userB := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userB, err = ss.User().Save(userB)
-	require.Nil(t, err)
+	userB, nErr = ss.User().Save(userB)
+	require.Nil(t, nErr)
 
 	// userC was never in the group
 	userC := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userC, err = ss.User().Save(userC)
-	require.Nil(t, err)
+	userC, nErr = ss.User().Save(userC)
+	require.Nil(t, nErr)
 
 	// add users to group (but not userC)
 	_, err = ss.Group().UpsertMember(group.Id, userA.Id)
@@ -2165,7 +2165,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
-	channelConstrained, nErr := ss.Channel().Save(channelConstrained, 9999)
+	channelConstrained, nErr = ss.Channel().Save(channelConstrained, 9999)
 	require.Nil(t, nErr)
 
 	channelUnconstrained := &model.Channel{
@@ -3747,14 +3747,14 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var user *model.User
-
+	var nErr error
 	for i := 0; i < 2; i++ {
 		user = &model.User{
 			Email:    MakeEmail(),
 			Username: fmt.Sprintf("%d_%s", i, model.NewId()),
 		}
-		user, err = ss.User().Save(user)
-		require.Nil(t, err)
+		user, nErr = ss.User().Save(user)
+		require.Nil(t, nErr)
 
 		_, err = ss.Group().UpsertMember(group.Id, user.Id)
 		require.Nil(t, err)
@@ -3765,8 +3765,8 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(2), count)
 
 	user.DeleteAt = 1
-	_, err = ss.User().Update(user, true)
-	require.Nil(t, err)
+	_, nErr = ss.User().Update(user, true)
+	require.Nil(t, nErr)
 
 	count, err = ss.Group().GetMemberCount(group.Id)
 	require.Nil(t, err)

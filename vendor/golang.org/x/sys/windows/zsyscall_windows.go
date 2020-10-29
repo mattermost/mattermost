@@ -183,6 +183,7 @@ var (
 	procGetConsoleMode                                       = modkernel32.NewProc("GetConsoleMode")
 	procSetConsoleMode                                       = modkernel32.NewProc("SetConsoleMode")
 	procGetConsoleScreenBufferInfo                           = modkernel32.NewProc("GetConsoleScreenBufferInfo")
+	procSetConsoleCursorPosition                             = modkernel32.NewProc("SetConsoleCursorPosition")
 	procWriteConsoleW                                        = modkernel32.NewProc("WriteConsoleW")
 	procReadConsoleW                                         = modkernel32.NewProc("ReadConsoleW")
 	procCreateToolhelp32Snapshot                             = modkernel32.NewProc("CreateToolhelp32Snapshot")
@@ -212,6 +213,7 @@ var (
 	procResumeThread                                         = modkernel32.NewProc("ResumeThread")
 	procSetPriorityClass                                     = modkernel32.NewProc("SetPriorityClass")
 	procGetPriorityClass                                     = modkernel32.NewProc("GetPriorityClass")
+	procQueryInformationJobObject                            = modkernel32.NewProc("QueryInformationJobObject")
 	procSetInformationJobObject                              = modkernel32.NewProc("SetInformationJobObject")
 	procGenerateConsoleCtrlEvent                             = modkernel32.NewProc("GenerateConsoleCtrlEvent")
 	procGetProcessId                                         = modkernel32.NewProc("GetProcessId")
@@ -1977,6 +1979,18 @@ func GetConsoleScreenBufferInfo(console Handle, info *ConsoleScreenBufferInfo) (
 	return
 }
 
+func SetConsoleCursorPosition(console Handle, position Coord) (err error) {
+	r1, _, e1 := syscall.Syscall(procSetConsoleCursorPosition.Addr(), 2, uintptr(console), uintptr(*((*uint32)(unsafe.Pointer(&position)))), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func WriteConsole(console Handle, buf *uint16, towrite uint32, written *uint32, reserved *byte) (err error) {
 	r1, _, e1 := syscall.Syscall6(procWriteConsoleW.Addr(), 5, uintptr(console), uintptr(unsafe.Pointer(buf)), uintptr(towrite), uintptr(unsafe.Pointer(written)), uintptr(unsafe.Pointer(reserved)), 0)
 	if r1 == 0 {
@@ -2332,6 +2346,18 @@ func GetPriorityClass(process Handle) (ret uint32, err error) {
 	r0, _, e1 := syscall.Syscall(procGetPriorityClass.Addr(), 1, uintptr(process), 0, 0)
 	ret = uint32(r0)
 	if ret == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func QueryInformationJobObject(job Handle, JobObjectInformationClass int32, JobObjectInformation uintptr, JobObjectInformationLength uint32, retlen *uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procQueryInformationJobObject.Addr(), 5, uintptr(job), uintptr(JobObjectInformationClass), uintptr(JobObjectInformation), uintptr(JobObjectInformationLength), uintptr(unsafe.Pointer(retlen)), 0)
+	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
 		} else {
