@@ -29,16 +29,15 @@ type LFUOptions struct {
 	Size                   int
 	DefaultExpiry          time.Duration
 	InvalidateClusterEvent string
-	Metrics                bool
 }
 
 // NewLFU creates an LFU of the given size.
 func NewLFU(opts *LFUOptions) Cache {
 	lfu, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters: int64(10 * opts.Size),
-		MaxCost:     int64(opts.Size << 10),
-		Metrics:     opts.Metrics,
-		BufferItems: 64,
+		NumCounters:        int64(10 * opts.Size),
+		MaxCost:            int64(opts.Size << 10),
+		BufferItems:        64,
+		IgnoreInternalCost: true,
 	})
 
 	if err != nil {
