@@ -446,14 +446,14 @@ func BenchmarkLRU(b *testing.B) {
 	})
 
 	uMap := map[string]*model.User{
-		"id1": &model.User{
+		"id1": {
 			Id:       "id1",
 			CreateAt: 1111,
 			UpdateAt: 1112,
 			Username: "user1",
 			Password: "pass",
 		},
-		"id2": &model.User{
+		"id2": {
 			Id:       "id2",
 			CreateAt: 1113,
 			UpdateAt: 1114,
