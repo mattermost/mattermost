@@ -927,7 +927,12 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 	sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Threads SET ChannelId=PI.ChannelId FROM (SELECT Posts.ChannelId as ChannelId, Threads.PostId AS Id from Threads LEFT JOIN Posts ON Posts.Id=Threads.PostId WHERE Threads.ChannelId IS NULL) as PI WHERE PI.Id = Threads.PostId"); err != nil {
+
+	updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
+	}
+	if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
 		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 	}
 
