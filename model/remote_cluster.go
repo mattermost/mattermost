@@ -43,7 +43,7 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	}
 
 	if rc.ClusterName == "" {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "cluster_name="+rc.ClusterName, http.StatusBadRequest)
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "cluster_name empty", http.StatusBadRequest)
 	}
 
 	if rc.Hostname == "" {
