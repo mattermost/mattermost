@@ -215,6 +215,7 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 					if a.Metrics() != nil {
 						a.Metrics().IncrementMemCacheInvalidationCounterSession()
 					}
+					break
 				}
 			}
 		}
