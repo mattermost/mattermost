@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_29
+	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
@@ -854,6 +854,14 @@ func upgradeDatabaseToVersion528(sqlStore SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
 
 		saveSchemaVersion(sqlStore, VERSION_5_28_0)
+	}
+}
+
+func upgradeDatabaseToVersion5281(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_28_1) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "MiniPreview", "MEDIUMBLOB", "bytea")
+
+		saveSchemaVersion(sqlStore, VERSION_5_28_1)
 	}
 }
 

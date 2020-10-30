@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/gorp"
