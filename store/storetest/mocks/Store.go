@@ -432,6 +432,22 @@ func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
 }
 
+// RemoteCluster provides a mock function with given fields:
+func (_m *Store) RemoteCluster() store.RemoteClusterStore {
+	ret := _m.Called()
+
+	var r0 store.RemoteClusterStore
+	if rf, ok := ret.Get(0).(func() store.RemoteClusterStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RemoteClusterStore)
+		}
+	}
+
+	return r0
+}
+
 // Role provides a mock function with given fields:
 func (_m *Store) Role() store.RoleStore {
 	ret := _m.Called()

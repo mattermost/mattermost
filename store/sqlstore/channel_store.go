@@ -390,6 +390,26 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
 
+		tableSharedChannels := db.AddTableWithName(model.SharedChannel{}, "SharedChannels").SetKeys(false, "ChannelId")
+		tableSharedChannels.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannels.ColMap("TeamId").SetMaxSize(26)
+		tableSharedChannels.ColMap("CreatorId").SetMaxSize(26)
+		tableSharedChannels.ColMap("ShareName").SetMaxSize(64)
+		tableSharedChannels.SetUniqueTogether("ShareName", "TeamId")
+		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
+		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
+		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
+		tableSharedChannels.ColMap("Token").SetMaxSize(26)
+		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
+
+		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id")
+		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
+		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
+
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
 		tableSidebarCategories.ColMap("Id").SetMaxSize(26)
 		tableSidebarCategories.ColMap("UserId").SetMaxSize(26)
@@ -433,6 +453,8 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+
+	s.CreateIndexIfNotExists("idx_sharedchannels_channel_id", "SharedChannelRemotes", "ChannelId")
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version

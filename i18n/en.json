@@ -6471,6 +6471,10 @@
     "translation": "Invalid creator id."
   },
   {
+    "id": "model.channel.is_valid.description.app_error",
+    "translation": "Invalid description."
+  },
+  {
     "id": "model.channel.is_valid.display_name.app_error",
     "translation": "Invalid display name."
   },

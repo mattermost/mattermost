@@ -80,6 +80,7 @@ type SqlStore interface {
 	Bot() store.BotStore
 	Audit() store.AuditStore
 	ClusterDiscovery() store.ClusterDiscoveryStore
+	RemoteCluster() store.RemoteClusterStore
 	Compliance() store.ComplianceStore
 	Session() store.SessionStore
 	OAuth() store.OAuthStore

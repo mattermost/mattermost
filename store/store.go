@@ -29,6 +29,7 @@ type Store interface {
 	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
+	RemoteCluster() RemoteClusterStore
 	Compliance() ComplianceStore
 	Session() SessionStore
 	OAuth() OAuthStore
@@ -238,6 +239,18 @@ type ChannelStore interface {
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
+
+	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	GetSharedChannel(channelId string) (*model.SharedChannel, error)
+	GetSharedChannels(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetSharedChannelsCount(opts SharedChannelFilterOpts) (int64, error)
+	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	DeleteSharedChannel(channelId string) (bool, error)
+
+	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	DeleteSharedChannelRemote(remoteId string) (bool, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -414,6 +427,13 @@ type ClusterDiscoveryStore interface {
 	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, error)
 	SetLastPingAt(discovery *model.ClusterDiscovery) error
 	Cleanup() error
+}
+
+type RemoteClusterStore interface {
+	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	Delete(remoteClusterId string) (bool, error)
+	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
+	SetLastPingAt(rc *model.RemoteCluster) error
 }
 
 type ComplianceStore interface {
@@ -807,4 +827,12 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type SharedChannelFilterOpts struct {
+	TeamId        string
+	CreatorId     string
+	ExcludeHome   bool
+	ExcludeRemote bool
+	Token         string
 }

@@ -614,6 +614,22 @@ func (_m *SqlStore) Reaction() store.ReactionStore {
 	return r0
 }
 
+// RemoteCluster provides a mock function with given fields:
+func (_m *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	ret := _m.Called()
+
+	var r0 store.RemoteClusterStore
+	if rf, ok := ret.Get(0).(func() store.RemoteClusterStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RemoteClusterStore)
+		}
+	}
+
+	return r0
+}
+
 // RemoveColumnIfExists provides a mock function with given fields: tableName, columnName
 func (_m *SqlStore) RemoveColumnIfExists(tableName string, columnName string) bool {
 	ret := _m.Called(tableName, columnName)
