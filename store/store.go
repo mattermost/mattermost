@@ -549,13 +549,12 @@ type EmojiStore interface {
 
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) error
-	SaveMultiple(statuses []*model.Status) ([]*model.Status, error)
 	Get(userId string) (*model.Status, error)
-	GetExpiredDNDStatuses() ([]*model.Status, error)
 	GetByIds(userIds []string) ([]*model.Status, error)
 	ResetAll() error
 	GetTotalActiveUsersCount() (int64, error)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) error
+	UpdateExpiredDNDStatuses() ([]*model.Status, error)
 }
 
 type FileInfoStore interface {

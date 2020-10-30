@@ -39,39 +39,6 @@ func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
-func statusSliceColumns() []string {
-	return []string{"UserId", "Status", "Manual", "LastActivityAt", "ActiveChannel", "DNDEndTimeUnix", "PrevStatus"}
-}
-
-func statusToSlice(status *model.Status) []interface{} {
-	return []interface{}{
-		status.UserId,
-		status.Status,
-		status.Manual,
-		status.LastActivityAt,
-		status.ActiveChannel,
-		status.DNDEndTimeUnix,
-		status.PrevStatus,
-	}
-}
-
-func (s SqlStatusStore) SaveMultiple(statuses []*model.Status) ([]*model.Status, error) {
-	builder := s.getQueryBuilder().Insert("Status").Columns(statusSliceColumns()...)
-	for _, status := range statuses {
-		builder = builder.Values(statusToSlice(status)...)
-	}
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to save Status")
-	}
-
-	return statuses, nil
-}
-
 func (s SqlStatusStore) SaveOrUpdate(status *model.Status) error {
 	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
 		if _, err := s.GetMaster().Update(status); err != nil {
@@ -134,10 +101,11 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	return statuses, nil
 }
 
-func (s SqlStatusStore) GetExpiredDNDStatuses() ([]*model.Status, error) {
+func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	query := s.getQueryBuilder().
-		Select("UserId, Status, PrevStatus").
-		From("Status").
+		Update("Status").
+		Set("Status", "PrevStatus").
+		SetMap(sq.Eq{"PrevStatus": "DND", "DNDEndTimeUnix": -1, "Manual": false}).
 		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()})
 	queryString, args, err := query.ToSql()
 	if err != nil {

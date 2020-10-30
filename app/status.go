@@ -422,27 +422,11 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
-	statuses, err := a.Srv().Store.Status().GetExpiredDNDStatuses()
+	statuses, err := a.Srv().Store.Status().UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Error("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 	}
-	for i := range statuses {
-		if statuses[i].Status != model.STATUS_DND {
-			mlog.Info("DND status already unset manually by user", mlog.String("user_id", statuses[i].UserId))
-			statuses[i].DNDEndTimeUnix = -1
-			continue
-		}
-		statuses[i].Status = statuses[i].PrevStatus
-		statuses[i].PrevStatus = model.STATUS_DND
-		statuses[i].Manual = false
-		statuses[i].DNDEndTimeUnix = -1
-	}
 
-	statuses, err = a.Srv().Store.Status().SaveMultiple(statuses)
-	if err != nil {
-		mlog.Error("Failed to store updated statues in db", mlog.String("err", err.Error()))
-		return
-	}
 	for i := range statuses {
 		a.BroadcastStatus(statuses[i])
 	}
