@@ -5467,8 +5467,16 @@
     "translation": "Unable to save the account."
   },
   {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "An account with that email already exists."
+  },
+  {
     "id": "app.user.save.existing.app_error",
     "translation": "Must call update for existing user."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "An account with that username already exists."
   },
   {
     "id": "app.user.search.app_error",
