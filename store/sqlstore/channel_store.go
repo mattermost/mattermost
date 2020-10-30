@@ -2046,7 +2046,17 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
 	return nil
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
+	var threadsToUpdate []string
+	now := model.GetMillis()
+	if updateThreads {
+		var err error
+		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, channelIds, now)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	keys, props := MapStringsToQueryParams(channelIds, "Channel")
 	props["UserId"] = userId
 
@@ -2089,11 +2099,15 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		for _, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
 		}
+		if updateThreads {
+			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		}
 		return times, nil
 	}
 
 	msgCountQuery := ""
 	lastViewedQuery := ""
+
 	for index, t := range lastPostAtTimes {
 		times[t.Id] = t.LastPostAt
 
@@ -2121,6 +2135,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
+	if updateThreads {
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+	}
 	return times, nil
 }
 
@@ -2168,8 +2185,16 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 // UpdateLastViewedAtPost updates a ChannelMember as if the user last read the channel at the time of the given post.
 // If the provided mentionCount is -1, the given post and all posts after it are considered to be mentions. Returns
 // an updated model.ChannelUnreadAt that can be returned to the client.
-func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error) {
+func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+	var threadsToUpdate []string
 	unreadDate := unreadPost.CreateAt - 1
+	if updateThreads {
+		var err error
+		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userID, []string{unreadPost.ChannelId}, unreadDate)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	unread, err := s.CountPostsAfter(unreadPost.ChannelId, unreadDate, "")
 	if err != nil {
@@ -2225,10 +2250,24 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	if err = s.GetMaster().SelectOne(result, chanUnreadQuery, params); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s", unreadPost.ChannelId)
 	}
+
+	if updateThreads {
+		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate)
+	}
 	return result, nil
 }
 
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) error {
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, updateThreads bool) error {
+	now := model.GetMillis()
+	var threadsToUpdate []string
+	if updateThreads {
+		var err error
+		threadsToUpdate, err = s.Thread().CollectThreadsWithNewerReplies(userId, []string{channelId}, now)
+		if err != nil {
+			return err
+		}
+	}
+
 	_, err := s.GetMaster().Exec(
 		`UPDATE
 			ChannelMembers
@@ -2238,11 +2277,13 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 		WHERE
 			UserId = :UserId
 				AND ChannelId = :ChannelId`,
-		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": now})
 	if err != nil {
 		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
 	}
-
+	if updateThreads {
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+	}
 	return nil
 }
 
