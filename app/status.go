@@ -13,28 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-// take a string in RFC3339 format and return utc time for it
-func convertToUTC(tzmap model.StringMap, endtime string) (time.Time, error) {
-	var tz string
-	switch tzmap["useAutomaticTimezone"] {
-	case "true":
-		tz = tzmap["automaticTimezone"]
-	case "false":
-		tz = tzmap["manualTimezone"]
-	default:
-		return time.Time{}, errors.New("useAutomaticTimezone is having invalid value")
-	}
-	tloc, err := time.LoadLocation(tz)
-	if err != nil {
-		return time.Time{}, err
-	}
-	ttz, terr := time.ParseInLocation(time.RFC3339, endtime, tloc)
-	if terr != nil {
-		return time.Time{}, terr
-	}
-	return ttz.UTC(), nil
-}
-
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
 	a.Srv().statusCache.Set(status.UserId, status)
 }
@@ -304,6 +282,8 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	a.SaveAndBroadcastStatus(status)
 }
 
+// SetStatusDoNotDisturbTimed takes endtime in RFC3339 string format in UTC
+// and sets status of given userId to dnd which will be restored back after endtime
 func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
@@ -319,15 +299,11 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
-	tz, aErr := a.Srv().Store.User().GetTimezone(userId)
-	if aErr != nil {
-		mlog.Error("Failed to fetch user's timezone", mlog.String("user_id", userId), mlog.String("err", aErr.Error()))
-	}
-
-	utc, cErr := convertToUTC(tz, endtime)
+	// take a string in RFC3339 format and return time
+	utc, cErr := time.Parse(time.RFC3339, endtime)
 
 	if cErr != nil {
-		mlog.Error("Failed to conver user timezone to utc", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
+		mlog.Error("Failed to parse endtime", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
 		return
 	}
 
