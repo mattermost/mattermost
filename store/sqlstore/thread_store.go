@@ -211,6 +211,9 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 }
 
 func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+	if len(changedThreads) == 0 {
+		return nil
+	}
 	updateQuery, updateArgs, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
