@@ -18,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
-	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -36,8 +35,6 @@ func init() {
 }
 
 func serverCmdF(command *cobra.Command, args []string) error {
-	configDSN := viper.GetString("config")
-
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
 	usedPlatform, _ := command.Flags().GetBool("platform")
 
@@ -46,7 +43,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
-	configStore, err := config.NewStore(configDSN, !disableConfigWatch)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -54,7 +51,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
 }
 
-func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
