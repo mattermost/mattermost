@@ -45,9 +45,9 @@ type CloudCustomer struct {
 // CloudCustomerInfo represents editable info of a customer.
 type CloudCustomerInfo struct {
 	Name             string `json:"name"`
-	Email            string `json:"email"`
-	ContactFirstName string `json:"contact_first_name"`
-	ContactLastName  string `json:"contact_last_name"`
+	Email            string `json:"email,omitempty"`
+	ContactFirstName string `json:"contact_first_name,omitempty"`
+	ContactLastName  string `json:"contact_last_name,omitempty"`
 	NumEmployees     int    `json:"num_employees"`
 }
 
@@ -73,14 +73,41 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID         string   `json:"id"`
-	CustomerID string   `json:"customer_id"`
-	ProductID  string   `json:"product_id"`
-	AddOns     []string `json:"add_ons"`
-	StartAt    int64    `json:"start_at"`
-	EndAt      int64    `json:"end_at"`
-	CreateAt   int64    `json:"create_at"`
-	Seats      int      `json:"seats"`
-	DNS        string   `json:"dns"`
-	IsPaidTier string   `json:"is_paid_tier"`
+	ID          string   `json:"id"`
+	CustomerID  string   `json:"customer_id"`
+	ProductID   string   `json:"product_id"`
+	AddOns      []string `json:"add_ons"`
+	StartAt     int64    `json:"start_at"`
+	EndAt       int64    `json:"end_at"`
+	CreateAt    int64    `json:"create_at"`
+	Seats       int      `json:"seats"`
+	DNS         string   `json:"dns"`
+	IsPaidTier  string   `json:"is_paid_tier"`
+	LastInvoice *Invoice `json:"last_invoice"`
+}
+
+// Invoice model represents a cloud invoice
+type Invoice struct {
+	ID             string             `json:"id"`
+	Number         string             `json:"number"`
+	CreateAt       int64              `json:"create_at"`
+	Total          int64              `json:"total"`
+	Tax            int64              `json:"tax"`
+	Status         string             `json:"status"`
+	Description    string             `json:"description"`
+	PeriodStart    int64              `json:"period_start"`
+	PeriodEnd      int64              `json:"period_end"`
+	SubscriptionID string             `json:"subscription_id"`
+	Items          []*InvoiceLineItem `json:"line_items"`
+}
+
+// InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
+type InvoiceLineItem struct {
+	PriceID      string                 `json:"price_id"`
+	Total        int64                  `json:"total"`
+	Quantity     int64                  `json:"quantity"`
+	PricePerUnit int64                  `json:"price_per_unit"`
+	Description  string                 `json:"description"`
+	Type         string                 `json:"type"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }

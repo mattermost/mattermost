@@ -30,7 +30,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Reset all Custom Role assignments to Users.
 	if err := a.Srv().Store.User().ClearAllCustomRoleAssignments(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.user.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Custom Role assignments to TeamMembers.

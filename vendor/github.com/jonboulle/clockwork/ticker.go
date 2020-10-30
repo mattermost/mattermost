@@ -34,33 +34,39 @@ func (ft *fakeTicker) Stop() {
 	ft.stop <- true
 }
 
-// tick sends the tick time to the ticker channel after every period.
-// Tick events are discarded if the underlying ticker channel does
-// not have enough capacity.
-func (ft *fakeTicker) tick() {
-	tick := ft.clock.Now()
-	for {
-		tick = tick.Add(ft.period)
-		remaining := tick.Sub(ft.clock.Now())
-		if remaining <= 0 {
-			// The tick should have already happened. This can happen when
-			// Advance() is called on the fake clock with a duration larger
-			// than this ticker's period.
+// runTickThread initializes a background goroutine to send the tick time to the ticker channel
+// after every period. Tick events are discarded if the underlying ticker channel does not have
+// enough capacity.
+func (ft *fakeTicker) runTickThread() {
+	nextTick := ft.clock.Now().Add(ft.period)
+	next := ft.clock.After(ft.period)
+	go func() {
+		for {
 			select {
-			case ft.c <- tick:
-			default:
+			case <-ft.stop:
+				return
+			case <-next:
+				// We send the time that the tick was supposed to occur at.
+				tick := nextTick
+				// Before sending the tick, we'll compute the next tick time and star the clock.After call.
+				now := ft.clock.Now()
+				// First, figure out how many periods there have been between "now" and the time we were
+				// supposed to have trigged, then advance over all of those.
+				skipTicks := (now.Sub(tick) + ft.period - 1) / ft.period
+				nextTick = nextTick.Add(skipTicks * ft.period)
+				// Now, keep advancing until we are past now. This should happen at most once.
+				for !nextTick.After(now) {
+					nextTick = nextTick.Add(ft.period)
+				}
+				// Figure out how long between now and the next scheduled tick, then wait that long.
+				remaining := nextTick.Sub(now)
+				next = ft.clock.After(remaining)
+				// Finally, we can actually send the tick.
+				select {
+				case ft.c <- tick:
+				default:
+				}
 			}
-			continue
 		}
-
-		select {
-		case <-ft.stop:
-			return
-		case <-ft.clock.After(remaining):
-			select {
-			case ft.c <- tick:
-			default:
-			}
-		}
-	}
+	}()
 }

@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -68,6 +67,7 @@ func TestGetPing(t *testing.T) {
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.ReloadConfig()
 		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -77,15 +77,9 @@ func TestGetPing(t *testing.T) {
 		require.NotContains(t, respString, "TestFeatureFlag")
 
 		// Run the enviroment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalue")
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
-		memoryStore, err := config.NewMemoryStore()
-		require.Nil(t, err)
-		retrievedConfig := memoryStore.Get()
-
-		// replace config with generated config
-		oldConfig := th.App.Config().Clone()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
+		th.App.ReloadConfig()
 
 		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
@@ -94,7 +88,6 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
 	}, "ping feature flag test")
 }
 
