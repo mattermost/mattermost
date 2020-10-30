@@ -103,7 +103,7 @@ type TeamStore interface {
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(userId string) ([]*model.TeamMember, error)
+	GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error)

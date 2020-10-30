@@ -6409,10 +6409,10 @@ func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetTeamsForUser(userId)
+	result, err := s.TeamStore.GetTeamsForUser(ctx, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
