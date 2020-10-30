@@ -427,6 +427,7 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		mlog.Error("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 	}
 	for i := range statuses {
+		a.AddStatusCache(statuses[i])
 		a.BroadcastStatus(statuses[i])
 	}
 }
