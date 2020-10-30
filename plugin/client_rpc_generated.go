@@ -1407,6 +1407,37 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_UpdateUserStatusV2Args struct {
+	A string
+	B string
+	C string
+}
+
+type Z_UpdateUserStatusV2Returns struct {
+	A *model.Status
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserStatusV2(userId, status, endtime string) (*model.Status, *model.AppError) {
+	_args := &Z_UpdateUserStatusV2Args{userId, status, endtime}
+	_returns := &Z_UpdateUserStatusV2Returns{}
+	if err := g.client.Call("Plugin.UpdateUserStatusV2", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserStatusV2 API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateUserStatusV2(args *Z_UpdateUserStatusV2Args, returns *Z_UpdateUserStatusV2Returns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserStatusV2(userId, status, endtime string) (*model.Status, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateUserStatusV2(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserStatusV2 called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateUserActiveArgs struct {
 	A string
 	B bool

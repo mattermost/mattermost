@@ -311,6 +311,21 @@ func (api *PluginAPI) UpdateUserStatus(userId, status string) (*model.Status, *m
 	return api.app.GetStatus(userId)
 }
 
+func (api *PluginAPI) UpdateUserStatusV2(userId, status, endtime string) (*model.Status, *model.AppError) {
+	switch status {
+	case model.STATUS_ONLINE:
+	case model.STATUS_OFFLINE:
+	case model.STATUS_AWAY:
+		api.UpdateUserStatus(userId, status)
+	case model.STATUS_DND:
+		api.app.SetStatusDoNotDisturbTimed(userId, endtime)
+	default:
+		return nil, model.NewAppError("UpdateUserStatusV2", "plugin.api.update_user_status.bad_status", nil, "unrecognized status", http.StatusBadRequest)
+	}
+
+	return api.app.GetStatus(userId)
+}
+
 func (api *PluginAPI) GetUsersInChannel(channelId, sortBy string, page, perPage int) ([]*model.User, *model.AppError) {
 	switch sortBy {
 	case model.CHANNEL_SORT_BY_USERNAME:

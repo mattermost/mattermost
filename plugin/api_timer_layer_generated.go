@@ -266,6 +266,13 @@ func (api *apiTimerLayer) UpdateUserStatus(userId, status string) (*model.Status
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) UpdateUserStatusV2(userId, status, endtime string) (*model.Status, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateUserStatusV2(userId, status, endtime)
+	api.recordTime(startTime, "UpdateUserStatusV2", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) UpdateUserActive(userId string, active bool) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.UpdateUserActive(userId, active)

@@ -3287,6 +3287,31 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *m
 	return r0, r1
 }
 
+// UpdateUserStatusV2 provides a mock function with given fields: userId, status, endtime
+func (_m *API) UpdateUserStatusV2(userId string, status string, endtime string) (*model.Status, *model.AppError) {
+	ret := _m.Called(userId, status, endtime)
+
+	var r0 *model.Status
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Status); ok {
+		r0 = rf(userId, status, endtime)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Status)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(userId, status, endtime)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UploadFile provides a mock function with given fields: data, channelId, filename
 func (_m *API) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
 	ret := _m.Called(data, channelId, filename)
