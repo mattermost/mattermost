@@ -22,7 +22,7 @@ func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.Shar
 	}
 
 	if err := s.GetMaster().Insert(sc); err != nil {
-		return nil, errors.Wrapf(err, "save_shared_channel: id=%s", sc.ChannelId)
+		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
 	return sc, nil
 }
@@ -149,7 +149,7 @@ func (s SqlChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.Sh
 
 	count, err := s.GetMaster().Update(sc)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update shared channel with id=%s", sc.ChannelId)
+		return nil, errors.Wrapf(err, "failed to update shared channel with channelId=%s", sc.ChannelId)
 	}
 
 	if count != 1 {
