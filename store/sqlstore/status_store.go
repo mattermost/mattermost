@@ -102,16 +102,19 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 }
 
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
-	query := s.getQueryBuilder().
-		Update("Status").
-		Set("Status", "PrevStatus").
-		SetMap(sq.Eq{"PrevStatus": "DND", "DNDEndTimeUnix": -1, "Manual": false}).
-		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()}, sq.Gt{"DNDEndTimeUnix": 0})
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "status_tosql")
-	}
-	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	queryString := fmt.Sprintf(`
+		UPDATE
+			Status
+		SET
+			DNDEndTimeUnix = %v, Manual = %v,
+			PrevStatus = '%v', Status = PrevStatus
+		WHERE
+			(Status = '%v' AND DNDEndTimeUnix <= %v AND DNDEndTimeUnix > %v)
+		RETURNING
+			UserId, Status`,
+		-1, false, model.STATUS_DND, model.STATUS_DND, time.Now().UTC().Unix(), 1,
+	)
+	rows, err := s.GetMaster().Query(queryString)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
@@ -119,7 +122,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var status model.Status
-		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
+		if err = rows.Scan(&status.UserId, &status.Status); err != nil {
 			return nil, errors.Wrap(err, "unable to scan from rows")
 		}
 		statuses = append(statuses, &status)
@@ -127,7 +130,6 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	if err = rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "failed while iterating over rows")
 	}
-
 	return statuses, nil
 }
 
