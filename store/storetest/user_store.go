@@ -1423,6 +1423,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.Nil(t, nErr)
 
+	time.Sleep(time.Millisecond)
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
