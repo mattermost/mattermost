@@ -22,7 +22,7 @@ func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.Shar
 	}
 
 	if err := s.GetMaster().Insert(sc); err != nil {
-		return nil, errors.Wrapf(err, "save_shared_channel: id=%s", sc.ChannelId)
+		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
 	return sc, nil
 }
