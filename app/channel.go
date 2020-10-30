@@ -1097,22 +1097,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
-	if nErr != nil {
-		var appErr *model.AppError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberRoles", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("UpdateChannelMemberRoles", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	a.InvalidateCacheForUser(userId)
-	return member, nil
+	return a.updateChannelMember(member)
 }
 
 func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
@@ -1134,27 +1119,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
-	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
-	if nErr != nil {
-		var appErr *model.AppError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	// Notify the clients that the member notify props changed
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
-	message.Add("channelMember", member.ToJson())
-	a.Publish(message)
-
-	a.InvalidateCacheForUser(userId)
-	return member, nil
+	return a.updateChannelMember(member)
 }
 
 func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError) {
@@ -1185,6 +1150,17 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		member.NotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] = ignoreChannelMentions
 	}
 
+	member, err = a.updateChannelMember(member)
+	if err != nil {
+		return nil, err
+	}
+
+	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+	return member, nil
+}
+
+func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
 	member, nErr := a.Srv().Store.Channel().UpdateMember(member)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -1193,18 +1169,19 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberNotifyProps", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("updateChannelMember", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	a.InvalidateCacheForUser(userId)
-	a.invalidateCacheForChannelMembersNotifyProps(channelId)
+	a.InvalidateCacheForUser(member.UserId)
+
 	// Notify the clients that the member notify props changed
-	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", userId, nil)
+	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", member.UserId, nil)
 	evt.Add("channelMember", member.ToJson())
 	a.Publish(evt)
+
 	return member, nil
 }
 
@@ -2788,20 +2765,65 @@ func (a *App) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError
 	return posts, nil
 }
 
-func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
-	member, err := a.Srv().Store.Channel().GetMember(channelId, userId)
+func (a *App) ToggleMuteChannel(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	member, nErr := a.Srv().Store.Channel().GetMember(channelId, userId)
+	if nErr != nil {
+		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("ToggleMuteChannel", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("ToggleMuteChannel", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	member.SetChannelMuted(!member.IsChannelMuted())
+
+	member, err := a.updateChannelMember(member)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
-		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_ALL
-	} else {
-		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
+	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+	return member, nil
+}
+
+func (a *App) setChannelMuted(channelId, userId string, muted bool) (*model.ChannelMember, *model.AppError) {
+	member, nErr := a.Srv().Store.Channel().GetMember(channelId, userId)
+	if nErr != nil {
+		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("setChannelMuted", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("setChannelMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	a.Srv().Store.Channel().UpdateMember(member)
-	return member
+	alreadyMuted := member.IsChannelMuted()
+
+	if muted == alreadyMuted {
+		// Nothing to change here
+		return member, nil
+	}
+
+	member.SetChannelMuted(muted)
+
+	member, err := a.updateChannelMember(member)
+	if err != nil {
+		return nil, err
+	}
+
+	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+	return a.updateChannelMember(member)
 }
 
 func (a *App) FillInChannelProps(channel *model.Channel) *model.AppError {
