@@ -881,7 +881,7 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
 	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
-	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+	require.Equalf(t, errorId, resp.Error.Id, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {
