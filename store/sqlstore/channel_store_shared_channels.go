@@ -149,7 +149,7 @@ func (s SqlChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.Sh
 
 	count, err := s.GetMaster().Update(sc)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update shared channel with id=%s", sc.ChannelId)
+		return nil, errors.Wrapf(err, "failed to update shared channel with channelId=%s", sc.ChannelId)
 	}
 
 	if count != 1 {
