@@ -80,7 +80,7 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
-	DNDEndTime                string
+
 	// Cloud
 	InvoiceId string
 }
@@ -221,10 +221,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["invoice_id"]; ok {
 		params.InvoiceId = val
-	}
-
-	if val, ok := props["dnd_end_time"]; ok {
-		params.DNDEndTime = val
 	}
 
 	params.Scope = query.Get("scope")
