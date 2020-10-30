@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_28_1
+	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
@@ -919,23 +919,23 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 }
 
 func upgradeDatabaseToVersion529(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_29_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_28_1, VERSION_5_29_0) {
+		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
+		sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
+		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
+		sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
 
-	sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
-	sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
-	sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
-	sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
+  	sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
 
-	updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
+	  updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
+	  if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+  		updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
+  	}
+  	if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
+  		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+  	}
+
+		saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	}
-	if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
-		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
-	}
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_29_0)
-	// }
 }
