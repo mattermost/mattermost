@@ -926,6 +926,11 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
 	sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
 
+	sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Threads SET ChannelId=PI.ChannelId FROM (SELECT ChannelId, Id from Posts) as PI WHERE PI.Id = PostId"); err != nil {
+		mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+	}
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	// }
 }
