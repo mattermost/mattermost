@@ -106,7 +106,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		Update("Status").
 		Set("Status", "PrevStatus").
 		SetMap(sq.Eq{"PrevStatus": "DND", "DNDEndTimeUnix": -1, "Manual": false}).
-		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()})
+		Where(sq.Eq{"Status": model.STATUS_DND}, sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()}, sq.Gt{"DNDEndTimeUnix": 0})
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")
