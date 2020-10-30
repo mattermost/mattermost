@@ -219,14 +219,14 @@ func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemo
 	return remote, nil
 }
 
-// GetSharedChannelRemote fetches a shared channel by shared_channel_remote_id.
-func (s SqlChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
+// GetSharedChannelRemote fetches a shared channel remote by id.
+func (s SqlChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
 		Select("*").
 		From("SharedChannelRemotes").
-		Where(sq.Eq{"SharedChannelRemotes.Id": remoteId})
+		Where(sq.Eq{"SharedChannelRemotes.Id": id})
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -235,9 +235,9 @@ func (s SqlChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedC
 
 	if err := s.GetReplica().SelectOne(&remote, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("SharedChannelRemote", remoteId)
+			return nil, store.NewErrNotFound("SharedChannelRemote", id)
 		}
-		return nil, errors.Wrapf(err, "failed to find remote with id=%s", remoteId)
+		return nil, errors.Wrapf(err, "failed to find remote with id=%s", id)
 	}
 	return &remote, nil
 }

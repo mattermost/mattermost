@@ -132,11 +132,19 @@ func SharedChannelRemoteFromJson(data io.Reader) (*SharedChannelRemote, error) {
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
 	if !IsValidId(sc.Id) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "Id", http.StatusBadRequest)
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "Id="+sc.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidId(sc.ChannelId) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId", http.StatusBadRequest)
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(sc.Token) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "Token", http.StatusBadRequest)
+	}
+
+	if len(sc.Description) > 64 {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.description.app_error", nil, "description="+sc.Description, http.StatusBadRequest)
 	}
 
 	if sc.CreateAt == 0 {

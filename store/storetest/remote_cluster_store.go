@@ -28,8 +28,8 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.Nil(t, err)
-		require.Equal(t, rcSaved.ClusterName, rc.ClusterName)
-		require.Equal(t, rcSaved.Hostname, rc.Hostname)
+		require.Equal(t, rc.ClusterName, rcSaved.ClusterName)
+		require.Equal(t, rc.Hostname, rcSaved.Hostname)
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Greater(t, rc.LastPingAt, int64(0))
 	})
