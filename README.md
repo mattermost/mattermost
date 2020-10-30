@@ -10,6 +10,19 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 
 <img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/13119842/56807911-1bf66f00-67fe-11e9-9b7b-96ce9ceab645.png">
 
+Table of Contents
+=================
+
+  * [Try out Mattermost](#try-out-mattermost)
+  * [Deploy on Heroku](#deploy-on-heroku)
+  * [Deploy on a Cloud Platform via Bitnami](#deploy-on-a-cloud-platform-via-bitnami)
+  * [Install on Your Own Machine](#install-on-your-own-machine)
+  * [Native Mobile and Desktop Apps](#native-mobile-and-desktop-apps)
+  * [Get Security Bulletins](#get-security-bulletins)
+  * [Get Involved](#get-involved)
+  * [Learn More](#learn-more)
+  * [Get the Latest News](#get-the-latest-news)
+
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://community.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676) to join community discussions about contributions, development and more
@@ -28,7 +41,7 @@ _Note: Heroku preview does not include email or persistent storage_
 ## Install on Your Own Machine
 
 - [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install)
-- [Developer Machine Setup](https://docs.mattermost.com/developer/dev-setup.html)
+- [Developer Machine Setup](https://developers.mattermost.com/contribute/server/developer-setup)
 - [Production Install Guides using Linux Binary](https://mattermost.com/download/)
 - [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html)
 
@@ -52,7 +65,7 @@ Receive notifications of critical security updates. The sophistication of online
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](https://www.mattermost.org/feature-ideas/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
-- [Help translate Mattermost](http://docs.mattermost.com/developer/localization.html#translation-process)
+- [Help translate Mattermost](https://handbook.mattermost.com/contributors/contributors/localization)
 
 ## Learn More
 

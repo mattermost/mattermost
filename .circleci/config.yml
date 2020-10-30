@@ -159,7 +159,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.31.0
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet

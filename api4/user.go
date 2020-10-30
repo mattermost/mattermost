@@ -155,6 +155,15 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// New user created, check cloud limits and send emails if needed
+	if ruser != nil {
+		err = c.App.CheckAndSendUserLimitWarningEmails()
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	auditRec.Success()
 	auditRec.AddMeta("user", ruser) // overwrite meta
 
@@ -1346,6 +1355,19 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		})
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE, "", "", "", nil)
+	c.App.Publish(message)
+
+	// If activating, run cloud check for limit overages
+	if active {
+		emailErr := c.App.CheckAndSendUserLimitWarningEmails()
+		if emailErr != nil {
+			c.Err = emailErr
+			return
+		}
+	}
+
 	ReturnStatusOK(w)
 }
 
@@ -2420,8 +2442,16 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.App.Session().UserId
-	termsOfServiceId := props["termsOfServiceId"].(string)
-	accepted := props["accepted"].(bool)
+	termsOfServiceId, ok := props["termsOfServiceId"].(string)
+	if !ok {
+		c.SetInvalidParam("termsOfServiceId")
+		return
+	}
+	accepted, ok := props["accepted"].(bool)
+	if !ok {
+		c.SetInvalidParam("accepted")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)

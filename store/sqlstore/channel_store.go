@@ -391,7 +391,7 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
 
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
-		tableSidebarCategories.ColMap("Id").SetMaxSize(26)
+		tableSidebarCategories.ColMap("Id").SetMaxSize(128)
 		tableSidebarCategories.ColMap("UserId").SetMaxSize(26)
 		tableSidebarCategories.ColMap("TeamId").SetMaxSize(26)
 		tableSidebarCategories.ColMap("Sorting").SetMaxSize(64)
@@ -401,7 +401,7 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
 		tableSidebarChannels.ColMap("ChannelId").SetMaxSize(26)
 		tableSidebarChannels.ColMap("UserId").SetMaxSize(26)
-		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(26)
+		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(128)
 	}
 
 	return s
@@ -2544,15 +2544,19 @@ func (s SqlChannelStore) SearchArchivedInTeam(teamId string, term string, userId
 		"UserId": userId,
 	})
 
-	output := *publicChannels
-	output = append(output, *privateChannels...)
-
 	outputErr := publicErr
 	if privateErr != nil {
 		outputErr = privateErr
 	}
 
-	return &output, outputErr
+	if outputErr != nil {
+		return nil, outputErr
+	}
+
+	output := *publicChannels
+	output = append(output, *privateChannels...)
+
+	return &output, nil
 }
 
 func (s SqlChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {

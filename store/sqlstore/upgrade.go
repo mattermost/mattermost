@@ -20,6 +20,7 @@ import (
 
 const (
 	CURRENT_SCHEMA_VERSION   = VERSION_5_28_1
+	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
@@ -190,6 +191,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion527(sqlStore)
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
+	upgradeDatabaseToVersion529(sqlStore)
 
 	return nil
 }
@@ -914,4 +916,16 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 	}
 
 	return nil
+}
+
+func upgradeDatabaseToVersion529(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_29_0) {
+
+	sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
+	sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
+	sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
+	sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_29_0)
+	// }
 }

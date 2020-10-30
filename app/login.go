@@ -125,7 +125,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	if len(id) != 0 {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != store.MISSING_ACCOUNT_ERROR {
+			if err.Id != MISSING_ACCOUNT_ERROR {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
 			}

@@ -45,10 +45,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	memoryStore := config.NewTestMemoryStore()
 
 	config := memoryStore.Get()
 	if configSet != nil {
