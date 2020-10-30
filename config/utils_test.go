@@ -71,6 +71,7 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.ElasticsearchSettings.Password, *target.ElasticsearchSettings.Password)
 	assert.Equal(t, actual.SqlSettings.DataSourceReplicas, target.SqlSettings.DataSourceReplicas)
 	assert.Equal(t, actual.SqlSettings.DataSourceSearchReplicas, target.SqlSettings.DataSourceSearchReplicas)
+	assert.Equal(t, actual.ServiceSettings.SplitKey, target.ServiceSettings.SplitKey)
 }
 
 func TestFixInvalidLocales(t *testing.T) {

@@ -46,7 +46,7 @@ func Migrate(from, to string) error {
 	return nil
 }
 
-func migrateFile(name string, source Store, destination Store) error {
+func migrateFile(name string, source *Store, destination *Store) error {
 	fileExists, err := source.HasFile(name)
 	if err != nil {
 		return errors.Wrapf(err, "failed to check existence of %s", name)

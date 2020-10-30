@@ -53,13 +53,13 @@ func TestCreateUser(t *testing.T) {
 	ruser.Username = GenerateTestUsername()
 	ruser.Password = "passwd1"
 	_, resp = th.Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "app.user.save.existing.app_error")
+	CheckErrorMessage(t, resp, "app.user.save.email_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = th.GenerateTestEmail()
 	ruser.Username = user.Username
 	_, resp = th.Client.CreateUser(ruser)
-	CheckErrorMessage(t, resp, "app.user.save.existing.app_error")
+	CheckErrorMessage(t, resp, "app.user.save.username_exists.app_error")
 	CheckBadRequestStatus(t, resp)
 
 	ruser.Email = ""

@@ -391,7 +391,7 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
 
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
-		tableSidebarCategories.ColMap("Id").SetMaxSize(26)
+		tableSidebarCategories.ColMap("Id").SetMaxSize(128)
 		tableSidebarCategories.ColMap("UserId").SetMaxSize(26)
 		tableSidebarCategories.ColMap("TeamId").SetMaxSize(26)
 		tableSidebarCategories.ColMap("Sorting").SetMaxSize(64)
@@ -401,7 +401,7 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableSidebarChannels := db.AddTableWithName(model.SidebarChannel{}, "SidebarChannels").SetKeys(false, "ChannelId", "UserId", "CategoryId")
 		tableSidebarChannels.ColMap("ChannelId").SetMaxSize(26)
 		tableSidebarChannels.ColMap("UserId").SetMaxSize(26)
-		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(26)
+		tableSidebarChannels.ColMap("CategoryId").SetMaxSize(128)
 	}
 
 	return s
