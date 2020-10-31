@@ -303,7 +303,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for open team without results",
-			&model.TeamSearch{Term: "junk"},
+			&model.TeamSearch{Term: "notexists"},
 			0,
 			[]string{},
 		},
@@ -464,7 +464,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for open team without results",
-			"junk",
+			"notexists",
 			0,
 			"",
 		},
@@ -570,7 +570,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for private team without results",
-			"junk",
+			"notexists",
 			0,
 			"",
 		},
