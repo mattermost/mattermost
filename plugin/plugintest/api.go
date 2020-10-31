@@ -3287,8 +3287,8 @@ func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *m
 	return r0, r1
 }
 
-// UpdateUserStatusV2 provides a mock function with given fields: userId, status, endtime
-func (_m *API) UpdateUserStatusV2(userId string, status string, endtime string) (*model.Status, *model.AppError) {
+// UpdateUserStatusWithDNDTimeout provides a mock function with given fields: userId, status, endtime
+func (_m *API) UpdateUserStatusWithDNDTimeout(userId string, status string, endtime string) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, status, endtime)
 
 	var r0 *model.Status
