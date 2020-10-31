@@ -37,11 +37,11 @@ type Range struct {
 	End      int
 }
 
-func closeBlocks(blocks []Block, referenceDefinitions *[]*ReferenceDefinition) {
+func closeBlocks(blocks []Block, referenceDefinitions []*ReferenceDefinition) {
 	for _, block := range blocks {
 		block.Close()
 		if p, ok := block.(*Paragraph); ok && len(p.ReferenceDefinitions) > 0 {
-			*referenceDefinitions = append(*referenceDefinitions, p.ReferenceDefinitions...)
+			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...)
 		}
 	}
 }
@@ -78,7 +78,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 				for i := lastMatchIndex; i >= 0; i-- {
 					if container, ok := openBlocks[i].(ContainerBlock); ok {
 						if addedBlocks := container.AddChild(newBlocks); addedBlocks != nil {
-							closeBlocks(openBlocks[i+1:], &referenceDefinitions)
+							closeBlocks(openBlocks[i+1:], referenceDefinitions)
 							openBlocks = openBlocks[:i+1]
 							openBlocks = append(openBlocks, addedBlocks...)
 							didAdd = true
@@ -98,7 +98,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			continue
 		}
 
-		closeBlocks(openBlocks[lastMatchIndex+1:], &referenceDefinitions)
+		closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
 		openBlocks = openBlocks[:lastMatchIndex+1]
 
 		if openBlocks[lastMatchIndex].AddLine(indentation, r) {
@@ -109,7 +109,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			for i := lastMatchIndex; i >= 0; i-- {
 				if container, ok := openBlocks[i].(ContainerBlock); ok {
 					if newBlocks := container.AddChild([]Block{paragraph}); newBlocks != nil {
-						closeBlocks(openBlocks[i+1:], &referenceDefinitions)
+						closeBlocks(openBlocks[i+1:], referenceDefinitions)
 						openBlocks = openBlocks[:i+1]
 						openBlocks = append(openBlocks, newBlocks...)
 						break
@@ -119,7 +119,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 		}
 	}
 
-	closeBlocks(openBlocks, &referenceDefinitions)
+	closeBlocks(openBlocks, referenceDefinitions)
 
 	return document, referenceDefinitions
 }
