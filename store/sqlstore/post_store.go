@@ -12,8 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
@@ -21,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -160,18 +160,34 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		return nil, -1, errors.Wrap(err, "post_tosql")
 	}
 
-	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return posts, -1, errors.Wrap(err, "begin_transaction")
+	}
+
+	defer finalizeTransaction(transaction)
+
+	if _, err = transaction.Exec(query, args...); err != nil {
 		return nil, -1, errors.Wrap(err, "failed to save Post")
 	}
 
+	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
+		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
+	}
+
+	if err = transaction.Commit(); err != nil {
+		// don't need to rollback here since the transaction is already closed
+		return posts, -1, errors.Wrap(err, "commit_transaction")
+	}
+
 	for channelId, count := range channelNewPosts {
-		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
+		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	for rootId := range rootIds {
-		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
+		if _, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
@@ -266,6 +282,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 
 	if len(newPost.RootId) > 0 {
 		s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
+		s.GetMaster().Exec("UPDATE Threads SET LastReplyAt = :UpdateAt WHERE PostId = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 	}
 
 	// mark the old post as deleted
@@ -296,6 +313,9 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, in
 			}
 
 			return nil, idx, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+		}
+		if len(post.RootId) > 0 {
+			tx.Exec("UPDATE Threads SET LastReplyAt = :UpdateAt WHERE PostId = :RootId", map[string]interface{}{"UpdateAt": updateAt, "RootId": post.Id})
 		}
 	}
 	err = tx.Commit()
@@ -496,19 +516,49 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return nil
+	return s.cleanupThreads(post.Id, post.RootId, post.UserId)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
-	if err != nil {
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
+	if err != nil && err != sql.ErrNoRows {
+		if err != sql.ErrNoRows {
+			return errors.Wrapf(err, "failed to get Post with id=%s", postId)
+		}
+
+		if err = s.cleanupThreads(post.Id, post.RootId, post.UserId); err != nil {
+			return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
+		}
+	}
+
+	if _, err = s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
+
 	return nil
 }
 
+type postIds struct {
+	Id     string
+	RootId string
+	UserId string
+}
+
 func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
-	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+	results := []postIds{}
+	_, err := s.GetMaster().Select(&results, "Select Id, RootId FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch Posts with userId=%s", userId)
+	}
+
+	for _, ids := range results {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, userId); err != nil {
+			return err
+		}
+	}
+
+	_, err = s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
 	}
@@ -552,6 +602,18 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 }
 
 func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
+	results := []postIds{}
+	_, err := s.GetMaster().Select(&results, "SELECT Id, RootId, UserId FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	if err != nil {
+		return errors.Wrapf(err, "failed to fetch Posts with channelId=%s", channelId)
+	}
+
+	for _, ids := range results {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId); err != nil {
+			return err
+		}
+	}
+
 	if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
 	}
@@ -1859,4 +1921,94 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
 			"store.sql_post.get_oldest_entity_creation_time.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return oldest, nil
+}
+
+func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
+	if len(rootId) > 0 {
+		thread, err := s.Thread().Get(rootId)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				return errors.Wrap(err, "failed to get a thread")
+			}
+		}
+		if thread != nil {
+			thread.ReplyCount -= 1
+			thread.Participants = thread.Participants.Remove(userId)
+			if _, err = s.Thread().Update(thread); err != nil {
+				return errors.Wrap(err, "failed to update thread")
+			}
+		}
+	}
+	if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
+	}
+	if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete ThreadMemberships")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
+	postsByRoot := map[string][]*model.Post{}
+	var rootIds []string
+	for _, post := range posts {
+		// skip if post is not a part of a thread
+		if len(post.RootId) == 0 {
+			continue
+		}
+		rootIds = append(rootIds, post.RootId)
+		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
+	}
+	if len(rootIds) == 0 {
+		return nil
+	}
+	now := model.GetMillis()
+	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
+	var threadsByRoots []*model.Thread
+	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
+		return err
+	}
+
+	threadByRoot := map[string]*model.Thread{}
+	for _, thread := range threadsByRoots {
+		threadByRoot[thread.PostId] = thread
+	}
+
+	for rootId, posts := range postsByRoot {
+		if thread, found := threadByRoot[rootId]; !found {
+			// calculate participants
+			var participants model.StringArray
+			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
+				return err
+			}
+			// calculate reply count
+			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId})
+			if err != nil {
+				return err
+			}
+			// no metadata entry, create one
+			if err := transaction.Insert(&model.Thread{
+				PostId:       rootId,
+				ChannelId:    posts[0].ChannelId,
+				ReplyCount:   count,
+				LastReplyAt:  now,
+				Participants: participants,
+			}); err != nil {
+				return err
+			}
+		} else {
+			// metadata exists, update it
+			thread.LastReplyAt = now
+			for _, post := range posts {
+				thread.ReplyCount += 1
+				if !thread.Participants.Contains(post.UserId) {
+					thread.Participants = append(thread.Participants, post.UserId)
+				}
+			}
+			if _, err := transaction.Update(thread); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

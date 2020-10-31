@@ -24,6 +24,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	Thread() ThreadStore
 	User() UserStore
 	Bot() BotStore
 	Audit() AuditStore
@@ -190,10 +191,10 @@ type ChannelStore interface {
 	RemoveMembers(channelId string, userIds []string) error
 	PermanentDeleteMembersByUser(userId string) error
 	PermanentDeleteMembersByChannel(channelId string) error
-	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error)
+	UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error)
 	CountPostsAfter(channelId string, timestamp int64, userId string) (int, error)
-	IncrementMentionCount(channelId string, userId string) error
+	IncrementMentionCount(channelId string, userId string, updateThreads bool) error
 	AnalyticsTypeCount(teamId string, channelType string) (int64, error)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, error)
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, error)
@@ -244,6 +245,22 @@ type ChannelMemberHistoryStore interface {
 	LogLeaveEvent(userId string, channelId string, leaveTime int64) error
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+}
+type ThreadStore interface {
+	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
+	Save(thread *model.Thread) (*model.Thread, error)
+	Update(thread *model.Thread) (*model.Thread, error)
+	Get(id string) (*model.Thread, error)
+	Delete(postId string) error
+
+	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
+	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
+	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
+	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
+	DeleteMembershipForUser(userId, postId string) error
+	CreateMembershipIfNeeded(userId, postId string) error
+	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
+	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
 }
 
 type PostStore interface {

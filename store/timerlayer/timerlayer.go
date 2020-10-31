@@ -45,6 +45,7 @@ type TimerLayer struct {
 	SystemStore               store.SystemStore
 	TeamStore                 store.TeamStore
 	TermsOfServiceStore       store.TermsOfServiceStore
+	ThreadStore               store.ThreadStore
 	TokenStore                store.TokenStore
 	UploadSessionStore        store.UploadSessionStore
 	UserStore                 store.UserStore
@@ -159,6 +160,10 @@ func (s *TimerLayer) Team() store.TeamStore {
 
 func (s *TimerLayer) TermsOfService() store.TermsOfServiceStore {
 	return s.TermsOfServiceStore
+}
+
+func (s *TimerLayer) Thread() store.ThreadStore {
+	return s.ThreadStore
 }
 
 func (s *TimerLayer) Token() store.TokenStore {
@@ -317,6 +322,11 @@ type TimerLayerTeamStore struct {
 
 type TimerLayerTermsOfServiceStore struct {
 	store.TermsOfServiceStore
+	Root *TimerLayer
+}
+
+type TimerLayerThreadStore struct {
+	store.ThreadStore
 	Root *TimerLayer
 }
 
@@ -1405,10 +1415,10 @@ func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) IncrementMentionCount(channelId string, userId string) error {
+func (s *TimerLayerChannelStore) IncrementMentionCount(channelId string, userId string, updateThreads bool) error {
 	start := timemodule.Now()
 
-	err := s.ChannelStore.IncrementMentionCount(channelId, userId)
+	err := s.ChannelStore.IncrementMentionCount(channelId, userId, updateThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1910,10 +1920,10 @@ func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
+func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
+	result, err := s.ChannelStore.UpdateLastViewedAt(channelIds, userId, updateThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1926,10 +1936,10 @@ func (s *TimerLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error) {
+func (s *TimerLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
+	result, err := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount, updateThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6846,6 +6856,214 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.CollectThreadsWithNewerReplies(userId, channelIds, timestamp)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CollectThreadsWithNewerReplies", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CreateMembershipIfNeeded", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) Delete(postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.Delete(postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.DeleteMembershipForUser(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.Get(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postId string) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetMembershipForUser(userId, postId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetMembershipsForUser(userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMembershipsForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.Save(thread)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.SaveMembership(membership)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMembership", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error) {
+	start := timemodule.Now()
+
+	result, resultVar1, err := s.ThreadStore.SaveMultiple(thread)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.SaveMultiple", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
+func (s *TimerLayerThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.Update(thread)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.UpdateMembership(membership)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateMembership", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateUnreadsByChannel", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerTokenStore) Cleanup() {
 	start := timemodule.Now()
 
@@ -8784,6 +9002,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &TimerLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}
 	newStore.TermsOfServiceStore = &TimerLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
+	newStore.ThreadStore = &TimerLayerThreadStore{ThreadStore: childStore.Thread(), Root: &newStore}
 	newStore.TokenStore = &TimerLayerTokenStore{TokenStore: childStore.Token(), Root: &newStore}
 	newStore.UploadSessionStore = &TimerLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &TimerLayerUserStore{UserStore: childStore.User(), Root: &newStore}
