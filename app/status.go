@@ -289,6 +289,14 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 		return
 	}
 
+	// take a string in RFC3339 format and return time
+	utc, cErr := time.Parse(time.RFC3339, endtime)
+
+	if cErr != nil {
+		mlog.Error("Failed to parse endtime", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
+		return
+	}
+
 	status, err := a.GetStatus(userId)
 
 	if err != nil {
@@ -298,14 +306,6 @@ func (a *App) SetStatusDoNotDisturbTimed(userId string, endtime string) {
 	status.PrevStatus = status.Status
 	status.Status = model.STATUS_DND
 	status.Manual = true
-
-	// take a string in RFC3339 format and return time
-	utc, cErr := time.Parse(time.RFC3339, endtime)
-
-	if cErr != nil {
-		mlog.Error("Failed to parse endtime", mlog.String("user_id", userId), mlog.String("err", cErr.Error()))
-		return
-	}
 
 	status.DNDEndTimeUnix = utc.Unix()
 
