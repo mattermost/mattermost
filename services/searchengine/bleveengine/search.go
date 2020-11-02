@@ -715,7 +715,7 @@ func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*m
 	search.SortBy([]string{"-CreateAt"})
 	results, err := b.FileIndex.Search(search)
 	if err != nil {
-		return nil, model.NewAppError("Bleveengine.SearchFiles", "bleveengine.search_filefilesor", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("Bleveengine.SearchFiles", "bleveengine.search_files.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	fileIds := []string{}
