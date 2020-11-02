@@ -77,6 +77,29 @@ func (_m *FileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return r0, r1
 }
 
+// GetByIds provides a mock function with given fields: ids
+func (_m *FileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+	ret := _m.Called(ids)
+
+	var r0 []*model.FileInfo
+	if rf, ok := ret.Get(0).(func([]string) []*model.FileInfo); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileInfo)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByPath provides a mock function with given fields: path
 func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	ret := _m.Called(path)
@@ -246,6 +269,29 @@ func (_m *FileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*model.FileInfo) error); ok {
 		r1 = rf(info)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Search provides a mock function with given fields: paramsList, userId, teamId, page, perPage
+func (_m *FileInfoStore) Search(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.FileInfoList, error) {
+	ret := _m.Called(paramsList, userId, teamId, page, perPage)
+
+	var r0 *model.FileInfoList
+	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.FileInfoList); ok {
+		r0 = rf(paramsList, userId, teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfoList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
+		r1 = rf(paramsList, userId, teamId, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -98,6 +98,10 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 	s.Run("TestSearchPostStore", func() {
 		searchtest.TestSearchPostStore(s.T(), s.Store, searchTestEngine)
 	})
+
+	s.Run("TestSearchFileInfoStore", func() {
+		searchtest.TestSearchFileInfoStore(s.T(), s.Store, searchTestEngine)
+	})
 }
 
 func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {

@@ -2964,6 +2964,24 @@ func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, error) 
 	return result, err
 }
 
+func (s *OpenTracingLayerFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetByIds")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.FileInfoStore.GetByIds(ids)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetByPath")
@@ -3113,6 +3131,24 @@ func (s *OpenTracingLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileI
 
 	defer span.Finish()
 	result, err := s.FileInfoStore.Save(info)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerFileInfoStore) Search(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.FileInfoList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.Search")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.FileInfoStore.Search(paramsList, userId, teamId, page, perPage)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

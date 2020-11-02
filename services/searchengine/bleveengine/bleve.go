@@ -24,12 +24,14 @@ import (
 const (
 	ENGINE_NAME   = "bleve"
 	POST_INDEX    = "posts"
+	FILE_INDEX    = "files"
 	USER_INDEX    = "users"
 	CHANNEL_INDEX = "channels"
 )
 
 type BleveEngine struct {
 	PostIndex    bleve.Index
+	FileIndex    bleve.Index
 	UserIndex    bleve.Index
 	ChannelIndex bleve.Index
 	Mutex        sync.RWMutex
@@ -83,6 +85,23 @@ func getPostIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
+func getFileIndexMapping() *mapping.IndexMappingImpl {
+	fileMapping := bleve.NewDocumentMapping()
+	fileMapping.AddFieldMappingsAt("Id", keywordMapping)
+	fileMapping.AddFieldMappingsAt("CreatorId", keywordMapping)
+	fileMapping.AddFieldMappingsAt("ChannelId", keywordMapping)
+	fileMapping.AddFieldMappingsAt("CreateAt", dateMapping)
+	fileMapping.AddFieldMappingsAt("Name", standardMapping)
+	fileMapping.AddFieldMappingsAt("Content", standardMapping)
+	fileMapping.AddFieldMappingsAt("Extension", keywordMapping)
+	fileMapping.AddFieldMappingsAt("Content", standardMapping)
+
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping("_default", fileMapping)
+
+	return indexMapping
+}
+
 func getUserIndexMapping() *mapping.IndexMappingImpl {
 	userMapping := bleve.NewDocumentMapping()
 	userMapping.AddFieldMappingsAt("Id", keywordMapping)
@@ -132,6 +151,11 @@ func (b *BleveEngine) openIndexes() *model.AppError {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	b.FileIndex, err = b.createOrOpenIndex(FILE_INDEX, getFileIndexMapping())
+	if err != nil {
+		return model.NewAppError("Bleveengine.Start", "bleveengine.create_file_index.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	b.UserIndex, err = b.createOrOpenIndex(USER_INDEX, getUserIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_user_index.error", nil, err.Error(), http.StatusInternalServerError)
@@ -162,6 +186,10 @@ func (b *BleveEngine) Start() *model.AppError {
 func (b *BleveEngine) closeIndexes() *model.AppError {
 	if b.IsActive() {
 		if err := b.PostIndex.Close(); err != nil {
+			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_post_index.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := b.FileIndex.Close(); err != nil {
 			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 

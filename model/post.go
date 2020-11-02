@@ -163,6 +163,12 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type FileForIndexing struct {
+	FileInfo
+	ChannelId string `json:"channel_id"`
+	Content   string `json:"content"`
+}
+
 // ShallowCopy is an utility function to shallow copy a Post to the given
 // destination without touching the internal RWMutex.
 func (o *Post) ShallowCopy(dst *Post) error {
