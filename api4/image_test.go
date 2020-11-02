@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -100,5 +101,14 @@ func TestGetImage(t *testing.T) {
 		resp, err = th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusFound, resp.StatusCode)
+
+		// protocol relative URLs should be handled by proxy
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 }

@@ -6,9 +6,12 @@ package api4
 import (
 	"net/http"
 	"net/url"
+	"regexp"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+var protocolRelativeURLRegex = regexp.MustCompile(`^(\\|\/){2}.+`) // can be any one of //, \\, /\, or \/
 
 func (api *API) InitImage() {
 	api.BaseRoutes.Image.Handle("", api.ApiSessionRequiredTrustRequester(getImage)).Methods("GET")
@@ -16,6 +19,13 @@ func (api *API) InitImage() {
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	actualURL := r.URL.Query().Get("url")
+	if protocolRelativeURLRegex.MatchString(actualURL) {
+		scheme := "http"
+		if *c.App.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			scheme = "https"
+		}
+		actualURL = scheme + "://" + actualURL[2:]
+	}
 	parsedURL, err := url.Parse(actualURL)
 	if err != nil {
 		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, err.Error(), http.StatusBadRequest)
