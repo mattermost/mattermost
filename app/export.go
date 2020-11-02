@@ -187,7 +187,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 		users, err := a.Srv().Store.User().GetAllAfter(1000, afterId)
 
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(users) == 0 {
@@ -412,11 +412,12 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	for _, reaction := range reactions {
 		user, err := a.Srv().Store.User().Get(reaction.UserId)
 		if err != nil {
-			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
+			var nfErr *store.ErrNotFound
+			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
 				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
-			return nil, err
+			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}

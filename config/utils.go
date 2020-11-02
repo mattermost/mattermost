@@ -76,6 +76,10 @@ func desanitize(actual, target *model.Config) {
 	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FAKE_SETTING {
 		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
 	}
+
+	if *target.ServiceSettings.SplitKey == model.FAKE_SETTING {
+		*target.ServiceSettings.SplitKey = *actual.ServiceSettings.SplitKey
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration, returning true if changed.

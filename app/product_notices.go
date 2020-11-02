@@ -16,10 +16,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
 
 	"github.com/Masterminds/semver/v3"
-	date_constraints "github.com/reflog/dateconstraints"
+	"github.com/pkg/errors"
+	"github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
@@ -200,6 +200,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 	return val == expectedValue
 }
 
+// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
@@ -220,7 +221,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	}
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
-	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
+	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
@@ -275,6 +276,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	return filteredNotices, nil
 }
 
+// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
 	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
@@ -282,20 +284,32 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 	return nil
 }
 
+// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
+// user as viewed in order to avoid showing them imminently on first login
+func (a *App) UpdateViewedProductNoticesForNewUser(userId string) {
+	var noticeIds []string
+	for _, notice := range cachedNotices {
+		noticeIds = append(noticeIds, notice.ID)
+	}
+	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userId))
+	}
+}
+
+// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
-	var appErr *model.AppError
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
 		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if appErr != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
+	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if err != nil {
+		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

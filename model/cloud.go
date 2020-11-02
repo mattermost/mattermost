@@ -33,17 +33,22 @@ type ConfirmPaymentMethodRequest struct {
 
 // Customer model represents a customer on the system.
 type CloudCustomer struct {
-	ID               string         `json:"id"`
-	CreatorID        string         `json:"creator_id"`
-	CreateAt         int64          `json:"create_at"`
-	Email            string         `json:"email"`
-	Name             string         `json:"name"`
-	NumEmployees     int            `json:"num_employees"`
-	ContactFirstName string         `json:"contact_first_name"`
-	ContactLastName  string         `json:"contact_last_name"`
-	BillingAddress   *Address       `json:"billing_address"`
-	CompanyAddress   *Address       `json:"company_address"`
-	PaymentMethod    *PaymentMethod `json:"payment_method"`
+	CloudCustomerInfo
+	ID             string         `json:"id"`
+	CreatorID      string         `json:"creator_id"`
+	CreateAt       int64          `json:"create_at"`
+	BillingAddress *Address       `json:"billing_address"`
+	CompanyAddress *Address       `json:"company_address"`
+	PaymentMethod  *PaymentMethod `json:"payment_method"`
+}
+
+// CloudCustomerInfo represents editable info of a customer.
+type CloudCustomerInfo struct {
+	Name             string `json:"name"`
+	Email            string `json:"email,omitempty"`
+	ContactFirstName string `json:"contact_first_name,omitempty"`
+	ContactLastName  string `json:"contact_last_name,omitempty"`
+	NumEmployees     int    `json:"num_employees"`
 }
 
 // Address model represents a customer's address.
@@ -68,13 +73,41 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID         string   `json:"id"`
-	CustomerID string   `json:"customer_id"`
-	ProductID  string   `json:"product_id"`
-	AddOns     []string `json:"add_ons"`
-	StartAt    int64    `json:"start_at"`
-	EndAt      int64    `json:"end_at"`
-	CreateAt   int64    `json:"create_at"`
-	Seats      int      `json:"seats"`
-	DNS        string   `json:"dns"`
+	ID          string   `json:"id"`
+	CustomerID  string   `json:"customer_id"`
+	ProductID   string   `json:"product_id"`
+	AddOns      []string `json:"add_ons"`
+	StartAt     int64    `json:"start_at"`
+	EndAt       int64    `json:"end_at"`
+	CreateAt    int64    `json:"create_at"`
+	Seats       int      `json:"seats"`
+	DNS         string   `json:"dns"`
+	IsPaidTier  string   `json:"is_paid_tier"`
+	LastInvoice *Invoice `json:"last_invoice"`
+}
+
+// Invoice model represents a cloud invoice
+type Invoice struct {
+	ID             string             `json:"id"`
+	Number         string             `json:"number"`
+	CreateAt       int64              `json:"create_at"`
+	Total          int64              `json:"total"`
+	Tax            int64              `json:"tax"`
+	Status         string             `json:"status"`
+	Description    string             `json:"description"`
+	PeriodStart    int64              `json:"period_start"`
+	PeriodEnd      int64              `json:"period_end"`
+	SubscriptionID string             `json:"subscription_id"`
+	Items          []*InvoiceLineItem `json:"line_items"`
+}
+
+// InvoiceLineItem model represents a cloud invoice lineitem tied to an invoice.
+type InvoiceLineItem struct {
+	PriceID      string                 `json:"price_id"`
+	Total        int64                  `json:"total"`
+	Quantity     int64                  `json:"quantity"`
+	PricePerUnit int64                  `json:"price_per_unit"`
+	Description  string                 `json:"description"`
+	Type         string                 `json:"type"`
+	Metadata     map[string]interface{} `json:"metadata"`
 }

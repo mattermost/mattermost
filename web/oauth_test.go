@@ -473,9 +473,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	_, err = th.App.Srv().Store.User().UpdateAuthData(
+	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -549,10 +549,10 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
-	return user
+	return user, nil
 }
 
 func GenerateTestAppName() string {

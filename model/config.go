@@ -347,6 +347,10 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableAWSMetering                                 *bool
+	SplitKey                                          *string `access:"environment,write_restrictable"`
+	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
+	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -763,6 +767,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAWSMetering == nil {
 		s.EnableAWSMetering = NewBool(false)
+	}
+
+	if s.SplitKey == nil {
+		s.SplitKey = NewString("")
+	}
+
+	if s.FeatureFlagSyncIntervalSeconds == nil {
+		s.FeatureFlagSyncIntervalSeconds = NewInt(30)
+	}
+
+	if s.DebugSplit == nil {
+		s.DebugSplit = NewBool(false)
+	}
+
+	if s.ThreadAutoFollow == nil {
+		s.ThreadAutoFollow = NewBool(true)
 	}
 }
 
@@ -2188,6 +2208,7 @@ type SamlSettings struct {
 	Enable                        *bool `access:"authentication"`
 	EnableSyncWithLdap            *bool `access:"authentication"`
 	EnableSyncWithLdapIncludeAuth *bool `access:"authentication"`
+	IgnoreGuestsLdapSync          *bool `access:"authentication"`
 
 	Verify      *bool `access:"authentication"`
 	Encrypt     *bool `access:"authentication"`
@@ -2212,8 +2233,8 @@ type SamlSettings struct {
 	// User Mapping
 	IdAttribute          *string `access:"authentication"`
 	GuestAttribute       *string `access:"authentication"`
-	EnableAdminAttribute *bool   `access:"authentication"`
-	AdminAttribute       *string `access:"authentication"`
+	EnableAdminAttribute *bool
+	AdminAttribute       *string
 	FirstNameAttribute   *string `access:"authentication"`
 	LastNameAttribute    *string `access:"authentication"`
 	EmailAttribute       *string `access:"authentication"`
@@ -2240,6 +2261,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.EnableSyncWithLdapIncludeAuth == nil {
 		s.EnableSyncWithLdapIncludeAuth = NewBool(false)
+	}
+
+	if s.IgnoreGuestsLdapSync == nil {
+		s.IgnoreGuestsLdapSync = NewBool(false)
 	}
 
 	if s.EnableAdminAttribute == nil {
@@ -3626,6 +3651,8 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
+
+	*o.ServiceSettings.SplitKey = FAKE_SETTING
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

@@ -50,9 +50,9 @@ func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	targetUsername := splitMessage[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, err := a.Srv().Store.User().GetByUsername(targetUsername)
-	if err != nil {
-		mlog.Error(err.Error())
+	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_user.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
@@ -67,6 +67,7 @@ func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	}
 
 	var channelToJoin *model.Channel
+	var err *model.AppError
 	// User set a channel to add the invited user
 	if len(splitMessage) > 1 && splitMessage[1] != "" {
 		targetChannelName := strings.TrimPrefix(strings.TrimSpace(splitMessage[1]), "~")

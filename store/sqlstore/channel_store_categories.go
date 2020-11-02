@@ -6,10 +6,9 @@ package sqlstore
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -54,9 +53,12 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 		hasCategoryOfType[existingType] = true
 	}
 
-	if !hasCategoryOfType[model.SidebarCategoryFavorites] {
-		favoritesCategoryId := model.NewId()
+	// Use deterministic IDs for default categories to prevent potentially creating multiple copies of a default category
+	favoritesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryFavorites, userId, teamId)
+	channelsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryChannels, userId, teamId)
+	directMessagesCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryDirectMessages, userId, teamId)
 
+	if !hasCategoryOfType[model.SidebarCategoryFavorites] {
 		// Create the SidebarChannels first since there's more opportunity for something to fail here
 		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId); err != nil {
 			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to migrate favorites to sidebar")
@@ -78,7 +80,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	if !hasCategoryOfType[model.SidebarCategoryChannels] {
 		if err := transaction.Insert(&model.SidebarCategory{
 			DisplayName: "Channels", // This will be retranslateed by the client into the user's locale
-			Id:          model.NewId(),
+			Id:          channelsCategoryId,
 			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortDefault,
@@ -92,7 +94,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	if !hasCategoryOfType[model.SidebarCategoryDirectMessages] {
 		if err := transaction.Insert(&model.SidebarCategory{
 			DisplayName: "Direct Messages", // This will be retranslateed by the client into the user's locale
-			Id:          model.NewId(),
+			Id:          directMessagesCategoryId,
 			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortRecent,
@@ -843,6 +845,8 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transa
 	var channel *model.Channel
 	if obj, err := transaction.Get(&model.Channel{}, preference.Name); err != nil {
 		return errors.Wrapf(err, "Failed to get favorited channel with id=%s", preference.Name)
+	} else if obj == nil {
+		return store.NewErrNotFound("Channel", preference.Name)
 	} else {
 		channel = obj.(*model.Channel)
 	}

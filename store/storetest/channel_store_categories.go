@@ -6,6 +6,7 @@ package storetest
 import (
 	"database/sql"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,6 +22,7 @@ func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
+	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 }
 
 func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
@@ -96,6 +98,29 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		assert.Nil(t, err)
 		assert.Equal(t, initialCategories.Categories, res.Categories)
+	})
+
+	t.Run("shouldn't create additional categories when ones already exist even when ran simultaneously", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		var wg sync.WaitGroup
+
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+
+				_ = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+			}()
+		}
+
+		wg.Wait()
+
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
 	})
 
 	t.Run("should populate the Favorites category with regular channels", func(t *testing.T) {
@@ -1674,5 +1699,49 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[2].Id)
 		assert.NotNil(t, err)
+	})
+}
+
+func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
+	t.Run("Should be able to update sidebar channels", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		channel, nErr := ss.Channel().Save(&model.Channel{
+			Name:   "channel",
+			Type:   model.CHANNEL_OPEN,
+			TeamId: teamId,
+		}, 10)
+		require.Nil(t, nErr)
+
+		err := ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
+			model.Preference{
+				Name:     channel.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Value:    "true",
+			},
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("Should not panic if channel is not found", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		assert.Nil(t, nErr)
+
+		require.NotPanics(t, func() {
+			_ = ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
+				model.Preference{
+					Name:     "fakeid",
+					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					Value:    "true",
+				},
+			})
+		})
 	})
 }

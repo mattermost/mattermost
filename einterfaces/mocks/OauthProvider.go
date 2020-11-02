@@ -17,7 +17,7 @@ type OauthProvider struct {
 }
 
 // GetUserFromJson provides a mock function with given fields: data
-func (_m *OauthProvider) GetUserFromJson(data io.Reader) *model.User {
+func (_m *OauthProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 	ret := _m.Called(data)
 
 	var r0 *model.User
@@ -29,5 +29,12 @@ func (_m *OauthProvider) GetUserFromJson(data io.Reader) *model.User {
 		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(io.Reader) error); ok {
+		r1 = rf(data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

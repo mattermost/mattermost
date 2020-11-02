@@ -1937,9 +1937,11 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 			}
 		}
 	}
-	_, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId})
-	if err != nil {
-		return errors.Wrap(err, "failed to update Threads")
+	if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
+	}
+	if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+		return errors.Wrap(err, "failed to delete ThreadMemberships")
 	}
 	return nil
 }
@@ -1985,6 +1987,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
 				PostId:       rootId,
+				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
 				LastReplyAt:  now,
 				Participants: participants,

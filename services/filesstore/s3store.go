@@ -20,6 +20,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// S3FileBackend contains all necessary information to communicate with
+// an AWS S3 compatible API backend.
 type S3FileBackend struct {
 	endpoint   string
 	accessKey  string
@@ -31,12 +33,35 @@ type S3FileBackend struct {
 	pathPrefix string
 	encrypt    bool
 	trace      bool
+	client     *s3.Client
 }
 
 const (
 	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
 	bucketNotFound = "NoSuchBucket"
 )
+
+// NewS3FileBackend returns an instance of an S3FileBackend.
+func NewS3FileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
+	backend := &S3FileBackend{
+		endpoint:   *settings.AmazonS3Endpoint,
+		accessKey:  *settings.AmazonS3AccessKeyId,
+		secretKey:  *settings.AmazonS3SecretAccessKey,
+		secure:     settings.AmazonS3SSL == nil || *settings.AmazonS3SSL,
+		signV2:     settings.AmazonS3SignV2 != nil && *settings.AmazonS3SignV2,
+		region:     *settings.AmazonS3Region,
+		bucket:     *settings.AmazonS3Bucket,
+		pathPrefix: *settings.AmazonS3PathPrefix,
+		encrypt:    settings.AmazonS3SSE != nil && *settings.AmazonS3SSE && enableComplianceFeatures,
+		trace:      settings.AmazonS3Trace != nil && *settings.AmazonS3Trace,
+	}
+	cli, err := backend.s3New()
+	if err != nil {
+		return nil, err
+	}
+	backend.client = cli
+	return backend, nil
+}
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
@@ -46,7 +71,10 @@ const (
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
 
-	if b.accessKey == "" && b.secretKey == "" {
+	isCloud := os.Getenv("MM_CLOUD_FILESTORE_BIFROST") != ""
+	if isCloud {
+		creds = credentials.New(customProvider{isSignV2: b.signV2})
+	} else if b.accessKey == "" && b.secretKey == "" {
 		creds = credentials.NewIAM("")
 	} else if b.signV2 {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
@@ -59,6 +87,24 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Secure: b.secure,
 		Region: b.region,
 	}
+
+	// If this is a cloud installation, we override the default transport.
+	if isCloud {
+		tr, err := s3.DefaultTransport(b.secure)
+		if err != nil {
+			return nil, err
+		}
+		scheme := "http"
+		if b.secure {
+			scheme = "https"
+		}
+		opts.Transport = &customTransport{
+			base:   tr,
+			host:   b.endpoint,
+			scheme: scheme,
+		}
+	}
+
 	s3Clnt, err := s3.New(b.endpoint, &opts)
 	if err != nil {
 		return nil, err
@@ -72,17 +118,13 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 }
 
 func (b *S3FileBackend) TestConnection() error {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	exists := true
+	var err error
 	// If a path prefix is present, we attempt to test the bucket by listing objects under the path
 	// and just checking the first response. This is because the BucketExists call is only at a bucket level
 	// and sometimes the user might only be allowed access to the specified path prefix.
 	if b.pathPrefix != "" {
-		obj := <-s3Clnt.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
+		obj := <-b.client.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound {
@@ -91,7 +133,7 @@ func (b *S3FileBackend) TestConnection() error {
 			exists = false
 		}
 	} else {
-		exists, err = s3Clnt.BucketExists(context.Background(), b.bucket)
+		exists, err = b.client.BucketExists(context.Background(), b.bucket)
 		if err != nil {
 			return errors.Wrap(err, "unable to check if the s3 bucket exists")
 		}
@@ -101,7 +143,7 @@ func (b *S3FileBackend) TestConnection() error {
 		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	} else {
 		mlog.Warn("Bucket specified does not exist. Attempting to create...")
-		err := s3Clnt.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
+		err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
 		if err != nil {
 			return errors.Wrap(err, "unable to create the s3 bucket")
 		}
@@ -112,13 +154,8 @@ func (b *S3FileBackend) TestConnection() error {
 
 // Caller must close the first return value
 func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	path = filepath.Join(b.pathPrefix, path)
-	minioObject, err := s3Clnt.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
+	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
@@ -127,13 +164,8 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 }
 
 func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	path = filepath.Join(b.pathPrefix, path)
-	minioObject, err := s3Clnt.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
+	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
@@ -147,14 +179,9 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 }
 
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return false, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	path = filepath.Join(b.pathPrefix, path)
-	_, err = s3Clnt.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
 
+	_, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
 	if err == nil {
 		return true, nil
 	}
@@ -168,11 +195,6 @@ func (b *S3FileBackend) FileExists(path string) (bool, error) {
 }
 
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -185,18 +207,13 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 		Object:     newPath,
 		Encryption: encrypt.NewSSE(),
 	}
-	if _, err = s3Clnt.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
+	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 	return nil
 }
 
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -210,11 +227,11 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 		Encryption: encrypt.NewSSE(),
 	}
 
-	if _, err = s3Clnt.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
+	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
 		return errors.Wrapf(err, "unable to copy the file to %s to the new destionation", newPath)
 	}
 
-	if err = s3Clnt.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
+	if err := b.client.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
 		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
 	}
 
@@ -222,11 +239,6 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 }
 
 func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return 0, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
@@ -236,7 +248,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, fr, -1, options)
+	info, err := b.client.PutObject(context.Background(), b.bucket, path, fr, -1, options)
 	if err != nil {
 		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
@@ -245,13 +257,8 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 }
 
 func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return 0, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	fp := filepath.Join(b.pathPrefix, path)
-	if _, err = s3Clnt.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
+	if _, err := b.client.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
 		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
 	}
 
@@ -265,8 +272,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	options := s3PutOptions(b.encrypt, contentType)
 	sse := options.ServerSideEncryption
 	partName := fp + ".part"
-	info, err := s3Clnt.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
-	defer s3Clnt.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
+	info, err := b.client.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
+	defer b.client.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
 	if info.Size > 0 {
 		src1Opts := s3.CopySrcOptions{
 			Bucket: b.bucket,
@@ -281,7 +288,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 			Object:     fp,
 			Encryption: sse,
 		}
-		_, err = s3Clnt.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
+		_, err = b.client.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
 		if err != nil {
 			return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 		}
@@ -292,13 +299,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 }
 
 func (b *S3FileBackend) RemoveFile(path string) error {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	path = filepath.Join(b.pathPrefix, path)
-	if err := s3Clnt.RemoveObject(context.Background(), b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
+	if err := b.client.RemoveObject(context.Background(), b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
 		return errors.Wrapf(err, "unable to remove the file %s", path)
 	}
 
@@ -326,11 +328,6 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 }
 
 func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to initialize s3 client")
-	}
-
 	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && len(path) > 0 {
 		// s3Clnt returns only the path itself when "/" is not present
@@ -342,27 +339,29 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
 		Prefix: path,
 	}
 	var paths []string
-	for object := range s3Clnt.ListObjects(context.Background(), b.bucket, opts) {
+	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
 		if object.Err != nil {
-			return nil, errors.Wrapf(err, "unable to list the directory %s", path)
+			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
 		}
-		paths = append(paths, strings.Trim(object.Key, "/"))
+		// We strip the path prefix that gets applied,
+		// so that it remains transparent to the application.
+		object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+		trimmed := strings.Trim(object.Key, "/")
+		if trimmed != "" {
+			paths = append(paths, trimmed)
+		}
 	}
 
 	return &paths, nil
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {
-	s3Clnt, err := b.s3New()
-	if err != nil {
-		return errors.Wrap(err, "unable to initialize s3 client")
-	}
 	opts := s3.ListObjectsOptions{
 		Prefix:    filepath.Join(b.pathPrefix, path),
 		Recursive: true,
 	}
-	list := s3Clnt.ListObjects(context.Background(), b.bucket, opts)
-	objectsCh := s3Clnt.RemoveObjects(context.Background(), b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
+	list := b.client.ListObjects(context.Background(), b.bucket, opts)
+	objectsCh := b.client.RemoveObjects(context.Background(), b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
 	for err := range objectsCh {
 		if err.Err != nil {
 			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
