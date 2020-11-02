@@ -267,3 +267,20 @@ func (a *App) importLine(line LineImportData, dryRun bool) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "", http.StatusBadRequest)
 	}
 }
+
+func (a *App) ListImports() ([]string, *model.AppError) {
+	imports, appErr := a.ListDirectory(*a.Config().ImportSettings.Directory)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	for i := 0; i < len(imports); i++ {
+		imports[i] = filepath.Base(imports[i])
+	}
+
+	if imports == nil {
+		imports = []string{}
+	}
+
+	return imports, nil
+}

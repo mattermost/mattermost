@@ -770,6 +770,7 @@ type AppIface interface {
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
+	ListImports() ([]string, *model.AppError)
 	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamId string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger

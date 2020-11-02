@@ -68,7 +68,7 @@ func TestCreateUpload(t *testing.T) {
 			us := &model.UploadSession{
 				Filename: info.Name(),
 				FileSize: info.Size(),
-				Type:     "import",
+				Type:     model.UploadTypeImport,
 			}
 			u, resp := th.Client.CreateUpload(us)
 			require.Nil(t, u)
@@ -81,7 +81,7 @@ func TestCreateUpload(t *testing.T) {
 			us := &model.UploadSession{
 				Filename: info.Name(),
 				FileSize: info.Size(),
-				Type:     "import",
+				Type:     model.UploadTypeImport,
 			}
 			u, resp := th.SystemAdminClient.CreateUpload(us)
 			require.Nil(t, resp.Error)

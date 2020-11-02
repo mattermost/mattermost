@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -21,18 +20,10 @@ func listImports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imports, appErr := c.App.ListDirectory(*c.App.Config().ImportSettings.Directory)
+	imports, appErr := c.App.ListImports()
 	if appErr != nil {
 		c.Err = appErr
 		return
-	}
-
-	for i := 0; i < len(imports); i++ {
-		imports[i] = filepath.Base(imports[i])
-	}
-
-	if imports == nil {
-		imports = []string{}
 	}
 
 	data, err := json.Marshal(imports)

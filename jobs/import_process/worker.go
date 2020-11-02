@@ -121,7 +121,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 	defer importFile.Close()
 
-	// TODO: improve this process by eliminating the need to unzip the import
+	// TODO (MM-30187): improve this process by eliminating the need to unzip the import
 	// file locally and instead do the whole bulk import process in memory by
 	// streaming the import file.
 
