@@ -1110,14 +1110,14 @@ func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 	})
 
 	t.Run("Should avoid stop words 'where', 'is' and 'the'", func(t *testing.T) {
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{&model.SearchParams{Terms: "is the car"}}, th.User.Id, th.Team.Id, 0, 20)
+		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the car"}}, th.User.Id, th.Team.Id, 0, 20)
 		require.Nil(t, apperr)
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p4.Id, results.FileInfos)
 	})
 
 	t.Run("Should remove all terms and return empty list", func(t *testing.T) {
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{&model.SearchParams{Terms: "is the"}}, th.User.Id, th.Team.Id, 0, 20)
+		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the"}}, th.User.Id, th.Team.Id, 0, 20)
 		require.Nil(t, apperr)
 		require.Empty(t, results.FileInfos)
 	})
