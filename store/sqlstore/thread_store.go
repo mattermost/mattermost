@@ -5,11 +5,12 @@ package sqlstore
 
 import (
 	"database/sql"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -29,6 +30,7 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 	for _, db := range sqlStore.GetAllConns() {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
+		tableThreads.ColMap("ChannelId").SetMaxSize(26)
 		tableThreads.ColMap("Participants").SetMaxSize(0)
 		tableThreadMemberships := db.AddTableWithName(model.ThreadMembership{}, "ThreadMemberships").SetKeys(false, "PostId", "UserId")
 		tableThreadMemberships.ColMap("PostId").SetMaxSize(26)
@@ -39,12 +41,13 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 }
 
 func threadSliceColumns() []string {
-	return []string{"PostId", "LastReplyAt", "ReplyCount", "Participants"}
+	return []string{"PostId", "ChannelId", "LastReplyAt", "ReplyCount", "Participants"}
 }
 
 func threadToSlice(thread *model.Thread) []interface{} {
 	return []interface{}{
 		thread.PostId,
+		thread.ChannelId,
 		thread.LastReplyAt,
 		thread.ReplyCount,
 		thread.Participants,
@@ -52,13 +55,10 @@ func threadToSlice(thread *model.Thread) []interface{} {
 }
 
 func (s *SqlThreadStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_threads_last_reply_at", "Threads", "LastReplyAt")
-	s.CreateIndexIfNotExists("idx_threads_post_id", "Threads", "PostId")
-
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_update_at", "ThreadMemberships", "LastUpdated")
 	s.CreateIndexIfNotExists("idx_thread_memberships_last_view_at", "ThreadMemberships", "LastViewed")
-	s.CreateIndexIfNotExists("idx_thread_memberships_post_id", "ThreadMemberships", "PostId")
 	s.CreateIndexIfNotExists("idx_thread_memberships_user_id", "ThreadMemberships", "UserId")
+	s.CreateIndexIfNotExists("idx_threads_channel_id", "Threads", "ChannelId")
 }
 
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {
@@ -187,4 +187,42 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 		LastUpdated: now,
 	})
 	return err
+}
+
+func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
+	var changedThreads []string
+	query, args, _ := s.getQueryBuilder().
+		Select("Threads.PostId").
+		From("Threads").
+		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Threads.ChannelId").
+		Where(sq.And{
+			sq.Eq{"Threads.ChannelId": channelIds},
+			sq.Eq{"ChannelMembers.UserId": userId},
+			sq.Or{
+				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
+				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+			},
+		}).
+		ToSql()
+	if _, err := s.GetReplica().Select(&changedThreads, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch threads")
+	}
+	return changedThreads, nil
+}
+
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+	if len(changedThreads) == 0 {
+		return nil
+	}
+	updateQuery, updateArgs, _ := s.getQueryBuilder().
+		Update("ThreadMemberships").
+		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
+		Set("LastUpdated", timestamp).
+		Set("LastViewed", timestamp).
+		ToSql()
+	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {
+		return errors.Wrap(err, "failed to update thread membership")
+	}
+
+	return nil
 }

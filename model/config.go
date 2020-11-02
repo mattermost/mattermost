@@ -347,7 +347,10 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableAWSMetering                                 *bool
-	ThreadAutoFollow                                  *bool `access:"experimental"`
+	SplitKey                                          *string `access:"environment,write_restrictable"`
+	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
+	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -766,10 +769,21 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAWSMetering = NewBool(false)
 	}
 
+	if s.SplitKey == nil {
+		s.SplitKey = NewString("")
+	}
+
+	if s.FeatureFlagSyncIntervalSeconds == nil {
+		s.FeatureFlagSyncIntervalSeconds = NewInt(30)
+	}
+
+	if s.DebugSplit == nil {
+		s.DebugSplit = NewBool(false)
+	}
+
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewBool(true)
 	}
-
 }
 
 type ClusterSettings struct {
@@ -3637,6 +3651,8 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
+
+	*o.ServiceSettings.SplitKey = FAKE_SETTING
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

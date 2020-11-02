@@ -4157,11 +4157,11 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var times map[string]int64
-	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)
+	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId, false)
 	require.Nil(t, err, "failed to update ", err)
 	require.Equal(t, o1.LastPostAt, times[o1.Id], "last viewed at time incorrect")
 
-	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId)
+	times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId, false)
 	require.Nil(t, err, "failed to update ", err)
 	require.Equal(t, o2.LastPostAt, times[o2.Id], "last viewed at time incorrect")
 
@@ -4177,7 +4177,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
 	assert.Equal(t, o2.TotalMsgCount, rm2.MsgCount)
 
-	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")
+	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id", false)
 	require.Nil(t, err, "failed to update")
 }
 
@@ -4198,16 +4198,16 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	_, err := ss.Channel().SaveMember(&m1)
 	require.Nil(t, err)
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId, false)
 	require.Nil(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id", false)
 	require.Nil(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId)
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId, false)
 	require.Nil(t, err, "failed to update")
 
-	err = ss.Channel().IncrementMentionCount("missing id", "missing id")
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id", false)
 	require.Nil(t, err, "failed to update")
 }
 
