@@ -355,8 +355,8 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 		}
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			if _, err := writer.Write(bytes); err != nil {
-				return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
+			if _, nErr = writer.Write(bytes); nErr != nil {
+				return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 			return nil
 		}))
