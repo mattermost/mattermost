@@ -164,7 +164,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
 
 	// If the post only has images then push an appropriate message
-	if len(postMessage) == 0 && hasFiles {
+	if postMessage == "" && hasFiles {
 		if channelType == model.CHANNEL_DIRECT {
 			return strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
 		}
@@ -580,6 +580,10 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 
 	if fw, ok := post.GetProp("from_webhook").(string); ok {
 		msg.FromWebhook = fw
+	}
+
+	for _, attachment := range post.Attachments() {
+		post.Message += "\n" + attachment.Fallback
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)
