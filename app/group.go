@@ -189,7 +189,7 @@ func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMemb
 }
 
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	groupMemger, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
+	groupMember, err := a.Srv().Store.Group().DeleteMember(groupID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -200,7 +200,7 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 		}
 	}
 
-	return groupMemger, nil
+	return groupMember, nil
 }
 
 func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
