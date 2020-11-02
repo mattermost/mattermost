@@ -261,7 +261,7 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 	query := bleve.NewTermQuery(channelID)
 	query.SetField("ChannelId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deleteFiles(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteChannelPosts",
 			"bleveengine.delete_channel_posts.error", nil,
