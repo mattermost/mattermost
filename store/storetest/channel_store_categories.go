@@ -6,6 +6,7 @@ package storetest
 import (
 	"database/sql"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -97,6 +98,29 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		assert.Nil(t, err)
 		assert.Equal(t, initialCategories.Categories, res.Categories)
+	})
+
+	t.Run("shouldn't create additional categories when ones already exist even when ran simultaneously", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		var wg sync.WaitGroup
+
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+
+				_ = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+			}()
+		}
+
+		wg.Wait()
+
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
 	})
 
 	t.Run("should populate the Favorites category with regular channels", func(t *testing.T) {
