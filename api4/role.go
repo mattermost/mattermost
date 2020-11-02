@@ -97,8 +97,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isGuest := oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID
 	if c.App.Srv().License() == nil && patch.Permissions != nil {
-		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
+		if isGuest {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
 		}
@@ -154,12 +155,12 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.Srv().License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.Srv().License().Features.GuestAccountsPermissions {
+	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if oldRole.Name == "team_admin" || oldRole.Name == "channel_admin" || oldRole.Name == "system_user" || oldRole.Name == "team_user" || oldRole.Name == "channel_user" || oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
+	if oldRole.Name == model.TEAM_ADMIN_ROLE_ID || oldRole.Name == model.CHANNEL_ADMIN_ROLE_ID || oldRole.Name == model.SYSTEM_USER_ROLE_ID || oldRole.Name == model.TEAM_USER_ROLE_ID || oldRole.Name == model.CHANNEL_USER_ROLE_ID || oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID {
 		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
 			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 			return
