@@ -94,6 +94,7 @@ func TestConfigValidate(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "TestConfigValidate")
 	require.NoError(t, err)
 	defer os.Remove(tempFile.Name())
+	tempFile.Write([]byte("{"))
 
 	assert.Error(t, th.RunCommand(t, "--config", tempFile.Name(), "config", "validate"))
 	th.CheckCommand(t, "config", "validate")
