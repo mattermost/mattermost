@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -1422,6 +1423,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.Nil(t, nErr)
 
+	time.Sleep(time.Millisecond)
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
@@ -1788,13 +1790,11 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	t.Run("get by empty email", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("unknown")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 }
 
@@ -1857,21 +1857,24 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
 		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
 	})
 
 	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
 	})
 }
 
@@ -1934,13 +1937,15 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	t.Run("get by empty username", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("unknown")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_user.get_by_username.app_error")
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 }
 
@@ -2007,7 +2012,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	t.Run("get u1 by username, allow only email", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u1.Username, false, true)
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
+		require.Equal(t, "user not found", err.Error())
 	})
 
 	t.Run("get u1 by email, allow both", func(t *testing.T) {
@@ -2025,7 +2030,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	t.Run("get u1 by email, allow only username", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u1.Email, true, false)
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
+		require.Equal(t, "user not found", err.Error())
 	})
 
 	t.Run("get u2 by username, allow both", func(t *testing.T) {
@@ -2043,7 +2048,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	t.Run("get u2 by username, allow neither", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u2.Username, false, false)
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, "store.sql_user.get_for_login.app_error")
+		require.Equal(t, "sign in with username and email are disabled", err.Error())
 	})
 }
 
@@ -2168,7 +2173,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2179,7 +2184,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	p3 := model.Post{}
@@ -2189,7 +2194,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.Nil(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
@@ -3949,12 +3954,12 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 
-	_, err = ss.User().Save(&u1)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr := ss.User().Save(&u1)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	_, err = ss.User().Save(&u2)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u2)
+	require.Nil(t, nErr, "couldn't save user")
 
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
@@ -3983,16 +3988,16 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	u3.Username = model.NewId()
 	u3.Roles = "system_guest"
 
-	_, err = ss.User().Save(&u1)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr := ss.User().Save(&u1)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	_, err = ss.User().Save(&u2)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u2)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	_, err = ss.User().Save(&u3)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u3)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 
 	result, err := ss.User().AnalyticsGetGuestCount()

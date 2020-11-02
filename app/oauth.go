@@ -269,6 +269,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 
 	var accessData *model.AccessData
 	var accessRsp *model.AccessResponse
+	var user *model.User
 	if grantType == model.ACCESS_TOKEN_GRANT_TYPE {
 		var authData *model.AuthData
 		authData, nErr = a.Srv().Store.OAuth().GetAuthData(code)
@@ -287,8 +288,8 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		user, err := a.Srv().Store.User().Get(authData.UserId)
-		if err != nil {
+		user, nErr = a.Srv().Store.User().Get(authData.UserId)
+		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
 
@@ -300,7 +301,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		if accessData != nil {
 			if accessData.IsExpired() {
 				var access *model.AccessResponse
-				access, err = a.newSessionUpdateToken(oauthApp.Name, accessData, user)
+				access, err := a.newSessionUpdateToken(oauthApp.Name, accessData, user)
 				if err != nil {
 					return nil, err
 				}
@@ -317,7 +318,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		} else {
 			var session *model.Session
 			// Create a new session and return new access token
-			session, err = a.newSession(oauthApp.Name, user)
+			session, err := a.newSession(oauthApp.Name, user)
 			if err != nil {
 				return nil, err
 			}
@@ -347,8 +348,8 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
 		}
 
-		user, err := a.Srv().Store.User().Get(accessData.UserId)
-		if err != nil {
+		user, nErr := a.Srv().Store.User().Get(accessData.UserId)
+		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
 
@@ -574,21 +575,20 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
-	authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
 
-	authData := ""
-	if authUser.AuthData != nil {
-		authData = *authUser.AuthData
+	authUser, err1 := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
+	if err1 != nil {
+		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
 
-	if len(authData) == 0 {
+	if *authUser.AuthData == "" {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
-
-	user, err := a.GetUserByAuth(&authData, service)
+	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
-		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
+		if err.Id == MISSING_AUTH_ACCOUNT_ERROR {
 			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
 		} else {
 			return nil, err
@@ -622,38 +622,43 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	}
-	ssoUser := provider.GetUserFromJson(userData)
-	ssoEmail := ssoUser.Email
 
-	authData := ""
-	if ssoUser.AuthData != nil {
-		authData = *ssoUser.AuthData
+	if email == "" {
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(authData) == 0 {
+	ssoUser, err1 := provider.GetUserFromJson(userData)
+	if err1 != nil {
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
+	}
+
+	if *ssoUser.AuthData == "" {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	if len(email) == 0 {
-		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
+	user, nErr := a.Srv().Store.User().GetByEmail(email)
+	if nErr != nil {
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", MISSING_ACCOUNT_ERROR, nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	user, err := a.Srv().Store.User().GetByEmail(email)
-	if err != nil {
+	if err := a.RevokeAllSessions(user.Id); err != nil {
 		return nil, err
 	}
 
-	if err = a.RevokeAllSessions(user.Id); err != nil {
-		return nil, err
-	}
-
-	if _, err = a.Srv().Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); err != nil {
-		return nil, err
+	if _, nErr := a.Srv().Store.User().UpdateAuthData(user.Id, service, ssoUser.AuthData, ssoUser.Email, true); nErr != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(nErr, &invErr):
+			return nil, model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	a.Srv().Go(func() {
-		if err = a.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error("error sending signin change email", mlog.Err(err))
 		}
 	})

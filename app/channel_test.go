@@ -1859,7 +1859,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
+	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
 	mockChannelStore.On("GetMember", "channelID", "userID").Return(&model.ChannelMember{
@@ -1869,7 +1869,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	times := map[string]int64{
 		"userID": 1,
 	}
-	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", true).Return(times, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 

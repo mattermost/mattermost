@@ -331,7 +331,7 @@ func (c *MarketplaceMetering) RegisterUsageRequest(input *RegisterUsageInput) (r
 //
 //   * PlatformNotSupportedException
 //   AWS Marketplace does not support metering usage from the underlying platform.
-//   Currently, only Amazon ECS is supported.
+//   Currently, Amazon ECS, Amazon EKS, and AWS Fargate are supported.
 //
 //   * CustomerNotEntitledException
 //   Exception thrown when the customer does not have a valid subscription for
@@ -1382,7 +1382,7 @@ func (s *MeterUsageOutput) SetMeteringRecordId(v string) *MeterUsageOutput {
 }
 
 // AWS Marketplace does not support metering usage from the underlying platform.
-// Currently, only Amazon ECS is supported.
+// Currently, Amazon ECS, Amazon EKS, and AWS Fargate are supported.
 type PlatformNotSupportedException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -1888,3 +1888,12 @@ const (
 	// UsageRecordResultStatusDuplicateRecord is a UsageRecordResultStatus enum value
 	UsageRecordResultStatusDuplicateRecord = "DuplicateRecord"
 )
+
+// UsageRecordResultStatus_Values returns all elements of the UsageRecordResultStatus enum
+func UsageRecordResultStatus_Values() []string {
+	return []string{
+		UsageRecordResultStatusSuccess,
+		UsageRecordResultStatusCustomerNotSubscribed,
+		UsageRecordResultStatusDuplicateRecord,
+	}
+}
