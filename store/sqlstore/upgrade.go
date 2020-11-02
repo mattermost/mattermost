@@ -192,6 +192,7 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion528(sqlStore)
 	upgradeDatabaseToVersion5281(sqlStore)
 	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion530(sqlStore)
 
 	return nil
 }
@@ -865,12 +866,12 @@ func upgradeDatabaseToVersion5281(sqlStore SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion529(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_29_0) {
+func upgradeDatabaseToVersion530(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 
-	// saveSchemaVersion(sqlStore, VERSION_5_29_0)
+	// saveSchemaVersion(sqlStore, VERSION_5_30_0)
 	// }
 }
 
