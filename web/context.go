@@ -301,7 +301,7 @@ func (c *Context) RequireCategoryId() *Context {
 		return c
 	}
 
-	if len(c.Params.CategoryId) != 26 {
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
 		c.SetInvalidUrlParam("category_id")
 	}
 	return c
@@ -661,5 +661,17 @@ func (c *Context) RequireBotUserId() *Context {
 	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
+	return c
+}
+
+func (c *Context) RequireInvoiceId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InvoiceId) != 27 {
+		c.SetInvalidUrlParam("invoice_id")
+	}
+
 	return c
 }

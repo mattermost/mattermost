@@ -1032,6 +1032,28 @@ func (a *OpenTracingAppLayer) ChannelMembersToRemove(teamID *string) ([]*model.C
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CheckAndSendUserLimitWarningEmails() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckAndSendUserLimitWarningEmails")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckAndSendUserLimitWarningEmails()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckForClientSideCert")
@@ -12939,7 +12961,7 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
 
@@ -12951,7 +12973,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponse(channel, receiver)
+	resultVar0, resultVar1 := a.app.SendAutoResponse(channel, receiver, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12961,7 +12983,7 @@ func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
+func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponseIfNecessary")
 
@@ -12973,7 +12995,7 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(channel, sender)
+	resultVar0, resultVar1 := a.app.SendAutoResponseIfNecessary(channel, sender, post)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
