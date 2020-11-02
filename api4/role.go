@@ -10,6 +10,24 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+var allowedPermissions = []string{
+	model.PERMISSION_CREATE_TEAM.Id,
+	model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+	model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
+	model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+	model.PERMISSION_MANAGE_OAUTH.Id,
+	model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
+	model.PERMISSION_CREATE_EMOJIS.Id,
+	model.PERMISSION_DELETE_EMOJIS.Id,
+	model.PERMISSION_EDIT_OTHERS_POSTS.Id,
+}
+
+var notAllowedPermissions = []string{
+	model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id,
+	model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id,
+	model.PERMISSION_MANAGE_ROLES.Id,
+}
+
 func (api *API) InitRole() {
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getRole)).Methods("GET")
 	api.BaseRoutes.Roles.Handle("/name/{role_name:[a-z0-9_]+}", api.ApiSessionRequiredTrustRequester(getRoleByName)).Methods("GET")
@@ -103,17 +121,6 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
 		}
-		allowedPermissions := []string{
-			model.PERMISSION_CREATE_TEAM.Id,
-			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_OAUTH.Id,
-			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-			model.PERMISSION_CREATE_EMOJIS.Id,
-			model.PERMISSION_DELETE_EMOJIS.Id,
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
-		}
 
 		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
 		for _, permission := range changedPermissions {
@@ -133,12 +140,6 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if patch.Permissions != nil {
 		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
-
-		notAllowedPermissions := []string{
-			model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id,
-			model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id,
-			model.PERMISSION_MANAGE_ROLES.Id,
-		}
 
 		for _, permission := range deltaPermissions {
 			notAllowed := false
