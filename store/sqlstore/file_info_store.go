@@ -388,7 +388,7 @@ func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	return rowsAffected, nil
 }
 
-func (s SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error) {
+func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.NewFileInfoList(), nil
@@ -396,7 +396,7 @@ func (s SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamI
 	if err := model.IsSearchParamsListValid(paramsList); err != nil {
 		return nil, err
 	}
-	query := s.getQueryBuilder().
+	query := fs.getQueryBuilder().
 		Select("FI.*").
 		From("FileInfo AS FI").
 		LeftJoin("Posts as P ON FI.PostId=P.Id").
@@ -484,7 +484,7 @@ func (s SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamI
 
 		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
-		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		} else if fs.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -507,7 +507,7 @@ func (s SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamI
 				sq.Expr("to_tsvector('english', FI.Name) @@  to_tsquery('english', ?)", queryTerms),
 				sq.Expr("to_tsvector('english', FI.Content) @@  to_tsquery('english', ?)", queryTerms),
 			})
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		} else if fs.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			var err error
 			terms, err = removeMysqlStopWordsFromTerms(terms)
 			if err != nil {
@@ -547,7 +547,7 @@ func (s SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, teamI
 
 	list := model.NewFileInfoList()
 	fileInfos := []*model.FileInfo{}
-	_, err = s.GetSearchReplica().Select(&fileInfos, queryString, args...)
+	_, err = fs.GetSearchReplica().Select(&fileInfos, queryString, args...)
 	if err != nil {
 		mlog.Warn("Query error searching files.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
