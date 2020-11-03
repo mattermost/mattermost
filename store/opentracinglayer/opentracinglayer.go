@@ -7792,7 +7792,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadsForUser(userId string, opts mode
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
+func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAllAsRead")
 	s.Root.Store.SetContext(newCtx)
@@ -7801,7 +7801,7 @@ func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, state bool) e
 	}()
 
 	defer span.Finish()
-	err := s.ThreadStore.MarkAllAsRead(userId, state)
+	err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7810,7 +7810,7 @@ func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, state bool) e
 	return err
 }
 
-func (s *OpenTracingLayerThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+func (s *OpenTracingLayerThreadStore) MarkAsRead(userId string, threadId string, timestamp int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAsRead")
 	s.Root.Store.SetContext(newCtx)
@@ -7819,7 +7819,7 @@ func (s *OpenTracingLayerThreadStore) MarkAsRead(userId string, threadId string,
 	}()
 
 	defer span.Finish()
-	err := s.ThreadStore.MarkAsRead(userId, threadId, state)
+	err := s.ThreadStore.MarkAsRead(userId, threadId, timestamp)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

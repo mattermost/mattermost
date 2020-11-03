@@ -203,29 +203,16 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	return result, nil
 }
 
-func (s *SqlThreadStore) MarkAllAsRead(userId string, state bool) error {
-	qb := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId})
-	if state {
-		qb = qb.Set("LastViewed", model.GetMillis())
-	} else {
-		qb = qb.Set("LastViewed", sq.Expr("(SELECT MAX(UpdateAt) FROM Posts WHERE Posts.RootId = ThreadMemberships.PostId)"))
-	}
-	query, args, _ := qb.ToSql()
+func (s *SqlThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}).Set("LastViewed", model.GetMillis()).ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
 	}
 	return nil
 }
 
-func (s *SqlThreadStore) MarkAsRead(userId, threadId string, state bool) error {
-	qb := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}, sq.Eq{"PostId": threadId})
-	if state {
-		qb = qb.Set("LastViewed", model.GetMillis())
-	} else {
-		qb = qb.Set("LastViewed", sq.Expr("(SELECT MAX(UpdateAt) FROM Posts WHERE Posts.RootId = ThreadMemberships.PostId)"))
-	}
-
-	query, args, _ := qb.ToSql()
+func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
+	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}, sq.Eq{"PostId": threadId}).Set("LastViewed", timestamp).ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
 	}

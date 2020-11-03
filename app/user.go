@@ -2381,8 +2381,8 @@ func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts)
 	return threads, nil
 }
 
-func (a *App) UpdateThreadsReadForUser(userId string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().MarkAllAsRead(userId, state)
+func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError {
+	err := a.Srv().Store.Thread().MarkAllAsRead(userId, timestamp)
 	if err != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2397,8 +2397,8 @@ func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *mo
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUser(userId, threadId string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().MarkAsRead(userId, threadId, state)
+func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError {
+	err := a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
 	if err != nil {
 		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

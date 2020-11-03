@@ -340,6 +340,17 @@ func (c *Context) RequireThreadId() *Context {
 	return c
 }
 
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.Timestamp) {
+		c.SetInvalidUrlParam("timestamp")
+	}
+	return c
+}
+
 func (c *Context) RequireChannelId() *Context {
 	if c.Err != nil {
 		return c

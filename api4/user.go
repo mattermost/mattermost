@@ -93,13 +93,11 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
-	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(markAsReadAllThreadsByUser)).Methods("PUT")
-	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(markAsUnreadAllThreadsByUser)).Methods("DELETE")
+	api.BaseRoutes.UserThreads.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(unfollowThreadByUser)).Methods("DELETE")
-	api.BaseRoutes.UserThread.Handle("/read", api.ApiSessionRequired(markAsReadThreadByUser)).Methods("PUT")
-	api.BaseRoutes.UserThread.Handle("/read", api.ApiSessionRequired(markAsUnreadThreadByUser)).Methods("DELETE")
+	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateThreadByUser)).Methods("PUT")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2880,50 +2878,23 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(threads.ToJson()))
 }
 
-func markAsUnreadThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId()
+func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequireTimestamp()
 	if c.Err != nil {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("markAsUnreadThreadByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-
+	auditRec.AddMeta("timestamp", c.Params.Timestamp)
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.ThreadId, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
-
-	auditRec.Success()
-}
-
-func markAsReadThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId()
-	if c.Err != nil {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("markAsReadThreadByUser", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("thread_id", c.Params.ThreadId)
-
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-
-	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.ThreadId, true)
+	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
@@ -2987,48 +2958,23 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 }
 
-func markAsUnreadAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTimestamp()
 	if c.Err != nil {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("markAsUnreadAllThreadsByUser", audit.Fail)
+	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("timestamp", c.Params.Timestamp)
 
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, false)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	ReturnStatusOK(w)
-
-	auditRec.Success()
-}
-
-func markAsReadAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("markAsReadAllThreadsByUser", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("user_id", c.Params.UserId)
-
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-
-	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, true)
+	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return

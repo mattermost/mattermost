@@ -7032,10 +7032,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
+func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.MarkAllAsRead(userId, state)
+	err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7048,10 +7048,10 @@ func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
 	return err
 }
 
-func (s *TimerLayerThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+func (s *TimerLayerThreadStore) MarkAsRead(userId string, threadId string, timestamp int64) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.MarkAsRead(userId, threadId, state)
+	err := s.ThreadStore.MarkAsRead(userId, threadId, timestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

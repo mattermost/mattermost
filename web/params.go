@@ -28,6 +28,7 @@ type Params struct {
 	InviteId                  string
 	TokenId                   string
 	ThreadId                  string
+	Timestamp                 int64
 	ChannelId                 string
 	PostId                    string
 	FileId                    string
@@ -234,6 +235,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
+	}
+
+	if val, err := strconv.ParseInt(query.Get("timestamp"), 10, 64); err != nil || val < 0 {
+		params.Timestamp = model.GetMillis()
+	} else {
+		params.Timestamp = val
 	}
 
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {

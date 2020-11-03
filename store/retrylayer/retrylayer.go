@@ -7842,11 +7842,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsRead(userId, state)
+		err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
 		if err == nil {
 			return nil
 		}
@@ -7862,11 +7862,11 @@ func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, state bool) error {
 
 }
 
-func (s *RetryLayerThreadStore) MarkAsRead(userId string, threadId string, state bool) error {
+func (s *RetryLayerThreadStore) MarkAsRead(userId string, threadId string, timestamp int64) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAsRead(userId, threadId, state)
+		err := s.ThreadStore.MarkAsRead(userId, threadId, timestamp)
 		if err == nil {
 			return nil
 		}

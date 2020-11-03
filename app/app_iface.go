@@ -995,8 +995,8 @@ type AppIface interface {
 	UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite bool) *model.AppError
 	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
 	UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError
-	UpdateThreadReadForUser(userId, threadId string, state bool) *model.AppError
-	UpdateThreadsReadForUser(userId string, state bool) *model.AppError
+	UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError
+	UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(userId string, active bool) *model.AppError
 	UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError)
