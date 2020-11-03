@@ -1112,7 +1112,11 @@
   },
   {
     "id": "api.command_share.hint",
+<<<<<<< HEAD
     "translation": "[action]"
+=======
+    "translation": "[command]"
+>>>>>>> share slash command
   },
   {
     "id": "api.command_share.name",
