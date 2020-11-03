@@ -63,7 +63,6 @@ require (
 	github.com/klauspost/compress v1.11.1 // indirect
 	github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
 	github.com/lib/pq v1.8.0
-	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
@@ -71,14 +70,12 @@ require (
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/logr v1.0.13
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
-	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mholt/archiver/v3 v3.4.0
 	github.com/miekg/dns v1.1.31 // indirect
 	github.com/minio/minio-go/v7 v7.0.5
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
-	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olivere/elastic v6.2.35+incompatible // indirect
@@ -100,11 +97,9 @@ require (
 	github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/assertions v1.0.0 // indirect
-	github.com/spf13/afero v1.4.1 // indirect
-	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/splitio/go-client/v6 v6.0.0
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect

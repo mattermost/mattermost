@@ -68,10 +68,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *TestHelper {
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	memoryStore := config.NewTestMemoryStore()
 	*memoryStore.Get().AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryStore.Get().AnnouncementSettings.UserNoticesEnabled = false
 	var options []app.Option
