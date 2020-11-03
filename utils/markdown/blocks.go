@@ -41,7 +41,7 @@ func closeBlocks(blocks []Block, referenceDefinitions []*ReferenceDefinition) []
 	for _, block := range blocks {
 		block.Close()
 		if p, ok := block.(*Paragraph); ok && len(p.ReferenceDefinitions) > 0 {
-			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...) //nolint:staticcheck
+			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...)
 		}
 	}
 	return referenceDefinitions
