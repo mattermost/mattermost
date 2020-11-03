@@ -2879,7 +2879,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId()
+	c.RequireUserId().RequireThreadId().RequireTimestamp()
 	if c.Err != nil {
 		return
 	}
@@ -2959,7 +2959,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireUserId().RequireTimestamp()
 	if c.Err != nil {
 		return
 	}
