@@ -1103,6 +1103,18 @@
     "translation": "The settings command is not supported on your device."
   },
   {
+    "id": "api.command_share.desc",
+    "translation": "Shares the current channel with a remote Mattermost instance."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[command]"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share"
+  },
+  {
     "id": "api.command_shortcuts.desc",
     "translation": "Displays a list of keyboard shortcuts"
   },

@@ -402,7 +402,7 @@ func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tableSharedChannels.ColMap("Token").SetMaxSize(26)
 		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
 
-		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id")
+		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
@@ -453,8 +453,6 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	}
 	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
 	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
-
-	s.CreateIndexIfNotExists("idx_sharedchannels_channel_id", "SharedChannelRemotes", "ChannelId")
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version
