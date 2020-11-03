@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -50,6 +51,16 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ReactionHasBeenAdded(pluginContext, reaction)
+				return true
+			}, plugin.ReactionHasBeenAddedId)
+		})
+	}
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
@@ -131,6 +142,16 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
+				return true
+			}, plugin.ReactionHasBeenRemovedId)
+		})
+	}
 
 	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
