@@ -237,7 +237,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Page = val
 	}
 
-	if val, err := strconv.ParseInt(query.Get("timestamp"), 10, 64); err != nil || val < 0 {
+	if val, err := strconv.ParseInt(props["timestamp"], 10, 64); err != nil || val < 0 {
 		params.Timestamp = 0
 	} else {
 		params.Timestamp = val

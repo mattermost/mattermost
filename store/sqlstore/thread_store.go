@@ -277,7 +277,7 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, followi
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
-		if !membership.Following {
+		if !membership.Following || membership.Following != following {
 			membership.Following = following
 			membership.LastUpdated = now
 			_, err = s.UpdateMembership(membership)

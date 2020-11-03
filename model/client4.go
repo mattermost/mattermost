@@ -5788,14 +5788,8 @@ func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Th
 	return &threads, BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadsReadForUser(userId string, state bool) *Response {
-	var appErr *AppError
-	var r *http.Response
-	if state {
-		r, appErr = c.DoApiPut(c.GetUserThreadsRoute(userId)+"/read", "")
-	} else {
-		r, appErr = c.DoApiDelete(c.GetUserThreadsRoute(userId) + "/read")
-	}
+func (c *Client4) UpdateThreadsReadForUser(userId string, timestamp int64) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadsRoute(userId), timestamp), "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}
@@ -5804,14 +5798,8 @@ func (c *Client4) UpdateThreadsReadForUser(userId string, state bool) *Response 
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, threadId string, state bool) *Response {
-	var appErr *AppError
-	var r *http.Response
-	if state {
-		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, threadId)+"/read", "")
-	} else {
-		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, threadId) + "/read")
-	}
+func (c *Client4) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, threadId), timestamp), "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}

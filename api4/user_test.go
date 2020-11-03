@@ -5477,7 +5477,7 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 
 		time.Sleep(1)
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, true)
+		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, model.GetMillis())
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5490,7 +5490,7 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss2.Threads, 1)
 		require.Greater(t, uss2.Threads[0].LastViewedAt, uss.Threads[0].LastViewedAt)
 
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, false)
+		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5510,7 +5510,7 @@ func TestReadThreads(t *testing.T) {
 		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
-		rpost2, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 		CheckNoError(t, resp2)
 		CheckCreatedStatus(t, resp2)
 
@@ -5532,8 +5532,7 @@ func TestReadThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 2)
 
-		time.Sleep(1)
-		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, true)
+		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, model.GetMillis())
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5546,7 +5545,8 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss2.Threads, 2)
 		require.Greater(t, uss2.Threads[1].LastViewedAt, uss.Threads[1].LastViewedAt)
 
-		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, false)
+		timestamp := model.GetMillis()
+		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, timestamp)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5557,6 +5557,6 @@ func TestReadThreads(t *testing.T) {
 		})
 		CheckNoError(t, resp)
 		require.Len(t, uss3.Threads, 2)
-		require.Equal(t, uss3.Threads[1].LastViewedAt, rpost2.UpdateAt)
+		require.Equal(t, uss3.Threads[1].LastViewedAt, timestamp)
 	})
 }
