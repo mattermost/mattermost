@@ -9,16 +9,25 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 type AtmosCamoBackend struct {
-	proxy *ImageProxy
+	proxy     *ImageProxy
+	siteURL   *url.URL
+	remoteURL *url.URL
 }
 
 func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
+	// We deliberately ignore the error because it's from config.json.
+	// The function returns a nil pointer in case of error, and we handle it when it's used.
+	siteURL, _ := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
+	remoteURL, _ := url.Parse(*proxy.ConfigService.Config().ImageProxySettings.RemoteImageProxyURL)
+
 	return &AtmosCamoBackend{
-		proxy: proxy,
+		proxy:     proxy,
+		siteURL:   siteURL,
+		remoteURL: remoteURL,
 	}
 }
 
@@ -45,22 +54,32 @@ func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser,
 
 func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
 	cfg := *backend.proxy.ConfigService.Config()
-	siteURL := *cfg.ServiceSettings.SiteURL
-	proxyURL := *cfg.ImageProxySettings.RemoteImageProxyURL
 	options := *cfg.ImageProxySettings.RemoteImageProxyOptions
 
-	return getAtmosCamoImageURL(imageURL, siteURL, proxyURL, options)
-}
-
-func getAtmosCamoImageURL(imageURL, siteURL, proxyURL, options string) string {
-	// Don't proxy blank images, relative URLs, absolute URLs on this server, or URLs that are already going through the proxy
-	if imageURL == "" || imageURL[0] == '/' || (siteURL != "" && strings.HasPrefix(imageURL, siteURL)) || strings.HasPrefix(imageURL, proxyURL) {
+	if imageURL == "" || backend.siteURL == nil {
 		return imageURL
 	}
 
+	// Parse url, bypass if error in parsing.
+	parsedURL, err := url.Parse(imageURL)
+	if err != nil {
+		return imageURL
+	}
+
+	// If host is same as siteURL host/ remoteURL host, or it's a relative URL, return.
+	if parsedURL.Host == backend.siteURL.Host || parsedURL.Host == "" || parsedURL.Host == backend.remoteURL.Host {
+		return imageURL
+	}
+
+	// Handle protocol-relative URLs.
+	if parsedURL.Scheme == "" {
+		parsedURL.Scheme = backend.siteURL.Scheme
+	}
+
+	urlBytes := []byte(parsedURL.String())
 	mac := hmac.New(sha1.New, []byte(options))
-	mac.Write([]byte(imageURL))
+	mac.Write(urlBytes)
 	digest := hex.EncodeToString(mac.Sum(nil))
 
-	return proxyURL + "/" + digest + "/" + hex.EncodeToString([]byte(imageURL))
+	return backend.remoteURL.String() + "/" + digest + "/" + hex.EncodeToString(urlBytes)
 }

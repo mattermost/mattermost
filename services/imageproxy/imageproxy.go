@@ -29,6 +29,7 @@ type ImageProxy struct {
 
 	Logger *mlog.Logger
 
+	siteURL *url.URL
 	lock    sync.RWMutex
 	backend ImageProxyBackend
 }
@@ -49,6 +50,11 @@ func MakeImageProxy(configService configservice.ConfigService, httpService https
 		HTTPService:   httpService,
 		Logger:        logger,
 	}
+
+	// We deliberately ignore the error because it's from config.json.
+	// The function returns a nil pointer in case of error, and we handle it when it's used.
+	siteURL, _ := url.Parse(*configService.Config().ServiceSettings.SiteURL)
+	proxy.siteURL = siteURL
 
 	proxy.configListenerId = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)
 
@@ -118,15 +124,24 @@ func (proxy *ImageProxy) GetImageDirect(imageURL string) (io.ReadCloser, string,
 // GetProxiedImageURL takes the URL of an image and returns a URL that can be used to view that image through the
 // image proxy.
 func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
-	return getProxiedImageURL(imageURL, *proxy.ConfigService.Config().ServiceSettings.SiteURL)
-}
-
-func getProxiedImageURL(imageURL, siteURL string) string {
-	if imageURL == "" || imageURL[0] == '/' || strings.HasPrefix(imageURL, siteURL) {
+	if imageURL == "" || proxy.siteURL == nil {
 		return imageURL
 	}
+	// Parse url, bypass if error in parsing.
+	parsedURL, err := url.Parse(imageURL)
+	if err != nil {
+		return imageURL
+	}
+	// If host is same as siteURL host, or it's a relative URL, return.
+	if parsedURL.Host == proxy.siteURL.Host || parsedURL.Host == "" {
+		return imageURL
+	}
+	// Handle protocol-relative URLs.
+	if parsedURL.Scheme == "" {
+		parsedURL.Scheme = proxy.siteURL.Scheme
+	}
 
-	return siteURL + "/api/v4/image?url=" + url.QueryEscape(imageURL)
+	return proxy.siteURL.String() + "/api/v4/image?url=" + url.QueryEscape(parsedURL.String())
 }
 
 // GetUnproxiedImageURL takes the URL of an image on the image proxy and returns the original URL of the image.
