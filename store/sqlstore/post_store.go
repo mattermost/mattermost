@@ -1986,6 +1986,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
 				PostId:       rootId,
+				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
 				LastReplyAt:  now,
 				Participants: participants,

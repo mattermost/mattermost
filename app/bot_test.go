@@ -97,7 +97,7 @@ func TestCreateBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.NotNil(t, err)
-		require.Equal(t, "app.user.save.existing.app_error", err.Id)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
 	})
 }
 

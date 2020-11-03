@@ -301,7 +301,7 @@ func (c *Context) RequireCategoryId() *Context {
 		return c
 	}
 
-	if len(c.Params.CategoryId) != 26 {
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
 		c.SetInvalidUrlParam("category_id")
 	}
 	return c

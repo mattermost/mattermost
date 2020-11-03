@@ -9,6 +9,7 @@ import (
 
 type Thread struct {
 	PostId       string      `json:"id"`
+	ChannelId    string      `json:"channel_id"`
 	ReplyCount   int64       `json:"reply_count"`
 	LastReplyAt  int64       `json:"last_reply_at"`
 	Participants StringArray `json:"participants"`
