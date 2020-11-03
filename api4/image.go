@@ -38,6 +38,6 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().ImageProxySettings.Enable && parsedURL.Host != siteURL.Host {
 		c.App.ImageProxy().GetImage(w, r, parsedURL.String())
 	} else {
-		http.Redirect(w, r, actualURL, http.StatusFound)
+		http.Redirect(w, r, parsedURL.String(), http.StatusFound)
 	}
 }
