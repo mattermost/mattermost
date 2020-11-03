@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -303,14 +302,14 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	pdfData, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
+	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err := writeFileResponse(
-		fmt.Sprintf("%s.pdf", c.Params.InvoiceId),
+		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),
 		time.Now(),
