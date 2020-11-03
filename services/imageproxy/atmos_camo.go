@@ -60,20 +60,26 @@ func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
 		return imageURL
 	}
 
-	// Parse url, bypass if error in parsing.
+	// Parse url, return siteURL in case of failure.
 	parsedURL, err := url.Parse(imageURL)
 	if err != nil {
-		return imageURL
+		return backend.siteURL.String()
 	}
 
-	// If host is same as siteURL host/ remoteURL host, or it's a relative URL, return.
-	if parsedURL.Host == backend.siteURL.Host || parsedURL.Host == "" || parsedURL.Host == backend.remoteURL.Host {
-		return imageURL
+	// If host is same as siteURL host/ remoteURL host, return.
+	if parsedURL.Host == backend.siteURL.Host || parsedURL.Host == backend.remoteURL.Host {
+		return parsedURL.String()
 	}
 
 	// Handle protocol-relative URLs.
 	if parsedURL.Scheme == "" {
 		parsedURL.Scheme = backend.siteURL.Scheme
+	}
+
+	// If it's a relative URL, fill up the hostname and scheme and return.
+	if parsedURL.Host == "" {
+		parsedURL.Host = backend.siteURL.Host
+		return parsedURL.String()
 	}
 
 	urlBytes := []byte(parsedURL.String())

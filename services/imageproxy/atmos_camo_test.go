@@ -122,7 +122,7 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			Name:     "should not proxy a relative image",
 			Input:    "/static/logo.png",
 			SiteURL:  defaultSiteURL,
-			Expected: "/static/logo.png",
+			Expected: "https://mattermost.example.com/static/logo.png",
 		},
 		{
 			Name:     "should not proxy an image on the Mattermost server",

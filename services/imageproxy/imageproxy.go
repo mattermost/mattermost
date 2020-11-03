@@ -127,18 +127,25 @@ func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
 	if imageURL == "" || proxy.siteURL == nil {
 		return imageURL
 	}
-	// Parse url, bypass if error in parsing.
+	// Parse url, return siteURL in case of failure.
 	parsedURL, err := url.Parse(imageURL)
 	if err != nil {
-		return imageURL
+		return proxy.siteURL.String()
 	}
-	// If host is same as siteURL host, or it's a relative URL, return.
-	if parsedURL.Host == proxy.siteURL.Host || parsedURL.Host == "" {
-		return imageURL
+	// If host is same as siteURL host, return.
+	if parsedURL.Host == proxy.siteURL.Host {
+		return parsedURL.String()
 	}
+
 	// Handle protocol-relative URLs.
 	if parsedURL.Scheme == "" {
 		parsedURL.Scheme = proxy.siteURL.Scheme
+	}
+
+	// If it's a relative URL, fill up the hostname and return.
+	if parsedURL.Host == "" {
+		parsedURL.Host = proxy.siteURL.Host
+		return parsedURL.String()
 	}
 
 	return proxy.siteURL.String() + "/api/v4/image?url=" + url.QueryEscape(parsedURL.String())
