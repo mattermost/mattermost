@@ -3000,7 +3000,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
@@ -3027,10 +3027,6 @@
     "translation": "Could not parse auth data out of {{.Service}} user object."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -3041,10 +3037,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Could not create user out of {{.Service}} user object."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -3123,8 +3115,8 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",

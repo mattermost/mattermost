@@ -26,6 +26,7 @@ import (
 const (
 	OAUTH_COOKIE_MAX_AGE_SECONDS = 30 * 60 // 30 minutes
 	COOKIE_OAUTH                 = "MMOAUTH"
+	OPENID_SCOPE                 = "openid"
 )
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
@@ -565,12 +566,11 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 
 func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.AppError) {
 	sso := a.Config().GetSSOService(service)
-	mlog.Debug("SSSSSSSSSOOOOOOOO-"+service, mlog.Bool("enable", *sso.Enable))
 	if sso == nil || !*sso.Enable {
 		return nil, model.NewAppError("getSSOProvider", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
 	}
 	providerType := service
-	if strings.Contains(*sso.Scope, "openid") {
+	if strings.Contains(*sso.Scope, OPENID_SCOPE) {
 		providerType = model.SERVICE_OPENID
 	}
 	provider := einterfaces.GetOauthProvider(providerType)
