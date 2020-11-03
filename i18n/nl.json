@@ -8069,5 +8069,181 @@
   {
     "id": "app.upload.run_plugins_hook.move_fail",
     "translation": "Fout bij het verplaatsen van het bestand."
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Stuur ons een mailtje via "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "Je het de grens van het aantal gebruikers in de gratis versie bereikt. "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloud gebruikerslimiet bereikt"
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud Professional."
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "Kon de datum van de laatste aanpassing van de gebruiker niet bijwerken."
+  },
+  {
+    "id": "app.user.update_password.app_error",
+    "translation": "Fout bij het bijwerken van het gebruikerswachtwoord."
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": "Fout bij het bijwerken van failed_attempts."
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het emailadres {{.Email}}."
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "Kan de authenticatiegegevens niet ophalen."
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Gasten kunnen niet worden gedeactiveerd."
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "We kunnen geen account vinden om bij te werken"
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Kon geen gebruiker vinden die overeenstemt met de zoekparameters."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "Een account met deze gebruikersnaam bestaat al."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "Een account met dat e-mail adres bestaat al."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Fout bij het bewaren van het account."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Fout bij het bijwerken van de gebruiker."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Kan het bestaande account niet verwijderen."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "Het aantal gebruikers kan niet geteld worden"
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van recent actieve gebruikers."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van de gebruikersprofielen."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van de gebruikersprofielen."
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "Er is een fout opgetreden bij het zoeken naar nieuwe gebruikers."
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "De gekende gebruikers kunnen niet worden opgehaald uit de database."
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "Er is een probleem opgetreden om een account te vinden op basis van authenticatie type."
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "We kunnen geen bestaand account vinden die inloggen bij dit team toe staat. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "Fout bij het bijwerken van de gebruiker."
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fout bij het ophalen van de gebruikers."
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "De inactieve gebruikers kunnen niet geteld worden."
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "Fout bij het ophalen van de actieve gebruikers gedurende de opgegeven periode."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Upgraden"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Je werkplek overschrijdt de gratis gebruikerslimiet"
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud werkplek Gebruikerslimiet overschreden"
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
   }
 ]
