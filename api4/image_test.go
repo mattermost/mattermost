@@ -103,6 +103,9 @@ func TestGetImage(t *testing.T) {
 		assert.Equal(t, http.StatusFound, resp.StatusCode)
 
 		// protocol relative URLs should be handled by proxy
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewString("http://foo.com")
+		})
 		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+strings.TrimPrefix(imageServer.URL, "http:")+"/image.png", nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
