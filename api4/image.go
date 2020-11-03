@@ -20,6 +20,9 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
+	} else if parsedURL.Opaque != "" {
+		c.Err = model.NewAppError("getImage", "api.image.get.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 	siteURL, err := url.Parse(*c.App.Config().ServiceSettings.SiteURL)
 	if err != nil {

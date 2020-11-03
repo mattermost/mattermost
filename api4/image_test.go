@@ -113,5 +113,14 @@ func TestGetImage(t *testing.T) {
 		resp, err = th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// opaque URLs are not supported, should return an error
+		r, err = http.NewRequest("GET", th.Client.ApiUrl+"/image?url=mailto:test@example.com", nil)
+		require.NoError(t, err)
+		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+
+		resp, err = th.Client.HttpClient.Do(r)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
