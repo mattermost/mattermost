@@ -204,7 +204,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 }
 
 func (s *SqlThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
-	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}).Set("LastViewed", model.GetMillis()).ToSql()
+	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}).Set("LastViewed", timestamp).ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
 	}
