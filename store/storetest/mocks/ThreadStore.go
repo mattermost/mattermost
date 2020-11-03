@@ -37,13 +37,13 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds 
 	return r0, r1
 }
 
-// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId
-func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
-	ret := _m.Called(userId, postId)
+// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId, following
+func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
+	ret := _m.Called(userId, postId, following)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(userId, postId)
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(userId, postId, following)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -72,20 +72,6 @@ func (_m *ThreadStore) DeleteMembershipForUser(userId string, postId string) err
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(userId, postId)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// Follow provides a mock function with given fields: userId, threadId, state
-func (_m *ThreadStore) Follow(userId string, threadId string, state bool) error {
-	ret := _m.Called(userId, threadId, state)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
-		r0 = rf(userId, threadId, state)
 	} else {
 		r0 = ret.Error(0)
 	}

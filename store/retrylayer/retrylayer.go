@@ -7682,11 +7682,11 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following)
 		if err == nil {
 			return nil
 		}
@@ -7727,26 +7727,6 @@ func (s *RetryLayerThreadStore) DeleteMembershipForUser(userId string, postId st
 	tries := 0
 	for {
 		err := s.ThreadStore.DeleteMembershipForUser(userId, postId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
-
-}
-
-func (s *RetryLayerThreadStore) Follow(userId string, threadId string, state bool) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.Follow(userId, threadId, state)
 		if err == nil {
 			return nil
 		}

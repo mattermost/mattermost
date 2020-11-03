@@ -256,14 +256,13 @@ type ThreadStore interface {
 
 	MarkAllAsRead(userId string, timestamp int64) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
-	Follow(userId, threadId string, state bool) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
-	CreateMembershipIfNeeded(userId, postId string) error
+	CreateMembershipIfNeeded(userId, postId string, following bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
 }

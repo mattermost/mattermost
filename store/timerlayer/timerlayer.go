@@ -6904,10 +6904,10 @@ func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6948,22 +6948,6 @@ func (s *TimerLayerThreadStore) DeleteMembershipForUser(userId string, postId st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.DeleteMembershipForUser", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerThreadStore) Follow(userId string, threadId string, state bool) error {
-	start := timemodule.Now()
-
-	err := s.ThreadStore.Follow(userId, threadId, state)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Follow", success, elapsed)
 	}
 	return err
 }

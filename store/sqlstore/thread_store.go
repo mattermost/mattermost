@@ -219,20 +219,6 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 	return nil
 }
 
-func (s *SqlThreadStore) Follow(userId, threadId string, state bool) error {
-	query, args, _ := s.getQueryBuilder().
-		Update("ThreadMemberships").
-		Set("Following", state).
-		Where(sq.And{
-			sq.Eq{"UserId": userId},
-			sq.Eq{"PostId": threadId},
-		}).ToSql()
-	if _, err := s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
-	}
-	return nil
-}
-
 func (s *SqlThreadStore) Delete(threadId string) error {
 	query, args, _ := s.getQueryBuilder().Delete("Threads").Where(sq.Eq{"PostId": threadId}).ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
@@ -287,12 +273,12 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
+func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
 		if !membership.Following {
-			membership.Following = true
+			membership.Following = following
 			membership.LastUpdated = now
 			_, err = s.UpdateMembership(membership)
 		}
@@ -307,7 +293,7 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	_, err = s.SaveMembership(&model.ThreadMembership{
 		PostId:      postId,
 		UserId:      userId,
-		Following:   true,
+		Following:   following,
 		LastViewed:  0,
 		LastUpdated: now,
 	})

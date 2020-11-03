@@ -1919,6 +1919,15 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 }
 
 func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent bool) error {
+	if permanent {
+		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+			return errors.Wrap(err, "failed to delete Threads")
+		}
+		if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
+			return errors.Wrap(err, "failed to delete ThreadMemberships")
+		}
+		return nil
+	}
 	if len(rootId) > 0 {
 		thread, err := s.Thread().Get(rootId)
 		if err != nil {
@@ -1932,14 +1941,6 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent b
 			if _, err = s.Thread().Update(thread); err != nil {
 				return errors.Wrap(err, "failed to update thread")
 			}
-		}
-	}
-	if permanent {
-		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-			return errors.Wrap(err, "failed to delete Threads")
-		}
-		if _, err := s.GetMaster().Exec("DELETE FROM ThreadMemberships WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
-			return errors.Wrap(err, "failed to delete ThreadMemberships")
 		}
 	}
 	return nil
