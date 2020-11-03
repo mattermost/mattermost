@@ -5839,6 +5839,18 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.cloud.authentication_failed",
+    "translation": ""
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": ""
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": ""
+  },
+  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -5947,6 +5959,10 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": ""
+  },
+  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
@@ -6019,6 +6035,10 @@
     "translation": "Failed to index the channel"
   },
   {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": ""
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
   },
@@ -6045,6 +6065,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -6401,6 +6425,14 @@
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": ""
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
