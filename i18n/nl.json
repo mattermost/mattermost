@@ -8329,5 +8329,13 @@
   {
     "id": "api.file.append_file.s3.app_error",
     "translation": "Er trad een fout op bij een bestand in S3."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin voor /{{.Command}} werkt niet. Contaceer je systeembeheerder"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} opdracht heeft de plugin {{.PluginId}} gecrasht. Neem contact op met je systeembeheerder"
   }
 ]
