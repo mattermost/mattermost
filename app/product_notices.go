@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -179,6 +180,10 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userId string, k
 	}
 	pref, err := preferences.Get(userId, parts[0], parts[1])
 	if err != nil {
+		// in case the check was for a key that is missing, but the expected value is 'false', we consider this check successful
+		if errors.Is(err, sql.ErrNoRows) && expectedValue == "false" {
+			return true, nil
+		}
 		return false, err
 	}
 	return pref.Value == expectedValue, nil

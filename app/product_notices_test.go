@@ -4,6 +4,7 @@
 package app
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -37,6 +38,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockUserStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ChannelId: "", ViewRestrictions: (*model.ViewUsersRestrictions)(nil), Roles: []string(nil), ChannelRoles: []string(nil), TeamRoles: []string(nil)}).Return(int64(1), nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data").Return(&model.Preference{Value: "test2"}, nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data2").Return(&model.Preference{Value: "test"}, nil)
+	mockPreferenceStore.On("Get", "test", "Some", "Missing").Return(nil, sql.ErrNoRows)
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -154,6 +156,18 @@ func TestNoticeValidation(t *testing.T) {
 				notice: &model.ProductNotice{
 					Conditions: model.Conditions{
 						UserConfig: map[string]interface{}{"Stuff.Data2": "test"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with working user check of falsy value",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Some.Missing": "false"},
 					},
 				},
 			},
