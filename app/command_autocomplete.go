@@ -14,8 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// DynamicListProvider dynamically provides auto-completion for built-in commands.
-type DynamicListProvider interface {
+// AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
+type AutocompleteDynamicArgProvider interface {
 	GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
 }
 
@@ -316,7 +316,7 @@ func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg 
 		return nil, fmt.Errorf("No command provider for %s", cmdName)
 	}
 
-	dp, ok := provider.(DynamicListProvider)
+	dp, ok := provider.(AutocompleteDynamicArgProvider)
 	if !ok {
 		return nil, fmt.Errorf("Auto-completion not available for built-in command %s", cmdName)
 	}
