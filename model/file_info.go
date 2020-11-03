@@ -6,8 +6,6 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -16,6 +14,9 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -57,6 +58,7 @@ type FileInfo struct {
 	Height          int     `json:"height,omitempty"`
 	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
+	Content         string  `json:"-"`
 }
 
 func (fi *FileInfo) ToJson() string {
