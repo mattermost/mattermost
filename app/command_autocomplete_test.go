@@ -4,8 +4,10 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -608,4 +610,67 @@ func createJiraAutocompleteData() *model.AutocompleteData {
 	jira.AddCommand(uninstall)
 
 	return jira
+}
+
+func TestDynamicListArgsForBuiltin(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	provider := &testProvider{}
+	RegisterCommandProvider(provider)
+
+	command := provider.GetCommand(th.App, nil)
+	emptyCmdArgs := &model.CommandArgs{}
+
+	t.Run("GetAutoCompleteListItems", func(t *testing.T) {
+		suggestions := th.App.getSuggestions(emptyCmdArgs, []*model.AutocompleteData{command.AutocompleteData}, "", "bogus --dynaArg ", model.SYSTEM_ADMIN_ROLE_ID)
+		assert.Len(t, suggestions, 3)
+		assert.Equal(t, "this is hint 1", suggestions[0].Hint)
+		assert.Equal(t, "this is hint 2", suggestions[1].Hint)
+		assert.Equal(t, "this is hint 3", suggestions[2].Hint)
+	})
+
+	t.Run("GetAutoCompleteListItems bad arg", func(t *testing.T) {
+		suggestions := th.App.getSuggestions(emptyCmdArgs, []*model.AutocompleteData{command.AutocompleteData}, "", "bogus --badArg ", model.SYSTEM_ADMIN_ROLE_ID)
+		assert.Len(t, suggestions, 0)
+	})
+}
+
+type testProvider struct {
+}
+
+func (p *testProvider) GetTrigger() string {
+	return "bogus"
+}
+
+func (p *testProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+	top := model.NewAutocompleteData(p.GetTrigger(), "[command]", "Just a test.")
+	top.AddNamedDynamicListArgument("dynaArg", "A dynamic list", "builtin:bogus", true)
+
+	return &model.Command{
+		Trigger:          p.GetTrigger(),
+		AutoComplete:     true,
+		AutoCompleteDesc: "Test description",
+		AutoCompleteHint: "Test hint.",
+		DisplayName:      "test display name",
+		AutocompleteData: top,
+	}
+}
+
+func (p *testProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	return &model.CommandResponse{
+		Text:         "I do nothing!",
+		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+	}
+}
+
+func (p *testProvider) GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	if arg.Name == "dynaArg" {
+		return []model.AutocompleteListItem{
+			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},
+			{Item: "item2", Hint: "this is hint 2", HelpText: "This is help text 2."},
+			{Item: "item3", Hint: "this is hint 3", HelpText: "This is help text 3."},
+		}, nil
+	}
+	return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
 }
