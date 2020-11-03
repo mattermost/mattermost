@@ -340,14 +340,18 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return nil, e
 	}
 	user, err1 := provider.GetUserFromJson(userData)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
 	}
+	if user.AuthService == "" {
+		user.AuthService = service
+	}
+	mlog.Debug(user.Email)
 
 	suchan := make(chan store.StoreResult, 1)
 	euchan := make(chan store.StoreResult, 1)

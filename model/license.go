@@ -63,6 +63,7 @@ type Features struct {
 	MFA                       *bool `json:"mfa"`
 	GoogleOAuth               *bool `json:"google_oauth"`
 	Office365OAuth            *bool `json:"office365_oauth"`
+	OpenId                    *bool `json:"openid"`
 	Compliance                *bool `json:"compliance"`
 	Cluster                   *bool `json:"cluster"`
 	Metrics                   *bool `json:"metrics"`
@@ -95,6 +96,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"mfa":                         *f.MFA,
 		"google":                      *f.GoogleOAuth,
 		"office365":                   *f.Office365OAuth,
+		"openid":                      *f.OpenId,
 		"compliance":                  *f.Compliance,
 		"cluster":                     *f.Cluster,
 		"metrics":                     *f.Metrics,
@@ -143,6 +145,10 @@ func (f *Features) SetDefaults() {
 
 	if f.Office365OAuth == nil {
 		f.Office365OAuth = NewBool(*f.FutureFeatures)
+	}
+
+	if f.OpenId == nil {
+		f.OpenId = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Compliance == nil {

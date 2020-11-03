@@ -555,6 +555,10 @@ func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) (*model.User, e
 	return user, nil
 }
 
+func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
 func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }

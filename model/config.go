@@ -45,6 +45,7 @@ const (
 	SERVICE_GITLAB    = "gitlab"
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
+	SERVICE_OPENID    = "openid"
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
@@ -223,6 +224,7 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
 	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -948,13 +950,16 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	ButtonText        *string `access:"authentication"`
+	ButtonColor       *string `access:"authentication"`
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
@@ -988,17 +993,18 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 }
 
 type Office365Settings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
-	DirectoryId     *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	DirectoryId       *string `access:"authentication"`
 }
 
-func (s *Office365Settings) setDefaults() {
+func (s *Office365Settings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -1012,19 +1018,19 @@ func (s *Office365Settings) setDefaults() {
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+		s.Scope = NewString(scope)
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
+		s.AuthEndpoint = NewString(authEndpoint)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+		s.TokenEndpoint = NewString(tokenEndpoint)
 	}
 
 	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
 
 	if s.DirectoryId == nil {
@@ -2900,6 +2906,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
+	OpenIdSettings            SSOSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -2955,6 +2962,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
 		return o.Office365Settings.SSOSettings()
+	case SERVICE_OPENID:
+		return &o.OpenIdSettings
 	}
 
 	return nil
@@ -2989,9 +2998,10 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults()
+	o.Office365Settings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.GitLabSettings.setDefaults("", "", "", "")
-	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.GoogleSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()

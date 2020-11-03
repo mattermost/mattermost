@@ -563,16 +563,34 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 	}
 }
 
-func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	provider := einterfaces.GetOauthProvider(service)
+func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.AppError) {
+	sso := a.Config().GetSSOService(service)
+	mlog.Debug("SSSSSSSSSOOOOOOOO-"+service, mlog.Bool("enable", *sso.Enable))
+	if sso == nil || !*sso.Enable {
+		return nil, model.NewAppError("getSSOProvider", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
+	}
+	providerType := service
+	if strings.Contains(*sso.Scope, "openid") {
+		providerType = model.SERVICE_OPENID
+	}
+	provider := einterfaces.GetOauthProvider(providerType)
 	if provider == nil {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
+		return nil, model.NewAppError("getSSOProvider", "api.user.login_by_oauth.not_available.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+	}
+	return provider, nil
+
+}
+
+func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return nil, e
 	}
 
 	buf := bytes.Buffer{}
 	if _, err := buf.ReadFrom(userData); err != nil {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+		return nil, model.NewAppError("LoginByOAuth2", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
@@ -583,9 +601,10 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	}
 
 	if *authUser.AuthData == "" {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
+
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MISSING_AUTH_ACCOUNT_ERROR {
@@ -617,10 +636,9 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 }
 
 func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
-			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return nil, e
 	}
 
 	if email == "" {
@@ -696,9 +714,14 @@ func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 }
 
 func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
-	sso := a.Config().GetSSOService(service)
-	if sso == nil || !*sso.Enable {
-		return "", model.NewAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return "", e
+	}
+
+	sso, e2 := provider.GetSSOSettings(a.Config(), service)
+	if e2 != nil {
+		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
 	}
 
 	secure := false
@@ -725,6 +748,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	clientId := *sso.Id
 	endpoint := *sso.AuthEndpoint
 	scope := *sso.Scope
+	mlog.Debug(*sso.Scope)
 
 	tokenExtra := generateOAuthStateTokenExtra(props["email"], props["action"], cookieValue)
 	stateToken, err := a.CreateOAuthStateToken(tokenExtra)
@@ -733,6 +757,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	props["token"] = stateToken.Token
+	mlog.Debug(model.MapToJson(props))
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	siteUrl := a.GetSiteURL()
@@ -756,9 +781,14 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 }
 
 func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
-	sso := a.Config().GetSSOService(service)
-	if sso == nil || !*sso.Enable {
-		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return nil, "", nil, e
+	}
+
+	sso, e2 := provider.GetSSOSettings(a.Config(), service)
+	if e2 != nil {
+		return nil, "", nil, model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
 	}
 
 	b, strErr := b64.StdEncoding.DecodeString(state)
@@ -767,7 +797,6 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	stateStr := string(b)
-
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
 	expectedToken, appErr := a.GetOAuthStateToken(stateProps["token"])
@@ -868,7 +897,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 
-		mlog.Error("Error getting OAuth user", mlog.String("body_string", bodyString))
+		mlog.Error("Error getting OAuth user", mlog.Int("response", resp.StatusCode), mlog.String("body_string", bodyString))
 
 		if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
 			// Return a nicer error when the user hasn't accepted GitLab's terms of service

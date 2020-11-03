@@ -102,3 +102,7 @@ func (m *GitLabProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 
 	return userFromGitLabUser(glu), nil
 }
+
+func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}

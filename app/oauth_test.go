@@ -533,7 +533,9 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 		_, err := th.App.GetAuthorizationCode(nil, nil, model.SERVICE_GITLAB, map[string]string{}, "")
 		require.NotNil(t, err)
-		assert.Equal(t, "api.user.get_authorization_code.unsupported.app_error", err.Id)
+
+		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
+		// assert.Equal(t, "api.user.get_authorization_code.unsupported.app_error", err.Id)
 	})
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
