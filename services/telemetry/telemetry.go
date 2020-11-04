@@ -589,6 +589,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
 		"enable_google":    cfg.GoogleSettings.Enable,
 		"enable_office365": cfg.Office365Settings.Enable,
+		"enable_openid":    cfg.OpenIdSettings.Enable,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_SUPPORT, map[string]interface{}{
