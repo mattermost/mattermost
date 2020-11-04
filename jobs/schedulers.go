@@ -73,6 +73,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
 	}
 
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }

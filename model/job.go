@@ -22,6 +22,7 @@ const (
 	JOB_TYPE_EXPIRY_NOTIFY                  = "expiry_notify"
 	JOB_TYPE_PRODUCT_NOTICES                = "product_notices"
 	JOB_TYPE_ACTIVE_USERS                   = "active_users"
+	JOB_TYPE_CLOUD                          = "cloud"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
