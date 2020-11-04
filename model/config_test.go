@@ -1277,6 +1277,7 @@ func TestConfigSanitize(t *testing.T) {
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
+	*c.OpenIdSettings.Secret = "secret"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 
@@ -1287,6 +1288,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)

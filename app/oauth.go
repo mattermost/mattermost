@@ -748,7 +748,6 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	clientId := *sso.Id
 	endpoint := *sso.AuthEndpoint
 	scope := *sso.Scope
-	mlog.Debug(*sso.Scope)
 
 	tokenExtra := generateOAuthStateTokenExtra(props["email"], props["action"], cookieValue)
 	stateToken, err := a.CreateOAuthStateToken(tokenExtra)
@@ -757,7 +756,6 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	props["token"] = stateToken.Token
-	mlog.Debug(model.MapToJson(props))
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	siteUrl := a.GetSiteURL()

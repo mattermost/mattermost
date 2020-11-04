@@ -3641,6 +3641,10 @@ func (o *Config) Sanitize() {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
+	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+		*o.OpenIdSettings.Secret = FAKE_SETTING
+	}
+
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 

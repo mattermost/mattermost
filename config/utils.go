@@ -42,6 +42,10 @@ func desanitize(actual, target *model.Config) {
 		target.Office365Settings.Secret = actual.Office365Settings.Secret
 	}
 
+	if target.OpenIdSettings.Secret != nil && *target.OpenIdSettings.Secret == model.FAKE_SETTING {
+		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
+	}
+
 	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}

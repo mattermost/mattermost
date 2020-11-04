@@ -351,7 +351,6 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 	if user.AuthService == "" {
 		user.AuthService = service
 	}
-	mlog.Debug(user.Email)
 
 	suchan := make(chan store.StoreResult, 1)
 	euchan := make(chan store.StoreResult, 1)
