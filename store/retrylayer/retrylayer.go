@@ -3336,6 +3336,26 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 
 }
 
+func (s *RetryLayerFileInfoStore) SetContent(fileId string, content string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.SetContent(fileId, content)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.FileInfo, error) {
 
 	tries := 0
