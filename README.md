@@ -73,6 +73,10 @@ Receive notifications of critical security updates. The sophistication of online
 - [See who's using Mattermost](https://mattermost.com/blog/category/customer-stories/)
 - [Browse over 700 Mattermost integrations](https://integrations.mattermost.com/)
 
+## License
+
+See the [LICENSE file](LICENSE.txt) for license rights and limitations.
+
 ## Get the Latest News
 
 - **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
