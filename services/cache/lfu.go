@@ -4,6 +4,7 @@
 package cache
 
 import (
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -20,6 +21,7 @@ type LFU struct {
 	cache                  *ristretto.Cache
 	defaultExpiry          time.Duration
 	invalidateClusterEvent string
+	lock                   sync.RWMutex
 	len                    int
 }
 
@@ -55,8 +57,10 @@ func NewLFU(opts *LFUOptions) Cache {
 
 // Purge is used to completely clear the cache.
 func (l *LFU) Purge() error {
-	l.len = 0
 	l.cache.Clear()
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	l.len = 0
 	return nil
 }
 
@@ -97,6 +101,8 @@ func (l *LFU) Keys() ([]string, error) {
 
 // Len returns the number of items in the cache.
 func (l *LFU) Len() (int, error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	return l.len, nil
 }
 
@@ -134,6 +140,8 @@ func (l *LFU) set(key string, value interface{}, ttl time.Duration) error {
 		return ErrKeyNotSet
 	}
 
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	if l.len < l.size {
 		l.len++
 	}
@@ -181,6 +189,8 @@ func (l *LFU) get(key string, value interface{}) error {
 
 func (l *LFU) remove(key string) error {
 	l.cache.Del(key)
+	l.lock.Lock()
+	defer l.lock.Unlock()
 	if l.len > 0 {
 		l.len--
 	}
