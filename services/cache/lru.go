@@ -185,7 +185,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 }
 
 func (l *LRU) get(key string, value interface{}) error {
-	e, err := l.criticalGet(key)
+	e, err := l.getItem(key)
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func (l *LRU) get(key string, value interface{}) error {
 	return msgpack.Unmarshal(e.value, value)
 }
 
-func (l *LRU) criticalGet(key string) (*entry, error) {
+func (l *LRU) getItem(key string) (*entry, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
