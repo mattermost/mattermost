@@ -37,6 +37,11 @@ func TestGetProxiedImageURL(t *testing.T) {
 			Expected: "https://mattermost.example.com/static/logo.png",
 		},
 		{
+			Name:     "should bypass opaque URLs",
+			Input:    "http:xyz123?query",
+			Expected: siteURL,
+		},
+		{
 			Name:     "should not proxy an image on the Mattermost server",
 			Input:    "https://mattermost.example.com/static/logo.png",
 			Expected: "https://mattermost.example.com/static/logo.png",

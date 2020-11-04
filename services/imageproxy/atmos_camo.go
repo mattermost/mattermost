@@ -61,8 +61,9 @@ func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
 	}
 
 	// Parse url, return siteURL in case of failure.
+	// Also if the URL is opaque.
 	parsedURL, err := url.Parse(imageURL)
-	if err != nil {
+	if err != nil || parsedURL.Opaque != "" {
 		return backend.siteURL.String()
 	}
 

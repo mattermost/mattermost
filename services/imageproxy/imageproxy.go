@@ -128,8 +128,9 @@ func (proxy *ImageProxy) GetProxiedImageURL(imageURL string) string {
 		return imageURL
 	}
 	// Parse url, return siteURL in case of failure.
+	// Also if the URL is opaque.
 	parsedURL, err := url.Parse(imageURL)
-	if err != nil {
+	if err != nil || parsedURL.Opaque != "" {
 		return proxy.siteURL.String()
 	}
 	// If host is same as siteURL host, return.

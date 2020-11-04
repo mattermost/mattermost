@@ -125,6 +125,12 @@ func TestGetAtmosCamoImageURL(t *testing.T) {
 			Expected: "https://mattermost.example.com/static/logo.png",
 		},
 		{
+			Name:     "should bypass opaque URLs",
+			Input:    "http:xyz123?query",
+			SiteURL:  defaultSiteURL,
+			Expected: defaultSiteURL,
+		},
+		{
 			Name:     "should not proxy an image on the Mattermost server",
 			Input:    "https://mattermost.example.com/static/logo.png",
 			SiteURL:  defaultSiteURL,
