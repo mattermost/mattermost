@@ -569,6 +569,7 @@ type FileInfoStore interface {
 	PermanentDelete(fileId string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userId string) (int64, error)
+	SetContent(fileId, content string) error
 	ClearCaches()
 }
 
