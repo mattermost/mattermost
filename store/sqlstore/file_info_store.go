@@ -38,6 +38,7 @@ func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface
 		table.ColMap("ThumbnailPath").SetMaxSize(512)
 		table.ColMap("PreviewPath").SetMaxSize(512)
 		table.ColMap("Name").SetMaxSize(256)
+		table.ColMap("Content").SetMaxSize(0)
 		table.ColMap("Extension").SetMaxSize(64)
 		table.ColMap("MimeType").SetMaxSize(256)
 	}
@@ -268,6 +269,33 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error 
 	} else if count == 0 {
 		// Could not attach the file to the post
 		return store.NewErrInvalidInput("FileInfo", "<id, postId, creatorId>", fmt.Sprintf("<%s, %s, %s>", fileId, postId, creatorId))
+	}
+	return nil
+}
+
+func (fs SqlFileInfoStore) SetContent(fileId, content string) error {
+	query := fs.getQueryBuilder().
+		Update("FileInfo").
+		Set("Content", content).
+		Where(sq.Eq{"Id": fileId})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "file_info_tosql")
+	}
+
+	sqlResult, err := fs.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update FileInfo content with id=%s", fileId)
+	}
+
+	count, err := sqlResult.RowsAffected()
+	if err != nil {
+		// RowsAffected should never fail with the MySQL or Postgres drivers
+		return errors.Wrap(err, "unable to retrieve rows affected")
+	} else if count == 0 {
+		// Could not attach the file to the post
+		return store.NewErrInvalidInput("FileInfo", "<id>", fmt.Sprintf("<%s>", fileId))
 	}
 	return nil
 }
