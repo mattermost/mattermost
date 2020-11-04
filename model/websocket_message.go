@@ -203,6 +203,22 @@ func (ev *WebSocketEvent) ToJson() string {
 	return string(b)
 }
 
+// Encode encodes the event to the given encoder.
+func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
+	if ev.precomputedJSON != nil {
+		return enc.Encode(json.RawMessage(
+			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence),
+		))
+	}
+
+	return enc.Encode(webSocketEventJSON{
+		ev.Event,
+		ev.Data,
+		ev.Broadcast,
+		ev.Sequence,
+	})
+}
+
 func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
 	var ev WebSocketEvent
 	var o webSocketEventJSON
