@@ -42,6 +42,20 @@ func TestLFU(t *testing.T) {
 	err = l.Get("key", &v)
 	require.EqualError(t, err, "key not found")
 
+	keys, er := l.Keys()
+	require.Nil(t, er)
+	require.Len(t, keys, 0, "length should be 0 after only key is removed")
+
+	err = l.Set("key", "value")
+	require.Nil(t, err)
+
+	time.Sleep(wait)
+
+	keys, err = l.Keys()
+	require.Nil(t, err)
+	require.Len(t, keys, 1, "length should be 1 after adding new key")
+	require.Equal(t, []string{"key"}, keys, "keys should be of slice \"{\"keys\"}\"")
+
 	_ = l.Purge()
 
 	len, _ = l.Len()

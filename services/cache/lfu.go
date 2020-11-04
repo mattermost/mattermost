@@ -23,6 +23,7 @@ type LFU struct {
 	invalidateClusterEvent string
 	lock                   sync.RWMutex
 	len                    int
+	keys                   []string
 }
 
 // LFUOptions contains options for initializing LFU cache
@@ -95,8 +96,9 @@ func (l *LFU) Remove(key string) error {
 
 // Keys returns a slice of the keys in the cache.
 func (l *LFU) Keys() ([]string, error) {
-	keys := []string{"foo", "bar"}
-	return keys, nil
+	l.lock.Lock()
+	defer l.lock.Unlock()
+	return l.keys, nil
 }
 
 // Len returns the number of items in the cache.
@@ -145,6 +147,7 @@ func (l *LFU) set(key string, value interface{}, ttl time.Duration) error {
 	if l.len < l.size {
 		l.len++
 	}
+	l.keys = append(l.keys, key)
 
 	return nil
 }
@@ -194,5 +197,20 @@ func (l *LFU) remove(key string) error {
 	if l.len > 0 {
 		l.len--
 	}
+	l.delelem(key)
 	return nil
+}
+
+func (l *LFU) delelem(key string) {
+	j := 0
+	for i, k := range l.keys {
+		if k == key {
+			j = i
+			break
+		}
+	}
+	for i := j; i < len(l.keys)-1; i++ {
+		l.keys[i] = l.keys[i+1]
+	}
+	l.keys = l.keys[:len(l.keys)-1]
 }
