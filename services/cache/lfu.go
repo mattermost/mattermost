@@ -202,6 +202,9 @@ func (l *LFU) remove(key string) error {
 }
 
 func (l *LFU) delelem(key string) {
+	if len(l.keys) == 0 {
+		return
+	}
 	j := 0
 	for i, k := range l.keys {
 		if k == key {
