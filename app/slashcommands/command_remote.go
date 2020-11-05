@@ -4,6 +4,7 @@
 package slashcommands
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -64,7 +65,7 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 
 func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
-		return responsef("You require manage_shared_channels permission to manage remote clusters.")
+		return responsef("You require `manage_shared_channels` permission to manage remote clusters.")
 	}
 
 	margs := parseNamedArgs(args.Command)
@@ -77,26 +78,34 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	case "add":
 		return rp.doAdd(a, args, margs)
 	case "remove":
+		return rp.doRemove(a, args, margs)
 	case "status":
 		return rp.doStatus(a, args, margs)
 	}
 
-	return responsef("Unknown action %s", action)
+	return responsef("Unknown action `%s`", action)
 }
 
-func (rp *RemoteProvider) GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if !a.HasPermissionTo(commandArgs.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
-		return responsef("You require manage_shared_channels permission to manage remote clusters.")
+		return nil, errors.New("You require `manage_shared_channels` permission to manage remote clusters.")
 	}
 
 	var list []model.AutocompleteListItem
 
 	if arg.Name == "remoteId" && strings.Contains(parsed, " remove ") {
-		list = append(list, model.AutocompleteListItem{Item: "invite1", Hint: "this is hint 1", HelpText: "This is help text 1."})
-		list = append(list, model.AutocompleteListItem{Item: "invite2", Hint: "this is hint 2", HelpText: "This is help text 2."})
-		list = append(list, model.AutocompleteListItem{Item: "invite3", Hint: "this is hint 3", HelpText: "This is help text 3."})
+		all, err := a.GetAllRemoteClusters(true)
+		if err != nil || len(all) == 0 {
+			return []model.AutocompleteListItem{}, nil
+		}
+		for _, rc := range all {
+			item := model.AutocompleteListItem{
+				Item:     rc.Id,
+				HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
+			list = append(list, item)
+		}
 	} else {
-		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
+		return nil, fmt.Errorf("`%s` not a dynamic argument", arg.Name)
 	}
 	return list, nil
 }
@@ -131,7 +140,25 @@ func (rp *RemoteProvider) doAdd(a *app.App, args *model.CommandArgs, margs map[s
 	if err != nil {
 		responsef("Could not add remote cluster: %v", err)
 	}
-	return responsef("### Remote cluster added.\nName: %s\nHost: %s\nPort: %d\nToken: %s", rcSaved.ClusterName, rc.Hostname, rc.Port, rcSaved.Token)
+	return responsef("##### Remote cluster added.\nName: %s\nHost: %s\nPort: %d\nToken: %s", rcSaved.ClusterName, rc.Hostname, rc.Port, rcSaved.Token)
+}
+
+func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	id, ok := margs["remoteId"]
+	if !ok {
+		return responsef("Missing `remoteId`")
+	}
+
+	deleted, err := a.DeleteRemoteCluster(id)
+	if err != nil {
+		responsef("Could not remove remote cluster: %v", err)
+	}
+
+	result := "removed"
+	if !deleted {
+		result = "**NOT FOUND**"
+	}
+	return responsef("##### Remote cluster %s %s.", id, result)
 }
 
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
@@ -145,11 +172,20 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | Host | Token | Id   |\n")
-	fmt.Fprintf(&sb, "| ---- | ---- | ----  | ---- |\n")
+	fmt.Fprintf(&sb, "| Name | Host | Token | Id   | Online |\n")
+	fmt.Fprintf(&sb, "| ---- | ---- | ----  | ---- | ----   |\n")
 
 	for _, rc := range list {
-		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %s |\n", rc.ClusterName, rc.Hostname, rc.Port, rc.Token, rc.Id)
+		online := ":white_check_mark:"
+		if !isOnline(rc) {
+			online = ":skull_and_crossbones:"
+		}
+
+		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %s | %s |\n", rc.ClusterName, rc.Hostname, rc.Port, rc.Token, rc.Id, online)
 	}
 	return responsef(sb.String())
+}
+
+func isOnline(rc *model.RemoteCluster) bool {
+	return rc.LastPingAt > model.GetMillis()-model.RemoteOfflineAfterMillis
 }
