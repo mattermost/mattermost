@@ -419,16 +419,23 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	return pl, nil
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(id string, skipFetchThreads, readFromMaster bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	if len(id) == 0 {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
+	var dbMap *gorp.DbMap
+	if readFromMaster {
+		dbMap = s.GetMaster()
+	} else {
+		dbMap = s.GetReplica()
+	}
+
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := dbMap.SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

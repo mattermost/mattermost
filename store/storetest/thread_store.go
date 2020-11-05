@@ -4,12 +4,13 @@
 package storetest
 
 import (
+	"testing"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlSupplier) {
@@ -67,7 +68,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		newPosts, errIdx, err3 := ss.Post().SaveMultiple([]*model.Post{&o2, &o3, &o4})
 
-		olist, _ := ss.Post().Get(otmp.Id, true)
+		olist, _ := ss.Post().Get(otmp.Id, true, false)
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)

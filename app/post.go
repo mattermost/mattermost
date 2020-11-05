@@ -185,7 +185,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if len(post.RootId) > 0 {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv().Store.Post().Get(post.RootId, false)
+			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, true) // read this from master in case of replica lag on a new thread
 			pchan <- store.StoreResult{Data: r, NErr: pErr}
 			close(pchan)
 		}()
@@ -542,7 +542,7 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store.Post().Get(post.Id, false)
+	postLists, nErr := a.Srv().Store.Post().Get(post.Id, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -747,7 +747,7 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(postId, skipFetchThreads)
+	posts, err := a.Srv().Store.Post().Get(postId, skipFetchThreads, false)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -792,7 +792,7 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(postId, false)
+	list, nErr := a.Srv().Store.Post().Get(postId, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput

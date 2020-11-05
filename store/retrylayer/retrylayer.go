@@ -4626,11 +4626,11 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 
 }
 
-func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool, readFromMaster bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(id, skipFetchThreads)
+		result, err := s.PostStore.Get(id, skipFetchThreads, readFromMaster)
 		if err == nil {
 			return result, nil
 		}

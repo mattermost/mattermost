@@ -101,12 +101,12 @@ func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error 
 }
 
 // Get provides a mock function with given fields: id, skipFetchThreads
-func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (_m *PostStore) Get(id string, skipFetchThreads, fromMaster bool) (*model.PostList, error) {
 	ret := _m.Called(id, skipFetchThreads)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(string, bool) *model.PostList); ok {
-		r0 = rf(id, skipFetchThreads)
+	if rf, ok := ret.Get(0).(func(string, bool, bool) *model.PostList); ok {
+		r0 = rf(id, skipFetchThreads, fromMaster)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)

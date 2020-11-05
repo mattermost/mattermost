@@ -4844,7 +4844,7 @@ func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID
 	return err
 }
 
-func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool, readFromMaster bool) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -4853,7 +4853,7 @@ func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*mode
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.Get(id, skipFetchThreads)
+	result, err := s.PostStore.Get(id, skipFetchThreads, readFromMaster)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
