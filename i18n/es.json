@@ -4995,184 +4995,12 @@
     "translation": "Ya existe un miembro del equipo con el mismo ID."
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "No se puede obtener los usuarios activos durante el período solicitado."
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "No se pudo contar los usuarios inactivos."
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "No se puede obtener la cantidad de administradores del sistema."
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Falla al construir la consulta."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "No se pudo confirmar la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "No se pudo abrir la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Falló al obtener los usuarios."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Error al actualizar el usuario."
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Encontramos un error buscando la cuenta."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "No se puede encontrar una cuenta existente que coincida con tu tipo de autenticación para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Encontramos un error tratando de identificar la cuenta con este tipo de autenticación."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "No se puede encontrar una cuenta existente que coincida con tu nombre de usuario para este equipo. Es posible que necesites una invitación por parte del dueño del equipo para unirte."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "No se puede encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Encontramos múltiples usuarios que tienen tus credenciales y no pudimos iniciar tu sesión. Por favor contacta a un administrador."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Encontramos un error mientras buscamos los usuario nuevos."
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Encontramos un error mientras buscamos los perfiles de usuario."
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Hemos encontrado un error al buscar a los usuarios recientemente activos."
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Encontramos un error mientras buscamos los perfiles de usuario."
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "No puede inferir la fecha del sistema basado en la fecha en que el primer usuario fue creado."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "No pudimos contar los usuarios."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario."
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario y canal."
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "No se puede encontrar el usuario."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "No se puede borrar la cuenta existente."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "No se puede guardar la cuenta."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Ya existe una cuenta con ese correo electrónico."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Para un usuario existente debe ejecutarse una actualización."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Una cuenta con ese nombre de usuario ya existe."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "No se puede encontrar ningún usuario que coincide con los parámetros de búsqueda."
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "No se puede actualizar la cuenta."
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "No se puede cambiar el campo asignado por AD/LDAP."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "No se puede encontrar la cuenta a actualizar."
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Encontramos un error buscando la cuenta."
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Encontramos un error actualizando la cuenta."
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Este nombre de usuario ya está siendo utiizado. Por favor selecciona otro."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "No se puede actualizar los datos de autenticación."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "No se puede cambiar la cuenta a {{.Service}}. Ya existe una cuenta con el correo electrónico {{.Email}}."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "No se puede actualizar el campo failed_attempts."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "No se puede actualizar el campo update_at."
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Encontramos un error al actualizar el estado activo MFA del usuario."
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Encontramos un error al actualizar el secreto MFA del usuario."
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "No se puede actualizar la contraseña del usuario."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "No se puede actualizar la fecha de la última actualización del usuario."
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "No se puede actualizar el campo de verificar correo."
   },
   {
     "id": "store.update_error",
@@ -5421,78 +5249,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obtén la última versión del navegador Chrome"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "No puede desactivar huéspedes."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "No se puede obtener la lista de los identificadores de huéspedes."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Error al actualizar el usuario."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Error al actualizar las membresías de los equipos del usuario."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "No se pudo abrir la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "No se pudo confirmar la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Error al actualizar las membresías de los canales del usuario."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "No se puede obtener los usuarios en lote para la indexación."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "No se puede obtener los miembros del equipo para los usuarios ha ser indexados por lotes."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "No se puede obtener los miembros del canal para los usuarios ha ser indexados por lotes."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Encontramos un error mientras buscamos los perfiles de usuario."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "No se pudo obtener los usuarios conocidos desde la base de datos."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Error al actualizar el usuario."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Error al actualizar las membresías de los equipos del usuario."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "No se pudo abrir la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "No se pudo confirmar la transacción de base de datos."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Error al actualizar las membresías de los canales del usuario."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions no tiene sentido."
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
@@ -7852,11 +7608,11 @@
   },
   {
     "id": "model.plugin_command_error.error.app_error",
-    "translation": "Plugin Para /{{.Command}} no está obrando. Complacer contactar vuestro administrador de sistema"
+    "translation": "El plugin del comando /{{.Command}} no funciona. Por favor, póngase en contacto con el administrador del sistema"
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Orden}} de orden chocó el {{.PluginId}} plugin. Complacer contactar vuestro administrador de sistema"
+    "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",
@@ -7889,10 +7645,6 @@
   {
     "id": "api.cloud.app_error",
     "translation": "Error interno durante nube api petición."
-  },
-  {
-    "id": "store.sql_user.analytics_get_external_users.app_error",
-    "translation": "No pudimos contar los usuarios con correos electrónicos de dominio no local"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
