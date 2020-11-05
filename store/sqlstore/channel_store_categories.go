@@ -266,7 +266,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Sorting:     model.SidebarCategorySortDefault,
 		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
-		Muted:       newCategory.Muted,
+		Muted:       false,
 	}
 	if err = transaction.Insert(category); err != nil {
 		return nil, errors.Wrap(err, "failed to save SidebarCategory")
@@ -631,16 +631,17 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		updatedCategory.TeamId = originalCategory.TeamId
 		updatedCategory.SortOrder = originalCategory.SortOrder
 		updatedCategory.Type = originalCategory.Type
+		updatedCategory.Muted = originalCategory.Muted
 
 		if updatedCategory.Type != model.SidebarCategoryCustom {
 			updatedCategory.DisplayName = originalCategory.DisplayName
 		}
 
-		if category.Type != model.SidebarCategoryDirectMessages {
+		if updatedCategory.Type != model.SidebarCategoryDirectMessages {
 			updatedCategory.Channels = make([]string, len(category.Channels))
 			copy(updatedCategory.Channels, category.Channels)
 
-			// TODO don't allow muting the DM category
+			updatedCategory.Muted = category.Muted
 		}
 
 		updateQuery, updateParams, _ := s.getQueryBuilder().
