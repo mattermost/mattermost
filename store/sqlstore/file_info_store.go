@@ -258,17 +258,19 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 
 	dbmap := fs.GetReplica()
 
-	if _, err := dbmap.Select(&infos,
-		`SELECT
-				*,
-				COALESCE(Content, '') as Content
-			FROM
-				FileInfo
-			WHERE
-				CreatorId = :CreatorId
-				AND DeleteAt = 0
-			ORDER BY
-				CreateAt`, map[string]interface{}{"CreatorId": userId}); err != nil {
+	query := fs.getQueryBuilder().
+		Select(fs.queryFields...).
+		From("FileInfo").
+		Where(sq.Eq{"CreatorId": userId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("CreateAt")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "file_info_tosql")
+	}
+
+	if _, err := dbmap.Select(&infos, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find FileInfos with creatorId=%s", userId)
 	}
 	return infos, nil
