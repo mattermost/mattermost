@@ -52,6 +52,10 @@ type FileInfo struct {
 	Width           int    `json:"width,omitempty"`
 	Height          int    `json:"height,omitempty"`
 	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
+
+	InternalFileID      string `json:"-"`
+	InternalThumbnailID string `json:"-"`
+	InternalPreviewID   string `json:"-"`
 }
 
 func (fi *FileInfo) ToJson() string {

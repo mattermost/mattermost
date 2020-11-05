@@ -55,6 +55,14 @@ func TestS3FileBackendTestSuiteWithEncryption(t *testing.T) {
 	runBackendTest(t, true)
 }
 
+func TestInternalEncryptedFileBackendTestSuiteWithEncryption(t *testing.T) {
+	suite.Run(t, &FileBackendTestSuite{
+		settings: model.FileSettings{
+			DriverName: model.NewString(model.IMAGE_DRIVER_INTERNAL_ENCRYPTED_STORE),
+		},
+	})
+}
+
 func runBackendTest(t *testing.T, encrypt bool) {
 	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {

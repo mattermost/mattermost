@@ -51,13 +51,45 @@ func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_delete_at", "FileInfo", "DeleteAt")
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 }
+func (fs SqlFileInfoStore) hasOnlyInternalFileInfo(info *model.FileInfo) bool {
+	if info.PostId != "" {
+		return false
+	}
+	if info.InternalFileID != "" || info.InternalThumbnailID != "" || info.InternalPreviewID != "" {
+		return true
+	}
+	return false
+}
 
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
+	if fs.hasOnlyInternalFileInfo(info) {
+		return fs.insertOrUpdate(info)
+	}
+
 	if err := info.IsValid(); err != nil {
 		return nil, err
 	}
 
+	return fs.insertOrUpdate(info)
+}
+
+func (fs SqlFileInfoStore) insertOrUpdate(info *model.FileInfo) (*model.FileInfo, error) {
+	if exist, _ := fs.Get(info.Id); exist != nil {
+		if exist.InternalFileID != "" {
+			info.InternalFileID = exist.InternalFileID
+		}
+		if exist.InternalPreviewID != "" {
+			info.InternalPreviewID = exist.InternalPreviewID
+		}
+		if exist.InternalThumbnailID != "" {
+			info.InternalThumbnailID = exist.InternalThumbnailID
+		}
+		if _, err := fs.GetMaster().Update(info); err != nil {
+			return nil, errors.Wrap(err, "failed to update FileInfo")
+		}
+		return info, nil
+	}
 	if err := fs.GetMaster().Insert(info); err != nil {
 		return nil, errors.Wrap(err, "failed to save FileInfo")
 	}
