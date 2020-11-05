@@ -398,7 +398,7 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
-	statuses, err := a.Srv().Store.Status().UpdateExpiredDNDStatuses()
+	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Error("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 	}
