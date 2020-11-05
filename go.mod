@@ -15,12 +15,12 @@ require (
 	github.com/aws/aws-sdk-go v1.35.5
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v1.0.12
+	github.com/bluele/gcache v0.0.0-20190518031135-bc40bd653833
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
-	github.com/dgraph-io/ristretto v0.0.4-0.20201023213945-72c2139ec27f
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8

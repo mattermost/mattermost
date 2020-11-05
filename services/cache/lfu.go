@@ -4,26 +4,22 @@
 package cache
 
 import (
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 
-	"github.com/dgraph-io/ristretto"
+	"github.com/bluele/gcache"
 )
 
 // LFU cache implementation using the Ristretto library.
 type LFU struct {
 	name                   string
 	size                   int
-	cache                  *ristretto.Cache
+	cache                  gcache.Cache
 	defaultExpiry          time.Duration
 	invalidateClusterEvent string
-	lock                   sync.RWMutex
-	len                    int
-	keys                   []string
 }
 
 // LFUOptions contains options for initializing LFU cache
@@ -36,16 +32,7 @@ type LFUOptions struct {
 
 // NewLFU creates an LFU of the given size.
 func NewLFU(opts *LFUOptions) Cache {
-	lfu, err := ristretto.NewCache(&ristretto.Config{
-		NumCounters:        int64(10 * opts.Size),
-		MaxCost:            int64(opts.Size << 10),
-		BufferItems:        64,
-		IgnoreInternalCost: true,
-	})
-
-	if err != nil {
-		panic(err)
-	}
+	lfu := gcache.New(opts.Size).LFU().Build()
 
 	return &LFU{
 		name:                   opts.Name,
@@ -58,10 +45,7 @@ func NewLFU(opts *LFUOptions) Cache {
 
 // Purge is used to completely clear the cache.
 func (l *LFU) Purge() error {
-	l.cache.Clear()
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	l.len = 0
+	l.cache.Purge()
 	return nil
 }
 
@@ -96,16 +80,17 @@ func (l *LFU) Remove(key string) error {
 
 // Keys returns a slice of the keys in the cache.
 func (l *LFU) Keys() ([]string, error) {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	return l.keys, nil
+	keys := l.cache.Keys(false)
+	var keysStr = make([]string, len(keys))
+	for i := range keys {
+		keysStr[i] = keys[i].(string)
+	}
+	return keysStr, nil
 }
 
 // Len returns the number of items in the cache.
 func (l *LFU) Len() (int, error) {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	return l.len, nil
+	return l.cache.Len(false), nil
 }
 
 // GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
@@ -136,26 +121,20 @@ func (l *LFU) set(key string, value interface{}, ttl time.Duration) error {
 		}
 	}
 
-	set := l.cache.SetWithTTL(key, buf, 1, ttl)
-
-	if !set {
-		return ErrKeyNotSet
+	var ok error
+	if ttl != 0 {
+		ok = l.cache.SetWithExpire(key, buf, ttl)
+	} else {
+		ok = l.cache.Set(key, buf)
 	}
 
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if l.len < l.size {
-		l.len++
-	}
-	l.keys = append(l.keys, key)
-
-	return nil
+	return ok
 }
 
 func (l *LFU) get(key string, value interface{}) error {
 	val, found := l.cache.Get(key)
 
-	if !found {
+	if found == gcache.KeyNotFoundError {
 		return ErrKeyNotFound
 	}
 
@@ -191,29 +170,6 @@ func (l *LFU) get(key string, value interface{}) error {
 }
 
 func (l *LFU) remove(key string) error {
-	l.cache.Del(key)
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if l.len > 0 {
-		l.len--
-	}
-	l.delelem(key)
+	l.cache.Remove(key)
 	return nil
-}
-
-func (l *LFU) delelem(key string) {
-	if len(l.keys) == 0 {
-		return
-	}
-	j := 0
-	for i, k := range l.keys {
-		if k == key {
-			j = i
-			break
-		}
-	}
-	for i := j; i < len(l.keys)-1; i++ {
-		l.keys[i] = l.keys[i+1]
-	}
-	l.keys = l.keys[:len(l.keys)-1]
 }

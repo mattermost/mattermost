@@ -27,8 +27,6 @@ func TestLFU(t *testing.T) {
 	err := l.Set("key", "value")
 	require.Nil(t, err)
 
-	time.Sleep(wait)
-
 	var v string
 	err = l.Get("key", &v)
 	require.Nil(t, err, "should exist")
