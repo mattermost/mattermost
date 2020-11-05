@@ -15,6 +15,7 @@ import (
 func TestRemoteClusterStore(t *testing.T, ss store.Store) {
 	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, ss) })
 	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, ss) })
+	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, ss) })
 	t.Run("RemoteClusterGetAll", func(t *testing.T) { testRemoteClusterGetAll(t, ss) })
 }
 

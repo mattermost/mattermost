@@ -85,6 +85,9 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 }
 
 func (rp *RemoteProvider) GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	if !a.HasPermissionTo(commandArgs.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
+		return responsef("You require manage_shared_channels permission to manage remote clusters.")
+	}
 
 	var list []model.AutocompleteListItem
 
