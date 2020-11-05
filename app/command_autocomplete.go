@@ -16,7 +16,7 @@ import (
 
 // AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
 type AutocompleteDynamicArgProvider interface {
-	GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
+	GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
 }
 
 // GetSuggestions returns suggestions for user input.
@@ -321,5 +321,5 @@ func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg 
 		return nil, fmt.Errorf("Auto-completion not available for built-in command %s", cmdName)
 	}
 
-	return dp.GetAutoCompleteListItems(commandArgs, arg, parsed, toBeParsed)
+	return dp.GetAutoCompleteListItems(a, commandArgs, arg, parsed, toBeParsed)
 }
