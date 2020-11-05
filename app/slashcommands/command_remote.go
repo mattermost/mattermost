@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
