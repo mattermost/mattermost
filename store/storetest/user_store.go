@@ -41,7 +41,6 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
 	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, ss) })
-	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
@@ -4003,44 +4002,6 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	result, err := ss.User().AnalyticsGetGuestCount()
 	require.Nil(t, err)
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
-}
-
-func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
-	localHostDomain := "mattermost.com"
-	result, err := ss.User().AnalyticsGetExternalUsers(localHostDomain)
-	require.Nil(t, err)
-	assert.False(t, result)
-
-	u1 := model.User{}
-	u1.Email = "a@mattermost.com"
-	u1.Username = model.NewId()
-	u1.Roles = "system_user system_admin"
-
-	u2 := model.User{}
-	u2.Email = "b@example.com"
-	u2.Username = model.NewId()
-	u2.Roles = "system_user"
-
-	u3 := model.User{}
-	u3.Email = "c@test.com"
-	u3.Username = model.NewId()
-	u3.Roles = "system_guest"
-
-	_, err = ss.User().Save(&u1)
-	require.Nil(t, err, "couldn't save user")
-	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
-
-	_, err = ss.User().Save(&u2)
-	require.Nil(t, err, "couldn't save user")
-	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
-
-	_, err = ss.User().Save(&u3)
-	require.Nil(t, err, "couldn't save user")
-	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
-
-	result, err = ss.User().AnalyticsGetExternalUsers(localHostDomain)
-	require.Nil(t, err)
-	assert.True(t, result)
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {

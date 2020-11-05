@@ -26,12 +26,10 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -231,20 +229,11 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		return "", appErr
 	}
 
-	var resp *http.Response
-	if strings.HasPrefix(upstreamURL, "/warn_metrics/") {
-		appErr = a.doLocalWarnMetricsRequest(upstreamURL, upstreamRequest)
-		if appErr != nil {
-			return "", appErr
-		}
-		return "", nil
-	} else {
-		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-		if appErr != nil {
-			return "", appErr
-		}
-		defer resp.Body.Close()
+	resp, appErr := a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
 	}
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -427,92 +416,6 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	return resp, nil
 }
 
-func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
-	_, err := url.Parse(rawURL)
-	if err != nil {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	warnMetricId := filepath.Base(rawURL)
-	if warnMetricId == "" {
-		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	license := a.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip this call")
-		return nil
-	}
-
-	user, appErr := a.GetUser(a.Session().UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	botPost := &model.Post{
-		UserId:       upstreamRequest.Context["bot_user_id"].(string),
-		ChannelId:    upstreamRequest.ChannelId,
-		HasReactions: true,
-	}
-
-	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, utils.T, isE0Edition)
-	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
-
-	if isE0Edition {
-		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
-		}
-	} else {
-		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
-			if forceAck {
-				return appErr
-			}
-			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
-			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.notification_failure.message")
-			actions := []*model.PostAction{}
-			actions = append(actions,
-				&model.PostAction{
-					Id:   "emailUs",
-					Name: utils.T("api.server.warn_metric.email_us"),
-					Type: model.POST_ACTION_TYPE_BUTTON,
-					Options: []*model.PostActionOptions{
-						{
-							Text:  "WarnMetricMailtoUrl",
-							Value: mailtoLinkText,
-						},
-						{
-							Text:  "TrackEventId",
-							Value: warnMetricId,
-						},
-					},
-					Integration: &model.PostActionIntegration{
-						Context: model.StringInterface{
-							"bot_user_id": botPost.UserId,
-							"force_ack":   true,
-						},
-						URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
-					},
-				},
-			)
-			attachements := []*model.SlackAttachment{{
-				AuthorName: "",
-				Title:      "",
-				Actions:    actions,
-				Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
-			}}
-			model.ParseSlackAttachment(botPost, attachements)
-		}
-	}
-
-	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 type MailToLinkContent struct {
 	MetricId      string `json:"metric_id"`
 	MailRecipient string `json:"mail_recipient"`
@@ -524,43 +427,6 @@ type MailToLinkContent struct {
 func (mlc *MailToLinkContent) ToJson() string {
 	b, _ := json.Marshal(mlc)
 	return string(b)
-}
-
-func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
-	T := utils.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
-
-	mailBody := warnMetricDisplayTexts.EmailBody
-	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
-	mailBody += "\r\n"
-	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
-	mailBody += "\r\n"
-
-	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
-	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
-	} else {
-		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
-		mailBody += "\r\n"
-	}
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
-	mailBody += "\r\n"
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.TelemetryId()})
-	mailBody += "\r\n"
-
-	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
-
-	mailToLinkContent := &MailToLinkContent{
-		MetricId:      warnMetricId,
-		MailRecipient: "support@mattermost.com",
-		MailCC:        user.Email,
-		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
-		MailBody:      mailBody,
-	}
-
-	return mailToLinkContent.ToJson()
 }
 
 func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {

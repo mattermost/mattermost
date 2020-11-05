@@ -6587,20 +6587,8 @@
     "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-Server wird benötigt"
-  },
-  {
     "id": "api.emoji.create.internal_error",
     "translation": "server_error: Es ist ein Interner Serverfehler beim Erstellen des Emojis aufgetreten."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Konnte Warnmetrik nicht finden."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Fehler beim Senden der Administrator Bestätigungs-E-Mail"
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -6645,22 +6633,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Warnmetrik konnte nicht gefunden werden."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Seiten-URL:"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Gesamte aktive Benutzer"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-Mail:"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -7005,14 +6977,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Konnte Bucket nicht erstellen."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Multi-Faktor-Authentifizierung erzwingen:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",

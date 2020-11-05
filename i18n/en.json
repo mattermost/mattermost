@@ -1207,18 +1207,6 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Failure to send admin acknowledgment email"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Could not find warn metric."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP Server is required"
-  },
-  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
   },
@@ -1575,10 +1563,6 @@
   {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
@@ -1997,250 +1981,6 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact: {{.Contact}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Diagnostic Id: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total Active Users: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Site URL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Contact Us request"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Please email us."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Message could not be sent."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Thank you for contacting Mattermost. We will follow up with you soon."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact Us"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting Us"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Creating Guest Accounts"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > Guest Access** to enable Guest Accounts."
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Email us"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Enforcing Multi-Factor Authentication"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > MFA** to enforce multi-factor authentication."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 100 users, and I'm considering Mattermost Enterprise Edition.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Scaling with Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > AD/LDAP** to integrate your AD/LDAP service."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 200 users, and I'm considering Mattermost Enterprise Edition.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Scaling with Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > SAML 2.0** to integrate with your SAML 2.0 provider."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about creating read-only Announcement Channels.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Create a channel and go to **System Console > User Management > Channels** to limit posting to channel admins."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Read-Only Announcement Channels"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 500 users, and I'm considering Mattermost Enterprise Edition.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Scaling with Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to the System Console to enable advanced features."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Using Advanced Permissions"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Improving Performance"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Your Enterprise trial is now active. Once you have an Elasticsearch server, go to **System Console > Environment > Elasticsearch** to configure Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Using Advanced Permissions"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Start Trial"
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Getting Trial"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2849,34 +2589,6 @@
   {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Email Verification"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnostic Id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total Active Users: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Site URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Contact Us request"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -5109,26 +4821,6 @@
   {
     "id": "app.system.save.app_error",
     "translation": "We encountered an error saving the system property."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Failed to store value for {{.WarnMetricName}}"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",

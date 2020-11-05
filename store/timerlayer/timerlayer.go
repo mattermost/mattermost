@@ -5962,22 +5962,6 @@ func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	return err
 }
 
-func (s *TimerLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	start := timemodule.Now()
-
-	err := s.SystemStore.SaveOrUpdateWithWarnMetricHandling(system)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerSystemStore) Update(system *model.System) error {
 	start := timemodule.Now()
 
@@ -7283,22 +7267,6 @@ func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, end
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsActiveCountForPeriod", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, error) {
-	start := timemodule.Now()
-
-	result, err := s.UserStore.AnalyticsGetExternalUsers(hostDomain)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsGetExternalUsers", success, elapsed)
 	}
 	return result, err
 }

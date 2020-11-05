@@ -60,9 +60,6 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise", api.ApiSessionRequired(upgradeToEnterprise)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise/status", api.ApiSessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/restart", api.ApiSessionRequired(restart)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
-	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 }
@@ -669,94 +666,6 @@ func restart(c *Context, w http.ResponseWriter, r *http.Request) {
 	go func() {
 		c.App.Srv().Restart()
 	}()
-}
-
-func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
-		return
-	}
-
-	license := c.App.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	status, err := c.App.GetWarnMetricsStatus()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
-}
-
-func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
-	license := c.App.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	user, appErr := c.App.GetUser(c.App.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ack := model.SendWarnMetricAckFromJson(r.Body)
-	if ack == nil {
-		c.SetInvalidParam("ack")
-		return
-	}
-
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
-	if appErr != nil {
-		c.Err = appErr
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
-func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestTrialLicenseAndAckWarnMetric", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
-
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
-	if model.BuildEnterpriseReady != "true" {
-		mlog.Debug("Not Enterprise Edition, skip.")
-		return
-	}
-
-	license := c.App.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip.")
-		return
-	}
-
-	if err := c.App.RequestLicenseAndAckWarnMetric(c.Params.WarnMetricId, false); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
 }
 
 func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {

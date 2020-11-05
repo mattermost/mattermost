@@ -6588,10 +6588,6 @@
     "translation": "Не вдалося видалити персональний токен доступу"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Потрібно SMTP сервер"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Не вдалося вибрати дані експорту повідомлення"
   },
@@ -6630,18 +6626,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Виникла помилка при видаленні налаштувань"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Адреса сайту:"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Усього активних користувачів"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Адреса електронної пошти:"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6978,14 +6962,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Неможливо створити бакет."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Забезпечити багатофакторну автентифікацію:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",

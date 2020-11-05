@@ -6604,10 +6604,6 @@
     "translation": "Nie można usunąć osobistego tokenu dostępu"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Serwer SMTP jest wymagany."
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Nie można wybrać danych eksportu wiadomości"
   },
@@ -6646,18 +6642,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Wystąpił błąd w trakcie kasowania ustawień"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL strony:"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Ogólnie aktywnych użytkowników"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-Mail:"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6994,14 +6978,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Nie udało się stworzyć wiadra."
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Wymuszaj uwierzytelnianie wieloskładnikowe:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",

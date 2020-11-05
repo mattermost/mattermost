@@ -6587,10 +6587,6 @@
     "translation": "Impossible de supprimer le jeton d'accès personnel"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Un serveur SMTP est nécessaire"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Impossible de sélectionner les données d'exportation de messages"
   },
@@ -6629,18 +6625,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Une erreur s'est produite lors de la suppression des préférences."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL de site :"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total utilisateurs actifs"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Adresse e-mail :"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6983,14 +6967,6 @@
     "translation": "Impossible de créer le bucket."
   },
   {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Request trial"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Imposer l'authentification multi-facteurs :"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Impossible de récupérer le lot de messages à indexer."
   },
@@ -7317,18 +7293,6 @@
   {
     "id": "api.user.login_cws.license.error",
     "translation": "La connexion de bot est interdite."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Impossible de trouver la valeur déclenchant un avertissement."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Echec dans l'envoi de l'email de validation provenant de l'administrateur du système."
   },
   {
     "id": "api.invalid_channel",

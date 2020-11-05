@@ -6656,34 +6656,6 @@
     "translation": "Imposibil de șters indicativul de acces personal"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Serverul SMTP este necesar"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contactează-ne"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Vă mulțumim că ați contactat Mattermost. Vă vom contacta în curând."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Nu s-a putut găsi metrică."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Lista administratorilor este goală."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Consilier Mattermost"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Aflați mai multe despre Consilier Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
     "id": "app.command.tryexecutecustomcommand.internal_error",
     "translation": "Imposibil de executat comanda personalizată."
   },
@@ -6712,94 +6684,6 @@
     "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Adresa paginii: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total utilizatori activi: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "ID de diagnostic: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Treceți la ediția Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să se actualizeze la Ediția Mattermost Enterprise, care oferă funcții precum gestionarea utilizatorilor, clusterarea serverului și monitorizarea performanței.\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integrați AD/LDAP"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Trimite-ti-ne un e-mail"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contactându-ne"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Mesajul nu a putut fi trimis."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Vă rugăm să ne trimiteți un e-mail."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Cererea de contact"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL Site: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total utilizatori activi: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Dacă aveți întrebări suplimentare, contactați support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id Diagnostic: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact: {{.contact}}"
-  },
-  {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Nu se poate actualiza bara laterală pentru a se potrivi cu preferințele actualizate"
   },
@@ -6810,14 +6694,6 @@
   {
     "id": "api.invalid_channel",
     "translation": "Canalul listat în cerere nu aparține utilizatorului"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Nu s-a putut găsi metrica de avertizare."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Eșecul de a trimite un e-mail de confirmare a administratorului"
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -6874,10 +6750,6 @@
   {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "incapabil să migreze."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Nu a reușit să stocheze valoarea pentru {{.WarnMetricName}}"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -7590,38 +7462,6 @@
   {
     "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Nu este posibilă crearea unei găleți."
-  },
-  {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Primeste versiune de test"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Solicitați versiune de test"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Treceți la ediția Mattermost Enterprise"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost cererea Solicitați-ma. Echipa mea are acum {{.Limit}} utilizatori și mă gândesc la Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Aplicați autentificarea cu mai mulți factori:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",

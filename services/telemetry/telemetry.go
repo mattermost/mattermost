@@ -71,7 +71,6 @@ const (
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
 	TRACK_CHANNEL_MODERATION        = "channel_moderation"
-	TRACK_WARN_METRICS              = "warn_metrics"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -162,7 +161,6 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackElasticsearch()
 		ts.trackGroups()
 		ts.trackChannelModeration()
-		ts.trackWarnMetrics()
 	}
 }
 
@@ -1237,22 +1235,6 @@ func (ts *TelemetryService) Shutdown() error {
 		return ts.rudderClient.Close()
 	}
 	return nil
-}
-
-func (ts *TelemetryService) trackWarnMetrics() {
-	systemDataList, nErr := ts.dbStore.System().Get()
-	if nErr != nil {
-		return
-	}
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.sendTelemetry(TRACK_WARN_METRICS, map[string]interface{}{
-					key: value != "false",
-				})
-			}
-		}
-	}
 }
 
 func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {

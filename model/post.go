@@ -64,7 +64,6 @@ const (
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
-	POST_SYSTEM_WARN_METRIC_STATUS        = "warn_metric_status"
 )
 
 var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
@@ -313,8 +312,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
-		POST_ADD_BOT_TEAMS_CHANNELS,
-		POST_SYSTEM_WARN_METRIC_STATUS:
+		POST_ADD_BOT_TEAMS_CHANNELS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

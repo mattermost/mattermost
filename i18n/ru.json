@@ -6712,134 +6712,6 @@
     "translation": "Невозможно удалить персональный токен доступа."
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Требуется SMTP сервер"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Не удалось отправить администратору письмо с подтверждением"
-  },
-  {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Связаться с нами"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Спасибо, что связались с Mattermost. Мы свяжемся с вами в ближайшее время."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Не удалось сохранить значение для {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Не удалось найти метрику."
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "Список админов пуст."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Советник"
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Узнайте больше о Mattermost Советник] (https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Контактное лицо: {{.Contact}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Запрос Mattermost Свяжитесь с нами"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Запрос Mattermost Свяжитесь с нами"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Если у вас есть какие-либо дополнительные вопросы, пожалуйста, свяжитесь с support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL сайта: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Всего активных пользователей: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Диагностический идентификатор: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Контактное лицо: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Электронная почта: "
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Масштабирование с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Корпоративной редакции Mattermost, которая предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности.\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Масштабирование с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего поставщика SAML 2.0 с вашим сервером Mattermost. [Подробнее об интеграции с SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Свяжитесь с нами по электронной почте"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Связаться с нами"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Сообщение не может быть отправлено."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Пожалуйста, напишите нам."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL сайта: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Всего активных пользователей: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Если у вас есть какие-либо дополнительные вопросы, пожалуйста, свяжитесь с support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Электронная почта: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Идентификатор диагностики: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Не удалось найти предупреждение метрики."
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Не удалось выбрать данные экспорта сообщений."
   },
@@ -7388,38 +7260,6 @@
     "translation": "Невозможно создать bucket."
   },
   {
-    "id": "api.server.warn_metric.starting_trial",
-    "translation": "Получение пробной версии"
-  },
-  {
-    "id": "api.server.warn_metric.start_trial",
-    "translation": "Начать использовать пробную версию"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Масштабирование с Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "В вашей системе Mattermost теперь 200 пользователей. По мере роста вашей пользовательской базы создание новых учетных записей может занять много времени. Мы рекомендуем вам интегрировать Active Directory/LDAP вашей организации, что позволит любому, у кого есть учетная запись, получить доступ к Mattermost.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nНажав «Подтвердить», вы поделитесь своей информацией с Mattermost Inc., чтобы узнать больше об обновлении. [Подробнее…](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Принудительная многофакторная аутентификация:"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "Невозможно получить пакет сообщений для индексации."
   },
@@ -7772,48 +7612,8 @@
     "translation": "Не получилось удалить старые уведомления о продукте"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Каналы объявлений только для чтения"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше о включении многофакторной аутентификации.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация >  Гостевой доступ**, чтобы включить гостевые учетные записи."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и буду получать электронные письма о продуктах."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Создание гостевых учетных записей"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше об использовании гостевых учетных записей.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Не удалось получить пробную лицензию. Посетите https://mattermost.com/trial/, чтобы запросить лицензию."
-  },
-  {
     "id": "api.migrate_to_saml.error",
     "translation": "Невозможно перенести SAML."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Не удалось получить пробную лицензию, попробуйте еще раз или свяжитесь с support@mattermost.com. Невозможно получить количество зарегистрированных пользователей."
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",

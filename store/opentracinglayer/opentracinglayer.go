@@ -6596,24 +6596,6 @@ func (s *OpenTracingLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	return err
 }
 
-func (s *OpenTracingLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.SaveOrUpdateWithWarnMetricHandling")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.SystemStore.SaveOrUpdateWithWarnMetricHandling(system)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
 func (s *OpenTracingLayerSystemStore) Update(system *model.System) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.Update")
@@ -8067,24 +8049,6 @@ func (s *OpenTracingLayerUserStore) AnalyticsActiveCountForPeriod(startTime int6
 
 	defer span.Finish()
 	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
-func (s *OpenTracingLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.AnalyticsGetExternalUsers")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.UserStore.AnalyticsGetExternalUsers(hostDomain)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
