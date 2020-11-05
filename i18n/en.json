@@ -1039,6 +1039,18 @@
     "translation": "open"
   },
   {
+    "id": "api.command_remote.desc",
+    "translation": "Add/remove a remote Mattermost cluster for inter-cluster communication."
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "remote"
+  },
+  {
     "id": "api.command_remove.desc",
     "translation": "Remove a member from the channel"
   },

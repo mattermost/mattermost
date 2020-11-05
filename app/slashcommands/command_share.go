@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	"fmt"
+	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
@@ -70,15 +71,18 @@ func (me *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 
 func (me *ShareProvider) GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 
-	if arg.Name == "remoteId" {
+	var list []model.AutocompleteListItem
 
-		return []model.AutocompleteListItem{
-			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},
-			{Item: "item2", Hint: "this is hint 2", HelpText: "This is help text 2."},
-			{Item: "item3", Hint: "this is hint 3", HelpText: "This is help text 3."},
-		}, nil
-
+	if arg.Name == "remoteId" && strings.Contains(parsed, " invite_remote ") {
+		list = append(list, model.AutocompleteListItem{Item: "invite1", Hint: "this is hint 1", HelpText: "This is help text 1."})
+		list = append(list, model.AutocompleteListItem{Item: "invite2", Hint: "this is hint 2", HelpText: "This is help text 2."})
+		list = append(list, model.AutocompleteListItem{Item: "invite3", Hint: "this is hint 3", HelpText: "This is help text 3."})
+	} else if arg.Name == "remoteId" && strings.Contains(parsed, " uninvite_remote ") {
+		list = append(list, model.AutocompleteListItem{Item: "uninvite1", Hint: "this is hint 1", HelpText: "This is help text 1."})
+		list = append(list, model.AutocompleteListItem{Item: "uninvite2", Hint: "this is hint 2", HelpText: "This is help text 2."})
+		list = append(list, model.AutocompleteListItem{Item: "uninvite3", Hint: "this is hint 3", HelpText: "This is help text 3."})
+	} else {
+		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
 	}
-
-	return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
+	return list, nil
 }

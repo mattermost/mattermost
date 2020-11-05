@@ -52,7 +52,6 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 }
 
 func testRemoteClusterDelete(t *testing.T, ss store.Store) {
-
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			ClusterName: "shortlived remote",
@@ -70,6 +69,26 @@ func testRemoteClusterDelete(t *testing.T, ss store.Store) {
 		deleted, err := ss.RemoteCluster().Delete(model.NewId())
 		require.Nil(t, err)
 		require.False(t, deleted)
+	})
+}
+
+func testRemoteClusterGet(t *testing.T, ss store.Store) {
+	t.Run("Get", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			ClusterName: "shortlived remote",
+			Hostname:    "nowhere.com",
+		}
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.Nil(t, err)
+
+		rcGet, err := ss.RemoteCluster().Get(rcSaved.Id)
+		require.Nil(t, err)
+		require.Equal(t, rcSaved.Id, rcGet.Id)
+	})
+
+	t.Run("Get not found", func(t *testing.T) {
+		_, err := ss.RemoteCluster().Get(model.NewId())
+		require.NotNil(t, err)
 	})
 }
 
