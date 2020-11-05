@@ -76,7 +76,7 @@ func TestGetPing(t *testing.T) {
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
-		// Run the enviroment variable override code to test
+		// Run the environment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
 		th.App.ReloadConfig()
