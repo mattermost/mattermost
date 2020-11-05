@@ -90,6 +90,8 @@ func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *mode
 		return nil, errors.New("You require `manage_shared_channels` permission to manage remote clusters.")
 	}
 
+	var list []model.AutocompleteListItem
+
 	if arg.Name == "remoteId" && strings.Contains(parsed, " remove ") {
 		return getRemoteClusterAutocompleteListItems(a, true)
 	}
