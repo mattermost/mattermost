@@ -88,7 +88,8 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 
 	if err := fs.GetReplica().SelectOne(info,
 		`SELECT
-			*
+			*,
+			COALESCE(Content, '') as Content
 		FROM
 			FileInfo
 		WHERE
@@ -117,7 +118,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	}
 
 	query := fs.getQueryBuilder().
-		Select("FileInfo.*").
+		Select("FileInfo.*", "COALESCE(FileInfo.Content, '') as Content").
 		From("FileInfo")
 
 	if len(opt.ChannelIds) > 0 {
@@ -174,7 +175,8 @@ func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 
 	if err := fs.GetReplica().SelectOne(info,
 		`SELECT
-				*
+				*,
+				COALESCE(Content, '') as Content
 			FROM
 				FileInfo
 			WHERE
@@ -203,7 +205,7 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 	}
 
 	query := fs.getQueryBuilder().
-		Select("*").
+		Select("*", "COALESCE(Content, '') as Content").
 		From("FileInfo").
 		Where(sq.Eq{"PostId": postId}).
 		OrderBy("CreateAt")
@@ -230,7 +232,8 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) 
 
 	if _, err := dbmap.Select(&infos,
 		`SELECT
-				*
+				*,
+				COALESCE(Content, '') as Content
 			FROM
 				FileInfo
 			WHERE
