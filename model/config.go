@@ -1052,6 +1052,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.Secret = s.Secret
 	ssoSettings.Id = s.Id
 	ssoSettings.Scope = s.Scope
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
