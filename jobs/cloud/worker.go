@@ -3,6 +3,9 @@
 package cloud
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
@@ -24,7 +27,7 @@ type Worker struct {
 }
 
 func init() {
-	app.RegisterJobsActiveUsersInterface(func(a *app.App) tjobs.CloudJobInterface {
+	app.RegisterJobsCloudInterface(func(a *app.App) tjobs.CloudJobInterface {
 		return &CloudJobInterfaceImpl{a}
 	})
 }
@@ -86,16 +89,104 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
+	cloudUserLimit := *worker.app.Config().ExperimentalSettings.CloudUserLimit
+
+	var subscription *model.Subscription
+	if worker.app.Srv().License() != nil && *worker.app.Srv().License().Features.Cloud {
+		subscription, subErr := worker.app.Cloud().GetSubscription()
+		if subErr != nil {
+			mlog.Error("Worker: Failed to retrieve subscription", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", subErr.Error()))
+			worker.setJobError(job, subErr)
+			return
+		}
+
+		if subscription == nil {
+			mlog.Error("Worker: Failed to retrieve subscription", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+			return
+		}
+	}
+
+	if subscription != nil && subscription.IsPaidTier == "true" {
+		mlog.Info("On Paid Tier, exiting", mlog.String("worker", worker.name))
+		return
+	}
+
 	count, err := worker.app.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: false})
 
 	if err != nil {
 		mlog.Error("Worker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
 		return
 	}
 
-	if worker.app.Metrics() != nil {
-		worker.app.Metrics().ObserveEnabledUsers(count)
+	userDifference := cloudUserLimit - count
+	if userDifference >= 0 {
+		mlog.Info("Under user limit, exiting", mlog.String("worker", worker.name))
+		return
+	}
+
+	systemValue, nErr := worker.app.Srv().Store.System().GetByName(model.DAYS_OVER_USER_LIMIT)
+
+	if nErr != nil {
+		mlog.Error("Error getting days over limit from system store", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+	}
+
+	if systemValue == nil {
+		// Our row doesn't exist, so create it and get it from the store
+		sysVar := &model.System{Name: model.DAYS_OVER_USER_LIMIT, Value: "0"}
+		err := worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
+		if err != nil {
+			mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+		}
+
+		systemValue, _ = worker.app.Srv().Store.System().GetByName(model.DAYS_OVER_USER_LIMIT)
+
+		// Store today's date (first day over limit) so we can reference it later
+		t := time.Now()
+		firstDayOverVar := &model.System{Name: model.OVER_USER_LIMIT_DATE, Value: t.Format("2006-01-02")}
+		err = worker.app.Srv().Store.System().SaveOrUpdate(firstDayOverVar)
+		if err != nil {
+			mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+		}
+	}
+
+	daysOverLimit, err := strconv.ParseInt(systemValue.Value, 10, 64)
+
+	// Bump up the number of days over limit and save to db
+	daysOverLimit = daysOverLimit + 1
+	systemValue.Value = strconv.FormatInt(daysOverLimit, 10)
+	err = worker.app.Srv().Store.System().SaveOrUpdate(systemValue)
+	if err != nil {
+		mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+	}
+
+	// Get admin users for emailing
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  100,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+	sysAdmins, err := worker.app.GetUsers(userOptions)
+	switch daysOverLimit {
+	case 30:
+		// TODO cc support@mattermost.com for one of the emails
+		mlog.Info("30 DAYS OVER LIMIT")
+		for admin := range sysAdmins {
+			worker.app.Srv().EmailService.SendOverUserLimitThirtyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
+		}
+	case 90:
+		mlog.Info("90 DAYS OVER LIMIT")
+		// TODO cc support@mattermost.com for one of the emails
+		overLimitDate, _ := worker.app.Srv().Store.System().GetByName(model.OVER_USER_LIMIT_DATE)
+		for admin := range sysAdmins {
+			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overLimitDate.Value)
+		}
+	case 91:
+		mlog.Info("91 DAYS OVER LIMIT")
+		// TODO cc support@mattermost.com for one of the emails
+		for admin := range sysAdmins {
+			worker.app.Srv().EmailService.SendOverUserLimitWorkspaceSuspendedWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
+		}
 	}
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))

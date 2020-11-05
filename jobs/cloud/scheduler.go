@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SchedFreqMinutes = 1440 // 1 day
+	SchedFreqMinutes = 2 // 1 day
 )
 
 type Scheduler struct {
@@ -30,12 +30,12 @@ func (scheduler *Scheduler) JobType() string {
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	// Only enabled when Metrics are enabled.
-	return *cfg.MetricsSettings.Enable
+	// If CloudUserLimit is non-zero we're in a cloud installation
+	return *cfg.ExperimentalSettings.CloudUserLimit > 0 && cfg.FeatureFlags.CloudEmailJobsEnabledMM29999
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	nextTime := time.Now().Add(SchedFreqMinutes * time.Minute)
+	nextTime := time.Now().Add(SchedFreqMinutes * time.Second)
 	return &nextTime
 }
 

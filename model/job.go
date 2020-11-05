@@ -66,6 +66,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_PRODUCT_NOTICES:
 	case JOB_TYPE_EXPIRY_NOTIFY:
 	case JOB_TYPE_ACTIVE_USERS:
+	case JOB_TYPE_CLOUD:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

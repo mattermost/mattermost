@@ -633,3 +633,74 @@ func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale strin
 
 	return true, nil
 }
+
+func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_30_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_30_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_30_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_30_days_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_30_days_info2")
+	bodyPage.Props["Info2Item1"] = T("api.templates.over_limit_30_days_info2_item1")
+	bodyPage.Props["Info2Item2"] = T("api.templates.over_limit_30_days_info2_item2")
+	bodyPage.Props["Info2Item3"] = T("api.templates.over_limit_30_days_info2_item3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_30_days_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_90_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_90_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_90_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_90_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_90_days_info2")
+	bodyPage.Props["Info3"] = T("api.templates.over_limit_90_days_info3")
+	bodyPage.Props["Info4"] = T("api.templates.over_limit_90_days_info4")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_90_days_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_suspended_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_workspace_suspended_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_suspended_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_suspended_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_suspended_info2")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_suspended_contact_support")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
