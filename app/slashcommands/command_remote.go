@@ -19,11 +19,6 @@ const (
 	ActionKey         = "-action"
 )
 
-type CmdModel struct {
-	action string
-	args   []string
-}
-
 type RemoteProvider struct {
 }
 
