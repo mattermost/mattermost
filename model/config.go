@@ -962,7 +962,7 @@ type SSOSettings struct {
 	ButtonColor       *string `access:"authentication"`
 }
 
-func (s *SSOSettings) setDefaults(scope string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -984,15 +984,15 @@ func (s *SSOSettings) setDefaults(scope string) {
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString("")
+		s.AuthEndpoint = NewString(authEndpoint)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString("")
+		s.TokenEndpoint = NewString(tokenEndpoint)
 	}
 
 	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString("")
+		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
 
 	if s.ButtonText == nil {
@@ -1016,7 +1016,7 @@ type Office365Settings struct {
 	DirectoryId       *string `access:"authentication"`
 }
 
-func (s *Office365Settings) setDefaults(scope string) {
+func (s *Office365Settings) setDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -1030,7 +1030,7 @@ func (s *Office365Settings) setDefaults(scope string) {
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewString(scope)
+		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
 	}
 
 	if s.DiscoveryEndpoint == nil {
@@ -1038,15 +1038,15 @@ func (s *Office365Settings) setDefaults(scope string) {
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString("")
+		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString("")
+		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
 	}
 
 	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString("")
+		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	}
 
 	if s.DirectoryId == nil {
@@ -3016,9 +3016,10 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE)
-	o.GitLabSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE)
-	o.GoogleSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE)
-	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE)
+	o.Office365Settings.setDefaults()
+	o.GitLabSettings.setDefaults("", "", "", "")
+	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
