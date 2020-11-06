@@ -3015,7 +3015,7 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE)
+	o.Office365Settings.setDefaults()
 	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
