@@ -281,6 +281,12 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.True(t, received.Muted)
 
+		// Check that the muted category was saved in the database
+		received, resp = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.True(t, received.Muted)
+
 		// Confirm that the channels in the category were muted
 		member, resp := client.GetChannelMember(channelsCategory.Channels[0], user.Id, "")
 		require.Nil(t, resp.Error)
@@ -316,6 +322,12 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		}
 
 		received, resp := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, dmsCategory.Id, received.Id)
+		assert.False(t, received.Muted)
+
+		// Check that the muted category was not saved in the database
+		received, resp = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
 		require.Nil(t, resp.Error)
 		assert.Equal(t, dmsCategory.Id, received.Id)
 		assert.False(t, received.Muted)

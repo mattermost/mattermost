@@ -648,6 +648,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			Update("SidebarCategories").
 			Set("DisplayName", updatedCategory.DisplayName).
 			Set("Sorting", updatedCategory.Sorting).
+			Set("Muted", updatedCategory.Muted).
 			Where(sq.Eq{"Id": updatedCategory.Id}).ToSql()
 
 		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
