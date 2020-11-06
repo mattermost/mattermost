@@ -8181,5 +8181,161 @@
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
     "translation": "Solicitação de contato do Mattermost. Estou interessado em aprender mais sobre permissões avançadas com esquemas de equipe.\n"
+  },
+  {
+    "id": "store.sql_user.analytics_get_external_users.app_error",
+    "translation": "Não foi possível contar os usuários com e-mails de domínio não local"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Valor inválido para Type"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Valor inválido para Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Valor inválido para FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Valor inválido para FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Valor inválido para ChannelId."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "Todos os parâmetros IncludeDeletedChannels devem ter o mesmo valor."
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "O plug-in para /{{.Command}} não está funcionando. Entre em contato com o administrador do sistema"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "O comando /{{.Command}} travou o plug-in {{.PluginId}}. Entre em contato com o administrador do sistema"
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Falha ao obter informações do arquivo para uma publicação."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Falha ao obter informações do arquivo para uma publicação."
+  },
+  {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Falha ao obter informações do arquivo para uma publicação."
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "Nenhum usuário LDAP encontrado, verifique seu filtro de usuário e certificados."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Erro ao criar par de chaves"
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Erro ao carregar o arquivo de chave TLS LDAP."
+  },
+  {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Erro ao carregar o arquivo de certificado TLS LDAP."
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "A entidade mais antiga (usuário, canal ou publicação) não pôde ser recuperada do banco de dados"
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Falha ao atualizar a sessão de upload."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Falha ao salvar as informações do arquivo."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Falha ao ler um arquivo."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Falha ao fazer upload de dados. A primeira parte deve ter pelo menos {{.Size}} Bytes."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Não é possível fazer upload de dados de mais de uma solicitação."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Falha ao obter uploads para o usuário."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Falha ao salvar upload."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Não é possível fazer upload para o canal especificado."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Não foi possível determinar se o usuário pertente a lista de equipes."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Não foi possível salvar o membro da equipe."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Não foi possível obter a lista de equipes de um usuário."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Não foi possível obter os membros da equipe."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Não foi possível contar os membros da equipe."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Não foi possível obter os canais para o esquema fornecido."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Não foi possível encontrar a equipe existente."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Não foi possível encontrar a equipe existente."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "O login CWS é proibido."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Iniciar avaliação"
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "Não foi possível redefinir os esquemas de equipe."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Não é possível criar a nova associação da equipe porque a equipe atingiu o limite de membros"
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "Não foi possível colocar todas as equipes privadas na página."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Não foi possível obter a contagem de postagens fixadas do canal."
   }
 ]
