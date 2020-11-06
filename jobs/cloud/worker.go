@@ -3,6 +3,7 @@
 package cloud
 
 import (
+	"math"
 	"strconv"
 	"time"
 
@@ -78,6 +79,50 @@ func (worker *Worker) JobChannel() chan<- model.Job {
 	return worker.jobs
 }
 
+func (worker *Worker) LogAndSetJobSuccess(job *model.Job) {
+	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
+	worker.setJobSuccess(job)
+}
+
+func (worker *Worker) ForgivenessCheck(userDifference int) bool {
+
+	systemValue, err := worker.app.Srv().Store.System().GetByName(model.OVER_USER_LIMIT_FORGIVEN_COUNT)
+
+	if err != nil {
+		mlog.Error("Error getting days over limit from system store", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+	}
+
+	var forgivenessCount int
+	if systemValue == nil {
+		forgivenessCount = 0
+	} else {
+		forgivenessCount, err = strconv.Atoi(systemValue.Value)
+		if err != nil {
+			forgivenessCount = 0
+		}
+	}
+
+	if forgivenessCount >= 3 {
+		// There's no forgiving someone who's broken our hearts 3 or more times
+		return false
+	}
+
+	forgivenessCount++
+	sysVar := &model.System{Name: model.OVER_USER_LIMIT_FORGIVEN_COUNT, Value: strconv.Itoa(forgivenessCount)}
+	err = worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
+	if err != nil {
+		mlog.Error("Unable to save OVER_USER_LIMIT_FORGIVEN_COUNT", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+	}
+
+	_, err = worker.app.Srv().Store.System().PermanentDeleteByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
+	if err != nil {
+		mlog.Error("Unable to reset USER_LIMIT_OVERAGE_CYCLE_END_DATE", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
+	}
+
+	// Forgiven!
+	return true
+}
+
 func (worker *Worker) DoJob(job *model.Job) {
 	if claimed, err := worker.jobServer.ClaimJob(job); err != nil {
 		mlog.Warn("Worker experienced an error while trying to claim job",
@@ -92,8 +137,10 @@ func (worker *Worker) DoJob(job *model.Job) {
 	cloudUserLimit := *worker.app.Config().ExperimentalSettings.CloudUserLimit
 
 	var subscription *model.Subscription
+	var subErr *model.AppError
 	if worker.app.Srv().License() != nil && *worker.app.Srv().License().Features.Cloud {
-		subscription, subErr := worker.app.Cloud().GetSubscription()
+		subscription, subErr = worker.app.Cloud().GetSubscription()
+
 		if subErr != nil {
 			mlog.Error("Worker: Failed to retrieve subscription", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", subErr.Error()))
 			worker.setJobError(job, subErr)
@@ -119,45 +166,50 @@ func (worker *Worker) DoJob(job *model.Job) {
 	}
 
 	userDifference := cloudUserLimit - count
-	if userDifference >= 0 {
-		mlog.Info("Under user limit, exiting", mlog.String("worker", worker.name))
-		return
-	}
 
-	systemValue, nErr := worker.app.Srv().Store.System().GetByName(model.DAYS_OVER_USER_LIMIT)
+	systemValue, nErr := worker.app.Srv().Store.System().GetByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
+	dateLayout := "2006-01-02"
 
 	if nErr != nil {
-		mlog.Error("Error getting days over limit from system store", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+		mlog.Error("Error getting USER_LIMIT_OVERAGE_CYCLE_END_DATE from system store", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 	}
 
 	if systemValue == nil {
+		mlog.Info("Found nil end date")
+		if userDifference >= 0 {
+			// Under user limit, so no need to start tracking yet.
+			worker.LogAndSetJobSuccess(job)
+			return
+		}
 		// Our row doesn't exist, so create it and get it from the store
-		sysVar := &model.System{Name: model.DAYS_OVER_USER_LIMIT, Value: "0"}
+		subCycleEndDate := time.Unix((subscription.EndAt / 1000), 0)
+		sysVar := &model.System{Name: model.USER_LIMIT_OVERAGE_CYCLE_END_DATE, Value: subCycleEndDate.Format(dateLayout)}
 		err := worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
 		if err != nil {
-			mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+			mlog.Error("Unable to save USER_LIMIT_OVERAGE_CYCLE_END_DATE count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 		}
-
-		systemValue, _ = worker.app.Srv().Store.System().GetByName(model.DAYS_OVER_USER_LIMIT)
 
 		// Store today's date (first day over limit) so we can reference it later
 		t := time.Now()
-		firstDayOverVar := &model.System{Name: model.OVER_USER_LIMIT_DATE, Value: t.Format("2006-01-02")}
+		firstDayOverVar := &model.System{Name: model.OVER_USER_LIMIT_DATE, Value: t.Format(dateLayout)}
 		err = worker.app.Srv().Store.System().SaveOrUpdate(firstDayOverVar)
 		if err != nil {
-			mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+			mlog.Error("Unable to save USER_LIMIT_OVERAGE_CYCLE_END_DATE count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 		}
+		worker.LogAndSetJobSuccess(job)
+		return
 	}
 
-	daysOverLimit, err := strconv.ParseInt(systemValue.Value, 10, 64)
+	// If we've reached this point, we know at some time the installation was over the limit
 
-	// Bump up the number of days over limit and save to db
-	daysOverLimit = daysOverLimit + 1
-	systemValue.Value = strconv.FormatInt(daysOverLimit, 10)
-	err = worker.app.Srv().Store.System().SaveOrUpdate(systemValue)
+	subCycleEndDate, err := time.Parse(dateLayout, systemValue.Value)
 	if err != nil {
-		mlog.Error("Unable to save DAYS_OVER_USER_LIMIT count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
+		mlog.Error("Unable to parse USER_LIMIT_OVERAGE_CYCLE_END_DATE", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
+
+	now := time.Now()
+
+	daysDifference := int64(math.Floor(now.Sub(subCycleEndDate).Hours() / 24)) // Get the difference in days between now and cycle end date
 
 	// Get admin users for emailing
 	userOptions := &model.UserGetOptions{
@@ -167,22 +219,47 @@ func (worker *Worker) DoJob(job *model.Job) {
 		Inactive: false,
 	}
 	sysAdmins, err := worker.app.GetUsers(userOptions)
-	switch daysOverLimit {
-	case 30:
+	switch daysDifference {
+	case 7:
+		forgiven := worker.ForgivenessCheck(int(userDifference))
+		if forgiven {
+			worker.LogAndSetJobSuccess(job)
+			return
+		}
+
 		// TODO cc support@mattermost.com for one of the emails
-		mlog.Info("30 DAYS OVER LIMIT")
+		for admin := range sysAdmins {
+			worker.app.Srv().EmailService.SendOverUserSevenDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
+		}
+	case 14:
+		forgiven := worker.ForgivenessCheck(int(userDifference))
+		if forgiven {
+			worker.LogAndSetJobSuccess(job)
+			return
+		}
+
+		// TODO cc support@mattermost.com for one of the emails
+		for admin := range sysAdmins {
+			worker.app.Srv().EmailService.SendOverUserFourteenDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
+		}
+	case 30:
+		forgiven := worker.ForgivenessCheck(int(userDifference))
+		if forgiven {
+			worker.LogAndSetJobSuccess(job)
+			return
+		}
+
+		// TODO cc support@mattermost.com for one of the emails
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitThirtyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
 	case 90:
-		mlog.Info("90 DAYS OVER LIMIT")
 		// TODO cc support@mattermost.com for one of the emails
 		overLimitDate, _ := worker.app.Srv().Store.System().GetByName(model.OVER_USER_LIMIT_DATE)
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overLimitDate.Value)
 		}
 	case 91:
-		mlog.Info("91 DAYS OVER LIMIT")
 		// TODO cc support@mattermost.com for one of the emails
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitWorkspaceSuspendedWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)

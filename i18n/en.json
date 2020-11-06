@@ -2779,6 +2779,31 @@
     "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
   },
   {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Payment is overdue for your Mattermost Cloud subscription"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "No payment method on file"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost couldn’t process your most recent automatic payment. To keep your service active, please add payment details as soon as possible or your service may be suspended."
+  },
+
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Payment is overdue for your Mattermost Cloud subscription"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "Payment not received"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .InvoiceDate }}.  We will soon begin a process to suspend your service if payment is not received."
+  },
+  {
     "id": "api.templates.over_limit_90_days_subject",
     "translation": "Your Mattermost Cloud subscription will soon be suspended"
   },
