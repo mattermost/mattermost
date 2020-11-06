@@ -705,7 +705,7 @@ func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email st
 	return true, nil
 }
 
-func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, invoiceDate string) (bool, *model.AppError) {
+func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_14_days_subject")

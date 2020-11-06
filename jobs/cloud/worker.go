@@ -153,8 +153,13 @@ func (worker *Worker) DoJob(job *model.Job) {
 		}
 	}
 
-	if subscription != nil && subscription.IsPaidTier == "true" {
-		mlog.Info("On Paid Tier, exiting", mlog.String("worker", worker.name))
+	if subscription != nil && subscription.IsPaidTier == "true" && subscription.Status == "active" {
+		// The subscription is no longer in arrears, reset values and exit
+		_, valErr := worker.app.Srv().Store.System().PermanentDeleteByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
+		if valErr != nil {
+			mlog.Error("Unable to reset USER_LIMIT_OVERAGE_CYCLE_END_DATE", mlog.String("worker", worker.name), mlog.String("error", valErr.Error()))
+		}
+		worker.LogAndSetJobSuccess(job)
 		return
 	}
 
@@ -261,9 +266,11 @@ func (worker *Worker) DoJob(job *model.Job) {
 		}
 	case 91:
 		// TODO cc support@mattermost.com for one of the emails
-		for admin := range sysAdmins {
-			worker.app.Srv().EmailService.SendOverUserLimitWorkspaceSuspendedWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
-		}
+
+		// This might need to be done by support. If the installation is suspended, it won't be running, and thus can't send the email
+		// for admin := range sysAdmins {
+		// 	worker.app.Srv().EmailService.SendOverUserLimitWorkspaceSuspendedWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
+		// }
 	}
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))

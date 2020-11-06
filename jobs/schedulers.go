@@ -74,7 +74,6 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 	}
 
 	if cloudInterface := srv.Cloud; cloudInterface != nil {
-		mlog.Debug("SETTING CLOUD SCHEDULE")
 		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
 	}
 
