@@ -153,6 +153,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 		}
 	}
 
+	// If the subscription hasn't been paid for, the Status will be "past_due" or "incomplete". Active is only for good financial standing.
 	if subscription != nil && subscription.IsPaidTier == "true" && subscription.Status == "active" {
 		// The subscription is no longer in arrears, reset values and exit
 		_, valErr := worker.app.Srv().Store.System().PermanentDeleteByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
