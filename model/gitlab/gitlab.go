@@ -107,6 +107,6 @@ func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*
 	return &config.GitLabSettings, nil
 }
 
-func (o *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
+func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
 	return nil, nil
 }

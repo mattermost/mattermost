@@ -1685,7 +1685,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		enableEmail := *config.EmailSettings.EnableSignInWithEmail
 		samlEnabled := *config.SamlSettings.Enable
 		gitlabEnabled := *config.GitLabSettings.Enable
-		openidEnabled := *config.OpenIdSettings.Enable 
+		openidEnabled := *config.OpenIdSettings.Enable
 		googleEnabled := *config.GoogleSettings.Enable
 		office365Enabled := *config.Office365Settings.Enable
 
