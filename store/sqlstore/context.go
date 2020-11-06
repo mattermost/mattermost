@@ -18,13 +18,13 @@ const (
 
 // withMaster adds the context value that master DB should be selected for this request.
 func withMaster(ctx context.Context) context.Context {
-	return context.WithValue(ctx, storeContextKey(useMaster), "yes")
+	return context.WithValue(ctx, storeContextKey(useMaster), true)
 }
 
 // hasMaster is a helper function to check whether master DB should be selected or not.
 func hasMaster(ctx context.Context) bool {
 	if v := ctx.Value(storeContextKey(useMaster)); v != nil {
-		if str, ok := v.(string); ok && str == "yes" {
+		if res, ok := v.(bool); ok && res {
 			return true
 		}
 	}
