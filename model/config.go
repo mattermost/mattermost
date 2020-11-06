@@ -343,7 +343,8 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableAWSMetering                                 *bool
-	ThreadAutoFollow                                  *bool `access:"experimental"`
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -766,6 +767,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ThreadAutoFollow = NewBool(true)
 	}
 
+	if s.ManagedResourcePaths == nil {
+		s.ManagedResourcePaths = NewString("")
+	}
 }
 
 type ClusterSettings struct {
