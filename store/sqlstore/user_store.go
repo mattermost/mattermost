@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 
@@ -1106,6 +1107,7 @@ func (us SqlUserStore) GetAllUsingAuthService(authService string) ([]*model.User
 		return nil, errors.Wrap(err, "get_all_using_auth_service_tosql")
 	}
 
+	mlog.Debug(queryString)
 	var users []*model.User
 	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Users with authService=%s", authService)

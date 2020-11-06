@@ -994,6 +994,14 @@ func (s *SSOSettings) setDefaults(scope string) {
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString("")
 	}
+
+	if s.ButtonText == nil {
+		s.ButtonText = NewString("")
+	}
+
+	if s.ButtonColor == nil {
+		s.ButtonColor = NewString("")
+	}
 }
 
 type Office365Settings struct {

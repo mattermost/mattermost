@@ -687,7 +687,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
+func (a *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service string, code string, state string, redirectUri string) (io.ReadCloser, string, map[string]string, *model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthorizeOAuthUser")
 
@@ -699,14 +699,14 @@ func (a *OpenTracingAppLayer) AuthorizeOAuthUser(w http.ResponseWriter, r *http.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2, resultVar3 := a.app.AuthorizeOAuthUser(w, r, service, code, state, redirectUri)
+	resultVar0, resultVar1, resultVar2, resultVar3, resultVar4 := a.app.AuthorizeOAuthUser(w, r, service, code, state, redirectUri)
 
-	if resultVar3 != nil {
-		span.LogFields(spanlog.Error(resultVar3))
+	if resultVar4 != nil {
+		span.LogFields(spanlog.Error(resultVar4))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1, resultVar2, resultVar3
+	return resultVar0, resultVar1, resultVar2, resultVar3, resultVar4
 }
 
 func (a *OpenTracingAppLayer) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1405,7 +1405,7 @@ func (a *OpenTracingAppLayer) CompareAndSetPluginKey(pluginId string, key string
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteOAuth")
 
@@ -1417,7 +1417,7 @@ func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompleteOAuth(service, body, teamId, props)
+	resultVar0, resultVar1 := a.app.CompleteOAuth(service, body, teamId, props, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1427,7 +1427,7 @@ func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteSwitchWithOAuth")
 
@@ -1439,7 +1439,7 @@ func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData i
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompleteSwitchWithOAuth(service, userData, email)
+	resultVar0, resultVar1 := a.app.CompleteSwitchWithOAuth(service, userData, email, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1910,7 +1910,7 @@ func (a *OpenTracingAppLayer) CreateOAuthStateToken(extra string) (*model.Token,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthUser")
 
@@ -1922,7 +1922,7 @@ func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateOAuthUser(service, userData, teamId)
+	resultVar0, resultVar1 := a.app.CreateOAuthUser(service, userData, teamId, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10282,7 +10282,7 @@ func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog
 	a.app.LogAuditRecWithLevel(rec, level, err)
 }
 
-func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoginByOAuth")
 
@@ -10294,7 +10294,7 @@ func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, t
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.LoginByOAuth(service, userData, teamId)
+	resultVar0, resultVar1 := a.app.LoginByOAuth(service, userData, teamId, tokenUser)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -14705,7 +14705,7 @@ func (a *OpenTracingAppLayer) UpdateMobileAppBadge(userId string) {
 	a.app.UpdateMobileAppBadge(userId)
 }
 
-func (a *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string, tokenUser *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateOAuthUserAttrs")
 
@@ -14717,7 +14717,7 @@ func (a *OpenTracingAppLayer) UpdateOAuthUserAttrs(userData io.Reader, user *mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateOAuthUserAttrs(userData, user, provider, service)
+	resultVar0 := a.app.UpdateOAuthUserAttrs(userData, user, provider, service, tokenUser)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
