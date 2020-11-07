@@ -220,3 +220,118 @@ func TestCommandResponseFromJson(t *testing.T) {
 		})
 	}
 }
+
+func TestCommandResponseIsValid(t *testing.T) {
+	tests := []struct {
+		name         string
+		cr           *CommandResponse
+		expectsError bool
+	}{
+		{
+			name: "happy text",
+			cr: &CommandResponse{
+				Text:         "some text",
+				ResponseType: "ephemeral",
+			},
+		},
+		{
+			name: "happy attachments",
+			cr: &CommandResponse{
+				Attachments:  []*SlackAttachment{{}},
+				ResponseType: "in_channel",
+			},
+		},
+		{
+			name:         "invalid text and attachments not set",
+			cr:           &CommandResponse{},
+			expectsError: true,
+		},
+		{
+			name: "invalid response type",
+			cr: &CommandResponse{
+				Text:         "text",
+				ResponseType: "invalid",
+			},
+			expectsError: true,
+		},
+		{
+			name: "invalid goto_location",
+			cr: &CommandResponse{
+				Text:         "text",
+				GotoLocation: "invalid",
+			},
+			expectsError: true,
+		},
+		{
+			name: "invalid type",
+			cr: &CommandResponse{
+				Text: "text",
+				Type: "invalid",
+			},
+			expectsError: true,
+		},
+		{
+			name: "extra response contains goto_location",
+			cr: &CommandResponse{
+				Text: "text",
+				ExtraResponses: []*CommandResponse{{
+					Text:         "text",
+					GotoLocation: "http://google.com",
+				}},
+			},
+			expectsError: true,
+		},
+		{
+			name: "extra response contains more extra responses",
+			cr: &CommandResponse{
+				Text: "text",
+				ExtraResponses: []*CommandResponse{{
+					Text: "text",
+					ExtraResponses: []*CommandResponse{{
+						Text: "text",
+					}},
+				}},
+			},
+			expectsError: true,
+		},
+		{
+			name: "props has from_webhook",
+			cr: &CommandResponse{
+				Text:  "text",
+				Props: StringInterface{"from_webhook": true},
+			},
+			expectsError: true,
+		},
+		{
+			name: "props has override_username",
+			cr: &CommandResponse{
+				Text:  "text",
+				Props: StringInterface{"override_username": true},
+			},
+			expectsError: true,
+		},
+		{
+			name: "props has override_icon_url",
+			cr: &CommandResponse{
+				Text:  "text",
+				Props: StringInterface{"override_icon_url": true},
+			},
+			expectsError: true,
+		},
+		{
+			name: "props has attachments",
+			cr: &CommandResponse{
+				Text:  "text",
+				Props: StringInterface{"attachments": true},
+			},
+			expectsError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := test.cr.IsValid()
+			assert.Equal(t, test.expectsError, err != nil)
+		})
+	}
+}

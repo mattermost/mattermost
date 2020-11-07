@@ -5,10 +5,14 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
 )
 
@@ -35,6 +39,40 @@ type CommandResponse struct {
 func (o *CommandResponse) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *CommandResponse) IsValid() error {
+	var errs *multierror.Error
+	if o.Text == "" && len(o.Attachments) == 0 {
+		errs = multierror.Append(errs, errors.New("'text' or 'attachments' is required"))
+	}
+	if o.ResponseType != "" && o.ResponseType != "ephemeral" && o.ResponseType != "in_channel" {
+		errs = multierror.Append(errs, errors.New("'response_type' must be empty, 'ephemeral', or 'in_channel'"))
+	}
+	if _, err := url.ParseRequestURI(o.GotoLocation); o.GotoLocation != "" && err != nil {
+		errs = multierror.Append(errs, errors.New("'goto_location' must be a valid URI"))
+	}
+	if o.Type != "" && !strings.HasPrefix(o.Type, "custom_") {
+		errs = multierror.Append(errs, errors.New("'type' must start with 'custom_'"))
+	}
+	reservedProps := []string{"from_webhook", "override_username", "override_icon_url", "attachments"}
+	for _, p := range reservedProps {
+		if _, ok := o.Props[p]; ok {
+			errs = multierror.Append(errs, fmt.Errorf("'%s' cannot be used as a key in 'props'", p))
+		}
+	}
+	for _, extra := range o.ExtraResponses {
+		if extra.GotoLocation != "" {
+			errs = multierror.Append(errs, errors.New("extra response cannot contain 'goto_location'"))
+		}
+		if len(extra.ExtraResponses) > 0 {
+			errs = multierror.Append(errs, errors.New("extra response cannot contain additional 'extra_responses'"))
+		}
+		if err := extra.IsValid(); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}
+	return errs.ErrorOrNil()
 }
 
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) (*CommandResponse, error) {
