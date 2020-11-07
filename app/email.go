@@ -589,3 +589,47 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 
 	return token, nil
 }
+
+func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.at_limit_subject")
+
+	bodyPage := es.newEmailTemplate("reached_user_limit_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.at_limit_title")
+	bodyPage.Props["Info1"] = T("api.templates.at_limit_info1")
+	bodyPage.Props["Info2"] = T("api.templates.at_limit_info2")
+	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_subject")
+
+	bodyPage := es.newEmailTemplate("reached_user_limit_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_info2")
+	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}

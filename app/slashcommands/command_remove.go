@@ -108,9 +108,9 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, err := a.Srv().Store.User().GetByUsername(targetUsername)
-	if err != nil {
-		mlog.Error(err.Error())
+	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.missing.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

@@ -4,7 +4,7 @@ FROM alpine:3.12
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/5.27.0/mattermost-5.27.0-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/5.28.1/mattermost-5.28.1-linux-amd64.tar.gz?src=docker"
 
 
 # Install some needed packages

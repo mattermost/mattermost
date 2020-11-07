@@ -4,8 +4,6 @@ package psd
 
 import (
 	"io"
-	"runtime"
-	"sync"
 )
 
 func decodePackBits(dest []byte, r io.Reader, width int, lines int, large bool) (read int, err error) {
@@ -44,31 +42,7 @@ func decodePackBits(dest []byte, r io.Reader, width int, lines int, large bool) 
 	}
 	read += l
 
-	n := runtime.GOMAXPROCS(0)
-	for n > 1 && n<<1 > lines {
-		n--
-	}
-	if n == 1 {
-		decodePackBitsPerLine(dest, buf, lens)
-		return
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(n)
-	step := lines / n
-	ofs = 0
-	for i := 1; i < n; i++ {
-		go func(dest []byte, buf []byte, lens []int) {
-			defer wg.Done()
-			decodePackBitsPerLine(dest, buf, lens)
-		}(dest[ofs*width:(ofs+step)*width], buf[offsets[ofs]:offsets[ofs+step]], lens[ofs:ofs+step])
-		ofs += step
-	}
-	go func() {
-		defer wg.Done()
-		decodePackBitsPerLine(dest[ofs*width:], buf[offsets[ofs]:], lens[ofs:])
-	}()
-	wg.Wait()
+	decodePackBitsPerLine(dest, buf, lens)
 	return
 }
 
