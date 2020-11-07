@@ -156,11 +156,11 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// New user created, check cloud limits and send emails if needed
+	// Soft fail on error since user is already created
 	if ruser != nil {
 		err = c.App.CheckAndSendUserLimitWarningEmails()
 		if err != nil {
-			c.Err = err
-			return
+			mlog.Error(err.Error())
 		}
 	}
 
