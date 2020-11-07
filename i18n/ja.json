@@ -8324,5 +8324,13 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "トライアルライセンスを取得できませんでした。 support@mattermost.comまで連絡してください。登録ユーザー数を取得できません。"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "/{{.Command}} に対するプラグインが動作していません。システム管理者に連絡してください"
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} コマンドにより {{.PluginId}} プラグインがクラッシュしました。システム管理者に連絡してください"
   }
 ]
