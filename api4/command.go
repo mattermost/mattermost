@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -341,12 +340,6 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	response, err := c.App.ExecuteCommand(commandArgs)
 	if err != nil {
 		c.Err = err
-		return
-	}
-
-	if err := response.IsValid(); err != nil {
-		mlog.Debug("Invalid command response", mlog.String("errors", err.Error()))
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

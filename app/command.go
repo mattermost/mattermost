@@ -519,6 +519,17 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 }
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
+	if err := response.IsValid(); !builtIn && err != nil {
+		mlog.Debug("Invalid command response", mlog.String("errors", err.Error()))
+		return response, model.NewAppError(
+			"HandleCommandResponse",
+			"Invalid command response",
+			map[string]interface{}{"CommandResponse": *response},
+			err.Error(),
+			http.StatusBadRequest,
+		)
+	}
+
 	trigger := ""
 	if len(args.Command) != 0 {
 		parts := strings.Split(args.Command, " ")
