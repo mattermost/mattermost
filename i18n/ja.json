@@ -1927,7 +1927,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "この変更があなたによって行われてものでない場合、システム管理者に連絡してください。"
+    "translation": "この変更があなたによって行われたものでない場合、システム管理者に連絡してください。"
   },
   {
     "id": "api.templates.invite_body.button",
