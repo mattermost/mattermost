@@ -1,10 +1,8 @@
 stages:
-  - build
+#  - build
   - test
-  - build-test
-  - publish-test
-  - build-live
-  - publish-live
+  - build
+  - publish
 
 include:
   - project: mattermost/ci/mattermost-server
@@ -33,21 +31,20 @@ layers:
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
     - git reset --hard
 
-build:
-  image: mattermost/mattermost-build-server:20201023_golang-1.14.6
-  stage: build
-  script:
-    - make build-cmd BUILD_NUMBER=$CI_COMMIT_SHA
-  artifacts:
-    paths:
-      - bin
-    expire_in: 30 mins
+#build:
+#  image: mattermost/mattermost-build-server:20201023_golang-1.14.6
+#  stage: build
+#  script:
+#    - make build-cmd BUILD_NUMBER=$CI_COMMIT_SHA
+#  artifacts:
+#    paths:
+#      - bin
+#    expire_in: 30 mins
 
 test-postgres:
   extends: .test
   tags:
     - docker
-    - runner-1
   variables:
     MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
     MM_SQLSETTINGS_DRIVERNAME: postgres
@@ -56,7 +53,6 @@ test-mysql:
   extends: .test
   tags:
     - docker
-    - runner-2
   variables:
     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
     MM_SQLSETTINGS_DRIVERNAME: mysql
@@ -65,7 +61,6 @@ test-schema-postgres:
   extends: .test-schema
   tags:
     - docker
-    - runner-3
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
@@ -93,7 +88,6 @@ test-schema-mysql:
   extends: .test-schema
   tags:
     - docker
-    - runner-3
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"

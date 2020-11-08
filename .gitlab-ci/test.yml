@@ -44,8 +44,6 @@
     - DOCKER_EXIT_CODE=$(docker inspect server --format='{{.State.ExitCode}}')
     - echo $DOCKER_EXIT_CODE
     - exit $DOCKER_EXIT_CODE
-  dependencies:
-    - build-test
   artifacts:
     paths:
       - build/logs
