@@ -70,17 +70,18 @@ const (
 var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
 
 type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	ParentId   string `json:"parent_id"`
-	OriginalId string `json:"original_id"`
+	Id           string `json:"id"`
+	CreateAt     int64  `json:"create_at"`
+	UpdateAt     int64  `json:"update_at"`
+	EditAt       int64  `json:"edit_at"`
+	DeleteAt     int64  `json:"delete_at"`
+	IsPinned     bool   `json:"is_pinned"`
+	UserId       string `json:"user_id"`
+	ChannelId    string `json:"channel_id"`
+	RootId       string `json:"root_id"`
+	ParentId     string `json:"parent_id"`
+	OriginalId   string `json:"original_id"`
+	RootCreateAt int64  `json:"root_create_at"`
 
 	Message string `json:"message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
@@ -195,6 +196,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.HasReactions = o.HasReactions
 	dst.ReplyCount = o.ReplyCount
 	dst.Metadata = o.Metadata
+	dst.RootCreateAt = o.RootCreateAt
 	return nil
 }
 

@@ -24,6 +24,7 @@ const (
 	PENDING_POST_IDS_CACHE_SIZE = 25000
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 	PAGE_DEFAULT                = 0
+	MAX_REPLICA_LAG_SECONDS     = 60 // TODO: make configurable
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
@@ -185,7 +186,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if len(post.RootId) > 0 {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, true) // read this from master in case of replica lag on a new thread
+			var readFromMaster bool
+			secondsSinceRootCreated := time.Now().Sub(time.Unix(post.RootCreateAt/1000, 0)).Seconds()
+			if secondsSinceRootCreated < MAX_REPLICA_LAG_SECONDS {
+				readFromMaster = true
+			}
+			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, readFromMaster) // read this from master in case of replica lag on a new thread
 			pchan <- store.StoreResult{Data: r, NErr: pErr}
 			close(pchan)
 		}()
