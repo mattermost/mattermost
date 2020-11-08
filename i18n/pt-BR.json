@@ -4616,7 +4616,7 @@
     },
     {
         "id": "model.post.is_valid.file_ids.app_error",
-        "translation": "Ids do arquivo inválido. Observe que os uploads estão limitados a cinco arquivos no máximo. Por favor, use publicações adicionais para mais arquivos."
+        "translation": "Ids do arquivo inválido. Observe que os uploads estão limitados a dez arquivos no máximo. Por favor, use publicações adicionais para mais arquivos."
     },
     {
         "id": "model.post.is_valid.filenames.app_error",
