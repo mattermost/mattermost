@@ -15,7 +15,7 @@ lint:
   image: golangci/golangci-lint:v1.31.0
   stage: .pre
   script:
-    - GO111MODULE=off GOBIN=$CI_PROJECT_DIR/bin go get -u github.com/mattermost/mattermost-govet
+    - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
     - make config-reset
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   timeout: 30 mins
