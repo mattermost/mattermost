@@ -5401,6 +5401,70 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 }
 
+func TestThreadSocketEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ThreadAutoFollow = true })
+
+	userWSClient, err := th.CreateWebSocketClient()
+	require.Nil(t, err)
+	defer userWSClient.Close()
+	userWSClient.Listen()
+
+	Client := th.Client
+
+	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	_, err = th.App.CreatePostAsUser(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.App.Session().Id, false)
+	require.Nil(t, err)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)
+
+	resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, rpost.Id, false)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rpost.Id, 123)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	var userHasReceivedFollow bool
+	var userHasReceivedRead bool
+	var userHasReceivedUpdate bool
+
+	func() {
+		for {
+			select {
+			case ev := <-userWSClient.EventChannel:
+				fmt.Printf("event %v\n", ev)
+				if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED {
+					userHasReceivedFollow = true
+					require.Equal(t, ev.GetData()["state"], false)
+				}
+				if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_READ_CHANGED {
+					userHasReceivedRead = true
+					require.EqualValues(t, ev.GetData()["timestamp"], 123)
+				}
+				if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_UPDATED {
+					userHasReceivedUpdate = true
+					thread, err := model.ThreadFromJson(ev.GetData()["thread"].(string))
+					require.Nil(t, err)
+					require.Contains(t, thread.Participants, th.BasicUser.Id)
+					require.Contains(t, thread.Participants, th.BasicUser2.Id)
+				}
+			case <-time.After(3 * time.Second):
+				return
+			}
+		}
+	}()
+
+	require.Truef(t, userHasReceivedFollow, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED)
+	require.Truef(t, userHasReceivedRead, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_READ_CHANGED)
+	require.Truef(t, userHasReceivedUpdate, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_UPDATED)
+}
+
 func TestFollowThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
