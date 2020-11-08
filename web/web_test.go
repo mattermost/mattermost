@@ -73,7 +73,6 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
 	memoryStore.Set(newConfig)
-
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
