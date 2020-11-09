@@ -13,6 +13,7 @@ import (
 )
 
 func TestRemoteClusterStore(t *testing.T, ss store.Store) {
+	t.Run("RemoteClusterGetAllNotInChannel", func(t *testing.T) { testRemoteClusterGetAllNotInChannel(t, ss) })
 	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, ss) })
 	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, ss) })
 	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, ss) })
@@ -134,6 +135,82 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 		// make sure no offline remotes were returned.
 		require.NotSubset(t, ids, idsOffline)
 	})
+}
+
+func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
+	channelId1 := model.NewId()
+	channelId2 := model.NewId()
+	channelId3 := model.NewId()
+
+	// Create shared channels
+	scData := []*model.SharedChannel{
+		{ChannelId: channelId1, TeamId: model.NewId(), Home: true, ShareName: "test_chan_1", CreatorId: model.NewId()},
+		{ChannelId: channelId2, TeamId: model.NewId(), Home: true, ShareName: "test_chan_2", CreatorId: model.NewId()},
+		{ChannelId: channelId3, TeamId: model.NewId(), Home: true, ShareName: "test_chan_3", CreatorId: model.NewId()},
+	}
+	for _, item := range scData {
+		_, err := ss.Channel().SaveSharedChannel(item)
+		require.Nil(t, err)
+	}
+
+	// Create some remote clusters
+	rcData := []*model.RemoteCluster{
+		{ClusterName: "AAAA Inc", Hostname: "aaaa.com", Id: model.NewId()},
+		{ClusterName: "BBBB Inc", Hostname: "bbbb.com", Id: model.NewId()},
+		{ClusterName: "CCCC Inc", Hostname: "cccc.com", Id: model.NewId()},
+		{ClusterName: "DDDD Inc", Hostname: "dddd.com", Id: model.NewId()},
+		{ClusterName: "EEEE Inc", Hostname: "eeee.com", Id: model.NewId()},
+	}
+	for _, item := range rcData {
+		_, err := ss.RemoteCluster().Save(item)
+		require.Nil(t, err)
+	}
+
+	// Create some shared channel remotes
+	scrData := []*model.SharedChannelRemote{
+		{ChannelId: channelId1, Description: "AAA Inc Share", Token: model.NewId(), RemoteClusterId: rcData[0].Id, CreatorId: model.NewId()},
+		{ChannelId: channelId1, Description: "BBB Inc Share", Token: model.NewId(), RemoteClusterId: rcData[1].Id, CreatorId: model.NewId()},
+		{ChannelId: channelId2, Description: "CCC Inc Share", Token: model.NewId(), RemoteClusterId: rcData[2].Id, CreatorId: model.NewId()},
+		{ChannelId: channelId2, Description: "DDD Inc Share", Token: model.NewId(), RemoteClusterId: rcData[3].Id, CreatorId: model.NewId()},
+		{ChannelId: channelId3, Description: "EEE Inc Share", Token: model.NewId(), RemoteClusterId: rcData[4].Id, CreatorId: model.NewId()},
+	}
+	for _, item := range scrData {
+		_, err := ss.Channel().SaveSharedChannelRemote(item)
+		require.Nil(t, err)
+	}
+
+	t.Run("Channel 1", func(t *testing.T) {
+		list, err := ss.RemoteCluster().GetAllNotInChannel(channelId1, true)
+		require.Nil(t, err)
+		require.Len(t, list, 3, "channel 1 should have 3 remote clusters that are not already members")
+		require.Subset(t, []string{rcData[2].ClusterName, rcData[3].ClusterName, rcData[4].ClusterName},
+			[]string{list[0].ClusterName, list[1].ClusterName, list[2].ClusterName})
+	})
+
+	t.Run("Channel 2", func(t *testing.T) {
+		list, err := ss.RemoteCluster().GetAllNotInChannel(channelId2, true)
+		require.Nil(t, err)
+		require.Len(t, list, 3, "channel 2 should have 3 remote clusters that are not already members")
+		require.Subset(t, []string{rcData[0].ClusterName, rcData[1].ClusterName, rcData[4].ClusterName},
+			[]string{list[0].ClusterName, list[1].ClusterName, list[2].ClusterName})
+	})
+
+	t.Run("Channel 3", func(t *testing.T) {
+		list, err := ss.RemoteCluster().GetAllNotInChannel(channelId3, true)
+		require.Nil(t, err)
+		require.Len(t, list, 4, "channel 3 should have 4 remote clusters that are not already members")
+		require.Subset(t, []string{rcData[0].ClusterName, rcData[1].ClusterName, rcData[2].ClusterName, rcData[3].ClusterName},
+			[]string{list[0].ClusterName, list[1].ClusterName, list[2].ClusterName, list[3].ClusterName})
+	})
+
+	t.Run("Channel with no share remotes", func(t *testing.T) {
+		list, err := ss.RemoteCluster().GetAllNotInChannel(model.NewId(), true)
+		require.Nil(t, err)
+		require.Len(t, list, 5, "should have 5 remote clusters that are not already members")
+		require.Subset(t, []string{rcData[0].ClusterName, rcData[1].ClusterName, rcData[2].ClusterName, rcData[3].ClusterName, rcData[4].ClusterName},
+			[]string{list[0].ClusterName, list[1].ClusterName, list[2].ClusterName, list[3].ClusterName})
+	})
+
 }
 
 func getIds(remotes []*model.RemoteCluster) []string {

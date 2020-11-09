@@ -91,23 +91,11 @@ func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *mode
 		return nil, errors.New("You require `manage_shared_channels` permission to manage remote clusters.")
 	}
 
-	var list []model.AutocompleteListItem
-
 	if arg.Name == "remoteId" && strings.Contains(parsed, " remove ") {
-		all, err := a.GetAllRemoteClusters(true)
-		if err != nil || len(all) == 0 {
-			return []model.AutocompleteListItem{}, nil
-		}
-		for _, rc := range all {
-			item := model.AutocompleteListItem{
-				Item:     rc.Id,
-				HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
-			list = append(list, item)
-		}
-	} else {
-		return nil, fmt.Errorf("`%s` not a dynamic argument", arg.Name)
+		return getRemoteClusterAutocompleteListItems(a, true)
 	}
-	return list, nil
+
+	return nil, fmt.Errorf("`%s` not a dynamic argument", arg.Name)
 }
 
 func (rp *RemoteProvider) doAdd(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
@@ -188,4 +176,36 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 
 func isOnline(rc *model.RemoteCluster) bool {
 	return rc.LastPingAt > model.GetMillis()-model.RemoteOfflineAfterMillis
+}
+
+func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model.AutocompleteListItem, error) {
+	var list []model.AutocompleteListItem
+
+	all, err := a.GetAllRemoteClusters(incOffline)
+	if err != nil || len(all) == 0 {
+		return []model.AutocompleteListItem{}, nil
+	}
+	for _, rc := range all {
+		item := model.AutocompleteListItem{
+			Item:     rc.Id,
+			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
+		list = append(list, item)
+	}
+	return list, nil
+}
+
+func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, incOffline bool) ([]model.AutocompleteListItem, error) {
+	var list []model.AutocompleteListItem
+
+	all, err := a.GetAllRemoteClustersNotInChannel(channelId, incOffline)
+	if err != nil || len(all) == 0 {
+		return []model.AutocompleteListItem{}, nil
+	}
+	for _, rc := range all {
+		item := model.AutocompleteListItem{
+			Item:     rc.Id,
+			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
+		list = append(list, item)
+	}
+	return list, nil
 }

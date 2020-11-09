@@ -81,6 +81,29 @@ func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, 
 	return r0, r1
 }
 
+// GetAllNotInChannel provides a mock function with given fields: channelId, inclOffline
+func (_m *RemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(channelId, inclOffline)
+
+	var r0 []*model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.RemoteCluster); ok {
+		r0 = rf(channelId, inclOffline)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(channelId, inclOffline)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: rc
 func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	ret := _m.Called(rc)

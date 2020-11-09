@@ -101,6 +101,28 @@ func (s sqlRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster,
 	return list, nil
 }
 
+func (s sqlRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	query := s.getQueryBuilder().
+		Select("rc.*").
+		From("RemoteClusters rc").
+		Where("rc.Id NOT IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", channelId)
+
+	if !inclOffline {
+		query = query.Where(sq.Gt{"rc.LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
+	}
+
+	queryString, args, err := query.OrderBy("rc.ClusterName ASC").ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_cluster_getallnotinchannel_tosql")
+	}
+
+	var list []*model.RemoteCluster
+	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
+	}
+	return list, nil
+}
+
 func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	query := s.getQueryBuilder().
 		Update("RemoteClusters").

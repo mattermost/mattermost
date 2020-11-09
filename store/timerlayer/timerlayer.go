@@ -5445,6 +5445,22 @@ func (s *TimerLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.Remote
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.GetAllNotInChannel(channelId, inclOffline)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetAllNotInChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	start := timemodule.Now()
 

@@ -1120,7 +1120,7 @@
   },
   {
     "id": "api.command_share.hint",
-    "translation": "[command]"
+    "translation": "[action]"
   },
   {
     "id": "api.command_share.name",

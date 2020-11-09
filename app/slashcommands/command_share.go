@@ -29,7 +29,7 @@ func (me *ShareProvider) GetTrigger() string {
 }
 
 func (me *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
-	share := model.NewAutocompleteData(CommandTriggerShare, "[command]", "Available commands: share_channel, unshare_channel, invite_remote, uninvite_remote, status")
+	share := model.NewAutocompleteData(CommandTriggerShare, "[action]", "Available commands: share_channel, unshare_channel, invite_remote, uninvite_remote, status")
 
 	shareChannel := model.NewAutocompleteData("share_channel", "", "Share the current channel")
 	shareChannel.AddNamedTextArgument("readonly", "Channel will be shared in read-only mode", "[readonly] - 'Y' or 'N'.  Defaults to 'N'", "Y|N|y|n", false)
@@ -47,10 +47,13 @@ func (me *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 	unInviteRemote := model.NewAutocompleteData("uninvite_remote", "", "Uninvites a remote instance from this shared channel")
 	unInviteRemote.AddNamedDynamicListArgument("remoteId", "Id of remote instance to uninvite.", "builtin:share", true)
 
+	status := model.NewAutocompleteData("status", "", "Displays status for this shared channel")
+
 	share.AddCommand(shareChannel)
 	share.AddCommand(unshareChannel)
 	share.AddCommand(inviteRemote)
 	share.AddCommand(unInviteRemote)
+	share.AddCommand(status)
 
 	return &model.Command{
 		Trigger:          CommandTriggerShare,
@@ -69,20 +72,11 @@ func (me *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 	}
 }
 
-func (me *ShareProvider) GetAutoCompleteListItems(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
-
-	var list []model.AutocompleteListItem
-
+func (me *ShareProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "remoteId" && strings.Contains(parsed, " invite_remote ") {
-		list = append(list, model.AutocompleteListItem{Item: "invite1", Hint: "this is hint 1", HelpText: "This is help text 1."})
-		list = append(list, model.AutocompleteListItem{Item: "invite2", Hint: "this is hint 2", HelpText: "This is help text 2."})
-		list = append(list, model.AutocompleteListItem{Item: "invite3", Hint: "this is hint 3", HelpText: "This is help text 3."})
+		return getRemoteClusterAutocompleteListItemsNotInChannel(a, commandArgs.ChannelId, true)
 	} else if arg.Name == "remoteId" && strings.Contains(parsed, " uninvite_remote ") {
-		list = append(list, model.AutocompleteListItem{Item: "uninvite1", Hint: "this is hint 1", HelpText: "This is help text 1."})
-		list = append(list, model.AutocompleteListItem{Item: "uninvite2", Hint: "this is hint 2", HelpText: "This is help text 2."})
-		list = append(list, model.AutocompleteListItem{Item: "uninvite3", Hint: "this is hint 3", HelpText: "This is help text 3."})
-	} else {
-		return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
+		return getRemoteClusterAutocompleteListItems(a, true)
 	}
-	return list, nil
+	return nil, fmt.Errorf("%s not a dynamic argument", arg.Name)
 }
