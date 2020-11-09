@@ -254,12 +254,6 @@ func (worker *Worker) DoJob(job *model.Job) {
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overLimitDate.Value)
 		}
-	case 91:
-
-		// This might need to be done by support. If the installation is suspended, it won't be running, and thus can't send the email
-		// for admin := range sysAdmins {
-		// 	worker.app.Srv().EmailService.SendOverUserLimitWorkspaceSuspendedWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
-		// }
 	}
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
