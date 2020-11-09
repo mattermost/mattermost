@@ -4,6 +4,7 @@ package cloud
 
 import (
 	"math"
+	"os"
 	"strconv"
 	"time"
 
@@ -249,6 +250,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitThirtyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
+
+		worker.app.Srv().EmailService.SendSuspensionEmailToSupport("support@mattermost.com", os.Getenv("MM_CLOUD_INSTALLATION_ID"), subscription.CustomerID, subscription.ID, *worker.app.Config().ServiceSettings.SiteURL)
 	case 90:
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overageEndDateSystemValue.Value)

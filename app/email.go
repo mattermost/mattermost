@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"net/http"
 
@@ -739,6 +740,24 @@ func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale st
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string) (bool, *model.AppError) {
+	// Localization not needed
+
+	subject := fmt.Sprintf("Cloud Installation %s Scheduled Suspension", installationID)
+	bodyPage := es.newEmailTemplate("over_user_limit_support_body", "en")
+	bodyPage.Props["CustomerID"] = customerID
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["SubscriptionID"] = subscriptionID
+	bodyPage.Props["InstallationID"] = installationID
+	bodyPage.Props["SuspensionDate"] = time.Now().AddDate(0, 0, 61).Format("2006-01-02")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
