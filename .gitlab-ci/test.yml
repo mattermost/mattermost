@@ -34,7 +34,7 @@
         --env GOBIN=$PWD/bin \
         -v $CI_PROJECT_DIR:/mattermost-server \
         -w /mattermost-server \
-        mattermost/mattermost-build-docker:20201023_19.03.12 \
+        mattermost/mattermost-build-server:20201023_golang-1.14.6 \
         bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=;"
     - docker logs -f server
     - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
