@@ -30,8 +30,8 @@ func (scheduler *Scheduler) JobType() string {
 }
 
 func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
-	// If CloudUserLimit is non-zero we're in a cloud installation
-	return *cfg.ExperimentalSettings.CloudUserLimit > 0 && cfg.FeatureFlags.CloudEmailJobsEnabledMM29999
+	// Must be a cloud installation
+	return scheduler.App.Srv().License() != nil && *scheduler.App.Srv().License().Features.Cloud && cfg.FeatureFlags.CloudEmailJobsEnabledMM29999
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
