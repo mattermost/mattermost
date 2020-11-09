@@ -1113,10 +1113,14 @@
   {
     "id": "api.command_share.hint",
 <<<<<<< HEAD
+<<<<<<< HEAD
     "translation": "[action]"
 =======
     "translation": "[command]"
 >>>>>>> share slash command
+=======
+    "translation": "[action]"
+>>>>>>> GetAllRemoteClustersNotInChannel autocomplete
   },
   {
     "id": "api.command_share.name",
