@@ -1,5 +1,4 @@
 stages:
-#  - build
   - test
   - build
   - publish
@@ -18,7 +17,7 @@ lint:
     - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
     - make config-reset
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
-  timeout: 30 mins
+  timeout: 60 mins
 
 layers:
   image: mattermost/mattermost-build-server:20201023_golang-1.14.6
@@ -30,16 +29,6 @@ layers:
     - make app-layers
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
     - git reset --hard
-
-#build:
-#  image: mattermost/mattermost-build-server:20201023_golang-1.14.6
-#  stage: build
-#  script:
-#    - make build-cmd BUILD_NUMBER=$CI_COMMIT_SHA
-#  artifacts:
-#    paths:
-#      - bin
-#    expire_in: 30 mins
 
 test-postgres:
   extends: .test
