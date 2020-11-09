@@ -5535,6 +5535,10 @@
     "translation": "We encountered an error while finding the recently active users."
   },
   {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Unable to get user threads"
+  },
+  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
   },
@@ -5609,6 +5613,18 @@
   {
     "id": "app.user.update_password.app_error",
     "translation": "Unable to update the user password."
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Unable to update following state for thread"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Unable to update read state for thread"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Unable to update all user threads as read"
   },
   {
     "id": "app.user.update_update.app_error",
@@ -5924,15 +5940,15 @@
   },
   {
     "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
+    "translation": ""
   },
   {
     "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
+    "translation": ""
   },
   {
     "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
+    "translation": ""
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6044,7 +6060,7 @@
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
+    "translation": ""
   },
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
@@ -6120,7 +6136,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Unable to get the channels batch for indexing."
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -6152,7 +6168,7 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Unable to get the posts batch for indexing."
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -6512,11 +6528,11 @@
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
+    "translation": ""
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
+    "translation": ""
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
