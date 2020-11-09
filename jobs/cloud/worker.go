@@ -189,6 +189,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 		}
 		// Store the billing date for the next billing cycle
 		subCycleEndDate := time.Unix((subscription.EndAt / 1000), 0)
+		// Add one day, so it's the first of the month
+		subCycleEndDate.AddDate(0, 0, 1)
 		sysVar := &model.System{Name: model.USER_LIMIT_OVERAGE_CYCLE_END_DATE, Value: subCycleEndDate.Format(dateLayout)}
 		err = worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
 		if err != nil {
