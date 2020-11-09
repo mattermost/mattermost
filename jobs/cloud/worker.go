@@ -250,9 +250,8 @@ func (worker *Worker) DoJob(job *model.Job) {
 			worker.app.Srv().EmailService.SendOverUserLimitThirtyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
 	case 90:
-		overLimitDate, _ := worker.app.Srv().Store.System().GetByName(model.OVER_USER_LIMIT_DATE)
 		for admin := range sysAdmins {
-			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overLimitDate.Value)
+			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overageEndDateSystemValue.Value)
 		}
 	}
 
