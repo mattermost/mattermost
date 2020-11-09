@@ -173,14 +173,14 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	userDifference := cloudUserLimit - count
 
-	systemValue, nErr := worker.app.Srv().Store.System().GetByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
+	overageEndDateSystemValue, nErr := worker.app.Srv().Store.System().GetByName(model.USER_LIMIT_OVERAGE_CYCLE_END_DATE)
 	dateLayout := "2006-01-02"
 
 	if nErr != nil {
 		mlog.Error("Error getting USER_LIMIT_OVERAGE_CYCLE_END_DATE from system store", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 	}
 
-	if systemValue == nil {
+	if overageEndDateSystemValue == nil {
 		if userDifference >= 0 {
 			// Under user limit, so no need to start tracking yet.
 			worker.LogAndSetJobSuccess(job)
@@ -200,7 +200,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	// If we've reached this point, we know at some time the installation was over the limit
 
-	subCycleEndDate, err := time.Parse(dateLayout, systemValue.Value)
+	subCycleEndDate, err := time.Parse(dateLayout, overageEndDateSystemValue.Value)
 	if err != nil {
 		mlog.Error("Unable to parse USER_LIMIT_OVERAGE_CYCLE_END_DATE", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
