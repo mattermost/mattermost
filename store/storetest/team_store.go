@@ -2855,17 +2855,17 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	var rm1 *model.TeamMember
-	rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
+	rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId, false)
 	require.Nil(t, err)
 
 	require.Equal(t, rm1.TeamId, m1.TeamId, "bad team id")
 
 	require.Equal(t, rm1.UserId, m1.UserId, "bad user id")
 
-	_, err = ss.Team().GetMember(m1.TeamId, "")
+	_, err = ss.Team().GetMember(m1.TeamId, "", false)
 	require.NotNil(t, err, "empty user id - should have failed")
 
-	_, err = ss.Team().GetMember("", m1.UserId)
+	_, err = ss.Team().GetMember("", m1.UserId, false)
 	require.NotNil(t, err, "empty team id - should have failed")
 
 	// Test with a custom team scheme.
@@ -2895,7 +2895,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m2, -1)
 	require.Nil(t, nErr)
 
-	m3, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	m3, err := ss.Team().GetMember(m2.TeamId, m2.UserId, false)
 	require.Nil(t, err)
 	t.Log(m3)
 
@@ -2905,7 +2905,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(m4, -1)
 	require.Nil(t, nErr)
 
-	m5, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	m5, err := ss.Team().GetMember(m4.TeamId, m4.UserId, false)
 	require.Nil(t, err)
 
 	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
@@ -3216,19 +3216,19 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	tm1b, err := ss.Team().GetMember(tm1.TeamId, tm1.UserId)
+	tm1b, err := ss.Team().GetMember(tm1.TeamId, tm1.UserId, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "", tm1b.ExplicitRoles)
 	assert.True(t, tm1b.SchemeUser)
 	assert.True(t, tm1b.SchemeAdmin)
 
-	tm2b, err := ss.Team().GetMember(tm2.TeamId, tm2.UserId)
+	tm2b, err := ss.Team().GetMember(tm2.TeamId, tm2.UserId, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "", tm2b.ExplicitRoles)
 	assert.True(t, tm2b.SchemeUser)
 	assert.False(t, tm2b.SchemeAdmin)
 
-	tm3b, err := ss.Team().GetMember(tm3.TeamId, tm3.UserId)
+	tm3b, err := ss.Team().GetMember(tm3.TeamId, tm3.UserId, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
@@ -3309,19 +3309,19 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
-	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
+	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId, false)
 	require.Nil(t, err)
 	assert.Equal(t, m1.ExplicitRoles, r1.Roles)
 
-	r2, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	r2, err := ss.Team().GetMember(m2.TeamId, m2.UserId, false)
 	require.Nil(t, err)
 	assert.Equal(t, "team_user team_admin", r2.Roles)
 
-	r3, err := ss.Team().GetMember(m3.TeamId, m3.UserId)
+	r3, err := ss.Team().GetMember(m3.TeamId, m3.UserId, false)
 	require.Nil(t, err)
 	assert.Equal(t, m3.ExplicitRoles, r3.Roles)
 
-	r4, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	r4, err := ss.Team().GetMember(m4.TeamId, m4.UserId, false)
 	require.Nil(t, err)
 	assert.Equal(t, "", r4.Roles)
 }

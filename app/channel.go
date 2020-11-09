@@ -1370,7 +1370,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	teamMember, nErr := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
+	teamMember, nErr := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id, true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

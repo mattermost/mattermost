@@ -1002,7 +1002,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 }
 
 // GetMember returns a single member of the team that matches the teamId and userId provided as parameters.
-func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+func (s SqlTeamStore) GetMember(teamId string, userId string, readFromMaster bool) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userId})
@@ -1013,7 +1013,15 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
+
+	var dbMap *gorp.DbMap
+	if readFromMaster {
+		dbMap = s.GetMaster()
+	} else {
+		dbMap = s.GetReplica()
+	}
+
+	err = dbMap.SelectOne(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
