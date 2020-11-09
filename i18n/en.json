@@ -2739,7 +2739,7 @@
     "translation": "Payment not received"
   },
   {
-    "id": "api.templates.over_limit_30_days_fix_now",
+    "id": "api.templates.over_limit_fix_now",
     "translation": "Fix Now"
   },
   {
@@ -2781,10 +2781,6 @@
   {
     "id": "api.templates.over_limit_7_days_title",
     "translation": "No payment method on file"
-  },
-  {
-    "id": "api.templates.over_limit_90_days_fix_now",
-    "translation": "Fix Now"
   },
   {
     "id": "api.templates.over_limit_90_days_info1",

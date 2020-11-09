@@ -92,7 +92,7 @@ func (worker *Worker) ForgivenessCheck(userDifference int) bool {
 		mlog.Error("Error getting days over limit from system store", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
 
-    forgivenessCount := 0
+	forgivenessCount := 0
 	if systemValue != nil {
 		forgivenessCount, err = strconv.Atoi(systemValue.Value)
 	}
@@ -126,6 +126,11 @@ func (worker *Worker) DoJob(job *model.Job) {
 			mlog.String("error", err.Error()))
 		return
 	} else if !claimed {
+		return
+	}
+
+	if worker.app.Srv().License() == nil || (worker.app.Srv().License() != nil && !*worker.app.Srv().License().Features.Cloud) {
+		mlog.Error("Attempt to run cloud job in non-cloud environment", mlog.String("worker", worker.name), mlog.String("job_id", job.Id))
 		return
 	}
 
@@ -190,13 +195,6 @@ func (worker *Worker) DoJob(job *model.Job) {
 			mlog.Error("Unable to save USER_LIMIT_OVERAGE_CYCLE_END_DATE count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 		}
 
-		// Store today's date (first day over limit) so we can reference it later
-		t := time.Now()
-		firstDayOverVar := &model.System{Name: model.OVER_USER_LIMIT_DATE, Value: t.Format(dateLayout)}
-		err = worker.app.Srv().Store.System().SaveOrUpdate(firstDayOverVar)
-		if err != nil {
-			mlog.Error("Unable to save USER_LIMIT_OVERAGE_CYCLE_END_DATE count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
-		}
 		worker.LogAndSetJobSuccess(job)
 		return
 	}
@@ -228,7 +226,6 @@ func (worker *Worker) DoJob(job *model.Job) {
 			return
 		}
 
-		// TODO cc support@mattermost.com for one of the emails
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserSevenDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
@@ -239,7 +236,6 @@ func (worker *Worker) DoJob(job *model.Job) {
 			return
 		}
 
-		// TODO cc support@mattermost.com for one of the emails
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserFourteenDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
@@ -255,13 +251,11 @@ func (worker *Worker) DoJob(job *model.Job) {
 			worker.app.Srv().EmailService.SendOverUserLimitThirtyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL)
 		}
 	case 90:
-		// TODO cc support@mattermost.com for one of the emails
 		overLimitDate, _ := worker.app.Srv().Store.System().GetByName(model.OVER_USER_LIMIT_DATE)
 		for admin := range sysAdmins {
 			worker.app.Srv().EmailService.SendOverUserLimitNinetyDayWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *worker.app.Config().ServiceSettings.SiteURL, overLimitDate.Value)
 		}
 	case 91:
-		// TODO cc support@mattermost.com for one of the emails
 
 		// This might need to be done by support. If the installation is suspended, it won't be running, and thus can't send the email
 		// for admin := range sysAdmins {

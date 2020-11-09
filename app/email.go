@@ -647,7 +647,7 @@ func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, loc
 	bodyPage.Props["Info2Item1"] = T("api.templates.over_limit_30_days_info2_item1")
 	bodyPage.Props["Info2Item2"] = T("api.templates.over_limit_30_days_info2_item2")
 	bodyPage.Props["Info2Item3"] = T("api.templates.over_limit_30_days_info2_item3")
-	bodyPage.Props["Button"] = T("api.templates.over_limit_30_days_fix_now")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
@@ -671,7 +671,7 @@ func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, loc
 	bodyPage.Props["Info2"] = T("api.templates.over_limit_90_days_info2")
 	bodyPage.Props["Info3"] = T("api.templates.over_limit_90_days_info3")
 	bodyPage.Props["Info4"] = T("api.templates.over_limit_90_days_info4")
-	bodyPage.Props["Button"] = T("api.templates.over_limit_90_days_fix_now")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
@@ -714,7 +714,7 @@ func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.over_limit_14_days_title")
 	bodyPage.Props["Info1"] = T("api.templates.over_limit_14_days_info1")
-	bodyPage.Props["Button"] = T("api.templates.over_limit_90_days_fix_now")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
@@ -735,7 +735,7 @@ func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale st
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.over_limit_7_days_title")
 	bodyPage.Props["Info1"] = T("api.templates.over_limit_7_days_info1")
-	bodyPage.Props["Button"] = T("api.templates.over_limit_90_days_fix_now")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
