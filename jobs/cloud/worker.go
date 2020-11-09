@@ -181,7 +181,6 @@ func (worker *Worker) DoJob(job *model.Job) {
 	}
 
 	if systemValue == nil {
-		mlog.Info("Found nil end date")
 		if userDifference >= 0 {
 			// Under user limit, so no need to start tracking yet.
 			worker.LogAndSetJobSuccess(job)
