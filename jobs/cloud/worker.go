@@ -186,7 +186,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 			worker.LogAndSetJobSuccess(job)
 			return
 		}
-		// Our row doesn't exist, so create it and get it from the store
+		// Store the billing date for the next billing cycle
 		subCycleEndDate := time.Unix((subscription.EndAt / 1000), 0)
 		sysVar := &model.System{Name: model.USER_LIMIT_OVERAGE_CYCLE_END_DATE, Value: subCycleEndDate.Format(dateLayout)}
 		err := worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
