@@ -980,7 +980,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id, false); err == nil {
 		tm.SchemeAdmin = true
 		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
@@ -1000,7 +1000,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id); err == nil {
+	if tm, err := me.App.Srv().Store.Team().GetMember(team.Id, user.Id, false); err == nil {
 		tm.SchemeAdmin = false
 		if _, err = me.App.Srv().Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()

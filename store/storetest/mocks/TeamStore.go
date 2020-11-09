@@ -463,12 +463,12 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*
 }
 
 // GetMember provides a mock function with given fields: teamId, userId
-func (_m *TeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+func (_m *TeamStore) GetMember(teamId string, userId string, fromMaster bool) (*model.TeamMember, error) {
 	ret := _m.Called(teamId, userId)
 
 	var r0 *model.TeamMember
-	if rf, ok := ret.Get(0).(func(string, string) *model.TeamMember); ok {
-		r0 = rf(teamId, userId)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.TeamMember); ok {
+		r0 = rf(teamId, userId, fromMaster)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
@@ -476,8 +476,8 @@ func (_m *TeamStore) GetMember(teamId string, userId string) (*model.TeamMember,
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamId, userId)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(teamId, userId, fromMaster)
 	} else {
 		r1 = ret.Error(1)
 	}

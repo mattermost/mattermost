@@ -7023,7 +7023,7 @@ func (s *OpenTracingLayerTeamStore) GetChannelUnreadsForTeam(teamId string, user
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) GetMember(teamId string, userId string, readFromMaster bool) (*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetMember")
 	s.Root.Store.SetContext(newCtx)
@@ -7032,7 +7032,7 @@ func (s *OpenTracingLayerTeamStore) GetMember(teamId string, userId string) (*mo
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetMember(teamId, userId)
+	result, err := s.TeamStore.GetMember(teamId, userId, readFromMaster)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

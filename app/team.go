@@ -354,7 +354,7 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *mod
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Team().GetMember(teamId, userId)
+	member, nErr := a.Srv().Store.Team().GetMember(teamId, userId, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -700,7 +700,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := a.Srv().Store.Team().GetMember(team.Id, user.Id)
+	rtm, err := a.Srv().Store.Team().GetMember(team.Id, user.Id, false)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr, nErr := a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
@@ -997,7 +997,22 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store.Team().GetMember(teamId, userId)
+	teamMember, err := a.Srv().Store.Team().GetMember(teamId, userId, false)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetTeamMember", "app.team.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return teamMember, nil
+}
+
+func (a *App) GetTeamMemberFromMaster(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store.Team().GetMember(teamId, userId, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1052,7 +1067,7 @@ func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 		return nil, err
 	}
 
-	teamMember, err := a.GetTeamMember(teamId, userId)
+	teamMember, err := a.GetTeamMemberFromMaster(teamId, userId)
 	if err != nil {
 		return nil, err
 	}
