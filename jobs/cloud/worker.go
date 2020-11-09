@@ -92,14 +92,9 @@ func (worker *Worker) ForgivenessCheck(userDifference int) bool {
 		mlog.Error("Error getting days over limit from system store", mlog.String("worker", worker.name), mlog.String("error", err.Error()))
 	}
 
-	var forgivenessCount int
-	if systemValue == nil {
-		forgivenessCount = 0
-	} else {
+    forgivenessCount := 0
+	if systemValue != nil {
 		forgivenessCount, err = strconv.Atoi(systemValue.Value)
-		if err != nil {
-			forgivenessCount = 0
-		}
 	}
 
 	if forgivenessCount >= 3 {
