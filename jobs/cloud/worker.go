@@ -95,7 +95,7 @@ func (worker *Worker) ForgivenessCheck(userDifference int) bool {
 
 	forgivenessCount := 0
 	if systemValue != nil {
-		forgivenessCount, err = strconv.Atoi(systemValue.Value)
+		forgivenessCount, _ = strconv.Atoi(systemValue.Value)
 	}
 
 	if forgivenessCount >= 3 {
@@ -190,7 +190,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 		// Store the billing date for the next billing cycle
 		subCycleEndDate := time.Unix((subscription.EndAt / 1000), 0)
 		sysVar := &model.System{Name: model.USER_LIMIT_OVERAGE_CYCLE_END_DATE, Value: subCycleEndDate.Format(dateLayout)}
-		err := worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
+		err = worker.app.Srv().Store.System().SaveOrUpdate(sysVar)
 		if err != nil {
 			mlog.Error("Unable to save USER_LIMIT_OVERAGE_CYCLE_END_DATE count", mlog.String("worker", worker.name), mlog.String("error", nErr.Error()))
 		}
