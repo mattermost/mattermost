@@ -2739,10 +2739,6 @@
     "translation": "Payment not received"
   },
   {
-    "id": "api.templates.over_limit_fix_now",
-    "translation": "Fix Now"
-  },
-  {
     "id": "api.templates.over_limit_30_days_info1",
     "translation": "There’s still time to keep your Mattermost Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
   },
@@ -2805,6 +2801,10 @@
   {
     "id": "api.templates.over_limit_90_days_title",
     "translation": "Your Mattermost Cloud workspace suspension is scheduled for tomorrow"
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Fix Now"
   },
   {
     "id": "api.templates.over_limit_info1",
