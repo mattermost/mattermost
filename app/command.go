@@ -523,7 +523,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 		mlog.Debug("Invalid command response", mlog.String("errors", err.Error()))
 		return response, model.NewAppError(
 			"HandleCommandResponse",
-			"Invalid command response",
+			"api.command.execute_command.invalid_resp.app_error",
 			map[string]interface{}{"CommandResponse": *response},
 			err.Error(),
 			http.StatusBadRequest,

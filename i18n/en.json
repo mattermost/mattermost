@@ -500,6 +500,10 @@
     "translation": "This trigger word is already in use. Please choose another word."
   },
   {
+    "id": "api.command.execute_command.invalid_resp.app_error",
+    "translation": "Invalid command response."
+  },
+  {
     "id": "api.command.execute_command.create_post_failed.app_error",
     "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
