@@ -2728,7 +2728,7 @@
   },
   {
     "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .InvoiceDate }}.  We will soon begin a process to suspend your service if payment is not received."
+    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .OverLimitDate }}.  We will soon begin a process to suspend your service if payment is not received."
   },
   {
     "id": "api.templates.over_limit_14_days_subject",

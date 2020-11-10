@@ -706,7 +706,7 @@ func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email st
 	return true, nil
 }
 
-func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_14_days_subject")
@@ -714,7 +714,7 @@ func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale
 	bodyPage := es.newEmailTemplate("over_user_limit_7_days_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.over_limit_14_days_title")
-	bodyPage.Props["Info1"] = T("api.templates.over_limit_14_days_info1")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_14_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
 	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
