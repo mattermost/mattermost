@@ -288,6 +288,8 @@ type AppIface interface {
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
 	SetStatusLastActivityAt(userId string, activityAt int64)
+	// SharedChannelRemotes
+	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
@@ -352,6 +354,7 @@ type AppIface interface {
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
 	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError
+	AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -471,7 +474,10 @@ type AppIface interface {
 	DeletePostFiles(post *model.Post)
 	DeletePreferences(userId string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+	DeleteRemoteCluster(remoteClusterId string) (bool, error)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
+	DeleteSharedChannel(channelId string) (bool, error)
+	DeleteSharedChannelRemote(remoteId string) (bool, error)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
@@ -509,6 +515,8 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
+	GetAllRemoteClusters(incOffline bool) ([]*model.RemoteCluster, error)
+	GetAllRemoteClustersNotInChannel(channelId string, incOffline bool) ([]*model.RemoteCluster, error)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
@@ -645,6 +653,7 @@ type AppIface interface {
 	GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError)
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, error)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -660,6 +669,12 @@ type AppIface interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	GetSessionById(sessionId string) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
+	GetSharedChannel(channelId string) (*model.SharedChannel, error)
+	GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
+	GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
@@ -863,6 +878,7 @@ type AppIface interface {
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
@@ -918,6 +934,7 @@ type AppIface interface {
 	SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userId string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError
+	SetRemoteClusterLastPingAt(remoteClusterId string) error
 	SetRequestId(s string)
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
@@ -986,6 +1003,7 @@ type AppIface interface {
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
+	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
