@@ -5,7 +5,6 @@ package slashcommands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
