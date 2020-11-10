@@ -158,7 +158,7 @@ func parseImageDimensions(markdown string, position int) (raw Range, next int, o
 	}
 
 	// Read the x
-	if (markdown[position] != 'x' && markdown[position] != 'X') || position >= len(markdown)-1 {
+	if (markdown[position] != 'x' && markdown[position] != 'X') || position == len(markdown)-1 {
 		return
 	}
 	position += 1
