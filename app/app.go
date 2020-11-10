@@ -121,7 +121,7 @@ func (a *App) initJobs() {
 	}
 
 	if jobsCloudInterface != nil {
-		a.srv.Jobs.Cloud = jobsCloudInterface(a)
+		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
 	}
 
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
