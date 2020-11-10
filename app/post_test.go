@@ -475,59 +475,68 @@ func TestImageProxy(t *testing.T) {
 	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
 
 	for name, tc := range map[string]struct {
-		ProxyType       string
-		ProxyURL        string
-		ProxyOptions    string
-		ImageURL        string
-		ProxiedImageURL string
+		ProxyType              string
+		ProxyURL               string
+		ProxyOptions           string
+		ImageURL               string
+		ProxiedImageURL        string
+		ProxiedRemovedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "http://mydomain.com/myimage",
+			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "http://mymattermost.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "http://mymattermost.com/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "/myimage",
-			ProxiedImageURL: "/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "",
-			ProxiedImageURL: "",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "",
+			ProxiedRemovedImageURL: "",
+			ProxiedImageURL:        "",
 		},
 		"local": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "http://mydomain.com/myimage",
+			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"local_SameSite": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "http://mymattermost.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "http://mymattermost.com/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_PathOnly": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "/myimage",
-			ProxiedImageURL: "/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_EmptyImageURL": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "",
-			ProxiedImageURL: "",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "",
+			ProxiedRemovedImageURL: "",
+			ProxiedImageURL:        "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -550,14 +559,14 @@ func TestImageProxy(t *testing.T) {
 
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
-			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+			assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 
 			if tc.ImageURL != "" {
 				post.Message = "![foo](" + tc.ImageURL + " =500x200)"
 				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.PostWithProxyAddedToImageURLs(post).Message)
 				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
-				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+				assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			}
 		})
 	}
