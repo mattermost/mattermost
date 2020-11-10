@@ -20,9 +20,9 @@ func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.Shar
 	if err := sc.IsValid(); err != nil {
 		return nil, err
 	}
+
 	// make sure the shared channel is associated with a real channel.
-	_, err := s.Get(sc.ChannelId, true)
-	if err != nil {
+	if _, err := s.Get(sc.ChannelId, true); err != nil {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
@@ -219,8 +219,7 @@ func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemo
 	}
 
 	// make sure the shared channel remote is associated with a real channel.
-	_, err := s.Get(remote.ChannelId, true)
-	if err != nil {
+	if _, err := s.Get(remote.ChannelId, true); err != nil {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 

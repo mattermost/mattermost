@@ -156,12 +156,6 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 }
 
 func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	// check if already shared.
-	_, err := a.GetSharedChannel(args.ChannelId)
-	if err == nil {
-		return responsef("This channel is already shared.")
-	}
-
 	// check that channel exists.
 	channel, errApp := a.GetChannel(args.ChannelId)
 	if errApp != nil {

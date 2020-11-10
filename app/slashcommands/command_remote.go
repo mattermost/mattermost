@@ -98,18 +98,18 @@ func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *mode
 }
 
 func (rp *RemoteProvider) doAdd(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	name, ok := margs["name"]
-	if !ok {
-		return responsef("Missing `name`")
+	name := margs["name"]
+	if name == "" {
+		return responsef("Missing or empty `name`")
 	}
 
-	host, ok := margs["host"]
-	if !ok {
-		return responsef("Missing `host`")
+	host := margs["host"]
+	if host == "" {
+		return responsef("Missing or empty `host`")
 	}
 
-	port, ok := margs["port"]
-	if !ok {
+	port := margs["port"]
+	if port == "" {
 		port = "8065"
 	}
 	iport, err := strconv.ParseInt(port, 10, 32)
@@ -178,12 +178,13 @@ func isOnline(lastPing int64) bool {
 }
 
 func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model.AutocompleteListItem, error) {
-	var list []model.AutocompleteListItem
-
 	all, err := a.GetAllRemoteClusters(incOffline)
 	if err != nil || len(all) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}
+
+	list := make([]model.AutocompleteListItem, 0, len(all))
+
 	for _, rc := range all {
 		item := model.AutocompleteListItem{
 			Item:     rc.Id,
@@ -194,12 +195,13 @@ func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model
 }
 
 func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, incOffline bool) ([]model.AutocompleteListItem, error) {
-	var list []model.AutocompleteListItem
-
 	all, err := a.GetAllRemoteClustersNotInChannel(channelId, incOffline)
 	if err != nil || len(all) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}
+
+	list := make([]model.AutocompleteListItem, 0, len(all))
+
 	for _, rc := range all {
 		item := model.AutocompleteListItem{
 			Item:     rc.Id,

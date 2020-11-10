@@ -5,7 +5,6 @@ package slashcommands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -37,18 +36,15 @@ func parseNamedArgs(cmd string) map[string]string {
 		m[ActionKey] = split[1] // prefix with hyphen to avoid collision with arg named "action"
 	}
 
-	// To support values containing hyphens, we allow all characters up until the next double hyphen.
-	// However Go regex does not support negative lookahead, so we fake it by adding extra double hyphens
-	// which get eaten by the non-capturing group.
-	cmdFixed := strings.ReplaceAll(cmd, "--", "-- --") + " --"
-
-	re := regexp.MustCompile(`(\-\-\w+\s+)(.*?)(?:\-\-)`) //re := regexp.MustCompile(`(\-\-\w+\s+)([^\-]*)`)
-	splitArgs := re.FindAllStringSubmatch(cmdFixed, -1)
-
-	for _, arr := range splitArgs {
-		arg := trimSpaceAndQuotes(arr[1][2:]) // strip out the leading hyphens
-		val := trimSpaceAndQuotes(arr[2])
-
+	for i := 0; i < len(split); i++ {
+		if !strings.HasPrefix(split[i], "--") {
+			continue
+		}
+		var val string
+		arg := trimSpaceAndQuotes(strings.Trim(split[i], "-"))
+		if i < len(split)-1 && !strings.HasPrefix(split[i+1], "--") {
+			val = trimSpaceAndQuotes(split[i+1])
+		}
 		if arg != "" {
 			m[arg] = val
 		}

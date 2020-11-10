@@ -632,7 +632,7 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 
 	t.Run("GetAutoCompleteListItems bad arg", func(t *testing.T) {
 		suggestions := th.App.getSuggestions(emptyCmdArgs, []*model.AutocompleteData{command.AutocompleteData}, "", "bogus --badArg ", model.SYSTEM_ADMIN_ROLE_ID)
-		assert.Len(t, suggestions, 0)
+		assert.Empty(t, suggestions)
 	})
 }
 

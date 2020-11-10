@@ -26,6 +26,10 @@ func TestParseNamedArgs(t *testing.T) {
 		{"hyphen before action", "remote -- add", map[string]string{}},
 		{"trailing hyphen", "remote add -- ", map[string]string{ActionKey: "add"}},
 		{"hyphen in val", "remote add --arg1 val-1 ", map[string]string{ActionKey: "add", "arg1": "val-1"}},
+		{"quote prefix and suffix", "remote add --arg1 \"val-1\"", map[string]string{ActionKey: "add", "arg1": "val-1"}},
+		{"quote embedded", "remote add --arg1 O'Brien", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
+		{"quote prefix, suffix, and embedded", "remote add --arg1 \"O'Brien\"", map[string]string{ActionKey: "add", "arg1": "O'Brien"}},
+		{"empty quotes", "remote add --arg1 \"\"", map[string]string{ActionKey: "add", "arg1": ""}},
 	}
 
 	for _, tt := range data {
