@@ -20,6 +20,11 @@ func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.Shar
 	if err := sc.IsValid(); err != nil {
 		return nil, err
 	}
+	// make sure the shared channel is associated with a real channel.
+	_, err := s.Get(sc.ChannelId, true)
+	if err != nil {
+		return nil, fmt.Errorf("invalid channel: %w", err)
+	}
 
 	if err := s.GetMaster().Insert(sc); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
@@ -213,6 +218,12 @@ func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemo
 		return nil, err
 	}
 
+	// make sure the shared channel remote is associated with a real channel.
+	_, err := s.Get(remote.ChannelId, true)
+	if err != nil {
+		return nil, fmt.Errorf("invalid channel: %w", err)
+	}
+
 	if err := s.GetMaster().Insert(remote); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel_remote: channel_id=%s, id=%s", remote.ChannelId, remote.Id)
 	}
@@ -287,4 +298,30 @@ func (s SqlChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error
 	}
 
 	return count > 0, nil
+}
+
+// GetSharedChannelRemotesStatus returns the status for each remote invited to the
+// specified shared channel.
+func (s SqlChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+	var status []*model.SharedChannelRemoteStatus
+
+	query := s.getQueryBuilder().
+		Select("scr.ChannelId, rc.ClusterName, rc.HostName, rc.Port, rc.LastPingAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted, scr.Token").
+		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
+		Where("scr.RemoteClusterId=rc.Id").
+		Where("scr.ChannelId = sc.ChannelId").
+		Where(sq.Eq{"scr.ChannelId": channelId})
+
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "get_shared_channel_remotes_status_tosql")
+	}
+
+	if _, err := s.GetReplica().Select(&status, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelRemoteStatus", channelId)
+		}
+		return nil, errors.Wrapf(err, "failed to get status for channel_id=%s", channelId)
+	}
+	return status, nil
 }

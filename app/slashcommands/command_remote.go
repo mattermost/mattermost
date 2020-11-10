@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	AvailableCommands = "Available commands: add, remove, status"
-	ActionKey         = "-action"
+	AvailableRemoteActions = "Available actions: add, remove, status"
 )
 
 type RemoteProvider struct {
@@ -37,7 +36,7 @@ func (rp *RemoteProvider) GetTrigger() string {
 
 func (rp *RemoteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 
-	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", "Add/remove remote clusters. "+AvailableCommands)
+	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", "Add/remove remote clusters. "+AvailableRemoteActions)
 
 	add := model.NewAutocompleteData("add", "", "Add a remote cluster")
 	add.AddNamedTextArgument("name", "Remote cluster name", "Descriptive name of the remote cluster to add", "", true)
@@ -71,7 +70,7 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	margs := parseNamedArgs(args.Command)
 	action, ok := margs[ActionKey]
 	if !ok {
-		return responsef("Missing command. " + AvailableCommands)
+		return responsef("Missing command. " + AvailableRemoteActions)
 	}
 
 	switch action {
@@ -165,7 +164,7 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 
 	for _, rc := range list {
 		online := ":white_check_mark:"
-		if !isOnline(rc) {
+		if !isOnline(rc.LastPingAt) {
 			online = ":skull_and_crossbones:"
 		}
 
@@ -174,8 +173,8 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 	return responsef(sb.String())
 }
 
-func isOnline(rc *model.RemoteCluster) bool {
-	return rc.LastPingAt > model.GetMillis()-model.RemoteOfflineAfterMillis
+func isOnline(lastPing int64) bool {
+	return lastPing > model.GetMillis()-model.RemoteOfflineAfterMillis
 }
 
 func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model.AutocompleteListItem, error) {

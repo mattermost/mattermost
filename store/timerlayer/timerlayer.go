@@ -1425,6 +1425,22 @@ func (s *TimerLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*m
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetSharedChannelRemotesStatus(channelId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemotesStatus", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	start := timemodule.Now()
 

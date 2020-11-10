@@ -1250,6 +1250,29 @@ func (_m *ChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.Shar
 	return r0, r1
 }
 
+// GetSharedChannelRemotesStatus provides a mock function with given fields: channelId
+func (_m *ChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+	ret := _m.Called(channelId)
+
+	var r0 []*model.SharedChannelRemoteStatus
+	if rf, ok := ret.Get(0).(func(string) []*model.SharedChannelRemoteStatus); ok {
+		r0 = rf(channelId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelRemoteStatus)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSharedChannels provides a mock function with given fields: offset, limit, opts
 func (_m *ChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	ret := _m.Called(offset, limit, opts)

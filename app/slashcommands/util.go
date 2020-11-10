@@ -11,6 +11,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const (
+	ActionKey = "-action"
+)
+
 // responsef creates an ephemeral command response using printf syntax.
 func responsef(format string, args ...interface{}) *model.CommandResponse {
 	return &model.CommandResponse{
@@ -42,12 +46,31 @@ func parseNamedArgs(cmd string) map[string]string {
 	splitArgs := re.FindAllStringSubmatch(cmdFixed, -1)
 
 	for _, arr := range splitArgs {
-		arg := strings.TrimSpace(arr[1][2:]) // strip out the leading hyphens
-		val := strings.TrimSpace(arr[2])
+		arg := trimSpaceAndQuotes(arr[1][2:]) // strip out the leading hyphens
+		val := trimSpaceAndQuotes(arr[2])
 
 		if arg != "" {
 			m[arg] = val
 		}
 	}
 	return m
+}
+
+func trimSpaceAndQuotes(s string) string {
+	trimmed := strings.TrimSpace(s)
+	trimmed = strings.TrimPrefix(trimmed, "\"")
+	trimmed = strings.TrimPrefix(trimmed, "'")
+	trimmed = strings.TrimSuffix(trimmed, "\"")
+	trimmed = strings.TrimSuffix(trimmed, "'")
+	return trimmed
+}
+
+func parseBool(s string) (bool, error) {
+	switch strings.ToLower(s) {
+	case "1", "t", "true", "yes", "y":
+		return true, nil
+	case "0", "f", "false", "no", "n":
+		return false, nil
+	}
+	return false, fmt.Errorf("cannot parse '%s' as a boolean", s)
 }

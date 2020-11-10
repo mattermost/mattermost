@@ -172,3 +172,15 @@ func (sc *SharedChannelRemote) PreSave() {
 func (sc *SharedChannelRemote) PreUpdate() {
 	sc.UpdateAt = GetMillis()
 }
+
+type SharedChannelRemoteStatus struct {
+	ChannelId        string `json:"channel_id"`
+	ClusterName      string `json:"cluster_name"`
+	Hostname         string `json:"hostname"`
+	Port             int32  `json:"port"`
+	LastPingAt       int64  `json:"last_ping_at"`
+	Description      string `json:"description"`
+	ReadOnly         bool   `json:"readonly"`
+	IsInviteAccepted bool   `json:"is_invite_accepted"`
+	Token            string `json:"token"`
+}
