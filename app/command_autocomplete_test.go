@@ -616,7 +616,7 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	provider := &testProvider{}
+	provider := &testCommandProvider{}
 	RegisterCommandProvider(provider)
 
 	command := provider.GetCommand(th.App, nil)
@@ -636,14 +636,14 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 	})
 }
 
-type testProvider struct {
+type testCommandProvider struct {
 }
 
-func (p *testProvider) GetTrigger() string {
+func (p *testCommandProvider) GetTrigger() string {
 	return "bogus"
 }
 
-func (p *testProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+func (p *testCommandProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	top := model.NewAutocompleteData(p.GetTrigger(), "[command]", "Just a test.")
 	top.AddNamedDynamicListArgument("dynaArg", "A dynamic list", "builtin:bogus", true)
 
@@ -657,14 +657,14 @@ func (p *testProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command
 	}
 }
 
-func (p *testProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (p *testCommandProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	return &model.CommandResponse{
 		Text:         "I do nothing!",
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 	}
 }
 
-func (p *testProvider) GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (p *testCommandProvider) GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	if arg.Name == "dynaArg" {
 		return []model.AutocompleteListItem{
 			{Item: "item1", Hint: "this is hint 1", HelpText: "This is help text 1."},

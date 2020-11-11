@@ -21,7 +21,7 @@ func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, 
 
 	// check that channel exists.
 	if _, errApp := a.GetChannel(sc.ChannelId); errApp != nil {
-		return nil, fmt.Errorf("Cannot share this channel: %v", errApp)
+		return nil, fmt.Errorf("cannot share this channel: %v", errApp)
 	}
 
 	return a.Srv().Store.Channel().SaveSharedChannel(sc)
