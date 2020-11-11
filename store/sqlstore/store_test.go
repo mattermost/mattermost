@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"os"
 	"sync"
 	"testing"
@@ -114,7 +115,7 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil)
+			st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil, context.Background(), nil)
 			st.Store = st.SqlSupplier
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()

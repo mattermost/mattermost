@@ -184,6 +184,8 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
+
+	context context.Context
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -306,7 +308,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.newStore == nil {
 		s.newStore = func() store.Store {
-			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics, s.context, s.Config())
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
 					retrylayer.New(s.sqlStore),

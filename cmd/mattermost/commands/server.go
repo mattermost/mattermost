@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"net"
 	"os"
 	"os/signal"
@@ -38,8 +39,6 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
 	usedPlatform, _ := command.Flags().GetBool("platform")
 
-	interruptChan := make(chan os.Signal, 1)
-
 	if err := utils.TranslationsPreInit(); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
@@ -48,14 +47,16 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 
-	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
+	return runServer(configStore, disableConfigWatch, usedPlatform)
 }
 
-func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform bool) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
 	debug.SetTraceback("crash")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	options := []app.Option{
 		app.ConfigStore(configStore),
@@ -63,6 +64,7 @@ func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform 
 		app.JoinCluster,
 		app.StartSearchEngine,
 		app.StartMetrics,
+		app.SetContext(ctx),
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
@@ -95,6 +97,7 @@ func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform 
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
+	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
 

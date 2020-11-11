@@ -4,6 +4,8 @@
 package app
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
 
@@ -76,6 +78,13 @@ func StartMetrics(s *Server) error {
 	s.startMetrics = true
 
 	return nil
+}
+
+func SetContext(ctx context.Context) Option {
+	return func(s *Server) error {
+		s.context = ctx
+		return nil
+	}
 }
 
 func StartSearchEngine(s *Server) error {

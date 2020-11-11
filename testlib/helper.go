@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -108,7 +109,7 @@ func (h *MainHelper) setupStore() {
 
 	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil, context.Background(), nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLSupplier,
 	}, h.SearchEngine, config)

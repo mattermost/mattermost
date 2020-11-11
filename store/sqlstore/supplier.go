@@ -108,17 +108,19 @@ type SqlSupplierStores struct {
 type SqlSupplier struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlSupplierStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter        int64
+	srCounter        int64
+	master           *gorp.DbMap
+	replicas         []*gorp.DbMap
+	searchReplicas   []*gorp.DbMap
+	stores           SqlSupplierStores
+	settings         *model.SqlSettings
+	lockedToMaster   bool
+	context          context.Context
+	license          *model.License
+	licenseMutex     sync.RWMutex
+	lifecycleContext context.Context
+	config           *model.Config
 }
 
 type TraceOnAdapter struct{}
@@ -131,11 +133,13 @@ func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	mlog.Debug(newString)
 }
 
-func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
+func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface, lifecycleContext context.Context, config *model.Config) *SqlSupplier {
 	supplier := &SqlSupplier{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
+		rrCounter:        0,
+		srCounter:        0,
+		settings:         &settings,
+		lifecycleContext: lifecycleContext,
+		config:           config,
 	}
 
 	supplier.initConnection()
@@ -223,31 +227,13 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	return supplier
 }
 
-func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
-	if err != nil {
-		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
-		time.Sleep(time.Second)
-		os.Exit(EXIT_DB_OPEN)
-	}
+func setupConnection(connType string, dataSource string, settings *model.SqlSettings, ctx context.Context, config *model.Config) *gorp.DbMap {
+	var db *dbsql.DB
 
-	for i := 0; i < DB_PING_ATTEMPTS; i++ {
-		mlog.Info("Pinging SQL", mlog.String("database", con_type))
-		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
-		defer cancel()
-		err = db.PingContext(ctx)
-		if err == nil {
-			break
-		} else {
-			if i == DB_PING_ATTEMPTS-1 {
-				mlog.Critical("Failed to ping DB, server will exit.", mlog.Err(err))
-				time.Sleep(time.Second)
-				os.Exit(EXIT_PING)
-			} else {
-				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DB_PING_TIMEOUT_SECS))
-				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
-			}
-		}
+	if config != nil && config.FeatureFlags.EnsureDatabaseConnection != "off" {
+		db = ensureDatabaseConnection(settings, dataSource, connType, ctx)
+	} else {
+		db = checkDatabaseConnection(settings, dataSource, connType)
 	}
 
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
@@ -286,19 +272,19 @@ func (ss *SqlSupplier) Context() context.Context {
 }
 
 func (ss *SqlSupplier) initConnection() {
-	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
+	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings, ss.lifecycleContext, ss.config)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings, ss.lifecycleContext, nil)
 		}
 	}
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
-			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings, ss.lifecycleContext, nil)
 		}
 	}
 }
@@ -1318,4 +1304,60 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	}
 
 	return concatenatedColumnNames
+}
+
+func checkDatabaseConnection(settings *model.SqlSettings, dataSource, connType string) *dbsql.DB {
+	db, err := dbsql.Open(*settings.DriverName, dataSource)
+	if err != nil {
+		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_DB_OPEN)
+	}
+
+	for i := 0; i < DB_PING_ATTEMPTS; i++ {
+		mlog.Info("Pinging SQL", mlog.String("database", connType))
+		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		defer cancel()
+		err = db.PingContext(ctx)
+		if err == nil {
+			break
+		} else {
+			if i == DB_PING_ATTEMPTS-1 {
+				mlog.Critical("Failed to ping DB, server will exit.", mlog.Err(err))
+				time.Sleep(time.Second)
+				os.Exit(EXIT_PING)
+			} else {
+				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DB_PING_TIMEOUT_SECS))
+				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+			}
+		}
+	}
+
+	return db
+}
+
+func ensureDatabaseConnection(settings *model.SqlSettings, dataSource, connType string, lifecycleContext context.Context) *dbsql.DB {
+	for {
+		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+
+		select {
+		case <-lifecycleContext.Done():
+			cancel()
+			os.Exit(EXIT_DB_OPEN)
+		default:
+			db, err := dbsql.Open(*settings.DriverName, dataSource)
+			if err != nil {
+				mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
+				time.Sleep(time.Second)
+			}
+			mlog.Info("Pinging SQL", mlog.String("database", connType))
+			err = db.PingContext(ctx)
+			if err != nil {
+				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DB_PING_TIMEOUT_SECS))
+				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+			} else {
+				return db
+			}
+		}
+	}
 }

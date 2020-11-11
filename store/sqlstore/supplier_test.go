@@ -4,6 +4,7 @@
 package sqlstore_test
 
 import (
+	"context"
 	"regexp"
 	"sync"
 	"testing"
@@ -25,7 +26,7 @@ func TestSupplierLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 	settings.DataSourceReplicas = []string{":memory:"}
 	settings.DataSourceSearchReplicas = []string{":memory:"}
-	supplier := sqlstore.NewSqlSupplier(*settings, nil)
+	supplier := sqlstore.NewSqlSupplier(*settings, nil, context.Background(), nil)
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
@@ -110,7 +111,7 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil, context.Background(), nil)
 			supplier.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
@@ -167,7 +168,7 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil, context.Background(), nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -227,7 +228,7 @@ func TestGetDbVersion(t *testing.T) {
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil, context.Background(), nil)
 
 			version, err := supplier.GetDbVersion()
 			require.Nil(t, err)
@@ -307,7 +308,7 @@ func TestGetAllConns(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil, context.Background(), nil)
 
 			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
 		})

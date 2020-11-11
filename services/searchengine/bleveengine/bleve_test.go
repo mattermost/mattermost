@@ -4,6 +4,7 @@
 package bleveengine
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -45,12 +46,15 @@ func (s *BleveEngineTestSuite) setupIndexes() {
 }
 
 func (s *BleveEngineTestSuite) setupStore() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName)
-	s.SQLSupplier = sqlstore.NewSqlSupplier(*s.SQLSettings, nil)
+	s.SQLSupplier = sqlstore.NewSqlSupplier(*s.SQLSettings, nil, ctx, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
