@@ -191,10 +191,10 @@ func TestUpdateSidebarCategories(t *testing.T) {
 		// Confirm that the channels are now unmuted
 		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.True(t, member1.IsChannelMuted())
+		assert.False(t, member1.IsChannelMuted())
 		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
 		require.Nil(t, err)
-		assert.True(t, member2.IsChannelMuted())
+		assert.False(t, member2.IsChannelMuted())
 	})
 
 	t.Run("should mute and unmute channels moved from an unmuted category to a muted one and back", func(t *testing.T) {

@@ -266,7 +266,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		Sorting:     model.SidebarCategorySortDefault,
 		SortOrder:   int64(model.MinimalSidebarSortDistance * len(newOrder)), // first we place it at the end of the list
 		Type:        model.SidebarCategoryCustom,
-		Muted:       false,
+		Muted:       newCategory.Muted,
 	}
 	if err = transaction.Insert(category); err != nil {
 		return nil, errors.Wrap(err, "failed to save SidebarCategory")
