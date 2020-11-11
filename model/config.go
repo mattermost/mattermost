@@ -83,6 +83,10 @@ const (
 	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
 	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
 
+	COLLAPSED_THREADS_DISABLED    = "disabled"
+	COLLAPSED_THREADS_DEFAULT_ON  = "default_on"
+	COLLAPSED_THREADS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -351,7 +355,7 @@ type ServiceSettings struct {
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
-	CollapsedThreads                                  *bool   `access:"experimental"`
+	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
@@ -788,7 +792,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.CollapsedThreads == nil {
-		s.CollapsedThreads = NewBool(false)
+		s.CollapsedThreads = NewString(COLLAPSED_THREADS_DISABLED)
 	}
 
 	if s.ManagedResourcePaths == nil {
@@ -3440,6 +3444,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_ON &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
