@@ -2792,40 +2792,6 @@ func (a *App) ToggleMuteChannel(channelId, userId string) (*model.ChannelMember,
 	return member, nil
 }
 
-func (a *App) setChannelMuted(channelId, userId string, muted bool) (*model.ChannelMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Channel().GetMember(channelId, userId)
-	if nErr != nil {
-		var appErr *model.AppError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &appErr):
-			return nil, appErr
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("setChannelMuted", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("setChannelMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
-	}
-
-	alreadyMuted := member.IsChannelMuted()
-
-	if muted == alreadyMuted {
-		// Nothing to change here
-		return member, nil
-	}
-
-	member.SetChannelMuted(muted)
-
-	member, err := a.updateChannelMember(member)
-	if err != nil {
-		return nil, err
-	}
-
-	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
-
-	return member, nil
-}
-
 func (a *App) setChannelsMuted(channelIds []string, userId string, muted bool) ([]*model.ChannelMember, *model.AppError) {
 	members, nErr := a.Srv().Store.Channel().GetMembersByChannelIds(channelIds, userId)
 	if nErr != nil {
@@ -2844,8 +2810,7 @@ func (a *App) setChannelsMuted(channelIds []string, userId string, muted bool) (
 			continue
 		}
 
-		var updatedMember model.ChannelMember
-		updatedMember = member
+		updatedMember := member
 		updatedMember.SetChannelMuted(muted)
 
 		membersToUpdate = append(membersToUpdate, &updatedMember)
