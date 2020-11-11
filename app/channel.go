@@ -2826,6 +2826,60 @@ func (a *App) setChannelMuted(channelId, userId string, muted bool) (*model.Chan
 	return member, nil
 }
 
+func (a *App) setChannelsMuted(channelIds []string, userId string, muted bool) ([]*model.ChannelMember, *model.AppError) {
+	members, nErr := a.Srv().Store.Channel().GetMembersByChannelIds(channelIds, userId)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	var membersToUpdate []*model.ChannelMember
+	for _, member := range *members {
+		if muted == member.IsChannelMuted() {
+			continue
+		}
+
+		var updatedMember model.ChannelMember
+		updatedMember = member
+		updatedMember.SetChannelMuted(muted)
+
+		membersToUpdate = append(membersToUpdate, &updatedMember)
+	}
+
+	if len(membersToUpdate) == 0 {
+		return nil, nil
+	}
+
+	updated, nErr := a.Srv().Store.Channel().UpdateMultipleMembers(membersToUpdate)
+	if nErr != nil {
+		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("setChannelsMuted", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	for _, member := range updated {
+		a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+		evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", member.UserId, nil)
+		evt.Add("channelMember", member.ToJson())
+		a.Publish(evt)
+	}
+
+	return updated, nil
+}
+
 func (a *App) FillInChannelProps(channel *model.Channel) *model.AppError {
 	return a.FillInChannelsProps(&model.ChannelList{channel})
 }

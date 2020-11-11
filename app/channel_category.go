@@ -204,24 +204,22 @@ func (a *App) muteChannelsForUpdatedCategories(userId string, updatedCategories 
 		}
 	}
 
-	for _, channelId := range channelsToMute {
-		_, err := a.setChannelMuted(channelId, userId, true)
+	if len(channelsToMute) > 0 {
+		_, err := a.setChannelsMuted(channelsToMute, userId, true)
 		if err != nil {
 			mlog.Error(
-				"Failed to mute channel to match category",
-				mlog.String("channel_id", channelId),
+				"Failed to mute channels to match category",
 				mlog.String("user_id", userId),
 				mlog.Err(err),
 			)
 		}
 	}
 
-	for _, channelId := range channelsToUnmute {
-		_, err := a.setChannelMuted(channelId, userId, false)
+	if len(channelsToUnmute) > 0 {
+		_, err := a.setChannelsMuted(channelsToUnmute, userId, false)
 		if err != nil {
 			mlog.Error(
-				"Failed to unmute channel to match category",
-				mlog.String("channel_id", channelId),
+				"Failed to unmute channels to match category",
 				mlog.String("user_id", userId),
 				mlog.Err(err),
 			)

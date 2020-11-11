@@ -207,6 +207,7 @@ type ChannelStore interface {
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, error)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, error)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error)
+	GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error)
 	ClearCaches()

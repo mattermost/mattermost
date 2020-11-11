@@ -1191,6 +1191,22 @@ func (s *TimerLayerChannelStore) GetMembers(channelId string, offset int, limit 
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetMembersByChannelIds(channelIds, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	start := timemodule.Now()
 

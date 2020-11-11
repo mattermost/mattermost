@@ -934,6 +934,29 @@ func (_m *ChannelStore) GetMembers(channelId string, offset int, limit int) (*mo
 	return r0, r1
 }
 
+// GetMembersByChannelIds provides a mock function with given fields: channelIds, userId
+func (_m *ChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	ret := _m.Called(channelIds, userId)
+
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func([]string, string) *model.ChannelMembers); ok {
+		r0 = rf(channelIds, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMembers)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(channelIds, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembersByIds provides a mock function with given fields: channelId, userIds
 func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	ret := _m.Called(channelId, userIds)
