@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -39,9 +40,9 @@ func StoreOverride(override interface{}) Option {
 }
 
 // Config applies the given config dsn, whether a path to config.json or a database connection string.
-func Config(dsn string, watch bool) Option {
+func Config(dsn string, watch bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewStore(dsn, watch)
+		configStore, err := config.NewStore(dsn, watch, configDefaults)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply Config option")
 		}

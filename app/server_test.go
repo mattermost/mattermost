@@ -380,7 +380,7 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 	s, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore)
+		store, _ := config.NewStoreFromBacking(configStore, nil)
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
@@ -424,7 +424,7 @@ func TestSentry(t *testing.T) {
 	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 	s2, err := NewServer(func(server *Server) error {
 		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore)
+		store, _ := config.NewStoreFromBacking(configStore, nil)
 		server.configStore = store
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"

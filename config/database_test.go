@@ -115,12 +115,12 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }
 
-func newTestDatabaseStore(t *testing.T) (*config.Store, error) {
+func newTestDatabaseStore(t *testing.T, customDefaults *model.Config) (*config.Store, error) {
 	sqlSettings := mainHelper.GetSQLSettings()
 	dss, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 
-	cStore, err := config.NewStoreFromBacking(dss)
+	cStore, err := config.NewStoreFromBacking(dss, customDefaults)
 	require.NoError(t, err)
 
 	return cStore, nil
@@ -133,18 +133,28 @@ func TestDatabaseStoreNew(t *testing.T) {
 	sqlSettings := mainHelper.GetSQLSettings()
 
 	t.Run("no existing configuration - initialization required", func(t *testing.T) {
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
 		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
+	t.Run("no existing configuration with custom defaults", func(t *testing.T) {
+		truncateTables(t)
+		ds, err := newTestDatabaseStore(t, customDefaults)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, *customDefaults.ServiceSettings.SiteURL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
+	})
+
 	t.Run("existing config, initialization required", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -152,15 +162,47 @@ func TestDatabaseStoreNew(t *testing.T) {
 		assertDatabaseNotEqualsConfig(t, testConfig)
 	})
 
+	t.Run("existing config with custom defaults, initialization required", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(t, customDefaults)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		// already existing value should not be overwritten by the
+		// custom default value
+		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
+		// not existing value should be overwritten by the custom
+		// default value
+		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
+		assertDatabaseNotEqualsConfig(t, testConfig)
+	})
+
 	t.Run("already minimally configured", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+		assertDatabaseEqualsConfig(t, minimalConfig)
+	})
+
+	t.Run("already minimally configured with custom defaults", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(t, customDefaults)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		// as the whole config has default values already, custom
+		// defaults should have no effect
+		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+		assert.NotEqual(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseEqualsConfig(t, minimalConfig)
 	})
 
@@ -187,7 +229,7 @@ func TestDatabaseStoreGet(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, testConfig, nil)
 	defer tearDown()
 
-	ds, err := newTestDatabaseStore(t)
+	ds, err := newTestDatabaseStore(t, nil)
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -205,7 +247,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -215,10 +257,33 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
+		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("get override for a string variable with a custom default value", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, testConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(t, customDefaults)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
+		assert.Empty(t, ds.GetEnvironmentOverrides())
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+		ds, err = newTestDatabaseStore(t, customDefaults)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		// environment override should take priority over the custom default value
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
@@ -227,7 +292,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -237,7 +302,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -249,7 +314,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -259,7 +324,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -271,7 +336,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -281,7 +346,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -293,7 +358,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -303,7 +368,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -318,7 +383,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -328,7 +393,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db user:pwd@db2:5433/test-db2 user:pwd@db3:5434/test-db3")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err = newTestDatabaseStore(t)
+		ds, err = newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -348,7 +413,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -362,7 +427,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -378,7 +443,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, ldapConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -395,7 +460,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -414,7 +479,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -433,7 +498,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, readOnlyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -453,7 +518,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -476,7 +541,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -501,7 +566,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -518,7 +583,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		activeID, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -549,7 +614,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -564,7 +629,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -586,7 +651,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -607,7 +672,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_ENABLEUPLOADS", "true")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_ENABLEUPLOADS")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -630,7 +695,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM", "3000")
 		defer os.Unsetenv("MM_TEAMSETTINGS_MAXUSERSPERTEAM")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -653,7 +718,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE", "123456")
 		defer os.Unsetenv("MM_SERVICESETTINGS_TLSSTRICTTRANSPORTMAXAGE")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -676,7 +741,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -701,7 +766,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		os.Setenv("MM_SQLSETTINGS_DATASOURCEREPLICAS", "user:pwd@db:5432/test-db")
 		defer os.Unsetenv("MM_SQLSETTINGS_DATASOURCEREPLICAS")
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -721,7 +786,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -749,7 +814,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, fixesRequiredConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -763,7 +828,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -787,7 +852,7 @@ func TestDatabaseGetFile(t *testing.T) {
 	})
 	defer tearDown()
 
-	ds, err := newTestDatabaseStore(t)
+	ds, err := newTestDatabaseStore(t, nil)
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -818,7 +883,7 @@ func TestDatabaseSetFile(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 	defer tearDown()
 
-	ds, err := newTestDatabaseStore(t)
+	ds, err := newTestDatabaseStore(t, nil)
 	require.NoError(t, err)
 	defer ds.Close()
 
@@ -871,7 +936,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -884,7 +949,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -902,7 +967,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		})
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -915,7 +980,7 @@ func TestDatabaseHasFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -930,7 +995,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -942,7 +1007,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -966,7 +1031,7 @@ func TestDatabaseRemoveFile(t *testing.T) {
 		})
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t)
+		ds, err := newTestDatabaseStore(t, nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -989,7 +1054,7 @@ func TestDatabaseStoreString(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()
 
-	ds, err := newTestDatabaseStore(t)
+	ds, err := newTestDatabaseStore(t, nil)
 	require.NoError(t, err)
 	require.NotNil(t, ds)
 	defer ds.Close()

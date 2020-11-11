@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"net"
 	"os"
 	"os/signal"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/manualtesting"
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
@@ -34,6 +36,25 @@ func init() {
 	RootCmd.RunE = serverCmdF
 }
 
+func loadCustomDefaults() (*model.Config, error) {
+	var customDefaults *model.Config
+	customDefaultsPath := os.Getenv("MM_CUSTOMDEFAULTS")
+
+	if customDefaultsPath != "" {
+		file, err := os.Open(customDefaultsPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "unable to load config custom defaults")
+		}
+		defer file.Close()
+
+		err = json.NewDecoder(file).Decode(&customDefaults)
+		if err != nil {
+			return nil, errors.Wrapf(err, "unable to decode custom defaults configuration")
+		}
+	}
+	return customDefaults, nil
+}
+
 func serverCmdF(command *cobra.Command, args []string) error {
 	disableConfigWatch, _ := command.Flags().GetBool("disableconfigwatch")
 	usedPlatform, _ := command.Flags().GetBool("platform")
@@ -43,7 +64,13 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch)
+
+	customDefaults, err := loadCustomDefaults()
+	if err != nil {
+		return err
+	}
+
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
