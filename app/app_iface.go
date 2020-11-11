@@ -515,8 +515,8 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
-	GetAllRemoteClusters(incOffline bool) ([]*model.RemoteCluster, error)
-	GetAllRemoteClustersNotInChannel(channelId string, incOffline bool) ([]*model.RemoteCluster, error)
+	GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, error)
+	GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, error)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
