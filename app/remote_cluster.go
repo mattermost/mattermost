@@ -19,12 +19,12 @@ func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, er
 	return a.Srv().Store.RemoteCluster().Get(remoteClusterId)
 }
 
-func (a *App) GetAllRemoteClusters(incOffline bool) ([]*model.RemoteCluster, error) {
-	return a.Srv().Store.RemoteCluster().GetAll(incOffline)
+func (a *App) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, error) {
+	return a.Srv().Store.RemoteCluster().GetAll(includeOffline)
 }
 
-func (a *App) GetAllRemoteClustersNotInChannel(channelId string, incOffline bool) ([]*model.RemoteCluster, error) {
-	return a.Srv().Store.RemoteCluster().GetAllNotInChannel(channelId, incOffline)
+func (a *App) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, error) {
+	return a.Srv().Store.RemoteCluster().GetAllNotInChannel(channelId, includeOffline)
 }
 
 func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) error {

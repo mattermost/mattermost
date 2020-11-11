@@ -94,7 +94,7 @@ func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *mode
 		return getRemoteClusterAutocompleteListItems(a, true)
 	}
 
-	return nil, fmt.Errorf("`%s` not a dynamic argument", arg.Name)
+	return nil, fmt.Errorf("`%s` is not a dynamic argument", arg.Name)
 }
 
 func (rp *RemoteProvider) doAdd(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
@@ -177,15 +177,15 @@ func isOnline(lastPing int64) bool {
 	return lastPing > model.GetMillis()-model.RemoteOfflineAfterMillis
 }
 
-func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model.AutocompleteListItem, error) {
-	all, err := a.GetAllRemoteClusters(incOffline)
-	if err != nil || len(all) == 0 {
+func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]model.AutocompleteListItem, error) {
+	clusters, err := a.GetAllRemoteClusters(includeOffline)
+	if err != nil || len(clusters) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}
 
-	list := make([]model.AutocompleteListItem, 0, len(all))
+	list := make([]model.AutocompleteListItem, 0, len(clusters))
 
-	for _, rc := range all {
+	for _, rc := range clusters {
 		item := model.AutocompleteListItem{
 			Item:     rc.Id,
 			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
@@ -194,8 +194,8 @@ func getRemoteClusterAutocompleteListItems(a *app.App, incOffline bool) ([]model
 	return list, nil
 }
 
-func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, incOffline bool) ([]model.AutocompleteListItem, error) {
-	all, err := a.GetAllRemoteClustersNotInChannel(channelId, incOffline)
+func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, includeOffline bool) ([]model.AutocompleteListItem, error) {
+	all, err := a.GetAllRemoteClustersNotInChannel(channelId, includeOffline)
 	if err != nil || len(all) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}

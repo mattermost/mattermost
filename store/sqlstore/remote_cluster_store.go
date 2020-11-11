@@ -80,12 +80,12 @@ func (s sqlRemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster
 	return &rc, nil
 }
 
-func (s sqlRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) GetAll(includeOffline bool) ([]*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("RemoteClusters")
 
-	if !inclOffline {
+	if !includeOffline {
 		query = query.Where(sq.Gt{"LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
 	}
 
