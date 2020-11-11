@@ -62,6 +62,8 @@ func TestSidebarCategory(t *testing.T) {
 		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
 		require.Nil(t, err, "Should update order successfully")
 
+		// We create a copy of actualOrder to prevent racy read
+		// of the slice when the broadcast message is sent from webhub.
 		newOrder := make([]string, len(actualOrder))
 		copy(newOrder, actualOrder)
 		newOrder[2] = "asd"
