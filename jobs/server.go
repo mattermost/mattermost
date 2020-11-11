@@ -28,7 +28,7 @@ type JobServer struct {
 	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
 	ProductNotices          tjobs.ProductNoticesJobInterface
 	ActiveUsers             tjobs.ActiveUsersJobInterface
-	Cloud                   tjobs.CloudJobInterface
+	Cloud                   ejobs.CloudJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {
