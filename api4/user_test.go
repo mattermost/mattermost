@@ -5406,7 +5406,7 @@ func TestThreadSocketEvents(t *testing.T) {
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
-		*cfg.ServiceSettings.CollapsedThreads = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
 
 	userWSClient, err := th.CreateWebSocketClient()
