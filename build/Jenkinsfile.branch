@@ -131,13 +131,13 @@ pipeline {
             export TAG='${env.BRANCH_NAME}'
             export GIT_HASH=\$(git rev-parse --short HEAD)
             docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} -t mattermost/mattermost-enterprise-edition:\${GIT_HASH} build
-            docker push mattermost/mattermost-enterprise-edition:\${TAG} mattermost/mattermost-enterprise-edition:\${GIT_HASH}
+            docker push mattermost/mattermost-enterprise-edition
             """
             sh """
             export TAG='${env.BRANCH_NAME}'
             export GIT_HASH=\$(git rev-parse --short HEAD)
             docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-team-linux-amd64.tar.gz -t mattermost/mattermost-team-edition:\${TAG} -t mattermost/mattermost-team-edition:\${GIT_HASH} build
-            docker push mattermost/mattermost-team-edition:\${TAG} mattermost/mattermost-team-edition:\${GIT_HASH}
+            docker push mattermost/mattermost-team-edition
             docker logout
             """
           }
