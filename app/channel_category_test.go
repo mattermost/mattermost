@@ -62,8 +62,12 @@ func TestSidebarCategory(t *testing.T) {
 		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
 		require.Nil(t, err, "Should update order successfully")
 
-		actualOrder[2] = "asd"
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
+		// We create a copy of actualOrder to prevent racy read
+		// of the slice when the broadcast message is sent from webhub.
+		newOrder := make([]string, len(actualOrder))
+		copy(newOrder, actualOrder)
+		newOrder[2] = "asd"
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, newOrder)
 		require.NotNil(t, err, "Should return error due to invalid id")
 	})
 
