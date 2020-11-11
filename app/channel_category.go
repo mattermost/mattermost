@@ -163,6 +163,11 @@ func (a *App) muteChannelsForUpdatedCategories(userId string, updatedCategories 
 
 	// Mute or unmute all channels in categories that were muted or unmuted
 	for i, updatedCategory := range updatedCategories {
+		if i > len(originalCategories)-1 {
+			// The two slices should be the same length, but double check that to be safe
+			continue
+		}
+
 		originalCategory := originalCategories[i]
 
 		if updatedCategory.Muted && !originalCategory.Muted {
@@ -257,22 +262,6 @@ func diffChannelsBetweenCategories(updatedCategories []*model.SidebarCategoryWit
 	}
 
 	return channelsDiff
-}
-
-func getChannelIdsRemovedFromCategory(originalCategory *model.SidebarCategoryWithChannels, updatedCategory *model.SidebarCategoryWithChannels) []string {
-	updatedChannelIds := make(map[string]bool)
-	for _, id := range updatedCategory.Channels {
-		updatedChannelIds[id] = true
-	}
-
-	missingChannelIds := []string{}
-	for _, id := range originalCategory.Channels {
-		if !updatedChannelIds[id] {
-			missingChannelIds = append(missingChannelIds, id)
-		}
-	}
-
-	return missingChannelIds
 }
 
 func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError {

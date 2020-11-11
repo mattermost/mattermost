@@ -2823,7 +2823,7 @@ func (a *App) setChannelMuted(channelId, userId string, muted bool) (*model.Chan
 
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
-	return a.updateChannelMember(member)
+	return member, nil
 }
 
 func (a *App) FillInChannelProps(channel *model.Channel) *model.AppError {
