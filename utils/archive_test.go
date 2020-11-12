@@ -73,6 +73,10 @@ func TestSanitizePath(t *testing.T) {
 			"./...file",
 			"...file",
 		},
+		{
+			"path/",
+			"path",
+		},
 	}
 
 	for _, c := range cases {

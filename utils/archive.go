@@ -13,7 +13,7 @@ import (
 )
 
 func sanitizePath(p string) string {
-	dir := strings.ReplaceAll(filepath.Dir(p), "..", "")
+	dir := strings.ReplaceAll(filepath.Dir(filepath.Clean(p)), "..", "")
 	base := filepath.Base(p)
 	if strings.Count(base, ".") == len(base) {
 		return ""
