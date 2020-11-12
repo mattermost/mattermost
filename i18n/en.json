@@ -1211,6 +1211,14 @@
     "translation": "You do not have the appropriate permissions."
   },
   {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Unable to find remote id {{.Id}}."
+  },
+  {
+    "id": "api.context.remote_token_invalid.app_error",
+    "translation": "Invalid remote token."
+  },
+  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
