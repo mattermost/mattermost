@@ -675,6 +675,7 @@ type AppIface interface {
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
 	GetTeamIdFromQuery(query url.Values) (string, *model.AppError)
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+	GetTeamMemberFromMaster(teamId, userId string) (*model.TeamMember, *model.AppError)
 	GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError)
