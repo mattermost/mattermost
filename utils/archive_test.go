@@ -16,6 +16,72 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestSanitizePath(t *testing.T) {
+	cases := []struct {
+		input    string
+		expected string
+	}{
+		{
+			".",
+			"",
+		},
+		{
+			"../",
+			"",
+		},
+		{
+			"...",
+			"",
+		},
+		{
+			"..//.",
+			"",
+		},
+		{
+			"/../",
+			"",
+		},
+		{
+			"/path/...../to/file",
+			"/path/to/file",
+		},
+		{
+			"/path/to/file...",
+			"/path/to/file...",
+		},
+		{
+			"/path/to/../../../file",
+			"/file",
+		},
+		{
+			"../../../../file",
+			"/file",
+		},
+		{
+			"/path/to/file..ext",
+			"/path/to/file..ext",
+		},
+		{
+			"/path/to/...file..ext",
+			"/path/to/...file..ext",
+		},
+		{
+			"./path/to/...file..ext",
+			"path/to/...file..ext",
+		},
+		{
+			"./...file",
+			"...file",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.input, func(t *testing.T) {
+			require.Equal(t, c.expected, sanitizePath(c.input))
+		})
+	}
+}
+
 func TestUnzipToPath(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 	require.NotEmpty(t, testDir)

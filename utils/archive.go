@@ -12,6 +12,15 @@ import (
 	"strings"
 )
 
+func sanitizePath(p string) string {
+	dir := strings.ReplaceAll(filepath.Dir(p), "..", "")
+	base := filepath.Base(p)
+	if strings.Count(base, ".") == len(base) {
+		return ""
+	}
+	return filepath.Join(dir, base)
+}
+
 // UnzipToPath extracts a given zip archive into a given path.
 // It returns a list of extracted paths.
 func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, error) {
@@ -22,8 +31,10 @@ func UnzipToPath(zipFile io.ReaderAt, size int64, outPath string) ([]string, err
 
 	paths := make([]string, len(rd.File))
 	for i, f := range rd.File {
-		filePath := filepath.Clean(strings.ReplaceAll(f.Name, "..", ""))
-
+		filePath := sanitizePath(f.Name)
+		if filePath == "" {
+			return nil, fmt.Errorf("invalid filepath `%s`", f.Name)
+		}
 		path := filepath.Join(outPath, filePath)
 		paths[i] = path
 		if f.FileInfo().IsDir() {
