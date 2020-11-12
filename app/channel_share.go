@@ -14,14 +14,14 @@ import (
 // SharedChannels
 
 func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	// check that channel exists.
+	if _, err := a.GetChannel(sc.ChannelId); err != nil {
+		return nil, fmt.Errorf("cannot share this channel: %w", err)
+	}
+
 	// Check channel is not already shared.
 	if _, err := a.GetSharedChannel(sc.ChannelId); err == nil {
 		return nil, errors.New("channel is already shared.")
-	}
-
-	// check that channel exists.
-	if _, errApp := a.GetChannel(sc.ChannelId); errApp != nil {
-		return nil, fmt.Errorf("cannot share this channel: %v", errApp)
 	}
 
 	return a.Srv().Store.Channel().SaveSharedChannel(sc)
