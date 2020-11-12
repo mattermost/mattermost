@@ -8,9 +8,13 @@ type FeatureFlags struct {
 	// When set to a value, will be returned by the ping endpoint.
 	TestFeature              string
 	EnsureDatabaseConnection string
+
+	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
+	CloudDelinquentEmailJobsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.EnsureDatabaseConnection = "off"
+	f.CloudDelinquentEmailJobsEnabled = false
 }
