@@ -155,14 +155,9 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
+func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
 	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
 		return nil
-	}
-
-	roles, err := a.GetAllRoles()
-	if err != nil {
-		return err
 	}
 
 	roleMap := make(map[string]map[string]bool)
@@ -543,12 +538,17 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
 	}
 
+	roles, err := a.GetAllRoles()
+	if err != nil {
+		return err
+	}
+
 	for _, migration := range PermissionsMigrations {
 		migMap, err := migration.Migration()
 		if err != nil {
 			return err
 		}
-		if err := a.doPermissionsMigration(migration.Key, migMap); err != nil {
+		if err := a.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
 			return err
 		}
 	}
