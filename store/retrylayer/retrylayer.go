@@ -1680,6 +1680,26 @@ func (s *RetryLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*m
 
 }
 
+func (s *RetryLayerChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannelRemotesStatus(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 
 	tries := 0
@@ -5854,11 +5874,51 @@ func (s *RetryLayerRemoteClusterStore) Delete(remoteClusterId string) (bool, err
 
 }
 
+func (s *RetryLayerRemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.Get(remoteClusterId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
 		result, err := s.RemoteClusterStore.GetAll(inclOffline)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetAllNotInChannel(channelId, inclOffline)
 		if err == nil {
 			return result, nil
 		}
@@ -5894,11 +5954,11 @@ func (s *RetryLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.Rem
 
 }
 
-func (s *RetryLayerRemoteClusterStore) SetLastPingAt(rc *model.RemoteCluster) error {
+func (s *RetryLayerRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 
 	tries := 0
 	for {
-		err := s.RemoteClusterStore.SetLastPingAt(rc)
+		err := s.RemoteClusterStore.SetLastPingAt(remoteClusterId)
 		if err == nil {
 			return nil
 		}

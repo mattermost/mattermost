@@ -35,6 +35,29 @@ func (_m *RemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
 	return r0, r1
 }
 
+// Get provides a mock function with given fields: remoteClusterId
+func (_m *RemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster, error) {
+	ret := _m.Called(remoteClusterId)
+
+	var r0 *model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string) *model.RemoteCluster); ok {
+		r0 = rf(remoteClusterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteClusterId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAll provides a mock function with given fields: inclOffline
 func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
 	ret := _m.Called(inclOffline)
@@ -51,6 +74,29 @@ func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(bool) error); ok {
 		r1 = rf(inclOffline)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAllNotInChannel provides a mock function with given fields: channelId, inclOffline
+func (_m *RemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(channelId, inclOffline)
+
+	var r0 []*model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.RemoteCluster); ok {
+		r0 = rf(channelId, inclOffline)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(channelId, inclOffline)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -81,13 +127,13 @@ func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluste
 	return r0, r1
 }
 
-// SetLastPingAt provides a mock function with given fields: rc
-func (_m *RemoteClusterStore) SetLastPingAt(rc *model.RemoteCluster) error {
-	ret := _m.Called(rc)
+// SetLastPingAt provides a mock function with given fields: remoteClusterId
+func (_m *RemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
+	ret := _m.Called(remoteClusterId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) error); ok {
-		r0 = rf(rc)
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(remoteClusterId)
 	} else {
 		r0 = ret.Error(0)
 	}

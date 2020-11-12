@@ -1039,6 +1039,18 @@
     "translation": "open"
   },
   {
+    "id": "api.command_remote.desc",
+    "translation": "Add/remove a remote Mattermost cluster for inter-cluster communication."
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "remote"
+  },
+  {
     "id": "api.command_remove.desc",
     "translation": "Remove a member from the channel"
   },
@@ -1101,6 +1113,18 @@
   {
     "id": "api.command_settings.unsupported.app_error",
     "translation": "The settings command is not supported on your device."
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Shares the current channel with a remote Mattermost instance."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[action]"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "share"
   },
   {
     "id": "api.command_shortcuts.desc",
