@@ -28,6 +28,10 @@ func (rc *RemoteCluster) PreSave() {
 		rc.Id = NewId()
 	}
 
+	if rc.Token == "" {
+		rc.Token = NewId()
+	}
+
 	if rc.CreateAt == 0 {
 		rc.CreateAt = GetMillis()
 	}
