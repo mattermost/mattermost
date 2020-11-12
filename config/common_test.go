@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customDefaults *model.Config
+var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
 
 func init() {
 	emptyConfig = &model.Config{}
@@ -72,7 +72,7 @@ func init() {
 			SiteURL: sToP("http://TestStoreNew"),
 		},
 	}
-	customDefaults = &model.Config{
+	customConfigDefaults = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: model.NewString("http://custom.com"),
 		},

@@ -142,12 +142,12 @@ func TestDatabaseStoreNew(t *testing.T) {
 
 	t.Run("no existing configuration with custom defaults", func(t *testing.T) {
 		truncateTables(t)
-		ds, err := newTestDatabaseStore(t, customDefaults)
+		ds, err := newTestDatabaseStore(t, customConfigDefaults)
 		require.NoError(t, err)
 		defer ds.Close()
 
-		assert.Equal(t, *customDefaults.ServiceSettings.SiteURL, *ds.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
+		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -166,7 +166,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t, customDefaults)
+		ds, err := newTestDatabaseStore(t, customConfigDefaults)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -175,7 +175,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *ds.Get().ServiceSettings.SiteURL)
 		// not existing value should be overwritten by the custom
 		// default value
-		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseNotEqualsConfig(t, testConfig)
 	})
 
@@ -195,14 +195,14 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t, customDefaults)
+		ds, err := newTestDatabaseStore(t, customConfigDefaults)
 		require.NoError(t, err)
 		defer ds.Close()
 
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
+		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
 		assertDatabaseEqualsConfig(t, minimalConfig)
 	})
 
@@ -269,7 +269,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, testConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t, customDefaults)
+		ds, err := newTestDatabaseStore(t, customConfigDefaults)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -279,7 +279,7 @@ func TestDatabaseStoreGetEnivironmentOverrides(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		ds, err = newTestDatabaseStore(t, customDefaults)
+		ds, err = newTestDatabaseStore(t, customConfigDefaults)
 		require.NoError(t, err)
 		defer ds.Close()
 

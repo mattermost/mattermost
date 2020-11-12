@@ -105,7 +105,7 @@ func TestFileStoreNew(t *testing.T) {
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
 		require.NoError(t, err)
 		defer configStore.Close()
 
@@ -114,7 +114,7 @@ func TestFileStoreNew(t *testing.T) {
 		assert.Equal(t, "http://TestStoreNew", *configStore.Get().ServiceSettings.SiteURL)
 		// nonexisting value should be overwritten by the custom
 		// defaults
-		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -138,14 +138,14 @@ func TestFileStoreNew(t *testing.T) {
 
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
 		require.NoError(t, err)
 		defer configStore.Close()
 
 		// as the whole config has default values already, custom
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
-		assert.NotEqual(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
+		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 		assertFileEqualsConfig(t, minimalConfig, path)
 	})
 
@@ -179,12 +179,12 @@ func TestFileStoreNew(t *testing.T) {
 		path := filepath.Join(tempDir, "does_not_exist")
 		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		configStore, err := config.NewStoreFromBacking(fs, customDefaults)
+		configStore, err := config.NewStoreFromBacking(fs, customConfigDefaults)
 		require.NoError(t, err)
 		defer configStore.Close()
 
-		assert.Equal(t, *customDefaults.ServiceSettings.SiteURL, *configStore.Get().ServiceSettings.SiteURL)
-		assert.Equal(t, *customDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
+		assert.Equal(t, *customConfigDefaults.ServiceSettings.SiteURL, *configStore.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
 	})
 
 	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
@@ -306,7 +306,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err := config.NewStoreFromBacking(fsInner, customDefaults)
+		fs, err := config.NewStoreFromBacking(fsInner, customConfigDefaults)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -318,7 +318,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 		fsInner, err = config.NewFileStore(path, false)
 		require.NoError(t, err)
-		fs, err = config.NewStoreFromBacking(fsInner, customDefaults)
+		fs, err = config.NewStoreFromBacking(fsInner, customConfigDefaults)
 		require.NoError(t, err)
 		defer fs.Close()
 

@@ -39,7 +39,10 @@ func StoreOverride(override interface{}) Option {
 	}
 }
 
-// Config applies the given config dsn, whether a path to config.json or a database connection string.
+// Config applies the given config dsn, whether a path to config.json
+// or a database connection string. It receives as well a set of
+// custom defaults that will be applied for any unset property of the
+// config loaded from the dsn on top of the normal defaults
 func Config(dsn string, watch bool, configDefaults *model.Config) Option {
 	return func(s *Server) error {
 		configStore, err := config.NewStore(dsn, watch, configDefaults)

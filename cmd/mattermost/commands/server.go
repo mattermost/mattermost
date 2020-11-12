@@ -43,15 +43,16 @@ func loadCustomDefaults() (*model.Config, error) {
 	if customDefaultsPath != "" {
 		file, err := os.Open(customDefaultsPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "unable to load config custom defaults")
+			return nil, errors.Wrapf(err, "unable to open custom defaults file at %q", customDefaultsPath)
 		}
 		defer file.Close()
 
 		err = json.NewDecoder(file).Decode(&customDefaults)
 		if err != nil {
-			return nil, errors.Wrapf(err, "unable to decode custom defaults configuration")
+			return nil, errors.Wrap(err, "unable to decode custom defaults configuration")
 		}
 	}
+
 	return customDefaults, nil
 }
 
@@ -62,12 +63,12 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	interruptChan := make(chan os.Signal, 1)
 
 	if err := utils.TranslationsPreInit(); err != nil {
-		return errors.Wrapf(err, "unable to load Mattermost translation files")
+		return errors.Wrap(err, "unable to load Mattermost translation files")
 	}
 
 	customDefaults, err := loadCustomDefaults()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "cannot load custom defaults")
 	}
 
 	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
