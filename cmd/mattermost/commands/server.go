@@ -47,10 +47,10 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to load configuration")
 	}
 
-	return runServer(configStore, disableConfigWatch, usedPlatform)
+	return runServer(configStore, usedPlatform)
 }
 
-func runServer(configStore *config.Store, disableConfigWatch bool, usedPlatform bool) error {
+func runServer(configStore *config.Store, usedPlatform bool) error {
 	// Setting the highest traceback level from the code.
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
