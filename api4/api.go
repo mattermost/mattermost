@@ -123,6 +123,8 @@ type Routes struct {
 	Groups         *mux.Router // 'api/v4/groups'
 
 	Cloud *mux.Router // 'api/v4/cloud'
+
+	RemoteCluster *mux.Router // 'api/v4/remotecluster'
 }
 
 type API struct {
@@ -235,6 +237,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 
 	api.BaseRoutes.Cloud = api.BaseRoutes.ApiRoot.PathPrefix("/cloud").Subrouter()
 
+	api.BaseRoutes.RemoteCluster = api.BaseRoutes.ApiRoot.PathPrefix("/remotecluster").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -271,6 +275,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitGroup()
 	api.InitAction()
 	api.InitCloud()
+	api.InitRemoteCluster()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

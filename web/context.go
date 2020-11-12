@@ -221,6 +221,14 @@ func (c *Context) SetServerBusyError() {
 	c.Err = NewServerBusyError()
 }
 
+func (c *Context) SetInvalidRemoteClusterIdError(id string) {
+	c.Err = NewInvalidRemoteClusterIdError(id)
+}
+
+func (c *Context) SetInvalidRemoteClusterTokenError() {
+	c.Err = NewInvalidRemoteClusterTokenError()
+}
+
 func (c *Context) SetCommandNotFoundError() {
 	c.Err = model.NewAppError("GetCommand", "store.sql_command.save.get.app_error", nil, "", http.StatusNotFound)
 }
@@ -255,6 +263,16 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 func NewServerBusyError() *model.AppError {
 	err := model.NewAppError("Context", "api.context.server_busy.app_error", nil, "", http.StatusServiceUnavailable)
+	return err
+}
+
+func NewInvalidRemoteClusterIdError(parameter string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"Id": parameter}, "", http.StatusBadRequest)
+	return err
+}
+
+func NewInvalidRemoteClusterTokenError() *model.AppError {
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", nil, "", http.StatusUnauthorized)
 	return err
 }
 
