@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -678,7 +679,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(user.Id)
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
