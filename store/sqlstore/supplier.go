@@ -1339,10 +1339,10 @@ func checkDatabaseConnection(settings *model.SqlSettings, dataSource, connType s
 func ensureDatabaseConnection(settings *model.SqlSettings, dataSource, connType string, lifecycleContext context.Context) *dbsql.DB {
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		defer cancel()
 
 		select {
 		case <-lifecycleContext.Done():
-			cancel()
 			os.Exit(EXIT_DB_OPEN)
 		default:
 			db, err := dbsql.Open(*settings.DriverName, dataSource)
