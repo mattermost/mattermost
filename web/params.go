@@ -27,6 +27,8 @@ type Params struct {
 	TeamId                    string
 	InviteId                  string
 	TokenId                   string
+	ThreadId                  string
+	Timestamp                 int64
 	ChannelId                 string
 	PostId                    string
 	FileId                    string
@@ -109,6 +111,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["token_id"]; ok {
 		params.TokenId = val
+	}
+
+	if val, ok := props["thread_id"]; ok {
+		params.ThreadId = val
 	}
 
 	if val, ok := props["channel_id"]; ok {
@@ -229,6 +235,12 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
+	}
+
+	if val, err := strconv.ParseInt(props["timestamp"], 10, 64); err != nil || val < 0 {
+		params.Timestamp = 0
+	} else {
+		params.Timestamp = val
 	}
 
 	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
