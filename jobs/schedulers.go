@@ -197,7 +197,7 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
 }
 
-func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
 	schedulers.configChanged <- newConfig
 }
