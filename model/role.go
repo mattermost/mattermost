@@ -484,16 +484,18 @@ func (r *Role) IsValidWithoutId() bool {
 
 	for _, permission := range r.Permissions {
 		permissionValidated := false
-		check := func(perms []*Permission, permission string) {
+		check := func(perms []*Permission, permission string) bool {
 			for _, p := range perms {
 				if permission == p.Id {
-					permissionValidated = true
-					break
+					return true
 				}
 			}
+			return false
 		}
-		check(AllPermissions, permission)
-		check(DeprecatedPermissions, permission)
+		permissionValidated = check(AllPermissions, permission)
+		if !permissionValidated {
+			permissionValidated = check(DeprecatedPermissions, permission)
+		}
 
 		if !permissionValidated {
 			return false
