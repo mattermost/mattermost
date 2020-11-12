@@ -1879,15 +1879,15 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		wg.Add(20)
 		for i := 0; i < 10; i++ {
 			go func() {
-				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
-				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), removeCreatePosts)
 				wg.Done()
 			}()
 		}
 		for i := 0; i < 10; i++ {
 			go func() {
-				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
-				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), removeCreatePosts)
 				wg.Done()
 			}()
 		}
