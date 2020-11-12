@@ -1332,6 +1332,7 @@ func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*
 	marketplaceClient, err := marketplace.NewClient(
 		marketplaceURL,
 		ts.srv.HttpService(),
+		ts.log,
 	)
 	if err != nil {
 		return nil, err

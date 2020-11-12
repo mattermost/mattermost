@@ -504,6 +504,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	marketplaceClient, err := marketplace.NewClient(
 		*a.Config().PluginSettings.MarketplaceUrl,
 		a.HTTPService(),
+		a.Log(),
 	)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -531,6 +532,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 	marketplaceClient, err := marketplace.NewClient(
 		*a.Config().PluginSettings.MarketplaceUrl,
 		a.HTTPService(),
+		a.Log(),
 	)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)

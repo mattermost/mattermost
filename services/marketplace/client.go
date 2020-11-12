@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/pkg/errors"
@@ -20,10 +21,11 @@ import (
 type Client struct {
 	address    string
 	httpClient *http.Client
+	logger     *mlog.Logger
 }
 
 // NewClient creates a client to the marketplace server at the given address.
-func NewClient(address string, httpService httpservice.HTTPService) (*Client, error) {
+func NewClient(address string, httpService httpservice.HTTPService, l *mlog.Logger) (*Client, error) {
 	var httpClient *http.Client
 	addressUrl, err := url.Parse(address)
 	if err != nil {
@@ -38,6 +40,7 @@ func NewClient(address string, httpService httpservice.HTTPService) (*Client, er
 	return &Client{
 		address:    address,
 		httpClient: httpClient,
+		logger:     l,
 	}, nil
 }
 
@@ -49,6 +52,8 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 	}
 
 	request.ApplyToURL(u)
+
+	c.logger.Warn("Doing Marketplace request", mlog.String("url", u.String()))
 
 	resp, err := c.doGet(u.String())
 	if err != nil {
