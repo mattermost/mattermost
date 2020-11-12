@@ -11,19 +11,40 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+func (a *App) checkChannelNotShared(channelId string) error {
+	// check that channel exists.
+	if _, err := a.GetChannel(channelId); err != nil {
+		return fmt.Errorf("cannot share this channel: %w", err)
+	}
+
+	// Check channel is not already shared.
+	if _, err := a.GetSharedChannel(channelId); err == nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return errors.New("channel is already shared.")
+		}
+		return fmt.Errorf("cannot find channel: %w", err)
+	}
+	return nil
+}
+
+func (a *App) checkChannelIsShared(channelId string) error {
+	if _, err := a.GetSharedChannel(channelId); err != nil {
+		var errNotFound *store.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			return errors.New("channel is not shared.")
+		}
+		return fmt.Errorf("cannot find channel: %w", err)
+	}
+	return nil
+}
+
 // SharedChannels
 
 func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	// Check channel is not already shared.
-	if _, err := a.GetSharedChannel(sc.ChannelId); err == nil {
-		return nil, errors.New("channel is already shared.")
+	if err := a.checkChannelNotShared(sc.ChannelId); err != nil {
+		return nil, err
 	}
-
-	// check that channel exists.
-	if _, errApp := a.GetChannel(sc.ChannelId); errApp != nil {
-		return nil, fmt.Errorf("cannot share this channel: %v", errApp)
-	}
-
 	return a.Srv().Store.Channel().SaveSharedChannel(sc)
 }
 
@@ -50,9 +71,8 @@ func (a *App) DeleteSharedChannel(channelId string) (bool, error) {
 // SharedChannelRemotes
 
 func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
-	// Check channel is shared.
-	if _, err := a.GetSharedChannel(remote.ChannelId); err != nil {
-		return nil, errors.New("channel is not shared.")
+	if err := a.checkChannelIsShared(remote.ChannelId); err != nil {
+		return nil, err
 	}
 	return a.Srv().Store.Channel().SaveSharedChannelRemote(remote)
 }
@@ -70,9 +90,8 @@ func (a *App) DeleteSharedChannelRemote(remoteId string) (bool, error) {
 }
 
 func (a *App) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
-	// Check channel is shared.
-	if _, err := a.GetSharedChannel(channelId); err != nil {
-		return nil, errors.New("channel is not shared.")
+	if err := a.checkChannelIsShared(channelId); err != nil {
+		return nil, err
 	}
 	return a.Srv().Store.Channel().GetSharedChannelRemotesStatus(channelId)
 }

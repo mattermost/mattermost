@@ -83,7 +83,7 @@ func (sp *ShareProvider) GetAutoCompleteListItems(a *app.App, commandArgs *model
 		return sp.getAutoCompleteUnInviteRemote(a, commandArgs, arg)
 
 	}
-	return nil, errors.New("Invalid action")
+	return nil, errors.New("invalid action")
 }
 
 func (sp *ShareProvider) getAutoCompleteShareChannel(a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
@@ -180,7 +180,7 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 
 	readonly, err := parseBool(margs["readonly"])
 	if err != nil {
-		return responsef("invalid value for 'readonly': %v", err)
+		return responsef("Invalid value for 'readonly': %v", err)
 	}
 
 	sc := &model.SharedChannel{
@@ -195,8 +195,7 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 		CreatorId:        args.UserId,
 	}
 
-	_, err = a.SaveSharedChannel(sc)
-	if err != nil {
+	if _, err := a.SaveSharedChannel(sc); err != nil {
 		return responsef("Could not share this channel: %v", err)
 	}
 	return responsef("##### This channel is now shared.")
@@ -209,12 +208,12 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 
 	sure, err := parseBool(margs["are_you_sure"])
 	if err != nil || !sure {
-		return responsef("Shared channel not deleted: `are_you_sure` must be `Y`.")
+		return responsef("Shared channel was not deleted: `are_you_sure` must be `Y`.")
 	}
 
 	deleted, err := a.DeleteSharedChannel(args.ChannelId)
 	if err != nil {
-		return responsef("Could not share this channel: %v", err)
+		return responsef("Could not unshare this channel: %v", err)
 	}
 	if !deleted {
 		return responsef("Cannot unshare a channel that is not shared.")
@@ -225,7 +224,7 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	remoteId, ok := margs["remoteId"]
 	if !ok || remoteId == "" {
-		return responsef("Must specify a valid remote cluster to invite.")
+		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
 	remote, err := a.GetRemoteCluster(remoteId)
@@ -241,8 +240,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		RemoteClusterId: remoteId,
 	}
 
-	_, err = a.SaveSharedChannelRemote(scr)
-	if err != nil {
+	if _, err := a.SaveSharedChannelRemote(scr); err != nil {
 		return responsef("Could not invite `%s` to this channel: %v", remote.ClusterName, err)
 	}
 
