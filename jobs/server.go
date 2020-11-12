@@ -29,6 +29,7 @@ type JobServer struct {
 	ProductNotices          tjobs.ProductNoticesJobInterface
 	ActiveUsers             tjobs.ActiveUsersJobInterface
 	ImportProcess           tjobs.ImportProcessInterface
+	Cloud                   ejobs.CloudJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

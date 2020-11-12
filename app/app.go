@@ -122,6 +122,11 @@ func (a *App) initJobs() {
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
 	}
+
+	if jobsCloudInterface != nil {
+		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }

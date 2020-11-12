@@ -23,6 +23,7 @@ const (
 	JOB_TYPE_PRODUCT_NOTICES                = "product_notices"
 	JOB_TYPE_ACTIVE_USERS                   = "active_users"
 	JOB_TYPE_IMPORT_PROCESS                 = "import_process"
+	JOB_TYPE_CLOUD                          = "cloud"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -67,6 +68,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_EXPIRY_NOTIFY:
 	case JOB_TYPE_ACTIVE_USERS:
 	case JOB_TYPE_IMPORT_PROCESS:
+	case JOB_TYPE_CLOUD:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
