@@ -230,7 +230,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 func setupConnection(connType string, dataSource string, settings *model.SqlSettings, ctx context.Context, config *model.Config) *gorp.DbMap {
 	var db *dbsql.DB
 
-	if config != nil && config.FeatureFlags.EnsureDatabaseConnection != "off" {
+	if config != nil && config.FeatureFlags.EnsureDatabaseConnectionEnabled {
 		db = ensureDatabaseConnection(settings, dataSource, connType, ctx)
 	} else {
 		db = checkDatabaseConnection(settings, dataSource, connType)
