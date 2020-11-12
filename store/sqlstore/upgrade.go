@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
+	VERSION_5_29_0           = "5.29.0"
+	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
 	VERSION_5_26_0           = "5.26.0"
@@ -188,6 +190,9 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion526(sqlStore)
 	upgradeDatabaseToVersion527(sqlStore)
 	upgradeDatabaseToVersion528(sqlStore)
+	upgradeDatabaseToVersion5281(sqlStore)
+	upgradeDatabaseToVersion529(sqlStore)
+	upgradeDatabaseToVersion530(sqlStore)
 
 	return nil
 }
@@ -829,31 +834,45 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion527(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	}
 }
 
 func upgradeDatabaseToVersion528(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.28
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
-	if err := precheckMigrationToVersion528(sqlStore); err != nil {
-		mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
-		os.Exit(EXIT_GENERIC_FAILURE)
+	if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
+		if err := precheckMigrationToVersion528(sqlStore); err != nil {
+			mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
+		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+
+		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+
+		saveSchemaVersion(sqlStore, VERSION_5_28_0)
 	}
+}
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-	sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+func upgradeDatabaseToVersion5281(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_28_1) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "MiniPreview", "MEDIUMBLOB", "bytea")
 
-	sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
-	sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+		saveSchemaVersion(sqlStore, VERSION_5_28_1)
+	}
+}
 
-	//saveSchemaVersion(sqlStore, VERSION_5_28_0)
-	//}
+func upgradeDatabaseToVersion530(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
+
+	// saveSchemaVersion(sqlStore, VERSION_5_30_0)
+	// }
 }
 
 func precheckMigrationToVersion528(sqlStore SqlStore) error {
@@ -882,12 +901,11 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 		return err
 	}
 
-	var schemeIdWrong int
-	var typeWrong int
+	var schemeIDWrong, typeWrong int
 	row := sqlStore.GetMaster().Db.QueryRow(teamsQuery)
-	if err = row.Scan(&schemeIdWrong, &typeWrong); err != nil && err != sql.ErrNoRows {
+	if err = row.Scan(&schemeIDWrong, &typeWrong); err != nil && err != sql.ErrNoRows {
 		return err
-	} else if err == nil && schemeIdWrong > 0 {
+	} else if err == nil && schemeIDWrong > 0 {
 		return errors.New("Migration failure: " +
 			"Teams column SchemeId has data larger that 26 characters")
 	} else if err == nil && typeWrong > 0 {
@@ -895,8 +913,7 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 			"Teams column Type has data larger that 255 characters")
 	}
 
-	var usernameWrong int
-	var iconURLWrong int
+	var usernameWrong, iconURLWrong int
 	row = sqlStore.GetMaster().Db.QueryRow(webhooksQuery)
 	if err = row.Scan(&usernameWrong, &iconURLWrong); err != nil && err != sql.ErrNoRows {
 		mlog.Error("Error fetching IncomingWebhooks columns data", mlog.Err(err))
@@ -909,4 +926,25 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 	}
 
 	return nil
+}
+
+func upgradeDatabaseToVersion529(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_28_1, VERSION_5_29_0) {
+		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
+		sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
+		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
+		sqlStore.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
+
+		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
+		}
+		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
+			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+		}
+
+		saveSchemaVersion(sqlStore, VERSION_5_29_0)
+	}
 }

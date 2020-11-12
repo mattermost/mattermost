@@ -596,8 +596,8 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList, err := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
-	require.Nil(t, err)
+	postList, nErr := th.App.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false)
+	require.Nil(t, nErr)
 
 	if assert.Len(t, postList.Order, 1) {
 		post := postList.Posts[postList.Order[0]]
@@ -1465,10 +1465,10 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 	channel := th.BasicChannel
 
-	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
-	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[1]
-	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[2]
-	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[3]
+	createPosts := model.ChannelModeratedPermissions[0]
+	createReactions := model.ChannelModeratedPermissions[1]
+	manageMembers := model.ChannelModeratedPermissions[2]
+	channelMentions := model.ChannelModeratedPermissions[3]
 
 	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
 
@@ -1828,15 +1828,15 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 		wg.Add(20)
 		for i := 0; i < 10; i++ {
 			go func() {
-				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
-				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), removeCreatePosts)
 				wg.Done()
 			}()
 		}
 		for i := 0; i < 10; i++ {
 			go func() {
-				th.App.PatchChannelModerationsForChannel(channel, addCreatePosts)
-				th.App.PatchChannelModerationsForChannel(channel, removeCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), addCreatePosts)
+				th.App.PatchChannelModerationsForChannel(channel.DeepCopy(), removeCreatePosts)
 				wg.Done()
 			}()
 		}
@@ -1859,7 +1859,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
+	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
 	mockChannelStore.On("GetMember", "channelID", "userID").Return(&model.ChannelMember{
@@ -1869,7 +1869,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	times := map[string]int64{
 		"userID": 1,
 	}
-	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID").Return(times, nil)
+	mockChannelStore.On("UpdateLastViewedAt", []string{"channelID"}, "userID", true).Return(times, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
@@ -1899,104 +1899,23 @@ func TestClearChannelMembersCache(t *testing.T) {
 	th.App.ClearChannelMembersCache("channelID")
 }
 
-func TestSidebarCategory(t *testing.T) {
-	th := Setup(t).InitBasic()
+func TestGetMemberCountsByGroup(t *testing.T) {
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
-	basicChannel2 := th.CreateChannel(th.BasicTeam)
-	defer th.App.PermanentDeleteChannel(basicChannel2)
-	user := th.CreateUser()
-	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, basicChannel2)
-
-	var createdCategory *model.SidebarCategoryWithChannels
-	t.Run("CreateSidebarCategory", func(t *testing.T) {
-		catData := model.SidebarCategoryWithChannels{
-			SidebarCategory: model.SidebarCategory{
-				DisplayName: "TEST",
-			},
-			Channels: []string{th.BasicChannel.Id, basicChannel2.Id, basicChannel2.Id},
-		}
-		_, err := th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, &catData)
-		require.NotNil(t, err, "Should return error due to duplicate IDs")
-		catData.Channels = []string{th.BasicChannel.Id, basicChannel2.Id}
-		cat, err := th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, &catData)
-		require.Nil(t, err, "Expected no error")
-		require.NotNil(t, cat, "Expected category object, got nil")
-		createdCategory = cat
-	})
-
-	t.Run("UpdateSidebarCategories", func(t *testing.T) {
-		require.NotNil(t, createdCategory)
-		createdCategory.Channels = []string{th.BasicChannel.Id}
-		updatedCat, err := th.App.UpdateSidebarCategories(user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{createdCategory})
-		require.Nil(t, err, "Expected no error")
-		require.NotNil(t, updatedCat, "Expected category object, got nil")
-		require.Len(t, updatedCat, 1)
-		require.Len(t, updatedCat[0].Channels, 1)
-		require.Equal(t, updatedCat[0].Channels[0], th.BasicChannel.Id)
-	})
-
-	t.Run("UpdateSidebarCategoryOrder", func(t *testing.T) {
-		err := th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{th.BasicChannel.Id, basicChannel2.Id})
-		require.NotNil(t, err, "Should return error due to invalid order")
-
-		actualOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
-		require.Nil(t, err, "Should fetch order successfully")
-
-		actualOrder[2], actualOrder[3] = actualOrder[3], actualOrder[2]
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
-		require.Nil(t, err, "Should update order successfully")
-
-		actualOrder[2] = "asd"
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
-		require.NotNil(t, err, "Should return error due to invalid id")
-	})
-
-	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
-		catOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
-		require.Nil(t, err, "Expected no error")
-		require.Len(t, catOrder, 4)
-		require.Equal(t, catOrder[1], createdCategory.Id, "the newly created category should be after favorites")
-	})
-}
-
-func TestGetSidebarCategories(t *testing.T) {
-	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		_, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
-			SidebarCategory: model.SidebarCategory{
-				UserId:      th.BasicUser.Id,
-				TeamId:      th.BasicTeam.Id,
-				DisplayName: "new category",
-			},
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	cmc := []*model.ChannelMemberCountByGroup{}
+	for i := 0; i < 5; i++ {
+		cmc = append(cmc, &model.ChannelMemberCountByGroup{
+			GroupId:                     model.NewId(),
+			ChannelMemberCount:          int64(i),
+			ChannelMemberTimezonesCount: int64(i),
 		})
-		require.Nil(t, err)
-
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
-		assert.Nil(t, err)
-		assert.Len(t, categories.Categories, 4)
-	})
-
-	t.Run("should create the initial categories even if migration hasn't ran yet", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
-		// relationship that hasn't been migrated yet
-		team := th.CreateTeam()
-		_, err := th.App.Srv().Store.Team().SaveMember(&model.TeamMember{
-			TeamId:     team.Id,
-			UserId:     th.BasicUser.Id,
-			SchemeUser: true,
-		}, 100)
-		require.Nil(t, err)
-
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
-		assert.Nil(t, err)
-		assert.Len(t, categories.Categories, 3)
-	})
+	}
+	mockChannelStore.On("GetMemberCountsByGroup", "channelID", true).Return(cmc, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+	resp, err := th.App.GetMemberCountsByGroup("channelID", true)
+	require.Nil(t, err)
+	require.ElementsMatch(t, cmc, resp)
 }

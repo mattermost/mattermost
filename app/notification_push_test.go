@@ -11,8 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -554,6 +556,7 @@ func TestGetPushNotificationMessage(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1126,6 +1129,7 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1180,6 +1184,7 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1222,6 +1227,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -1358,6 +1364,67 @@ func TestAllPushNotifications(t *testing.T) {
 	assert.Equal(t, 6, numUpdateBadges)
 }
 
+func TestPushNotificationRace(t *testing.T) {
+	memoryStore := config.NewTestMemoryStore()
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockPreferenceStore.On("Get",
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string"),
+		mock.AnythingOfType("string")).
+		Return(&model.Preference{Value: "test"}, nil)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	s := &Server{
+		configStore: memoryStore,
+		Store:       mockStore,
+	}
+	app := New(ServerConnector(s))
+	require.NotPanics(t, func() {
+		s.createPushNotificationsHub()
+
+		s.StopPushNotificationsHubWorkers()
+
+		// Now we start sending messages after the PN hub is shut down.
+		// We test all 3 notification types.
+		app.clearPushNotification("currentSessionId", "userId", "channelId")
+
+		app.UpdateMobileAppBadge("userId")
+
+		notification := &PostNotification{
+			Post:    &model.Post{},
+			Channel: &model.Channel{},
+			ProfileMap: map[string]*model.User{
+				"userId": {},
+			},
+			Sender: &model.User{},
+		}
+		app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
+	})
+}
+
+func TestPushNotificationAttachment(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	post := &model.Post{
+		Message: "hello world",
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					AuthorName: "testuser",
+					Text:       "test attachment",
+					Fallback:   "fallback text",
+				},
+			},
+		},
+	}
+	user := &model.User{}
+	ch := &model.Channel{}
+
+	pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+	assert.Equal(t, "test: hello world\nfallback text", pn.Message)
+}
+
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
@@ -1379,6 +1446,7 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 

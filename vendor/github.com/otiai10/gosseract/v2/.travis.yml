@@ -1,0 +1,23 @@
+language: go
+go:
+    - 1.11.x
+services:
+    - docker
+compiler:
+    - g++
+before_install:
+    # - TESSERACT=4.00.00dev LEPTONICA=1.74.2 sudo ./test/script/setup.sh
+    - sudo apt-get update -qq
+    - sudo apt-get install -y -qq libtesseract-dev libleptonica-dev tesseract-ocr-eng
+env:
+    global:
+        - LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+        - GO111MODULE=on
+before_script:
+    - go mod vendor -v
+script:
+    - go test -v -bench .
+    - go test -race -coverprofile=coverage.txt -covermode=atomic
+    - ./test/runtime --driver docker
+after_success:
+    - bash <(curl -s https://codecov.io/bash)

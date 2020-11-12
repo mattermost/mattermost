@@ -258,8 +258,8 @@ func NewServerBusyError() *model.AppError {
 	return err
 }
 
-func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.App.MakePermissionError(permission)
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	c.Err = c.App.MakePermissionError(permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -301,7 +301,7 @@ func (c *Context) RequireCategoryId() *Context {
 		return c
 	}
 
-	if len(c.Params.CategoryId) != 26 {
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
 		c.SetInvalidUrlParam("category_id")
 	}
 	return c
@@ -325,6 +325,28 @@ func (c *Context) RequireTokenId() *Context {
 
 	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
+	}
+	return c
+}
+
+func (c *Context) RequireThreadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ThreadId) {
+		c.SetInvalidUrlParam("thread_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Timestamp == 0 {
+		c.SetInvalidUrlParam("timestamp")
 	}
 	return c
 }
@@ -381,6 +403,18 @@ func (c *Context) RequireFileId() *Context {
 
 	if !model.IsValidId(c.Params.FileId) {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequireUploadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.UploadId) {
+		c.SetInvalidUrlParam("upload_id")
 	}
 
 	return c
@@ -649,5 +683,17 @@ func (c *Context) RequireBotUserId() *Context {
 	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
+	return c
+}
+
+func (c *Context) RequireInvoiceId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InvoiceId) != 27 {
+		c.SetInvalidUrlParam("invoice_id")
+	}
+
 	return c
 }

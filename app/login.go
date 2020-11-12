@@ -4,18 +4,24 @@
 package app
 
 import (
+	"crypto/subtle"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/avct/uasurfer"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+const cwsTokenEnv = "CWS_CLOUD_TOKEN"
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
@@ -34,7 +40,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -46,13 +52,49 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 		}
 	}()
 
-	if len(password) == 0 {
+	if len(password) == 0 && !IsCWSLogin(a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
 	if user, err = a.GetUserForLogin(id, loginId); err != nil {
 		return nil, err
+	}
+
+	// CWS login allow to use the one-time token to login the users when they're redirected to their
+	// installation for the first time
+	if IsCWSLogin(a, cwsToken) {
+		if err = checkUserNotBot(user); err != nil {
+			return nil, err
+		}
+		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
+		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+			mlog.Error("error retrieving the cws token from the store", mlog.Err(err))
+			return nil, model.NewAppError("AuthenticateUserForLogin",
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+		}
+		// If token is stored in the database that means it was used
+		if token != nil {
+			return nil, model.NewAppError("AuthenticateUserForLogin",
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
+		}
+		envToken, ok := os.LookupEnv(cwsTokenEnv)
+		if ok && subtle.ConstantTimeCompare([]byte(envToken), []byte(cwsToken)) == 1 {
+			token = &model.Token{
+				Token:    cwsToken,
+				CreateAt: model.GetMillis(),
+				Type:     TOKEN_TYPE_CWS_ACCESS,
+			}
+			err := a.Srv().Store.Token().Save(token)
+			if err != nil {
+				mlog.Error("error storing the cws token in the store", mlog.Err(err))
+				return nil, model.NewAppError("AuthenticateUserForLogin",
+					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+			}
+			return user, nil
+		}
+		return nil, model.NewAppError("AuthenticateUserForLogin",
+			"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// If client side cert is enable and it's checking as a primary source
@@ -83,7 +125,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	if len(id) != 0 {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != store.MISSING_ACCOUNT_ERROR {
+			if err.Id != MISSING_ACCOUNT_ERROR {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
 			}
@@ -176,7 +218,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(user, session)
+			a.Ldap().UpdateProfilePictureIfNecessary(*user, session)
 		})
 	}
 
@@ -245,4 +287,8 @@ func GetProtocol(r *http.Request) string {
 		return "https"
 	}
 	return "http"
+}
+
+func IsCWSLogin(a *App, token string) bool {
+	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
 }

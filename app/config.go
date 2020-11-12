@@ -247,9 +247,9 @@ func (s *Server) ensureInstallationDate() error {
 		return nil
 	}
 
-	installDate, appErr := s.Store.User().InferSystemInstallDate()
+	installDate, nErr := s.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if appErr == nil && installDate > 0 {
+	if nErr == nil && installDate > 0 {
 		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
@@ -297,8 +297,8 @@ func (a *App) PostActionCookieSecret() []byte {
 }
 
 func (s *Server) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(s.Config(), s.diagnosticId, s.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.diagnosticId, s.License())
+	clientConfig := config.GenerateClientConfig(s.Config(), s.TelemetryId(), s.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.TelemetryId(), s.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := s.Store.TermsOfService().GetLatest(true)
@@ -346,6 +346,7 @@ func (s *Server) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(s.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(s.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""
 	if installationDate, err := s.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)

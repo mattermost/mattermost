@@ -54,7 +54,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		if session, nErr = a.Srv().Store.Session().Get(token); nErr == nil {
 			if session != nil {
 				if session.Token != token {
-					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "", http.StatusUnauthorized)
+					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session token is different from the one in DB", http.StatusUnauthorized)
 				}
 
 				if !session.IsExpired() {
@@ -74,13 +74,15 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			if err.Id != "app.user_access_token.invalid_or_missing" {
 				detailedError = err.Error()
 				statusCode = err.StatusCode
+			} else {
+				mlog.Warn("Error while creating session for user access token", mlog.Err(err))
 			}
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, detailedError, statusCode)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": detailedError}, "", statusCode)
 		}
 	}
 
 	if session == nil || session.IsExpired() {
-		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
+		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
@@ -90,8 +92,20 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
 		if (model.GetMillis() - session.LastActivityAt) > timeout {
-			a.RevokeSessionById(session.Id)
-			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "idle timeout", http.StatusUnauthorized)
+			// Revoking the session is an asynchronous task anyways since we are not checking
+			// for the return value of the call before returning the error.
+			// So moving this to a goroutine has 2 advantages:
+			// 1. We are treating this as a proper asynchronous task.
+			// 2. This also fixes a race condition in the web hub, where GetSession
+			// gets called from (*WebConn).isMemberOfTeam and revoking a session involves
+			// clearing the webconn cache, which needs the hub again.
+			a.Srv().Go(func() {
+				err := a.RevokeSessionById(session.Id)
+				if err != nil {
+					mlog.Warn("Error while revoking session", mlog.Err(err))
+				}
+			})
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "idle timeout", http.StatusUnauthorized)
 		}
 	}
 
@@ -385,9 +399,15 @@ func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 
-	user, err := a.Srv().Store.User().Get(token.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreateUserAccessToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreateUserAccessToken", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
@@ -396,14 +416,14 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	token, nErr := a.Srv().Store.UserAccessToken().Save(token)
+	token, nErr = a.Srv().Store.UserAccessToken().Save(token)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -428,9 +448,15 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, err := a.Srv().Store.User().Get(token.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("createSessionForUserAccessToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {

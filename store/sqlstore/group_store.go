@@ -475,7 +475,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
 		if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("CreateGroupSyncable", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateGroupSyncable", "app.team.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))

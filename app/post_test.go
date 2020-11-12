@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -459,6 +460,7 @@ func TestImageProxy(t *testing.T) {
 	mockPostStore := storemocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -470,60 +472,71 @@ func TestImageProxy(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 	})
 
+	th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+
 	for name, tc := range map[string]struct {
-		ProxyType       string
-		ProxyURL        string
-		ProxyOptions    string
-		ImageURL        string
-		ProxiedImageURL string
+		ProxyType              string
+		ProxyURL               string
+		ProxyOptions           string
+		ImageURL               string
+		ProxiedImageURL        string
+		ProxiedRemovedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "http://mydomain.com/myimage",
+			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "http://mymattermost.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "http://mymattermost.com/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "/myimage",
-			ProxiedImageURL: "/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "foo",
-			ImageURL:        "",
-			ProxiedImageURL: "",
+			ProxyType:              model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ProxyURL:               "https://127.0.0.1",
+			ProxyOptions:           "foo",
+			ImageURL:               "",
+			ProxiedRemovedImageURL: "",
+			ProxiedImageURL:        "",
 		},
 		"local": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "http://mydomain.com/myimage",
+			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"local_SameSite": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "http://mymattermost.com/myimage",
-			ProxiedImageURL: "http://mymattermost.com/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "http://mymattermost.com/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_PathOnly": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "/myimage",
-			ProxiedImageURL: "/myimage",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "/myimage",
+			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
+			ProxiedImageURL:        "http://mymattermost.com/myimage",
 		},
 		"local_EmptyImageURL": {
-			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
-			ImageURL:        "",
-			ProxiedImageURL: "",
+			ProxyType:              model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:               "",
+			ProxiedRemovedImageURL: "",
+			ProxiedImageURL:        "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -546,14 +559,14 @@ func TestImageProxy(t *testing.T) {
 
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
-			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+			assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 
 			if tc.ImageURL != "" {
 				post.Message = "![foo](" + tc.ImageURL + " =500x200)"
 				assert.Equal(t, "![foo]("+tc.ProxiedImageURL+" =500x200)", th.App.PostWithProxyAddedToImageURLs(post).Message)
 				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 				post.Message = "![foo](" + tc.ProxiedImageURL + " =500x200)"
-				assert.Equal(t, "![foo]("+tc.ImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+				assert.Equal(t, "![foo]("+tc.ProxiedRemovedImageURL+" =500x200)", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			}
 		})
 	}
@@ -674,6 +687,8 @@ func TestCreatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
+
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
@@ -753,6 +768,8 @@ func TestPatchPost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
+
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -892,15 +909,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -973,6 +990,8 @@ func TestUpdatePost(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
+
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
 
 		imageURL := "http://mydomain.com/myimage"
 		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
@@ -1843,5 +1862,62 @@ func TestFillInPostProps(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
+	})
+}
+
+func TestThreadMembership(t *testing.T) {
+	t.Run("should update memberships for conversation participants", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			RootId:    postRoot.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// first user should now be part of the thread since they replied to a post
+		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id)
+		require.Nil(t, err2)
+		require.Len(t, memberships, 1)
+		// second user should also be part of a thread since they were mentioned
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id)
+		require.Nil(t, err2)
+		require.Len(t, memberships, 1)
+
+		post2, err := th.App.CreatePost(&model.Post{
+			UserId:    user2.Id,
+			ChannelId: channel.Id,
+			Message:   "second post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user2.Id,
+			ChannelId: channel.Id,
+			RootId:    post2.Id,
+			Message:   fmt.Sprintf("@%s", user1.Username),
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		// first user should now be part of two threads
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id)
+		require.Nil(t, err2)
+		require.Len(t, memberships, 2)
 	})
 }

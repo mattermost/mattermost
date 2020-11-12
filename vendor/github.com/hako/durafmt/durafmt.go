@@ -17,9 +17,9 @@ var (
 
 // Durafmt holds the parsed duration and the original input duration.
 type Durafmt struct {
-	duration time.Duration
-	input    string // Used as reference.
-	limitN   int    // Non-zero to limit only first N elements to output.
+	duration  time.Duration
+	input     string // Used as reference.
+	limitN    int    // Non-zero to limit only first N elements to output.
 	limitUnit string // Non-empty to limit max unit
 }
 
@@ -33,6 +33,10 @@ func (d *Durafmt) LimitToUnit(unit string) *Durafmt {
 func (d *Durafmt) LimitFirstN(n int) *Durafmt {
 	d.limitN = n
 	return d
+}
+
+func (d *Durafmt) Duration() time.Duration {
+	return d.duration
 }
 
 // Parse creates a new *Durafmt struct, returns error if input is invalid.
@@ -95,7 +99,7 @@ func (d *Durafmt) String() string {
 	var years int64
 	var shouldConvert = false
 
-	remainingSecondsToConvert := int64(d.duration/time.Microsecond)
+	remainingSecondsToConvert := int64(d.duration / time.Microsecond)
 
 	// Convert duration.
 	if d.limitUnit == "" {

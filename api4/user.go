@@ -63,6 +63,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -85,6 +86,18 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
+
+	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
+	api.BaseRoutes.UserThreads.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
+
+	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
+	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(unfollowThreadByUser)).Methods("DELETE")
+	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateThreadByUser)).Methods("PUT")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -147,6 +160,15 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	// New user created, check cloud limits and send emails if needed
+	// Soft fail on error since user is already created
+	if ruser != nil {
+		err = c.App.CheckAndSendUserLimitWarningEmails()
+		if err != nil {
+			mlog.Error(err.Error())
+		}
 	}
 
 	auditRec.Success()
@@ -746,9 +768,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if len(inGroupId) > 0 {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
@@ -756,8 +778,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 			return
 		}
 
@@ -1059,6 +1081,12 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	// Cannot update a system admin unless user making request is a systemadmin also.
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -1128,6 +1156,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", ouser)
 
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if c.App.Session().IsOAuth && patch.Email != nil {
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1193,6 +1227,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(user)
@@ -1223,6 +1263,18 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.IsValidUserRoles(newRoles) {
 		c.SetInvalidParam("roles")
 		return
+	}
+
+	// require license feature to assign "new system roles"
+	for _, roleName := range strings.Fields(newRoles) {
+		for _, id := range model.NewSystemRoleIDs {
+			if roleName == id {
+				if license := c.App.Srv().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
+					c.Err = model.NewAppError("updateUserRoles", "api.user.update_user_roles.license.app_error", nil, "", http.StatusBadRequest)
+					return
+				}
+			}
+		}
 	}
 
 	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
@@ -1268,7 +1320,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && c.Params.UserId == c.App.Session().UserId
 
-	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+	if !isSelfDeactive && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS) {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
@@ -1285,6 +1337,11 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("user", user)
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if active && user.IsGuest() && !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
@@ -1305,6 +1362,19 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		})
 	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ACTIVATION_STATUS_CHANGE, "", "", "", nil)
+	c.App.Publish(message)
+
+	// If activating, run cloud check for limit overages
+	if active {
+		emailErr := c.App.CheckAndSendUserLimitWarningEmails()
+		if emailErr != nil {
+			c.Err = emailErr
+			return
+		}
+	}
+
 	ReturnStatusOK(w)
 }
 
@@ -1475,23 +1545,43 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempted")
 
+	var canUpdatePassword bool
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
 		auditRec.AddMeta("user", user)
+
+		if user.IsSystemAdmin() {
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
+		} else {
+			canUpdatePassword = c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS)
+		}
 	}
 
 	var err *model.AppError
-	if c.Params.UserId == c.App.Session().UserId {
-		currentPassword := props["current_password"]
-		if len(currentPassword) <= 0 {
-			c.SetInvalidParam("current_password")
-			return
-		}
 
-		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
-	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+	// There are two main update flows depending on whether the provided password
+	// is already hashed or not.
+	if props["already_hashed"] == "true" {
+		if canUpdatePassword {
+			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
+		} else if c.Params.UserId == c.App.Session().UserId {
+			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	} else {
-		err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		if c.Params.UserId == c.App.Session().UserId {
+			currentPassword := props["current_password"]
+			if len(currentPassword) <= 0 {
+				c.SetInvalidParam("current_password")
+				return
+			}
+
+			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+		} else if canUpdatePassword {
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	if err != nil {
@@ -1624,7 +1714,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	props := model.MapFromJson(r.Body)
-
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1658,7 +1747,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1706,6 +1795,48 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
+}
+
+func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+	r.ParseForm()
+	var loginID string
+	var token string
+	if len(r.Form) > 0 {
+		for key, value := range r.Form {
+			if key == "login_id" {
+				loginID = value[0]
+			}
+			if key == "cws_token" {
+				token = value[0]
+			}
+		}
+	}
+
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginID)
+	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	if err != nil {
+		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		mlog.Error("CWS authentication error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	auditRec.AddMeta("user", user)
+	c.LogAuditWithUserId(user.Id, "authenticated")
+	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	if err != nil {
+		mlog.Error("CWS login error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(w, r)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2318,8 +2449,16 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 	props := model.StringInterfaceFromJson(r.Body)
 
 	userId := c.App.Session().UserId
-	termsOfServiceId := props["termsOfServiceId"].(string)
-	accepted := props["accepted"].(bool)
+	termsOfServiceId, ok := props["termsOfServiceId"].(string)
+	if !ok {
+		c.SetInvalidParam("termsOfServiceId")
+		return
+	}
+	accepted, ok := props["accepted"].(bool)
+	if !ok {
+		c.SetInvalidParam("accepted")
+		return
+	}
 
 	auditRec := c.MakeAuditRecord("saveUserTermsOfService", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -2420,6 +2559,12 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
@@ -2529,4 +2674,312 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("convertedTo", bot)
 
 	w.Write(bot.ToJson())
+}
+
+func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId {
+		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UploadSessionsToJson(uss)))
+}
+
+func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		c.SetInvalidParam("force")
+		return
+	}
+
+	matchField, ok := props["match_field"].(string)
+	if !ok {
+		c.SetInvalidParam("match_field")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("match_field", matchField)
+	auditRec.AddMeta("force", force)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToLdap", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	auto, ok := props["auto"].(bool)
+	if !ok {
+		c.SetInvalidParam("auto")
+		return
+	}
+	matches, ok := props["matches"].(map[string]interface{})
+	if !ok {
+		c.SetInvalidParam("matches")
+		return
+	}
+	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+
+	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("matches", matches)
+	auditRec.AddMeta("auto", auto)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	options := model.GetUserThreadsOpts{
+		Since:    0,
+		Page:     0,
+		PageSize: 30,
+		Extended: false,
+		Deleted:  false,
+	}
+
+	sinceString := r.URL.Query().Get("since")
+	if len(sinceString) > 0 {
+		since, parseError := strconv.ParseUint(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+		options.Since = since
+	}
+
+	pageString := r.URL.Query().Get("page")
+	if len(pageString) > 0 {
+		page, parseError := strconv.ParseUint(pageString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("page")
+			return
+		}
+		options.Page = page
+	}
+
+	pageSizeString := r.URL.Query().Get("pageSize")
+	if len(pageString) > 0 {
+		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("pageSize")
+			return
+		}
+		options.PageSize = pageSize
+	}
+
+	deletedStr := r.URL.Query().Get("deleted")
+	extendedStr := r.URL.Query().Get("extended")
+
+	options.Deleted, _ = strconv.ParseBool(deletedStr)
+	options.Extended, _ = strconv.ParseBool(extendedStr)
+
+	threads, err := c.App.GetThreadsForUser(c.Params.UserId, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(threads.ToJson()))
+}
+
+func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId().RequireTimestamp()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateReadStateThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("timestamp", c.Params.Timestamp)
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.ThreadId, c.Params.Timestamp)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+
+	auditRec.Success()
+}
+
+func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("unfollowThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.ThreadId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+
+	auditRec.Success()
+}
+
+func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireThreadId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("followThreadByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.ThreadId, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+	auditRec.Success()
+}
+
+func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTimestamp()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", c.Params.UserId)
+	auditRec.AddMeta("timestamp", c.Params.Timestamp)
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.Timestamp)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+	auditRec.Success()
 }

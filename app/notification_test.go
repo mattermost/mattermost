@@ -1424,6 +1424,24 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.NotContains(t, keywords["Robert"], user.Id)
 	})
 
+	t.Run("should not add case sensitive first name if enabled but empty First Name", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.NotContains(t, keywords[""], user.Id)
+	})
+
 	t.Run("should not add case sensitive first name if disabled", func(t *testing.T) {
 		user := &model.User{
 			Id:        model.NewId(),
@@ -1517,6 +1535,30 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		}
 		channelNotifyProps := map[string]string{
 			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_ON,
+		}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @channel/@all/@here when channel is muted and channel mention setting is not updated by user", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{
+			model.MARK_UNREAD_NOTIFY_PROP:             model.USER_NOTIFY_MENTION,
+			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
 		}
 		status := &model.Status{
 			Status: model.STATUS_ONLINE,

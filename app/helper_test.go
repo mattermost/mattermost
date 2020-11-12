@@ -48,24 +48,23 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	configStore := config.NewTestMemoryStore()
 
-	config := memoryStore.Get()
+	config := configStore.Get()
 	if configSet != nil {
 		configSet(config)
 	}
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*config.LogSettings.EnableSentry = false // disable error reporting during tests
-	memoryStore.Set(config)
+	*config.AnnouncementSettings.AdminNoticesEnabled = false
+	*config.AnnouncementSettings.UserNoticesEnabled = false
+	configStore.Set(config)
 
 	buffer := &bytes.Buffer{}
 
 	var options []Option
-	options = append(options, ConfigStore(memoryStore))
+	options = append(options, ConfigStore(configStore))
 	options = append(options, StoreOverride(dbStore))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
@@ -165,17 +164,6 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().Store = &emptyMockStore
 	return th
-}
-
-func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	return setupTestHelper(dbStore, false, true, tb, configSet)
 }
 
 var initBasicOnce sync.Once
@@ -583,7 +571,7 @@ func (me *TestHelper) ResetRoleMigration() {
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

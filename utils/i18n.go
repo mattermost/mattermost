@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -32,7 +33,13 @@ func TranslationsPreInit() error {
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
-	return InitTranslationsWithDir("i18n")
+
+	translationsDir := "i18n"
+	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
+		translationsDir = filepath.Join(mattermostPath, "i18n")
+	}
+
+	return InitTranslationsWithDir(translationsDir)
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) error {
@@ -46,7 +53,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 func InitTranslationsWithDir(dir string) error {
 	i18nDirectory, found := fileutils.FindDirRelBinary(dir)
 	if !found {
-		return fmt.Errorf("Unable to find i18n directory")
+		return fmt.Errorf(fmt.Sprintf("Unable to find i18n directory at %q", dir))
 	}
 
 	files, _ := ioutil.ReadDir(i18nDirectory)

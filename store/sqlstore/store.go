@@ -77,6 +77,7 @@ type SqlStore interface {
 	Team() store.TeamStore
 	Channel() store.ChannelStore
 	Post() store.PostStore
+	Thread() store.ThreadStore
 	User() store.UserStore
 	Bot() store.BotStore
 	Audit() store.AuditStore
@@ -94,6 +95,7 @@ type SqlStore interface {
 	Emoji() store.EmojiStore
 	Status() store.StatusStore
 	FileInfo() store.FileInfoStore
+	UploadSession() store.UploadSessionStore
 	Reaction() store.ReactionStore
 	Job() store.JobStore
 	Plugin() store.PluginStore

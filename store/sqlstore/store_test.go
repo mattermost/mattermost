@@ -23,6 +23,13 @@ type storeType struct {
 
 var storeTypes []*storeType
 
+func newStoreType(name, driver string) *storeType {
+	return &storeType{
+		Name:        name,
+		SqlSettings: storetest.MakeSqlSettings(driver),
+	}
+}
+
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -89,37 +96,19 @@ func initStores() {
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
-			storeTypes = append(storeTypes, &storeType{
-				Name:        "MySQL",
-				SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
-			})
+			storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL))
 		case "postgres":
-			storeTypes = append(storeTypes, &storeType{
-				Name:        "PostgreSQL",
-				SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
-			})
+			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 		case "cockroach":
 			if store.CockroachQueryBuilder != nil {
-				storeTypes = append(storeTypes, &storeType{
-					Name:        "CockroachDB",
-					SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_COCKROACH),
-				})
+				storeTypes = append(storeTypes, newStoreType("CockroachDB", model.DATABASE_DRIVER_COCKROACH))
 			}
 		}
 	} else {
-		storeTypes = append(storeTypes, &storeType{
-			Name:        "MySQL",
-			SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
-		})
-		storeTypes = append(storeTypes, &storeType{
-			Name:        "PostgreSQL",
-			SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
-		})
+		storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL),
+			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 		if store.CockroachQueryBuilder != nil {
-			storeTypes = append(storeTypes, &storeType{
-				Name:        "CockroachDB",
-				SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_COCKROACH),
-			})
+			storeTypes = append(storeTypes, newStoreType("CockroachDB", model.DATABASE_DRIVER_COCKROACH))
 		}
 	}
 

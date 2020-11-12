@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
@@ -18,6 +17,36 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
+
+// This test was used to consistently reproduce the race
+// before the fix in MM-28397.
+// Keeping it here to help avoiding future regressions.
+func TestSupplierLicenseRace(t *testing.T) {
+	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+	settings.DataSourceReplicas = []string{":memory:"}
+	settings.DataSourceSearchReplicas = []string{":memory:"}
+	supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	go func() {
+		supplier.UpdateLicense(&model.License{})
+		wg.Done()
+	}()
+
+	go func() {
+		supplier.GetReplica()
+		wg.Done()
+	}()
+
+	go func() {
+		supplier.GetSearchReplica()
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
 
 func TestGetReplica(t *testing.T) {
 	t.Parallel()
@@ -203,46 +232,6 @@ func TestGetDbVersion(t *testing.T) {
 			version, err := supplier.GetDbVersion()
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
-		})
-	}
-}
-
-func TestRecycleDBConns(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping recycle DBConns test")
-	}
-	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
-		model.DATABASE_DRIVER_SQLITE,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run(driver, func(t *testing.T) {
-			settings := makeSqlSettings(driver)
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
-
-			var wg sync.WaitGroup
-			tables := []string{"Posts", "Channels", "Users"}
-			for _, table := range tables {
-				wg.Add(1)
-				go func(table string) {
-					defer wg.Done()
-					query := `SELECT count(*) FROM ` + table
-					_, err := supplier.GetMaster().SelectInt(query)
-					assert.NoError(t, err)
-				}(table)
-			}
-			wg.Wait()
-
-			stats := supplier.GetMaster().Db.Stats()
-			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
-
-			supplier.RecycleDBConnections(2 * time.Second)
-			// We cannot reliably control exactly how many open connections are there. So we
-			// just do a basic check and confirm that atleast one has been closed.
-			stats = supplier.GetMaster().Db.Stats()
-			assert.Greater(t, int(stats.MaxLifetimeClosed), 0, "unexpected number of connections closed due to maxlifetime")
 		})
 	}
 }

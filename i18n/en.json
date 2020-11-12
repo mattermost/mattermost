@@ -60,6 +60,10 @@
     "translation": "Could not open certificate file."
   },
   {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Error parsing multiform request"
+  },
+  {
     "id": "api.admin.add_certificate.saving.app_error",
     "translation": "Could not save certificate file."
   },
@@ -74,6 +78,10 @@
   {
     "id": "api.admin.get_brand_image.storage.app_error",
     "translation": "Image storage is not configured."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP is not available."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -462,6 +470,18 @@
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Internal error during cloud api request."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Your license does not support cloud requests."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Error processing request to CWS."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -1111,8 +1131,16 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": ""
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -1297,6 +1325,22 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "File does not exist."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Encountered an error opening the file."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Encountered an error appending to a file in S3."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Encountered an error writing to S3."
+  },
+  {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
   },
@@ -1341,6 +1385,10 @@
     "translation": "Unable to move file locally."
   },
   {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Encountered an error opening a connection to S3."
+  },
+  {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
@@ -1365,7 +1413,7 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Unable to create bucket."
   },
   {
@@ -1373,8 +1421,8 @@
     "translation": "Error checking if bucket exists."
   },
   {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Bad connection to S3 or minio."
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error trying to list objects."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -1407,10 +1455,6 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Unable to upload file(s). Error reading or parsing request data."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1533,12 +1577,20 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
+  },
+  {
     "id": "api.license.request_trial_license.no-site-url.app_error",
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
     "id": "api.marshal_error",
     "translation": "marshal error"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Unable to migrate SAML."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1775,6 +1827,10 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notified the channel."
   },
@@ -1983,44 +2039,208 @@
     "translation": "Thank you for contacting Mattermost. We will follow up with you soon."
   },
   {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost Contact Us request. My team has now {{.Limit}} users and I am considering Mattermost Enterprise Edition.\r\n"
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact us"
+    "translation": "Contact Us"
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting us"
+    "translation": "Contacting Us"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Creating Guest Accounts"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > Guest Access** to enable Guest Accounts."
   },
   {
     "id": "api.server.warn_metric.email_us",
     "translation": "Email us"
   },
   {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Enforcing Multi-Factor Authentication"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > MFA** to enforce multi-factor authentication."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 100 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > AD/LDAP** to integrate your AD/LDAP service."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 200 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+  },
+  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise Edition and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\r\n\r\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integrate AD/LDAP"
+    "translation": "Scaling with Mattermost"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise Edition.\r\n\r\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrate SAML 2.0"
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > Authentication > SAML 2.0** to integrate with your SAML 2.0 provider."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about creating read-only Announcement Channels.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
+    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Create a channel and go to **System Console > User Management > Channels** to limit posting to channel admins."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Read-Only Announcement Channels"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
+    "translation": "Mattermost contact us request. My team now has 500 users, and I'm considering Mattermost Enterprise Edition.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise Edition, which offers features such as user management, server clustering, and performance monitoring.\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Upgrade to Mattermost Enterprise edition"
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to the System Console to enable advanced features."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "translation": "Using Advanced Permissions"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
+    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
+    "translation": "Improving Performance"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
+    "translation": "Your Enterprise trial is now active. Once you have an Elasticsearch server, go to **System Console > Environment > Elasticsearch** to configure Elasticsearch."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
+    "translation": "Mattermost contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
+    "translation": "Using Advanced Permissions"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
+    "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Start Trial"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Getting Trial"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2115,12 +2335,36 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Clearing old product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Fetching product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Parsing product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Validating product notice conditions failed"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": ""
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
   {
     "id": "api.team.add_members.user_denied",
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -2213,6 +2457,10 @@
   {
     "id": "api.team.invite_members.invalid_email.app_error",
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+  },
+  {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2339,6 +2587,26 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
+    "id": "api.templates.at_limit_info1",
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloud User Limit Reached"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "You’ve reached the user limit for the free tier "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
     "id": "api.templates.deactivate_body.info",
     "translation": "You deactivated your account on {{ .SiteURL }}."
   },
@@ -2403,6 +2671,10 @@
     "translation": "Sent by "
   },
   {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Email us any time at "
+  },
+  {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
   },
@@ -2453,6 +2725,22 @@
   {
     "id": "api.templates.mfa_deactivated_body.title",
     "translation": "Multi-factor authentication was removed"
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud Workspace Over User Limit"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Your workspace is over the user limit for the free tier"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2519,6 +2807,10 @@
     "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
   },
   {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Upgrade"
+  },
+  {
     "id": "api.templates.user_access_token_body.info",
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
@@ -2583,10 +2875,6 @@
     "translation": "If you have any additional inquiries, please contact support@mattermost.com"
   },
   {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost Contact Us request. My team has now {{ .Limit }} users and I am considering Mattermost Enterprise Edition."
-  },
-  {
     "id": "api.templates.warn_metric_ack.subject",
     "translation": "Mattermost Contact Us request"
   },
@@ -2617,6 +2905,62 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Invalid Content-Length."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Invalid Content-Type for multipart upload."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Failed to process the multipart data."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2783,6 +3127,10 @@
     "translation": "Unsupported OAuth service provider."
   },
   {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Failed to get uploads."
+  },
+  {
     "id": "api.user.get_user_by_email.permissions.app_error",
     "translation": "Unable to get user by email."
   },
@@ -2847,6 +3195,10 @@
     "translation": "Please sign in using {{.AuthService}}."
   },
   {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS token is not valid"
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -2857,6 +3209,10 @@
   {
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS login is forbidden."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -2987,6 +3343,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
+  },
+  {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Update password failed because we couldn't find a valid account."
   },
@@ -2997,6 +3357,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3179,6 +3543,22 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Unable to get channel type counts."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Failed to update thread membership for mentioned user"
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the channel members."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date."
+  },
+  {
     "id": "app.channel.create_channel.internal_error",
     "translation": "Unable to save channel."
   },
@@ -3207,12 +3587,20 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
     "id": "app.channel.get_all_channels.app_error",
     "translation": "Unable to get all the channels."
   },
   {
     "id": "app.channel.get_all_channels_count.app_error",
     "translation": "Unable to count all the channels."
+  },
+  {
+    "id": "app.channel.get_all_direct.app_error",
+    "translation": "Unable to get all the direct channels."
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
@@ -3223,12 +3611,36 @@
     "translation": "Channel does not exist."
   },
   {
+    "id": "app.channel.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Unable to get the channel counts."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Unable to get channels by ids."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
@@ -3239,8 +3651,56 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Unable to get the channel for the given post."
+  },
+  {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Unable to get the channel member."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "No channel member found for that user ID and channel ID."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Unable to get the channel member count."
+  },
+  {
+    "id": "app.channel.get_members.app_error",
+    "translation": "Unable to get the channel members."
+  },
+  {
+    "id": "app.channel.get_members_by_ids.app_error",
+    "translation": "Unable to get the channel members."
+  },
+  {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Unable to get public channels."
+  },
+  {
+    "id": "app.channel.get_unread.app_error",
+    "translation": "Unable to get the channel unread messages."
+  },
+  {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Unable to increment the mention count."
+  },
+  {
+    "id": "app.channel.migrate_channel_members.select.app_error",
+    "translation": "Failed to select the batch of channel members."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3249,6 +3709,14 @@
   {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Unable to find the pinned posts."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3271,8 +3739,36 @@
     "translation": "%s updated the channel purpose to: %s"
   },
   {
+    "id": "app.channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel."
+  },
+  {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.reset_all_channel_schemes.app_error",
+    "translation": "We could not reset the channel schemes."
+  },
+  {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.channel.search.app_error",
+    "translation": "We encountered an error searching channels."
+  },
+  {
+    "id": "app.channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
   },
   {
     "id": "app.channel.update.bad_id",
@@ -3281,6 +3777,18 @@
   {
     "id": "app.channel.update_channel.internal_error",
     "translation": "Unable to update channel."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Unable to update the last viewed at time."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
     "id": "app.channel_member_history.log_join_event.internal_error",
@@ -3433,6 +3941,26 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Unable to get the file info."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Unable to get the file info with options"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Unable to save the file info."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3999,6 +4527,30 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.get.app_error",
+    "translation": "Unable to get the job."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Unable to get the job count by status and type."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Unable to get the newest job by status and type."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Unable to save the job."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Unable to update the job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -4299,12 +4851,68 @@
     "translation": "Could not save or update plugin key value."
   },
   {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Unable to get post counts."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Unable to get post counts by day."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Unable to get user counts with posts."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
   {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Unable to get direct posts."
+  },
+  {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Unable to get the flagged posts."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound."
+  },
+  {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the posts batch for indexing."
+  },
+  {
+    "id": "app.post.get_posts_created_at.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Unable to overwrite the Post."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -4321,6 +4929,10 @@
   {
     "id": "app.post.save.existing.app_error",
     "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Error searching posts"
   },
   {
     "id": "app.post.update.app_error",
@@ -4523,6 +5135,94 @@
     "translation": "Failed to parse installation date."
   },
   {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Unable to count the teams."
+  },
+  {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the team members."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "We encountered an error finding the team."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Unable to count the team members."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all private teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "We could not get all private teams in page."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Unable to get the team member."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "No team member found for that user ID and team ID."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Unable to count the team members."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Unable to get the teams unread messages."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user."
+  },
+  {
     "id": "app.team.invite_id.group_constrained.error",
     "translation": "Unable to join a group-constrained team by invite."
   },
@@ -4547,12 +5247,64 @@
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Failed to update the team member."
+  },
+  {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Unable to delete the existing team."
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
   {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Unable to remove the team member."
+  },
+  {
     "id": "app.team.rename_team.name_occupied",
     "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "We could not reset the team schemes."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Unable to save the team."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Must call update for existing team."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Unable to save the team member."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "We encountered an error searching teams."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Unable to find the existing team to update."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "We encountered an error updating the team."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -4571,12 +5323,216 @@
     "translation": "No terms of service found."
   },
   {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Cannot upload to a deleted channel."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Cannot upload to the specified channel."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Failed to save upload."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Failed to get uploads for user."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Failed to move file."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Unable to upload data from more than one request."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Failed to read a file."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Failed to update the upload session."
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "Unable to get the active users during the requested period."
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the users."
+  },
+  {
     "id": "app.user.convert_bot_to_user.app_error",
     "translation": "Unable to convert bot to user."
   },
   {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "Failed to update the user."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "We encountered an error trying to find the account by authentication type."
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "Unable to get know users from the database."
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "We encountered an error while finding the new users."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "We encountered an error while finding user profiles."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "We encountered an error while finding user profiles."
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "We encountered an error while finding the recently active users."
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Unable to get user threads"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "We could not count the users."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "We could not get the unread message count for the user."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Unable to get the users batch for indexing."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Unable to find the user."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Unable to delete the existing account."
+  },
+  {
     "id": "app.user.permanentdeleteuser.internal_error",
     "translation": "Unable to delete user."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Failed to update the user."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Unable to save the account."
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "An account with that email already exists."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Must call update for existing user."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "An account with that username already exists."
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Unable to find any user matching the search parameters."
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "Unable to find the existing account to update."
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Unable to deactivate guests."
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "Unable to update the auth data."
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": "Unable to update the failed_attempts."
+  },
+  {
+    "id": "app.user.update_password.app_error",
+    "translation": "Unable to update the user password."
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Unable to update following state for thread"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Unable to update read state for thread"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Unable to update all user threads as read"
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "Unable to update the date of the last update of the user."
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": "Unable to update verify email field."
   },
   {
     "id": "app.user_access_token.delete.app_error",
@@ -4883,6 +5839,18 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.cloud.authentication_failed",
+    "translation": ""
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": ""
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": ""
+  },
+  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -4905,30 +5873,6 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response"
-  },
-  {
-    "id": "ent.compliance.actiance.attachment.copy.appError",
-    "translation": "Unable to copy the attachment into the zip file."
-  },
-  {
-    "id": "ent.compliance.actiance.file.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.creation.appError",
-    "translation": "There was an error creating actiance warning text file"
-  },
-  {
-    "id": "ent.compliance.actiance.warning.write.appError",
-    "translation": "There was an error writing to the actiance xml file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.creation.appError",
-    "translation": "There was an error creating actiance XML file"
-  },
-  {
-    "id": "ent.compliance.actiance.xml.write.appError",
-    "translation": "There was an error writing to the actiance XML file"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",
@@ -5003,12 +5947,20 @@
     "translation": "Failed to purge records."
   },
   {
+    "id": "ent.data_retention.file_infos_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos."
+  },
+  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "We encountered an error cleaning up the batch of flags."
   },
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
+  },
+  {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": ""
   },
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
@@ -5083,6 +6035,10 @@
     "translation": "Failed to index the channel"
   },
   {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": ""
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
   },
@@ -5109,6 +6065,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -5231,8 +6191,16 @@
     "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
   {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Error loading LDAP TLS Certificate file."
+  },
+  {
     "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Invalid Password."
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Error loading LDAP TLS Key file."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -5257,6 +6225,14 @@
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "User not registered on AD/LDAP server."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Error creating key pair"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "No LDAP users found, check your user filter and certificates."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
@@ -5327,6 +6303,14 @@
     "translation": "unable to migrate."
   },
   {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "Unable to add attachment to the Global Relay export."
   },
@@ -5377,6 +6361,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -5437,6 +6425,14 @@
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We received an empty response from the Identity Provider."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": ""
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
@@ -6547,6 +7543,14 @@
     "translation": "An error occurred while trying to execute this command."
   },
   {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
@@ -6659,6 +7663,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "All IncludeDeletedChannels params should have the same value."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -6725,6 +7733,42 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Invalid token."
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Invalid value for ChannelId."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Invalid value for CreateAt"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Invalid value for FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Invalid value for FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Invalid value for Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Invalid value for Id"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Invalid value for Path"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Invalid value for Type"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Invalid Value for UserId"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
@@ -6919,10 +7963,6 @@
     "translation": "select error"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query."
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },
@@ -6939,164 +7979,12 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Unable to get deleted channel type counts."
-  },
-  {
-    "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Unable to get channel type counts."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the channel members."
-  },
-  {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel."
-  },
-  {
-    "id": "store.sql_channel.get_all.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
-    "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Unable to get all the direct channels."
-  },
-  {
-    "id": "store.sql_channel.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
-  },
-  {
-    "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Unable to get channels by ids."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Unable to get the channel for the given post."
-  },
-  {
-    "id": "store.sql_channel.get_member.app_error",
-    "translation": "Unable to get the channel member."
-  },
-  {
-    "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "No channel member found for that user ID and channel ID."
-  },
-  {
-    "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Unable to get the channel member count."
-  },
-  {
-    "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Unable to get the channel member for the given post."
-  },
-  {
-    "id": "store.sql_channel.get_members.app_error",
-    "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Unable to get the channel pinned post count."
-  },
-  {
-    "id": "store.sql_channel.get_private_channels.get.app_error",
-    "translation": "Unable to get private channels."
-  },
-  {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Unable to get public channels."
-  },
-  {
-    "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Unable to get the channel unread messages."
-  },
-  {
-    "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.select.app_error",
-    "translation": "Failed to select the batch of channel members."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.update.app_error",
-    "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member."
-  },
-  {
-    "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Unable to find the pinned posts."
-  },
-  {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel."
-  },
-  {
-    "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Unable to remove the channel member."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.app_error",
-    "translation": "We could not reset the channel schemes."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -7123,58 +8011,6 @@
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
   },
   {
-    "id": "store.sql_channel.save_member.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "A channel member with that ID already exists."
-  },
-  {
-    "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.search.app_error",
-    "translation": "We encountered an error searching channels."
-  },
-  {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.app_error",
-    "translation": "Failed to insert record to database."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
-    "translation": "Unable to delete non-custom category."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Unable to update the last viewed at time."
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread."
-  },
-  {
-    "id": "store.sql_channel.update_member.app_error",
-    "translation": "We encountered an error updating the channel member."
-  },
-  {
-    "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels."
-  },
-  {
     "id": "store.sql_command.get.missing.app_error",
     "translation": "Command does not exist."
   },
@@ -7185,50 +8021,6 @@
   {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "Command does not exist."
-  },
-  {
-    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Unable to delete attachments of the user."
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Unable to attach the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Unable to delete the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.get.app_error",
-    "translation": "Unable to get the file info."
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Unable to get the file info by path."
-  },
-  {
-    "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Unable to get the file info for the post."
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Unable to get the file info for the user."
-  },
-  {
-    "id": "store.sql_file_info.get_with_options.app_error",
-    "translation": "Unable to get the file info with options"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "store.sql_file_info.save.app_error",
-    "translation": "Unable to save the file info."
   },
   {
     "id": "store.sql_group.app_error",
@@ -7259,572 +8051,20 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Unable to delete the job."
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Unable to get the job."
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Unable to get the jobs."
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type."
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type."
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Unable to save the job."
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Unable to update the job."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts."
-  },
-  {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day."
-  },
-  {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Unable to get direct posts."
-  },
-  {
-    "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Unable to get the flagged posts."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Unable to get the oldest entitiy creation time."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Unable to get the parent post for the channel."
-  },
-  {
-    "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound."
-  },
-  {
-    "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound."
-  },
-  {
-    "id": "store.sql_post.get_posts.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Unable to get the parent posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Unable to get the posts."
-  },
-  {
-    "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.overwrite.app_error",
-    "translation": "Unable to overwrite the Post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Unable to get the channel count for the scheme."
-  },
-  {
-    "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Unable to count the private teams."
-  },
-  {
-    "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Unable to count the public teams."
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Unable to count the teams."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the team members."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the team member."
-  },
-  {
-    "id": "store.sql_team.get.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
-    "id": "store.sql_team.get_active_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_all.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "We could not get all private teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-    "translation": "We could not get all private teams in page."
-  },
-  {
-    "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.missing.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_names.app_error",
-    "translation": "Unable to get the teams by names"
-  },
-  {
-    "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
-  },
-  {
-    "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
-  },
-  {
-    "id": "store.sql_team.get_member.app_error",
-    "translation": "Unable to get the team member."
-  },
-  {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "No team member found for that user ID and team ID."
-  },
-  {
-    "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_members.app_error",
-    "translation": "Unable to get the team members."
-  },
-  {
-    "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Unable to get the team members."
-  },
-  {
-    "id": "store.sql_team.get_unread.app_error",
-    "translation": "Unable to get the teams unread messages."
-  },
-  {
-    "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Failed to update the team member."
-  },
-  {
-    "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Unable to delete the existing team."
-  },
-  {
-    "id": "store.sql_team.remove_member.app_error",
-    "translation": "Unable to remove the team member."
-  },
-  {
-    "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes."
-  },
-  {
-    "id": "store.sql_team.save.app_error",
-    "translation": "Unable to save the team."
-  },
-  {
-    "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "A team with that name already exists."
-  },
-  {
-    "id": "store.sql_team.save.existing.app_error",
-    "translation": "Must call update for existing team."
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
   },
   {
-    "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Unable to save the team member."
-  },
-  {
-    "id": "store.sql_team.search_all_team.app_error",
-    "translation": "We encountered an error searching teams."
-  },
-  {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "We encountered an error searching open teams."
-  },
-  {
-    "id": "store.sql_team.search_private_team.app_error",
-    "translation": "We encountered an error searching private teams."
-  },
-  {
-    "id": "store.sql_team.update.app_error",
-    "translation": "Unable to update the team."
-  },
-  {
-    "id": "store.sql_team.update.find.app_error",
-    "translation": "Unable to find the existing team to update."
-  },
-  {
-    "id": "store.sql_team.update.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
-    "id": "store.sql_team.update.updating.app_error",
-    "translation": "We encountered an error updating the team."
-  },
-  {
-    "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Unable to update the date of the last team icon update."
-  },
-  {
-    "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams."
-  },
-  {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Unable to get the active users during the requested period."
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "We could not count the inactive users."
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count."
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the user."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Failed to update the user channels memberships."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Failed to update the user teams memberships."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Failed to update the user."
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "We encountered an error finding the account."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "We encountered an error trying to find the account by authentication type."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "We encountered an error while finding the new users."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "We encountered an error while finding user profiles."
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "We encountered an error while finding user profiles."
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "We encountered an error while finding the recently active users."
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "We encountered an error while finding user profiles."
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "We could not count the users."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "We could not get the unread message count for the user."
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "We could not get the unread message count for the user and channel."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Unable to get the users batch for indexing."
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Unable to find the user."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Unable to delete the existing account."
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Failed to update the user channels memberships."
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Failed to update the user teams memberships."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Failed to update the user."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Unable to save the account."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "An account with that email already exists."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Failed to get current team member count."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "An account with that username already exists."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters."
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Unable to update the account."
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Can not change fields set by AD/LDAP."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "This email is already taken. Please choose another."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Unable to find the existing account to update."
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "We encountered an error finding the account."
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "We encountered an error updating the account."
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "This username is already taken. Please choose another."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Unable to get the list of deactivate guests ids."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Unable to deactivate guests."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Unable to update the auth data."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Unable to update the update_at."
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "We encountered an error updating the user's MFA active status."
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "We encountered an error updating the user's MFA secret."
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user."
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Unable to update verify email field."
   },
   {
     "id": "store.update_error",

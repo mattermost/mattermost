@@ -124,9 +124,8 @@ func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
-
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(teams) == 0 {
@@ -157,7 +156,7 @@ func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
 		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
 
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(channels) == 0 {
@@ -188,7 +187,7 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 		users, err := a.Srv().Store.User().GetAllAfter(1000, afterId)
 
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(users) == 0 {
@@ -263,7 +262,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userId)
 
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, member := range members {
@@ -297,9 +296,9 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
-	members, err := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
-	if err != nil {
-		return nil, err
+	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
+	if nErr != nil {
+		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
@@ -339,9 +338,9 @@ func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 
 	for {
-		posts, err := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
-		if err != nil {
-			return err
+		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
+		if nErr != nil {
+			return model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		if len(posts) == 0 {
@@ -358,6 +357,7 @@ func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
 
 			postLine := ImportLineForPost(post)
 
+			var err *model.AppError
 			postLine.Post.Replies, err = a.buildPostReplies(post.Id)
 			if err != nil {
 				return err
@@ -381,17 +381,18 @@ func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
 func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
 	var replies []ReplyImportData
 
-	replyPosts, err := a.Srv().Store.Post().GetRepliesForExport(postId)
-	if err != nil {
-		return nil, err
+	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postId)
+	if nErr != nil {
+		return nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reply := range replyPosts {
 		replyImportObject := ImportReplyFromPost(reply)
 		if reply.HasReactions {
-			replyImportObject.Reactions, err = a.BuildPostReactions(reply.Id)
-			if err != nil {
-				return nil, err
+			var appErr *model.AppError
+			replyImportObject.Reactions, appErr = a.BuildPostReactions(reply.Id)
+			if appErr != nil {
+				return nil, appErr
 			}
 		}
 		replies = append(replies, *replyImportObject)
@@ -411,11 +412,12 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	for _, reaction := range reactions {
 		user, err := a.Srv().Store.User().Get(reaction.UserId)
 		if err != nil {
-			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now
+			var nfErr *store.ErrNotFound
+			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now
 				mlog.Info("Skipping reactions by user since the entity doesn't exist anymore", mlog.String("user_id", reaction.UserId))
 				continue
 			}
-			return nil, err
+			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
@@ -516,7 +518,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	for {
 		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(channels) == 0 {
@@ -546,7 +548,7 @@ func (a *App) exportAllDirectPosts(writer io.Writer) *model.AppError {
 	for {
 		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(posts) == 0 {

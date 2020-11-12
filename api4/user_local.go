@@ -25,6 +25,7 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.User.Handle("/roles", api.ApiLocal(updateUserRoles)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiLocal(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/active", api.ApiLocal(updateUserActive)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/password", api.ApiLocal(updatePassword)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiLocal(convertUserToBot)).Methods("POST")
 	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiLocal(verifyUserEmailWithoutToken)).Methods("POST")
 
@@ -34,6 +35,9 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiLocal(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(getUserAccessTokensForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(createUserAccessToken)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiLocal(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiLocal(migrateAuthToSaml)).Methods("POST")
 }
 
 func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -43,6 +47,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
+	active := r.URL.Query().Get("active")
 	inactive := r.URL.Query().Get("inactive")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
@@ -70,6 +75,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
+	activeBool, _ := strconv.ParseBool(active)
 	inactiveBool, _ := strconv.ParseBool(inactive)
 
 	userGetOptions := &model.UserGetOptions{
@@ -79,6 +85,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		NotInChannelId:   notInChannelId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
+		Active:           activeBool,
 		Inactive:         inactiveBool,
 		Role:             role,
 		Sort:             sort,
@@ -116,9 +123,9 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else if len(inChannelId) > 0 {
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else {
 		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())

@@ -89,6 +89,10 @@ type golistState struct {
 	rootDirsError error
 	rootDirs      map[string]string
 
+	goVersionOnce  sync.Once
+	goVersionError error
+	goVersion      string // third field of 'go version'
+
 	// vendorDirs caches the (non)existence of vendor directories.
 	vendorDirs map[string]bool
 }
@@ -239,6 +243,21 @@ extractQueries:
 						response.addRoot(id)
 					}
 				}
+			}
+		}
+	}
+	// Add root for any package that matches a pattern. This applies only to
+	// packages that are modified by overlays, since they are not added as
+	// roots automatically.
+	for _, pattern := range restPatterns {
+		match := matchPattern(pattern)
+		for _, pkgID := range modifiedPkgs {
+			pkg, ok := response.seenPackages[pkgID]
+			if !ok {
+				continue
+			}
+			if match(pkg.PkgPath) {
+				response.addRoot(pkg.ID)
 			}
 		}
 	}
@@ -635,6 +654,39 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 			pkg.CompiledGoFiles = pkg.GoFiles
 		}
 
+		// Temporary work-around for golang/go#39986. Parse filenames out of
+		// error messages. This happens if there are unrecoverable syntax
+		// errors in the source, so we can't match on a specific error message.
+		if err := p.Error; err != nil && state.shouldAddFilenameFromError(p) {
+			addFilenameFromPos := func(pos string) bool {
+				split := strings.Split(pos, ":")
+				if len(split) < 1 {
+					return false
+				}
+				filename := strings.TrimSpace(split[0])
+				if filename == "" {
+					return false
+				}
+				if !filepath.IsAbs(filename) {
+					filename = filepath.Join(state.cfg.Dir, filename)
+				}
+				info, _ := os.Stat(filename)
+				if info == nil {
+					return false
+				}
+				pkg.CompiledGoFiles = append(pkg.CompiledGoFiles, filename)
+				pkg.GoFiles = append(pkg.GoFiles, filename)
+				return true
+			}
+			found := addFilenameFromPos(err.Pos)
+			// In some cases, go list only reports the error position in the
+			// error text, not the error position. One such case is when the
+			// file's package name is a keyword (see golang.org/issue/39763).
+			if !found {
+				addFilenameFromPos(err.Err)
+			}
+		}
+
 		if p.Error != nil {
 			msg := strings.TrimSpace(p.Error.Err) // Trim to work around golang.org/issue/32363.
 			// Address golang.org/issue/35964 by appending import stack to error message.
@@ -664,7 +716,60 @@ func (state *golistState) createDriverResponse(words ...string) (*driverResponse
 	return &response, nil
 }
 
-// getPkgPath finds the package path of a directory if it's relative to a root directory.
+func (state *golistState) shouldAddFilenameFromError(p *jsonPackage) bool {
+	if len(p.GoFiles) > 0 || len(p.CompiledGoFiles) > 0 {
+		return false
+	}
+
+	goV, err := state.getGoVersion()
+	if err != nil {
+		return false
+	}
+
+	// On Go 1.14 and earlier, only add filenames from errors if the import stack is empty.
+	// The import stack behaves differently for these versions than newer Go versions.
+	if strings.HasPrefix(goV, "go1.13") || strings.HasPrefix(goV, "go1.14") {
+		return len(p.Error.ImportStack) == 0
+	}
+
+	// On Go 1.15 and later, only parse filenames out of error if there's no import stack,
+	// or the current package is at the top of the import stack. This is not guaranteed
+	// to work perfectly, but should avoid some cases where files in errors don't belong to this
+	// package.
+	return len(p.Error.ImportStack) == 0 || p.Error.ImportStack[len(p.Error.ImportStack)-1] == p.ImportPath
+}
+
+func (state *golistState) getGoVersion() (string, error) {
+	state.goVersionOnce.Do(func() {
+		var b *bytes.Buffer
+		// Invoke go version. Don't use invokeGo because it will supply build flags, and
+		// go version doesn't expect build flags.
+		inv := gocommand.Invocation{
+			Verb: "version",
+			Env:  state.cfg.Env,
+			Logf: state.cfg.Logf,
+		}
+		gocmdRunner := state.cfg.gocmdRunner
+		if gocmdRunner == nil {
+			gocmdRunner = &gocommand.Runner{}
+		}
+		b, _, _, state.goVersionError = gocmdRunner.RunRaw(state.cfg.Context, inv)
+		if state.goVersionError != nil {
+			return
+		}
+
+		sp := strings.Split(b.String(), " ")
+		if len(sp) < 3 {
+			state.goVersionError = fmt.Errorf("go version output: expected 'go version <version>', got '%s'", b.String())
+			return
+		}
+		state.goVersion = sp[2]
+	})
+	return state.goVersion, state.goVersionError
+}
+
+// getPkgPath finds the package path of a directory if it's relative to a root
+// directory.
 func (state *golistState) getPkgPath(dir string) (string, bool, error) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {

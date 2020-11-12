@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,11 +26,15 @@ func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	license := s.License()
 	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		if info := s.Cluster.GetMyClusterInfo(); info != nil {
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, info.Hostname)
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+			lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
+		} else {
+			mlog.Error("Could not get cluster info")
+		}
 	}
 
 	melines, err := s.GetLogsSkipSend(page, perPage)
@@ -59,6 +64,10 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.Config().LogSettings.EnableFile {
+		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), mlog.DefaultFlushTimeout)
+		defer timeoutCancel()
+		mlog.Flush(timeoutCtx)
+
 		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {

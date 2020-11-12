@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -86,46 +87,52 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
-		// Deactivate any plugins that have been disabled.
+		// Determine which plugins need to be activated or deactivated.
+		disabledPlugins := []*model.BundleInfo{}
+		enabledPlugins := []*model.BundleInfo{}
 		for _, plugin := range availablePlugins {
-			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to deactivate it
-			if !pluginEnabled {
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
+			if pluginEnabled {
+				enabledPlugins = append(enabledPlugins, plugin)
+			} else {
+				disabledPlugins = append(disabledPlugins, plugin)
+			}
+		}
+
+		// Concurrently activate/deactivate each plugin appropriately.
+		var wg sync.WaitGroup
+
+		// Deactivate any plugins that have been disabled.
+		for _, plugin := range disabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
+
+				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					a.Publish(message)
 				}
-			}
+			}(plugin)
 		}
 
 		// Activate any plugins that have been enabled
-		for _, plugin := range availablePlugins {
-			if plugin.Manifest == nil {
-				plugin.WrapLogger(a.Log()).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-				continue
-			}
+		for _, plugin := range enabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
 
-			// Determine if plugin is enabled
-			pluginId := plugin.Manifest.Id
-			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginId]; ok {
-				pluginEnabled = state.Enable
-			}
-
-			// Activate plugin if enabled
-			if pluginEnabled {
+				pluginId := plugin.Manifest.Id
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
 				if err != nil {
 					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
-					continue
+					return
 				}
 
 				if activated {
@@ -134,8 +141,9 @@ func (a *App) SyncPluginsActiveState() {
 						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
-			}
+			}(plugin)
 		}
+		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
@@ -660,9 +668,15 @@ func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.EnterprisePlugins = true
 	}
 
+	if license != nil && *license.Features.Cloud {
+		filter.Cloud = true
+	}
+
 	if model.BuildEnterpriseReady == "true" {
 		filter.BuildEnterpriseReady = true
 	}
+
+	filter.Platform = runtime.GOOS + "-" + runtime.GOARCH
 
 	return filter
 }
@@ -746,12 +760,22 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	return getPluginsFromFilePaths(fileStorePaths), nil
+	return a.getPluginsFromFilePaths(fileStorePaths), nil
 }
 
-func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
+func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
+
+	fsPrefix := ""
+	if *a.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		ptr := a.Config().FileSettings.AmazonS3PathPrefix
+		if ptr != nil && *ptr != "" {
+			fsPrefix = *ptr + "/"
+		}
+	}
+
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePath{
@@ -763,6 +787,7 @@ func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignatur
 		}
 	}
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
@@ -792,7 +817,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	pluginSignaturePathMap := a.getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
 	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
 
