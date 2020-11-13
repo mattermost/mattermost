@@ -1080,7 +1080,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("getLogs", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
