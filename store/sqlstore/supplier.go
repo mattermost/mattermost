@@ -7,13 +7,14 @@ import (
 	"context"
 	dbsql "database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -30,6 +31,7 @@ import (
 const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
+	DUP_ENTRY_ERROR      = "duplicate_table"
 	DB_PING_ATTEMPTS     = 18
 	DB_PING_TIMEOUT_SECS = 10
 )
@@ -176,9 +178,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.productNotices = newSqlProductNoticesStore(supplier)
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		mlog.Critical("Error creating database tables.", mlog.Err(err))
-		time.Sleep(time.Second)
-		os.Exit(EXIT_CREATE_TABLE)
+		if dupError, ok := errors.Cause(err).(*pq.Error); ok && dupError.Code.Name() == DUP_ENTRY_ERROR {
+			mlog.Warn("Duplicate key error occurred.", mlog.Err(dupError))
+		} else {
+			mlog.Critical("Error creating database tables.", mlog.Err(err))
+			os.Exit(EXIT_CREATE_TABLE)
+		}
 	}
 
 	err = upgradeDatabase(supplier, model.CurrentVersion)
