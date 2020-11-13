@@ -2709,7 +2709,7 @@ func TestImportTeam(t *testing.T) {
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
 
-	t.Run("CloudForbidden", func(t *testing.T) {
+	t.Run("RestrictSystemAdmin Forbidden", func(t *testing.T) {
 		var data []byte
 		var err error
 		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
