@@ -4953,6 +4953,10 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 }
 
 func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+	if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
+
 	teamId := model.NewId()
 	userId := model.NewId()
 
