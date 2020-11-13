@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const CUSTOM_DEFAULTS_ENV_VAR = "MM_CUSTOM_DEFAULTS_PATH"
+
 var serverCmd = &cobra.Command{
 	Use:          "server",
 	Short:        "Run the Mattermost server",
@@ -37,20 +39,21 @@ func init() {
 }
 
 func loadCustomDefaults() (*model.Config, error) {
+	customDefaultsPath := os.Getenv(CUSTOM_DEFAULTS_ENV_VAR)
+	if customDefaultsPath == "" {
+		return nil, nil
+	}
+
+	file, err := os.Open(customDefaultsPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to open custom defaults file at %q", customDefaultsPath)
+	}
+	defer file.Close()
+
 	var customDefaults *model.Config
-	customDefaultsPath := os.Getenv("MM_CUSTOMDEFAULTS")
-
-	if customDefaultsPath != "" {
-		file, err := os.Open(customDefaultsPath)
-		if err != nil {
-			return nil, errors.Wrapf(err, "unable to open custom defaults file at %q", customDefaultsPath)
-		}
-		defer file.Close()
-
-		err = json.NewDecoder(file).Decode(&customDefaults)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to decode custom defaults configuration")
-		}
+	err = json.NewDecoder(file).Decode(&customDefaults)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to decode custom defaults configuration")
 	}
 
 	return customDefaults, nil
