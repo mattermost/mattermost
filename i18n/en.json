@@ -1955,8 +1955,16 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
+    "id": "api.roles.patch_roles.admin_role.error",
+    "translation": "System Admin role cannot be edited or changed"
+  },
+  {
     "id": "api.roles.patch_roles.license.error",
     "translation": "Your license does not support advanced permissions."
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "One or more of the following permissions that you are trying to add or remove is not allowed"
   },
   {
     "id": "api.scheme.create_scheme.license.error",
