@@ -256,13 +256,15 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("update_at", u.Id)
 	}
 
-	if !IsValidUsername(u.Username) {
-		return InvalidUserError("username", u.Id)
-	}
+	//TODO undo it
+	//if !IsValidUsername(u.Username) {
+	//	return InvalidUserError("username", u.Id)
+	//}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
-		return InvalidUserError("email", u.Id)
-	}
+	//TODO undo it
+	//if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
+	//	return InvalidUserError("email", u.Id)
+	//}
 
 	if utf8.RuneCountInString(u.Nickname) > USER_NICKNAME_MAX_RUNES {
 		return InvalidUserError("nickname", u.Id)
@@ -547,6 +549,9 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	u.EmailVerified = false
 	u.MfaActive = false
 	u.MfaSecret = ""
+	if u.Email == "" {
+		u.Email = strings.ToLower(NewId() + "@localhost")
+	}
 }
 
 func (u *User) ClearNonProfileFields() {
