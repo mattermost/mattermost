@@ -52,6 +52,17 @@ func getRemoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func acceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	msg, err := model.RemoteClusterMsgFromJSON(r.Body)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = msg.IsValid()
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	ReturnStatusOK(w)
 }

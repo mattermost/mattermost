@@ -13,10 +13,13 @@ import (
 
 func TestRemoteClusterJson(t *testing.T) {
 	o := RemoteCluster{Id: NewId(), ClusterName: "test"}
-	json := o.ToJson()
-	ro, err := RemoteClusterFromJson(strings.NewReader(json))
 
+	json, err := o.ToJSON()
 	require.NoError(t, err)
+
+	ro, err := RemoteClusterFromJSON(strings.NewReader(json))
+	require.NoError(t, err)
+
 	require.Equal(t, o.Id, ro.Id)
 	require.Equal(t, o.ClusterName, ro.ClusterName)
 }
@@ -55,4 +58,45 @@ func TestRemoteClusterPreSave(t *testing.T) {
 
 	require.GreaterOrEqual(t, o.CreateAt, now)
 	require.GreaterOrEqual(t, o.LastPingAt, now)
+}
+
+func TestRemoteClusterMsgJson(t *testing.T) {
+	o := RemoteClusterMsg{Id: NewId(), RemoteId: NewId(), CreateAt: GetMillis(), Token: NewId(), Topic: "shared_channel"}
+
+	json, err := o.ToJSON()
+	require.NoError(t, err)
+
+	ro, err := RemoteClusterMsgFromJSON(strings.NewReader(json))
+	require.NoError(t, err)
+
+	require.Equal(t, o.Id, ro.Id)
+	require.Equal(t, o.RemoteId, ro.RemoteId)
+	require.Equal(t, o.CreateAt, ro.CreateAt)
+	require.Equal(t, o.Token, ro.Token)
+	require.Equal(t, o.Topic, ro.Topic)
+}
+
+func TestRemoteClusterMsgIsValid(t *testing.T) {
+	id := NewId()
+	now := GetMillis()
+	data := []struct {
+		name  string
+		msg   *RemoteClusterMsg
+		valid bool
+	}{
+		{name: "Zero value", msg: &RemoteClusterMsg{}, valid: false},
+		{name: "Missing remote id", msg: &RemoteClusterMsg{Id: id}, valid: false},
+		{name: "Missing Token", msg: &RemoteClusterMsg{Id: id, RemoteId: NewId()}, valid: false},
+		{name: "Missing Topic", msg: &RemoteClusterMsg{Id: id, RemoteId: NewId(), Token: NewId()}, valid: false},
+		{name: "RemoteClusterMsg valid", msg: &RemoteClusterMsg{Id: id, RemoteId: NewId(), Token: NewId(), CreateAt: now, Topic: "shared_channel"}, valid: true},
+	}
+
+	for _, item := range data {
+		err := item.msg.IsValid()
+		if item.valid {
+			assert.Nil(t, err, item.name)
+		} else {
+			assert.NotNil(t, err, item.name)
+		}
+	}
 }
