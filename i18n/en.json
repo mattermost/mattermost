@@ -1983,6 +1983,18 @@
     "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "api.remote_cluster.invalid_token.app_error",
+    "translation": "Invalid token."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Invalid topic."
+  },
+  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
   },

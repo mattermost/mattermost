@@ -65,18 +65,65 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	return nil
 }
 
-func (rc *RemoteCluster) ToJson() string {
+func (rc *RemoteCluster) ToJSON() (string, error) {
 	b, err := json.Marshal(rc)
 	if err != nil {
-		return ""
+		return "", err
 	}
-
-	return string(b)
+	return string(b), nil
 }
 
-func RemoteClusterFromJson(data io.Reader) (*RemoteCluster, error) {
+func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, error) {
 	decoder := json.NewDecoder(data)
 	var rc RemoteCluster
 	err := decoder.Decode(&rc)
 	return &rc, err
+}
+
+// RemoteClusterMsg represents a message that is send and received between clusters.
+// These are processed and routed via the RemoteClusters service.
+type RemoteClusterMsg struct {
+	Id       string
+	RemoteId string
+	Topic    string
+	CreateAt int64
+	Token    string
+	Payload  json.RawMessage
+}
+
+func (m *RemoteClusterMsg) IsValid() *AppError {
+	if !IsValidId(m.Id) {
+		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "Id="+m.Id, http.StatusBadRequest)
+	}
+
+	if !IsValidId(m.RemoteId) {
+		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "RemoteId="+m.RemoteId, http.StatusBadRequest)
+	}
+
+	if m.Topic == "" {
+		return NewAppError("RemoteCluster.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
+	}
+
+	if !IsValidId(m.Token) {
+		return NewAppError("RemoteCluster.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (m *RemoteClusterMsg) ToJSON() (string, error) {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
+}
+
+func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
+	decoder := json.NewDecoder(data)
+	var msg RemoteClusterMsg
+	err := decoder.Decode(&msg)
+	if err != nil {
+		return nil, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest)
+	}
+	return &msg, nil
 }
