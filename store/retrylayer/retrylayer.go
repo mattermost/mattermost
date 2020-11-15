@@ -6976,11 +6976,11 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 
 }
 
-func (s *RetryLayerTeamStore) GetMember(teamId string, userId string, readFromMaster bool) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetMember(teamId, userId, readFromMaster)
+		result, err := s.TeamStore.GetMember(ctx, teamId, userId)
 		if err == nil {
 			return result, nil
 		}

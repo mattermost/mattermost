@@ -6329,10 +6329,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(teamId string, userId string, readFromMaster bool) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetMember(teamId, userId, readFromMaster)
+	result, err := s.TeamStore.GetMember(ctx, teamId, userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
