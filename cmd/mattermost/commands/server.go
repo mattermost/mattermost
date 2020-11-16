@@ -71,7 +71,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 	customDefaults, err := loadCustomDefaults()
 	if err != nil {
-		return errors.Wrap(err, "cannot load custom defaults")
+		mlog.Error("Error loading custom configuration defaults.", mlog.Err(err))
 	}
 
 	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
