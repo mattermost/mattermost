@@ -938,7 +938,7 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
 
 		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
-		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES || sqlStore.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
 		}
 		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
