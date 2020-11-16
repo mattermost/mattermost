@@ -737,7 +737,7 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// returns no members when team does not exist
-	groupMembers, err := ss.Group().GetMemberUsersInTeam(group.Id, "non-existant-channel-id")
+	groupMembers, err := ss.Group().GetMemberUsersInTeam(group.Id, "non-existent-channel-id")
 	require.Nil(t, err)
 	require.Equal(t, 0, len(groupMembers))
 
@@ -833,7 +833,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	// returns no members when channel does not exist
-	groupMembers, err := ss.Group().GetMemberUsersNotInChannel(group.Id, "non-existant-channel-id")
+	groupMembers, err := ss.Group().GetMemberUsersNotInChannel(group.Id, "non-existent-channel-id")
 	require.Nil(t, err)
 	require.Equal(t, 0, len(groupMembers))
 

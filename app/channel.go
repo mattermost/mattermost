@@ -2619,7 +2619,7 @@ func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *mo
 }
 
 // MoveChannel method is prone to data races if someone joins to channel during the move process. However this
-// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)

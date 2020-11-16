@@ -54,7 +54,7 @@ func NewFeatureFlagSynchronizer(params FeatureFlagSyncParams) (*FeatureFlagSynch
 // ensureReady blocks until the syncronizer is ready to update feature flag values
 func (f *FeatureFlagSynchronizer) EnsureReady() error {
 	if err := f.client.BlockUntilReady(10); err != nil {
-		return errors.Wrap(err, "split.io client could not initalize")
+		return errors.Wrap(err, "split.io client could not initialize")
 	}
 
 	return nil
