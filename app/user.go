@@ -2368,3 +2368,39 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	return user, nil
 }
+
+func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userId, options)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, thread := range threads.Threads {
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeProps()
+	}
+	return threads, nil
+}
+
+func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError {
+	err := a.Srv().Store.Thread().MarkAllAsRead(userId, timestamp)
+	if err != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError {
+	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, threadId, state)
+	if err != nil {
+		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError {
+	err := a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
+	if err != nil {
+		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
