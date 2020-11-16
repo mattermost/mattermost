@@ -207,6 +207,7 @@ type ChannelStore interface {
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, error)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, error)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error)
+	GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error)
 	ClearCaches()
@@ -221,7 +222,7 @@ type ChannelStore interface {
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, error)
 	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) error
-	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarCategory(categoryId string) error
