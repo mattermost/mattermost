@@ -196,10 +196,6 @@ func TestUpdateConfig(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.RestrictSystemAdmin = false
-		})
-
 		nonEmptyURL := "http://localhost"
 		cfg.ServiceSettings.SiteURL = &nonEmptyURL
 

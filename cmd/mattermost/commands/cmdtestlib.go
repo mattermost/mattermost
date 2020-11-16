@@ -53,11 +53,6 @@ func Setup(t testing.TB) *testHelper {
 
 	config := &model.Config{}
 	config.SetDefaults()
-
-	// Restoring defaults expected for tests
-	*config.ExperimentalSettings.RestrictSystemAdmin = false
-	*config.EmailSettings.RequireEmailVerification = false
-
 	testHelper.SetConfig(config)
 
 	return testHelper
