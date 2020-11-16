@@ -9,25 +9,29 @@ import (
 )
 
 // CasServerURL holds the CAS server URL
+// const CasServerURL string = "http://10.151.190.200/sso" // 51
+// const CasServerURL string = "http://192.168.31.102/sso" // 51test
 const CasServerURL string = "https://www.youshengyun.com/sso"
 
 /*
 CheckIfUserIsAuthenticated 判断当前访问是否已认证
 */
-func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, string) {
+func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, string, string, string) {
 	var ticketIsValid bool = false
 	var userName string
+	var nickName string
+	var email string
 	if !hasTicket(r) {
 		// redirectToCasServer(w, r)
-		return ticketIsValid, userName
+		return ticketIsValid, userName, nickName, email
 	}
-	ticketIsValid, userName = verifyTicket(r)
-    fmt.Println("verifyTicket: ", ticketIsValid, userName)
+	ticketIsValid, userName, nickName, email = verifyTicket(r)
+	fmt.Println("verifyTicket: ", ticketIsValid, userName)
 	if !ticketIsValid {
 		// redirectToCasServer(w, r)
-		return false, userName
+		return false, userName, nickName, email
 	}
-	return ticketIsValid, userName
+	return ticketIsValid, userName, nickName, email
 }
 
 /*
@@ -42,27 +46,31 @@ func redirectToCasServer(w http.ResponseWriter, r *http.Request) {
 /*
 验证访问路径中的ticket是否有效
 */
-func verifyTicket(r *http.Request) (bool, string) {
+func verifyTicket(r *http.Request) (bool, string, string, string) {
 	var userName string
-	var casAuthCenterURL string = CasServerURL + "/serviceValidate?" + r.URL.RawQuery
+	var casAuthCenterURL string = CasServerURL + "/p3/serviceValidate?" + r.URL.RawQuery
+	var nickName string
+	var email string
 	res, err := http.Get(casAuthCenterURL)
 	if err != nil {
-		return false, userName
+		return false, userName, nickName, email
 	}
 	defer res.Body.Close()
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, userName
+		return false, userName, nickName, email
 	}
 
 	dataStr := string(data)
 	fmt.Println("ticket verification results: ", dataStr)
 	if !strings.Contains(dataStr, "cas:authenticationSuccess") {
-		return false, userName
+		return false, userName, nickName, email
 	}
 	userName = extractUserName(dataStr)
-	return true, userName
+	nickName = extractNickName(dataStr)
+	email = extractEmail(dataStr)
+	return true, userName, nickName, email
 }
 
 // function extractUserName is use to extract the user name from xml response
@@ -72,6 +80,7 @@ func extractUserName(xmlResponse string) string {
 	type Response struct {
 		XMLName  xml.Name `xml:"serviceResponse"`
 		UserName string   `xml:"authenticationSuccess>user"`
+		PersonId string   `xml:"authenticationSuccess>attributes>personID"`
 	}
 
 	// replace all substring 'cas:' with blank string
@@ -80,7 +89,47 @@ func extractUserName(xmlResponse string) string {
 	var res Response
 	xml.Unmarshal(data, &res)
 
-	return res.UserName
+	return res.PersonId
+}
+
+// function extractUserName is use to extract the user name from xml response
+// it presumes that it is a success response
+func extractNickName(xmlResponse string) string {
+
+	type Response struct {
+		XMLName  xml.Name `xml:"serviceResponse"`
+		PersonId string   `xml:"authenticationSuccess>attributes>personID"`
+		NickName string   `xml:"authenticationSuccess>attributes>name"`
+	}
+
+	// replace all substring 'cas:' with blank string
+	// or it won't be able to be parsed properly
+	var data = []byte(strings.ReplaceAll(xmlResponse, "cas:", ""))
+	var res Response
+	xml.Unmarshal(data, &res)
+
+	return res.NickName
+}
+
+func extractEmail(xmlResponse string) string {
+
+	type Response struct {
+		XMLName  xml.Name `xml:"serviceResponse"`
+		PersonId string   `xml:"authenticationSuccess>attributes>personID"`
+		Email    string   `xml:"authenticationSuccess>attributes>Email"`
+	}
+
+	// replace all substring 'cas:' with blank string
+	// or it won't be able to be parsed properly
+	var data = []byte(strings.ReplaceAll(xmlResponse, "cas:", ""))
+	var res Response
+	xml.Unmarshal(data, &res)
+
+	if len(res.Email) == 0 {
+		return res.PersonId + "@risesoft.net"
+	} else {
+		return res.Email
+	}
 }
 
 /*

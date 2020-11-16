@@ -112,7 +112,7 @@ func (b *InternalEncryptedFileBackend) upload(fr io.Reader, path string) (int64,
 	}
 	mlog.Info("Written: " + strconv.FormatInt(written, 10))
 
-	writer.WriteField("fullPath", path)
+	writer.WriteField("fullPath", "IM")
 	writer.WriteField("fileName", pathInfo.filename)
 	writer.Close()
 

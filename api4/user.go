@@ -1740,7 +1740,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIsAuthenticated, userName := utils.CheckIfUserIsAuthenticated(w, r)
+	userIsAuthenticated, userName, nickName, email := utils.CheckIfUserIsAuthenticated(w, r)
 	if userIsAuthenticated {
 		if len(userName) > 0 {
 			// try to find user by user name first
@@ -1749,7 +1749,7 @@ func casLogin(c *Context, w http.ResponseWriter, r *http.Request) {
 			fmt.Println("CAS authentication results: ", userIsAuthenticated, userName)
 			// if user not found, create a new one
 			if user == nil {
-				user, err = c.App.CreateCasUser(userName)
+				user, err = c.App.CreateCasUser(userName, nickName, email)
 				fmt.Println("Create Cas User: ", user.ToJson(), userName)
 			}
 

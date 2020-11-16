@@ -319,8 +319,8 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 // CreateCasUser returns a new created user object
-func (a *App) CreateCasUser(userName string) (*model.User, *model.AppError) {
-	user := model.User{Nickname: userName, Username: userName, Locale: "zh-CN"}
+func (a *App) CreateCasUser(userName string, nickName string, userEmail string) (*model.User, *model.AppError) {
+	user := model.User{Nickname: nickName, Username: userName, Locale: "zh-CN", Email: userEmail}
 	user.MakeNonNil()
 
 	ruser, err := a.Srv().Store.User().Save(&user)
@@ -333,6 +333,16 @@ func (a *App) CreateCasUser(userName string) (*model.User, *model.AppError) {
 		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
 			mlog.Error("Unable to make user system admin. Error: ", mlog.Err(err))
 		}
+	}
+	// 自动加入默认团队
+	err = a.AddUserToTeamByTeamId("3o3dsxfputnazx99tuqffauj8c", ruser)
+	if err != nil {
+		return nil, err
+	}
+	// 自动加入默认团队公开频道
+	err = a.AddDirectChannels("3o3dsxfputnazx99tuqffauj8c", ruser)
+	if err != nil {
+		mlog.Error("Failed to add direct channels", mlog.Err(err))
 	}
 
 	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}

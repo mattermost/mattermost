@@ -1001,5 +1001,5 @@ type AppIface interface {
 	WaitForChannelMembership(channelId string, userId string)
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
 
-	CreateCasUser(userName string) (*model.User, *model.AppError)
+	CreateCasUser(userName string, nickName string, email string) (*model.User, *model.AppError)
 }
