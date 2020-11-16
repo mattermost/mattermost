@@ -2,6 +2,8 @@ stages:
   - test
   - build
   - publish
+  - create-vars
+  - trigger
 
 include:
   - project: mattermost/ci/mattermost-server
@@ -9,6 +11,10 @@ include:
     file: private.yml
   - local: .gitlab-ci/test.yml
   - local: .gitlab-ci/test-schema.yml
+
+variables:
+  ONLY_BUILD: "yes"
+  ONLY_TEST: "no"
 
 lint:
   image: golangci/golangci-lint:v1.31.0
@@ -18,6 +24,8 @@ lint:
     - make config-reset
     - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
   timeout: 60 mins
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
 
 layers:
   image: mattermost/mattermost-build-server:20201023_golang-1.14.6
@@ -29,6 +37,8 @@ layers:
     - make app-layers
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
     - git reset --hard
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
 
 test-postgres:
   extends: .test
@@ -37,6 +47,8 @@ test-postgres:
   variables:
     MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
     MM_SQLSETTINGS_DRIVERNAME: postgres
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
 
 test-mysql:
   extends: .test
@@ -45,6 +57,8 @@ test-mysql:
   variables:
     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
     MM_SQLSETTINGS_DRIVERNAME: mysql
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
 
 test-schema-postgres:
   extends: .test-schema
@@ -72,6 +86,8 @@ test-schema-postgres:
     - docker-compose --no-ansi exec -T postgres sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
     - echo "Generating diff"
     - diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
 
 test-schema-mysql:
   extends: .test-schema
@@ -101,3 +117,5 @@ test-schema-mysql:
     - echo "Removing databases created for db comparison"
     - docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
     - echo "Generating diff"
+  rules:
+    - if: '$ONLY_BUILD != "yes"'
