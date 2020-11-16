@@ -17,7 +17,7 @@ variables:
   ONLY_TEST: "no"
 
 empty:
-  stage: .pre
+  stage: create-vars
   script:
     - echo "empty"
 
