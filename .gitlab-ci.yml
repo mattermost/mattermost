@@ -60,7 +60,7 @@ empty:
 #  tags:
 #    - docker
 #  variables:
-#    MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+#    MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
 #    MM_SQLSETTINGS_DRIVERNAME: mysql
 #  rules:
 #    - if: '$ONLY_BUILD != "yes"'
