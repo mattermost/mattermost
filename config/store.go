@@ -48,19 +48,19 @@ type BackingStore interface {
 }
 
 // NewStore creates a database or file store given a data source name by which to connect.
-func NewStore(dsn string, watch bool) (*Store, error) {
+func NewStore(dsn string, watch bool, customDefaults *model.Config) (*Store, error) {
 	backingStore, err := getBackingStore(dsn, watch)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewStoreFromBacking(backingStore)
-
+	return NewStoreFromBacking(backingStore, customDefaults)
 }
 
-func NewStoreFromBacking(backingStore BackingStore) (*Store, error) {
+func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config) (*Store, error) {
 	store := &Store{
-		backingStore: backingStore,
+		backingStore:         backingStore,
+		configCustomDefaults: customDefaults,
 	}
 
 	if err := store.Load(); err != nil {
@@ -90,7 +90,7 @@ func NewTestMemoryStore() *Store {
 		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	configStore, err := NewStoreFromBacking(memoryStore)
+	configStore, err := NewStoreFromBacking(memoryStore, nil)
 	if err != nil {
 		panic("failed to initialize config store: " + err.Error())
 	}
@@ -102,9 +102,10 @@ type Store struct {
 	emitter
 	backingStore BackingStore
 
-	configLock  sync.RWMutex
-	config      *model.Config
-	configNoEnv *model.Config
+	configLock           sync.RWMutex
+	config               *model.Config
+	configNoEnv          *model.Config
+	configCustomDefaults *model.Config
 
 	persistFeatureFlags bool
 }
@@ -193,6 +194,18 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		if err = json.Unmarshal(configBytes, &loadedConfig); err != nil {
 			return jsonutils.HumanizeJsonError(err, configBytes)
 		}
+	}
+
+	// If we have custom defaults set, the initial config is merged on
+	// top of them and we delete them not to be used again in the
+	// configuration reloads
+	if s.configCustomDefaults != nil {
+		var mErr error
+		loadedConfig, mErr = Merge(s.configCustomDefaults, loadedConfig, nil)
+		if mErr != nil {
+			return errors.Wrap(mErr, "failed to merge custom config defaults")
+		}
+		s.configCustomDefaults = nil
 	}
 
 	loadedConfig.SetDefaults()
