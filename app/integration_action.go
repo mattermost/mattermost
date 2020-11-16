@@ -291,7 +291,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		a.SendEphemeralPost(userId, ephemeralPost)
 	}
 
-	return clientTriggerId, nil
+	// Allow the integration action to override the triggerId, e.g. when a plugin opens an
+	// interactive dialog and needs to return that triggerId to the client.
+	returnTriggerId := clientTriggerId
+	if response.TriggerId != "" {
+		returnTriggerId = response.TriggerId
+	}
+
+	return returnTriggerId, nil
 }
 
 // Perform an HTTP POST request to an integration's action endpoint.

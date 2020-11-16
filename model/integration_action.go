@@ -188,6 +188,12 @@ type PostActionIntegrationResponse struct {
 	Update           *Post  `json:"update"`
 	EphemeralText    string `json:"ephemeral_text"`
 	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+
+	// Optional; set this when a plugin wants to return a trigger_id to the client that initiated
+	// the integration action (e.g., when a client clicked on a button, which called an integration
+	// action, which called a slash command, which opened an interactive dialog).
+	// Note: this will override the triggerId generated in DoPostActionWithCookie.
+	TriggerId string `json:"trigger_id"`
 }
 
 type PostActionAPIResponse struct {
