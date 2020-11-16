@@ -16,6 +16,10 @@ variables:
   ONLY_BUILD: "yes"
   ONLY_TEST: "no"
 
+empty:
+  script:
+    - echo "empty"
+
 #lint:
 #  image: golangci/golangci-lint:v1.31.0
 #  stage: .pre
