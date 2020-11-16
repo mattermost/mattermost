@@ -150,6 +150,17 @@ func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, false, true, tb, nil)
 }
 
+func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+
+	return setupTestHelper(dbStore, false, true, tb, nil)
+}
+
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	th := setupTestHelper(mockStore, false, false, tb, nil)
