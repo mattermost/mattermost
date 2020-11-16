@@ -7,8 +7,8 @@ def utils = new org.mattermost.Utils()
 def build = new org.mattermost.BuildCommands()
 def platformStages = new org.mattermost.PlatformStages()
 
-def rndEE = UUID.randomUUID().toString()
-def rndTE = UUID.randomUUID().toString()
+def rndEETest = UUID.randomUUID().toString()
+def rndEEProd = UUID.randomUUID().toString()
 def mmBuilderServer = 'mattermost/mattermost-build-server:20200731_golang-1.14.6'
 def mmBuilderWebapp = 'mattermost/mattermost-build-webapp:oct-2-2018'
 
@@ -18,7 +18,7 @@ pipeline {
   }
 
   options {
-    buildDiscarder(logRotator(daysToKeepStr: '15'))
+    buildDiscarder(logRotator(numToKeepStr: '10'))
     timeout(time: 2, unit: 'HOURS')
   }
 
@@ -39,7 +39,7 @@ pipeline {
     stage('Build') {
       failFast true
       parallel {
-        stage ('Build EE') {
+        stage ('Build EE with test keys') {
           agent {
             label 'default-mm-builder'
           }
@@ -51,16 +51,16 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.cloudGAWithRudderBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEETest, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
-                platformStages.platformCleanDockerCompose(rndEE)
+                platformStages.platformCleanDockerCompose(rndEETest)
               }
             }
-            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eedist'
+            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eetestdist'
           }
         }
-        stage ('Build TE') {
+        stage ('Build EE with prod keys') {
           agent {
             label 'default-mm-builder'
           }
@@ -68,39 +68,40 @@ pipeline {
             script {
               forcefullyCleanWorkspace(mmBuilderServer)
               platformStages.platformCheckoutTE(env.BRANCH_NAME)
+              platformStages.platformCheckoutEE(env.BRANCH_NAME)
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.cloudGAWithRudderBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEEProd, true, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
-                platformStages.platformCleanDockerCompose(rndTE)
+                platformStages.platformCleanDockerCompose(rndEEProd)
               }
             }
-            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'tedist'
+            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eeproddist'
           }
         }
       }
     }
 
-    stage ('Push EE') {
+    stage ('Push EE with test keys') {
       steps {
         node('master') {
           forcefullyCleanWorkspace(mmBuilderServer)
-          unstash 'eedist'
+          unstash 'eetestdist'
           script {
-            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME, 'mattermost-enterprise-*',false)
+            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME + '/test', 'mattermost-enterprise-*',false)
           }
         }
       }
     }
-    stage ('Push TE') {
+    stage ('Push EE with prod keys') {
       steps {
         node('master') {
           forcefullyCleanWorkspace(mmBuilderServer)
-          unstash 'tedist'
+          unstash 'eeproddist'
           script {
-            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME, 'mattermost-team-*',false)
+            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME + '/prod', 'mattermost-enterprise-*',false)
           }
         }
       }
@@ -115,7 +116,7 @@ pipeline {
       }
     }
 
-    stage ('Build Docker Images') {
+    stage ('Build Docker Images Cloud') {
       agent {
         label 'default-mm-builder'
       }
@@ -128,14 +129,14 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
             sh """
-            export TAG='${env.BRANCH_NAME}'
-            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} -t mattermost/mattermost-enterprise-edition:${GIT_COMMIT} build
-            docker push mattermost/mattermost-enterprise-edition
+            export TAG=\$(git rev-parse --short=7 HEAD)-${env.BUILD_NUMBER}
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/test/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mm-cloud-ee:test-\${TAG} build
+            docker push mattermost/mm-cloud-ee:test-\${TAG}
             """
             sh """
-            export TAG='${env.BRANCH_NAME}'
-            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-team-linux-amd64.tar.gz -t mattermost/mattermost-team-edition:\${TAG} -t mattermost/mattermost-team-edition:${GIT_COMMIT} build
-            docker push mattermost/mattermost-team-edition
+            export TAG=\$(git rev-parse --short=7 HEAD)-${env.BUILD_NUMBER}
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/prod/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mm-cloud-ee:prod-\${TAG} build
+            docker push mattermost/mm-cloud-ee:prod-\${TAG}
             docker logout
             """
           }
