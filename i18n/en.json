@@ -5479,6 +5479,10 @@
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
   },
   {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Failed to move uploaded file."
+  },
+  {
     "id": "app.upload.upload_data.read_file.app_error",
     "translation": "Failed to read a file."
   },

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -60,6 +61,11 @@ func TestListImports(t *testing.T) {
 	t.Run("expected imports", func(t *testing.T) {
 		id := uploadNewImport(th.SystemAdminClient, t)
 		id2 := uploadNewImport(th.SystemAdminClient, t)
+
+		dataDir, _ := fileutils.FindDir("data")
+		f, err := os.Create(filepath.Join(dataDir, "import", "import.zip.tmp"))
+		require.Nil(t, err)
+		f.Close()
 
 		imports, resp := th.SystemAdminClient.ListImports()
 		require.Nil(t, resp.Error)

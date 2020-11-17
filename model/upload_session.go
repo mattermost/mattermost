@@ -109,7 +109,7 @@ func (us *UploadSession) IsValid() *AppError {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if !IsValidId(us.UserId) {
+	if !IsValidId(us.UserId) && us.UserId != "nouser" {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.user_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 

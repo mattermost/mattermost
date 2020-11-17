@@ -145,12 +145,6 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 		},
 	}
 
-	t.Run("getting invalid userId should fail", func(t *testing.T) {
-		us, err := ss.UploadSession().GetForUser("invalidId")
-		require.Error(t, err)
-		require.Nil(t, us)
-	})
-
 	t.Run("should return no sessions", func(t *testing.T) {
 		us, err := ss.UploadSession().GetForUser(userId)
 		require.NoError(t, err)

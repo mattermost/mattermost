@@ -38,6 +38,8 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiLocal(migrateAuthToLDAP)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiLocal(migrateAuthToSaml)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/uploads", api.ApiLocal(localGetUploadsForUser)).Methods("GET")
 }
 
 func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -314,4 +316,14 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(user.ToJson()))
+}
+
+func localGetUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UploadSessionsToJson(uss)))
 }

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -274,13 +275,13 @@ func (a *App) ListImports() ([]string, *model.AppError) {
 		return nil, appErr
 	}
 
+	results := make([]string, 0, len(imports))
 	for i := 0; i < len(imports); i++ {
-		imports[i] = filepath.Base(imports[i])
+		filename := filepath.Base(imports[i])
+		if !strings.HasSuffix(filename, incompleteUploadSuffix) {
+			results = append(results, filename)
+		}
 	}
 
-	if imports == nil {
-		imports = []string{}
-	}
-
-	return imports, nil
+	return results, nil
 }
