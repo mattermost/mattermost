@@ -1919,7 +1919,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "この変更があなたによって行われてものでない場合、システム管理者に連絡してください。"
+    "translation": "この変更があなたによって行われたものでない場合、システム管理者に連絡してください。"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -8007,11 +8007,11 @@
   },
   {
     "id": "model.plugin_command_error.error.app_error",
-    "translation": "/{{.Command}} を処理するプラグインが動作していません。システム管理者に連絡してください"
+    "translation": "/{{.Command}} に対するプラグインが動作していません。システム管理者に連絡してください"
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Command}} コマンドによりプラグイン {{.PluginId}} がクラッシュしました。システム管理者に連絡してください"
+    "translation": "/{{.Command}} コマンドにより {{.PluginId}} プラグインがクラッシュしました。システム管理者に連絡してください"
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
@@ -8056,5 +8056,129 @@
   {
     "id": "api.cloud.app_error",
     "translation": "クラウドAPIリクエスト中に内部エラーが発生しました。"
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "いつでもメールしてください "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "無料枠のユーザー数制限に達しました "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloudのユーザー数制限に達しました"
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "もしくは、管理者コンソールからユーザーを無効にすることで、無料枠のユーザー数制限のまま別のユーザーのために枠を開けることもできます。"
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "現在、ワークスペースには10名を超えるユーザーが存在します - 素晴らしい！さらにチームメンバーを招待する予定がある場合、Mattermost Cloud Professoinalへのアップグレードを是非ご検討ください。"
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "S3への接続中にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "既存のアカウントを削除できませんでした。"
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "ユーザーが見つかりませんでした。"
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "インデックス用のユーザーバッチを取得できませんでした。"
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "ユーザーの未読メッセージ数を取得できませんでした。"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "ユーザー数をカウントできませんでした。"
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "最近アクティブなユーザーを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "ユーザープロフィールを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "ユーザープロフィールを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "新規ユーザーを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "データベースからユーザーを取得できませんでした。"
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "このチームにあなたのユーザー名と一致する既存のアカウントが見つかりません。このチームに参加するにはチームの所有者から招待を受ける必要があるかもしれません。"
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "認証形式によるユーザー検索中にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "このチームにあなたの認証形式に一致する既存のアカウントが見つかりません。このチームに参加するには、チームの所有者から招待を受ける必要があるかもしれません。"
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "アカウントを探す際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "ユーザーを更新できませんでした。"
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "ユーザーを取得できませんでした。"
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "無効なユーザーの数をカウントできませんでした。"
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "リクエスト中にアクティブなユーザーを取得できませんでした。"
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "メンションされたユーザーについてのスレッドメンバーシップを更新できませんでした"
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "アップグレードする"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "ワークスペースのユーザー数が無料枠の制限を超えています"
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud Workspace ユーザー数超過"
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "もしくは、管理者コンソールからユーザーを無効にすることで、無料枠のユーザー数制限のまま別のユーザーのために枠を開けることもできます。"
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "ワークスペースにMattermost Cloud Professionalの無料枠を超える10名以上のユーザーがいるようです。ワークスペースの混乱を避けるために、アップグレードしてください。"
   }
 ]

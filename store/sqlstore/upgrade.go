@@ -20,6 +20,7 @@ import (
 
 const (
 	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
+	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
@@ -866,15 +867,6 @@ func upgradeDatabaseToVersion5281(sqlStore SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion530(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
-
-	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
-
-	// saveSchemaVersion(sqlStore, VERSION_5_30_0)
-	// }
-}
-
 func precheckMigrationToVersion528(sqlStore SqlStore) error {
 	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(SchemeId) > 26 THEN 1
@@ -947,4 +939,15 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	}
+}
+
+func upgradeDatabaseToVersion530(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
+
+	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_30_0)
+	// }
 }
