@@ -27,6 +27,7 @@ type Workers struct {
 	ExpiryNotify             model.Worker
 	ProductNotices           model.Worker
 	ActiveUsers              model.Worker
+	Cloud                    model.Worker
 
 	listenerId string
 }
@@ -80,6 +81,11 @@ func (srv *JobServer) InitWorkers() *Workers {
 	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
 		workers.ProductNotices = productNoticesInterface.MakeWorker()
 	}
+
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		workers.Cloud = cloudInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -129,6 +135,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ProductNotices != nil {
 			go workers.ProductNotices.Run()
+		}
+
+		if workers.Cloud != nil {
+			go workers.Cloud.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -237,6 +247,10 @@ func (workers *Workers) Stop() *Workers {
 	}
 	if workers.ProductNotices != nil {
 		workers.ProductNotices.Stop()
+	}
+
+	if workers.Cloud != nil {
+		workers.Cloud.Stop()
 	}
 
 	mlog.Info("Stopped workers")

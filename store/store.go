@@ -103,7 +103,7 @@ type TeamStore interface {
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(userId string) ([]*model.TeamMember, error)
+	GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error)
@@ -207,6 +207,7 @@ type ChannelStore interface {
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, error)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, error)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error)
+	GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error)
 	ClearCaches()
@@ -221,7 +222,7 @@ type ChannelStore interface {
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, error)
 	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) error
-	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarCategory(categoryId string) error
@@ -251,14 +252,18 @@ type ThreadStore interface {
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
+	GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	Delete(postId string) error
+
+	MarkAllAsRead(userId string, timestamp int64) error
+	MarkAsRead(userId, threadId string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
-	CreateMembershipIfNeeded(userId, postId string) error
+	CreateMembershipIfNeeded(userId, postId string, following bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
 }
