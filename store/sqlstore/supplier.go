@@ -179,7 +179,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
 		if dupError, ok := errors.Cause(err).(*pq.Error); ok && dupError.Code.Name() == DUP_ENTRY_ERROR {
-			mlog.Warn("Duplicate key error occurred.", mlog.Err(dupError))
+			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(dupError))
 		} else {
 			mlog.Critical("Error creating database tables.", mlog.Err(err))
 			os.Exit(EXIT_CREATE_TABLE)
