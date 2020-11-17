@@ -32,7 +32,7 @@ const (
 	INDEX_TYPE_FULL_TEXT       = "full_text"
 	INDEX_TYPE_DEFAULT         = "default"
 	PG_DUP_TABLE_ERROR_CODE    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://fromdual.com/mysql-error-codes-and-messages-1050-1099#error_er_table_exists_error
+	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
 	DB_PING_ATTEMPTS           = 18
 	DB_PING_TIMEOUT_SECS       = 10
 )
@@ -1326,7 +1326,7 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	return concatenatedColumnNames
 }
 
-// isDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
+// IsDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
 // tables in the database.
 func IsDuplicate(err error) bool {
 	var pqErr *pq.Error
