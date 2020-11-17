@@ -1,15 +1,15 @@
 .test-schema:
   stage: test
-  image: mattermost/mattermost-build-docker:20201023_19.03.12
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+      alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  services:
-    - name: docker:19.03.12-dind
-      alias: dind
   before_script:
     - docker ps
 
