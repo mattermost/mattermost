@@ -23,9 +23,8 @@ func isWhitespace(c rune) bool {
 	switch c {
 	case ' ', '\t', '\n', '\u000b', '\u000c', '\r':
 		return true
-	default:
-		return false
 	}
+	return false
 }
 
 func isWhitespaceByte(c byte) bool {

@@ -329,6 +329,28 @@ func (c *Context) RequireTokenId() *Context {
 	return c
 }
 
+func (c *Context) RequireThreadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ThreadId) {
+		c.SetInvalidUrlParam("thread_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Timestamp == 0 {
+		c.SetInvalidUrlParam("timestamp")
+	}
+	return c
+}
+
 func (c *Context) RequireChannelId() *Context {
 	if c.Err != nil {
 		return c

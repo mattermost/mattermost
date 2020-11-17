@@ -81,6 +81,7 @@ type Subscription struct {
 	EndAt       int64    `json:"end_at"`
 	CreateAt    int64    `json:"create_at"`
 	Seats       int      `json:"seats"`
+	Status      string   `json:"status"`
 	DNS         string   `json:"dns"`
 	IsPaidTier  string   `json:"is_paid_tier"`
 	LastInvoice *Invoice `json:"last_invoice"`
