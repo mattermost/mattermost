@@ -29,11 +29,12 @@ import (
 )
 
 const (
-	INDEX_TYPE_FULL_TEXT = "full_text"
-	INDEX_TYPE_DEFAULT   = "default"
-	DUP_ENTRY_ERROR      = "duplicate_table"
-	DB_PING_ATTEMPTS     = 18
-	DB_PING_TIMEOUT_SECS = 10
+	INDEX_TYPE_FULL_TEXT       = "full_text"
+	INDEX_TYPE_DEFAULT         = "default"
+	PG_DUP_TABLE_ERROR_CODE    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://fromdual.com/mysql-error-codes-and-messages-1050-1099#error_er_table_exists_error
+	DB_PING_ATTEMPTS           = 18
+	DB_PING_TIMEOUT_SECS       = 10
 )
 
 const (
@@ -178,8 +179,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.productNotices = newSqlProductNoticesStore(supplier)
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		if dupError, ok := errors.Cause(err).(*pq.Error); ok && dupError.Code.Name() == DUP_ENTRY_ERROR {
-			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(dupError))
+		if IsDuplicate(err) {
+			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(err))
 		} else {
 			mlog.Critical("Error creating database tables.", mlog.Err(err))
 			os.Exit(EXIT_CREATE_TABLE)
@@ -1323,4 +1324,23 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	}
 
 	return concatenatedColumnNames
+}
+
+// isDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
+// tables in the database.
+func IsDuplicate(err error) bool {
+	var pqErr *pq.Error
+	var mysqlErr *mysql.MySQLError
+	switch {
+	case errors.As(errors.Cause(err), &pqErr):
+		if pqErr.Code == PG_DUP_TABLE_ERROR_CODE {
+			return true
+		}
+	case errors.As(errors.Cause(err), &mysqlErr):
+		if mysqlErr.Number == MYSQL_DUP_TABLE_ERROR_CODE {
+			return true
+		}
+	}
+
+	return false
 }
