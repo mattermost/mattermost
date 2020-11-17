@@ -2943,7 +2943,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings
-	FeatureFlags              *FeatureFlags `json:",omitempty"`
+	FeatureFlags              *FeatureFlags `json:",omitempty" access:"authentication"`
 }
 
 func (o *Config) Clone() *Config {
