@@ -373,7 +373,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithoutPreloadMigrations(t)
 	defer th.TearDown()
 
 	// Add a license and change the policy config.

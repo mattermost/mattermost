@@ -70,12 +70,16 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	teamStore := mocks.TeamStore{}
 
+	roleStore := mocks.RoleStore{}
+	roleStore.On("GetAll").Return([]*model.Role{}, nil)
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
 	mockStore.On("Status").Return(&statusStore)
 	mockStore.On("Channel").Return(&channelStore)
 	mockStore.On("Team").Return(&teamStore)
+	mockStore.On("Role").Return(&roleStore)
 	mockStore.On("Scheme").Return(&schemeStore)
 	mockStore.On("Close").Return(nil)
 	mockStore.On("DropAllTables").Return(nil)
