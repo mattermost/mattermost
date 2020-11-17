@@ -20,35 +20,35 @@ func TestStoreUpgrade(t *testing.T) {
 		})
 
 		t.Run("upgrade from invalid version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "invalid")
+			saveSchemaVersion(sqlStore, "invalid", false)
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.EqualError(t, err, "failed to parse database schema version invalid: No Major.Minor.Patch elements found")
 			require.Equal(t, "invalid", sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade from unsupported version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "2.0.0")
+			saveSchemaVersion(sqlStore, "2.0.0", false)
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.EqualError(t, err, "Database schema version 2.0.0 is no longer supported. This Mattermost server supports automatic upgrades from schema version 3.0.0 through schema version 5.8.0. Please manually upgrade to at least version 3.0.0 before continuing.")
 			require.Equal(t, "2.0.0", sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade from earliest supported version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
+			saveSchemaVersion(sqlStore, VERSION_3_0_0, false)
 			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
 			require.NoError(t, err)
 			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade from no existing version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "")
+			saveSchemaVersion(sqlStore, "", false)
 			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
 			require.NoError(t, err)
 			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier minor version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "5.1.0")
+			saveSchemaVersion(sqlStore, "5.1.0", false)
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
 			// Assert CURRENT_SCHEMA_VERSION, not 5.8.0, since the migrations will move
@@ -57,21 +57,21 @@ func TestStoreUpgrade(t *testing.T) {
 		})
 
 		t.Run("upgrade schema running later minor version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "5.29.0")
+			saveSchemaVersion(sqlStore, "5.29.0", false)
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
 			require.Equal(t, "5.29.0", sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier major version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "4.1.0")
+			saveSchemaVersion(sqlStore, "4.1.0", false)
 			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
 			require.NoError(t, err)
 			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running later major version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "6.0.0")
+			saveSchemaVersion(sqlStore, "6.0.0", false)
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.EqualError(t, err, "Database schema version 6.0.0 is not supported. This Mattermost server supports only >=5.8.0, <6.0.0. Please upgrade to at least version 6.0.0 before continuing.")
 			require.Equal(t, "6.0.0", sqlStore.GetCurrentSchemaVersion())
@@ -84,7 +84,7 @@ func TestSaveSchemaVersion(t *testing.T) {
 		sqlStore := ss.(SqlStore)
 
 		t.Run("set earliest version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
+			saveSchemaVersion(sqlStore, VERSION_3_0_0, false)
 			props, err := ss.System().Get()
 			require.Nil(t, err)
 
@@ -93,12 +93,30 @@ func TestSaveSchemaVersion(t *testing.T) {
 		})
 
 		t.Run("set current version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, CURRENT_SCHEMA_VERSION)
+			saveSchemaVersion(sqlStore, CURRENT_SCHEMA_VERSION, false)
 			props, err := ss.System().Get()
 			require.Nil(t, err)
 
 			require.Equal(t, CURRENT_SCHEMA_VERSION, props["Version"])
 			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+		})
+		t.Run("check for current version and dont save if it's greater or equal", func(t *testing.T) {
+			saveSchemaVersion(sqlStore, VERSION_5_30_0, false)
+			saveSchemaVersion(sqlStore, VERSION_5_29_0, true)
+			props, err := ss.System().Get()
+			require.Nil(t, err)
+
+			require.Equal(t, VERSION_5_30_0, props["Version"])
+			require.Equal(t, VERSION_5_30_0, sqlStore.GetCurrentSchemaVersion())
+		})
+		t.Run("check for current version and save if it's lesser", func(t *testing.T) {
+			saveSchemaVersion(sqlStore, VERSION_5_29_0, false)
+			saveSchemaVersion(sqlStore, VERSION_5_30_0, true)
+			props, err := ss.System().Get()
+			require.Nil(t, err)
+
+			require.Equal(t, VERSION_5_30_0, props["Version"])
+			require.Equal(t, VERSION_5_30_0, sqlStore.GetCurrentSchemaVersion())
 		})
 	})
 }
