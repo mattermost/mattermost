@@ -33,7 +33,7 @@ empty:
 #    - if: '$ONLY_BUILD != "yes"'
 #
 #layers:
-#  image: mattermost/mattermost-build-server:20201023_golang-1.14.6
+#  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201023_golang-1.14.6
 #  stage: .pre
 #  script:
 #    - make store-layers
