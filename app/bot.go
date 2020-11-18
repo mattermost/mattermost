@@ -26,7 +26,16 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &invErr):
-			return nil, model.NewAppError("CreateBot", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			code := ""
+			switch invErr.Field {
+			case "email":
+				code = "app.user.save.email_exists.app_error"
+			case "username":
+				code = "app.user.save.username_exists.app_error"
+			default:
+				code = "app.user.save.existing.app_error"
+			}
+			return nil, model.NewAppError("CreateBot", code, nil, invErr.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("CreateBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -93,7 +102,16 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 			case errors.As(nErr, &appError):
 				return nil, appError
 			case errors.As(nErr, &invErr):
-				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+				code := ""
+				switch invErr.Field {
+				case "email":
+					code = "app.user.save.email_exists.app_error"
+				case "username":
+					code = "app.user.save.username_exists.app_error"
+				default:
+					code = "app.user.save.existing.app_error"
+				}
+				return nil, model.NewAppError("getOrCreateWarnMetricsBot", code, nil, invErr.Error(), http.StatusBadRequest)
 			default:
 				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.user.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}

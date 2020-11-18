@@ -301,7 +301,7 @@ func (c *Context) RequireCategoryId() *Context {
 		return c
 	}
 
-	if len(c.Params.CategoryId) != 26 {
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
 		c.SetInvalidUrlParam("category_id")
 	}
 	return c
@@ -325,6 +325,28 @@ func (c *Context) RequireTokenId() *Context {
 
 	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
+	}
+	return c
+}
+
+func (c *Context) RequireThreadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ThreadId) {
+		c.SetInvalidUrlParam("thread_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Timestamp == 0 {
+		c.SetInvalidUrlParam("timestamp")
 	}
 	return c
 }

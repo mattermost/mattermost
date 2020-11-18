@@ -99,6 +99,12 @@ type User struct {
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
 
+//msgp UserMap
+
+// UserMap is a map from a userId to a user object.
+// It is used to generate methods which can be used for fast serialization/de-serialization.
+type UserMap map[string]*User
+
 type UserUpdate struct {
 	Old *User
 	New *User
@@ -541,11 +547,11 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
 		u.AuthData = NewString("")
 		u.AuthService = ""
+		u.EmailVerified = false
 	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
-	u.EmailVerified = false
 	u.MfaActive = false
 	u.MfaSecret = ""
 }
