@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -60,7 +59,6 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (s *Server) ReloadConfig() error {
-	debug.FreeOSMemory()
 	if err := s.configStore.Load(); err != nil {
 		return err
 	}

@@ -65,17 +65,19 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	var options []Option
 	options = append(options, ConfigStore(configStore))
-	options = append(options, StoreOverride(dbStore))
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		options = append(options, StoreOverride(func(s *Server) store.Store {
+			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+		}))
+	} else {
+		options = append(options, StoreOverride(dbStore))
+	}
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := NewServer(options...)
 	if err != nil {
 		panic(err)
-	}
-
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
@@ -133,11 +135,24 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 
 	return setupTestHelper(dbStore, true, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, false, true, tb, nil)
+}
+
+func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
