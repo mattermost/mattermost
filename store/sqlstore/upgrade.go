@@ -243,15 +243,18 @@ func saveSchemaVersion(sqlStore SqlStore, version string, checkVersion bool) {
 }
 
 func shouldPerformUpgrade(sqlStore SqlStore, currentSchemaVersion string, expectedSchemaVersion string, hasMissingMigrations func(sqlStore SqlStore) bool) bool {
-	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
+	currentStoredSchemaVersion := sqlStore.GetCurrentSchemaVersion()
+	if currentStoredSchemaVersion == currentSchemaVersion {
 		mlog.Warn("Attempting to upgrade the database schema version", mlog.String("current_version", currentSchemaVersion), mlog.String("new_version", expectedSchemaVersion))
 
 		return true
 	}
 
 	if hasMissingMigrations != nil && hasMissingMigrations(sqlStore) {
-		mlog.Info("Missing migrations detected for version "+expectedSchemaVersion,
-			mlog.String("current_version", currentSchemaVersion))
+		mlog.Info("Missing migrations detected for version "+currentSchemaVersion,
+			mlog.String("version_to_upgrade", expectedSchemaVersion),
+			mlog.String("db_stored_version", currentStoredSchemaVersion),
+		)
 		return true
 	}
 
