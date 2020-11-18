@@ -319,7 +319,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 // CreateCasUser returns a new created user object
-func (a *App) CreateCasUser(userName string, nickName string, userEmail string) (*model.User, *model.AppError) {
+func (a *App) CreateCasUser(userName, nickName, userEmail string) (*model.User, *model.AppError) {
 	user := model.User{Nickname: nickName, Username: userName, Locale: "zh-CN", Email: userEmail}
 	user.MakeNonNil()
 

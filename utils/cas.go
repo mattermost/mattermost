@@ -17,19 +17,16 @@ const CasServerURL string = "https://www.youshengyun.com/sso"
 CheckIfUserIsAuthenticated 判断当前访问是否已认证
 */
 func CheckIfUserIsAuthenticated(w http.ResponseWriter, r *http.Request) (bool, string, string, string) {
-	var ticketIsValid bool = false
-	var userName string
-	var nickName string
-	var email string
 	if !hasTicket(r) {
 		// redirectToCasServer(w, r)
-		return ticketIsValid, userName, nickName, email
+		return false, "", "", ""
 	}
-	ticketIsValid, userName, nickName, email = verifyTicket(r)
+
+	ticketIsValid, userName, nickName, email := verifyTicket(r)
 	fmt.Println("verifyTicket: ", ticketIsValid, userName)
 	if !ticketIsValid {
 		// redirectToCasServer(w, r)
-		return false, userName, nickName, email
+		return false, "", "", ""
 	}
 	return ticketIsValid, userName, nickName, email
 }
@@ -47,29 +44,28 @@ func redirectToCasServer(w http.ResponseWriter, r *http.Request) {
 验证访问路径中的ticket是否有效
 */
 func verifyTicket(r *http.Request) (bool, string, string, string) {
-	var userName string
-	var casAuthCenterURL string = CasServerURL + "/p3/serviceValidate?" + r.URL.RawQuery
-	var nickName string
-	var email string
+
+	casAuthCenterURL := CasServerURL + "/p3/serviceValidate?" + r.URL.RawQuery
+
 	res, err := http.Get(casAuthCenterURL)
 	if err != nil {
-		return false, userName, nickName, email
+		return false, "", "", ""
 	}
 	defer res.Body.Close()
 
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return false, userName, nickName, email
+		return false, "", "", ""
 	}
 
 	dataStr := string(data)
 	fmt.Println("ticket verification results: ", dataStr)
 	if !strings.Contains(dataStr, "cas:authenticationSuccess") {
-		return false, userName, nickName, email
+		return false, "", "", ""
 	}
-	userName = extractUserName(dataStr)
-	nickName = extractNickName(dataStr)
-	email = extractEmail(dataStr)
+	userName := extractUserName(dataStr)
+	nickName := extractNickName(dataStr)
+	email := extractEmail(dataStr)
 	return true, userName, nickName, email
 }
 
