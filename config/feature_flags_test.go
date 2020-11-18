@@ -112,3 +112,23 @@ func TestFeatureFlagsToMap(t *testing.T) {
 		})
 	}
 }
+
+func TestFeatureFlagsToMapBool(t *testing.T) {
+	for name, tc := range map[string]struct {
+		Flags            model.FeatureFlags
+		TestFeatureValue string
+	}{
+		"false": {
+			TestFeatureValue: "false",
+			Flags:            model.FeatureFlags{},
+		},
+		"true": {
+			TestFeatureValue: "true",
+			Flags:            model.FeatureFlags{TestBoolFeature: true},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestBoolFeature"])
+		})
+	}
+}
