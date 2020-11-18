@@ -4366,20 +4366,12 @@
     "translation": "无效的组创建日期属性"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "无效的组删除日期属性"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "无效的组描述属性"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "无效的组显示名属性"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "无效的组 id 属性"
   },
   {
     "id": "model.group.name.app_error",
@@ -4412,10 +4404,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "无效的可同步组 id"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "无效的可同步组类型属性"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4906,14 +4894,6 @@
     "translation": "缺少 TO 地址。"
   },
   {
-    "id": "store.insert_error",
-    "translation": "插入错误"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "选择错误"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "来自数据库：不能从 StringArray 转换到 *string"
   },
@@ -4932,10 +4912,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "无法找到频道。"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "我们查找该频道时遇到了错误。"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4966,22 +4942,6 @@
     "translation": "无法获取命令"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "可同步组已被删除"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "未找到符合的组"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "已有用户组拥有此名称"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "用户组成员已存在"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "此服务器已禁用搜索。请联系您的系统管理员。"
   },
@@ -4996,10 +4956,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "更新错误"
   },
   {
     "id": "system.message.name",
@@ -5852,14 +5808,6 @@
   {
     "id": "model.user.is_valid.update_at.app_error",
     "translation": "更新时必须是有效时间。"
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "建立查询失败。"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "无法移除组成员用户 ID \"{{.UserId}}\"。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -7904,10 +7852,6 @@
   {
     "id": "model.config.is_valid.directory.app_error",
     "translation": "无效的本地储存目录。不能为空字串。"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "多于一条数据被改动。"
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",

@@ -4376,20 +4376,12 @@
     "translation": "Неверное свойство \"Создано в\" для группы."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "Неверное свойство \"удалено в\" для группы."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "Неверное свойство \"описание\" для группы."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "Неверное свойство \"отображаемое имя\" для группы."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "Неверное свойство \"идентификатор\" для группы."
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4414,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "Неверный \"идентификатор синхронизации\" для синхронизации группы."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "Неверное свойство \"тип\" для синхронизации группы."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4916,14 +4904,6 @@
     "translation": "Отсутствует адрес \"Кому\"."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "ошибка выбора"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Невозможно преобразовать StringArray в *string"
   },
@@ -4942,10 +4922,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не удалось найти существующий канал."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4952,6 @@
     "translation": "Невозможно получить команду."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "синхронизируемая группа уже удалена"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "не найдено подходящей группы"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Команда с таким именем уже существует"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "участник группы уже существует"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
   },
@@ -5006,10 +4966,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Этот e-mail уже зарегистрирован, выберите другой."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "ошибка обновления"
   },
   {
     "id": "system.message.name",
@@ -6300,14 +6256,6 @@
     "translation": "Скачать приложение"
   },
   {
-    "id": "store.sql_group.app_error",
-    "translation": "не удалось построить запрос."
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
     "translation": "Установите последнюю версию браузера Safari"
   },
@@ -6486,10 +6434,6 @@
   {
     "id": "api.invalid_channel",
     "translation": "Канал, указанный в запросе, не принадлежит пользователю"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Изменено более одной строки."
   },
   {
     "id": "app.session.update_device_id.app_error",

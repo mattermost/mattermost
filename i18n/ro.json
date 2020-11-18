@@ -4376,20 +4376,12 @@
     "translation": "creare nevalidă la proprietate pentru grup"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "ștergere invalidă la proprietate pentru grup"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "descriere nevalidă pentru proprietatea de grup"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "numele de afișare invalid pentru grup"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "id invalid pentru grup"
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4414,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "id sincronizat invalid pentru sincronizare în grup"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "tipul de proprietate invalidă pentru gruparea sincronizabilă"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4916,14 +4904,6 @@
     "translation": "Lipsește adresa CATRE."
   },
   {
-    "id": "store.insert_error",
-    "translation": "introdu eroarea"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "selectați eroare"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Imposibil de convertit StringArray la *string"
   },
@@ -4942,10 +4922,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Imposibil de găsit canalul existent"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Am întâmpinat o eroare la găsirea canalului"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4952,6 @@
     "translation": "Nu se poate obține comanda"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grupul sincronizat a fost deja șters"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nici o potrivire de grup găsita"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "un grup cu acest nume există deja"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "membru al grupului există deja"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Căutarea a fost dezactivat pe acest server. Vă rugăm să contactaţi administratorul de sistem."
   },
@@ -5006,10 +4966,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Acest e-mail este deja luate. Vă rugăm să alegeţi o altă."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "eroare de actualizare"
   },
   {
     "id": "system.message.name",
@@ -5246,14 +5202,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obțineți cel mai recent browser Chrome"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Imposibil de eliminat membrul grupului cu UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "nu a reușit să creeze interogarea."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6858,10 +6806,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Am întâlnit o eroare la ștergerea preferințelor."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "S-au schimbat mai multe rânduri."
   },
   {
     "id": "store.sql_command.update.missing.app_error",

@@ -4371,20 +4371,12 @@
     "translation": "create inválido na propriedade do grupo"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "delete at inválido na propriedade do grupo"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "description inválido na propriedade do grupo"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "display name inválido na propriedade do grupo"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "id inválido na propriedade do grupo"
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4409,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "syncable id inválido na propriedade do grupo sincronizável"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "type inválido na propriedade do grupo sincronizável"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4899,6 @@
     "translation": "Endereço PARA ausente."
   },
   {
-    "id": "store.insert_error",
-    "translation": "erro ao inserir"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "erro ao selecionar"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Não foi possível converter StringArray para *string"
   },
@@ -4937,10 +4917,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Não foi possível encontrar o canal existente"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Encontramos um erro ao procurar o canal"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4947,6 @@
     "translation": "Não foi possível obter o comando"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grupo sincronizável já foi excluído"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nenhum grupo correspondente encontrado"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Já existe um grupo com este nome"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "membro do grupo já existe"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Pesquisas foram desabilitadas neste servidor. Por favor entre em contato o Administrador do Sistema."
   },
@@ -5001,10 +4961,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Este email já foi utilizado. Por favor escolha outro."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "erro ao atualizar"
   },
   {
     "id": "system.message.name",
@@ -5241,14 +5197,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obter o último navegador Chrome"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Não foi possível remover o membro do grupo com o UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "Falha ao construir a consulta."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6909,10 +6857,6 @@
   {
     "id": "api.templates.warn_metric_ack.footer",
     "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Mais de uma linha alterada."
   },
   {
     "id": "store.sql_command.update.missing.app_error",
