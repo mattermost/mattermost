@@ -2363,20 +2363,15 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 	if post.RootId != "" {
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, post.RootId)
 		if threadMembership != nil {
-			var nErr error
-			threadMembership.UnreadMentions, nErr = a.countThreadMentions(user, post, post.UpdateAt-1)
-			if nErr != nil {
-				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, post.UpdateAt-1)
+			if err != nil {
+				return nil, err
 			}
-			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+			_, nErr := a.Srv().Store.Thread().UpdateMembership(threadMembership)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, *a.Config().ServiceSettings.ThreadAutoFollow)

@@ -5566,15 +5566,15 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	CheckCreatedStatus(t, resp2)
 
 	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int) (*model.Threads, *model.Response) {
-		uss, resp := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+		u, r := client.GetUserThreads(userId, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
 		})
-		CheckNoError(t, resp)
-		require.Len(t, uss.Threads, expectedThreads)
-		require.EqualValues(t, expectedReplies, uss.Threads[0].UnreadReplies)
-		return uss, resp
+		CheckNoError(t, r)
+		require.Len(t, u.Threads, expectedThreads)
+		require.EqualValues(t, expectedReplies, u.Threads[0].UnreadReplies)
+		return u, r
 	}
 	// regular user should have one thread with one reply
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
