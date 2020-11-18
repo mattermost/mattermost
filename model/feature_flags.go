@@ -15,6 +15,6 @@ type FeatureFlags struct {
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
-	f.OpenIdConnect = "on"
+	f.OpenIdConnect = "off"
 	f.CloudDelinquentEmailJobsEnabled = false
 }
