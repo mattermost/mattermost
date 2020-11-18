@@ -7838,5 +7838,21 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Ошибка синтаксического анализа многоформатного запроса"
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Невозможно загрузить на указанный канал."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация > МФА**, чтобы включить многофакторную аутентификацию."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о принудительной многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   }
 ]
