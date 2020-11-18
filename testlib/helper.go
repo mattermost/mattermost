@@ -6,6 +6,7 @@ package testlib
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -119,6 +120,42 @@ func (h *MainHelper) setupResources() {
 	h.testResourcePath, err = SetupTestResources()
 	if err != nil {
 		panic("failed to setup test resources: " + err.Error())
+	}
+}
+
+// PreloadMigrations preloads the migrations and roles into the database
+// so that they are not run again when the migrations happen every time
+// the server is started.
+// This change is forward-compatible with new migrations and only new migrations
+// will get executed.
+// Only if the schema of either roles or systems table changes, this will break.
+// In that case, just update the migrations or comment this out for the time being.
+// In the worst case, only an optimization is lost.
+//
+// Re-generate the files with:
+// pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t roles -t systems
+// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE Systems Roles
+// And keep only the permission related rows in the systems table output.
+func (h *MainHelper) PreloadMigrations() {
+	var buf []byte
+	var err error
+	switch *h.Settings.DriverName {
+	case model.DATABASE_DRIVER_POSTGRES:
+		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/postgres_migration_warmup.sql")
+		if err != nil {
+			panic(fmt.Errorf("cannot read file: %v", err))
+		}
+	case model.DATABASE_DRIVER_MYSQL:
+		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/mysql_migration_warmup.sql")
+		if err != nil {
+			panic(fmt.Errorf("cannot read file: %v", err))
+		}
+	}
+	handle := h.SQLSupplier.GetMaster()
+	_, err = handle.Exec(string(buf))
+	if err != nil {
+		mlog.Error("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
+		panic(err)
 	}
 }
 

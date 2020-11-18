@@ -2955,22 +2955,25 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.Channe
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
-	props := make(map[string]interface{})
-	idQuery := ""
 
-	for index, userId := range userIds {
-		if len(idQuery) > 0 {
-			idQuery += ", "
-		}
-
-		props["userId"+strconv.Itoa(index)] = userId
-		idQuery += ":userId" + strconv.Itoa(index)
-	}
-
+	keys, props := MapStringsToQueryParams(userIds, "User")
 	props["ChannelId"] = channelId
 
-	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN ("+idQuery+")", props); err != nil {
+	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN "+keys, props); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
+	}
+
+	return dbMembers.ToModel(), nil
+}
+
+func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	var dbMembers channelMemberWithSchemeRolesList
+
+	keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	props["UserId"] = userId
+
+	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys, props); err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
 	return dbMembers.ToModel(), nil
