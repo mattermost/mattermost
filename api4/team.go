@@ -1079,6 +1079,11 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
