@@ -6,6 +6,7 @@ package config
 import (
 	"math"
 	"reflect"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -73,7 +74,8 @@ func (f *FeatureFlagSynchronizer) Close() {
 // featureFlagsFromMap sets the feature flags from a map[string]string.
 // It starts with baseFeatureFlags and only sets values that are
 // given by the upstream management system.
-// Makes the assumption that all feature flags are strings for now.
+// Makes the assumption that all feature flags are strings or booleans.
+// Strings are converted to booleans by consitering "on" or "true" as true and any other value as false.
 func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.FeatureFlags) model.FeatureFlags {
 	refStruct := reflect.ValueOf(&baseFeatureFlags).Elem()
 	for fieldName, fieldValue := range featuresMap {
@@ -83,13 +85,19 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 			continue
 		}
 
-		refField.Set(reflect.ValueOf(fieldValue))
+		switch refField.Type().Kind() {
+		case reflect.Bool:
+			refField.Set(reflect.ValueOf(fieldValue == "on" || fieldValue == "true"))
+		default:
+			refField.Set(reflect.ValueOf(fieldValue))
+		}
+
 	}
 	return baseFeatureFlags
 }
 
 // featureFlagsToMap returns the feature flags as a map[string]string
-// Currently assumes that all feature flags are strings for now.
+// Supports boolean and string feature flags.
 func featureFlagsToMap(featureFlags *model.FeatureFlags) map[string]string {
 	refStructVal := reflect.ValueOf(*featureFlags)
 	refStructType := reflect.TypeOf(*featureFlags)
@@ -100,7 +108,12 @@ func featureFlagsToMap(featureFlags *model.FeatureFlags) map[string]string {
 		if !refFieldVal.IsValid() {
 			continue
 		}
-		ret[refFieldType.Name] = refFieldVal.String()
+		switch refFieldType.Type.Kind() {
+		case reflect.Bool:
+			ret[refFieldType.Name] = strconv.FormatBool(refFieldVal.Bool())
+		default:
+			ret[refFieldType.Name] = refFieldVal.String()
+		}
 	}
 
 	return ret
