@@ -351,6 +351,7 @@ type ServiceSettings struct {
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -783,6 +784,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewBool(true)
+	}
+
+	if s.ManagedResourcePaths == nil {
+		s.ManagedResourcePaths = NewString("")
 	}
 }
 
@@ -2729,7 +2734,7 @@ type MessageExportSettings struct {
 	DownloadExportResults *bool   `access:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelaySettings *GlobalRelayMessageExportSettings
+	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {

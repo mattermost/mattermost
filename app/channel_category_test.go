@@ -62,8 +62,12 @@ func TestSidebarCategory(t *testing.T) {
 		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
 		require.Nil(t, err, "Should update order successfully")
 
-		actualOrder[2] = "asd"
-		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
+		// We create a copy of actualOrder to prevent racy read
+		// of the slice when the broadcast message is sent from webhub.
+		newOrder := make([]string, len(actualOrder))
+		copy(newOrder, actualOrder)
+		newOrder[2] = "asd"
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, newOrder)
 		require.NotNil(t, err, "Should return error due to invalid id")
 	})
 
@@ -130,5 +134,526 @@ func TestGetSidebarCategories(t *testing.T) {
 		assert.Nil(t, categories)
 		assert.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.sidebar_categories.app_error", appErr.Id)
+	})
+}
+
+func TestUpdateSidebarCategories(t *testing.T) {
+	t.Run("should mute and unmute all channels in a category when it is muted or unmuted", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, err)
+
+		channelsCategory := categories.Categories[1]
+
+		// Create some channels to be part of the channels category
+		channel1 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// Mute the category
+		updated, err := th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:    channelsCategory.Id,
+					Muted: true,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+		})
+		require.Nil(t, err)
+		assert.True(t, updated[0].Muted)
+
+		// Confirm that the channels are now muted
+		member1, err := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+
+		// Unmute the category
+		updated, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:    channelsCategory.Id,
+					Muted: false,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+		})
+		require.Nil(t, err)
+		assert.False(t, updated[0].Muted)
+
+		// Confirm that the channels are now unmuted
+		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should mute and unmute channels moved from an unmuted category to a muted one and back", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		mutedCategory, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "muted",
+				Muted:       true,
+			},
+		})
+		require.Nil(t, err)
+		require.True(t, mutedCategory.Muted)
+
+		unmutedCategory, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "unmuted",
+				Muted:       false,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.False(t, unmutedCategory.Muted)
+
+		// Move the channels
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          mutedCategory.Id,
+					DisplayName: mutedCategory.DisplayName,
+					Muted:       mutedCategory.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          unmutedCategory.Id,
+					DisplayName: unmutedCategory.DisplayName,
+					Muted:       unmutedCategory.Muted,
+				},
+				Channels: []string{},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are now muted
+		member1, err := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+
+		// Move the channels back
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          mutedCategory.Id,
+					DisplayName: mutedCategory.DisplayName,
+					Muted:       mutedCategory.Muted,
+				},
+				Channels: []string{},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          unmutedCategory.Id,
+					DisplayName: unmutedCategory.DisplayName,
+					Muted:       unmutedCategory.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are now unmuted
+		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should not mute or unmute channels moved between muted categories", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		category1, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category1",
+				Muted:       true,
+			},
+		})
+		require.Nil(t, err)
+		require.True(t, category1.Muted)
+
+		category2, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category2",
+				Muted:       true,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.True(t, category2.Muted)
+
+		// Move the unmuted channels
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category1.Id,
+					DisplayName: category1.DisplayName,
+					Muted:       category1.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category2.Id,
+					DisplayName: category2.DisplayName,
+					Muted:       category2.Muted,
+				},
+				Channels: []string{},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still unmuted
+		member1, err := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+
+		// Mute the channels manually
+		_, err = th.App.ToggleMuteChannel(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		_, err = th.App.ToggleMuteChannel(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Move the muted channels back
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category1.Id,
+					DisplayName: category1.DisplayName,
+					Muted:       category1.Muted,
+				},
+				Channels: []string{},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category2.Id,
+					DisplayName: category2.DisplayName,
+					Muted:       category2.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still muted
+		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+	})
+
+	t.Run("should not mute or unmute channels moved between unmuted categories", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Create some channels
+		channel1 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel1)
+
+		channel2 := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel2)
+
+		// And some categories
+		category1, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category1",
+				Muted:       false,
+			},
+		})
+		require.Nil(t, err)
+		require.False(t, category1.Muted)
+
+		category2, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "category2",
+				Muted:       false,
+			},
+			Channels: []string{channel1.Id, channel2.Id},
+		})
+		require.Nil(t, err)
+		require.False(t, category2.Muted)
+
+		// Move the unmuted channels
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category1.Id,
+					DisplayName: category1.DisplayName,
+					Muted:       category1.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category2.Id,
+					DisplayName: category2.DisplayName,
+					Muted:       category2.Muted,
+				},
+				Channels: []string{},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still unmuted
+		member1, err := th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member1.IsChannelMuted())
+		member2, err := th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.False(t, member2.IsChannelMuted())
+
+		// Mute the channels manually
+		_, err = th.App.ToggleMuteChannel(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		_, err = th.App.ToggleMuteChannel(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Move the muted channels back
+		_, err = th.App.UpdateSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category1.Id,
+					DisplayName: category1.DisplayName,
+					Muted:       category1.Muted,
+				},
+				Channels: []string{},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          category2.Id,
+					DisplayName: category2.DisplayName,
+					Muted:       category2.Muted,
+				},
+				Channels: []string{channel1.Id, channel2.Id},
+			},
+		})
+		require.Nil(t, err)
+
+		// Confirm that the channels are still muted
+		member1, err = th.App.GetChannelMember(channel1.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member1.IsChannelMuted())
+		member2, err = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		assert.True(t, member2.IsChannelMuted())
+	})
+}
+
+func TestDiffChannelsBetweenCategories(t *testing.T) {
+	t.Run("should return nothing when the categories contain identical channels", func(t *testing.T) {
+		originalCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category One",
+				},
+				Channels: []string{"channel1", "channel2", "channel3"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Two",
+				},
+				Channels: []string{"channel4", "channel5"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category3",
+					DisplayName: "Category Three",
+				},
+				Channels: []string{},
+			},
+		}
+
+		updatedCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category Won",
+				},
+				Channels: []string{"channel1", "channel2", "channel3"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Too",
+				},
+				Channels: []string{"channel4", "channel5"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category3",
+					DisplayName: "Category 🌲",
+				},
+				Channels: []string{},
+			},
+		}
+
+		channelsDiff := diffChannelsBetweenCategories(updatedCategories, originalCategories)
+		assert.Equal(t, map[string]*categoryChannelDiff{}, channelsDiff)
+	})
+
+	t.Run("should return nothing when the categories contain identical channels", func(t *testing.T) {
+		originalCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category One",
+				},
+				Channels: []string{"channel1", "channel2", "channel3"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Two",
+				},
+				Channels: []string{"channel4", "channel5"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category3",
+					DisplayName: "Category Three",
+				},
+				Channels: []string{},
+			},
+		}
+
+		updatedCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category Won",
+				},
+				Channels: []string{},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Too",
+				},
+				Channels: []string{"channel5", "channel2"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category3",
+					DisplayName: "Category 🌲",
+				},
+				Channels: []string{"channel4", "channel1", "channel3"},
+			},
+		}
+
+		channelsDiff := diffChannelsBetweenCategories(updatedCategories, originalCategories)
+		assert.Equal(
+			t,
+			map[string]*categoryChannelDiff{
+				"channel1": {
+					fromCategoryId: "category1",
+					toCategoryId:   "category3",
+				},
+				"channel2": {
+					fromCategoryId: "category1",
+					toCategoryId:   "category2",
+				},
+				"channel3": {
+					fromCategoryId: "category1",
+					toCategoryId:   "category3",
+				},
+				"channel4": {
+					fromCategoryId: "category2",
+					toCategoryId:   "category3",
+				},
+			},
+			channelsDiff,
+		)
+	})
+
+	t.Run("should not return channels that are moved in our out of the categories implicitly", func(t *testing.T) {
+		// This case could change to actually return the channels in the future, but we don't need to handle it right now
+		originalCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category One",
+				},
+				Channels: []string{"channel1", "channel2"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Two",
+				},
+				Channels: []string{"channel3"},
+			},
+		}
+
+		updatedCategories := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category1",
+					DisplayName: "Category Won",
+				},
+				Channels: []string{"channel1", "channel3"},
+			},
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          "category2",
+					DisplayName: "Category Too",
+				},
+				Channels: []string{"channel4"},
+			},
+		}
+
+		channelsDiff := diffChannelsBetweenCategories(updatedCategories, originalCategories)
+		assert.Equal(
+			t,
+			map[string]*categoryChannelDiff{
+				"channel3": {
+					fromCategoryId: "category2",
+					toCategoryId:   "category1",
+				},
+			},
+			channelsDiff,
+		)
 	})
 }

@@ -934,6 +934,29 @@ func (_m *ChannelStore) GetMembers(channelId string, offset int, limit int) (*mo
 	return r0, r1
 }
 
+// GetMembersByChannelIds provides a mock function with given fields: channelIds, userId
+func (_m *ChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	ret := _m.Called(channelIds, userId)
+
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func([]string, string) *model.ChannelMembers); ok {
+		r0 = rf(channelIds, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMembers)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(channelIds, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembersByIds provides a mock function with given fields: channelId, userIds
 func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	ret := _m.Called(channelId, userIds)
@@ -1859,7 +1882,7 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 }
 
 // UpdateSidebarCategories provides a mock function with given fields: userId, teamId, categories
-func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
+func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(userId, teamId, categories)
 
 	var r0 []*model.SidebarCategoryWithChannels
@@ -1871,14 +1894,23 @@ func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, ca
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
+	var r1 []*model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
 		r1 = rf(userId, teamId, categories)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]*model.SidebarCategoryWithChannels)
+		}
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
+		r2 = rf(userId, teamId, categories)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // UpdateSidebarCategoryOrder provides a mock function with given fields: userId, teamId, categoryOrder
