@@ -5544,6 +5544,120 @@ func TestFollowThreads(t *testing.T) {
 	})
 }
 
+func TestMaintainUnreadRepliesInThread(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	Client := th.Client
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+	// create a post by regular user
+	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	// reply with another
+	rpost2, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+	CheckNoError(t, resp2)
+	CheckCreatedStatus(t, resp2)
+
+	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int) (*model.Threads, *model.Response) {
+		uss, resp := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+			Page:     0,
+			PageSize: 30,
+			Deleted:  false,
+		})
+		CheckNoError(t, resp)
+		require.Len(t, uss.Threads, expectedThreads)
+		require.EqualValues(t, expectedReplies, uss.Threads[0].UnreadReplies)
+		return uss, resp
+	}
+	// regular user should have one thread with one reply
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+
+	// add another reply by regular user
+	_, resp3 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
+	CheckNoError(t, resp3)
+	CheckCreatedStatus(t, resp3)
+
+	// replying to the thread clears reply count, so it should be 0
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+
+	// the other user should have 2 replies
+	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+
+	// rewind read state to before the post
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// reply count should be 2
+	checkThreadList(th.Client, th.BasicUser.Id, 2, 1)
+
+	// the other user should also have 2
+	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+}
+
+func TestMaintainUnreadMentionsInThread(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
+		uss, resp := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+			Page:     0,
+			PageSize: 30,
+			Deleted:  false,
+		})
+		CheckNoError(t, resp)
+		require.Len(t, uss.Threads, expectedThreads)
+		require.EqualValues(t, expectedMentions, uss.Threads[0].UnreadMentions)
+		return uss, resp
+	}
+
+	// create regular post
+	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	// create reply and mention the original poster and another user
+	msg := "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username
+	rpost2, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: msg, RootId: rpost.Id})
+	CheckNoError(t, resp2)
+	CheckCreatedStatus(t, resp2)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+	// basic user 1 was mentioned 1 time
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	// basic user 2 was mentioned 1 time
+	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
+
+	// set read state, this should clear the mentions
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, model.GetMillis())
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// basic user 1 mention count should be reset
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+	// basic user 2 was mentioned 1 time, and not reset (UpdateThreadsReadForUser was called for another user)
+	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
+
+	// rewind read state to before the post
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// basic user 1 was mentioned 1 time, so it should be restored
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+}
+
 func TestReadThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

@@ -2382,9 +2382,35 @@ func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts)
 }
 
 func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError {
-	err := a.Srv().Store.Thread().MarkAllAsRead(userId, timestamp)
+	user, err := a.GetUser(userId)
 	if err != nil {
-		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	var nErr error
+
+	memberships, nErr := a.Srv().Store.Thread().GetMembershipsForUser(userId)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	for _, membership := range memberships {
+		post, err := a.GetSinglePost(membership.PostId)
+		if err != nil {
+			return err
+		}
+
+		membership.UnreadMentions, err = a.countThreadMentions(user, post, timestamp)
+		if err != nil {
+			return err
+		}
+		_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
+		if nErr != nil {
+			return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	nErr = a.Srv().Store.Thread().MarkAllAsRead(userId, timestamp)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", "", userId, nil)
 	message.Add("timestamp", timestamp)
@@ -2393,7 +2419,7 @@ func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.Ap
 }
 
 func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, threadId, state)
+	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, threadId, state, false)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2405,9 +2431,31 @@ func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *mo
 }
 
 func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError {
-	err := a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
+	user, err := a.GetUser(userId)
 	if err != nil {
-		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	membership, nErr := a.Srv().Store.Thread().GetMembershipForUser(userId, threadId)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	post, err := a.GetSinglePost(threadId)
+	if err != nil {
+		return err
+	}
+
+	membership.UnreadMentions, err = a.countThreadMentions(user, post, timestamp)
+	if err != nil {
+		return err
+	}
+	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	nErr = a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", "", userId, nil)
 	message.Add("thread_id", threadId)

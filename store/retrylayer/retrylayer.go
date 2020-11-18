@@ -7682,11 +7682,11 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
+func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following)
+		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions)
 		if err == nil {
 			return nil
 		}
@@ -7787,6 +7787,26 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.T
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetMembershipsForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetPosts(threadId, since)
 		if err == nil {
 			return result, nil
 		}

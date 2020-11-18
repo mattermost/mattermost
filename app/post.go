@@ -458,7 +458,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true); err != nil {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false); err != nil {
 			return err
 		}
 	}
@@ -1331,6 +1331,38 @@ func (a *App) MaxPostSize() int {
 	return a.Srv().MaxPostSize()
 }
 
+// countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
+func (a *App) countThreadMentions(user *model.User, post *model.Post, timestamp int64) (int64, *model.AppError) {
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		map[string]string{},
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true,                                       // Assume channel mentions are always allowed for simplicity
+	)
+
+	posts, err := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
+	if err != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count := 0
+
+	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
+	if _, ok := mentions.Mentions[user.Id]; ok {
+		count += 1
+	}
+
+	for _, p := range posts {
+		mentions = getExplicitMentions(p, keywords, make(map[string]*model.Group))
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
+	}
+
+	return int64(count), nil
+}
+
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
@@ -1359,7 +1391,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
-		true, // Assume channel mentions are always allowed for simplicity
+		true,                                       // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
 	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY

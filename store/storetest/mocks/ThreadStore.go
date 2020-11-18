@@ -37,13 +37,13 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds 
 	return r0, r1
 }
 
-// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId, following
-func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
-	ret := _m.Called(userId, postId, following)
+// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId, following, incrementMentions
+func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool) error {
+	ret := _m.Called(userId, postId, following, incrementMentions)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
-		r0 = rf(userId, postId, following)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool) error); ok {
+		r0 = rf(userId, postId, following, incrementMentions)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -141,6 +141,29 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMemb
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPosts provides a mock function with given fields: threadId, since
+func (_m *ThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+	ret := _m.Called(threadId, since)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
+		r0 = rf(threadId, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(threadId, since)
 	} else {
 		r1 = ret.Error(1)
 	}

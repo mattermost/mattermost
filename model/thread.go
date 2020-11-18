@@ -16,12 +16,14 @@ type Thread struct {
 }
 
 type ThreadResponse struct {
-	PostId       string  `json:"id"`
-	ReplyCount   int64   `json:"reply_count"`
-	LastReplyAt  int64   `json:"last_reply_at"`
-	LastViewedAt int64   `json:"last_viewed_at"`
-	Participants []*User `json:"participants"`
-	Post         *Post   `json:"post"`
+	PostId         string  `json:"id"`
+	ReplyCount     int64   `json:"reply_count"`
+	LastReplyAt    int64   `json:"last_reply_at"`
+	LastViewedAt   int64   `json:"last_viewed_at"`
+	Participants   []*User `json:"participants"`
+	Post           *Post   `json:"post"`
+	UnreadReplies  int64   `json:"unread_replies"`
+	UnreadMentions int64   `json:"unread_mentions"`
 }
 
 type Threads struct {
@@ -67,11 +69,12 @@ func (o *Thread) Etag() string {
 }
 
 type ThreadMembership struct {
-	PostId      string `json:"post_id"`
-	UserId      string `json:"user_id"`
-	Following   bool   `json:"following"`
-	LastViewed  int64  `json:"last_view_at"`
-	LastUpdated int64  `json:"last_update_at"`
+	PostId         string `json:"post_id"`
+	UserId         string `json:"user_id"`
+	Following      bool   `json:"following"`
+	LastViewed     int64  `json:"last_view_at"`
+	LastUpdated    int64  `json:"last_update_at"`
+	UnreadMentions int64  `json:"unread_mentions"`
 }
 
 func (o *ThreadMembership) ToJson() string {
