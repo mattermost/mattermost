@@ -156,14 +156,9 @@ func applyPermissionsMap(role *model.Role, roleMap map[string]map[string]bool, m
 	return result
 }
 
-func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *model.AppError {
+func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap, roles []*model.Role) *model.AppError {
 	if _, err := a.Srv().Store.System().GetByName(key); err == nil {
 		return nil
-	}
-
-	roles, err := a.GetAllRoles()
-	if err != nil {
-		return err
 	}
 
 	roleMap := make(map[string]map[string]bool)
@@ -503,6 +498,15 @@ func (a *App) getAddConvertChannelPermissionsMigration() (permissionsMap, error)
 	}, nil
 }
 
+func (a *App) getSystemRolesPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id, model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id},
+		},
+	}, nil
+}
+
 func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -542,6 +546,12 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Migration: a.getAddConvertChannelPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
+	}
+
+	roles, err := a.GetAllRoles()
+	if err != nil {
+		return err
 	}
 
 	for _, migration := range PermissionsMigrations {
@@ -549,7 +559,7 @@ func (a *App) DoPermissionsMigrations() error {
 		if err != nil {
 			return err
 		}
-		if err := a.doPermissionsMigration(migration.Key, migMap); err != nil {
+		if err := a.doPermissionsMigration(migration.Key, migMap, roles); err != nil {
 			return err
 		}
 	}

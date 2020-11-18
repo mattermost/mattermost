@@ -953,7 +953,7 @@ type AppIface interface {
 	TestLdap() *model.AppError
 	TestSiteURL(siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
-	ToggleMuteChannel(channelId string, userId string) *model.ChannelMember
+	ToggleMuteChannel(channelId, userId string) (*model.ChannelMember, *model.AppError)
 	TotalWebsocketConnections() int
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginId, teamId, trigger string)
