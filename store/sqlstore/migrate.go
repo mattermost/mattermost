@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"errors"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -9,11 +10,13 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	mysqlmigrations "github.com/mattermost/mattermost-server/v5/store/sqlstore/migrations/mysql"
 	pgmigrations "github.com/mattermost/mattermost-server/v5/store/sqlstore/migrations/postgres"
 )
 
+// Migrate executes the database migrations from you current database state up to the last version.
 func (ss *SqlSupplier) Migrate() error {
 	var bresource *bindata.AssetSource
 	var driver database.Driver
@@ -46,7 +49,7 @@ func (ss *SqlSupplier) Migrate() error {
 	}
 
 	err = m.Up()
-	if err != nil && errors.Is(err, migrate.ErrNoChange) {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 

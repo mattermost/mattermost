@@ -195,7 +195,12 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion529(sqlStore)
 	upgradeDatabaseToVersion530(sqlStore)
 
-	sqlStore.Migrate()
+	err = sqlStore.Migrate()
+	if err != nil {
+		mlog.Critical(err.Error())
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 
 	return nil
 }
