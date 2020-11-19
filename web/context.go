@@ -145,8 +145,7 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) CloudKeyRequired() {
 	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
-		//TODO make this a better error
-		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }

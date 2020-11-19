@@ -47,7 +47,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_CLOUD_KEY)
 		return session, nil
 	}
-	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "invalid CWS token", http.StatusUnauthorized)
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
