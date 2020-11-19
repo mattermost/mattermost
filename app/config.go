@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -60,7 +59,6 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (s *Server) ReloadConfig() error {
-	debug.FreeOSMemory()
 	if err := s.configStore.Load(); err != nil {
 		return err
 	}
@@ -247,9 +245,9 @@ func (s *Server) ensureInstallationDate() error {
 		return nil
 	}
 
-	installDate, appErr := s.Store.User().InferSystemInstallDate()
+	installDate, nErr := s.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if appErr == nil && installDate > 0 {
+	if nErr == nil && installDate > 0 {
 		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())

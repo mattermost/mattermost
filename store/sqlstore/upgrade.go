@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_28_1
+	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
+	VERSION_5_30_0           = "5.30.0"
+	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
@@ -190,6 +192,8 @@ func upgradeDatabase(sqlSupplier *SqlSupplier, currentModelVersionString string)
 	upgradeDatabaseToVersion527(sqlSupplier)
 	upgradeDatabaseToVersion528(sqlSupplier)
 	upgradeDatabaseToVersion5281(sqlSupplier)
+	upgradeDatabaseToVersion529(sqlSupplier)
+	upgradeDatabaseToVersion530(sqlSupplier)
 
 	return nil
 }
@@ -914,4 +918,36 @@ func precheckMigrationToVersion528(sqlSupplier *SqlSupplier) error {
 	}
 
 	return nil
+}
+
+func upgradeDatabaseToVersion529(sqlSupplier *SqlSupplier) {
+	if shouldPerformUpgrade(sqlSupplier, VERSION_5_28_1, VERSION_5_29_0) {
+		sqlSupplier.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
+		sqlSupplier.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
+		sqlSupplier.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
+		sqlSupplier.AlterColumnDefaultIfExists("SidebarChannels", "CategoryId", model.NewString(""), nil)
+
+		sqlSupplier.CreateColumnIfNotExistsNoDefault("Threads", "ChannelId", "VARCHAR(26)", "VARCHAR(26)")
+
+		updateThreadChannelsQuery := "UPDATE Threads INNER JOIN Posts ON Posts.Id=Threads.PostId SET Threads.ChannelId=Posts.ChannelId WHERE Threads.ChannelId IS NULL"
+		if sqlSupplier.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			updateThreadChannelsQuery = "UPDATE Threads SET ChannelId=Posts.ChannelId FROM Posts WHERE Posts.Id=Threads.PostId AND Threads.ChannelId IS NULL"
+		}
+		if _, err := sqlSupplier.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
+			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
+		}
+
+		saveSchemaVersion(sqlSupplier, VERSION_5_29_0)
+	}
+}
+
+func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
+	// if shouldPerformUpgrade(sqlSupplier, VERSION_5_29_0, VERSION_5_30_0) {
+
+	sqlSupplier.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
+
+	sqlSupplier.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+
+	// 	saveSchemaVersion(sqlSupplier, VERSION_5_30_0)
+	// }
 }

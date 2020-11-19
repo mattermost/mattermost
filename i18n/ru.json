@@ -5000,184 +5000,12 @@
     "translation": "Участник команды с таким идентификатором уже существует."
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Невозможно получить активных пользователей в течение запрашиваемого периода."
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "Мы не смогли посчитать неактивных пользователей."
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Невозможно получить количество системных администраторов."
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Не удалось построить запрос."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Не удалось получить пользователей."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Не удалось обновить пользователя."
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Возникла ошибка при поиске учетной записи."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Не удалось найти действительную учетную запись с соответствующим типом аутентификации для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Возникла ошибка при попытке найти учетную запись по типу аутентификации."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Не удалось найти действительную учетную запись с соответствующим именем пользователя для этой команды. Эта команда может требовать приглашения от владельца команды для присоединения."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Не удалось найти действительную учетную запись с соответствующими учетными данными. Эта команда может требовать приглашения от владельца команды для присоединения."
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Обнаружен ряд пользователей с соответствующими учетными данными, вход невозможен. Пожалуйста, свяжитесь с администратором."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Произошла ошибка при поиске новых пользователей."
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Возникла ошибка при поиске пользовательских профилей."
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Произошла ошибка при поиске недавно активных пользователей."
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Возникла ошибка при поиске пользовательских профилей."
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Невозможно определить системную дату на основе даты первого создания пользователя."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Не удалось подсчитать пользователей."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Не удалось получить количество непрочитанных сообщений для пользователя."
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Не удалось получить количество непрочитанных сообщений для пользователя и канала."
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Пользователь не найден."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Невозможно удалить существующую учетную запись."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Невозможно сохранить учетную запись."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Учетная запись с такой электронной почтой уже существует."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Необходимо вызвать обновление для существующего пользователя."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Учетная запись с таким именем пользователя уже существует."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Невозможно найти пользователя, соответствующего параметрам поиска."
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Невозможно обновить учетную запись."
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Невозможно изменить поля, заданные посредством AD/LDAP."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Этот e-mail уже зарегистрирован, выберите другой."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Не удалось найти действующую учетную запись для обновления."
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Возникла ошибка при поиске учетной записи."
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Возникла ошибка обновления учетной записи."
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Это имя пользователя уже занято. Пожалуйста, выберите другое."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Невозможно обновить данные аутентификации."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Невозможно переключить учетную запись на {{.Service}}. Учетная запись, использующая электронную почту {{.Email}} уже существует."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Невозможно обновить failed_attempts."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Невозможно обновить update_at."
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Мы столкнулись с ошибкой при обновлении активного статуса МФА пользователя."
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Возникла ошибка при обновлении секрета МФА пользователя."
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Невозможно обновить пароль пользователя."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Невозможно обновить дату последнего обновления пользователя."
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Невозможно обновить поле проверки электронной почты."
   },
   {
     "id": "store.update_error",
@@ -6220,38 +6048,6 @@
     "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
   },
   {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions не имеет смысла."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Не удалось обновить участие пользователя в каналах."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Не удалось обновить членство пользователя в командах."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Возникла ошибка при поиске пользовательских профилей."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Невозможно получить участников канала для формирования пакета пользователей для индексации."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Не удалось получить участников группы для формирования пакета пользователей для индексации."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Невозможно получить список идентификаторов отключенных гостей."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Установите последнюю версию браузера Chrome"
   },
@@ -6510,46 +6306,6 @@
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
     "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Не удалось начать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Не удалось обновить пользователя."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Невозможно получить известных пользователей из базы данных."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Невозможно получить пакет пользователей для индексации."
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Не удалось обновить участие пользователя в каналах."
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Не удалось зафиксировать транзакцию базы данных."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Не удалось обновить членство пользователя в командах."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Не удалось обновить пользователя."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Не удалось деактивировать гостей."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
@@ -7041,7 +6797,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего поставщика SAML 2.0 с вашим сервером Mattermost. [Подробнее об интеграции с SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7990,5 +7746,97 @@
   {
     "id": "app.team.analytics_private_team_count.app_error",
     "translation": "Не удалось подсчитать приватные команды."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Только системные администраторы могут устанавливать уже хешированные пароли."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "Токен CWS недействителен"
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Не удалось обработать составные данные."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Недопустимый Content-Type для составной загрузки."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Недопустимая длина содержимого."
+  },
+  {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Не получилось удалить старые уведомления о продукте"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
+    "translation": "Каналы объявлений только для чтения"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "В вашей системе Mattermost теперь 200 пользователей. Когда вы подключаете Mattermost к поставщику системы единого входа в вашей организации, пользователи могут получить доступ к Mattermost без необходимости повторно вводить свои учетные данные. Мы рекомендуем вам интегрировать своего провайдера SAML 2.0 с сервером Mattermost. [Подробнее об интеграции с SAML 2.0] (https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.contact_us.email_body",
+    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше о включении многофакторной аутентификации.\n"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
+    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация >  Гостевой доступ**, чтобы включить гостевые учетные записи."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nНажимая \"Попробовать\", я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и буду получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_title",
+    "translation": "Создание гостевых учетных записей"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "В проектах часто участвуют люди как внутри, так и за пределами организации. С помощью гостевых учетных записей вы можете привлекать внешних партнеров к своей системе Mattermost и указывать, с кем они могут работать и что они могут видеть.\n\n[Подробнее о включении гостевых учетных записей](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
+    "translation": "Просьба к Mattermost связаться с нами. Мне интересно узнать больше об использовании гостевых учетных записей.\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Не удалось получить пробную лицензию. Посетите https://mattermost.com/trial/, чтобы запросить лицензию."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Невозможно перенести SAML."
+  },
+  {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Не удалось получить пробную лицензию, попробуйте еще раз или свяжитесь с support@mattermost.com. Невозможно получить количество зарегистрированных пользователей."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Ошибка при попытке перечислить объекты."
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Произошла ошибка при открытии соединения с S3."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Ошибка обработки запроса к CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Ваша лицензия не поддерживает облачные запросы."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Внутренняя ошибка во время запроса облачного API."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Ошибка синтаксического анализа многоформатного запроса"
   }
 ]

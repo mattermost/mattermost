@@ -133,6 +133,7 @@ func init() {
 		PERMISSION_SYSCONSOLE_READ_SITE.Id,
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS.Id,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id,
 	}
@@ -482,15 +483,16 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 
-	for _, permission := range r.Permissions {
-		permissionValidated := false
-		for _, p := range append(AllPermissions, DeprecatedPermissions...) {
+	check := func(perms []*Permission, permission string) bool {
+		for _, p := range perms {
 			if permission == p.Id {
-				permissionValidated = true
-				break
+				return true
 			}
 		}
-
+		return false
+	}
+	for _, permission := range r.Permissions {
+		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
 		if !permissionValidated {
 			return false
 		}
