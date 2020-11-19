@@ -4371,20 +4371,12 @@
     "translation": "Ungültige Eigenschaft \"create at\" für Gruppe"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "Ungültige Eigenschaft \"delete at\" für Gruppe"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "Ungültige Eigenschaft \"description\" für Gruppe"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "Ungültige Eigenschaft \"display name\" für Gruppe"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "Ungültige Eigenschaft \"id\" für Gruppe"
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4409,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "Ungültige \"syncable id\" für Gruppe der synchronisierbaren Objekte."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "Ungültige Eigenschaft \"type\" für synchronisierbaren Objekte."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4899,6 @@
     "translation": "Fehlende TO-Adresse."
   },
   {
-    "id": "store.insert_error",
-    "translation": "Einfügefehler"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "Auswahlfehler"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Konnte StringArray nicht zu *string konvertieren"
   },
@@ -4937,10 +4917,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Der bestehende Kanal konnte nicht gefunden werden."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Wir konnte den Kanal nicht finden"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4947,6 @@
     "translation": "Konnte den Befehl nicht abrufen."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "Gruppe der synchronisierbaren Objekte wurde bereits gelöscht"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "Keine passende Gruppe gefunden"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Eine Gruppe mit diesem Namen existiert bereits"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "Gruppenmitglied existiert bereits"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Suchen wurde auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator."
   },
@@ -5001,10 +4961,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "Aktualisierungsfehler"
   },
   {
     "id": "system.message.name",
@@ -5297,14 +5253,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Holen Sie sich den neuesten Chrome-Browser"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Konnte das Gruppenmitglied mit der Benutzer-ID \"{{.UserId}}\" nicht entfernen."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "Fehler beim Erstellen der Abfrage."
   },
   {
     "id": "searchengine.bleve.disabled.error",
