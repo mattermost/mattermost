@@ -80,6 +80,7 @@ type MarketplacePluginFilter struct {
 	ServerVersion        string
 	BuildEnterpriseReady bool
 	EnterprisePlugins    bool
+	Cloud                bool
 	LocalOnly            bool
 	Platform             string
 }
@@ -95,6 +96,7 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	q.Add("server_version", filter.ServerVersion)
 	q.Add("build_enterprise_ready", strconv.FormatBool(filter.BuildEnterpriseReady))
 	q.Add("enterprise_plugins", strconv.FormatBool(filter.EnterprisePlugins))
+	q.Add("cloud", strconv.FormatBool(filter.Cloud))
 	q.Add("local_only", strconv.FormatBool(filter.LocalOnly))
 	q.Add("platform", filter.Platform)
 	u.RawQuery = q.Encode()

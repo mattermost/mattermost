@@ -48,12 +48,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	configStore := config.NewTestMemoryStore()
 
-	config := memoryStore.Get()
+	config := configStore.Get()
 	if configSet != nil {
 		configSet(config)
 	}
@@ -62,23 +59,25 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*config.LogSettings.EnableSentry = false // disable error reporting during tests
 	*config.AnnouncementSettings.AdminNoticesEnabled = false
 	*config.AnnouncementSettings.UserNoticesEnabled = false
-	memoryStore.Set(config)
+	configStore.Set(config)
 
 	buffer := &bytes.Buffer{}
 
 	var options []Option
-	options = append(options, ConfigStore(memoryStore))
-	options = append(options, StoreOverride(dbStore))
+	options = append(options, ConfigStore(configStore))
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		options = append(options, StoreOverride(func(s *Server) store.Store {
+			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+		}))
+	} else {
+		options = append(options, StoreOverride(dbStore))
+	}
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := NewServer(options...)
 	if err != nil {
 		panic(err)
-	}
-
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
@@ -136,11 +135,24 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 
 	return setupTestHelper(dbStore, true, true, tb, nil)
 }
 
 func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, false, true, tb, nil)
+}
+
+func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}

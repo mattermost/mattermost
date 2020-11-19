@@ -5,16 +5,14 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
 )
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	config := viper.GetString("config")
-
-	a, err := InitDBCommandContext(config)
+	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
 
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
@@ -34,7 +32,7 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 	model.AppErrorInit(utils.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false),
+		app.Config(configDSN, false, nil),
 		app.StartSearchEngine,
 	)
 	if err != nil {

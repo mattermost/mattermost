@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -296,9 +297,9 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	hasUserEmailVerifiedChanged := false
 
 	var user *model.User
-	var err *model.AppError
-	user, err = a.Srv().Store.User().GetByUsername(*data.Username)
-	if err != nil {
+	var nErr error
+	user, nErr = a.Srv().Store.User().GetByUsername(*data.Username)
+	if nErr != nil {
 		user = &model.User{}
 		user.MakeNonNil()
 		user.SetDefaultNotifications()
@@ -475,6 +476,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	var savedUser *model.User
+	var err *model.AppError
 	if user.Id == "" {
 		if savedUser, err = a.createUser(user); err != nil {
 			return err
@@ -501,8 +503,14 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		} else {
 			if hasUserAuthDataChanged {
-				if _, err = a.Srv().Store.User().UpdateAuthData(user.Id, authService, authData, user.Email, false); err != nil {
-					return err
+				if _, nErr := a.Srv().Store.User().UpdateAuthData(user.Id, authService, authData, user.Email, false); nErr != nil {
+					var invErr *store.ErrInvalidInput
+					switch {
+					case errors.As(nErr, &invErr):
+						return model.NewAppError("importUser", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+					default:
+						return model.NewAppError("importUser", "app.user.update_auth_data.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+					}
 				}
 			}
 		}
@@ -670,7 +678,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(user.Id)
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -976,15 +984,14 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 }
 
 func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
-	var err *model.AppError
-	if err = validateReactionImportData(data, post.CreateAt); err != nil {
+	if err := validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
 
 	var user *model.User
-	user, err = a.Srv().Store.User().GetByUsername(*data.User)
-	if err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, err.Error(), http.StatusBadRequest)
+	var nErr error
+	if user, nErr = a.Srv().Store.User().GetByUsername(*data.User); nErr != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, nErr.Error(), http.StatusBadRequest)
 	}
 
 	reaction := &model.Reaction{
@@ -993,7 +1000,7 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun 
 		EmojiName: *data.EmojiName,
 		CreateAt:  *data.CreateAt,
 	}
-	if _, nErr := a.Srv().Store.Reaction().Save(reaction); nErr != nil {
+	if _, nErr = a.Srv().Store.Reaction().Save(reaction); nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
