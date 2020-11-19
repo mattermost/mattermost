@@ -13,6 +13,8 @@ then
   OVERRIDE_OS=$1
 fi
 
+BIN_PATH=${2:-bin}
+
 # strip whitespace
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
@@ -34,15 +36,15 @@ fi
 case "$PLATFORM" in
 
 Linux)
-  MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+  MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
 Darwin)
-  MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+  MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
 Windows)
-  MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d bin && rm "$MMCTL_FILE";
+  MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://releases.mattermost.com/mmctl/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d "$BIN_PATH" && rm "$MMCTL_FILE";
   ;;
 
 *)

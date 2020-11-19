@@ -668,6 +668,10 @@ func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.EnterprisePlugins = true
 	}
 
+	if license != nil && *license.Features.Cloud {
+		filter.Cloud = true
+	}
+
 	if model.BuildEnterpriseReady == "true" {
 		filter.BuildEnterpriseReady = true
 	}

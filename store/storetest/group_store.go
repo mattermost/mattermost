@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -116,7 +117,9 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	data, err := ss.Group().Create(g2)
 	require.Nil(t, data)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.display_name.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Won't accept a duplicate name
 	g4 := &model.Group{
@@ -135,7 +138,8 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	data, err = ss.Group().Create(g4b)
 	require.Nil(t, data)
-	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g4b.Name))
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
@@ -211,7 +215,8 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().Get(model.NewId())
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetByName(t *testing.T, ss store.Store) {
@@ -246,7 +251,8 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().GetByName(model.NewId(), g1Opts)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetByIDs(t *testing.T, ss store.Store) {
@@ -310,7 +316,8 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().GetByRemoteID(model.NewId(), model.GroupSource("fake"))
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
@@ -374,8 +381,8 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	u1, err = ss.User().Save(u1)
-	require.Nil(t, err)
+	u1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
 	require.Nil(t, err)
@@ -386,8 +393,8 @@ func testGroupStoreGetByUser(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	u2, err = ss.User().Save(u2)
-	require.Nil(t, err)
+	u2, nErr = ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
 	require.Nil(t, err)
@@ -464,7 +471,9 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, data)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.display_name.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Create another Group
 	g2 := &model.Group{
@@ -486,7 +495,8 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g1Update.Name))
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()
@@ -498,7 +508,8 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to non-zero
 	d1.DeleteAt = 1
 	_, err = ss.Group().Update(d1)
-	require.Equal(t, "model.group.delete_at.app_error", err.Id)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "DeleteAt should be 0 when updating")
 
 	//...except for 0 for DeleteAt
 	d1.DeleteAt = 0
@@ -548,11 +559,12 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Cannot delete again
 	_, err = ss.Group().Delete(d1.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
@@ -571,8 +583,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
@@ -581,8 +593,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err := ss.User().Save(u2)
-	require.Nil(t, err)
+	user2, nErr := ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
@@ -623,8 +635,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
@@ -633,8 +645,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err := ss.User().Save(u2)
-	require.Nil(t, err)
+	user2, nErr := ss.User().Save(u2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, err)
@@ -643,8 +655,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err := ss.User().Save(u3)
-	require.Nil(t, err)
+	user3, nErr := ss.User().Save(u3)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().UpsertMember(group.Id, user3.Id)
 	require.Nil(t, err)
@@ -923,8 +935,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	// Happy path
 	d2, err := ss.Group().UpsertMember(group.Id, user.Id)
@@ -942,7 +954,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Invalid GroupId
 	_, err = ss.Group().UpsertMember(model.NewId(), user.Id)
-	require.Equal(t, err.Id, "store.insert_error")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get UserGroup with")
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
@@ -981,8 +994,8 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err := ss.User().Save(u1)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(u1)
+	require.Nil(t, nErr)
 
 	// Create member
 	d1, err := ss.Group().UpsertMember(group.Id, user.Id)
@@ -998,15 +1011,16 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 
 	// Delete an already deleted member
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Delete with non-existent User
 	_, err = ss.Group().DeleteMember(group.Id, model.NewId())
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Delete non-existent Group
 	_, err = ss.Group().DeleteMember(model.NewId(), group.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
@@ -1048,7 +1062,9 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid GroupID
 	_, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam("x", model.NewId(), false))
-	require.Equal(t, err.Id, "model.group_syncable.group_id.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group_syncable.group_id.app_error")
 
 	// Create Group
 	g1 := &model.Group{
@@ -1225,12 +1241,13 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Non-existent Group
 	gt2 := model.NewGroupTeam(model.NewId(), team.Id, false)
 	_, err = ss.Group().UpdateGroupSyncable(gt2)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Non-existent Team
 	gt3 := model.NewGroupTeam(group.Id, model.NewId(), false)
 	_, err = ss.Group().UpdateGroupSyncable(gt3)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Cannot update CreateAt or DeleteAt
 	origCreateAt := d1.CreateAt
@@ -1243,7 +1260,8 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to arbitrary value
 	d1.DeleteAt = 1
 	_, err = ss.Group().UpdateGroupSyncable(d1)
-	require.Equal(t, "model.group.delete_at.app_error", err.Id)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "DeleteAt should be 0 when updating")
 
 	// Can update DeleteAt to 0
 	d1.DeleteAt = 0
@@ -1284,11 +1302,12 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Non-existent Group
 	_, err = ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GroupSyncableTypeTeam)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Non-existent Team
 	_, err = ss.Group().DeleteGroupSyncable(groupTeam.GroupId, model.NewId(), model.GroupSyncableTypeTeam)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Happy path...
 	d1, err := ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
@@ -1303,7 +1322,8 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.group_syncable_already_deleted")
+	var invErr *store.ErrInvalidInput
+	require.True(t, errors.As(err, &invErr))
 }
 
 func testTeamMembersToAdd(t *testing.T, ss store.Store) {
@@ -1321,8 +1341,8 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err = ss.User().Save(user)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(user)
+	require.Nil(t, nErr)
 
 	// Create GroupMember
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1339,7 +1359,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, nErr := ss.Team().Save(team)
+	team, nErr = ss.Team().Save(team)
 	require.Nil(t, nErr)
 
 	// Create GroupTeam
@@ -1490,22 +1510,22 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(user1)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err = ss.User().Save(user2)
-	require.Nil(t, err)
+	user2, nErr = ss.User().Save(user2)
+	require.Nil(t, nErr)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err = ss.User().Save(user3)
-	require.Nil(t, err)
+	user3, nErr = ss.User().Save(user3)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
 		_, err = ss.Group().UpsertMember(group1.Id, user.Id)
@@ -1524,7 +1544,7 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team1, nErr := ss.Team().Save(team1)
+	team1, nErr = ss.Team().Save(team1)
 	require.Nil(t, nErr)
 
 	team2 := &model.Team{
@@ -1574,8 +1594,8 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user, err = ss.User().Save(user)
-	require.Nil(t, err)
+	user, nErr := ss.User().Save(user)
+	require.Nil(t, nErr)
 
 	// Create GroupMember
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
@@ -1588,7 +1608,7 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
-	channel, nErr := ss.Channel().Save(channel, 9999)
+	channel, nErr = ss.Channel().Save(channel, 9999)
 	require.Nil(t, nErr)
 
 	// Create GroupChannel
@@ -1749,22 +1769,22 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user1, err = ss.User().Save(user1)
-	require.Nil(t, err)
+	user1, nErr := ss.User().Save(user1)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user2, err = ss.User().Save(user2)
-	require.Nil(t, err)
+	user2, nErr = ss.User().Save(user2)
+	require.Nil(t, nErr)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	user3, err = ss.User().Save(user3)
-	require.Nil(t, err)
+	user3, nErr = ss.User().Save(user3)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
 		_, err = ss.Group().UpsertMember(group1.Id, user.Id)
@@ -1778,7 +1798,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, ss store.Store) {
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel1, nErr := ss.Channel().Save(channel1, 999)
+	channel1, nErr = ss.Channel().Save(channel1, 999)
 	require.Nil(t, nErr)
 
 	channel2 := &model.Channel{
@@ -2131,24 +2151,24 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userA, err = ss.User().Save(userA)
-	require.Nil(t, err)
+	userA, nErr := ss.User().Save(userA)
+	require.Nil(t, nErr)
 
 	// userB will not get removed from the group
 	userB := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userB, err = ss.User().Save(userB)
-	require.Nil(t, err)
+	userB, nErr = ss.User().Save(userB)
+	require.Nil(t, nErr)
 
 	// userC was never in the group
 	userC := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	userC, err = ss.User().Save(userC)
-	require.Nil(t, err)
+	userC, nErr = ss.User().Save(userC)
+	require.Nil(t, nErr)
 
 	// add users to group (but not userC)
 	_, err = ss.Group().UpsertMember(group.Id, userA.Id)
@@ -2165,7 +2185,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
-	channelConstrained, nErr := ss.Channel().Save(channelConstrained, 9999)
+	channelConstrained, nErr = ss.Channel().Save(channelConstrained, 9999)
 	require.Nil(t, nErr)
 
 	channelUnconstrained := &model.Channel{
@@ -3747,14 +3767,14 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var user *model.User
-
+	var nErr error
 	for i := 0; i < 2; i++ {
 		user = &model.User{
 			Email:    MakeEmail(),
 			Username: fmt.Sprintf("%d_%s", i, model.NewId()),
 		}
-		user, err = ss.User().Save(user)
-		require.Nil(t, err)
+		user, nErr = ss.User().Save(user)
+		require.Nil(t, nErr)
 
 		_, err = ss.Group().UpsertMember(group.Id, user.Id)
 		require.Nil(t, err)
@@ -3765,8 +3785,8 @@ func groupTestGetMemberCount(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(2), count)
 
 	user.DeleteAt = 1
-	_, err = ss.User().Update(user, true)
-	require.Nil(t, err)
+	_, nErr = ss.User().Update(user, true)
+	require.Nil(t, nErr)
 
 	count, err = ss.Group().GetMemberCount(group.Id)
 	require.Nil(t, err)

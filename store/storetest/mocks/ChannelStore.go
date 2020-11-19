@@ -934,6 +934,29 @@ func (_m *ChannelStore) GetMembers(channelId string, offset int, limit int) (*mo
 	return r0, r1
 }
 
+// GetMembersByChannelIds provides a mock function with given fields: channelIds, userId
+func (_m *ChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	ret := _m.Called(channelIds, userId)
+
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func([]string, string) *model.ChannelMembers); ok {
+		r0 = rf(channelIds, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelMembers)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
+		r1 = rf(channelIds, userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembersByIds provides a mock function with given fields: channelId, userIds
 func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	ret := _m.Called(channelId, userIds)
@@ -1252,13 +1275,13 @@ func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	return r0, r1
 }
 
-// IncrementMentionCount provides a mock function with given fields: channelId, userId
-func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string) error {
-	ret := _m.Called(channelId, userId)
+// IncrementMentionCount provides a mock function with given fields: channelId, userId, updateThreads
+func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string, updateThreads bool) error {
+	ret := _m.Called(channelId, userId, updateThreads)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(channelId, userId)
+	if rf, ok := ret.Get(0).(func(string, string, bool) error); ok {
+		r0 = rf(channelId, userId, updateThreads)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1752,13 +1775,13 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	return r0, r1
 }
 
-// UpdateLastViewedAt provides a mock function with given fields: channelIds, userId
-func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
-	ret := _m.Called(channelIds, userId)
+// UpdateLastViewedAt provides a mock function with given fields: channelIds, userId, updateThreads
+func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string, updateThreads bool) (map[string]int64, error) {
+	ret := _m.Called(channelIds, userId, updateThreads)
 
 	var r0 map[string]int64
-	if rf, ok := ret.Get(0).(func([]string, string) map[string]int64); ok {
-		r0 = rf(channelIds, userId)
+	if rf, ok := ret.Get(0).(func([]string, string, bool) map[string]int64); ok {
+		r0 = rf(channelIds, userId, updateThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]int64)
@@ -1766,8 +1789,8 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
-		r1 = rf(channelIds, userId)
+	if rf, ok := ret.Get(1).(func([]string, string, bool) error); ok {
+		r1 = rf(channelIds, userId, updateThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1775,13 +1798,13 @@ func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (
 	return r0, r1
 }
 
-// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount
-func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error) {
-	ret := _m.Called(unreadPost, userID, mentionCount)
+// UpdateLastViewedAtPost provides a mock function with given fields: unreadPost, userID, mentionCount, updateThreads
+func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int, updateThreads bool) (*model.ChannelUnreadAt, error) {
+	ret := _m.Called(unreadPost, userID, mentionCount, updateThreads)
 
 	var r0 *model.ChannelUnreadAt
-	if rf, ok := ret.Get(0).(func(*model.Post, string, int) *model.ChannelUnreadAt); ok {
-		r0 = rf(unreadPost, userID, mentionCount)
+	if rf, ok := ret.Get(0).(func(*model.Post, string, int, bool) *model.ChannelUnreadAt); ok {
+		r0 = rf(unreadPost, userID, mentionCount, updateThreads)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelUnreadAt)
@@ -1789,8 +1812,8 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Post, string, int) error); ok {
-		r1 = rf(unreadPost, userID, mentionCount)
+	if rf, ok := ret.Get(1).(func(*model.Post, string, int, bool) error); ok {
+		r1 = rf(unreadPost, userID, mentionCount, updateThreads)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1859,7 +1882,7 @@ func (_m *ChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) ([
 }
 
 // UpdateSidebarCategories provides a mock function with given fields: userId, teamId, categories
-func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
+func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(userId, teamId, categories)
 
 	var r0 []*model.SidebarCategoryWithChannels
@@ -1871,14 +1894,23 @@ func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, ca
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
+	var r1 []*model.SidebarCategoryWithChannels
+	if rf, ok := ret.Get(1).(func(string, string, []*model.SidebarCategoryWithChannels) []*model.SidebarCategoryWithChannels); ok {
 		r1 = rf(userId, teamId, categories)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]*model.SidebarCategoryWithChannels)
+		}
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func(string, string, []*model.SidebarCategoryWithChannels) error); ok {
+		r2 = rf(userId, teamId, categories)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // UpdateSidebarCategoryOrder provides a mock function with given fields: userId, teamId, categoryOrder

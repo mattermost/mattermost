@@ -26,7 +26,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		props, err := a.Srv().Store.User().GetAllProfilesInChannel(channel.Id, true)
-		pchan <- store.StoreResult{Data: props, Err: err}
+		pchan <- store.StoreResult{Data: props, NErr: err}
 		close(pchan)
 	}()
 
@@ -58,8 +58,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	result := <-pchan
-	if result.Err != nil {
-		return nil, result.Err
+	if result.NErr != nil {
+		return nil, result.NErr
 	}
 	profileMap := result.Data.(map[string]*model.User)
 
@@ -167,7 +167,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		go func(userId string) {
 			defer close(mac)
 			if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId)
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
@@ -184,7 +184,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
 			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
+			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId, *a.Config().ServiceSettings.ThreadAutoFollow)
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				return
@@ -504,9 +504,9 @@ func (a *App) filterOutOfChannelMentions(sender *model.User, post *model.Post, c
 	// Filter out inactive users and bots
 	allUsers := model.UserSlice(users).FilterByActive(true)
 	allUsers = allUsers.FilterWithoutBots()
-	allUsers, err = a.FilterUsersByVisible(sender, allUsers)
-	if err != nil {
-		return nil, nil, err
+	allUsers, appErr := a.FilterUsersByVisible(sender, allUsers)
+	if appErr != nil {
+		return nil, nil, appErr
 	}
 
 	if len(allUsers) == 0 {
@@ -789,7 +789,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 
 // getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
 func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
-	var err *model.AppError
+	var err error
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
 
@@ -801,7 +801,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
@@ -813,7 +813,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, group := range groups {
 		if group.Name != nil {
@@ -845,7 +845,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
 func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
-	var err *model.AppError
+	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
 	isGroupOrDirect := channel.IsGroupOrDirect()
@@ -857,7 +857,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	if err != nil {
-		return false, err
+		return false, model.NewAppError("insertGroupMentions", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if mentions.Mentions == nil {
@@ -907,7 +907,8 @@ func addMentionKeywordsForUser(keywords map[string][]string, profile *model.User
 
 	// Add @channel and @all to keywords if user has them turned on and the server allows them
 	if allowChannelMentions {
-		ignoreChannelMentions := channelNotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] == model.IGNORE_CHANNEL_MENTIONS_ON
+		// Ignore channel mentions if channel is muted and channel mention setting is default
+		ignoreChannelMentions := channelNotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] == model.IGNORE_CHANNEL_MENTIONS_ON || (channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.USER_NOTIFY_MENTION && channelNotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] == model.IGNORE_CHANNEL_MENTIONS_DEFAULT)
 
 		if profile.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP] == "true" && !ignoreChannelMentions {
 			keywords["@channel"] = append(keywords["@channel"], profile.Id)
