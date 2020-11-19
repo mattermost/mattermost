@@ -5477,6 +5477,22 @@ func (s *TimerLayerRemoteClusterStore) GetAllNotInChannel(channelId string, incl
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.GetByTopic(topic)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetByTopic", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	start := timemodule.Now()
 
@@ -5507,6 +5523,22 @@ func (s *TimerLayerRemoteClusterStore) SetLastPingAt(remoteClusterId string) err
 		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.SetLastPingAt", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterid, topics)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.UpdateTopics", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {

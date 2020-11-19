@@ -288,8 +288,6 @@ type AppIface interface {
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
 	SetStatusLastActivityAt(userId string, activityAt int64)
-	// SharedChannelRemotes
-	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	// SyncPlugins synchronizes the plugins installed locally
 	// with the plugin bundles available in the file store.
 	SyncPlugins() *model.AppError
@@ -654,6 +652,7 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, error)
+	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, error)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -880,6 +879,7 @@ type AppIface interface {
 	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
 	SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
@@ -1001,6 +1001,7 @@ type AppIface interface {
 	UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(userId string, preferences model.Preferences) *model.AppError
+	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)

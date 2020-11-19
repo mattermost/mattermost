@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -21,6 +22,7 @@ type RemoteCluster struct {
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 	Token       string `json:"token"`
+	Topics      string `json:"topics"`
 }
 
 func (rc *RemoteCluster) PreSave() {
@@ -39,6 +41,7 @@ func (rc *RemoteCluster) PreSave() {
 	if rc.LastPingAt == 0 {
 		rc.LastPingAt = rc.CreateAt
 	}
+	rc.fixTopics()
 }
 
 func (rc *RemoteCluster) IsValid() *AppError {
@@ -65,6 +68,36 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	return nil
 }
 
+func (rc *RemoteCluster) PreUpdate() {
+	rc.fixTopics()
+}
+
+// fixTopics ensures all topics are separated by one, and only one, space.
+func (rc *RemoteCluster) fixTopics() {
+	trimmed := strings.TrimSpace(rc.Topics)
+	if trimmed == "" {
+		rc.Topics = ""
+		return
+	}
+	if trimmed == "*" {
+		rc.Topics = "*"
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString(" ")
+
+	ss := strings.Split(rc.Topics, " ")
+	for _, c := range ss {
+		cc := strings.TrimSpace(c)
+		if cc != "" {
+			sb.WriteString(cc)
+			sb.WriteString(" ")
+		}
+	}
+	rc.Topics = sb.String()
+}
+
 func (rc *RemoteCluster) ToJSON() (string, error) {
 	b, err := json.Marshal(rc)
 	if err != nil {
@@ -80,7 +113,7 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, error) {
 	return &rc, err
 }
 
-// RemoteClusterMsg represents a message that is send and received between clusters.
+// RemoteClusterMsg represents a message that is sent and received between clusters.
 // These are processed and routed via the RemoteClusters service.
 type RemoteClusterMsg struct {
 	Id       string

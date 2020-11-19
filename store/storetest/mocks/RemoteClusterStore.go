@@ -104,6 +104,29 @@ func (_m *RemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline b
 	return r0, r1
 }
 
+// GetByTopic provides a mock function with given fields: topic
+func (_m *RemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(topic)
+
+	var r0 []*model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string) []*model.RemoteCluster); ok {
+		r0 = rf(topic)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(topic)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: rc
 func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	ret := _m.Called(rc)
@@ -139,4 +162,27 @@ func (_m *RemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	}
 
 	return r0
+}
+
+// UpdateTopics provides a mock function with given fields: remoteClusterid, topics
+func (_m *RemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+	ret := _m.Called(remoteClusterid, topics)
+
+	var r0 *model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string, string) *model.RemoteCluster); ok {
+		r0 = rf(remoteClusterid, topics)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(remoteClusterid, topics)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

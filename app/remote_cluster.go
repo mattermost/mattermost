@@ -27,6 +27,14 @@ func (a *App) GetAllRemoteClustersNotInChannel(channelId string, includeOffline 
 	return a.Srv().Store.RemoteCluster().GetAllNotInChannel(channelId, includeOffline)
 }
 
+func (a *App) GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, error) {
+	return a.Srv().Store.RemoteCluster().GetByTopic(topic)
+}
+
+func (a *App) UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error) {
+	return a.Srv().Store.RemoteCluster().UpdateTopics(remoteClusterId, topics)
+}
+
 func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) error {
 	return a.Srv().Store.RemoteCluster().SetLastPingAt(remoteClusterId)
 }

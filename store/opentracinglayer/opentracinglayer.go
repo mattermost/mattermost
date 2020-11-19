@@ -6053,6 +6053,24 @@ func (s *OpenTracingLayerRemoteClusterStore) GetAllNotInChannel(channelId string
 	return result, err
 }
 
+func (s *OpenTracingLayerRemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.GetByTopic")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RemoteClusterStore.GetByTopic(topic)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.Save")
@@ -6087,6 +6105,24 @@ func (s *OpenTracingLayerRemoteClusterStore) SetLastPingAt(remoteClusterId strin
 	}
 
 	return err
+}
+
+func (s *OpenTracingLayerRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.UpdateTopics")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterid, topics)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {

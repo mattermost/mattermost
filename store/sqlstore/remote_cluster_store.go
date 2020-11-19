@@ -4,6 +4,9 @@
 package sqlstore
 
 import (
+	"fmt"
+	"strings"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
@@ -24,6 +27,7 @@ func newSqlRemoteClustersStore(sqlStore SqlStore) store.RemoteClusterStore {
 		table.ColMap("ClusterName").SetMaxSize(64)
 		table.ColMap("Hostname").SetMaxSize(512)
 		table.ColMap("Token").SetMaxSize(26)
+		table.ColMap("Topics").SetMaxSize(512)
 	}
 	return s
 }
@@ -121,6 +125,45 @@ func (s sqlRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline 
 		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
 	}
 	return list, nil
+}
+
+func (s sqlRemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
+	trimmed := strings.TrimSpace(topic)
+	if trimmed == "" || trimmed == "*" {
+		return nil, errors.New("invalid topic")
+	}
+
+	queryTopic := fmt.Sprintf("%% %s %%", trimmed)
+	query := s.getQueryBuilder().
+		Select("rc.*").
+		From("RemoteClusters rc").
+		Where(sq.Or{sq.Like{"rc.Topics": queryTopic}, sq.Eq{"rc.Topics": "*"}})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_cluster_getbytopic_tosql")
+	}
+
+	var list []*model.RemoteCluster
+	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
+	}
+	return list, nil
+}
+
+func (s sqlRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+	rc, err := s.Get(remoteClusterid)
+	if err != nil {
+		return nil, err
+	}
+	rc.Topics = topics
+
+	rc.PreUpdate()
+
+	if _, err = s.GetMaster().Update(rc); err != nil {
+		return nil, err
+	}
+	return rc, nil
 }
 
 func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
