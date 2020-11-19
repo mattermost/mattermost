@@ -7682,11 +7682,11 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool) error {
+func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool, updateFollowing bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions)
+		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions, updateFollowing)
 		if err == nil {
 			return nil
 		}

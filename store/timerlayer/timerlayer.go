@@ -6904,10 +6904,10 @@ func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool) error {
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool, updateFollowing bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions)
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions, updateFollowing)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

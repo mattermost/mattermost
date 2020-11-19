@@ -263,7 +263,7 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
-	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions bool) error
+	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
 }

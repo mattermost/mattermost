@@ -162,14 +162,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+	if post.RootId != "" {
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 		}
 		for id := range mentions.Mentions {
 			threadParticipants[id] = true
 		}
-		// for each mention, make sure to update thread autofollow
+		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
 		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
 			go func(userId string) {
@@ -180,7 +180,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						incrementMentions = true
 					}
 				}
-				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true, incrementMentions)
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return

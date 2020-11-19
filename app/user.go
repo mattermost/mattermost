@@ -2419,7 +2419,7 @@ func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.Ap
 }
 
 func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError {
-	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, threadId, state, false)
+	err := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, threadId, state, false, true)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

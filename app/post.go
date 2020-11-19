@@ -458,7 +458,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false); err != nil {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
 			return err
 		}
 	}

@@ -299,12 +299,14 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions bool) error {
+func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
-		if !membership.Following || membership.Following != following || incrementMentions {
-			membership.Following = following
+		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions {
+			if updateFollowing {
+				membership.Following = following
+			}
 			membership.LastUpdated = now
 			if incrementMentions {
 				membership.UnreadMentions += 1

@@ -37,13 +37,13 @@ func (_m *ThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds 
 	return r0, r1
 }
 
-// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId, following, incrementMentions
-func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool) error {
-	ret := _m.Called(userId, postId, following, incrementMentions)
+// CreateMembershipIfNeeded provides a mock function with given fields: userId, postId, following, incrementMentions, updateFollowing
+func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool, updateFollowing bool) error {
+	ret := _m.Called(userId, postId, following, incrementMentions, updateFollowing)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) error); ok {
-		r0 = rf(userId, postId, following, incrementMentions)
+	if rf, ok := ret.Get(0).(func(string, string, bool, bool, bool) error); ok {
+		r0 = rf(userId, postId, following, incrementMentions, updateFollowing)
 	} else {
 		r0 = ret.Error(0)
 	}
