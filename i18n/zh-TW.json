@@ -4366,20 +4366,12 @@
     "translation": "無效的群組建立時間"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "無效的群組刪除時間"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "無效的群組描述"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "無效的群組顯示名稱"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "無效的群組 ID"
   },
   {
     "id": "model.group.name.app_error",
@@ -4412,10 +4404,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "群組同步資料的同步資料 ID 無效"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "無效的群組同步資料類別"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4906,14 +4894,6 @@
     "translation": "缺少收件人位址。"
   },
   {
-    "id": "store.insert_error",
-    "translation": "插入失敗"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "選取失敗"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: 無法將 StringArray 轉換為 *string"
   },
@@ -4932,10 +4912,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "找不到現有的頻道"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "尋找頻道時遇到錯誤"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4966,22 +4942,6 @@
     "translation": "無法取得指令"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "群組同步資料已被刪除"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "找不到對應的群組"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "已經存在相同名稱的團隊"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "群組成員已存在"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
   },
@@ -4996,10 +4956,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "這個電子郵件已經被使用。請選擇其他的。"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "更新失敗"
   },
   {
     "id": "system.message.name",
@@ -5236,14 +5192,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "取得最新的 Chrome 瀏覽器"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "無法移除使用者 ID 為 \"{{.UserId}}\" 的群組成員"
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "建立查詢時失敗"
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6504,10 +6452,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "無法移動直接傳訊或群組頻道"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "多於一筆資料列被改變。"
   },
   {
     "id": "store.sql_command.update.missing.app_error",

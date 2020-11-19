@@ -4376,20 +4376,12 @@
     "translation": "invalid create at property for group"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "invalid description property for group"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "invalid display name property for group"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4414,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4916,14 +4904,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Неможливо перетворити StringArray в * string"
   },
@@ -4942,10 +4922,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не вдається знайти канал"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Сталася помилка під час пошуку каналу"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4952,6 @@
     "translation": "Не вдається отримати команду"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Команда з таким ім'ям вже існує"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
@@ -5006,10 +4966,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Цей e-mail вже зареєстрований, виберіть інший."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
   },
   {
     "id": "system.message.name",
@@ -5246,14 +5202,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Get the latest Chrome browser"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "failed to build query."
   },
   {
     "id": "searchengine.bleve.disabled.error",
