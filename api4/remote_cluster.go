@@ -11,8 +11,8 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(getRemoteClusterPing)).Methods("GET")
-	api.BaseRoutes.System.Handle("/msg", api.ApiSessionRequired(acceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(getRemoteClusterPing)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(acceptMessage)).Methods("POST")
 }
 
 func getRemoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {

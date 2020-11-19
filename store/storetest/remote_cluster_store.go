@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,6 +19,8 @@ func TestRemoteClusterStore(t *testing.T, ss store.Store) {
 	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, ss) })
 	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, ss) })
 	t.Run("RemoteClusterGetAll", func(t *testing.T) { testRemoteClusterGetAll(t, ss) })
+	t.Run("RemoteClusterGetByTopic", func(t *testing.T) { testRemoteClusterGetByTopic(t, ss) })
+	t.Run("RemoteClusterUpdateTopics", func(t *testing.T) { testRemoteClusterUpdateTopics(t, ss) })
 }
 
 func testRemoteClusterSave(t *testing.T, ss store.Store) {
@@ -224,4 +227,79 @@ func getIds(remotes []*model.RemoteCluster) []string {
 		ids = append(ids, r.Id)
 	}
 	return ids
+}
+
+func testRemoteClusterGetByTopic(t *testing.T, ss store.Store) {
+	rcData := []*model.RemoteCluster{
+		{ClusterName: "AAAA Inc", Hostname: "aaaa.com", Id: model.NewId(), Topics: ""},
+		{ClusterName: "BBBB Inc", Hostname: "bbbb.com", Id: model.NewId(), Topics: " share "},
+		{ClusterName: "CCCC Inc", Hostname: "cccc.com", Id: model.NewId(), Topics: " incident share "},
+		{ClusterName: "DDDD Inc", Hostname: "dddd.com", Id: model.NewId(), Topics: " bogus "},
+		{ClusterName: "EEEE Inc", Hostname: "eeee.com", Id: model.NewId(), Topics: " logs share incident "},
+		{ClusterName: "FFFF Inc", Hostname: "ffff.com", Id: model.NewId(), Topics: " bogus incident "},
+		{ClusterName: "GGGG Inc", Hostname: "gggg.com", Id: model.NewId(), Topics: "*"},
+	}
+	for _, item := range rcData {
+		_, err := ss.RemoteCluster().Save(item)
+		require.Nil(t, err)
+	}
+
+	testData := []struct {
+		topic         string
+		expectedCount int
+		expectError   bool
+	}{
+		{topic: "", expectedCount: 0, expectError: true},
+		{topic: " ", expectedCount: 0, expectError: true},
+		{topic: "share", expectedCount: 4},
+		{topic: " share ", expectedCount: 4},
+		{topic: "bogus", expectedCount: 3},
+		{topic: "non-existent", expectedCount: 1},
+		{topic: "*", expectedCount: 0, expectError: true}, // can't query with wildcard
+	}
+
+	for _, tt := range testData {
+		list, err := ss.RemoteCluster().GetByTopic(tt.topic)
+		if tt.expectError {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+		}
+		assert.Lenf(t, list, tt.expectedCount, "topic="+tt.topic)
+	}
+}
+
+func testRemoteClusterUpdateTopics(t *testing.T, ss store.Store) {
+	remoteId := model.NewId()
+	rc := &model.RemoteCluster{
+		ClusterName: "Blap Inc",
+		Hostname:    "blap.com",
+		Id:          remoteId,
+		Topics:      "",
+	}
+
+	_, err := ss.RemoteCluster().Save(rc)
+	require.Nil(t, err)
+
+	testData := []struct {
+		topics   string
+		expected string
+	}{
+		{topics: "", expected: ""},
+		{topics: " ", expected: ""},
+		{topics: "share", expected: " share "},
+		{topics: " share ", expected: " share "},
+		{topics: "share incident", expected: " share incident "},
+		{topics: "  share    incident   ", expected: " share incident "},
+	}
+
+	for _, tt := range testData {
+		_, err = ss.RemoteCluster().UpdateTopics(remoteId, tt.topics)
+		require.NoError(t, err)
+
+		rcUpdated, err := ss.RemoteCluster().Get(remoteId)
+		require.NoError(t, err)
+
+		require.Equal(t, tt.expected, rcUpdated.Topics)
+	}
 }

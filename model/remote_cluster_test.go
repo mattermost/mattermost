@@ -100,3 +100,23 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 		}
 	}
 }
+
+func TestFixTopics(t *testing.T) {
+	testData := []struct {
+		topics   string
+		expected string
+	}{
+		{topics: "", expected: ""},
+		{topics: "   ", expected: ""},
+		{topics: "share", expected: " share "},
+		{topics: "share incident", expected: " share incident "},
+		{topics: " share incident ", expected: " share incident "},
+		{topics: "    share     incident    ", expected: " share incident "},
+	}
+
+	for _, tt := range testData {
+		rc := &RemoteCluster{Topics: tt.topics}
+		rc.fixTopics()
+		assert.Equal(t, tt.expected, rc.Topics)
+	}
+}
