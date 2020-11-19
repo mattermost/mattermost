@@ -217,7 +217,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	a.SetSession(session)
 
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
-		a.Ldap().UpdateProfilePictureIfNecessary(*user, session)
+		userVal := *user
+		sessionVal := *session
+		a.Srv().Go(func() {
+			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
+		})
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
