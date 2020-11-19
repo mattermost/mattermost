@@ -72,6 +72,7 @@ type Handler struct {
 	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName         string
 	RequireSession      bool
+	RequireCloudKey     bool
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
@@ -190,13 +191,26 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
 		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
-			if err.StatusCode == http.StatusInternalServerError {
-				c.Err = err
-			} else if h.RequireSession {
-				c.RemoveSessionCookie(w, r)
-				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+			if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+				// Check to see if this provided token matches our CWS Token
+				session, err = c.App.GetCloudSession(token)
+				if err != nil {
+					c.Log.Info("Invalid CWS token", mlog.Err(err))
+					c.Err = err
+				} else {
+					c.App.SetSession(session)
+				}
+
+			} else {
+				c.Log.Info("Invalid session", mlog.Err(err))
+				if err.StatusCode == http.StatusInternalServerError {
+					c.Err = err
+				} else if h.RequireSession {
+					c.RemoveSessionCookie(w, r)
+					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+				}
 			}
+
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
@@ -229,6 +243,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
 		c.SetServerBusyError()
+	}
+
+	if c.Err == nil && h.RequireCloudKey {
+		c.CloudKeyRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {
