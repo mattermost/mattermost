@@ -1586,3 +1586,7 @@ func (s *Server) HttpService() httpservice.HTTPService {
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
 }
+
+func (s *Server) GetLogger() mlog.LoggerIFace {
+	return s.Log
+}

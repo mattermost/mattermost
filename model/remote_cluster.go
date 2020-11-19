@@ -117,7 +117,6 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, error) {
 // These are processed and routed via the RemoteClusters service.
 type RemoteClusterMsg struct {
 	Id       string
-	RemoteId string
 	Topic    string
 	CreateAt int64
 	Token    string
@@ -127,10 +126,6 @@ type RemoteClusterMsg struct {
 func (m *RemoteClusterMsg) IsValid() *AppError {
 	if !IsValidId(m.Id) {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "Id="+m.Id, http.StatusBadRequest)
-	}
-
-	if !IsValidId(m.RemoteId) {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "RemoteId="+m.RemoteId, http.StatusBadRequest)
 	}
 
 	if m.Topic == "" {
