@@ -56,6 +56,16 @@ var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 
+type LoggerIFace interface {
+	Debug(string, ...Field)
+	Info(string, ...Field)
+	Warn(string, ...Field)
+	Error(string, ...Field)
+	Critical(string, ...Field)
+	Log(LogLevel, string, ...Field)
+	LogM([]LogLevel, string, ...Field)
+}
+
 type TargetInfo logr.TargetInfo
 
 type LoggerConfiguration struct {

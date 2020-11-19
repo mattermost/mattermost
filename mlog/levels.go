@@ -30,6 +30,10 @@ var (
 	// used by the TCP log target
 	LvlTcpLogTarget = LogLevel{ID: 120, Name: "TcpLogTarget"}
 
+	// used by Remote Cluster Service
+	LvlRemoteClusterServiceDebug = LogLevel{ID: 130, Name: "RemoteClusterServiceDebug"}
+	LvlRemoteClusterServiceError = LogLevel{ID: 131, Name: "RemoteClusterServiceError"}
+
 	// add more here ...
 )
 

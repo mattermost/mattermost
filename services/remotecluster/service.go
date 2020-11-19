@@ -27,7 +27,7 @@ type ServerIface interface {
 	AddClusterLeaderChangedListener(listener func()) string
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
-	GetLogger() *mlog.Logger
+	GetLogger() mlog.LoggerIFace
 }
 
 type TopicListener interface {

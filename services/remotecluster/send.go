@@ -11,8 +11,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -21,12 +21,6 @@ type SendResultFunc func(msg *model.RemoteClusterMsg, remote *model.RemoteCluste
 type sendTask struct {
 	msg *model.RemoteClusterMsg
 	f   SendResultFunc
-}
-
-type result struct {
-	task   sendTask
-	remote *model.RemoteCluster
-	err    error
 }
 
 var (
@@ -67,47 +61,11 @@ func (rcs *RemoteClusterService) SendOutgoingMsg(ctx context.Context, msg *model
 }
 
 func (rcs *RemoteClusterService) sendLoop(done chan struct{}) {
-	// start the result callbacks loop, sharing the done chan.
-	results := make(chan result, ResultsChanBuffer)
-	go rcs.resultLoop(results, done)
-
 	for {
 		select {
 		case task := <-rcs.send:
 			rcs.sendMsg(task)
 		case <-done:
-			return
-		}
-	}
-}
-
-func (rcs *RemoteClusterService) resultLoop(results chan result, done chan struct{}) {
-loop:
-	for {
-		select {
-		case result := <-results:
-			if result.task.f != nil {
-				result.task.f(result.task.msg, result.remote, result.err)
-			}
-		case <-done:
-			break loop
-		}
-	}
-
-	// try to drain result queue
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*ResultQueueDrainTimeoutMillis)
-	defer cancel()
-
-	for {
-		select {
-		case result := <-results:
-			if result.task.f != nil {
-				result.task.f(result.task.msg, result.remote, result.err)
-			}
-		case <-ctx.Done():
-			rcs.server.GetLogger().Error("RemoteClusterService timeout draining result queue.")
-			return
-		default:
 			return
 		}
 	}
@@ -122,7 +80,7 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 		}
 	}
 
-	// bound the number of concurrent goroutines used to send using a simple semaphore.
+	// bound the number of concurrent goroutines used to send using a semaphore.
 	bound := make(chan struct{}, MaxConcurrentSends)
 
 	for _, rc := range list {
@@ -132,6 +90,13 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 			err := rcs.sendMsgToRemote(rc, task)
 			if task.f != nil {
 				task.f(task.msg, rc, err)
+			}
+			if err != nil {
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send FAILED",
+					mlog.String("remote", rc.ClusterName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
+			} else {
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
+					mlog.String("remote", rc.ClusterName), mlog.String("msgId", task.msg.Id))
 			}
 		}(rc)
 	}
