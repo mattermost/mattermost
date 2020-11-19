@@ -42,16 +42,14 @@ func TestSAMLSettings(t *testing.T) {
 			setSAMLInterface:  true,
 			setNewInterface:   false,
 			useNewSAMLLibrary: false,
-			isNil:             false,
-			metadata:          "samlOne",
+			isNil:             true,
 		},
 		{
 			name:              "Orignal SAML Interface, config true",
 			setSAMLInterface:  true,
 			setNewInterface:   false,
 			useNewSAMLLibrary: true,
-			isNil:             false,
-			metadata:          "samlOne",
+			isNil:             true,
 		},
 		{
 			name:              "Both SAML Interfaces, default setting",
@@ -59,7 +57,7 @@ func TestSAMLSettings(t *testing.T) {
 			setNewInterface:   true,
 			useNewSAMLLibrary: false,
 			isNil:             false,
-			metadata:          "samlOne",
+			metadata:          "samlTwo",
 		},
 		{
 			name:              "Both SAML Interfaces, config true",
