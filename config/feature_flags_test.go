@@ -77,6 +77,26 @@ func TestFeatureFlagsFromMap(t *testing.T) {
 			Base:              model.FeatureFlags{TestBoolFeature: true},
 			ExpectedTestValue: "",
 		},
+		"bool True": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "True"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool 1": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "1"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool off": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "off"},
+			Base:              model.FeatureFlags{},
+			ExpectedTestValue: "",
+		},
+		"bool false": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "false"},
+			Base:              model.FeatureFlags{},
+			ExpectedTestValue: "",
+		},
 		"bool other value": {
 			FeatureMap:        map[string]string{"TestBoolFeature": "someotherbadvalue"},
 			Base:              model.FeatureFlags{},

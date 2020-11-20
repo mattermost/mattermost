@@ -7,6 +7,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -75,7 +76,7 @@ func (f *FeatureFlagSynchronizer) Close() {
 // It starts with baseFeatureFlags and only sets values that are
 // given by the upstream management system.
 // Makes the assumption that all feature flags are strings or booleans.
-// Strings are converted to booleans by consitering "on" or "true" as true and any other value as false.
+// Strings are converted to booleans by consitering case insenstive "on" or any value consitered by strconv.ParseBool as true and any other value as false.
 func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.FeatureFlags) model.FeatureFlags {
 	refStruct := reflect.ValueOf(&baseFeatureFlags).Elem()
 	for fieldName, fieldValue := range featuresMap {
@@ -87,7 +88,8 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 
 		switch refField.Type().Kind() {
 		case reflect.Bool:
-			refField.Set(reflect.ValueOf(fieldValue == "on" || fieldValue == "true"))
+			parsedBoolValue, _ := strconv.ParseBool(fieldValue)
+			refField.Set(reflect.ValueOf(strings.ToLower(fieldValue) == "on" || parsedBoolValue))
 		default:
 			refField.Set(reflect.ValueOf(fieldValue))
 		}
