@@ -211,7 +211,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-		configStore, err := config.NewStoreFromBacking(innerStore)
+		configStore, err := config.NewStoreFromBacking(innerStore, nil)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}

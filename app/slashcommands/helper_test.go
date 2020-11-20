@@ -60,18 +60,20 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(dbStore))
+	if includeCacheLayer {
+		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
+			lcl, err := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			if err != nil {
+				panic(err)
+			}
+			return lcl
+		}))
+	} else {
+		options = append(options, app.StoreOverride(dbStore))
+	}
 	options = append(options, app.SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
-
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
-	}
 	if err != nil {
 		panic(err)
 	}

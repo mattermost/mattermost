@@ -92,25 +92,29 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	memoryStore.Set(memoryConfig)
 
-	configStore, err := config.NewStoreFromBacking(memoryStore)
+	configStore, err := config.NewStoreFromBacking(memoryStore, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(configStore))
-	options = append(options, app.StoreOverride(dbStore))
+	if includeCache {
+		// Adds the cache layer to the test store
+		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
+			lcl, err := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			if err != nil {
+				panic(err)
+			}
+			return lcl
+		}))
+	} else {
+		options = append(options, app.StoreOverride(dbStore))
+	}
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
-	}
-	if includeCache {
-		// Adds the cache layer to the test store
-		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
-		if err != nil {
-			panic(err)
-		}
 	}
 
 	th := &TestHelper{
@@ -133,30 +137,26 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		// Disable sniffing, otherwise elastic client fails to connect to docker node
 		// More details: https://github.com/olivere/elastic/wiki/Sniffing
 		*cfg.ElasticsearchSettings.Sniff = false
-	})
-	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if err := th.Server.Start(); err != nil {
-		panic(err)
-	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
-	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App.Srv())
-	th.App.DoAppMigrations()
+		*cfg.TeamSettings.EnableOpenServer = true
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
+		// Disable strict password requirements for test
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
 		*cfg.PasswordSettings.Symbol = false
 		*cfg.PasswordSettings.Number = false
+
+		*cfg.ServiceSettings.ListenAddress = ":0"
 	})
+	if err := th.Server.Start(); err != nil {
+		panic(err)
+	}
+
+	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	wsapi.Init(th.App.Srv())
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -200,6 +200,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
 	th.InitLogin()
@@ -218,6 +219,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
 	th.InitLogin()

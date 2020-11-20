@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -160,24 +161,31 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
+	threadParticipants := []string{post.UserId}
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		if parentPostList != nil {
+			threadParticipants = append(threadParticipants, parentPostList.Posts[parentPostList.Order[0]].UserId)
+		}
+		for id := range mentions.Mentions {
+			threadParticipants = append(threadParticipants, id)
+		}
+		// for each mention, make sure to update thread autofollow
+		for _, id := range threadParticipants {
+			mac := make(chan *model.AppError, 1)
+			go func(userId string) {
+				defer close(mac)
 
-	// for each mention, make sure to update thread autofollow
-	for id := range mentions.Mentions {
-		mac := make(chan *model.AppError, 1)
-		go func(userId string) {
-			defer close(mac)
-			if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
 				}
-			}
-			mac <- nil
-		}(id)
-		mentionAutofollowChans = append(mentionAutofollowChans, mac)
-	}
 
+				mac <- nil
+			}(id)
+			mentionAutofollowChans = append(mentionAutofollowChans, mac)
+		}
+	}
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 
@@ -403,6 +411,28 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	a.Publish(message)
+	// If this is a reply in a thread, notify participants
+	if *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
+		thread, err := a.Srv().Store.Thread().Get(post.RootId)
+		if err != nil {
+			mlog.Error("Cannot get thread", mlog.String("id", post.RootId))
+			return nil, err
+		}
+		payload := thread.ToJson()
+		for _, uid := range thread.Participants {
+			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+			// check if a participant has overridden collapsed threads settings
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent, _ = strconv.ParseBool(preference.Value)
+			}
+			if sendEvent {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
+			}
+		}
+
+	}
 	return mentionedUsersList, nil
 }
 
@@ -789,7 +819,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 
 // getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
 func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
-	var err *model.AppError
+	var err error
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
 
@@ -801,7 +831,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
@@ -813,7 +843,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, group := range groups {
 		if group.Name != nil {
@@ -845,7 +875,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
 func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
-	var err *model.AppError
+	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
 	isGroupOrDirect := channel.IsGroupOrDirect()
@@ -857,7 +887,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	if err != nil {
-		return false, err
+		return false, model.NewAppError("insertGroupMentions", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if mentions.Mentions == nil {
