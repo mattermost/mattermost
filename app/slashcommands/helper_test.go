@@ -45,10 +45,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		panic(err)
 	}
 
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	memoryStore := config.NewTestMemoryStore()
 
 	config := memoryStore.Get()
 	if configSet != nil {
@@ -63,17 +60,18 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(dbStore))
+	if includeCacheLayer {
+		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
+			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+		}))
+	} else {
+		options = append(options, app.StoreOverride(dbStore))
+	}
 	options = append(options, app.SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
-	}
-
-	if includeCacheLayer {
-		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{

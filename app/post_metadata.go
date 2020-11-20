@@ -81,6 +81,8 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 		return
 	}
 
+	emojiName = strings.ReplaceAll(emojiName, ":", "")
+
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
 		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
 	} else {
@@ -316,10 +318,6 @@ func getFirstLinkAndImages(str string) (string, []string) {
 			if firstLink == "" {
 				firstLink = v.Destination()
 			}
-		case *markdown.InlineLink:
-			if firstLink == "" {
-				firstLink = v.Destination()
-			}
 		case *markdown.InlineImage:
 			images = append(images, v.Destination())
 		case *markdown.ReferenceImage:
@@ -408,6 +406,12 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		mmTransport := a.HTTPService().MakeTransport(false)
+		client.Transport = mmTransport.Transport
+
+		if strings.HasPrefix(requestURL, "https://twitter.com/") || strings.HasPrefix(requestURL, "https://mobile.twitter.com/") {
+			request.Header.Add("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
+		}
 
 		var res *http.Response
 		res, err = client.Do(request)

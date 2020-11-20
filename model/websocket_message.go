@@ -70,6 +70,9 @@ const (
 	WEBSOCKET_WARN_METRIC_STATUS_RECEIVED                    = "warn_metric_status_received"
 	WEBSOCKET_WARN_METRIC_STATUS_REMOVED                     = "warn_metric_status_removed"
 	WEBSOCKET_EVENT_CLOUD_PAYMENT_STATUS_UPDATED             = "cloud_payment_status_updated"
+	WEBSOCKET_EVENT_THREAD_UPDATED                           = "thread_updated"
+	WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED                    = "thread_follow_changed"
+	WEBSOCKET_EVENT_THREAD_READ_CHANGED                      = "thread_read_changed"
 )
 
 type WebSocketMessage interface {
@@ -201,6 +204,22 @@ func (ev *WebSocketEvent) ToJson() string {
 		ev.Sequence,
 	})
 	return string(b)
+}
+
+// Encode encodes the event to the given encoder.
+func (ev *WebSocketEvent) Encode(enc *json.Encoder) error {
+	if ev.precomputedJSON != nil {
+		return enc.Encode(json.RawMessage(
+			fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, ev.precomputedJSON.Event, ev.precomputedJSON.Data, ev.precomputedJSON.Broadcast, ev.Sequence),
+		))
+	}
+
+	return enc.Encode(webSocketEventJSON{
+		ev.Event,
+		ev.Data,
+		ev.Broadcast,
+		ev.Sequence,
+	})
 }
 
 func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {

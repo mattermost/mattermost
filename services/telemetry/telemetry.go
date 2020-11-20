@@ -234,14 +234,14 @@ func (ts *TelemetryService) trackActivity() {
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -311,12 +311,12 @@ func (ts *TelemetryService) trackActivity() {
 	outgoingWebhooksCount, _ = ts.dbStore.Webhook().AnalyticsOutgoingCount("")
 
 	var activeUsersDailyCount int64
-	if r := <-activeUsersDailyCountChan; r.Err == nil {
+	if r := <-activeUsersDailyCountChan; r.NErr == nil {
 		activeUsersDailyCount = r.Data.(int64)
 	}
 
 	var activeUsersMonthlyCount int64
-	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
+	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
@@ -405,6 +405,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"collapsed_threads":                                       *cfg.ServiceSettings.CollapsedThreads,
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
@@ -423,6 +424,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
+		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -649,6 +651,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
+		"ignore_guests_ldap_sync":             *cfg.SamlSettings.IgnoreGuestsLdapSync,
 		"enable_admin_attribute":              *cfg.SamlSettings.EnableAdminAttribute,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
@@ -1280,7 +1283,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.custom-attributes",
 		"com.mattermost.mscalendar",
 		"com.mattermost.nps",
-		"com.mattermost.plugin-incident-response",
+		"com.mattermost.plugin-incident-management",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",
