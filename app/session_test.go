@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -403,4 +404,33 @@ func TestApp_SetSessionExpireInDays(t *testing.T) {
 			require.LessOrEqual(t, session.ExpiresAt, tt.want+grace)
 		})
 	}
+}
+
+func TestGetCloudSession(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Matching environment variable and token should return non-nil session", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_API_KEY", "mytoken")
+		session, err := th.App.GetCloudSession("mytoken")
+		require.Nil(t, err)
+		require.NotNil(t, session)
+		require.Equal(t, "mytoken", session.Token)
+	})
+
+	t.Run("Empty environment variable should return error", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_API_KEY", "")
+		session, err := th.App.GetCloudSession("mytoken")
+		require.Nil(t, session)
+		require.NotNil(t, err)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
+	})
+
+	t.Run("Mismatched env variable and token should return error", func(t *testing.T) {
+		os.Setenv("MM_CLOUD_API_KEY", "mytoken")
+		session, err := th.App.GetCloudSession("myincorrecttoken")
+		require.Nil(t, session)
+		require.NotNil(t, err)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
+	})
 }
