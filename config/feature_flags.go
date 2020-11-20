@@ -76,7 +76,7 @@ func (f *FeatureFlagSynchronizer) Close() {
 // It starts with baseFeatureFlags and only sets values that are
 // given by the upstream management system.
 // Makes the assumption that all feature flags are strings or booleans.
-// Strings are converted to booleans by consitering case insenstive "on" or any value consitered by strconv.ParseBool as true and any other value as false.
+// Strings are converted to booleans by considering case insensitive "on" or any value considered by strconv.ParseBool as true and any other value as false.
 func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.FeatureFlags) model.FeatureFlags {
 	refStruct := reflect.ValueOf(&baseFeatureFlags).Elem()
 	for fieldName, fieldValue := range featuresMap {
