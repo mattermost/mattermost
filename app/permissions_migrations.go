@@ -70,6 +70,7 @@ const (
 	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS       = "read_private_channel_groups"
 	PERMISSION_EDIT_BRAND                        = "edit_brand"
 	PERMISSION_MANAGE_SHARED_CHANNELS            = "manage_shared_channels"
+	PERMISSION_MANAGE_REMOTE_CLUSTERS            = "manage_remote_clusters"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -515,6 +516,15 @@ func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, 
 	}, nil
 }
 
+func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{PERMISSION_MANAGE_REMOTE_CLUSTERS},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -535,6 +545,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Migration: a.getAddConvertChannelPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
 	}
 
