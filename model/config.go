@@ -898,8 +898,8 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
@@ -2669,9 +2669,9 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
-		// Enable the incident response plugin by default
-		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
+	if s.PluginStates["com.mattermost.plugin-incident-management"] == nil {
+		// Enable the incident management plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
