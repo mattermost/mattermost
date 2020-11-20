@@ -60,7 +60,7 @@ func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.
 		RequireSession:      false,
 		RequireCloudKey:     true,
 		TrustRequester:      false,
-		RequireMfa:          true,
+		RequireMfa:          false,
 		IsStatic:            false,
 		IsLocal:             false,
 	}

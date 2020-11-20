@@ -37,7 +37,7 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	apiKey := os.Getenv("MM_CLOUD_API_KEY")
-	if apiKey == token {
+	if apiKey != "" && apiKey == token {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
