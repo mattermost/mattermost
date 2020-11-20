@@ -188,27 +188,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 {
+	if len(token) != 0 && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
 		if err != nil {
-			if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
-				// Check to see if this provided token matches our CWS Token
-				session, err = c.App.GetCloudSession(token)
-				if err != nil {
-					c.Log.Info("Invalid CWS token", mlog.Err(err))
-					c.Err = err
-				} else {
-					c.App.SetSession(session)
-				}
-
-			} else {
-				c.Log.Info("Invalid session", mlog.Err(err))
-				if err.StatusCode == http.StatusInternalServerError {
-					c.Err = err
-				} else if h.RequireSession {
-					c.RemoveSessionCookie(w, r)
-					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
-				}
+			c.Log.Info("Invalid session", mlog.Err(err))
+			if err.StatusCode == http.StatusInternalServerError {
+				c.Err = err
+			} else if h.RequireSession {
+				c.RemoveSessionCookie(w, r)
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
 
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
@@ -223,6 +211,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
+	} else if len(token) != 0 && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+		// Check to see if this provided token matches our CWS Token
+		session, err := c.App.GetCloudSession(token)
+		if err != nil {
+			c.Log.Info("Invalid CWS token", mlog.Err(err))
+			c.Err = err
+		} else {
+			c.App.SetSession(session)
+		}
 	}
 
 	c.Log = c.App.Log().With(
