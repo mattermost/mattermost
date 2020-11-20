@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
 	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
@@ -921,7 +921,8 @@ func precheckMigrationToVersion528(sqlStore SqlStore) error {
 }
 
 func upgradeDatabaseToVersion529(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_28_1, VERSION_5_29_0) {
+	if hasMissingMigrationsVersion529(sqlStore) {
+		mlog.Info("Applying migrations for version 5.29")
 		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
 		sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
 		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
@@ -936,18 +937,61 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
 			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 		}
+	}
 
+	if shouldPerformUpgrade(sqlStore, VERSION_5_28_1, VERSION_5_29_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	}
 }
 
+func hasMissingMigrationsVersion529(sqlStore SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("SidebarCategories", "Id")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "SidebarCategories"),
+			mlog.String("column", "Id"),
+			mlog.Err(err),
+		)
+		return true
+	}
+	if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 128 {
+		return true
+	}
+	scCategoryIdInfo, err := sqlStore.GetColumnInfo("SidebarChannels", "CategoryId")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "SidebarChannels"),
+			mlog.String("column", "CategoryId"),
+			mlog.Err(err),
+		)
+		return true
+	}
+	if !sqlStore.IsVarchar(scCategoryIdInfo.DataType) || scCategoryIdInfo.CharMaximumLength != 128 {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("Threads", "ChannelId") {
+		return true
+	}
+	return false
+}
+
 func upgradeDatabaseToVersion530(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
+	if hasMissingMigrationsVersion530(sqlStore) {
+		mlog.Info("Applying migrations for version 5.30")
+		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
+		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+	}
+	if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_30_0)
+	}
+}
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
-
-	sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_30_0)
-	// }
+func hasMissingMigrationsVersion530(sqlStore SqlStore) bool {
+	if !sqlStore.DoesColumnExist("FileInfo", "Content") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("SidebarCategories", "Muted") {
+		return true
+	}
+	return false
 }
