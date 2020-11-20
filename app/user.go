@@ -2388,6 +2388,9 @@ func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.Ap
 	if err != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", "", userId, nil)
+	message.Add("timestamp", timestamp)
+	a.Publish(message)
 	return nil
 }
 
@@ -2396,6 +2399,10 @@ func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *mo
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED, "", "", userId, nil)
+	message.Add("thread_id", threadId)
+	message.Add("state", state)
+	a.Publish(message)
 	return nil
 }
 
@@ -2404,5 +2411,9 @@ func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) 
 	if err != nil {
 		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", "", userId, nil)
+	message.Add("thread_id", threadId)
+	message.Add("timestamp", timestamp)
+	a.Publish(message)
 	return nil
 }
