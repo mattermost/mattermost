@@ -55,10 +55,10 @@ func TestSendMsg(t *testing.T) {
 
 		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
 		service, err := NewRemoteClusterService(mockServer)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		err = service.Start()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		defer service.Shutdown()
 
 		wg := &sync.WaitGroup{}
@@ -70,7 +70,7 @@ func TestSendMsg(t *testing.T) {
 		defer cancel()
 
 		err = service.SendOutgoingMsg(ctx, msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
-			defer wg.Done()
+			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
 			if err != nil {
@@ -104,6 +104,81 @@ func TestSendMsg(t *testing.T) {
 			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes))
 	})
 
+	t.Run("HTTP error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(500)
+		}))
+		defer ts.Close()
+
+		host, port, err := parseURL(ts.URL)
+		require.NoError(t, err)
+
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		service, err := NewRemoteClusterService(mockServer)
+		require.NoError(t, err)
+
+		err = service.Start()
+		require.NoError(t, err)
+		defer service.Shutdown()
+
+		msg := makeRemoteClusterMsg(msgId, "Bogus")
+		var countCallbacks int32
+		var countErrors int32
+		wg := &sync.WaitGroup{}
+		wg.Add(NumRemotes)
+
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
+			wg.Done()
+			atomic.AddInt32(&countCallbacks, 1)
+			if err != nil {
+				atomic.AddInt32(&countErrors, 1)
+			}
+		})
+		assert.NoError(t, err)
+
+		wg.Wait()
+
+		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
+		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countErrors))
+	})
+
+	t.Run("HTTP error", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(500)
+		}))
+		defer ts.Close()
+
+		host, port, err := parseURL(ts.URL)
+		require.NoError(t, err)
+
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		service, err := NewRemoteClusterService(mockServer)
+		require.NoError(t, err)
+
+		err = service.Start()
+		require.NoError(t, err)
+		defer service.Shutdown()
+
+		msg := makeRemoteClusterMsg(msgId, "Bogus")
+		var countCallbacks int32
+		var countErrors int32
+		wg := &sync.WaitGroup{}
+		wg.Add(NumRemotes)
+
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
+			wg.Done()
+			atomic.AddInt32(&countCallbacks, 1)
+			if err != nil {
+				atomic.AddInt32(&countErrors, 1)
+			}
+		})
+		assert.NoError(t, err)
+
+		wg.Wait()
+
+		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
+		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countErrors))
+	})
 }
 
 func makeRemoteClusters(num int, host string, port int32) []*model.RemoteCluster {
