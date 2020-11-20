@@ -85,27 +85,27 @@ func Setup() *TestHelper {
 	return setupTestHelper(false)
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
-	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
-	me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
+func (th *TestHelper) InitBasic() *TestHelper {
+	th.SystemAdminUser = th.CreateUser()
+	th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 
-	me.BasicTeam = me.CreateTeam()
-	me.BasicUser = me.CreateUser()
-	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.BasicUser2 = me.CreateUser()
-	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
-	me.BasicChannel = me.CreateChannel(me.BasicTeam)
-	me.BasicPost = me.CreatePost(me.BasicChannel)
+	th.BasicTeam = th.CreateTeam()
+	th.BasicUser = th.CreateUser()
+	th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+	th.BasicUser2 = th.CreateUser()
+	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
+	th.BasicChannel = th.CreateChannel(th.BasicTeam)
+	th.BasicPost = th.CreatePost(th.BasicChannel)
 
-	return me
+	return th
 }
 
-func (me *TestHelper) MakeEmail() string {
+func (*TestHelper) MakeEmail() string {
 	return "success_" + model.NewId() + "@simulator.amazonses.com"
 }
 
-func (me *TestHelper) CreateTeam() *model.Team {
+func (th *TestHelper) CreateTeam() *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -116,7 +116,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = me.App.CreateTeam(team); err != nil {
+	if team, err = th.App.CreateTeam(team); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -126,7 +126,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 	return team
 }
 
-func (me *TestHelper) CreateUser() *model.User {
+func (th *TestHelper) CreateUser() *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -139,7 +139,7 @@ func (me *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = me.App.CreateUser(user); err != nil {
+	if user, err = th.App.CreateUser(user); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -149,11 +149,11 @@ func (me *TestHelper) CreateUser() *model.User {
 	return user
 }
 
-func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return me.createChannel(team, model.CHANNEL_OPEN)
+func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN)
 }
 
-func (me *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -161,12 +161,12 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 		Name:        "name_" + id,
 		Type:        channelType,
 		TeamId:      team.Id,
-		CreatorId:   me.BasicUser.Id,
+		CreatorId:   th.BasicUser.Id,
 	}
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if channel, err = me.App.CreateChannel(channel, true); err != nil {
+	if channel, err = th.App.CreateChannel(channel, true); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -176,11 +176,11 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 	return channel
 }
 
-func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
-	if channel, err = me.App.GetOrCreateDirectChannel(me.BasicUser.Id, user.Id); err != nil {
+	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -190,11 +190,11 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
-func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
+func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
-		UserId:    me.BasicUser.Id,
+		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
 		CreateAt:  model.GetMillis() - 10000,
@@ -202,7 +202,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
+	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -212,10 +212,10 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
-func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
+func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := me.App.JoinUserToTeam(team, user, "")
+	err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		mlog.Error(err.Error())
 
@@ -226,10 +226,10 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
-func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
+func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
-	member, err := me.App.AddUserToChannel(user, channel)
+	member, err := th.App.AddUserToChannel(user, channel)
 	if err != nil {
 		mlog.Error(err.Error())
 
@@ -242,16 +242,16 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
-func (me *TestHelper) TearDown() {
+func (th *TestHelper) TearDown() {
 	// Clean all the caches
-	me.App.Srv().InvalidateAllCaches()
-	me.Server.Shutdown()
-	if me.tempWorkspace != "" {
-		os.RemoveAll(me.tempWorkspace)
+	th.App.Srv().InvalidateAllCaches()
+	th.Server.Shutdown()
+	if th.tempWorkspace != "" {
+		os.RemoveAll(th.tempWorkspace)
 	}
 }
 
-func (me *TestHelper) ResetRoleMigration() {
+func (*TestHelper) ResetRoleMigration() {
 	sqlSupplier := mainHelper.GetSQLSupplier()
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
@@ -264,15 +264,15 @@ func (me *TestHelper) ResetRoleMigration() {
 	}
 }
 
-func (me *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrationKey string) {
-	jobs, err := me.App.Srv().Store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
+func (th *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrationKey string) {
+	jobs, err := th.App.Srv().Store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, job := range jobs {
 		if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok && key == migrationKey {
-			if _, err = me.App.Srv().Store.Job().Delete(job.Id); err != nil {
+			if _, err = th.App.Srv().Store.Job().Delete(job.Id); err != nil {
 				panic(err)
 			}
 		}
