@@ -314,6 +314,42 @@ func TestGetAllConns(t *testing.T) {
 	}
 }
 
+func TestGetColumnInfo(t *testing.T) {
+	t.Run("Should return column info for mysql", func(t *testing.T) {
+		settings := makeSqlSettings(model.DATABASE_DRIVER_MYSQL)
+		supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+		info, err := supplier.GetColumnInfo("Systems", "Name")
+		require.NoError(t, err)
+		require.Equal(t, info.DataType, "varchar")
+		require.Equal(t, info.CharMaximumLength, 64)
+	})
+	t.Run("Should return column info for postgresql", func(t *testing.T) {
+		settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+		supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+		info, err := supplier.GetColumnInfo("Systems", "Name")
+		require.NoError(t, err)
+		require.Equal(t, info.DataType, "character varying")
+		require.Equal(t, info.CharMaximumLength, 64)
+	})
+	t.Run("Should return error if the column/table doesn't exists", func(t *testing.T) {
+		settings := makeSqlSettings(model.DATABASE_DRIVER_POSTGRES)
+		supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+		_, err := supplier.GetColumnInfo("Unknown", "Type")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "no rows in result set")
+	})
+	t.Run("Should return error for other drivers", func(t *testing.T) {
+		settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+		supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+		_, err := supplier.GetColumnInfo("Systems", "Type")
+		require.Error(t, err)
+	})
+}
+
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:

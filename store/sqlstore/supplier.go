@@ -561,7 +561,8 @@ func (ss *SqlSupplier) GetColumnInfo(tableName, columnName string) (*ColumnInfo,
 			`SELECT data_type as DataType,
 					COALESCE(character_maximum_length, 0) as CharMaximumLength
 			 FROM information_schema.columns
-			 WHERE lower(table_name) = lower(?)
+			 WHERE table_schema = DATABASE()
+			 AND lower(table_name) = lower(?)
 			 AND lower(column_name) = lower(?)`,
 			tableName, columnName)
 		if err != nil {
