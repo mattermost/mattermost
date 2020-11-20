@@ -23,4 +23,5 @@ const (
 	MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS             = "add_convert_channel_permissions"
 	MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS                = "add_system_roles_permissions"
 	MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS       = "manage_shared_channel_permissions"
+	MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS      = "manage_remote_clusters_permissions"
 )
