@@ -369,7 +369,7 @@ func TestCheckClientCompatability(t *testing.T) {
 	}
 	for _, browser := range uaTestParameters {
 		t.Run(browser.Name, func(t *testing.T) {
-			result := CheckClientCompatability(browser.UserAgent)
+			result := CheckClientCompatibility(browser.UserAgent)
 			require.Equalf(t, result, browser.Result, "user agent test failed for %s", browser.Name)
 		})
 	}

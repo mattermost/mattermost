@@ -1283,7 +1283,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.custom-attributes",
 		"com.mattermost.mscalendar",
 		"com.mattermost.nps",
-		"com.mattermost.plugin-incident-response",
+		"com.mattermost.plugin-incident-management",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",
