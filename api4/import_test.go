@@ -56,57 +56,51 @@ func TestListImports(t *testing.T) {
 		require.Nil(t, imports)
 	})
 
-	clients := map[string]*model.Client4{
-		"LocalClient":       th.LocalClient,
-		"SystemAdminClient": th.SystemAdminClient,
-	}
-	for clientName, c := range clients {
-		dataDir, found := fileutils.FindDir("data")
-		require.True(t, found)
+	dataDir, found := fileutils.FindDir("data")
+	require.True(t, found)
 
-		t.Run("no imports "+clientName, func(t *testing.T) {
-			imports, resp := c.ListImports()
-			require.Nil(t, resp.Error)
-			require.Empty(t, imports)
-		})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		imports, resp := c.ListImports()
+		require.Nil(t, resp.Error)
+		require.Empty(t, imports)
+	}, "no imports")
 
-		t.Run("expected imports "+clientName, func(t *testing.T) {
-			id := uploadNewImport(c, t)
-			id2 := uploadNewImport(c, t)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		id := uploadNewImport(c, t)
+		id2 := uploadNewImport(c, t)
 
-			importDir := filepath.Join(dataDir, "import")
-			f, err := os.Create(filepath.Join(importDir, "import.zip.tmp"))
-			require.Nil(t, err)
-			f.Close()
+		importDir := filepath.Join(dataDir, "import")
+		f, err := os.Create(filepath.Join(importDir, "import.zip.tmp"))
+		require.Nil(t, err)
+		f.Close()
 
-			imports, resp := c.ListImports()
-			require.Nil(t, resp.Error)
-			require.NotEmpty(t, imports)
-			require.Len(t, imports, 2)
-			require.Contains(t, imports, id+"_import_test.zip")
-			require.Contains(t, imports, id2+"_import_test.zip")
+		imports, resp := c.ListImports()
+		require.Nil(t, resp.Error)
+		require.NotEmpty(t, imports)
+		require.Len(t, imports, 2)
+		require.Contains(t, imports, id+"_import_test.zip")
+		require.Contains(t, imports, id2+"_import_test.zip")
 
-			require.Nil(t, os.RemoveAll(importDir))
-		})
+		require.Nil(t, os.RemoveAll(importDir))
+	}, "expected imports")
 
-		t.Run("change import directory "+clientName, func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import_new" })
-			defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import" })
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import_new" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import" })
 
-			importDir := filepath.Join(dataDir, "import_new")
+		importDir := filepath.Join(dataDir, "import_new")
 
-			imports, resp := c.ListImports()
-			require.Nil(t, resp.Error)
-			require.Empty(t, imports)
+		imports, resp := c.ListImports()
+		require.Nil(t, resp.Error)
+		require.Empty(t, imports)
 
-			id := uploadNewImport(c, t)
-			imports, resp = c.ListImports()
-			require.Nil(t, resp.Error)
-			require.NotEmpty(t, imports)
-			require.Len(t, imports, 1)
-			require.Equal(t, id+"_import_test.zip", imports[0])
+		id := uploadNewImport(c, t)
+		imports, resp = c.ListImports()
+		require.Nil(t, resp.Error)
+		require.NotEmpty(t, imports)
+		require.Len(t, imports, 1)
+		require.Equal(t, id+"_import_test.zip", imports[0])
 
-			require.Nil(t, os.RemoveAll(importDir))
-		})
-	}
+		require.Nil(t, os.RemoveAll(importDir))
+	}, "change import directory")
 }
