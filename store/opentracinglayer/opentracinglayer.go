@@ -1286,6 +1286,24 @@ func (s *OpenTracingLayerChannelStore) GetMembers(channelId string, offset int, 
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMembersByChannelIds")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ChannelStore.GetMembersByChannelIds(channelIds, userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMembersByIds")
@@ -2164,7 +2182,7 @@ func (s *OpenTracingLayerChannelStore) UpdateMultipleMembers(members []*model.Ch
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
+func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarCategories")
 	s.Root.Store.SetContext(newCtx)
@@ -2173,13 +2191,13 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userId string, te
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.UpdateSidebarCategories(userId, teamId, categories)
+	result, resultVar1, err := s.ChannelStore.UpdateSidebarCategories(userId, teamId, categories)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return result, resultVar1, err
 }
 
 func (s *OpenTracingLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) error {
@@ -3157,7 +3175,7 @@ func (s *OpenTracingLayerFileInfoStore) Upsert(info *model.FileInfo) (*model.Fil
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string, syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.AdminRoleGroupsForSyncableMember")
 	s.Root.Store.SetContext(newCtx)
@@ -3175,7 +3193,7 @@ func (s *OpenTracingLayerGroupStore) AdminRoleGroupsForSyncableMember(userID str
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.ChannelMembersMinusGroupMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -3193,7 +3211,7 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersMinusGroupMembers(channelID s
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.ChannelMembersToAdd")
 	s.Root.Store.SetContext(newCtx)
@@ -3211,7 +3229,7 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.ChannelMembersToRemove")
 	s.Root.Store.SetContext(newCtx)
@@ -3229,7 +3247,7 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersToRemove(channelID *string) (
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CountChannelMembersMinusGroupMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -3247,7 +3265,7 @@ func (s *OpenTracingLayerGroupStore) CountChannelMembersMinusGroupMembers(channe
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CountGroupsByChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -3265,7 +3283,7 @@ func (s *OpenTracingLayerGroupStore) CountGroupsByChannel(channelId string, opts
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CountGroupsByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -3283,7 +3301,7 @@ func (s *OpenTracingLayerGroupStore) CountGroupsByTeam(teamId string, opts model
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CountTeamMembersMinusGroupMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -3301,7 +3319,7 @@ func (s *OpenTracingLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID st
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) Create(group *model.Group) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) Create(group *model.Group) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.Create")
 	s.Root.Store.SetContext(newCtx)
@@ -3319,7 +3337,7 @@ func (s *OpenTracingLayerGroupStore) Create(group *model.Group) (*model.Group, *
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.CreateGroupSyncable")
 	s.Root.Store.SetContext(newCtx)
@@ -3337,7 +3355,7 @@ func (s *OpenTracingLayerGroupStore) CreateGroupSyncable(groupSyncable *model.Gr
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) Delete(groupID string) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) Delete(groupID string) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -3355,7 +3373,7 @@ func (s *OpenTracingLayerGroupStore) Delete(groupID string) (*model.Group, *mode
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.DeleteGroupSyncable")
 	s.Root.Store.SetContext(newCtx)
@@ -3373,7 +3391,7 @@ func (s *OpenTracingLayerGroupStore) DeleteGroupSyncable(groupID string, syncabl
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) DeleteMember(groupID string, userID string) (*model.GroupMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.DeleteMember")
 	s.Root.Store.SetContext(newCtx)
@@ -3391,7 +3409,7 @@ func (s *OpenTracingLayerGroupStore) DeleteMember(groupID string, userID string)
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) DistinctGroupMemberCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.DistinctGroupMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3409,7 +3427,7 @@ func (s *OpenTracingLayerGroupStore) DistinctGroupMemberCount() (int64, *model.A
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) Get(groupID string) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) Get(groupID string) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -3427,7 +3445,7 @@ func (s *OpenTracingLayerGroupStore) Get(groupID string) (*model.Group, *model.A
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetAllBySource")
 	s.Root.Store.SetContext(newCtx)
@@ -3445,7 +3463,7 @@ func (s *OpenTracingLayerGroupStore) GetAllBySource(groupSource model.GroupSourc
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetAllGroupSyncablesByGroupId")
 	s.Root.Store.SetContext(newCtx)
@@ -3463,7 +3481,7 @@ func (s *OpenTracingLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID strin
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByIDs")
 	s.Root.Store.SetContext(newCtx)
@@ -3481,7 +3499,7 @@ func (s *OpenTracingLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -3499,7 +3517,7 @@ func (s *OpenTracingLayerGroupStore) GetByName(name string, opts model.GroupSear
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByRemoteID")
 	s.Root.Store.SetContext(newCtx)
@@ -3517,7 +3535,7 @@ func (s *OpenTracingLayerGroupStore) GetByRemoteID(remoteID string, groupSource 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetByUser(userId string) ([]*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetByUser(userId string) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -3535,7 +3553,7 @@ func (s *OpenTracingLayerGroupStore) GetByUser(userId string) ([]*model.Group, *
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroupSyncable")
 	s.Root.Store.SetContext(newCtx)
@@ -3553,7 +3571,7 @@ func (s *OpenTracingLayerGroupStore) GetGroupSyncable(groupID string, syncableID
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroups")
 	s.Root.Store.SetContext(newCtx)
@@ -3571,7 +3589,7 @@ func (s *OpenTracingLayerGroupStore) GetGroups(page int, perPage int, opts model
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroupsAssociatedToChannelsByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -3589,7 +3607,7 @@ func (s *OpenTracingLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroupsByChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -3607,7 +3625,7 @@ func (s *OpenTracingLayerGroupStore) GetGroupsByChannel(channelId string, opts m
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetGroupsByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -3625,7 +3643,7 @@ func (s *OpenTracingLayerGroupStore) GetGroupsByTeam(teamId string, opts model.G
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3643,7 +3661,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberCount(groupID string) (int64, *mod
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsers")
 	s.Root.Store.SetContext(newCtx)
@@ -3661,7 +3679,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsers(groupID string) ([]*model.Us
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersInTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -3679,7 +3697,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersNotInChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -3697,7 +3715,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersNotInChannel(groupID string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GetMemberUsersPage")
 	s.Root.Store.SetContext(newCtx)
@@ -3715,7 +3733,7 @@ func (s *OpenTracingLayerGroupStore) GetMemberUsersPage(groupID string, page int
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GroupChannelCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GroupChannelCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GroupChannelCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3733,7 +3751,7 @@ func (s *OpenTracingLayerGroupStore) GroupChannelCount() (int64, *model.AppError
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GroupCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GroupCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GroupCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3751,7 +3769,7 @@ func (s *OpenTracingLayerGroupStore) GroupCount() (int64, *model.AppError) {
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GroupCountWithAllowReference() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GroupCountWithAllowReference() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GroupCountWithAllowReference")
 	s.Root.Store.SetContext(newCtx)
@@ -3769,7 +3787,7 @@ func (s *OpenTracingLayerGroupStore) GroupCountWithAllowReference() (int64, *mod
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GroupMemberCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GroupMemberCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GroupMemberCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3787,7 +3805,7 @@ func (s *OpenTracingLayerGroupStore) GroupMemberCount() (int64, *model.AppError)
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) GroupTeamCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) GroupTeamCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.GroupTeamCount")
 	s.Root.Store.SetContext(newCtx)
@@ -3805,7 +3823,7 @@ func (s *OpenTracingLayerGroupStore) GroupTeamCount() (int64, *model.AppError) {
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerGroupStore) PermanentDeleteMembersByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.PermanentDeleteMembersByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -3823,7 +3841,7 @@ func (s *OpenTracingLayerGroupStore) PermanentDeleteMembersByUser(userId string)
 	return err
 }
 
-func (s *OpenTracingLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.PermittedSyncableAdmins")
 	s.Root.Store.SetContext(newCtx)
@@ -3841,7 +3859,7 @@ func (s *OpenTracingLayerGroupStore) PermittedSyncableAdmins(syncableID string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.TeamMembersMinusGroupMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -3859,7 +3877,7 @@ func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string,
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.TeamMembersToAdd")
 	s.Root.Store.SetContext(newCtx)
@@ -3877,7 +3895,7 @@ func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *strin
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.TeamMembersToRemove")
 	s.Root.Store.SetContext(newCtx)
@@ -3895,7 +3913,7 @@ func (s *OpenTracingLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*mod
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) Update(group *model.Group) (*model.Group, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) Update(group *model.Group) (*model.Group, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.Update")
 	s.Root.Store.SetContext(newCtx)
@@ -3913,7 +3931,7 @@ func (s *OpenTracingLayerGroupStore) Update(group *model.Group) (*model.Group, *
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.UpdateGroupSyncable")
 	s.Root.Store.SetContext(newCtx)
@@ -3931,7 +3949,7 @@ func (s *OpenTracingLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.Gr
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+func (s *OpenTracingLayerGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.UpsertMember")
 	s.Root.Store.SetContext(newCtx)
@@ -7113,7 +7131,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Te
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -7122,7 +7140,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsForUser(userId string) ([]*model.Tea
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetTeamsForUser(userId)
+	result, err := s.TeamStore.GetTeamsForUser(ctx, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7648,7 +7666,7 @@ func (s *OpenTracingLayerThreadStore) CollectThreadsWithNewerReplies(userId stri
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+func (s *OpenTracingLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.CreateMembershipIfNeeded")
 	s.Root.Store.SetContext(newCtx)
@@ -7657,7 +7675,7 @@ func (s *OpenTracingLayerThreadStore) CreateMembershipIfNeeded(userId string, po
 	}()
 
 	defer span.Finish()
-	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7754,6 +7772,60 @@ func (s *OpenTracingLayerThreadStore) GetMembershipsForUser(userId string) ([]*m
 	}
 
 	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadsForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAllAsRead")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerThreadStore) MarkAsRead(userId string, threadId string, timestamp int64) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAsRead")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ThreadStore.MarkAsRead(userId, threadId, timestamp)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
 }
 
 func (s *OpenTracingLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {

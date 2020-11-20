@@ -88,6 +88,24 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 	return baseFeatureFlags
 }
 
+// featureFlagsToMap returns the feature flags as a map[string]string
+// Currently assumes that all feature flags are strings for now.
+func featureFlagsToMap(featureFlags *model.FeatureFlags) map[string]string {
+	refStructVal := reflect.ValueOf(*featureFlags)
+	refStructType := reflect.TypeOf(*featureFlags)
+	ret := make(map[string]string)
+	for i := 0; i < refStructVal.NumField(); i++ {
+		refFieldVal := refStructVal.Field(i)
+		refFieldType := refStructType.Field(i)
+		if !refFieldVal.IsValid() {
+			continue
+		}
+		ret[refFieldType.Name] = refFieldVal.String()
+	}
+
+	return ret
+}
+
 func getStructFields(s interface{}) []string {
 	structType := reflect.TypeOf(s)
 	fieldNames := make([]string, 0, structType.NumField())

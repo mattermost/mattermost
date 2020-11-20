@@ -432,7 +432,7 @@ workflows:
       - test:
           name: test-mysql
           dbdriver: mysql
-          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
           requires:
             - check-app-layers
             - check-store-layers
