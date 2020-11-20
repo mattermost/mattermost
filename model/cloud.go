@@ -112,3 +112,14 @@ type InvoiceLineItem struct {
 	Type         string                 `json:"type"`
 	Metadata     map[string]interface{} `json:"metadata"`
 }
+
+type CWSWebhook struct {
+	Event         string         `json:"event"`
+	FailedPayment *FailedPayment `json:"failed_payment"`
+}
+
+type FailedPayment struct {
+	CardBrand   string `json:"card_brand"`
+	LastFour    int    `json:"last_four"`
+	FailureCode string `json:"failure_code"`
+}

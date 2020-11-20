@@ -1,5 +1,4 @@
-[
-  {
+[{
     "id": "April",
     "translation": "April"
   },
@@ -2593,6 +2592,214 @@
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+  },
+  {
+    "id": "api.templates.payment_failed.authentication_required",
+    "translation": "The card was declined as the transaction requires authentication."
+  },
+  {
+    "id": "api.templates.payment_failed.approve_with_id",
+    "translation": "The payment cannot be authorized."
+  },
+  {
+    "id": "api.templates.payment_failed.call_issuer",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.card_not_supported",
+    "translation": "The card does not support this type of purchase."
+  },
+  {
+    "id": "api.templates.payment_failed.card_velocity_exceeded",
+    "translation": "The customer has exceeded the balance or credit limit available on their card."
+  },
+  {
+    "id": "api.templates.payment_failed.currency_not_supported",
+    "translation": "The card does not support the specified currency."
+  },
+  {
+    "id": "api.templates.payment_failed.do_not_honor",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.do_not_try_again",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.duplicate_transaction",
+    "translation": "A transaction with identical amount and credit card information was submitted very recently."
+  },
+  {
+    "id": "api.templates.payment_failed.expired_card",
+    "translation": "The card has expired."
+  },
+  {
+    "id": "api.templates.payment_failed.fraudulent",
+    "translation": "The payment has been declined as Stripe suspects it is fraudulent."
+  },
+  {
+    "id": "api.templates.payment_failed.generic_decline",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.incorrect_number",
+    "translation": "The card number is incorrect."
+  },
+  {
+    "id": "api.templates.payment_failed.incorrect_cvc",
+    "translation": "The CVC number is incorrect."
+  },
+  {
+    "id": "api.templates.payment_failed.incorrect_pin",
+    "translation": "The PIN entered is incorrect. This decline code only applies to payments made with a card reader."
+  },
+  {
+    "id": "api.templates.payment_failed.incorrect_zip",
+    "translation": "The ZIP/postal code is incorrect."
+  },
+  {
+    "id": "api.templates.payment_failed.insufficient_funds",
+    "translation": "The card has insufficient funds to complete the purchase."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_account",
+    "translation": "The card, or account the card is connected to, is invalid."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_amount",
+    "translation": "The payment amount is invalid, or exceeds the amount that is allowed."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_cvc",
+    "translation": "The CVC number is incorrect."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_expiry_month",
+    "translation": "The expiration month is invalid."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_expiry_year",
+    "translation": "The expiration year is invalid."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_number",
+    "translation": "The card number is incorrect."
+  },
+  {
+    "id": "api.templates.payment_failed.invalid_pin",
+    "translation": "The PIN entered is incorrect. This decline code only applies to payments made with a card reader."
+  },
+  {
+    "id": "api.templates.payment_failed.issuer_not_available",
+    "translation": "The card issuer could not be reached, so the payment could not be authorized."
+  },
+  {
+    "id": "api.templates.payment_failed.lost_card",
+    "translation": "The payment has been declined because the card is reported lost."
+  },
+  {
+    "id": "api.templates.payment_failed.merchant_blacklist",
+    "translation": "The payment has been declined because it matches a value on the Stripe user’s block list."
+  },
+  {
+    "id": "api.templates.payment_failed.new_account_information_available",
+    "translation": "The card, or account the card is connected to, is invalid."
+  },
+  {
+    "id": "api.templates.payment_failed.no_action_taken",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.not_permitted",
+    "translation": "The payment is not permitted."
+  },
+  {
+    "id": "api.templates.payment_failed.offline_pin_required",
+    "translation": "The card has been declined as it requires a PIN."
+  },
+  {
+    "id": "api.templates.payment_failed.online_or_offline_pin_required",
+    "translation": "The card has been declined as it requires a PIN."
+  },
+  {
+    "id": "api.templates.payment_failed.pickup_card",
+    "translation": "The card cannot be used to make this payment (it is possible it has been reported lost or stolen)."
+  },
+  {
+    "id": "api.templates.payment_failed.pin_try_exceeded",
+    "translation": "The allowable number of PIN tries has been exceeded."
+  },
+  {
+    "id": "api.templates.payment_failed.processing_error",
+    "translation": "An error occurred while processing the card."
+  },
+  {
+    "id": "api.templates.payment_failed.reenter_transaction",
+    "translation": "The payment could not be processed by the issuer for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.restricted_card",
+    "translation": "The card cannot be used to make this payment (it is possible it has been reported lost or stolen)."
+  },
+  {
+    "id": "api.templates.payment_failed.revocation_of_all_authorizations",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.revocation_of_authorization",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.security_violation",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.service_not_allowed",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.stolen_card",
+    "translation": "The payment has been declined because the card is reported stolen."
+  },
+  {
+    "id": "api.templates.payment_failed.stop_payment_order",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.testmode_decline",
+    "translation": "A Stripe test card number was used."
+  },
+  {
+    "id": "api.templates.payment_failed.transaction_not_allowed",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.try_again_later",
+    "translation": "The card has been declined for an unknown reason."
+  },
+  {
+    "id": "api.templates.payment_failed.withdrawal_count_limit_exceeded",
+    "translation": "The customer has exceeded the balance or credit limit available on their card."
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Action required: Payment failed for Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Failed Payment"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "They provided the following reason:"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
   },
   {
     "id": "api.templates.at_limit_info1",
