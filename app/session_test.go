@@ -408,7 +408,10 @@ func TestApp_SetSessionExpireInDays(t *testing.T) {
 
 func TestGetCloudSession(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
+	defer func() {
+		os.Unsetenv("MM_CLOUD_API_KEY")
+		th.TearDown()
+	}()
 
 	t.Run("Matching environment variable and token should return non-nil session", func(t *testing.T) {
 		os.Setenv("MM_CLOUD_API_KEY", "mytoken")
