@@ -27,8 +27,10 @@ type ThreadResponse struct {
 }
 
 type Threads struct {
-	Total   int64             `json:"total"`
-	Threads []*ThreadResponse `json:"threads"`
+	Total               int64             `json:"total"`
+	TotalUnreadReplies  int64             `json:"total_unread_replies"`
+	TotalUnreadMentions int64             `json:"total_unread_mentions"`
+	Threads             []*ThreadResponse `json:"threads"`
 }
 
 type GetUserThreadsOpts struct {

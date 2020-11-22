@@ -5574,6 +5574,13 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 		CheckNoError(t, r)
 		require.Len(t, u.Threads, expectedThreads)
 		require.EqualValues(t, expectedReplies, u.Threads[0].UnreadReplies)
+
+		sum := int64(0)
+		for _, thr := range u.Threads {
+			sum += thr.UnreadReplies
+		}
+		require.Equal(t, sum, u.TotalUnreadReplies)
+
 		return u, r
 	}
 	// regular user should have one thread with one reply
@@ -5619,6 +5626,11 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, expectedThreads)
 		require.EqualValues(t, expectedMentions, uss.Threads[0].UnreadMentions)
+		sum := int64(0)
+		for _, thr := range uss.Threads {
+			sum += thr.UnreadMentions
+		}
+		require.Equal(t, sum, uss.TotalUnreadMentions)
 		return uss, resp
 	}
 

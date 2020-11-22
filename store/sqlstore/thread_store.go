@@ -119,6 +119,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		Participants   model.StringArray
 		model.Post
 	}
+	type CountRow struct {
+		TotalCount          int64
+		TotalUnreadReplies  int64
+		TotalUnreadMentions int64
+	}
 	var threads []*JoinedThread
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
@@ -137,17 +142,19 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		pageSize = opts.PageSize
 	}
 	qb := s.getQueryBuilder().
-		Select("Count(Threads.LastReplyAt)").
-		From("Threads").
-		LeftJoin("Posts ON Posts.Id = Threads.PostId").
+		Select("COUNT(DISTINCT Threads.PostId) as TotalCount,  COALESCE(SUM(ThreadMemberships.UnreadMentions),0) as TotalUnreadMentions, COUNT(DISTINCT Posts.Id) as TotalUnreadReplies").
+		From("Posts").
+		LeftJoin("Threads ON Posts.RootId = Threads.PostId").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-		Where(fetchConditions)
-	countQuery, countArgs, _ := qb.ToSql()
+		Where(fetchConditions).
+		Where("Posts.UpdateAt >= ThreadMemberships.LastViewed")
 
-	count, err := s.GetMaster().SelectInt(countQuery, countArgs...)
-	if err != nil {
+	countQuery, countArgs, _ := qb.ToSql()
+	var counts CountRow
+	if err := s.GetMaster().SelectOne(&counts, countQuery, countArgs...); err != nil {
 		return nil, err
 	}
+
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
 		From("Threads").
@@ -158,8 +165,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		OrderBy("Threads.LastReplyAt DESC").
 		Offset(pageSize * opts.Page).
 		Limit(pageSize).ToSql()
-	_, err = s.GetReplica().Select(&threads, query, args...)
-	if err != nil {
+
+	if _, err := s.GetReplica().Select(&threads, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 	}
 
@@ -176,8 +183,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	var users []*model.User
 	if opts.Extended {
 		query, args, _ = s.getQueryBuilder().Select("*").From("Users").Where(sq.Eq{"Id": userIds}).ToSql()
-		_, err = s.GetReplica().Select(&users, query, args...)
-		if err != nil {
+		if _, err := s.GetReplica().Select(&users, query, args...); err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
 	} else {
@@ -187,8 +193,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	}
 
 	result := &model.Threads{
-		Total:   count,
-		Threads: nil,
+		Total:               counts.TotalCount,
+		Threads:             nil,
+		TotalUnreadMentions: counts.TotalUnreadMentions,
+		TotalUnreadReplies:  counts.TotalUnreadReplies,
 	}
 
 	for _, thread := range threads {

@@ -2404,6 +2404,7 @@ func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.Ap
 		if err != nil {
 			return err
 		}
+		membership.Following = true
 		_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
 		if nErr != nil {
 			return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2450,6 +2451,7 @@ func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) 
 	if err != nil {
 		return err
 	}
+	membership.Following = true
 	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
