@@ -540,10 +540,6 @@
     "translation": "Non disturbare disattiva le notifiche desktop e mobile."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Non Disturbare non è attivo."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Impossibile recuperare lo stato dell'utente."
   },

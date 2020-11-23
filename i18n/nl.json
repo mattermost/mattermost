@@ -540,10 +540,6 @@
     "translation": "Niet storen schakelt desktop en mobiele pushmeldingen uit."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Niet storen is ingeschakeld."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Fout bij het ophalen van de status van de gebruiker."
   },

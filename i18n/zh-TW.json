@@ -540,10 +540,6 @@
     "translation": "請勿打擾會停止桌面以及行動推播通知。"
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "請勿打擾已被停用。"
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "取得使用者狀態時錯誤。"
   },

@@ -540,10 +540,6 @@
     "translation": "取り込み中 はデスクトップ通知やモバイルプッシュ通知を無効にします。"
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "取り込み中 は無効です。"
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "ユーザーの状態を取得する際にエラーが発生しました。"
   },

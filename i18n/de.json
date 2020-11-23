@@ -540,10 +540,6 @@
     "translation": "\"Nicht stören\" deaktiviert Desktop-Benachrichtigungen und mobile Push-Benachrichtigungen."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "\"Nicht stören\" ist deaktiviert."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Fehler beim Abrufen des Benutzerstatus."
   },

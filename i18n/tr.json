@@ -540,10 +540,6 @@
     "translation": "Rahatsız etmeyin kipini etkinleştirerek masaüstü ve mobil uygulamalarda anında bildirimleri devre dışı bırakır."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Rahatsız Etmeyin kipi devre dışı bırakılmış."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Kullanıcı durumu alınırken sorun çıktı."
   },

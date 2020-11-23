@@ -540,10 +540,6 @@
     "translation": "No molestar desactiva notificaciones móviles y de escritorio."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "No Molestar está deshabilitado."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Error al recuperar el status del usuario."
   },
