@@ -1,4 +1,5 @@
-[{
+[
+  {
     "id": "April",
     "translation": "April"
   },
@@ -2586,26 +2587,6 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
-    "id": "api.templates.payment_failed.subject",
-    "translation": "Action required: Payment failed for Mattermost Cloud"
-  },
-  {
-    "id": "api.templates.payment_failed.title",
-    "translation": "Failed Payment"
-  },
-  {
-    "id": "api.templates.payment_failed.info1",
-    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
-  },
-  {
-    "id": "api.templates.payment_failed.info2",
-    "translation": "They provided the following reason:"
-  },
-  {
-    "id": "api.templates.payment_failed.info3",
-    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
-  },
-  {
     "id": "api.templates.at_limit_info1",
     "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
   },
@@ -2872,6 +2853,26 @@
   {
     "id": "api.templates.password_change_subject",
     "translation": "[{{ .SiteName }}] Your password has been updated"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "They provided the following reason:"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Action required: Payment failed for Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Failed Payment"
   },
   {
     "id": "api.templates.post_body.button",
