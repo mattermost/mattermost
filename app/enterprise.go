@@ -138,12 +138,6 @@ func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var samlInterface func(*App) einterfaces.SamlInterface
-
-func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterface = f
-}
-
 var samlInterfaceNew func(*App) einterfaces.SamlInterface
 
 func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
