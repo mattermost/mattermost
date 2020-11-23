@@ -21,13 +21,13 @@ const (
 )
 
 type SqlSessionStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlSessionStore(sqlStore SqlStore) store.SessionStore {
-	us := &SqlSessionStore{sqlStore}
+func newSqlSessionStore(sqlSupplier *SqlSupplier) store.SessionStore {
+	us := &SqlSessionStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Session{}, "Sessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Token").SetMaxSize(26)

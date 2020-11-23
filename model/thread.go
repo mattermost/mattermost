@@ -56,6 +56,12 @@ func (o *Thread) ToJson() string {
 	return string(b)
 }
 
+func ThreadFromJson(s string) (*Thread, error) {
+	var t Thread
+	err := json.Unmarshal([]byte(s), &t)
+	return &t, err
+}
+
 func (o *Thread) Etag() string {
 	return Etag(o.PostId, o.LastReplyAt)
 }

@@ -31,7 +31,7 @@ var (
 )
 
 type SqlUserStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 
 	// usersQuery is a starting point for all queries that return one or more Users.
@@ -42,10 +42,10 @@ func (us SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
-func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
+func newSqlUserStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlSupplier: sqlSupplier,
+		metrics:     metrics,
 	}
 
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
@@ -55,7 +55,7 @@ func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Username").SetMaxSize(64).SetUnique(true)
