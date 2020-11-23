@@ -1548,6 +1548,30 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.NotContains(t, keywords["@here"], user.Id)
 	})
 
+	t.Run("should not add @channel/@all/@here when channel is muted and channel mention setting is not updated by user", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{
+			model.MARK_UNREAD_NOTIFY_PROP:             model.USER_NOTIFY_MENTION,
+			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
+		}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
 	t.Run("should not add @here when when user is not online", func(t *testing.T) {
 		user := &model.User{
 			Id:       model.NewId(),
@@ -2441,15 +2465,14 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	defer th.TearDown()
 
 	var err *model.AppError
-	var groupsMap map[string]*model.Group
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
 	group1 := th.CreateGroup()
 
 	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 0)
 	})
 
@@ -2459,8 +2482,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	group2 := th.CreateGroup()
 	t.Run("should only return groups with allow reference", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
 		require.Equal(t, groupsMap[*group1.Name], group1)
@@ -2483,8 +2506,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
 		require.Equal(t, groupsMap[*group1.Name], group1)
@@ -2508,8 +2531,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[*group3.Name])
 		require.Equal(t, groupsMap[*group2.Name], group2)
@@ -2517,8 +2540,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group3.Name])
 		require.Nil(t, groupsMap[*group2.Name])
@@ -2530,8 +2553,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
-		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, err)
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
 		require.Len(t, groupsMap, 3)
 		require.Equal(t, groupsMap[*group1.Name], group1)
 		require.Equal(t, groupsMap[*group2.Name], group2)

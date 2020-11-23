@@ -83,6 +83,10 @@ const (
 	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
 	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
 
+	COLLAPSED_THREADS_DISABLED    = "disabled"
+	COLLAPSED_THREADS_DEFAULT_ON  = "default_on"
+	COLLAPSED_THREADS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -351,6 +355,8 @@ type ServiceSettings struct {
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	CollapsedThreads                                  *string `access:"experimental"`
+	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -784,6 +790,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewBool(true)
 	}
+
+	if s.CollapsedThreads == nil {
+		s.CollapsedThreads = NewString(COLLAPSED_THREADS_DISABLED)
+	}
+
+	if s.ManagedResourcePaths == nil {
+		s.ManagedResourcePaths = NewString("")
+	}
 }
 
 type ClusterSettings struct {
@@ -893,8 +907,8 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
@@ -2664,9 +2678,9 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
-		// Enable the incident response plugin by default
-		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
+	if s.PluginStates["com.mattermost.plugin-incident-management"] == nil {
+		// Enable the incident management plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -2729,7 +2743,7 @@ type MessageExportSettings struct {
 	DownloadExportResults *bool   `access:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelaySettings *GlobalRelayMessageExportSettings
+	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {
@@ -3430,6 +3444,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_ON &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

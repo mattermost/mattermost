@@ -178,6 +178,43 @@ func TestPatchRole(t *testing.T) {
 	}
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+
+		// Cannot edit a system admin
+		adminRole, err := th.App.Srv().Store.Role().GetByName("system_admin")
+		assert.Nil(t, err)
+		defer th.App.Srv().Store.Job().Delete(adminRole.Id)
+
+		_, resp := client.PatchRole(adminRole.Id, patch)
+		CheckNotImplementedStatus(t, resp)
+
+		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
+		systemManager, err := th.App.Srv().Store.Role().GetByName("system_manager")
+		assert.Nil(t, err)
+		defer th.App.Srv().Store.Job().Delete(systemManager.Id)
+
+		patchWriteSystemRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchWriteSystemRoles)
+		CheckNotImplementedStatus(t, resp)
+
+		patchReadSystemRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchReadSystemRoles)
+		CheckNotImplementedStatus(t, resp)
+
+		patchManageRoles := &model.RolePatch{
+			Permissions: &[]string{model.PERMISSION_MANAGE_ROLES.Id},
+		}
+
+		_, resp = client.PatchRole(systemManager.Id, patchManageRoles)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, resp := client.PatchRole(role.Id, patch)
 		CheckNoError(t, resp)
 
