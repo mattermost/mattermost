@@ -540,10 +540,6 @@
     "translation": "No molestar desactiva notificaciones móviles y de escritorio."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Error al recuperar el status del usuario."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },

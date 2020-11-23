@@ -540,10 +540,6 @@
     "translation": "Não perturbe desabilita notificações no desktop e no celular."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Falha para buscar os status do usuário."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },

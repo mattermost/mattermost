@@ -540,10 +540,6 @@
     "translation": "Режим \"Не беспокоить\" отключает настольные и мобильные push-уведомления."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Ошибка получения статуса пользователя."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "не беспокоить"
   },

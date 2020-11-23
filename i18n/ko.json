@@ -540,10 +540,6 @@
     "translation": "방해 금지모드는 데스크탑과 모바일 푸시 알림을 비활성화합니다."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "유저 상태 검색 중 오류가 발생하였습니다."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "방해 금지"
   },

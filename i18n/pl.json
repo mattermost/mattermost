@@ -540,10 +540,6 @@
     "translation": "Tryb \"Nie przeszkadzać\" wyłącza powiadomienia desktopowe oraz mobilne powiadomienia push."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Nie można odczytać statusu użytkownika."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },

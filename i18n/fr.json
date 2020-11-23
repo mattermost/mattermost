@@ -540,10 +540,6 @@
     "translation": "Le mode « Ne pas déranger » désactive les notifications de bureau et push sur mobile."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Une erreur s'est produite lors de la récupération du statut de l'utilisateur."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "Ne pas déranger"
   },

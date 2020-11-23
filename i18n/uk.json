@@ -540,10 +540,6 @@
     "translation": "Режим \"Не турбувати\" відключає настільні і мобільні push-повідомлення."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Помилка отримання стану користувача."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "не турбувати "
   },

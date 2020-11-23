@@ -540,10 +540,6 @@
     "translation": "请勿打扰将关闭桌面和移动设备推送通知。"
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "获取用户状态错误。"
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },

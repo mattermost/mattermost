@@ -540,10 +540,6 @@
     "translation": "Nu deranja dezactivează notificările împinge desktop şi mobile."
   },
   {
-    "id": "api.command_dnd.error",
-    "translation": "Eroare la regăsirea statutul de utilizator."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
