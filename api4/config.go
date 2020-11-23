@@ -44,7 +44,7 @@ func init() {
 	}
 }
 
-func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+func getConfig(c *Context, w http.ResponseWriter, _ *http.Request) {
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
 		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
@@ -60,6 +60,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	auditRec.Success()
@@ -125,6 +126,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if err1 != nil {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err1.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
@@ -154,6 +156,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if mergeErr != nil {
 		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	auditRec.Success()
@@ -264,6 +267,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if mergeErr != nil {
 		c.Err = model.NewAppError("getConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
