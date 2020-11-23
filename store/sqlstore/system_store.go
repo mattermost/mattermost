@@ -18,13 +18,13 @@ import (
 )
 
 type SqlSystemStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlSystemStore(sqlStore SqlStore) store.SystemStore {
-	s := &SqlSystemStore{sqlStore}
+func newSqlSystemStore(sqlSupplier *SqlSupplier) store.SystemStore {
+	s := &SqlSystemStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.System{}, "Systems").SetKeys(false, "Name")
 		table.ColMap("Name").SetMaxSize(64)
 		table.ColMap("Value").SetMaxSize(1024)
