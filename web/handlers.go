@@ -214,7 +214,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Log.Info("Invalid CWS token", mlog.Err(err))
+			c.Log.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
 			c.App.SetSession(session)
