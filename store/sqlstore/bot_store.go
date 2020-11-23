@@ -50,7 +50,7 @@ type SqlBotStore struct {
 func newSqlBotStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
 	us := &SqlBotStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {

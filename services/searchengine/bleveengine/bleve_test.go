@@ -25,7 +25,7 @@ type BleveEngineTestSuite struct {
 	suite.Suite
 
 	SQLSettings  *model.SqlSettings
-	SQLStore  *sqlstore.SqlStore
+	SQLStore     *sqlstore.SqlStore
 	SearchEngine *searchengine.Broker
 	Store        *searchlayer.SearchStore
 	BleveEngine  *BleveEngine

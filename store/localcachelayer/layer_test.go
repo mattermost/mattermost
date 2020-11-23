@@ -17,7 +17,7 @@ import (
 type storeType struct {
 	Name        string
 	SqlSettings *model.SqlSettings
-	SqlStore *sqlstore.SqlStore
+	SqlStore    *sqlstore.SqlStore
 	Store       store.Store
 }
 
