@@ -16,18 +16,18 @@ import (
 )
 
 type SqlThreadStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
 func (s *SqlThreadStore) ClearCaches() {
 }
 
-func newSqlThreadStore(sqlSupplier *SqlSupplier) store.ThreadStore {
+func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := &SqlThreadStore{
-		SqlSupplier: sqlSupplier,
+		SqlStore: sqlStore,
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		tableThreads := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		tableThreads.ColMap("PostId").SetMaxSize(26)
 		tableThreads.ColMap("ChannelId").SetMaxSize(26)

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPluginStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestPluginStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveOrUpdate", func(t *testing.T) { testPluginSaveOrUpdate(t, ss, s) })
 	t.Run("CompareAndSet", func(t *testing.T) { testPluginCompareAndSet(t, ss, s) })
 	t.Run("CompareAndDelete", func(t *testing.T) { testPluginCompareAndDelete(t, ss, s) })
@@ -63,7 +63,7 @@ func setupKVs(t *testing.T, ss store.Store) (string, func()) {
 	}
 }
 
-func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
+func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlStore, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -219,7 +219,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 	})
 }
 
-func testPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlStore) {
 	doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 		return ss.Plugin().SaveOrUpdate(kv)
 	})
@@ -227,7 +227,7 @@ func testPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier) {
 
 // doTestPluginCompareAndSet exercises the CompareAndSet functionality, but abstracts the actual
 // call to same to allow reuse with SetWithOptions
-func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
+func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlStore, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -524,13 +524,13 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 	})
 }
 
-func testPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginCompareAndSet(t *testing.T, ss store.Store, s SqlStore) {
 	doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 		return ss.Plugin().CompareAndSet(kv, oldValue)
 	})
 }
 
-func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -660,7 +660,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 }
 
-func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("invalid options", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()

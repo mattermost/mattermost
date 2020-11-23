@@ -14,18 +14,18 @@ import (
 )
 
 type SqlCommandStore struct {
-	*SqlSupplier
+	*SqlStore
 
 	commandsQuery sq.SelectBuilder
 }
 
-func newSqlCommandStore(sqlSupplier *SqlSupplier) store.CommandStore {
-	s := &SqlCommandStore{SqlSupplier: sqlSupplier}
+func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
+	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().
 		Select("*").
 		From("Commands")
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		tableo := db.AddTableWithName(model.Command{}, "Commands").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)
 		tableo.ColMap("Token").SetMaxSize(26)

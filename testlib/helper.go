@@ -25,7 +25,7 @@ type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
 	SearchEngine     *searchengine.Broker
-	SQLSupplier      *sqlstore.SqlSupplier
+	SQLStore      *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -109,9 +109,9 @@ func (h *MainHelper) setupStore() {
 
 	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	h.SQLStore = sqlstore.NewSqlStore(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
-		h.SQLSupplier,
+		h.SQLStore,
 	}, h.SearchEngine, config)
 }
 
@@ -151,7 +151,7 @@ func (h *MainHelper) PreloadMigrations() {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	}
-	handle := h.SQLSupplier.GetMaster()
+	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
 		mlog.Error("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
@@ -160,8 +160,8 @@ func (h *MainHelper) PreloadMigrations() {
 }
 
 func (h *MainHelper) Close() error {
-	if h.SQLSupplier != nil {
-		h.SQLSupplier.Close()
+	if h.SQLStore != nil {
+		h.SQLStore.Close()
 	}
 	if h.Settings != nil {
 		storetest.CleanupSqlSettings(h.Settings)
@@ -195,12 +195,12 @@ func (h *MainHelper) GetStore() store.Store {
 	return h.Store
 }
 
-func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
-	if h.SQLSupplier == nil {
+func (h *MainHelper) GetSQLStore() *sqlstore.SqlStore {
+	if h.SQLStore == nil {
 		panic("MainHelper not initialized with sql supplier.")
 	}
 
-	return h.SQLSupplier
+	return h.SQLStore
 }
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {

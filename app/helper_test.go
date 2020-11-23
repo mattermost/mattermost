@@ -208,7 +208,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
+	mainHelper.GetSQLStore().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
 
 	me.BasicTeam = me.CreateTeam()
 
@@ -574,40 +574,40 @@ func (me *TestHelper) TearDown() {
 	}
 }
 
-func (me *TestHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
-	return mainHelper.GetSQLSupplier()
+func (me *TestHelper) GetSqlStore() *sqlstore.SqlStore {
+	return mainHelper.GetSQLStore()
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlStore := mainHelper.GetSQLStore()
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
+	sqlStore := mainHelper.GetSQLStore()
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

@@ -252,14 +252,14 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlStore := mainHelper.GetSQLStore()
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
 	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": model.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

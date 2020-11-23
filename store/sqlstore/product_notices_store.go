@@ -14,13 +14,13 @@ import (
 )
 
 type SqlProductNoticesStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlProductNoticesStore(sqlSupplier *SqlSupplier) store.ProductNoticesStore {
-	s := SqlProductNoticesStore{sqlSupplier}
+func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
+	s := SqlProductNoticesStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ProductNoticeViewState{}, "ProductNoticeViewState").SetKeys(false, "UserId", "NoticeId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("NoticeId").SetMaxSize(26)

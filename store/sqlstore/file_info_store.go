@@ -16,7 +16,7 @@ import (
 )
 
 type SqlFileInfoStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics     einterfaces.MetricsInterface
 	queryFields []string
 }
@@ -24,9 +24,9 @@ type SqlFileInfoStore struct {
 func (fs SqlFileInfoStore) ClearCaches() {
 }
 
-func newSqlFileInfoStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.FileInfoStore {
+func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
-		SqlSupplier: sqlSupplier,
+		SqlStore: sqlStore,
 		metrics:     metrics,
 	}
 
@@ -51,7 +51,7 @@ func newSqlFileInfoStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsIn
 		"Coalesce(FileInfo.Content, '') AS Content",
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)

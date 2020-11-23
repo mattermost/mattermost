@@ -25,7 +25,7 @@ type BleveEngineTestSuite struct {
 	suite.Suite
 
 	SQLSettings  *model.SqlSettings
-	SQLSupplier  *sqlstore.SqlSupplier
+	SQLStore  *sqlstore.SqlStore
 	SearchEngine *searchengine.Broker
 	Store        *searchlayer.SearchStore
 	BleveEngine  *BleveEngine
@@ -50,7 +50,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName)
-	s.SQLSupplier = sqlstore.NewSqlSupplier(*s.SQLSettings, nil)
+	s.SQLStore = sqlstore.NewSqlStore(*s.SQLSettings, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
@@ -61,7 +61,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
 
 	s.SearchEngine = searchengine.NewBroker(cfg, nil)
-	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLSupplier}, s.SearchEngine, cfg)
+	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)
 
 	s.BleveEngine = NewBleveEngine(cfg, nil)
 	s.BleveEngine.indexSync = true
@@ -78,7 +78,7 @@ func (s *BleveEngineTestSuite) SetupSuite() {
 
 func (s *BleveEngineTestSuite) TearDownSuite() {
 	os.RemoveAll(s.IndexDir)
-	s.SQLSupplier.Close()
+	s.SQLStore.Close()
 	storetest.CleanupSqlSettings(s.SQLSettings)
 }
 

@@ -15,13 +15,13 @@ import (
 )
 
 type SqlUserAccessTokenStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlUserAccessTokenStore(sqlSupplier *SqlSupplier) store.UserAccessTokenStore {
-	s := &SqlUserAccessTokenStore{sqlSupplier}
+func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
+	s := &SqlUserAccessTokenStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.UserAccessToken{}, "UserAccessTokens").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Token").SetMaxSize(26).SetUnique(true)

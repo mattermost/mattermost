@@ -15,7 +15,7 @@ import (
 )
 
 func TestPostStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestPostStore)
+	StoreTestWithSqlStore(t, storetest.TestPostStore)
 }
 
 func TestPostStoreLastPostTimeCache(t *testing.T) {

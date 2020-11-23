@@ -33,7 +33,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
@@ -356,13 +356,13 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func newSqlChannelStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
-		SqlSupplier: sqlSupplier,
+		SqlStore: sqlStore,
 		metrics:     metrics,
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Channel{}, "Channels").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)

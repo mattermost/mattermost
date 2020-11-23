@@ -38,7 +38,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 	cfgData, err := config.MarshalConfig(cfg)
 	require.NoError(t, err)
 
-	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
 	err = config.InitializeConfigurationsTable(db)
 	require.NoError(t, err)
 
@@ -76,7 +76,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 			ID    string `db:"id"`
 			Value []byte `db:"value"`
 		}
-		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
 		err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 		require.NoError(t, err)
 
@@ -89,7 +89,7 @@ func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 		ID    string `db:"Id"`
 		Value []byte `db:"Value"`
 	}
-	db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
+	db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *mainHelper.GetSQLSettings().DriverName)
 	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
@@ -546,7 +546,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		defer ds.Close()
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *sqlSettings.DriverName)
+		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
 		_, err = db.Exec("DROP TABLE Configurations")
 		require.NoError(t, err)
 
@@ -794,7 +794,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 
 		sqlSettings := mainHelper.GetSQLSettings()
-		db := sqlx.NewDb(mainHelper.GetSQLSupplier().GetMaster().Db, *sqlSettings.DriverName)
+		db := sqlx.NewDb(mainHelper.GetSQLStore().GetMaster().Db, *sqlSettings.DriverName)
 		truncateTables(t)
 		id := model.NewId()
 		_, err = db.NamedExec("INSERT INTO Configurations (Id, Value, CreateAt, Active) VALUES(:Id, :Value, :CreateAt, TRUE)", map[string]interface{}{

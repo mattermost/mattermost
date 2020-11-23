@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
 	t.Run("CreateSidebarCategory", func(t *testing.T) { testCreateSidebarCategory(t, ss) })
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
@@ -505,7 +505,7 @@ func testCreateSidebarCategory(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
+func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("should return a custom category with its Channels field set", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
@@ -867,7 +867,7 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ensure the query to update SidebarCategories hasn't been polluted by UpdateSidebarCategoryOrder", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
@@ -1648,7 +1648,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 }
 
-func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
+func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 	setupInitialSidebarCategories := func(t *testing.T, ss store.Store) (string, string) {
 		userId := model.NewId()
 		teamId := model.NewId()

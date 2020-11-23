@@ -886,8 +886,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 	var bots1 []*model.Bot
 	var bots2 []*model.Bot
 
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	_, err1 := sqlSupplier.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	sqlStore := mainHelper.GetSQLStore()
+	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -898,7 +898,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(retUser1)
 	assert.Nil(t, err)
 
-	_, err1 = sqlSupplier.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 0, len(bots2))
 
