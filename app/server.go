@@ -1506,7 +1506,7 @@ func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
 	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
 	if err != nil {
-		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return backend, nil
 }

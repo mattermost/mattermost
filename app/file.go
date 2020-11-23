@@ -79,7 +79,7 @@ func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	err := filesstore.CheckMandatoryS3Fields(settings)
 	if err != nil {
-		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
 }
