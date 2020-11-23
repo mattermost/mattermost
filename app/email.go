@@ -780,7 +780,7 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	bodyPage.Props["Info3"] = T("api.templates.payment_failed.info3")
 	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 
-	bodyPage.Props["FailedReason"] = T(fmt.Sprintf("api.templates.payment_failed.%s", failedPayment.FailureCode))
+	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
