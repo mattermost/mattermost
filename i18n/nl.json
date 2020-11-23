@@ -540,10 +540,6 @@
     "translation": "Niet storen schakelt desktop en mobiele pushmeldingen uit."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Niet storen is ingeschakeld."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Fout bij het ophalen van de status van de gebruiker."
   },
@@ -4371,20 +4367,12 @@
     "translation": "invalid create at property for group"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "invalid description property for group"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "invalid display name property for group"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4405,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4895,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Kan StringArray niet naar *string omzetten"
   },
@@ -4937,10 +4913,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Het kanaal kon niet gevonden worden"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4943,6 @@
     "translation": "Bericht kan niet opgehaald worden"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Een team met dat domein bestaat al"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
@@ -5001,10 +4957,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
   },
   {
     "id": "system.message.name",
@@ -5265,14 +5217,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Download de nieuwste Chrome browser"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "maken van query is mislukt."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6641,10 +6585,6 @@
   {
     "id": "app.command.listautocompletecommands.internal_error",
     "translation": "Kan de auto-aanvul opdrachten niet oplijsten."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Meer dan één rij is gewijzigd."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -8245,5 +8185,9 @@
   {
     "id": "api.templates.over_limit_info1",
     "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
+  },
+  {
+    "id": "api.roles.patch_roles.admin_role.error",
+    "translation": "De rol Systeembeheerder kan niet worden bijgewerkt of gewijzigd"
   }
 ]

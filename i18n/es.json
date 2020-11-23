@@ -540,10 +540,6 @@
     "translation": "No molestar desactiva notificaciones móviles y de escritorio."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "No Molestar está deshabilitado."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Error al recuperar el status del usuario."
   },
@@ -4371,20 +4367,12 @@
     "translation": "Propiedad create at inválida para el grupo."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "Propiedad delete at inválida para el grupo."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "Propiedad description inválida para el grupo."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "Propiedad display name inválida para el grupo."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "Propiedad id inválida para el grupo."
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4405,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "Id. de sincronización inválido para sincronización de grupo."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "propiedad de tipo no válido para sincronizar el grupo."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4895,6 @@
     "translation": "Falta la dirección PARA."
   },
   {
-    "id": "store.insert_error",
-    "translation": "error al insertar"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "error al seleccionar"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "Desde BD: No se puede convertir StringArray a *string"
   },
@@ -4937,10 +4913,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "No se pudo encontrar el canal existente."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Encontramos un error buscando el canal."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4943,6 @@
     "translation": "No se pudo obtener el comando."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grupo sinconizable ya fue eliminado"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no se encontraron grupos que coincidan"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Ya existe un grupo con ese nombre"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "Ya existe el miembro del grupo"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "La búsqueda ha sido desactivada en este servidor. Por favor, póngase en contacto con el Administrador del Sistema."
   },
@@ -5001,10 +4957,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "error actualizando"
   },
   {
     "id": "system.message.name",
@@ -5249,14 +5201,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Obtén la última versión del navegador Chrome"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "No se pudo eliminar el miembro del grupo con UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "Falla al construir la consulta."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6453,10 +6397,6 @@
   {
     "id": "api.channel.move_channel.type.invalid",
     "translation": "No se pueden mover canales de mensajes directos o grupales"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Cambió más de un registro."
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",

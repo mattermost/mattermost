@@ -540,10 +540,6 @@
     "translation": "Non disturbare disattiva le notifiche desktop e mobile."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Non Disturbare non è attivo."
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "Impossibile recuperare lo stato dell'utente."
   },
@@ -4371,20 +4367,12 @@
     "translation": "proprietà create at non valida per il gruppo."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "proprietà delete at non valida per il gruppo."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "proprietà description non valida per il gruppo."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "proprietà display name non valida per il gruppo."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "proprietà id non valida per il gruppo."
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4405,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "proprietà syncable id non valida per il gruppo syncable."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "proprietà type non valida per il gruppo syncable."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4895,6 @@
     "translation": "Manca l'indirizzo del destinatario."
   },
   {
-    "id": "store.insert_error",
-    "translation": "errore inserimento"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "errore selezione"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Impossibile convertire StringArray a *string"
   },
@@ -4937,10 +4913,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Non è stato possibile trovare il canale."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Riscontrato un errore nella ricerca del canale."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4943,6 @@
     "translation": "Impossibile ottenere il comando."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "il gruppo syncable è già stato cancellato"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nessun gruppo corrispondente trovato"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Un gruppo con quel nome esiste già"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "il membro del gruppo esiste già"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "La ricerca è stata disabilitata per questo server. Per piacere contatta il tuo Amministratore di Sistema."
   },
@@ -5001,10 +4957,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "errore aggiornamento"
   },
   {
     "id": "system.message.name",
@@ -5915,10 +5867,6 @@
     "translation": "Errore cancellazione indici Bleve: il motore non è attivo"
   },
   {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Impossibile cancellare i membri del gruppo con UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Ottieni l'ultima versione del browser Chrome"
   },
@@ -6273,10 +6221,6 @@
   {
     "id": "app.channel.get_deleted.missing.app_error",
     "translation": "Non ci sono canali eliminati."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "errore nella costruzione della query."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
@@ -6961,10 +6905,6 @@
   {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json è falso. Modificare il valore in \"vero\" per poter scaricare i risultati di questo lavoro."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Più di una riga è stata modificata."
   },
   {
     "id": "store.sql_command.update.missing.app_error",

@@ -540,10 +540,6 @@
     "translation": "请勿打扰将关闭桌面和移动设备推送通知。"
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "请勿打扰已禁用。"
-  },
-  {
     "id": "api.command_dnd.error",
     "translation": "获取用户状态错误。"
   },
@@ -2471,7 +2467,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "无论是trigger_words或channel_id必须设置"
+    "translation": "必须设置 trigger_words 或 channel_id。"
   },
   {
     "id": "api.webhook.incoming.error",
@@ -2495,7 +2491,7 @@
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "必须指定团队ID才能创建频道"
+    "translation": "必须指定团队 ID 才能创建频道。"
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -4366,20 +4362,12 @@
     "translation": "无效的组创建日期属性"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "无效的组删除日期属性"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "无效的组描述属性"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "无效的组显示名属性"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "无效的组 id 属性"
   },
   {
     "id": "model.group.name.app_error",
@@ -4412,10 +4400,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "无效的可同步组 id"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "无效的可同步组类型属性"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4906,14 +4890,6 @@
     "translation": "缺少 TO 地址。"
   },
   {
-    "id": "store.insert_error",
-    "translation": "插入错误"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "选择错误"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "来自数据库：不能从 StringArray 转换到 *string"
   },
@@ -4932,10 +4908,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "无法找到频道。"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "我们查找该频道时遇到了错误。"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4966,22 +4938,6 @@
     "translation": "无法获取命令"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "可同步组已被删除"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "未找到符合的组"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "已有用户组拥有此名称"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "用户组成员已存在"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "此服务器已禁用搜索。请联系您的系统管理员。"
   },
@@ -4996,10 +4952,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "该邮箱已被使用。请重新选择。"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "更新错误"
   },
   {
     "id": "system.message.name",
@@ -5852,14 +5804,6 @@
   {
     "id": "model.user.is_valid.update_at.app_error",
     "translation": "更新时必须是有效时间。"
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "建立查询失败。"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "无法移除组成员用户 ID \"{{.UserId}}\"。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -7906,10 +7850,6 @@
     "translation": "无效的本地储存目录。不能为空字串。"
   },
   {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "多于一条数据被改动。"
-  },
-  {
     "id": "model.upload_session.is_valid.filename.app_error",
     "translation": "无效的 Filename"
   },
@@ -8064,5 +8004,61 @@
   {
     "id": "ent.message_export.global_relay_export.get_attachment_error",
     "translation": "无法获取帖子的文件信息。"
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "立刻修复"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "联系客服"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "无付款方式"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "您的 Mattermost Cloud 订阅的付款已过期"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "提醒您，我们尚未收到您在 {{.OverLimitDate}} 开具的 Mattermost 订阅的付款。如果未收到付款，我们将在近期开始冻结您的服务。"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "未收到付款"
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "随时通过电子邮件发送给我们 "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "您已达到免费套餐的用户数限制 "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "达到 Mattermost Cloud 用户限制"
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "或者，您可以在管理控制台中停用用户释放更多用户的位置或保持在免费用户限制内。"
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "看来您的工作区中现在有10个或更多用户 - 太好了！如果您想邀请更多的团队成员，请考虑立即升级到 Mattermost Cloud Professional。"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "不允许您尝试添加或移除以下一项或多项权限"
+  },
+  {
+    "id": "api.roles.patch_roles.admin_role.error",
+    "translation": "系统管理员角色无法编辑或更改"
   }
 ]
