@@ -715,14 +715,6 @@
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
