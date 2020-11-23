@@ -25,7 +25,7 @@ type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
 	SearchEngine     *searchengine.Broker
-	SQLStore      *sqlstore.SqlStore
+	SQLStore         *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -197,7 +197,7 @@ func (h *MainHelper) GetStore() store.Store {
 
 func (h *MainHelper) GetSQLStore() *sqlstore.SqlStore {
 	if h.SQLStore == nil {
-		panic("MainHelper not initialized with sql supplier.")
+		panic("MainHelper not initialized with sql store.")
 	}
 
 	return h.SQLStore

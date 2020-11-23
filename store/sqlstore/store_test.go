@@ -165,23 +165,23 @@ func TestSupplierLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 	settings.DataSourceReplicas = []string{":memory:"}
 	settings.DataSourceSearchReplicas = []string{":memory:"}
-	supplier := NewSqlStore(*settings, nil)
+	store := NewSqlStore(*settings, nil)
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 
 	go func() {
-		supplier.UpdateLicense(&model.License{})
+		store.UpdateLicense(&model.License{})
 		wg.Done()
 	}()
 
 	go func() {
-		supplier.GetReplica()
+		store.GetReplica()
 		wg.Done()
 	}()
 
 	go func() {
-		supplier.GetSearchReplica()
+		store.GetSearchReplica()
 		wg.Done()
 	}()
 
@@ -250,17 +250,17 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := NewSqlStore(*settings, nil)
-			supplier.UpdateLicense(&model.License{})
+			store := NewSqlStore(*settings, nil)
+			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
-				replicas[supplier.GetReplica()] = true
+				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
-				searchReplicas[supplier.GetSearchReplica()] = true
+				searchReplicas[store.GetSearchReplica()] = true
 			}
 
 			if len(testCase.DataSourceReplicas) > 0 {
@@ -268,13 +268,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, len(testCase.DataSourceReplicas))
 
 				for replica := range replicas {
-					assert.NotEqual(t, supplier.GetMaster(), replica)
+					assert.NotEqual(t, store.GetMaster(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, supplier.GetMaster(), replica)
+					assert.Equal(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -283,7 +283,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, len(testCase.DataSourceSearchReplicas))
 
 				for searchReplica := range searchReplicas {
-					assert.NotEqual(t, supplier.GetMaster(), searchReplica)
+					assert.NotEqual(t, store.GetMaster(), searchReplica)
 					for replica := range replicas {
 						assert.NotEqual(t, searchReplica, replica)
 					}
@@ -296,7 +296,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, supplier.GetMaster(), searchReplica)
+					assert.Equal(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -307,16 +307,16 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := NewSqlStore(*settings, nil)
+			store := NewSqlStore(*settings, nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
-				replicas[supplier.GetReplica()] = true
+				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
-				searchReplicas[supplier.GetSearchReplica()] = true
+				searchReplicas[store.GetSearchReplica()] = true
 			}
 
 			if len(testCase.DataSourceReplicas) > 0 {
@@ -324,13 +324,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, 1)
 
 				for replica := range replicas {
-					assert.Same(t, supplier.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, supplier.GetMaster(), replica)
+					assert.Equal(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -339,7 +339,7 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, 1)
 
 				for searchReplica := range searchReplicas {
-					assert.Same(t, supplier.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 
 			} else if len(testCase.DataSourceReplicas) > 0 {
@@ -349,7 +349,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, supplier.GetMaster(), searchReplica)
+					assert.Equal(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -367,9 +367,9 @@ func TestGetDbVersion(t *testing.T) {
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			supplier := NewSqlStore(*settings, nil)
+			store := NewSqlStore(*settings, nil)
 
-			version, err := supplier.GetDbVersion()
+			version, err := store.GetDbVersion()
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
@@ -447,9 +447,9 @@ func TestGetAllConns(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			supplier := NewSqlStore(*settings, nil)
+			store := NewSqlStore(*settings, nil)
 
-			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
+			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
 		})
 	}
 }
