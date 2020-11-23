@@ -45,7 +45,7 @@ func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)

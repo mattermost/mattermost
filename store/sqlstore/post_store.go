@@ -62,7 +62,7 @@ func postToSlice(post *model.Post) []interface{} {
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
-		SqlStore:       sqlStore,
+		SqlStore:          sqlStore,
 		metrics:           metrics,
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}

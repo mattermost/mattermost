@@ -27,7 +27,7 @@ func (fs SqlFileInfoStore) ClearCaches() {
 func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	s.queryFields = []string{

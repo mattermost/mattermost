@@ -359,7 +359,7 @@ func (s SqlChannelStore) ClearCaches() {
 func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {

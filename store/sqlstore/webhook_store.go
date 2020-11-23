@@ -25,7 +25,7 @@ func (s SqlWebhookStore) ClearCaches() {
 func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
 	s := &SqlWebhookStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {

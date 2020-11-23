@@ -22,7 +22,7 @@ type SqlEmojiStore struct {
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	s := &SqlEmojiStore{
 		SqlStore: sqlStore,
-		metrics:     metrics,
+		metrics:  metrics,
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
