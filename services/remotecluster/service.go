@@ -18,7 +18,14 @@ const (
 	ResultQueueDrainTimeoutMillis = 10000
 	MaxConcurrentSends            = 5
 	SendMsgURL                    = "api/v4/remotecluster/msg"
+	PingURL                       = "api/v4/remotecluster/ping"
+	PingFreqMillis                = 60000 // once per minute
+	PingTimeoutMillis             = 15000
 	EnvInsecureOverrideKey        = "REMOTE_CLUSTER_SEND_INSECURE"
+)
+
+var (
+	disablePing bool // override for testing
 )
 
 type ServerIface interface {
@@ -145,7 +152,10 @@ func (rcs *RemoteClusterService) resume() {
 	rcs.active = true
 	rcs.done = make(chan struct{})
 
-	go rcs.sendLoop(rcs.done)
+	if !disablePing {
+		rcs.pingLoop(rcs.done)
+	}
+	rcs.sendLoop(rcs.done)
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")
 }

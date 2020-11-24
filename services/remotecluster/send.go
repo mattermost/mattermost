@@ -61,13 +61,20 @@ func (rcs *RemoteClusterService) SendOutgoingMsg(ctx context.Context, msg *model
 }
 
 func (rcs *RemoteClusterService) sendLoop(done chan struct{}) {
-	for {
-		select {
-		case task := <-rcs.send:
-			rcs.sendMsg(task)
-		case <-done:
-			return
-		}
+	// create thread pool for concurrent message sending.
+	for i := 0; i < MaxConcurrentSends; i++ {
+		go func() {
+			for {
+				select {
+				case task := <-rcs.send:
+					if task.msg != nil {
+						rcs.sendMsg(task)
+					}
+				case <-done:
+					return
+				}
+			}
+		}()
 	}
 }
 
