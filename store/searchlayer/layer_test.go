@@ -2,7 +2,6 @@ package searchlayer_test
 
 import (
 	"os"
-	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
@@ -12,12 +11,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func TestUpdateConfigRacePartA(t *testing.T) {
+// Test to verify race condition on UpdateConfig. The test must run with -race flag in order to verify
+// that there is no race. Ref: (#MM-30868)
+func TestUpdateConfigRace(t *testing.T) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
@@ -30,27 +29,10 @@ func TestUpdateConfigRacePartA(t *testing.T) {
 	cfg.ClusterSettings.MaxIdleConns = model.NewInt(1)
 	searchEngine := searchengine.NewBroker(cfg, nil)
 	layer := searchlayer.NewSearchLayer(&testlib.TestStore{Store: store}, searchEngine, cfg)
-	var wg sync.WaitGroup
-	values := make(chan int, 5)
-	defer close(values)
 
-	wg.Add(5)
 	for i := 0; i < 5; i++ {
-		go func(num int) {
-			defer wg.Done()
-			dupConfig := cfg.Clone()
-			*dupConfig.ClusterSettings.MaxIdleConns = num
-			values <- *dupConfig.ClusterSettings.MaxIdleConns
-			layer.UpdateConfig(dupConfig)
-		}(i)
+		go func() {
+			layer.UpdateConfig(cfg.Clone())
+		}()
 	}
-
-	wg.Wait()
-
-	for i := 0; i < 4; i++ {
-		<-values
-	}
-
-	assert.Equal(t, <-values, *layer.GetConfig().ClusterSettings.MaxIdleConns)
-
 }

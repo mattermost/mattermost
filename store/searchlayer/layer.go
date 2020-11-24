@@ -38,15 +38,9 @@ func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cf
 }
 
 func (s *SearchStore) UpdateConfig(cfg *model.Config) {
-	s.configLock.Lock()
 	defer s.configLock.Unlock()
+	s.configLock.Lock()
 	s.config = cfg
-}
-
-func (s *SearchStore) GetConfig() *model.Config {
-	s.configLock.Lock()
-	defer s.configLock.Unlock()
-	return s.config
 }
 
 func (s *SearchStore) Channel() store.ChannelStore {
