@@ -1,7 +1,7 @@
 stages:
 #  - test
-#  - build
-#  - publish
+  - build
+  - publish
   - create-vars
   - trigger-build-ee
 
@@ -22,7 +22,7 @@ empty:
     - echo "empty"
 
 #lint:
-#  image: golangci/golangci-lint:v1.31.0
+#  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.31.0-1
 #  stage: .pre
 #  script:
 #    - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
@@ -33,7 +33,7 @@ empty:
 #    - if: '$ONLY_BUILD != "yes"'
 #
 #layers:
-#  image: mattermost/mattermost-build-server:20201023_golang-1.14.6
+#  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201023_golang-1.14.6
 #  stage: .pre
 #  script:
 #    - make store-layers
