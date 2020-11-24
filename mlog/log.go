@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -73,6 +74,7 @@ type Logger struct {
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
 	logrLogger   *logr.Logger
+	mutex        *sync.Mutex
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -106,6 +108,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
 		logrLogger:   newLogr(),
+		mutex:        &sync.Mutex{},
 	}
 
 	if config.EnableConsole {
@@ -162,13 +165,13 @@ func (l *Logger) SetConsoleLevel(level string) {
 }
 
 func (l *Logger) With(fields ...Field) *Logger {
-	newlogger := *l
-	newlogger.zap = newlogger.zap.With(fields...)
-	if newlogger.logrLogger != nil {
-		ll := newlogger.logrLogger.WithFields(zapToLogr(fields))
-		newlogger.logrLogger = &ll
+	newLogger := *l
+	newLogger.zap = newLogger.zap.With(fields...)
+	if newLogger.logrLogger != nil {
+		ll := newLogger.logrLogger.WithFields(zapToLogr(fields))
+		newLogger.logrLogger = &ll
 	}
-	return &newlogger
+	return &newLogger
 }
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
@@ -190,9 +193,9 @@ func (l *Logger) StdLogWriter() io.Writer {
 }
 
 func (l *Logger) WithCallerSkip(skip int) *Logger {
-	newlogger := *l
-	newlogger.zap = newlogger.zap.WithOptions(zap.AddCallerSkip(skip))
-	return &newlogger
+	newLogger := *l
+	newLogger.zap = newLogger.zap.WithOptions(zap.AddCallerSkip(skip))
+	return &newLogger
 }
 
 // Made for the plugin interface, wraps mlog in a simpler interface
@@ -205,6 +208,9 @@ func (l *Logger) Sugar() *SugarLogger {
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
+
 	l.zap.Debug(message, fields...)
 	if isLevelEnabled(l.logrLogger, logr.Debug) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Debug(message)
@@ -212,6 +218,9 @@ func (l *Logger) Debug(message string, fields ...Field) {
 }
 
 func (l *Logger) Info(message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
+
 	l.zap.Info(message, fields...)
 	if isLevelEnabled(l.logrLogger, logr.Info) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Info(message)
@@ -219,6 +228,9 @@ func (l *Logger) Info(message string, fields ...Field) {
 }
 
 func (l *Logger) Warn(message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
+
 	l.zap.Warn(message, fields...)
 	if isLevelEnabled(l.logrLogger, logr.Warn) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Warn(message)
@@ -226,6 +238,9 @@ func (l *Logger) Warn(message string, fields ...Field) {
 }
 
 func (l *Logger) Error(message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
+
 	l.zap.Error(message, fields...)
 	if isLevelEnabled(l.logrLogger, logr.Error) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
@@ -233,6 +248,9 @@ func (l *Logger) Error(message string, fields ...Field) {
 }
 
 func (l *Logger) Critical(message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
+
 	l.zap.Error(message, fields...)
 	if isLevelEnabled(l.logrLogger, logr.Error) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
@@ -240,10 +258,14 @@ func (l *Logger) Critical(message string, fields ...Field) {
 }
 
 func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
 }
 
 func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	var logger *logr.Logger
 	for _, lvl := range levels {
 		if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
@@ -258,6 +280,8 @@ func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
 }
 
 func (l *Logger) Flush(cxt context.Context) error {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	return l.logrLogger.Logr().FlushWithTimeout(cxt)
 }
 
@@ -265,6 +289,8 @@ func (l *Logger) Flush(cxt context.Context) error {
 // flush queues within the context timeout. Once complete all targets are shutdown
 // and any resources released.
 func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	err := l.logrLogger.Logr().ShutdownWithTimeout(cxt)
 	l.logrLogger = newLogr()
 	return err
@@ -286,6 +312,8 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 // to add custom targets or provide configuration that cannot be expressed via a
 // config source.
 func (l *Logger) AddTarget(targets ...logr.Target) error {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	return l.logrLogger.Logr().AddTarget(targets...)
 }
 
@@ -297,12 +325,16 @@ func (l *Logger) RemoveTargets(ctx context.Context, f func(ti TargetInfo) bool) 
 	fc := func(tic logr.TargetInfo) bool {
 		return f(TargetInfo(tic))
 	}
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	return l.logrLogger.Logr().RemoveTargets(ctx, fc)
 }
 
 // EnableMetrics enables metrics collection by supplying a MetricsCollector.
 // The MetricsCollector provides counters and gauges that are updated by log targets.
 func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
+	defer l.mutex.Unlock()
+	l.mutex.Lock()
 	return l.logrLogger.Logr().SetMetricsCollector(collector)
 }
 
