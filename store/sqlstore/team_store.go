@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -22,7 +23,7 @@ const (
 )
 
 type SqlTeamStore struct {
-	SqlStore
+	*SqlSupplier
 
 	teamsQuery sq.SelectBuilder
 }
@@ -201,16 +202,16 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func newSqlTeamStore(sqlSupplier *SqlSupplier) store.TeamStore {
 	s := &SqlTeamStore{
-		SqlStore: sqlStore,
+		SqlSupplier: sqlSupplier,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
 		Select("Teams.*").
 		From("Teams")
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
@@ -1146,7 +1147,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 }
 
 // GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter.
-func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
 
@@ -1156,7 +1157,15 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
-	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
+
+	var db *gorp.DbMap
+	if hasMaster(ctx) {
+		db = s.GetMaster()
+	} else {
+		db = s.GetReplica()
+	}
+
+	_, err = db.Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
