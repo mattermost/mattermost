@@ -4,22 +4,23 @@
 package sqlstore
 
 import (
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"time"
 
 	"github.com/pkg/errors"
 )
 
 type SqlProductNoticesStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlProductNoticesStore(sqlStore SqlStore) store.ProductNoticesStore {
-	s := SqlProductNoticesStore{sqlStore}
+func newSqlProductNoticesStore(sqlSupplier *SqlSupplier) store.ProductNoticesStore {
+	s := SqlProductNoticesStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.ProductNoticeViewState{}, "ProductNoticeViewState").SetKeys(false, "UserId", "NoticeId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("NoticeId").SetMaxSize(26)

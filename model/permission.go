@@ -100,6 +100,7 @@ var PERMISSION_USE_GROUP_MENTIONS *Permission
 var PERMISSION_READ_OTHER_USERS_TEAMS *Permission
 var PERMISSION_EDIT_BRAND *Permission
 var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
+var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -121,6 +122,9 @@ var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS *Permission
 var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES *Permission
+var PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ENVIRONMENT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT *Permission
@@ -523,6 +527,12 @@ func initializePermissions() {
 		"authentication.permissions.manage_shared_channels.description",
 		PermissionScopeSystem,
 	}
+	PERMISSION_MANAGE_REMOTE_CLUSTERS = &Permission{
+		"manage_remote_clusters",
+		"authentication.permissions.manage_remote_clusters.name",
+		"authentication.permissions.manage_remote_clusters.description",
+		PermissionScopeSystem,
+	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
 		"remove_user_from_team",
 		"authentication.permissions.remove_user_from_team.name",
@@ -757,6 +767,18 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES = &Permission{
+		"sysconsole_read_user_management_system_roles",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES = &Permission{
+		"sysconsole_write_user_management_system_roles",
+		"authentication.permissions.use_group_mentions.name",
+		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
 	PERMISSION_SYSCONSOLE_READ_ENVIRONMENT = &Permission{
 		"sysconsole_read_environment",
 		"authentication.permissions.use_group_mentions.name",
@@ -862,6 +884,7 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS,
+		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT,
 		PERMISSION_SYSCONSOLE_READ_SITE,
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION,
@@ -879,6 +902,7 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS,
+		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES,
 		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT,
 		PERMISSION_SYSCONSOLE_WRITE_SITE,
 		PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION,
@@ -920,6 +944,7 @@ func initializePermissions() {
 		PERMISSION_DEMOTE_TO_GUEST,
 		PERMISSION_EDIT_BRAND,
 		PERMISSION_MANAGE_SHARED_CHANNELS,
+		PERMISSION_MANAGE_REMOTE_CLUSTERS,
 	}
 
 	TeamScopedPermissions := []*Permission{

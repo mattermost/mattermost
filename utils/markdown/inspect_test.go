@@ -52,3 +52,24 @@ func TestInspect(t *testing.T) {
 		"                Text",
 	}, visited)
 }
+
+var counterSink int
+
+func BenchmarkInspect(b *testing.B) {
+	text := `Some standard piece of text.
+
+Has a link [post](https://github.com) and also has a blockquote.
+
+> This is a famous quote.
+
+Some bold text **Text for markdown?** to go with it.
+
+At the end, some more lines`
+
+	for i := 0; i < b.N; i++ {
+		Inspect(text, func(_ interface{}) bool {
+			counterSink++
+			return true
+		})
+	}
+}
