@@ -280,6 +280,10 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			return true
 		}
 
+		// if a pointer to a stuct, return true
+		if structField.Type.Kind() == reflect.Ptr && structField.Type.Elem().Kind() == reflect.Struct {
+			return true
+		}
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
 
 		// If there are no access tag values and the role has manage_system, no need to continue
