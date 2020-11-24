@@ -37,8 +37,8 @@ func NewErrorPushResponse(message string) PushResponse {
 	return m
 }
 
-func (me *PushResponse) ToJson() string {
-	b, _ := json.Marshal(me)
+func (pr *PushResponse) ToJson() string {
+	b, _ := json.Marshal(pr)
 	return string(b)
 }
 
