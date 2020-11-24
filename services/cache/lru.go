@@ -185,10 +185,19 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 }
 
 func (l *LRU) get(key string, value interface{}) error {
-	e, err := l.getItem(key)
-	if err != nil {
-		return err
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	ent, ok := l.items[key]
+	if !ok {
+		return ErrKeyNotFound
 	}
+	e := ent.Value.(*entry)
+	if e.generation != l.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
+		l.removeElement(ent)
+		return ErrKeyNotFound
+	}
+	l.evictList.MoveToFront(ent)
 
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
@@ -224,23 +233,6 @@ func (l *LRU) get(key string, value interface{}) error {
 
 	// Slow path for other structs.
 	return msgpack.Unmarshal(e.value, value)
-}
-
-func (l *LRU) getItem(key string) (*entry, error) {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-
-	ent, ok := l.items[key]
-	if !ok {
-		return nil, ErrKeyNotFound
-	}
-	e := ent.Value.(*entry)
-	if e.generation != l.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
-		l.removeElement(ent)
-		return nil, ErrKeyNotFound
-	}
-	l.evictList.MoveToFront(ent)
-	return e, nil
 }
 
 func (l *LRU) removeElement(e *list.Element) {
