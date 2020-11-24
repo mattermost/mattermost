@@ -96,6 +96,7 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)

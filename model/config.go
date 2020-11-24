@@ -2683,6 +2683,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
 	}
 
+	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil {
+		// Enable the channel export plugin by default
+		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
+	}
+
 	if s.EnableMarketplace == nil {
 		s.EnableMarketplace = NewBool(PLUGIN_SETTINGS_DEFAULT_ENABLE_MARKETPLACE)
 	}

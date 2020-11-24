@@ -333,6 +333,31 @@ func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
 	})
 }
 
+func TestConfigDefaultChannelExportPluginState(t *testing.T) {
+	t.Run("should enable ChannelExport plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
+	})
+
+	t.Run("should not re-enable ChannelExport plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.plugin-channel-export": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
+	})
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
