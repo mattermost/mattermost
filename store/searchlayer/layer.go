@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"sync"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -18,6 +20,7 @@ type SearchStore struct {
 	channel      *SearchChannelStore
 	post         *SearchPostStore
 	config       *model.Config
+	configLock   sync.RWMutex
 }
 
 func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {
@@ -35,7 +38,15 @@ func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cf
 }
 
 func (s *SearchStore) UpdateConfig(cfg *model.Config) {
+	s.configLock.Lock()
+	defer s.configLock.Unlock()
 	s.config = cfg
+}
+
+func (s *SearchStore) GetConfig() *model.Config {
+	s.configLock.Lock()
+	defer s.configLock.Unlock()
+	return s.config
 }
 
 func (s *SearchStore) Channel() store.ChannelStore {
