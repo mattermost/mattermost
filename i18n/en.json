@@ -5927,6 +5927,10 @@
     "translation": "Unable to convert export to XML."
   },
   {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Unable to write the export file."
+  },
+  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
   },
@@ -6007,6 +6011,10 @@
     "translation": "Unable to create the warning file."
   },
   {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Unable to write the csv file."
+  },
+  {
     "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Unable to create the zip export file."
   },
@@ -6021,6 +6029,10 @@
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
     "translation": "Unable to re-read the Global Relay temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Unable to write the global relay file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
