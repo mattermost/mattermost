@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
+	"github.com/pkg/errors"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -43,7 +44,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-			gchan <- store.StoreResult{Data: groupsMap, Err: err}
+			gchan <- store.StoreResult{Data: groupsMap, NErr: err}
 			close(gchan)
 		}()
 	}
@@ -73,8 +74,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	groups := make(map[string]*model.Group)
 	if gchan != nil {
 		result = <-gchan
-		if result.Err != nil {
-			return nil, result.Err
+		if result.NErr != nil {
+			return nil, result.NErr
 		}
 		groups = result.Data.(map[string]*model.Group)
 	}
@@ -818,7 +819,7 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 }
 
 // getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
-func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
+func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
 	var err error
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
@@ -831,7 +832,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
-			return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "unable to get groups")
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
@@ -843,7 +844,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
 	if err != nil {
-		return nil, model.NewAppError("getGroupsAllowedForReferenceInChannel", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "unable to get groups")
 	}
 	for _, group := range groups {
 		if group.Name != nil {
