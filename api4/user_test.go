@@ -5269,7 +5269,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 		})
@@ -5289,7 +5289,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 		})
@@ -5311,7 +5311,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Extended: true,
@@ -5335,7 +5335,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5350,7 +5350,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.True(t, res)
 		require.Nil(t, resp2.Error)
 
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5358,7 +5358,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Nil(t, resp.Error)
 		require.Len(t, uss.Threads, 0)
 
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  true,
@@ -5387,7 +5387,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5446,7 +5446,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_UPDATED)
 	})
 
-	resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, rpost.Id, false)
+	resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5468,7 +5468,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED)
 	})
 
-	resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rpost.Id, 123)
+	resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, 123)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5509,7 +5509,7 @@ func TestFollowThreads(t *testing.T) {
 
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 		var uss *model.Threads
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5517,11 +5517,11 @@ func TestFollowThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 1)
 
-		resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, rpost.Id, false)
+		resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, false)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5529,11 +5529,11 @@ func TestFollowThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 0)
 
-		resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, rpost.Id, true)
+		resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, true)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5566,7 +5566,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	CheckCreatedStatus(t, resp2)
 
 	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int) (*model.Threads, *model.Response) {
-		u, r := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+		u, r := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5598,7 +5598,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
 
 	// rewind read state to before the post
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5618,7 +5618,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
 	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
-		uss, resp := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+		uss, resp := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5648,7 +5648,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 
 	ttt, _ := th.App.Srv().Store.Thread().GetMembershipForUser(th.BasicUser.Id, rpost.Id)
 	require.EqualValues(t, ttt.UnreadMentions, 1)
-	tttt, err := th.App.Srv().Store.Thread().GetThreadsForUser(th.BasicUser.Id, model.GetUserThreadsOpts{})
+	tttt, err := th.App.Srv().Store.Thread().GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 	require.NoError(t, err)
 	require.EqualValues(t, tttt.TotalUnreadMentions, 1)
 
@@ -5658,7 +5658,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
 
 	// set read state, this should clear the mentions
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, model.GetMillis())
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetMillis())
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5668,7 +5668,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
 
 	// rewind read state to before the post
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5692,7 +5692,7 @@ func TestReadThreads(t *testing.T) {
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		var uss, uss2, uss3 *model.Threads
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5701,11 +5701,11 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 
 		time.Sleep(1)
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, model.GetMillis())
+		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetMillis())
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss2, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss2, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5714,11 +5714,11 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss2.Threads, 1)
 		require.Greater(t, uss2.Threads[0].LastViewedAt, uss.Threads[0].LastViewedAt)
 
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, rpost2.UpdateAt)
+		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss3, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss3, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5748,7 +5748,7 @@ func TestReadThreads(t *testing.T) {
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
 		var uss, uss2, uss3 *model.Threads
-		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5756,11 +5756,11 @@ func TestReadThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, 2)
 
-		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, model.GetMillis())
+		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, model.GetMillis())
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss2, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss2, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,
@@ -5770,11 +5770,11 @@ func TestReadThreads(t *testing.T) {
 		require.Greater(t, uss2.Threads[1].LastViewedAt, uss.Threads[1].LastViewedAt)
 
 		timestamp := model.GetMillis()
-		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rrpost.Id, timestamp)
+		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, timestamp)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
-		uss3, resp = th.Client.GetUserThreads(th.BasicUser.Id, model.GetUserThreadsOpts{
+		uss3, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
 			Deleted:  false,

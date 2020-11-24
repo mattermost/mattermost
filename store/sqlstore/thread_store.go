@@ -108,7 +108,7 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
-func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	type JoinedThread struct {
 		PostId         string
 		ReplyCount     int64
@@ -121,8 +121,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	}
 	var threads []*JoinedThread
 
-	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
+	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
 	fetchConditions := sq.And{
+		sq.Eq{"Channels.TeamId": teamId},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
@@ -141,6 +142,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		Select("SUM(ThreadMemberships.UnreadMentions)").
 		From("ThreadMemberships").
 		Join("Posts ON Posts.RootId = ThreadMemberships.PostId").
+		Join("Channels ON Posts.ChannelId = Channels.Id").
 		Where(fetchConditions).
 		Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").
 		GroupBy("threadmemberships.userid, threadmemberships.following, posts.deleteat").ToSql()
@@ -148,12 +150,14 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		Select("COUNT(DISTINCT Posts.Id)").
 		From("Posts").
 		Join("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
+		Join("Channels ON Posts.ChannelId = Channels.Id").
 		Where(fetchConditions).
 		Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").
 		GroupBy("threadmemberships.userid, threadmemberships.following, posts.deleteat").ToSql()
 	threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
 		Select("COUNT(DISTINCT ThreadMemberships.PostId)").
 		Join("Posts ON Posts.RootId = ThreadMemberships.PostId").
+		Join("Channels ON Posts.ChannelId = Channels.Id").
 		From("ThreadMemberships").
 		Where(fetchConditions).ToSql()
 
@@ -176,6 +180,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 		From("Threads").
 		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 		Where(fetchConditions).
 		OrderBy("Threads.LastReplyAt DESC").
@@ -245,10 +250,18 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	return result, nil
 }
 
-func (s *SqlThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string, timestamp int64) error {
+	memberships, err := s.GetMembershipsForUser(userId, teamId)
+	if err != nil {
+		return err
+	}
+	var membershipIds []string
+	for _, m := range memberships {
+		membershipIds = append(membershipIds, m.PostId)
+	}
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"PostId": membershipIds}).
 		Set("LastViewed", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
@@ -294,9 +307,19 @@ func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*
 	return membership, nil
 }
 
-func (s *SqlThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
 	var memberships []*model.ThreadMembership
-	_, err := s.GetReplica().Select(&memberships, "SELECT * from ThreadMemberships WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+
+	query, args, _ := s.getQueryBuilder().
+		Select("ThreadMemberships.*").
+		Join("Posts ON Posts.RootId = ThreadMemberships.PostId").
+		Join("Channels ON Posts.ChannelId = Channels.Id").
+		From("ThreadMemberships").
+		Where(sq.Eq{"Channels.TeamId": teamId}).
+		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
+		ToSql()
+
+	_, err := s.GetReplica().Select(&memberships, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get thread membership with userid=%s", userId)
 	}

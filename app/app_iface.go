@@ -687,8 +687,8 @@ type AppIface interface {
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
-	GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
-	GetThreadsForUser(userId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
+	GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
+	GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userId string) (*model.User, *model.AppError)
@@ -996,8 +996,8 @@ type AppIface interface {
 	UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite bool) *model.AppError
 	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
 	UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError
-	UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError
-	UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError
+	UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *model.AppError
+	UpdateThreadsReadForUser(userId, teamId string, timestamp int64) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(userId string, active bool) *model.AppError
 	UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError)

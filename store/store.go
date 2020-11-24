@@ -251,16 +251,16 @@ type ThreadStore interface {
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
-	GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
 
-	MarkAllAsRead(userId string, timestamp int64) error
+	MarkAllAsRead(userId, teamId string, timestamp int64) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
-	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
+	GetMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
 	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error

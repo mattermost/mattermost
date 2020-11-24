@@ -1341,7 +1341,16 @@ func (a *App) MaxPostSize() int {
 }
 
 // countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
-func (a *App) countThreadMentions(user *model.User, post *model.Post, timestamp int64) (int64, *model.AppError) {
+func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId string, timestamp int64) (int64, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return 0, err
+	}
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
 	keywords := addMentionKeywordsForUser(
 		map[string][]string{},
 		user,
@@ -1350,20 +1359,37 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, timestamp 
 		true, // Assume channel mentions are always allowed for simplicity
 	)
 
-	posts, err := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
-	if err != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	count := 0
 
-	mentions := getExplicitMentions(post, keywords, make(map[string]*model.Group))
+	if channel.Type == model.CHANNEL_DIRECT {
+		// In a DM channel, every post made by the other user is a mention
+		otherId := channel.GetOtherUserIdForDM(user.Id)
+		for _, p := range posts {
+			if p.UserId == otherId {
+				count++
+			}
+		}
+
+		return int64(count), nil
+	}
+
+	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	mentions := getExplicitMentions(post, keywords, groups)
 	if _, ok := mentions.Mentions[user.Id]; ok {
 		count += 1
 	}
 
 	for _, p := range posts {
-		mentions = getExplicitMentions(p, keywords, make(map[string]*model.Group))
+		mentions = getExplicitMentions(p, keywords, groups)
 		if _, ok := mentions.Mentions[user.Id]; ok {
 			count += 1
 		}
@@ -1512,6 +1538,6 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	return false
 }
 
-func (a *App) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
-	return a.Srv().Store.Thread().GetMembershipsForUser(userId)
+func (a *App) GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId, teamId)
 }
