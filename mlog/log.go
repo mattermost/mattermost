@@ -74,7 +74,7 @@ type Logger struct {
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
 	logrLogger   *logr.Logger
-	mutex        *sync.Mutex
+	mutex        *sync.RWMutex
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -108,7 +108,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
 		logrLogger:   newLogr(),
-		mutex:        &sync.Mutex{},
+		mutex:        &sync.RWMutex{},
 	}
 
 	if config.EnableConsole {
@@ -167,8 +167,8 @@ func (l *Logger) SetConsoleLevel(level string) {
 func (l *Logger) With(fields ...Field) *Logger {
 	newLogger := *l
 	newLogger.zap = newLogger.zap.With(fields...)
-	if newLogger.logrLogger != nil {
-		ll := newLogger.logrLogger.WithFields(zapToLogr(fields))
+	if newLogger.getLogger() != nil {
+		ll := newLogger.getLogger().WithFields(zapToLogr(fields))
 		newLogger.logrLogger = &ll
 	}
 	return &newLogger
@@ -208,70 +208,51 @@ func (l *Logger) Sugar() *SugarLogger {
 }
 
 func (l *Logger) Debug(message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-
 	l.zap.Debug(message, fields...)
-	if isLevelEnabled(l.logrLogger, logr.Debug) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Debug(message)
+	if isLevelEnabled(l.getLogger(), logr.Debug) {
+		l.getLogger().WithFields(zapToLogr(fields)).Debug(message)
 	}
 }
 
 func (l *Logger) Info(message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-
 	l.zap.Info(message, fields...)
-	if isLevelEnabled(l.logrLogger, logr.Info) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Info(message)
+	if isLevelEnabled(l.getLogger(), logr.Info) {
+		l.getLogger().WithFields(zapToLogr(fields)).Info(message)
 	}
 }
 
 func (l *Logger) Warn(message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-
 	l.zap.Warn(message, fields...)
-	if isLevelEnabled(l.logrLogger, logr.Warn) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Warn(message)
+	if isLevelEnabled(l.getLogger(), logr.Warn) {
+		l.getLogger().WithFields(zapToLogr(fields)).Warn(message)
 	}
 }
 
 func (l *Logger) Error(message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-
 	l.zap.Error(message, fields...)
-	if isLevelEnabled(l.logrLogger, logr.Error) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	if isLevelEnabled(l.getLogger(), logr.Error) {
+		l.getLogger().WithFields(zapToLogr(fields)).Error(message)
 	}
 }
 
 func (l *Logger) Critical(message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-
 	l.zap.Error(message, fields...)
-	if isLevelEnabled(l.logrLogger, logr.Error) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	if isLevelEnabled(l.getLogger(), logr.Error) {
+		l.getLogger().WithFields(zapToLogr(fields)).Error(message)
 	}
 }
 
 func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-	l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
+	l.getLogger().WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
 }
 
 func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
 	var logger *logr.Logger
 	for _, lvl := range levels {
-		if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
+		if isLevelEnabled(l.getLogger(), logr.Level(lvl)) {
 			// don't create logger with fields unless at least one level is active.
 			if logger == nil {
-				l := l.logrLogger.WithFields(zapToLogr(fields))
+				l := l.getLogger().WithFields(zapToLogr(fields))
 				logger = &l
 			}
 			logger.Log(logr.Level(lvl), message)
@@ -280,19 +261,15 @@ func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
 }
 
 func (l *Logger) Flush(cxt context.Context) error {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-	return l.logrLogger.Logr().FlushWithTimeout(cxt)
+	return l.getLogger().Logr().FlushWithTimeout(cxt)
 }
 
 // ShutdownAdvancedLogging stops the logger from accepting new log records and tries to
 // flush queues within the context timeout. Once complete all targets are shutdown
 // and any resources released.
 func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-	err := l.logrLogger.Logr().ShutdownWithTimeout(cxt)
-	l.logrLogger = newLogr()
+	err := l.getLogger().Logr().ShutdownWithTimeout(cxt)
+	l.setLogger(newLogr())
 	return err
 }
 
@@ -304,7 +281,7 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 		Error("error shutting down previous logger", Err(err))
 	}
 
-	err := logrAddTargets(l.logrLogger, targets)
+	err := logrAddTargets(l.getLogger(), targets)
 	return err
 }
 
@@ -312,9 +289,7 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 // to add custom targets or provide configuration that cannot be expressed via a
 // config source.
 func (l *Logger) AddTarget(targets ...logr.Target) error {
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-	return l.logrLogger.Logr().AddTarget(targets...)
+	return l.getLogger().Logr().AddTarget(targets...)
 }
 
 // RemoveTargets selectively removes targets that were previously added to this logger instance
@@ -325,17 +300,27 @@ func (l *Logger) RemoveTargets(ctx context.Context, f func(ti TargetInfo) bool) 
 	fc := func(tic logr.TargetInfo) bool {
 		return f(TargetInfo(tic))
 	}
-	defer l.mutex.Unlock()
-	l.mutex.Lock()
-	return l.logrLogger.Logr().RemoveTargets(ctx, fc)
+	return l.getLogger().Logr().RemoveTargets(ctx, fc)
 }
 
 // EnableMetrics enables metrics collection by supplying a MetricsCollector.
 // The MetricsCollector provides counters and gauges that are updated by log targets.
 func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
+	return l.getLogger().Logr().SetMetricsCollector(collector)
+}
+
+// getLogger is a concurrent safe getter of the logr logger
+func (l *Logger) getLogger() *logr.Logger {
+	defer l.mutex.RUnlock()
+	l.mutex.RLock()
+	return l.logrLogger
+}
+
+// setLogger is a concurrent safe setter of the logr logger
+func (l *Logger) setLogger(logger *logr.Logger) {
 	defer l.mutex.Unlock()
 	l.mutex.Lock()
-	return l.logrLogger.Logr().SetMetricsCollector(collector)
+	l.logrLogger = logger
 }
 
 // DisableZap is called to disable Zap, and Logr will be used instead. Any Logger
