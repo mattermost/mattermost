@@ -155,3 +155,18 @@ func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
 	}
 	return &msg, nil
 }
+
+type RemoteClusterPing struct {
+	SendAt int64
+	RecvAt int64
+}
+
+func RemoteClusterPingFromJSON(data io.Reader) (RemoteClusterPing, *AppError) {
+	decoder := json.NewDecoder(data)
+	var ping RemoteClusterPing
+	err := decoder.Decode(&ping)
+	if err != nil {
+		return RemoteClusterPing{}, NewAppError("RemoteClusterPingFromJSON", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest)
+	}
+	return ping, nil
+}

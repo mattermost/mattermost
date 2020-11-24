@@ -31,6 +31,7 @@ const (
 func TestSendMsg(t *testing.T) {
 	msgId := model.NewId()
 	sendProtocol = "http"
+	disablePing = true
 
 	t.Run("No error", func(t *testing.T) {
 		var countCallbacks int32

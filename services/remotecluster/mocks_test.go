@@ -37,6 +37,7 @@ func (ms *mockServer) GetLogger() mlog.LoggerIFace {
 func (ms *mockServer) GetStore() store.Store {
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
+	remoteClusterStoreMock.On("GetAll", true).Return(ms.remotes, nil)
 
 	storeMock := &mocks.Store{}
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)
