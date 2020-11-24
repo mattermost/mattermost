@@ -5646,6 +5646,12 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
+	ttt, _ := th.App.Srv().Store.Thread().GetMembershipForUser(th.BasicUser.Id, rpost.Id)
+	require.EqualValues(t, ttt.UnreadMentions, 1)
+	tttt, err := th.App.Srv().Store.Thread().GetThreadsForUser(th.BasicUser.Id, model.GetUserThreadsOpts{})
+	require.NoError(t, err)
+	require.EqualValues(t, tttt.TotalUnreadMentions, 1)
+
 	// basic user 1 was mentioned 1 time
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
 	// basic user 2 was mentioned 1 time

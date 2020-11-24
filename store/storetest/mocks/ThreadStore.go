@@ -344,13 +344,13 @@ func (_m *ThreadStore) UpdateMembership(membership *model.ThreadMembership) (*mo
 	return r0, r1
 }
 
-// UpdateUnreadsByChannel provides a mock function with given fields: userId, changedThreads, timestamp
-func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
-	ret := _m.Called(userId, changedThreads, timestamp)
+// UpdateUnreadsByChannel provides a mock function with given fields: userId, changedThreads, timestamp, updateViewedTimestamp
+func (_m *ThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
+	ret := _m.Called(userId, changedThreads, timestamp, updateViewedTimestamp)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string, int64) error); ok {
-		r0 = rf(userId, changedThreads, timestamp)
+	if rf, ok := ret.Get(0).(func(string, []string, int64, bool) error); ok {
+		r0 = rf(userId, changedThreads, timestamp, updateViewedTimestamp)
 	} else {
 		r0 = ret.Error(0)
 	}

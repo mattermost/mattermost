@@ -266,7 +266,7 @@ type ThreadStore interface {
 	DeleteMembershipForUser(userId, postId string) error
 	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
-	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
+	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
 
 type PostStore interface {
