@@ -29,15 +29,15 @@ func init() {
 	app.RegisterCommandProvider(&KickProvider{})
 }
 
-func (me *RemoveProvider) GetTrigger() string {
+func (rm *RemoveProvider) GetTrigger() string {
 	return CMD_REMOVE
 }
 
-func (me *KickProvider) GetTrigger() string {
+func (ki *KickProvider) GetTrigger() string {
 	return CMD_KICK
 }
 
-func (me *RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (rm *RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_REMOVE,
 		AutoComplete:     true,
@@ -47,7 +47,7 @@ func (me *RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (ki *KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_KICK,
 		AutoComplete:     true,
@@ -57,11 +57,11 @@ func (me *KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *RemoveProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (rm *RemoveProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, args, message)
 }
 
-func (me *KickProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (ki *KickProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	return doCommand(a, args, message)
 }
 
