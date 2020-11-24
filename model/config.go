@@ -1005,7 +1005,7 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	}
 
 	if s.ButtonColor == nil {
-		s.ButtonColor = NewString("")
+		s.ButtonColor = NewString("#145DBF")
 	}
 }
 
