@@ -716,14 +716,6 @@
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
@@ -7013,6 +7005,10 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",

@@ -73,3 +73,27 @@ func TestFeatureFlagsFromMap(t *testing.T) {
 		})
 	}
 }
+
+func TestFeatureFlagsToMap(t *testing.T) {
+	for name, tc := range map[string]struct {
+		Flags            model.FeatureFlags
+		TestFeatureValue string
+	}{
+		"empty": {
+			TestFeatureValue: "",
+			Flags:            model.FeatureFlags{},
+		},
+		"simple value": {
+			TestFeatureValue: "expectedvalue",
+			Flags:            model.FeatureFlags{TestFeature: "expectedvalue"},
+		},
+		"empty value": {
+			TestFeatureValue: "",
+			Flags:            model.FeatureFlags{TestFeature: ""},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestFeature"])
+		})
+	}
+}
