@@ -262,6 +262,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string, timestamp int64) e
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"PostId": membershipIds}).
+		Where(sq.Eq{"UserId": userId}).
 		Set("LastViewed", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
