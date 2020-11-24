@@ -20,11 +20,11 @@ func init() {
 	app.RegisterCommandProvider(&DndProvider{})
 }
 
-func (me *DndProvider) GetTrigger() string {
+func (d *DndProvider) GetTrigger() string {
 	return CMD_DND
 }
 
-func (me *DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (d *DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_DND,
 		AutoComplete:     true,
@@ -33,7 +33,7 @@ func (me *DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (me *DndProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (d *DndProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusDoNotDisturb(args.UserId)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.success")}
