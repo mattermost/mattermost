@@ -14,7 +14,6 @@ import (
 
 type StoreResult struct {
 	Data interface{}
-	Err  *model.AppError
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
