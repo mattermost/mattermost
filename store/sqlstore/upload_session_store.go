@@ -15,14 +15,14 @@ import (
 )
 
 type SqlUploadSessionStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
+func newSqlUploadSessionStore(sqlSupplier *SqlSupplier) store.UploadSessionStore {
 	s := &SqlUploadSessionStore{
-		SqlStore: sqlStore,
+		SqlSupplier: sqlSupplier,
 	}
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.UploadSession{}, "UploadSessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
