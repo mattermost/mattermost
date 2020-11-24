@@ -145,7 +145,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Join("Channels ON Posts.ChannelId = Channels.Id").
 		Where(fetchConditions).
 		Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").
-		GroupBy("threadmemberships.userid, threadmemberships.following, posts.deleteat").ToSql()
+		GroupBy("ThreadMemberships.UserId, ThreadMemberships.Following, Posts.DeleteAt").ToSql()
 	repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
 		Select("COUNT(DISTINCT Posts.Id)").
 		From("Posts").
@@ -153,7 +153,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Join("Channels ON Posts.ChannelId = Channels.Id").
 		Where(fetchConditions).
 		Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").
-		GroupBy("threadmemberships.userid, threadmemberships.following, posts.deleteat").ToSql()
+		GroupBy("ThreadMemberships.UserId, ThreadMemberships.Following, Posts.DeleteAt").ToSql()
 	threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
 		Select("COUNT(DISTINCT ThreadMemberships.PostId)").
 		Join("Posts ON Posts.RootId = ThreadMemberships.PostId").
