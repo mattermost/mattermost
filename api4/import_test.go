@@ -35,7 +35,7 @@ func TestListImports(t *testing.T) {
 		}
 
 		if c == th.LocalClient {
-			us.UserId = "nouser"
+			us.UserId = model.UploadNoUserID
 		}
 
 		u, resp := c.CreateUpload(us)
