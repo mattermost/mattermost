@@ -58,6 +58,11 @@ func (c *Compliance) PreSave() {
 	c.CreateAt = GetMillis()
 }
 
+func (c *Compliance) DeepCopy() *Compliance {
+	copy := *c
+	return &copy
+}
+
 func (c *Compliance) JobName() string {
 	jobName := c.Type
 	if c.Type == COMPLIANCE_TYPE_DAILY {
