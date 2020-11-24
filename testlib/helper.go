@@ -109,7 +109,7 @@ func (h *MainHelper) setupStore() {
 
 	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.NewSqlStore(*h.Settings, nil)
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)

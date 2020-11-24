@@ -137,7 +137,7 @@ func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	mlog.Debug(newString)
 }
 
-func NewSqlStore(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
 	store := &SqlStore{
 		rrCounter: 0,
 		srCounter: 0,
