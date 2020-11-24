@@ -96,6 +96,19 @@ func (a *App) TestFilesStoreConnection() *model.AppError {
 	return nil
 }
 
+func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+	license := a.Srv().License()
+	backend, err := filesstore.NewFileBackend(cfg, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	nErr := backend.TestConnection()
+	if nErr != nil {
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	backend, err := a.FileBackend()
 	if err != nil {

@@ -954,6 +954,7 @@ type AppIface interface {
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userId string, cfg *model.Config) *model.AppError
 	TestFilesStoreConnection() *model.AppError
+	TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
 	TestLdap() *model.AppError
 	TestSiteURL(siteURL string) *model.AppError
 	Timezones() *timezones.Timezones
