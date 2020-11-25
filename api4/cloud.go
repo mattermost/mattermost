@@ -340,14 +340,14 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event *model.CWSWebhook
+	var event *model.CWSWebhookPayload
 	if err = json.Unmarshal(bodyBytes, &event); err != nil {
 		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	switch event.Event {
-	case "failed-payment":
+	case model.EventTypeFailedPayment:
 		if nErr := c.App.SendPaymentFailedEmail(event.FailedPayment); nErr != nil {
 			c.Err = nErr
 			return

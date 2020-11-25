@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) getEmailRecipients() ([]*model.User, *model.AppError) {
+func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
 		Page:     0,
 		PerPage:  100,
@@ -41,7 +41,7 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	if remainingUsers > 0 {
 		return nil
 	}
-	sysAdmins, err := a.getEmailRecipients()
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 }
 
 func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
-	sysAdmins, err := a.getEmailRecipients()
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
 	if err != nil {
 		return err
 	}

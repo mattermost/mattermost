@@ -3,6 +3,10 @@
 
 package model
 
+const (
+	EventTypeFailedPayment = "failed-payment"
+)
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID           string   `json:"id"`
@@ -113,7 +117,7 @@ type InvoiceLineItem struct {
 	Metadata     map[string]interface{} `json:"metadata"`
 }
 
-type CWSWebhook struct {
+type CWSWebhookPayload struct {
 	Event         string         `json:"event"`
 	FailedPayment *FailedPayment `json:"failed_payment"`
 }
