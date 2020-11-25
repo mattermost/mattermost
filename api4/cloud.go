@@ -339,6 +339,7 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
 	var event *model.CWSWebhookPayload
 	if err = json.Unmarshal(bodyBytes, &event); err != nil {
