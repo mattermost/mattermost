@@ -20,11 +20,11 @@ func init() {
 	app.RegisterCommandProvider(&LogoutProvider{})
 }
 
-func (lo *LogoutProvider) GetTrigger() string {
+func (*LogoutProvider) GetTrigger() string {
 	return CMD_LOGOUT
 }
 
-func (lo *LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_LOGOUT,
 		AutoComplete:     true,
@@ -34,7 +34,7 @@ func (lo *LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (lo *LogoutProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*LogoutProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	// Actual logout is handled client side.
 	return &model.CommandResponse{GotoLocation: "/login"}
 }
