@@ -111,7 +111,6 @@ func (s SearchFileInfoStore) SetContent(fileID, content string) error {
 
 func (s SearchFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
 	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
-
 	if err == nil {
 		nFileInfo, err2 := s.FileInfoStore.Get(fileId)
 		if err2 == nil {
