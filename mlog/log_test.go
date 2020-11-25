@@ -40,7 +40,7 @@ func TestLogger_ShutdownAdvancedLoggingRace(t *testing.T) {
 		}
 	}()
 
-	require.True(t, <-started, "goroutine failed to start")
+	<-started
 
 	err := logger.ShutdownAdvancedLogging(ctx)
 	require.NoError(t, err)
