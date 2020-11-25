@@ -2337,7 +2337,7 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	if post.RootId != "" {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, post.RootId)
 		if threadMembership != nil {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)

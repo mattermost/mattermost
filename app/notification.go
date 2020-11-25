@@ -163,7 +163,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
-	if post.RootId != "" {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 		}
