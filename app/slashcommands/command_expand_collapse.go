@@ -27,15 +27,15 @@ func init() {
 	app.RegisterCommandProvider(&CollapseProvider{})
 }
 
-func (ex *ExpandProvider) GetTrigger() string {
+func (*ExpandProvider) GetTrigger() string {
 	return CMD_EXPAND
 }
 
-func (c *CollapseProvider) GetTrigger() string {
+func (*CollapseProvider) GetTrigger() string {
 	return CMD_COLLAPSE
 }
 
-func (ex *ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_EXPAND,
 		AutoComplete:     true,
@@ -44,7 +44,7 @@ func (ex *ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (c *CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_COLLAPSE,
 		AutoComplete:     true,
@@ -53,11 +53,11 @@ func (c *CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model
 	}
 }
 
-func (ex *ExpandProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ExpandProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, false)
 }
 
-func (c *CollapseProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CollapseProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	return setCollapsePreference(a, args, true)
 }
 
