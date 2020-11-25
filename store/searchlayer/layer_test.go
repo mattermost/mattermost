@@ -5,16 +5,15 @@ package searchlayer_test
 
 import (
 	"os"
+	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/testlib"
-
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Test to verify race condition on UpdateConfig. The test must run with -race flag in order to verify
@@ -32,10 +31,15 @@ func TestUpdateConfigRace(t *testing.T) {
 	cfg.ClusterSettings.MaxIdleConns = model.NewInt(1)
 	searchEngine := searchengine.NewBroker(cfg, nil)
 	layer := searchlayer.NewSearchLayer(&testlib.TestStore{Store: store}, searchEngine, cfg)
+	var wg sync.WaitGroup
 
+	wg.Add(5)
 	for i := 0; i < 5; i++ {
 		go func() {
+			defer wg.Done()
 			layer.UpdateConfig(cfg.Clone())
 		}()
 	}
+
+	wg.Wait()
 }
