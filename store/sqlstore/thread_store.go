@@ -138,13 +138,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	threadsChan := make(chan store.StoreResult, 1)
 	go func() {
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(DISTINCT Posts.Id)").
+			Select("COUNT(Posts.Id)").
 			From("Posts").
 			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
-			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").
-			GroupBy("ThreadMemberships.UserId, ThreadMemberships.Following, Posts.DeleteAt").ToSql()
+			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
 
 		totalUnreadReplies, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
 		totalUnreadRepliesChan <- store.StoreResult{Data: totalUnreadReplies, NErr: errors.Wrapf(err, "failed to get count replies on threads for user id=%s", userId)}
@@ -152,7 +151,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}()
 	go func() {
 		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
-			Select("COUNT(DISTINCT ThreadMemberships.PostId)").
+			Select("COUNT(ThreadMemberships.PostId)").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			From("ThreadMemberships").
@@ -164,7 +163,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}()
 	go func() {
 		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
-			Select("SUM(ThreadMemberships.UnreadMentions)").
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 			From("ThreadMemberships").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
