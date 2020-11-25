@@ -49,6 +49,7 @@ pipeline {
               platformStages.platformCheckoutTE(env.BRANCH_NAME)
               platformStages.platformCheckoutEE(env.BRANCH_NAME)
               platformStages.platformCheckoutEEGOSaml('release-5.x')
+              platformStages.platformCheckoutEEGOXML('release-5.x')
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
