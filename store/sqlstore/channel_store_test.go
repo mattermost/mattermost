@@ -31,7 +31,7 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 				t.Skip("Cockroach db doesn't support full text search")
 			}
 			s := &SqlChannelStore{
-				SqlStore: st.SqlSupplier,
+				SqlSupplier: st.SqlSupplier,
 			}
 
 			opts := store.ChannelSearchOpts{}

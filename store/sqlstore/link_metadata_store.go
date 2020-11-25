@@ -14,13 +14,13 @@ import (
 )
 
 type SqlLinkMetadataStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
-	s := &SqlLinkMetadataStore{sqlStore}
+func newSqlLinkMetadataStore(sqlSupplier *SqlSupplier) store.LinkMetadataStore {
+	s := &SqlLinkMetadataStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
 		table.ColMap("URL").SetMaxSize(2048)
 		table.ColMap("Type").SetMaxSize(16)

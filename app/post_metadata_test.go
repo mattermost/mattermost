@@ -1294,11 +1294,11 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "https://example.com",
 			ExpectedImages:    []string{"https://example.com/logo"},
 		},
-		"markdown links": {
+		"markdown links (not returned)": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
 [another page]: http://www.exaple.com/another_page`,
-			ExpectedFirstLink: "http://example.com",
+			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
 	} {

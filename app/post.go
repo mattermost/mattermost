@@ -1041,9 +1041,18 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post, false, false).ToJson())
-	a.Publish(message)
+	postData := a.PreparePostForClient(post, false, false).ToJson()
+
+	userMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	userMessage.Add("post", postData)
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	adminMessage.Add("post", postData)
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
 		a.DeletePostFiles(post)
