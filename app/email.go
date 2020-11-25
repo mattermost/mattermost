@@ -783,7 +783,7 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
 	return true, nil
