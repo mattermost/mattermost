@@ -2998,6 +2998,10 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.Channe
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
 
+	if len(userIds) == 0 {
+		return nil, errors.New("the list of users can't be empty")
+	}
+
 	keys, props := MapStringsToQueryParams(userIds, "User")
 	props["ChannelId"] = channelId
 

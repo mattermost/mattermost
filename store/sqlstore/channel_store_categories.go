@@ -291,6 +291,14 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					SidebarChannels.UserId = :UserId
 					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
 					AND SidebarCategories.TeamId = :TeamId`
+		} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+			deleteQuery = `
+				DELETE FROM
+					SidebarChannels
+				WHERE
+					SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					AND SidebarChannels.CategoryId IN (SELECT Id from SidebarCategories WHERE TeamId = :TeamId AND UserId = :UserId)`
 		} else {
 			deleteQuery = `
 				DELETE FROM
