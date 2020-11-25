@@ -190,7 +190,7 @@ func (b *BleveEngine) closeIndexes() *model.AppError {
 		}
 
 		if err := b.FileIndex.Close(); err != nil {
-			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_post_index.error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_file_index.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if err := b.UserIndex.Close(); err != nil {

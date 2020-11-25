@@ -374,7 +374,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	defer worker.engine.Mutex.RUnlock()
 
 	if err := worker.engine.FileIndex.Batch(batch); err != nil {
-		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_posts.batch_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return lastCreateAt, nil
 }

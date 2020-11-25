@@ -514,7 +514,7 @@ func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.A
 
 	blvFile := BLVFileFromFileInfo(file, channelId)
 	if err := b.FileIndex.Index(blvFile.Id, blvFile); err != nil {
-		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_file.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -732,7 +732,7 @@ func (b *BleveEngine) DeleteFile(fileID string) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	if err := b.FileIndex.Delete(fileID); err != nil {
-		return model.NewAppError("Bleveengine.DeleteFile", "bleveengine.delete_channel.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.DeleteFile", "bleveengine.delete_file.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }

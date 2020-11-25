@@ -442,8 +442,7 @@ func (th *SearchTestHelper) deleteUserPosts(userID string) error {
 }
 
 func (th *SearchTestHelper) deleteUserFileInfos(userID string) error {
-	_, err := th.Store.FileInfo().PermanentDeleteByUser(userID)
-	if err != nil {
+	if _, err := th.Store.FileInfo().PermanentDeleteByUser(userID); err != nil {
 		return errors.New(err.Error())
 	}
 	return nil
