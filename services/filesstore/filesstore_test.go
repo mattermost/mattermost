@@ -364,3 +364,40 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		s.EqualValues(append(append(b, b2...), b3...), read)
 	})
 }
+
+func BenchmarkS3WriteFile(b *testing.B) {
+	utils.TranslationsPreInit()
+
+	settings := &model.FileSettings{
+		DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
+		AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+		AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+		AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
+		AmazonS3Region:          model.NewString(""),
+		AmazonS3Endpoint:        model.NewString("localhost:9000"),
+		AmazonS3PathPrefix:      model.NewString(""),
+		AmazonS3SSL:             model.NewBool(false),
+		AmazonS3SSE:             model.NewBool(false),
+	}
+
+	backend, err := NewFileBackend(settings, true)
+	require.Nil(b, err)
+
+	// This is needed to create the bucket if it doesn't exist.
+	require.Nil(b, backend.TestConnection())
+
+	path := "tests/" + model.NewId()
+	size := 1 * 1024 * 1024
+	data := make([]byte, size)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		written, err := backend.WriteFile(bytes.NewReader(data), path)
+		defer backend.RemoveFile(path)
+		require.Nil(b, err)
+		require.Equal(b, len(data), int(written))
+	}
+
+	b.StopTimer()
+}

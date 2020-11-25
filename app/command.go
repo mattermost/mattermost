@@ -231,28 +231,29 @@ func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-			user, err := a.Srv().Store.User().GetByUsername(mention)
+			user, nErr := a.Srv().Store.User().GetByUsername(mention)
 
-			if err != nil && err.StatusCode != http.StatusNotFound {
-				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(err))
+			var nfErr *store.ErrNotFound
+			if nErr != nil && !errors.As(nErr, &nfErr) {
+				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
 
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
-			if err != nil {
+			if nErr != nil {
 				trimmed, ok := model.TrimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
-					userFromTrimmed, userErr := a.Srv().Store.User().GetByUsername(trimmed)
-					if userErr != nil && err.StatusCode != http.StatusNotFound {
+					userFromTrimmed, nErr := a.Srv().Store.User().GetByUsername(trimmed)
+					if nErr != nil && !errors.As(nErr, &nfErr) {
 						return
 					}
 
-					if userErr != nil {
+					if nErr != nil {
 						continue
 					}
 
-					_, err = a.GetTeamMember(teamId, userFromTrimmed.Id)
+					_, err := a.GetTeamMember(teamId, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						return
@@ -265,7 +266,7 @@ func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 				return
 			}
 
-			_, err = a.GetTeamMember(teamId, user.Id)
+			_, err := a.GetTeamMember(teamId, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
 				return
@@ -367,7 +368,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store.User().Get(args.UserId)
-		userChan <- store.StoreResult{Data: user, Err: err}
+		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -389,8 +390,14 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	team := tr.Data.(*model.Team)
 
 	ur := <-userChan
-	if ur.Err != nil {
-		return nil, nil, ur.Err
+	if ur.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(ur.NErr, &nfErr):
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	user := ur.Data.(*model.User)
 

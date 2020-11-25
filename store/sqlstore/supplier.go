@@ -7,13 +7,14 @@ import (
 	"context"
 	dbsql "database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -28,10 +29,12 @@ import (
 )
 
 const (
-	INDEX_TYPE_FULL_TEXT = "full_text"
-	INDEX_TYPE_DEFAULT   = "default"
-	DB_PING_ATTEMPTS     = 18
-	DB_PING_TIMEOUT_SECS = 10
+	INDEX_TYPE_FULL_TEXT       = "full_text"
+	INDEX_TYPE_DEFAULT         = "default"
+	PG_DUP_TABLE_ERROR_CODE    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	DB_PING_ATTEMPTS           = 18
+	DB_PING_TIMEOUT_SECS       = 10
 )
 
 const (
@@ -72,6 +75,7 @@ type SqlSupplierStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
 	audit                store.AuditStore
@@ -160,6 +164,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.status = newSqlStatusStore(supplier)
 	supplier.stores.fileInfo = newSqlFileInfoStore(supplier, metrics)
 	supplier.stores.uploadSession = newSqlUploadSessionStore(supplier)
+	supplier.stores.thread = newSqlThreadStore(supplier)
 	supplier.stores.job = newSqlJobStore(supplier)
 	supplier.stores.userAccessToken = newSqlUserAccessTokenStore(supplier)
 	supplier.stores.channelMemberHistory = newSqlChannelMemberHistoryStore(supplier)
@@ -174,9 +179,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.productNotices = newSqlProductNoticesStore(supplier)
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
-		mlog.Critical("Error creating database tables.", mlog.Err(err))
-		time.Sleep(time.Second)
-		os.Exit(EXIT_CREATE_TABLE)
+		if IsDuplicate(err) {
+			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(err))
+		} else {
+			mlog.Critical("Error creating database tables.", mlog.Err(err))
+			os.Exit(EXIT_CREATE_TABLE)
+		}
 	}
 
 	err = upgradeDatabase(supplier, model.CurrentVersion)
@@ -189,6 +197,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	supplier.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	supplier.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	supplier.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	supplier.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	supplier.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
 	supplier.stores.audit.(*SqlAuditStore).createIndexesIfNotExists()
@@ -1163,6 +1172,10 @@ func (ss *SqlSupplier) Plugin() store.PluginStore {
 	return ss.stores.plugin
 }
 
+func (ss *SqlSupplier) Thread() store.ThreadStore {
+	return ss.stores.thread
+}
+
 func (ss *SqlSupplier) Role() store.RoleStore {
 	return ss.stores.role
 }
@@ -1311,4 +1324,23 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	}
 
 	return concatenatedColumnNames
+}
+
+// IsDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
+// tables in the database.
+func IsDuplicate(err error) bool {
+	var pqErr *pq.Error
+	var mysqlErr *mysql.MySQLError
+	switch {
+	case errors.As(errors.Cause(err), &pqErr):
+		if pqErr.Code == PG_DUP_TABLE_ERROR_CODE {
+			return true
+		}
+	case errors.As(errors.Cause(err), &mysqlErr):
+		if mysqlErr.Number == MYSQL_DUP_TABLE_ERROR_CODE {
+			return true
+		}
+	}
+
+	return false
 }

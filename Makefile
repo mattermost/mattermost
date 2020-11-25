@@ -95,7 +95,7 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-response-v0.6.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.1.1
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -188,14 +188,9 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
-	@echo "mmctl already exists in bin/mmctl not downloading a new version."
+	@echo "MMCTL already exists in bin/mmctl not downloading a new version."
 else
-	@MMCTL_VERSION=$$(scripts/get_latest_release.sh mattermost/mmctl release-); if [ $$? -eq 0 ]; then \
-		scripts/download_mmctl_release.sh $$MMCTL_VERSION; \
-	else \
-		echo $$MMCTL_VERSION; \
-		exit 1; \
-	fi;
+	@scripts/download_mmctl_release.sh
 endif
 
 golangci-lint: ## Run golangci-lint on codebase

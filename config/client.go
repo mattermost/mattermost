@@ -47,6 +47,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
+	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -59,6 +60,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	} else {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
+	props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 
 	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
@@ -131,6 +133,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
+	props["CWSUrl"] = ""
+
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
@@ -192,6 +196,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+		}
+
+		if *license.Features.Cloud {
+			props["CWSUrl"] = *c.CloudSettings.CWSUrl
 		}
 	}
 
@@ -282,6 +290,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
+	props["CWSUrl"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
@@ -323,6 +332,10 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		if *license.Features.MFA {
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
+	}
+
+	for key, value := range featureFlagsToMap(c.FeatureFlags) {
+		props["FeatureFlag"+key] = value
 	}
 
 	return props

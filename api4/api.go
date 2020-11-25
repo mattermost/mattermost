@@ -21,6 +21,8 @@ type Routes struct {
 
 	Users          *mux.Router // 'api/v4/users'
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
+	UserThreads    *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/threads'
+	UserThread     *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/threads/{thread_id:[A-Za-z0-9]+}'
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
 
@@ -141,6 +143,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 
 	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.UserThreads = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}/threads").Subrouter()
+	api.BaseRoutes.UserThread = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}/threads/{thread_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
@@ -313,11 +317,18 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	api.BaseRoutes.Command = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.Hooks = api.BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
+	api.BaseRoutes.IncomingHooks = api.BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()
+	api.BaseRoutes.IncomingHook = api.BaseRoutes.IncomingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.OutgoingHooks = api.BaseRoutes.Hooks.PathPrefix("/outgoing").Subrouter()
+	api.BaseRoutes.OutgoingHook = api.BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.BaseRoutes.LDAP = api.BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
+	api.BaseRoutes.System = api.BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
@@ -328,6 +339,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitTeamLocal()
 	api.InitChannelLocal()
 	api.InitConfigLocal()
+	api.InitWebhookLocal()
 	api.InitPluginLocal()
 	api.InitCommandLocal()
 	api.InitLicenseLocal()

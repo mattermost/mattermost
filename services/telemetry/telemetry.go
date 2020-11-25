@@ -99,6 +99,11 @@ type TelemetryService struct {
 	timestampLastTelemetrySent time.Time
 }
 
+type RudderConfig struct {
+	RudderKey    string
+	DataplaneUrl string
+}
+
 func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *TelemetryService {
 	service := &TelemetryService{
 		srv:          srv,
@@ -130,9 +135,24 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	ts.TelemetryID = id
 }
 
+func (ts *TelemetryService) getRudderConfig() RudderConfig {
+	if !strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") {
+		return RudderConfig{RUDDER_KEY, RUDDER_DATAPLANE_URL}
+	} else if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
+		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
+	} else {
+		return RudderConfig{}
+	}
+}
+
+func (ts *TelemetryService) telemetryEnabled() bool {
+	return *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader()
+}
+
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.HasPrefix(RUDDER_KEY, "placeholder") && !strings.HasPrefix(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
+	config := ts.getRudderConfig()
+	if ts.telemetryEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
+		ts.initRudder(config.DataplaneUrl, config.RudderKey)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -214,14 +234,14 @@ func (ts *TelemetryService) trackActivity() {
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -291,12 +311,12 @@ func (ts *TelemetryService) trackActivity() {
 	outgoingWebhooksCount, _ = ts.dbStore.Webhook().AnalyticsOutgoingCount("")
 
 	var activeUsersDailyCount int64
-	if r := <-activeUsersDailyCountChan; r.Err == nil {
+	if r := <-activeUsersDailyCountChan; r.NErr == nil {
 		activeUsersDailyCount = r.Data.(int64)
 	}
 
 	var activeUsersMonthlyCount int64
-	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
+	if r := <-activeUsersMonthlyCountChan; r.NErr == nil {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
@@ -385,6 +405,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"collapsed_threads":                                       *cfg.ServiceSettings.CollapsedThreads,
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
@@ -403,6 +424,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
+		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -629,6 +651,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
+		"ignore_guests_ldap_sync":             *cfg.SamlSettings.IgnoreGuestsLdapSync,
 		"enable_admin_attribute":              *cfg.SamlSettings.EnableAdminAttribute,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
@@ -683,6 +706,8 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
+		"cloud_user_limit":                   *cfg.ExperimentalSettings.CloudUserLimit,
+		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -694,6 +719,8 @@ func (ts *TelemetryService) trackConfig() {
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
+		"admin_notices_enabled":       *cfg.AnnouncementSettings.AdminNoticesEnabled,
+		"user_notices_enabled":        *cfg.AnnouncementSettings.UserNoticesEnabled,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
@@ -739,6 +766,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_DISPLAY, map[string]interface{}{
@@ -1062,9 +1090,9 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Error(nErr.Error())
 	}
 
-	groupSyncedChannelCount, err := ts.dbStore.Channel().GroupSyncedChannelCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupMemberCount, err := ts.dbStore.Group().GroupMemberCount()
@@ -1255,7 +1283,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"com.mattermost.custom-attributes",
 		"com.mattermost.mscalendar",
 		"com.mattermost.nps",
-		"com.mattermost.plugin-incident-response",
+		"com.mattermost.plugin-incident-management",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",

@@ -16,52 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func TestWebSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
-	defer WebSocketClient.Close()
-
-	time.Sleep(300 * time.Millisecond)
-
-	// Test closing and reconnecting
-	WebSocketClient.Close()
-	err = WebSocketClient.Connect()
-	require.Nil(t, err)
-
-	WebSocketClient.Listen()
-
-	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.STATUS_OK, "should have responded OK to authentication challenge")
-
-	WebSocketClient.SendMessage("ping", nil)
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Data["text"].(string), "pong", "wrong response")
-
-	WebSocketClient.SendMessage("", nil)
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.web_socket_router.no_action.app_error", "should have been no action response")
-
-	WebSocketClient.SendMessage("junk", nil)
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.web_socket_router.bad_action.app_error", "should have been bad action response")
-
-	WebSocketClient.UserTyping("", "")
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
-	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
-
-	WebSocketClient.UserTyping(th.BasicChannel.Id, "")
-	resp = <-WebSocketClient.ResponseChannel
-	require.Nil(t, resp.Error)
-
-	WebSocketClient.UserTyping(th.BasicPrivateChannel2.Id, "")
-	resp = <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Error.Id, "api.websocket_handler.invalid_param.app_error", "should have been invalid param response")
-	require.Equal(t, resp.Error.DetailedError, "", "detailed error not cleared")
-}
-
 func TestWebSocketTrailingSlash(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -264,14 +218,14 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user)).(*model.User)
 	th.LinkUserToTeam(ruser, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
-	require.Nil(t, err)
+	_, nErr := th.App.Srv().Store.User().VerifyEmail(ruser.Id, ruser.Email)
+	require.Nil(t, nErr)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2)).(*model.User)
 	th.LinkUserToTeam(ruser2, rteam)
-	_, err = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
-	require.Nil(t, err)
+	_, nErr = th.App.Srv().Store.User().VerifyEmail(ruser2.Id, ruser2.Email)
+	require.Nil(t, nErr)
 
 	Client.Login(user.Email, user.Password)
 

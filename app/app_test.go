@@ -180,6 +180,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"system_admin": allPermissionIDs,
 	}
+	assert.Contains(t, allPermissionIDs, model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, "manage_shared_channels permission not found")
+	assert.Contains(t, allPermissionIDs, model.PERMISSION_MANAGE_REMOTE_CLUSTERS.Id, "manage_remote_clusters permission not found")
 
 	// Check the migration matches what's expected.
 	for name, permissions := range expected1 {
@@ -372,7 +374,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
-	th := Setup(t)
+	th := SetupWithoutPreloadMigrations(t)
 	defer th.TearDown()
 
 	// Add a license and change the policy config.
@@ -472,4 +474,28 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	assert.Nil(t, systemAdminErr2)
 	sort.Strings(systemAdmin2.Permissions)
 	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
+}
+
+func TestDBHealthCheckWriteAndDelete(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	expectedKey := "health_check_" + th.App.GetClusterId()
+	assert.Equal(t, expectedKey, th.App.dbHealthCheckKey())
+
+	_, err := th.App.Srv().Store.System().GetByName(expectedKey)
+	assert.NotNil(t, err)
+
+	err = th.App.DBHealthCheckWrite()
+	assert.Nil(t, err)
+
+	systemVal, err := th.App.Srv().Store.System().GetByName(expectedKey)
+	assert.Nil(t, err)
+	assert.NotNil(t, systemVal)
+
+	err = th.App.DBHealthCheckDelete()
+	assert.Nil(t, err)
+
+	_, err = th.App.Srv().Store.System().GetByName(expectedKey)
+	assert.NotNil(t, err)
 }

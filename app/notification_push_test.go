@@ -1365,12 +1365,7 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
-		IgnoreEnvironmentOverrides: true,
-	})
-	require.NoError(t, err, "failed to initialize memory store")
-	defer memoryStore.Close()
-
+	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",
@@ -1405,6 +1400,29 @@ func TestPushNotificationRace(t *testing.T) {
 		}
 		app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
 	})
+}
+
+func TestPushNotificationAttachment(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	post := &model.Post{
+		Message: "hello world",
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					AuthorName: "testuser",
+					Text:       "test attachment",
+					Fallback:   "fallback text",
+				},
+			},
+		},
+	}
+	user := &model.User{}
+	ch := &model.Channel{}
+
+	pn := th.App.buildFullPushNotificationMessage("full", post, user, ch, ch.Name, "test", false, false, "")
+	assert.Equal(t, "test: hello world\nfallback text", pn.Message)
 }
 
 // Run it with | grep -v '{"level"' to prevent spamming the console.

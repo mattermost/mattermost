@@ -6,7 +6,9 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -65,7 +67,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			return nil
 		})
@@ -77,8 +80,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
-			server.configStore = configStore
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
 		})
@@ -90,7 +93,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			return nil
 		})
@@ -102,7 +106,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
@@ -112,27 +117,6 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
-}
-
-func TestStartServerRateLimiterCriticalError(t *testing.T) {
-	// Attempt to use Rate Limiter with an invalid config
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
-		SkipValidation: true,
-	})
-	require.NoError(t, err)
-
-	config := ms.Get()
-	*config.RateLimitSettings.Enable = true
-	*config.RateLimitSettings.MaxBurst = -100
-	_, err = ms.Set(config)
-	require.NoError(t, err)
-
-	s, err := NewServer(ConfigStore(ms))
-	require.NoError(t, err)
-
-	serverErr := s.Start()
-	s.Shutdown()
-	require.Error(t, serverErr)
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
@@ -383,91 +367,108 @@ func TestSentry(t *testing.T) {
 	client := &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}}
-	data1 := make(chan bool, 1)
-
-	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Log("Received sentry request for some reason")
-		data1 <- true
-	}))
-	defer server1.Close()
-
-	// make sure we don't report anything when sentry is disabled
-	_, port, _ := net.SplitHostPort(server1.Listener.Addr().String())
-	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
-
 	testDir, _ := fileutils.FindDir("tests")
-	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		server.configStore = configStore
-		server.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
-			*cfg.LogSettings.EnableSentry = false
-			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
+		data := make(chan bool, 1)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Log("Received sentry request for some reason")
+			data <- true
+		}))
+		defer server.Close()
+
+		// make sure we don't report anything when sentry is disabled
+		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
+		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
+		require.NoError(t, err)
+		SENTRY_DSN = dsn.String()
+
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			store, _ := config.NewStoreFromBacking(configStore, nil)
+			server.configStore = store
+			server.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ListenAddress = ":0"
+				*cfg.LogSettings.EnableSentry = false
+				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+				*cfg.LogSettings.EnableDiagnostics = true
+			})
+			return nil
 		})
-		return nil
-	})
+		require.NoError(t, err)
 
-	require.NoError(t, err)
-	// Route for just panicing
-	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		panic("log this panic")
-	})
-
-	serverErr := s.Start()
-	require.NoError(t, serverErr)
-	defer s.Shutdown()
-	resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
-
-	sentry.Flush(time.Second * 1)
-	select {
-	case <-data1:
-		require.Fail(t, "Sentry received a message, even though it's disabled!")
-	case <-time.After(time.Second * 1):
-		t.Log("Sentry request didn't arrive. Good!")
-	}
-
-	// check successful report
-	data2 := make(chan bool, 1)
-	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Log("Received sentry request!")
-		data2 <- true
-	}))
-	defer server2.Close()
-	_, port, _ = net.SplitHostPort(server2.Listener.Addr().String())
-	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
-	s2, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		server.configStore = configStore
-		server.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
-			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-			*cfg.LogSettings.EnableSentry = true
-
+		// Route for just panicing
+		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+			panic("log this panic")
 		})
-		return nil
-	})
-	require.NoError(t, err)
-	// Route for just panicing
-	s2.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		panic("log this panic")
+
+		require.NoError(t, s.Start())
+		defer s.Shutdown()
+
+		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+		require.Nil(t, resp)
+		require.True(t, errors.Is(err, io.EOF), fmt.Sprintf("unexpected error: %s", err))
+
+		sentry.Flush(time.Second)
+		select {
+		case <-data:
+			require.Fail(t, "Sentry received a message, even though it's disabled!")
+		case <-time.After(time.Second):
+			t.Log("Sentry request didn't arrive. Good!")
+		}
 	})
 
-	require.NoError(t, s2.Start())
-	defer s2.Shutdown()
-	resp, err = client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
-	sentry.Flush(time.Second * 1)
-	select {
-	case <-data2:
-		t.Log("Sentry request arrived. Good!")
-	case <-time.After(time.Second * 2):
-		require.Fail(t, "Sentry report didn't arrive")
-	}
+	t.Run("sentry is enabled, report should be received", func(t *testing.T) {
+		data := make(chan bool, 1)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Log("Received sentry request!")
+			data <- true
+		}))
+		defer server.Close()
+
+		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
+		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
+		require.NoError(t, err)
+		SENTRY_DSN = dsn.String()
+
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			store, _ := config.NewStoreFromBacking(configStore, nil)
+			server.configStore = store
+			server.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ListenAddress = ":0"
+				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+				*cfg.LogSettings.EnableSentry = true
+				*cfg.LogSettings.EnableDiagnostics = true
+			})
+			return nil
+		})
+		require.NoError(t, err)
+
+		// Route for just panicing
+		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+			panic("log this panic")
+		})
+
+		require.NoError(t, s.Start())
+		defer s.Shutdown()
+
+		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+		require.Nil(t, resp)
+		require.True(t, errors.Is(err, io.EOF), fmt.Sprintf("unexpected error: %s", err))
+
+		sentry.Flush(time.Second)
+		select {
+		case <-data:
+			t.Log("Sentry request arrived. Good!")
+		case <-time.After(time.Second * 10):
+			require.Fail(t, "Sentry report didn't arrive")
+		}
+	})
 }

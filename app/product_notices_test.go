@@ -4,14 +4,17 @@
 package app
 
 import (
+	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -36,6 +39,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockUserStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ChannelId: "", ViewRestrictions: (*model.ViewUsersRestrictions)(nil), Roles: []string(nil), ChannelRoles: []string(nil), TeamRoles: []string(nil)}).Return(int64(1), nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data").Return(&model.Preference{Value: "test2"}, nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data2").Return(&model.Preference{Value: "test"}, nil)
+	mockPreferenceStore.On("Get", "test", "Stuff", "Data3").Return(nil, errors.New("Error!"))
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -160,6 +164,18 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
+			name: "notice with user check for property not in database",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Stuff.Data3": "stuff"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
 			name: "notice with server version check",
 			args: args{
 				notice: &model.ProductNotice{
@@ -196,6 +212,77 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
+
+		{
+			name: "notice with server version check that matches a const",
+			args: args{
+				serverVersion: "99.1.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has rc",
+			args: args{
+				serverVersion: "99.1.1-rc2",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has rc and hash",
+			args: args{
+				serverVersion: "99.1.1-rc2.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has release and hash",
+			args: args{
+				serverVersion: "release-99.1.1.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+
+		{
+			name: "notice with server version check that has cloud version",
+			args: args{
+				serverVersion: "cloud.54.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+
 		{
 			name: "notice with server version check that is invalid",
 			args: args{
@@ -248,7 +335,18 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
-
+		{
+			name: "notice with specific date check",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						DisplayDate: model.NewString(fmt.Sprintf("= %sT00:00:00Z", time.Now().Format("2006-01-02"))),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 		{
 			name: "notice with date check that doesn't match",
 			args: args{

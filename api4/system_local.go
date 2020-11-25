@@ -12,6 +12,7 @@ import (
 )
 
 func (api *API) InitSystemLocal() {
+	api.BaseRoutes.System.Handle("/ping", api.ApiLocal(getSystemPing)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiLocal(getLogs)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(getServerBusyExpires)).Methods("GET")

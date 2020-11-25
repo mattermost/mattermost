@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -32,6 +33,21 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	a.AddSessionToCache(session)
 
 	return session, nil
+}
+
+func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
+	apiKey := os.Getenv("MM_CLOUD_API_KEY")
+	if apiKey != "" && apiKey == token {
+		// Need a bare-bones session object for later checks
+		session := &model.Session{
+			Token:   token,
+			IsOAuth: false,
+		}
+
+		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_CLOUD_KEY)
+		return session, nil
+	}
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
@@ -399,9 +415,15 @@ func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 
-	user, err := a.Srv().Store.User().Get(token.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreateUserAccessToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreateUserAccessToken", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
@@ -410,14 +432,14 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	token, nErr := a.Srv().Store.UserAccessToken().Save(token)
+	token, nErr = a.Srv().Store.UserAccessToken().Save(token)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -442,9 +464,15 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, err := a.Srv().Store.User().Get(token.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("createSessionForUserAccessToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {

@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
@@ -15,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -127,8 +127,7 @@ type Server struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
-	configStore             config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
+	configStore             *config.Store
 	postActionCookieSecret  []byte
 
 	advancedLogListenerCleanup func()
@@ -136,9 +135,10 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        atomic.Value
-	clientConfigHash    atomic.Value
-	limitedClientConfig atomic.Value
+	asymmetricSigningKey atomic.Value
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
 
@@ -178,6 +178,11 @@ type Server struct {
 	// and data corruption.
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
+
+	featureFlagSynchronizer      *config.FeatureFlagSynchronizer
+	featureFlagStop              chan struct{}
+	featureFlagStopped           chan struct{}
+	featureFlagSynchronizerMutex sync.Mutex
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -200,7 +205,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.configStore == nil {
-		configStore, err := config.NewFileStore("config.json", true)
+		innerStore, err := config.NewFileStore("config.json", true)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load config")
+		}
+		configStore, err := config.NewStoreFromBacking(innerStore, nil)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -292,27 +301,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
-		s.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
-
-		message.Add("config", s.ClientConfigWithComputed())
-		s.Go(func() {
-			s.Publish(message)
-		})
-	})
-	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.configOrLicenseListener()
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", s.GetSanitizedClientLicense())
-		s.Go(func() {
-			s.Publish(message)
-		})
-
-	})
-
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -353,6 +341,27 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.Store = s.newStore()
 
+	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+
+		message.Add("config", s.ClientConfigWithComputed())
+		s.Go(func() {
+			s.Publish(message)
+		})
+	})
+	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message.Add("license", s.GetSanitizedClientLicense())
+		s.Go(func() {
+			s.Publish(message)
+		})
+
+	})
+
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	emailService, err := NewEmailService(s)
@@ -365,7 +374,17 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
+	s.setupFeatureFlags()
+
 	s.initJobs()
+
+	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		if s.Jobs != nil && s.Jobs.Schedulers != nil {
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		}
+		s.setupFeatureFlags()
+	})
 
 	if s.joinCluster && s.Cluster != nil {
 		s.Cluster.StartInterNodeCommunication()
@@ -388,13 +407,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.regenerateClientConfig()
-
-	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
-		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
-		}
-	})
 
 	subpath, err := utils.GetSubpathFromConfig(s.Config())
 	if err != nil {
@@ -480,7 +492,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.checkPushNotificationServerUrl()
 
 	license := s.License()
-
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
@@ -618,10 +629,9 @@ func (s *Server) initLogging() error {
 		isJson := config.IsJsonMap(dsn)
 
 		// If this is a file based config we need the full path so it can be watched.
-		if !isJson {
-			if fs, ok := s.configStore.(*config.FileStore); ok {
-				dsn = fs.GetFilePath(dsn)
-			}
+		if !isJson && strings.HasPrefix(s.configStore.String(), "file://") && !filepath.IsAbs(dsn) {
+			configPath := strings.TrimPrefix(s.configStore.String(), "file://")
+			dsn = filepath.Join(filepath.Dir(configPath), dsn)
 		}
 
 		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
@@ -751,6 +761,8 @@ func (s *Server) Shutdown() error {
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()
+
+	s.stopFeatureFlagUpdateJob()
 
 	s.configStore.Close()
 

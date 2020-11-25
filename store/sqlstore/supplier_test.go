@@ -4,13 +4,16 @@
 package sqlstore_test
 
 import (
+	"fmt"
 	"regexp"
 	"sync"
 	"testing"
-	"time"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -237,58 +240,6 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
-func TestRecycleDBConns(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping recycle DBConns test")
-	}
-	testDrivers := []string{
-		model.DATABASE_DRIVER_POSTGRES,
-		model.DATABASE_DRIVER_MYSQL,
-		model.DATABASE_DRIVER_SQLITE,
-	}
-
-	for _, driver := range testDrivers {
-		t.Run(driver, func(t *testing.T) {
-			settings := makeSqlSettings(driver)
-			supplier := sqlstore.NewSqlSupplier(*settings, nil)
-
-			var wg sync.WaitGroup
-			tables := []string{"Posts", "Channels", "Users"}
-			for _, table := range tables {
-				wg.Add(1)
-				go func(table string) {
-					defer wg.Done()
-					query := `SELECT count(*) FROM ` + table
-					_, err := supplier.GetMaster().SelectInt(query)
-					assert.NoError(t, err)
-				}(table)
-			}
-			wg.Wait()
-
-			stats := supplier.GetMaster().Db.Stats()
-			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
-
-			supplier.RecycleDBConnections(2 * time.Second)
-			var success bool
-			// We try 3 times to let the connections be closed.
-			// Because sometimes, there can be significant goroutine contention which does not
-			// give enough time for the connection cleaner goroutine to run.
-			for i := 0; i < 3; i++ {
-				// We cannot reliably control exactly how many open connections are there. So we
-				// just do a basic check and confirm that atleast one has been closed.
-				stats = supplier.GetMaster().Db.Stats()
-				if int(stats.MaxLifetimeClosed) == 0 {
-					time.Sleep(2 * time.Second)
-					continue
-				}
-				success = true
-				break
-			}
-			assert.True(t, success, "No connections were closed due to maxlifetime")
-		})
-	}
-}
-
 func TestGetAllConns(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -363,6 +314,23 @@ func TestGetAllConns(t *testing.T) {
 			supplier := sqlstore.NewSqlSupplier(*settings, nil)
 
 			assert.Len(t, supplier.GetAllConns(), testCase.ExpectedNumConnections)
+		})
+	}
+}
+
+func TestIsDuplicate(t *testing.T) {
+	testErrors := map[error]bool{
+		&pq.Error{Code: "42P06"}:                                       false,
+		&pq.Error{Code: sqlstore.PG_DUP_TABLE_ERROR_CODE}:              true,
+		&mysql.MySQLError{Number: uint16(1000)}:                        false,
+		&mysql.MySQLError{Number: sqlstore.MYSQL_DUP_TABLE_ERROR_CODE}: true,
+		errors.New("Random error"):                                     false,
+	}
+
+	for err, expected := range testErrors {
+		t.Run(fmt.Sprintf("Should return %t for %s", expected, err.Error()), func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, expected, sqlstore.IsDuplicate(err))
 		})
 	}
 }

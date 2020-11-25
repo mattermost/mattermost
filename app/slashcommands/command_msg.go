@@ -25,11 +25,11 @@ func init() {
 	app.RegisterCommandProvider(&msgProvider{})
 }
 
-func (me *msgProvider) GetTrigger() string {
+func (*msgProvider) GetTrigger() string {
 	return CMD_MSG
 }
 
-func (me *msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_MSG,
 		AutoComplete:     true,
@@ -39,7 +39,7 @@ func (me *msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (me *msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
@@ -51,9 +51,9 @@ func (me *msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, err := a.Srv().Store.User().GetByUsername(targetUsername)
-	if err != nil {
-		mlog.Error(err.Error())
+	userProfile, nErr := a.Srv().Store.User().GetByUsername(targetUsername)
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

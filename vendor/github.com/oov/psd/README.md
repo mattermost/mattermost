@@ -117,7 +117,7 @@ It is not implemented any blending functions because layer composition isn't cov
 - [Image Resource Section](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_69883) is parsed but [Image resource IDs](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_38034) are not defined as constant.
 - [Global layer mask info](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_17115) is not parsed.
 - [Layer blending ranges data](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_21332) is not parsed.
-- [Additinal Layer Information](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_pgfId-1049436) is parsed but keys are almost not defined as constant.
+- [Additional Layer Information](http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_pgfId-1049436) is parsed but keys are almost not defined as constant.
 
 ## Color Modes
 
