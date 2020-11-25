@@ -65,28 +65,10 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 }
 
 func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion string) (*model.BaseMarketplacePlugin, error) {
-	u, err := url.Parse(c.buildURL("/api/v1/plugins"))
+	plugins, err := c.GetPlugins(filter)
 	if err != nil {
 		return nil, err
 	}
-
-	filter.ApplyToURL(u)
-
-	resp, err := c.doGet(u.String())
-	if err != nil {
-		return nil, err
-	}
-	defer closeBody(resp)
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("failed with status code %d", resp.StatusCode)
-	}
-
-	plugins, err := model.BaseMarketplacePluginsFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	for _, plugin := range plugins {
 		if plugin.Manifest.Version == pluginVersion {
 			return plugin, nil
