@@ -330,19 +330,19 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 
 func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	var event *model.CWSWebhookPayload
 	if err = json.Unmarshal(bodyBytes, &event); err != nil {
-		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
