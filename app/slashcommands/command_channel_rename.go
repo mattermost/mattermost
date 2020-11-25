@@ -21,11 +21,11 @@ func init() {
 	app.RegisterCommandProvider(&RenameProvider{})
 }
 
-func (rn *RenameProvider) GetTrigger() string {
+func (*RenameProvider) GetTrigger() string {
 	return CMD_RENAME
 }
 
-func (rn *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
 	renameAutocompleteData.AddTextArgument(T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
@@ -38,7 +38,7 @@ func (rn *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (rn *RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
