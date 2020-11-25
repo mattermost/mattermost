@@ -108,12 +108,6 @@ func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var samlInterface func(*App) einterfaces.SamlInterface
-
-func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterface = f
-}
-
 var samlInterfaceNew func(*App) einterfaces.SamlInterface
 
 func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
@@ -145,17 +139,9 @@ func (s *Server) initEnterprise() {
 	if notificationInterface != nil {
 		s.Notification = notificationInterface(s.FakeApp())
 	}
-	if samlInterface != nil {
-		if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
-			mlog.Debug("Loading new SAML2 library")
-			s.Saml = samlInterfaceNew(s.FakeApp())
-		} else if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew == nil {
-			mlog.Debug("Ignoring configuration setting to use the Experimental SAML library")
-			s.Saml = samlInterface(s.FakeApp())
-		} else {
-			mlog.Debug("Loading original SAML library")
-			s.Saml = samlInterface(s.FakeApp())
-		}
+	if samlInterfaceNew != nil {
+		mlog.Debug("Loading SAML2 library")
+		s.Saml = samlInterfaceNew(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
 			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
