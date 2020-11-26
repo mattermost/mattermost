@@ -159,6 +159,8 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["CustomTermsOfService"] = strconv.FormatBool(*l.Features.CustomTermsOfService)
 		props["LockTeammateNameDisplay"] = strconv.FormatBool(*l.Features.LockTeammateNameDisplay)
 		props["Cloud"] = strconv.FormatBool(*l.Features.Cloud)
+		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
+		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
 	}
 
 	return props

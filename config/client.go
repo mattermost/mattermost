@@ -60,7 +60,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	} else {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
-	props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 
 	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
@@ -200,6 +199,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.Cloud {
 			props["CWSUrl"] = *c.CloudSettings.CWSUrl
+		}
+
+		if *license.Features.SharedChannels {
+			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 		}
 	}
 

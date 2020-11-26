@@ -83,6 +83,8 @@ type Features struct {
 	EnterprisePlugins         *bool `json:"enterprise_plugins"`
 	AdvancedLogging           *bool `json:"advanced_logging"`
 	Cloud                     *bool `json:"cloud"`
+	SharedChannels            *bool `json:"shared_channels"`
+	RemoteClusterService      *bool `json:"remote_cluster_service"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -112,6 +114,8 @@ func (f *Features) ToMap() map[string]interface{} {
 		"enterprise_plugins":          *f.EnterprisePlugins,
 		"advanced_logging":            *f.AdvancedLogging,
 		"cloud":                       *f.Cloud,
+		"shared_channels":             *f.SharedChannels,
+		"remote_cluster_service":      *f.RemoteClusterService,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -223,6 +227,14 @@ func (f *Features) SetDefaults() {
 
 	if f.Cloud == nil {
 		f.Cloud = NewBool(false)
+	}
+
+	if f.SharedChannels == nil {
+		f.SharedChannels = NewBool(false)
+	}
+
+	if f.RemoteClusterService == nil {
+		f.RemoteClusterService = f.SharedChannels
 	}
 }
 
