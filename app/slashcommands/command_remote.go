@@ -168,7 +168,7 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 			online = ":skull_and_crossbones:"
 		}
 
-		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %s | %s |\n", rc.ClusterName, rc.Hostname, rc.Port, rc.Token, rc.Id, online)
+		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %s | %s |\n", rc.ClusterName, rc.Hostname, rc.Port, rc.Token, rc.RemoteId, online)
 	}
 	return responsef(sb.String())
 }
@@ -187,7 +187,7 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 
 	for _, rc := range clusters {
 		item := model.AutocompleteListItem{
-			Item:     rc.Id,
+			Item:     rc.RemoteId,
 			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
 		list = append(list, item)
 	}
@@ -204,7 +204,7 @@ func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId str
 
 	for _, rc := range all {
 		item := model.AutocompleteListItem{
-			Item:     rc.Id,
+			Item:     rc.RemoteId,
 			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
 		list = append(list, item)
 	}

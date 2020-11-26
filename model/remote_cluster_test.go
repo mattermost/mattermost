@@ -12,7 +12,7 @@ import (
 )
 
 func TestRemoteClusterJson(t *testing.T) {
-	o := RemoteCluster{Id: NewId(), ClusterName: "test"}
+	o := RemoteCluster{RemoteId: NewId(), ClusterName: "test"}
 
 	json, err := o.ToJSON()
 	require.NoError(t, err)
@@ -20,7 +20,7 @@ func TestRemoteClusterJson(t *testing.T) {
 	ro, err := RemoteClusterFromJSON(strings.NewReader(json))
 	require.NoError(t, err)
 
-	require.Equal(t, o.Id, ro.Id)
+	require.Equal(t, o.RemoteId, ro.RemoteId)
 	require.Equal(t, o.ClusterName, ro.ClusterName)
 }
 
@@ -33,11 +33,13 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		valid bool
 	}{
 		{name: "Zero value", rc: &RemoteCluster{}, valid: false},
-		{name: "Missing cluster_name", rc: &RemoteCluster{Id: id}, valid: false},
-		{name: "Missing host_name", rc: &RemoteCluster{Id: id, ClusterName: "test cluster"}, valid: false},
-		{name: "Missing create_at", rc: &RemoteCluster{Id: id, ClusterName: "test cluster", Hostname: "blap.com"}, valid: false},
-		{name: "Missing last_ping_at", rc: &RemoteCluster{Id: id, ClusterName: "test cluster", Hostname: "blap.com", CreateAt: now}, valid: false},
-		{name: "RemoteCluster valid", rc: &RemoteCluster{Id: id, ClusterName: "test cluster", Hostname: "blap.com", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
+		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster"}, valid: false},
+		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster", SiteURL: "blap.com"}, valid: false},
+		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster", SiteURL: "blap.com", CreateAt: now}, valid: false},
+		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster", SiteURL: "blap.com", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster", SiteURL: "http://blap.com", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, ClusterName: "test cluster", SiteURL: "http://blap.com:8065", CreateAt: now, LastPingAt: now}, valid: true},
 	}
 
 	for _, item := range data {
@@ -53,7 +55,7 @@ func TestRemoteClusterIsValid(t *testing.T) {
 func TestRemoteClusterPreSave(t *testing.T) {
 	now := GetMillis()
 
-	o := RemoteCluster{Id: NewId(), ClusterName: "test"}
+	o := RemoteCluster{RemoteId: NewId(), ClusterName: "test"}
 	o.PreSave()
 
 	require.GreaterOrEqual(t, o.CreateAt, now)

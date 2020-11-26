@@ -244,7 +244,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Could not invite `%s` to this channel: %v", remote.ClusterName, err)
 	}
 
-	return responsef("##### `%s (%s:%d)` has been invited to this shared channel.", remote.ClusterName, remote.Hostname, remote.Port)
+	return responsef("##### `%s (%s)` has been invited to this shared channel.", remote.ClusterName, remote.SiteURL)
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {

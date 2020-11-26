@@ -40,8 +40,8 @@ func TestPing(t *testing.T) {
 			if err != nil {
 				merr.Append(err)
 			}
-			if !checkRecent(ping.SendAt, Recent) {
-				merr.Append(fmt.Errorf("timestamp out of range, got %d", ping.SendAt))
+			if !checkRecent(ping.SentAt, Recent) {
+				merr.Append(fmt.Errorf("timestamp out of range, got %d", ping.SentAt))
 			}
 			if ping.RecvAt != 0 {
 				merr.Append(fmt.Errorf("timestamp should be 0, got %d", ping.RecvAt))
@@ -50,10 +50,7 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		host, port, err := parseURL(ts.URL)
-		require.NoError(t, err)
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -85,8 +82,8 @@ func TestPing(t *testing.T) {
 			if err != nil {
 				merr.Append(err)
 			}
-			if !checkRecent(ping.SendAt, Recent) {
-				merr.Append(fmt.Errorf("timestamp out of range, got %d", ping.SendAt))
+			if !checkRecent(ping.SentAt, Recent) {
+				merr.Append(fmt.Errorf("timestamp out of range, got %d", ping.SentAt))
 			}
 			if ping.RecvAt != 0 {
 				merr.Append(fmt.Errorf("timestamp should be 0, got %d", ping.RecvAt))
@@ -95,10 +92,7 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		host, port, err := parseURL(ts.URL)
-		require.NoError(t, err)
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
