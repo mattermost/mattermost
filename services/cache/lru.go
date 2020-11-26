@@ -185,14 +185,14 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 }
 
 func (l *LRU) get(key string, value interface{}) error {
-	e, err := l.getItem(key)
+	val, err := l.getItem(key)
 	if err != nil {
 		return err
 	}
 
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
-		_, err := msgpVal.UnmarshalMsg(e.value)
+		_, err := msgpVal.UnmarshalMsg(val)
 		return err
 	}
 
@@ -207,26 +207,26 @@ func (l *LRU) get(key string, value interface{}) error {
 	switch v := value.(type) {
 	case **model.User:
 		var u model.User
-		_, err := u.UnmarshalMsg(e.value)
+		_, err := u.UnmarshalMsg(val)
 		*v = &u
 		return err
 	case **model.Session:
 		var s model.Session
-		_, err := s.UnmarshalMsg(e.value)
+		_, err := s.UnmarshalMsg(val)
 		*v = &s
 		return err
 	case *map[string]*model.User:
 		var u model.UserMap
-		_, err := u.UnmarshalMsg(e.value)
+		_, err := u.UnmarshalMsg(val)
 		*v = u
 		return err
 	}
 
 	// Slow path for other structs.
-	return msgpack.Unmarshal(e.value, value)
+	return msgpack.Unmarshal(val, value)
 }
 
-func (l *LRU) getItem(key string) (*entry, error) {
+func (l *LRU) getItem(key string) ([]byte, error) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
@@ -240,7 +240,7 @@ func (l *LRU) getItem(key string) (*entry, error) {
 		return nil, ErrKeyNotFound
 	}
 	l.evictList.MoveToFront(ent)
-	return e, nil
+	return e.value, nil
 }
 
 func (l *LRU) removeElement(e *list.Element) {
