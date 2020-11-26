@@ -1982,7 +1982,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 				return err
 			}
 			// calculate reply count
-			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId})
+			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId And DeleteAt=0", map[string]interface{}{"RootId": rootId})
 			if err != nil {
 				return err
 			}
