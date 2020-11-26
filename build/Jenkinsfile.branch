@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('shared-pipelines') _
+@Library('shared-pipelines@release-5.29') _
 import org.mattermost.Utils
 import java.util.*;
 def utils = new org.mattermost.Utils()
