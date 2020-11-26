@@ -28,20 +28,20 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			ClusterName: "some remote",
-			Hostname:    "somewhere.com",
+			SiteURL:     "somewhere.com",
 		}
 
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.Nil(t, err)
 		require.Equal(t, rc.ClusterName, rcSaved.ClusterName)
-		require.Equal(t, rc.Hostname, rcSaved.Hostname)
+		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
 		require.Greater(t, rc.LastPingAt, int64(0))
 	})
 
 	t.Run("Save missing cluster name", func(t *testing.T) {
 		rc := &model.RemoteCluster{
-			Hostname: "somewhere.com",
+			SiteURL: "somewhere.com",
 		}
 		_, err := ss.RemoteCluster().Save(rc)
 		require.NotNil(t, err)
@@ -60,12 +60,12 @@ func testRemoteClusterDelete(t *testing.T, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			ClusterName: "shortlived remote",
-			Hostname:    "nowhere.com",
+			SiteURL:     "nowhere.com",
 		}
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.Nil(t, err)
 
-		deleted, err := ss.RemoteCluster().Delete(rcSaved.Id)
+		deleted, err := ss.RemoteCluster().Delete(rcSaved.RemoteId)
 		require.Nil(t, err)
 		require.True(t, deleted)
 	})
@@ -81,14 +81,14 @@ func testRemoteClusterGet(t *testing.T, ss store.Store) {
 	t.Run("Get", func(t *testing.T) {
 		rc := &model.RemoteCluster{
 			ClusterName: "shortlived remote",
-			Hostname:    "nowhere.com",
+			SiteURL:     "nowhere.com",
 		}
 		rcSaved, err := ss.RemoteCluster().Save(rc)
 		require.Nil(t, err)
 
-		rcGet, err := ss.RemoteCluster().Get(rcSaved.Id)
+		rcGet, err := ss.RemoteCluster().Get(rcSaved.RemoteId)
 		require.Nil(t, err)
-		require.Equal(t, rcSaved.Id, rcGet.Id)
+		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
 	})
 
 	t.Run("Get not found", func(t *testing.T) {
@@ -99,10 +99,10 @@ func testRemoteClusterGet(t *testing.T, ss store.Store) {
 
 func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 	data := []*model.RemoteCluster{
-		{ClusterName: "offline remote", Hostname: "somewhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 2)},
-		{ClusterName: "some remote", Hostname: "nowhere.com", LastPingAt: 0},
-		{ClusterName: "another remote", Hostname: "underwhere.com", LastPingAt: 0},
-		{ClusterName: "another offline remote", Hostname: "knowhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 3)},
+		{ClusterName: "offline remote", SiteURL: "somewhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 2)},
+		{ClusterName: "some remote", SiteURL: "nowhere.com", LastPingAt: 0},
+		{ClusterName: "another remote", SiteURL: "underwhere.com", LastPingAt: 0},
+		{ClusterName: "another offline remote", SiteURL: "knowhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 3)},
 	}
 
 	idsAll := make([]string, 0)
@@ -113,11 +113,11 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 		online := item.LastPingAt == 0
 		saved, err := ss.RemoteCluster().Save(item)
 		require.Nil(t, err)
-		idsAll = append(idsAll, saved.Id)
+		idsAll = append(idsAll, saved.RemoteId)
 		if online {
-			idsOnline = append(idsOnline, saved.Id)
+			idsOnline = append(idsOnline, saved.RemoteId)
 		} else {
-			idsOffline = append(idsOffline, saved.Id)
+			idsOffline = append(idsOffline, saved.RemoteId)
 		}
 	}
 
@@ -163,11 +163,11 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 
 	// Create some remote clusters
 	rcData := []*model.RemoteCluster{
-		{ClusterName: "AAAA Inc", Hostname: "aaaa.com", Id: model.NewId()},
-		{ClusterName: "BBBB Inc", Hostname: "bbbb.com", Id: model.NewId()},
-		{ClusterName: "CCCC Inc", Hostname: "cccc.com", Id: model.NewId()},
-		{ClusterName: "DDDD Inc", Hostname: "dddd.com", Id: model.NewId()},
-		{ClusterName: "EEEE Inc", Hostname: "eeee.com", Id: model.NewId()},
+		{ClusterName: "AAAA Inc", SiteURL: "aaaa.com", RemoteId: model.NewId()},
+		{ClusterName: "BBBB Inc", SiteURL: "bbbb.com", RemoteId: model.NewId()},
+		{ClusterName: "CCCC Inc", SiteURL: "cccc.com", RemoteId: model.NewId()},
+		{ClusterName: "DDDD Inc", SiteURL: "dddd.com", RemoteId: model.NewId()},
+		{ClusterName: "EEEE Inc", SiteURL: "eeee.com", RemoteId: model.NewId()},
 	}
 	for _, item := range rcData {
 		_, err := ss.RemoteCluster().Save(item)
@@ -176,11 +176,11 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 
 	// Create some shared channel remotes
 	scrData := []*model.SharedChannelRemote{
-		{ChannelId: channel1.Id, Description: "AAA Inc Share", Token: model.NewId(), RemoteClusterId: rcData[0].Id, CreatorId: model.NewId()},
-		{ChannelId: channel1.Id, Description: "BBB Inc Share", Token: model.NewId(), RemoteClusterId: rcData[1].Id, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "CCC Inc Share", Token: model.NewId(), RemoteClusterId: rcData[2].Id, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "DDD Inc Share", Token: model.NewId(), RemoteClusterId: rcData[3].Id, CreatorId: model.NewId()},
-		{ChannelId: channel3.Id, Description: "EEE Inc Share", Token: model.NewId(), RemoteClusterId: rcData[4].Id, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "AAA Inc Share", Token: model.NewId(), RemoteClusterId: rcData[0].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "BBB Inc Share", Token: model.NewId(), RemoteClusterId: rcData[1].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "CCC Inc Share", Token: model.NewId(), RemoteClusterId: rcData[2].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "DDD Inc Share", Token: model.NewId(), RemoteClusterId: rcData[3].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel3.Id, Description: "EEE Inc Share", Token: model.NewId(), RemoteClusterId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
 	for _, item := range scrData {
 		_, err := ss.Channel().SaveSharedChannelRemote(item)
@@ -224,20 +224,20 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 func getIds(remotes []*model.RemoteCluster) []string {
 	ids := make([]string, 0, len(remotes))
 	for _, r := range remotes {
-		ids = append(ids, r.Id)
+		ids = append(ids, r.RemoteId)
 	}
 	return ids
 }
 
 func testRemoteClusterGetByTopic(t *testing.T, ss store.Store) {
 	rcData := []*model.RemoteCluster{
-		{ClusterName: "AAAA Inc", Hostname: "aaaa.com", Id: model.NewId(), Topics: ""},
-		{ClusterName: "BBBB Inc", Hostname: "bbbb.com", Id: model.NewId(), Topics: " share "},
-		{ClusterName: "CCCC Inc", Hostname: "cccc.com", Id: model.NewId(), Topics: " incident share "},
-		{ClusterName: "DDDD Inc", Hostname: "dddd.com", Id: model.NewId(), Topics: " bogus "},
-		{ClusterName: "EEEE Inc", Hostname: "eeee.com", Id: model.NewId(), Topics: " logs share incident "},
-		{ClusterName: "FFFF Inc", Hostname: "ffff.com", Id: model.NewId(), Topics: " bogus incident "},
-		{ClusterName: "GGGG Inc", Hostname: "gggg.com", Id: model.NewId(), Topics: "*"},
+		{ClusterName: "AAAA Inc", SiteURL: "aaaa.com", RemoteId: model.NewId(), Topics: ""},
+		{ClusterName: "BBBB Inc", SiteURL: "bbbb.com", RemoteId: model.NewId(), Topics: " share "},
+		{ClusterName: "CCCC Inc", SiteURL: "cccc.com", RemoteId: model.NewId(), Topics: " incident share "},
+		{ClusterName: "DDDD Inc", SiteURL: "dddd.com", RemoteId: model.NewId(), Topics: " bogus "},
+		{ClusterName: "EEEE Inc", SiteURL: "eeee.com", RemoteId: model.NewId(), Topics: " logs share incident "},
+		{ClusterName: "FFFF Inc", SiteURL: "ffff.com", RemoteId: model.NewId(), Topics: " bogus incident "},
+		{ClusterName: "GGGG Inc", SiteURL: "gggg.com", RemoteId: model.NewId(), Topics: "*"},
 	}
 	for _, item := range rcData {
 		_, err := ss.RemoteCluster().Save(item)
@@ -273,8 +273,8 @@ func testRemoteClusterUpdateTopics(t *testing.T, ss store.Store) {
 	remoteId := model.NewId()
 	rc := &model.RemoteCluster{
 		ClusterName: "Blap Inc",
-		Hostname:    "blap.com",
-		Id:          remoteId,
+		SiteURL:     "blap.com",
+		RemoteId:    remoteId,
 		Topics:      "",
 	}
 

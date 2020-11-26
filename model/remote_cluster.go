@@ -15,19 +15,19 @@ const (
 )
 
 type RemoteCluster struct {
-	Id          string `json:"id"`
+	RemoteId    string `json:"remote_id"`
 	ClusterName string `json:"cluster_name"`
-	Hostname    string `json:"hostname"`
-	Port        int32  `json:"port"`
+	SiteURL     string `json:"site_url"`
 	CreateAt    int64  `json:"create_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
 	Token       string `json:"token"`
+	RemoteToken string `json:"remote_token"`
 	Topics      string `json:"topics"`
 }
 
 func (rc *RemoteCluster) PreSave() {
-	if rc.Id == "" {
-		rc.Id = NewId()
+	if rc.RemoteId == "" {
+		rc.RemoteId = NewId()
 	}
 
 	if rc.Token == "" {
@@ -45,16 +45,12 @@ func (rc *RemoteCluster) PreSave() {
 }
 
 func (rc *RemoteCluster) IsValid() *AppError {
-	if !IsValidId(rc.Id) {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.Id, http.StatusBadRequest)
+	if !IsValidId(rc.RemoteId) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "id="+rc.RemoteId, http.StatusBadRequest)
 	}
 
 	if rc.ClusterName == "" {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.name.app_error", nil, "cluster_name empty", http.StatusBadRequest)
-	}
-
-	if rc.Hostname == "" {
-		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "host_name empty", http.StatusBadRequest)
 	}
 
 	if rc.CreateAt == 0 {
@@ -113,11 +109,38 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, error) {
 	return &rc, err
 }
 
+// RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.
+type RemoteClusterFrame struct {
+	RemoteId string
+	Token    string
+	Msg      *RemoteClusterMsg
+}
+
+func (f *RemoteClusterFrame) IsValid() *AppError {
+	if !IsValidId(f.RemoteId) {
+		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "RemoteId="+f.RemoteId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(f.Token) {
+		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func RemoteClusterFrameFromJSON(data io.Reader) (*RemoteClusterFrame, *AppError) {
+	decoder := json.NewDecoder(data)
+	var frame *RemoteClusterFrame
+	err := decoder.Decode(frame)
+	if err != nil {
+		return nil, NewAppError("RemoteClusterFrameFromJSON", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest)
+	}
+	return frame, nil
+}
+
 // RemoteClusterMsg represents a message that is sent and received between clusters.
 // These are processed and routed via the RemoteClusters service.
 type RemoteClusterMsg struct {
-	Id string
-	RemoteId
+	Id       string
 	Topic    string
 	CreateAt int64
 	Token    string
@@ -130,11 +153,11 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 	}
 
 	if m.Topic == "" {
-		return NewAppError("RemoteCluster.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
+		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
 	}
 
 	if !IsValidId(m.Token) {
-		return NewAppError("RemoteCluster.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -157,11 +180,11 @@ func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
 	return &msg, nil
 }
 
+// RemoteClusterPing represents a ping that is sent and received between clusters
+// to indicate a connection is alive. This is the payload for a `RemoteClusterMsg`.
 type RemoteClusterPing struct {
-	RemoteId string
-	Token    string
-	SentAt   int64
-	RecvAt   int64
+	SentAt int64
+	RecvAt int64
 }
 
 func RemoteClusterPingFromJSON(data io.Reader) (RemoteClusterPing, *AppError) {

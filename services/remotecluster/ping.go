@@ -86,13 +86,13 @@ func (rcs *RemoteClusterService) pingEmitter(pingChan <-chan *model.RemoteCluste
 
 func (rcs *RemoteClusterService) pingRemote(rc *model.RemoteCluster) error {
 	ping := model.RemoteClusterPing{
-		SendAt: model.GetMillis(),
+		SentAt: model.GetMillis(),
 	}
 	payload, err := json.Marshal(ping)
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%s://%s:%d/%s", sendProtocol, rc.Hostname, rc.Port, PingURL)
+	url := fmt.Sprintf("%s://%s/%s", sendProtocol, rc.SiteURL, PingURL)
 	req, err := http.NewRequest("POST", url, bytes.NewReader(payload))
 	if err != nil {
 		return err

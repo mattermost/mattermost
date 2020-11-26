@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -51,10 +49,7 @@ func TestSendMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		host, port, err := parseURL(ts.URL)
-		require.NoError(t, err)
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -111,10 +106,7 @@ func TestSendMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		host, port, err := parseURL(ts.URL)
-		require.NoError(t, err)
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -149,10 +141,7 @@ func TestSendMsg(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		host, port, err := parseURL(ts.URL)
-		require.NoError(t, err)
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, host, port))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 		service, err := NewRemoteClusterService(mockServer)
 		require.NoError(t, err)
 
@@ -182,21 +171,20 @@ func TestSendMsg(t *testing.T) {
 	})
 }
 
-func makeRemoteClusters(num int, host string, port int32) []*model.RemoteCluster {
+func makeRemoteClusters(num int, siteURL string) []*model.RemoteCluster {
 	var remotes []*model.RemoteCluster
 	for i := 0; i < num; i++ {
-		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i), host, port, TestTopics)
+		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i), siteURL, TestTopics)
 		remotes = append(remotes, rc)
 	}
 	return remotes
 }
 
-func makeRemoteCluster(name string, host string, port int32, topics string) *model.RemoteCluster {
+func makeRemoteCluster(name string, siteURL string, topics string) *model.RemoteCluster {
 	return &model.RemoteCluster{
-		Id:          model.NewId(),
+		RemoteId:    model.NewId(),
 		ClusterName: name,
-		Hostname:    host,
-		Port:        port,
+		SiteURL:     siteURL,
 		Token:       model.NewId(),
 		Topics:      topics,
 		CreateAt:    model.GetMillis(),
@@ -214,20 +202,4 @@ func makeRemoteClusterMsg(id string, note string) *model.RemoteClusterMsg {
 		Topic:    TestTopic,
 		CreateAt: model.GetMillis(),
 		Payload:  raw}
-}
-
-func parseURL(urlOrig string) (host string, port int32, err error) {
-	u, err := url.Parse(urlOrig)
-	if err != nil {
-		return "", 0, err
-	}
-
-	host = u.Hostname()
-	iport, err := strconv.Atoi(u.Port())
-	if err != nil {
-		return "", 0, err
-	}
-	port = int32(iport)
-
-	return
 }

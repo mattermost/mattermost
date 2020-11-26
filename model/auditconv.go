@@ -669,10 +669,9 @@ func (h auditOutgoingWebhook) IsNil() bool {
 }
 
 type auditRemoteCluster struct {
-	ID          string
+	RemoteId    string
 	ClusterName string
-	Hostname    string
-	Port        int32
+	SiteURL     string
 	CreateAt    int64
 	LastPingAt  int64
 }
@@ -681,10 +680,9 @@ type auditRemoteCluster struct {
 func newRemoteCluster(r *RemoteCluster) auditRemoteCluster {
 	var rc auditRemoteCluster
 	if r != nil {
-		rc.ID = r.Id
+		rc.RemoteId = r.RemoteId
 		rc.ClusterName = r.ClusterName
-		rc.Hostname = r.Hostname
-		rc.Port = r.Port
+		rc.SiteURL = r.SiteURL
 		rc.CreateAt = r.CreateAt
 		rc.LastPingAt = r.LastPingAt
 	}
@@ -692,10 +690,9 @@ func newRemoteCluster(r *RemoteCluster) auditRemoteCluster {
 }
 
 func (r auditRemoteCluster) MarshalJSONObject(enc *gojay.Encoder) {
-	enc.StringKey("id", r.ID)
+	enc.StringKey("remote_id", r.RemoteId)
 	enc.StringKey("cluster_name", r.ClusterName)
-	enc.StringKey("host", r.Hostname)
-	enc.Int32Key("port", r.Port)
+	enc.StringKey("site_url", r.SiteURL)
 	enc.Int64Key("create_at", r.CreateAt)
 	enc.Int64Key("last_ping_at", r.LastPingAt)
 }
