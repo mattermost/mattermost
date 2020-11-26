@@ -116,7 +116,8 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, error) {
 // RemoteClusterMsg represents a message that is sent and received between clusters.
 // These are processed and routed via the RemoteClusters service.
 type RemoteClusterMsg struct {
-	Id       string
+	Id string
+	RemoteId
 	Topic    string
 	CreateAt int64
 	Token    string
@@ -157,8 +158,10 @@ func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
 }
 
 type RemoteClusterPing struct {
-	SendAt int64
-	RecvAt int64
+	RemoteId string
+	Token    string
+	SentAt   int64
+	RecvAt   int64
 }
 
 func RemoteClusterPingFromJSON(data io.Reader) (RemoteClusterPing, *AppError) {

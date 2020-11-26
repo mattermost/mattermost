@@ -11,12 +11,15 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(getRemoteClusterPing)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(postRemoteClusterPing)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(acceptMessage)).Methods("POST")
 }
 
-func getRemoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
+func postRemoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	ping, err := model.RemoteClusterPingFromJSON(r.Body)
+	if err != nil {
+
+	}
 
 	token := props["token"]
 	if len(token) != model.TOKEN_SIZE {
