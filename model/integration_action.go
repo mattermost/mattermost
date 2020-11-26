@@ -534,7 +534,7 @@ func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
 }
 
 func (r *OpenDialogRequest) isValid() error {
-	// err := error
+
 	if len(r.URL) == 0 || !IsValidHttpUrl(r.URL) {
 		return errors.New("Invalid URL")
 	}
@@ -595,7 +595,9 @@ func (d *DialogElement) isValid() error {
 		"tel":    true,
 		"url":    true,
 	}
+
 	switch d.Type {
+
 	case "email":
 		if d.MaxLength > 150 {
 			return errors.New("invalid maxlength")
@@ -609,6 +611,7 @@ func (d *DialogElement) isValid() error {
 		if d.Type != d.SubType {
 			return errors.New("invalid subtype")
 		}
+
 	case "textarea":
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default text")
@@ -628,6 +631,7 @@ func (d *DialogElement) isValid() error {
 		if _, ok := typeMap[d.Type]; !ok {
 			return errors.New("invalid subtype")
 		}
+
 	case "checkbox":
 		if len(d.DataSource) == 0 {
 			return errors.New("invalid data source")
@@ -641,24 +645,26 @@ func (d *DialogElement) isValid() error {
 		if d.Placeholder != "" && len(d.Placeholder) > 3000 {
 			return errors.New("invalid placeholder")
 		}
+
 	case "radio":
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default string")
 		}
+
 	case "select":
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default string")
 		}
-	default:
-
 	}
 
 	if len(d.DisplayName) > 24 {
 		return errors.New("invalid display name")
 	}
+
 	if len(d.Name) > 300 {
 		return errors.New("invalid dialog element name")
 	}
+
 	if !(d.Optional == true || d.Optional == false) {
 		return errors.New("invalid optional value")
 	}
