@@ -5,6 +5,7 @@ package cache
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -617,4 +618,33 @@ func BenchmarkLRU(b *testing.B) {
 			require.Nil(b, err)
 		}
 	})
+}
+
+func TestLRURace(t *testing.T) {
+	l2 := NewLRU(&LRUOptions{
+		Size:                   1,
+		DefaultExpiry:          0,
+		InvalidateClusterEvent: "",
+	})
+	var wg sync.WaitGroup
+	l2.Set("test", "value1")
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		value1 := "simplestring"
+		err := l2.Set("test", value1)
+		require.Nil(t, err)
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		var val string
+		err := l2.Get("test", &val)
+		require.Nil(t, err)
+	}()
+
+	wg.Wait()
 }
