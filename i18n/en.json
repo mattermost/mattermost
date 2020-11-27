@@ -1040,7 +1040,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Add/remove a remote Mattermost cluster for inter-cluster communication."
+    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
   },
   {
     "id": "api.command_remote.hint",
@@ -1983,6 +1983,14 @@
     "translation": "Reacting to posts is not possible in read-only channels."
   },
   {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "We encountered an error deleting the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "We encountered an error retrieving a remote cluster."
+  },
+  {
     "id": "api.remote_cluster.invalid_id.app_error",
     "translation": "Invalid id."
   },
@@ -1993,6 +2001,10 @@
   {
     "id": "api.remote_cluster.invalid_topic.app_error",
     "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "We encountered an error saving the remote cluster."
   },
   {
     "id": "api.restricted_system_admin",

@@ -18,10 +18,11 @@ const (
 	ResultQueueDrainTimeoutMillis = 10000
 	MaxConcurrentSends            = 5
 	SendMsgURL                    = "api/v4/remotecluster/msg"
+	SendTimeoutMillis             = 60000
 	PingURL                       = "api/v4/remotecluster/ping"
 	PingFreqMillis                = 60000 // once per minute
 	PingTimeoutMillis             = 15000
-	EnvInsecureOverrideKey        = "REMOTE_CLUSTER_SEND_INSECURE"
+	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 )
 
 var (

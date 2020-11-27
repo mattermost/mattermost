@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,18 +21,6 @@ type SendResultFunc func(msg *model.RemoteClusterMsg, remote *model.RemoteCluste
 type sendTask struct {
 	msg *model.RemoteClusterMsg
 	f   SendResultFunc
-}
-
-var (
-	sendProtocol string // override for testing
-)
-
-func init() {
-	sendProtocol = "https"
-	insecure := os.Getenv(EnvInsecureOverrideKey)
-	if insecure == "TRUE" || insecure == "1" || insecure == "Y" || insecure == "YES" {
-		sendProtocol = "http"
-	}
 }
 
 // SendOutgoingMsg sends a message to all remote clusters interested in the message's topic.
@@ -100,23 +88,46 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 			}
 			if err != nil {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send FAILED",
-					mlog.String("remote", rc.ClusterName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
+					mlog.String("remote", rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
 			} else {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
-					mlog.String("remote", rc.ClusterName), mlog.String("msgId", task.msg.Id))
+					mlog.String("remote", rc.DisplayName), mlog.String("msgId", task.msg.Id))
 			}
 		}(rc)
 	}
 }
 
 func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) error {
-	buf, err := json.Marshal(task.msg)
+	frame := &model.RemoteClusterFrame{
+		RemoteId: rc.RemoteId,
+		Token:    rc.RemoteToken,
+		Msg:      task.msg,
+	}
+	url := fmt.Sprintf("%s/%s", rc.SiteURL, SendMsgURL)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*SendTimeoutMillis)
+	defer cancel()
+
+	return rcs.sendFrameToRemote(ctx, frame, url)
+}
+
+func (rcs *RemoteClusterService) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	body, err := json.Marshal(frame)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("%s://%s:%d/%s", sendProtocol, rc.Hostname, rc.Port, SendMsgURL)
-	resp, err := http.Post(url, "application/json", bytes.NewReader(buf))
+	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return err
 	}

@@ -352,7 +352,7 @@ type AppIface interface {
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
 	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError
-	AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -472,7 +472,7 @@ type AppIface interface {
 	DeletePostFiles(post *model.Post)
 	DeletePreferences(userId string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
-	DeleteRemoteCluster(remoteClusterId string) (bool, error)
+	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannel(channelId string) (bool, error)
 	DeleteSharedChannelRemote(remoteId string) (bool, error)
@@ -513,8 +513,8 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
-	GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, error)
-	GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, error)
+	GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
@@ -651,8 +651,8 @@ type AppIface interface {
 	GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError)
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, error)
-	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, error)
+	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)
+	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -935,7 +935,7 @@ type AppIface interface {
 	SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userId string, file io.Reader) *model.AppError
 	SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError
-	SetRemoteClusterLastPingAt(remoteClusterId string) error
+	SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	SetRequestId(s string)
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
 	SetSearchEngine(se *searchengine.Broker)
@@ -1001,7 +1001,8 @@ type AppIface interface {
 	UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(userId string, preferences model.Preferences) *model.AppError
-	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
+	UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
+	UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)

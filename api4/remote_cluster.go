@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -11,62 +12,112 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(postRemoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(acceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(postConfirmInvite)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(remoteClusterAcceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
 }
 
-func postRemoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
-	ping, err := model.RemoteClusterPingFromJSON(r.Body)
-	if err != nil {
-
-	}
-
-	token := props["token"]
-	if len(token) != model.TOKEN_SIZE {
-		c.SetInvalidParam("token")
+func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	remoteId := props["remote_id"]
-	if len(remoteId) != model.TOKEN_SIZE {
-		c.SetInvalidParam("remote_id")
+	if appErr = frame.IsValid(); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("remoteClusterPing", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	rc, err := c.App.GetRemoteCluster(remoteId)
+	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(remoteId)
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
 	}
 	auditRec.AddMeta("remoteCluster", rc)
 
-	if rc.Token != token {
+	if rc.Token != frame.Token {
 		c.SetInvalidRemoteClusterTokenError()
 	}
 
-	if err := c.App.SetRemoteClusterLastPingAt(remoteId); err != nil {
+	ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
+	if err != nil {
+		c.SetInvalidParam("msg.payload")
+	}
+	ping.RecvAt = model.GetMillis()
+
+	auditRec.AddMeta("SentAt", ping.SentAt)
+
+	if err := c.App.SetRemoteClusterLastPingAt(rc.RemoteId); err != nil {
 		auditRec.AddMeta("err", err)
+		c.Err = err
+		return
 	}
 
 	auditRec.Success()
+
+	resp, _ := json.Marshal(ping)
+	w.Write(resp)
+}
+
+func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if appErr = frame.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// TODO: pass message to Remote Cluster Service
+
 	ReturnStatusOK(w)
 }
 
-func acceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
-	msg, err := model.RemoteClusterMsgFromJSON(r.Body)
+func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if appErr = frame.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+	}
+	auditRec.AddMeta("remoteCluster", rc)
+
+	if rc.Token != frame.Token {
+		c.SetInvalidRemoteClusterTokenError()
+	}
+
+	confirm, appErr := model.RemoteClusterInviteFromRawJSON(frame.Msg.Payload)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	rc.SiteURL = confirm.SiteURL
+	rc.RemoteToken = confirm.Token
+
+	if _, err := c.App.UpdateRemoteCluster(rc); err != nil {
 		c.Err = err
 		return
 	}
 
-	err = msg.IsValid()
-	if err != nil {
-		c.Err = err
-		return
-	}
-
+	auditRec.Success()
 	ReturnStatusOK(w)
 }

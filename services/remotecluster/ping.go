@@ -4,12 +4,9 @@
 package remotecluster
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -85,35 +82,37 @@ func (rcs *RemoteClusterService) pingEmitter(pingChan <-chan *model.RemoteCluste
 }
 
 func (rcs *RemoteClusterService) pingRemote(rc *model.RemoteCluster) error {
-	ping := model.RemoteClusterPing{
-		SentAt: model.GetMillis(),
-	}
-	payload, err := json.Marshal(ping)
+	frame, err := makePingFrame(rc)
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("%s://%s/%s", sendProtocol, rc.SiteURL, PingURL)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(payload))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*PingTimeoutMillis)
 	defer cancel()
 
-	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
-	if err != nil {
-		return err
+	return rcs.sendFrameToRemote(ctx, frame, url)
+}
+
+func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
+	ping := model.RemoteClusterPing{
+		SentAt: model.GetMillis(),
 	}
-	defer resp.Body.Close()
-	_, err = ioutil.ReadAll(resp.Body)
+	pingRaw, err := json.Marshal(ping)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+	msg := &model.RemoteClusterMsg{
+		Id:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Payload:  pingRaw,
 	}
-	return nil
+
+	frame := &model.RemoteClusterFrame{
+		RemoteId: rc.RemoteId,
+		Token:    rc.RemoteToken,
+		Msg:      msg,
+	}
+	return frame, nil
 }

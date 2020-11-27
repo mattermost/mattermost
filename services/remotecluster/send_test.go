@@ -21,14 +21,18 @@ import (
 )
 
 const (
-	TestTopics = " share incident "
-	TestTopic  = "share"
-	NumRemotes = 50
+	TestTopics  = " share incident "
+	TestTopic   = "share"
+	NumRemotes  = 50
+	NoteContent = "Woot!!"
 )
+
+type testPayload struct {
+	Note string `json:"note"`
+}
 
 func TestSendMsg(t *testing.T) {
 	msgId := model.NewId()
-	sendProtocol = "http"
 	disablePing = true
 
 	t.Run("No error", func(t *testing.T) {
@@ -37,15 +41,32 @@ func TestSendMsg(t *testing.T) {
 		merr := merror.New()
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer w.WriteHeader(200)
 			atomic.AddInt32(&countWebReq, 1)
-			msg, err := model.RemoteClusterMsgFromJSON(r.Body)
+
+			frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
+			if appErr != nil {
+				merr.Append(appErr)
+				return
+			}
+			if frame.Msg == nil || len(frame.Msg.Payload) == 0 {
+				merr.Append(fmt.Errorf("webrequest missing Msg or Msg.Payload"))
+			}
+			if msgId != frame.Msg.Id {
+				merr.Append(fmt.Errorf("webrequest msgId expected %s, got %s", msgId, frame.Msg.Id))
+				return
+			}
+
+			note := testPayload{}
+			err := json.Unmarshal(frame.Msg.Payload, &note)
 			if err != nil {
 				merr.Append(err)
+				return
 			}
-			if msgId != msg.Id {
-				merr.Append(fmt.Errorf("webrequest msgId expected %s, got %s", msgId, msg.Id))
+			if note.Note != NoteContent {
+				merr.Append(fmt.Errorf("webrequest payload expected %s, got %s", NoteContent, note.Note))
+				return
 			}
-			w.WriteHeader(200)
 		}))
 		defer ts.Close()
 
@@ -60,7 +81,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		msg := makeRemoteClusterMsg(msgId, "Hello!")
+		msg := makeRemoteClusterMsg(msgId, NoteContent)
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
@@ -76,23 +97,21 @@ func TestSendMsg(t *testing.T) {
 				merr.Append(fmt.Errorf("result callback msgId expected %s, got %s", msgId, msg.Id))
 			}
 
-			var m map[string]string
-			err2 := json.Unmarshal(msg.Payload, &m)
+			var note testPayload
+			err2 := json.Unmarshal(msg.Payload, &note)
 			if err2 != nil {
 				merr.Append(fmt.Errorf("unmarshal payload error: %w", err2))
 				return
 			}
-
-			note, ok := m["note"]
-			if !ok || note != "Hello!" {
-				merr.Append(fmt.Errorf("compare payload failed: expected ok=true, got ok=%t;  expected 'Hello!', got %s", ok, note))
+			if note.Note != NoteContent {
+				merr.Append(fmt.Errorf("compare payload failed: expected '%s', got '%s'", NoteContent, note))
 			}
 		})
 		assert.NoError(t, err)
 
 		wg.Wait()
 
-		assert.Nil(t, merr.ErrorOrNil())
+		assert.NoError(t, merr.ErrorOrNil())
 
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
@@ -114,7 +133,7 @@ func TestSendMsg(t *testing.T) {
 		require.NoError(t, err)
 		defer service.Shutdown()
 
-		msg := makeRemoteClusterMsg(msgId, "Bogus")
+		msg := makeRemoteClusterMsg(msgId, NoteContent)
 		var countCallbacks int32
 		var countErrors int32
 		wg := &sync.WaitGroup{}
@@ -149,7 +168,7 @@ func TestSendMsg(t *testing.T) {
 		require.NoError(t, err)
 		defer service.Shutdown()
 
-		msg := makeRemoteClusterMsg(msgId, "Bogus")
+		msg := makeRemoteClusterMsg(msgId, NoteContent)
 		var countCallbacks int32
 		var countErrors int32
 		wg := &sync.WaitGroup{}
@@ -183,7 +202,7 @@ func makeRemoteClusters(num int, siteURL string) []*model.RemoteCluster {
 func makeRemoteCluster(name string, siteURL string, topics string) *model.RemoteCluster {
 	return &model.RemoteCluster{
 		RemoteId:    model.NewId(),
-		ClusterName: name,
+		DisplayName: name,
 		SiteURL:     siteURL,
 		Token:       model.NewId(),
 		Topics:      topics,
@@ -193,8 +212,8 @@ func makeRemoteCluster(name string, siteURL string, topics string) *model.Remote
 }
 
 func makeRemoteClusterMsg(id string, note string) *model.RemoteClusterMsg {
-	jsonString := fmt.Sprintf(`{"note":"%s"}`, note)
-	raw := json.RawMessage(jsonString)
+	payload := testPayload{Note: note}
+	raw, _ := json.Marshal(payload)
 
 	return &model.RemoteClusterMsg{
 		Id:       id,

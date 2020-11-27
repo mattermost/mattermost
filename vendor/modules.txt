@@ -648,7 +648,7 @@ github.com/vmihailenco/tagparser/internal/parser
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/merror v1.0.2
+# github.com/wiggin77/merror v1.0.3
 ## explicit
 github.com/wiggin77/merror
 # github.com/wiggin77/srslog v1.0.1

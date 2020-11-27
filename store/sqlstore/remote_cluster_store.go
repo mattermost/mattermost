@@ -22,11 +22,12 @@ func newSqlRemoteClustersStore(sqlStore SqlStore) store.RemoteClusterStore {
 	s := &sqlRemoteClusterStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("ClusterName").SetMaxSize(64)
-		table.ColMap("Hostname").SetMaxSize(512)
+		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId")
+		table.ColMap("RemoteId").SetMaxSize(26)
+		table.ColMap("DisplayName").SetMaxSize(64)
+		table.ColMap("SiteURL").SetMaxSize(512)
 		table.ColMap("Token").SetMaxSize(26)
+		table.ColMap("RemoteToken").SetMaxSize(26)
 		table.ColMap("Topics").SetMaxSize(512)
 	}
 	return s
@@ -44,10 +45,22 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 	return remoteCluster, nil
 }
 
-func (s sqlRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
+func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*model.RemoteCluster, error) {
+	remoteCluster.PreUpdate()
+	if err := remoteCluster.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if _, err := s.GetMaster().Update(remoteCluster); err != nil {
+		return nil, errors.Wrap(err, "failed to update RemoteCluster")
+	}
+	return remoteCluster, nil
+}
+
+func (s sqlRemoteClusterStore) Delete(remoteId string) (bool, error) {
 	squery, args, err := s.getQueryBuilder().
 		Delete("RemoteClusters").
-		Where(sq.Eq{"Id": remoteClusterId}).
+		Where(sq.Eq{"RemoteId": remoteId}).
 		ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "delete_remote_cluster_tosql")
@@ -66,11 +79,11 @@ func (s sqlRemoteClusterStore) Delete(remoteClusterId string) (bool, error) {
 	return count > 0, nil
 }
 
-func (s sqlRemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("RemoteClusters").
-		Where(sq.Eq{"Id": remoteClusterId})
+		Where(sq.Eq{"RemoteId": remoteId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -109,13 +122,13 @@ func (s sqlRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline 
 	query := s.getQueryBuilder().
 		Select("rc.*").
 		From("RemoteClusters rc").
-		Where("rc.Id NOT IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", channelId)
+		Where("rc.RemoteId NOT IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", channelId)
 
 	if !inclOffline {
 		query = query.Where(sq.Gt{"rc.LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
 	}
 
-	queryString, args, err := query.OrderBy("rc.ClusterName ASC").ToSql()
+	queryString, args, err := query.OrderBy("rc.DisplayName ASC").ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "remote_cluster_getallnotinchannel_tosql")
 	}
@@ -170,7 +183,7 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	query := s.getQueryBuilder().
 		Update("RemoteClusters").
 		Set("LastPingAt", model.GetMillis()).
-		Where(sq.Eq{"Id": remoteClusterId})
+		Where(sq.Eq{"RemoteId": remoteClusterId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

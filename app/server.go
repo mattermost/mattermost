@@ -1604,3 +1604,9 @@ func (s *Server) GetLogger() mlog.LoggerIFace {
 func (s *Server) GetStore() store.Store {
 	return s.Store
 }
+
+// GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetRemoteClusterService() *remotecluster.RemoteClusterService {
+	return s.remoteClusterService
+}

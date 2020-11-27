@@ -4,9 +4,9 @@
 package slashcommands
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	AvailableRemoteActions = "Available actions: add, remove, status"
+	AvailableRemoteActions = "Available actions: invite, accept, remove, status"
 )
 
 type RemoteProvider struct {
@@ -38,26 +38,31 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 
 	remote := model.NewAutocompleteData(rp.GetTrigger(), "[action]", "Add/remove remote clusters. "+AvailableRemoteActions)
 
-	add := model.NewAutocompleteData("add", "", "Add a remote cluster")
-	add.AddNamedTextArgument("name", "Remote cluster name", "Descriptive name of the remote cluster to add", "", true)
-	add.AddNamedTextArgument("host", "Host name of the remote cluster", "Can be domain name or IP address", "", true)
-	add.AddNamedTextArgument("port", "Port used to connect to remote cluster", "(Optional) defaults to 8065", "^[0-9]+$", false)
+	invite := model.NewAutocompleteData("invite", "", "Invite a remote cluster")
+	invite.AddNamedTextArgument("password", "Invitation password", "Password to be used to encrypt the invitation", "", true)
+	invite.AddNamedTextArgument("name", "Remote cluster name", "A display name for the remote cluster", "", true)
+
+	accept := model.NewAutocompleteData("accept", "", "Accept an invitation from a remote cluster")
+	accept.AddNamedTextArgument("password", "Invitation password", "Password that was used to encrypt the invitation", "", true)
+	accept.AddNamedTextArgument("name", "Remote cluster name", "A display name for the remote cluster", "", true)
+	accept.AddNamedTextArgument("invite", "Invitation from remote cluster", "The encrypted inivation from a remote cluster", "", true)
 
 	remove := model.NewAutocompleteData("remove", "", "Removes a remote cluster")
 	remove.AddNamedDynamicListArgument("remoteId", "Id of remote cluster remove", "builtin:remote", true)
 
 	status := model.NewAutocompleteData("status", "", "Displays status for all remote clusters")
 
-	remote.AddCommand(add)
+	remote.AddCommand(invite)
+	remote.AddCommand(accept)
 	remote.AddCommand(remove)
 	remote.AddCommand(status)
 
 	return &model.Command{
 		Trigger:          rp.GetTrigger(),
 		AutoComplete:     true,
-		AutoCompleteDesc: T("api.remote.desc"),
-		AutoCompleteHint: T("api.remote.hint"),
-		DisplayName:      T("api.remote.name"),
+		AutoCompleteDesc: T("api.command_remote.desc"),
+		AutoCompleteHint: T("api.command_remote.hint"),
+		DisplayName:      T("api.command_remote.name"),
 		AutocompleteData: remote,
 	}
 }
@@ -74,8 +79,10 @@ func (rp *RemoteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 	}
 
 	switch action {
-	case "add":
-		return rp.doAdd(a, args, margs)
+	case "invite":
+		return rp.doInvite(a, args, margs)
+	case "accept":
+		return rp.doAccept(a, args, margs)
 	case "remove":
 		return rp.doRemove(a, args, margs)
 	case "status":
@@ -97,39 +104,88 @@ func (rp *RemoteProvider) GetAutoCompleteListItems(a *app.App, commandArgs *mode
 	return nil, fmt.Errorf("`%s` is not a dynamic argument", arg.Name)
 }
 
-func (rp *RemoteProvider) doAdd(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+// doInvite creates and displays an encrypted invite that can be used by a remote site to establish a simple trust.
+func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	password := margs["password"]
+	if password == "" {
+		return responsef("Missing or empty `password`")
+	}
+
 	name := margs["name"]
 	if name == "" {
 		return responsef("Missing or empty `name`")
 	}
 
-	host := margs["host"]
-	if host == "" {
-		return responsef("Missing or empty `host`")
-	}
-
-	port := margs["port"]
-	if port == "" {
-		port = "8065"
-	}
-	iport, err := strconv.ParseInt(port, 10, 32)
-	if err != nil {
-		return responsef("Invalid `port`: %v", err)
-	}
-
 	rc := &model.RemoteCluster{
-		ClusterName: name,
-		Hostname:    host,
-		Port:        int32(iport),
+		DisplayName: name,
+		Token:       model.NewId(),
 	}
 
-	rcSaved, err := a.AddRemoteCluster(rc)
-	if err != nil {
-		responsef("Could not add remote cluster: %v", err)
+	rcSaved, appErr := a.AddRemoteCluster(rc)
+	if appErr != nil {
+		return responsef("Could not add remote cluster: %v", appErr)
 	}
-	return responsef("##### Remote cluster added.\nName: %s\nHost: %s\nPort: %d\nToken: %s", rcSaved.ClusterName, rc.Hostname, rc.Port, rcSaved.Token)
+
+	// Display the encrypted invitation
+	invite := &model.RemoteClusterInvite{
+		RemoteId: rcSaved.RemoteId,
+		SiteURL:  a.GetSiteURL(),
+		Token:    rcSaved.Token,
+	}
+	encrypted, err := invite.Encrypt(password)
+	if err != nil {
+		return responsef("Could not create invitation: %v", err)
+	}
+	encoded := base64.URLEncoding.EncodeToString(encrypted)
+
+	return responsef("##### Invitation created.\n"+
+		"Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. "+
+		"They will use the `/remote accept` slash command to accept the invitation.\n\n```\n%s\n```\n\n"+
+		"**Ensure the remote site can access your cluster via** %s", encoded, invite.SiteURL)
 }
 
+// doAccept accepts an invitation generated by a remote site.
+func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	password := margs["password"]
+	if password == "" {
+		return responsef("Missing or empty `password`")
+	}
+
+	name := margs["name"]
+	if name == "" {
+		return responsef("Missing or empty `name`")
+	}
+
+	blob := margs["invite"]
+	if blob == "" {
+		return responsef("Missing or empty `invite`")
+	}
+
+	// invite is encoded as base64 and encrypted
+	decoded, err := base64.URLEncoding.DecodeString(blob)
+	if err != nil {
+		return responsef("Could not decode invitation: %v", err)
+	}
+	invite := &model.RemoteClusterInvite{}
+	err = invite.Decrypt(decoded, password)
+	if err != nil {
+		return responsef("Could not decrypt invitation. Incorrect password or corrupt invitation: %v", err)
+	}
+
+	rcs := a.GetRemoteClusterService()
+	if rcs != nil {
+		return responsef("Remote cluster service not enabled.")
+	}
+
+	rc, err := rcs.AcceptInvitation(invite, name, a.GetSiteURL())
+	if err != nil {
+		return responsef("Could not accept invitation: %v", err)
+	}
+
+	return responsef("##### Invitation accepted and confirmed.\nSiteURL: %s", rc.SiteURL)
+}
+
+// doRemove removes a remote cluster from the database, effectively revoking the trust relationship.
 func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	id, ok := margs["remoteId"]
 	if !ok {
@@ -148,6 +204,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 	return responsef("##### Remote cluster %s %s.", id, result)
 }
 
+// doStatus displays connection status for all remote clusters.
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	list, err := a.GetAllRemoteClusters(true)
 	if err != nil {
@@ -159,16 +216,21 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | Host | Token | Id   | Online |\n")
-	fmt.Fprintf(&sb, "| ---- | ---- | ----  | ---- | ----   |\n")
+	fmt.Fprintf(&sb, "| Name | SiteURL  | RemoteId   | Invite Accepted | Online |\n")
+	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | \n")
 
 	for _, rc := range list {
+		accepted := ":white_check_mark:"
+		if rc.SiteURL == "" {
+			accepted = ":x:"
+		}
+
 		online := ":white_check_mark:"
 		if !isOnline(rc.LastPingAt) {
 			online = ":skull_and_crossbones:"
 		}
 
-		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %s | %s |\n", rc.ClusterName, rc.Hostname, rc.Port, rc.Token, rc.RemoteId, online)
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online)
 	}
 	return responsef(sb.String())
 }
@@ -188,7 +250,7 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 	for _, rc := range clusters {
 		item := model.AutocompleteListItem{
 			Item:     rc.RemoteId,
-			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
+			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.SiteURL)}
 		list = append(list, item)
 	}
 	return list, nil
@@ -205,7 +267,7 @@ func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId str
 	for _, rc := range all {
 		item := model.AutocompleteListItem{
 			Item:     rc.RemoteId,
-			HelpText: fmt.Sprintf("%s  (%s:%d)", rc.ClusterName, rc.Hostname, rc.Port)}
+			HelpText: fmt.Sprintf("%s  (%s)", rc.DisplayName, rc.SiteURL)}
 		list = append(list, item)
 	}
 	return list, nil
