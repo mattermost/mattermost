@@ -164,6 +164,29 @@ func (_m *RemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	return r0
 }
 
+// Update provides a mock function with given fields: rc
+func (_m *RemoteClusterStore) Update(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
+	ret := _m.Called(rc)
+
+	var r0 *model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) *model.RemoteCluster); ok {
+		r0 = rf(rc)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.RemoteCluster) error); ok {
+		r1 = rf(rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateTopics provides a mock function with given fields: remoteClusterid, topics
 func (_m *RemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
 	ret := _m.Called(remoteClusterid, topics)

@@ -241,10 +241,10 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 	}
 
 	if _, err := a.SaveSharedChannelRemote(scr); err != nil {
-		return responsef("Could not invite `%s` to this channel: %v", remote.ClusterName, err)
+		return responsef("Could not invite `%s` to this channel: %v", remote.DisplayName, err)
 	}
 
-	return responsef("##### `%s (%s)` has been invited to this shared channel.", remote.ClusterName, remote.SiteURL)
+	return responsef("##### `%s (%s)` has been invited to this shared channel.", remote.DisplayName, remote.SiteURL)
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {

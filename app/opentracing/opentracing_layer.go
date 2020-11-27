@@ -236,7 +236,7 @@ func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddRemoteCluster")
 
@@ -3028,7 +3028,7 @@ func (a *OpenTracingAppLayer) DeleteReactionForPost(reaction *model.Reaction) *m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DeleteRemoteCluster(remoteClusterId string) (bool, error) {
+func (a *OpenTracingAppLayer) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteRemoteCluster")
 
@@ -4207,7 +4207,7 @@ func (a *OpenTracingAppLayer) GetAllPublicTeamsPageWithCount(offset int, limit i
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClusters")
 
@@ -4229,7 +4229,7 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClustersNotInChannel")
 
@@ -7640,7 +7640,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamId string, p
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteCluster")
 
@@ -7662,7 +7662,7 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClustersByTopic")
 
@@ -14074,7 +14074,7 @@ func (a *OpenTracingAppLayer) SetProfileImageFromMultiPartFile(userId string, fi
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetRemoteClusterLastPingAt(remoteClusterId string) error {
+func (a *OpenTracingAppLayer) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetRemoteClusterLastPingAt")
 
@@ -15458,7 +15458,29 @@ func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error) {
+func (a *OpenTracingAppLayer) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRemoteCluster")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateRemoteCluster(rc)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateRemoteClusterTopics(remoteClusterId string, topics string) (*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRemoteClusterTopics")
 
