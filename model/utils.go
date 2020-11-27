@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 	"unicode"
 
@@ -72,10 +73,10 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
-var translateFunc goi18n.TranslateFunc = nil
+var translateFunc atomic.Value
 
 func AppErrorInit(t goi18n.TranslateFunc) {
-	translateFunc = t
+	translateFunc.Store(t)
 }
 
 type AppError struct {
@@ -148,7 +149,7 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	ap.DetailedError = details
 	ap.StatusCode = status
 	ap.IsOAuth = false
-	ap.Translate(translateFunc)
+	ap.Translate(translateFunc.Load().(goi18n.TranslateFunc))
 	return ap
 }
 
