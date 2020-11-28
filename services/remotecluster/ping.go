@@ -52,7 +52,7 @@ func (rcs *RemoteClusterService) pingGenerator(pingChan chan *model.RemoteCluste
 		// try to maintain frequency
 		elapsed := time.Since(start)
 		sleep := time.Second * 1
-		if elapsed > freq {
+		if elapsed < freq {
 			sleep = time.Until(start.Add(freq))
 		}
 
