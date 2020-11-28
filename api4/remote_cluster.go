@@ -35,16 +35,19 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
 		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
 
 	if rc.Token != frame.Token {
 		c.SetInvalidRemoteClusterTokenError()
+		return
 	}
 
 	ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
 	if err != nil {
 		c.SetInvalidParam("msg.payload")
+		return
 	}
 	ping.RecvAt = model.GetMillis()
 
@@ -97,11 +100,13 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
 		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
 
 	if rc.Token != frame.Token {
 		c.SetInvalidRemoteClusterTokenError()
+		return
 	}
 
 	confirm, appErr := model.RemoteClusterInviteFromRawJSON(frame.Msg.Payload)
