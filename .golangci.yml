@@ -26,6 +26,7 @@ linters:
     - unconvert
     - unused
     - varcheck
+    - misspell
     # TODO: enable this later
     # - errcheck
 
@@ -50,3 +51,7 @@ issues:
       # ignore golint error for a lot of packages for now
       - golint
       path: "api4|app|cmd|einterface|enterprise|jobs|migrations|mlog|model|testlib|services|store|utils|web|wsapi|plugin/plugintest/api.go|plugin/api.go|plugin/context.go|plugin/client.go|plugin/client_rpc.go|plugin/client_rpc_generated.go|plugin/api_timer_layer_generated.go|plugin/hooks_timer_layer_generated|plugin/environment.go|plugin/health_check.go|plugin/hooks.go|plugin/supervisor.go|plugin/valid.go"
+
+    - linters:
+      - misspell
+      path: "utils/markdown/html_entities.go"
