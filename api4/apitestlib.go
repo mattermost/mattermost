@@ -87,6 +87,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}

@@ -894,6 +894,11 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 func (a *App) installFeatureFlagPlugins() {
 	ffControledPlugins := a.Config().FeatureFlags.Plugins()
 
+	// Respect the automatic prepackaged disable setting
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return
+	}
+
 	for pluginId, version := range ffControledPlugins {
 		// Skip installing if the plugin has been previously disabled.
 		pluginState := a.Config().PluginSettings.PluginStates[pluginId]
