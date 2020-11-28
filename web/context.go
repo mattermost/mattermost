@@ -267,7 +267,7 @@ func NewServerBusyError() *model.AppError {
 }
 
 func NewInvalidRemoteClusterIdError(parameter string) *model.AppError {
-	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"Id": parameter}, "", http.StatusBadRequest)
+	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
 	return err
 }
 

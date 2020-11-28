@@ -126,10 +126,15 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("Could not add remote cluster: %v", appErr)
 	}
 
+	url := a.GetSiteURL()
+	if url == "" {
+		return responsef("SiteURL not set. Please set this via the system console.")
+	}
+
 	// Display the encrypted invitation
 	invite := &model.RemoteClusterInvite{
 		RemoteId: rcSaved.RemoteId,
-		SiteURL:  a.GetSiteURL(),
+		SiteURL:  url,
 		Token:    rcSaved.Token,
 	}
 	encrypted, err := invite.Encrypt(password)
@@ -177,7 +182,12 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("Remote cluster service not enabled.")
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, a.GetSiteURL())
+	url := a.GetSiteURL()
+	if url == "" {
+		return responsef("SiteURL not set. Please set this via the system console.")
+	}
+
+	rc, err := rcs.AcceptInvitation(invite, name, url)
 	if err != nil {
 		return responsef("Could not accept invitation: %v", err)
 	}

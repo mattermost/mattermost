@@ -1212,7 +1212,7 @@
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Unable to find remote id {{.Id}}."
+    "translation": "Unable to find remote id {{.RemoteId}}."
   },
   {
     "id": "api.context.remote_token_invalid.app_error",
