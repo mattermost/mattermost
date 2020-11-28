@@ -696,8 +696,9 @@ func (s *Server) startInterClusterServices(license *model.License) {
 		return
 	}
 
-	if err := s.remoteClusterService.Start(); err != nil {
+	if err = s.remoteClusterService.Start(); err != nil {
 		mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
+		s.remoteClusterService = nil
 		return
 	}
 

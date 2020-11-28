@@ -173,7 +173,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	rcs := a.GetRemoteClusterService()
-	if rcs != nil {
+	if rcs == nil {
 		return responsef("Remote cluster service not enabled.")
 	}
 
