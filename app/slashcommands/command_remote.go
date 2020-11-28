@@ -132,6 +132,11 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("Could not add remote cluster: %v", appErr)
 	}
 
+	url := a.GetSiteURL()
+	if url == "" {
+		return responsef("SiteURL not set. Please set this via the system console.")
+	}
+
 	// Display the encrypted invitation
 	invite := &model.RemoteClusterInvite{
 		RemoteId: rcSaved.RemoteId,
