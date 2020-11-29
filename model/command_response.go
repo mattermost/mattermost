@@ -50,7 +50,10 @@ func (o *CommandResponse) IsValid() error {
 		errs = multierror.Append(errs, errors.New("'response_type' must be empty, 'ephemeral', or 'in_channel'"))
 	}
 	if _, err := url.ParseRequestURI(o.GotoLocation); o.GotoLocation != "" && err != nil {
-		errs = multierror.Append(errs, errors.New("'goto_location' must be a valid URI"))
+		errs = multierror.Append(errs, fmt.Errorf("'goto_location' must be a valid URI: %w", err))
+	}
+	if _, err := url.ParseRequestURI(o.IconURL); o.IconURL != "" && err != nil {
+		errs = multierror.Append(errs, fmt.Errorf("'icon_url' must be a valid URI: %w", err))
 	}
 	if o.Type != "" && !strings.HasPrefix(o.Type, "custom_") {
 		errs = multierror.Append(errs, errors.New("'type' must start with 'custom_'"))

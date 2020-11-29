@@ -263,6 +263,15 @@ func TestCommandResponseIsValid(t *testing.T) {
 			expectsError: true,
 		},
 		{
+			name: "invalid icon_url",
+			cr: &CommandResponse{
+				Text:    "text",
+				IconURL: "invalid",
+			},
+			expectsError: true,
+		},
+
+		{
 			name: "invalid type",
 			cr: &CommandResponse{
 				Text: "text",
