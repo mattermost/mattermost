@@ -15,13 +15,13 @@ import (
 )
 
 type SqlTokenStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlTokenStore(sqlStore SqlStore) store.TokenStore {
-	s := &SqlTokenStore{sqlStore}
+func newSqlTokenStore(sqlSupplier *SqlSupplier) store.TokenStore {
+	s := &SqlTokenStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
 		table.ColMap("Token").SetMaxSize(64)
 		table.ColMap("Type").SetMaxSize(64)

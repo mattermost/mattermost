@@ -12,13 +12,13 @@ import (
 )
 
 type SqlAuditStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlAuditStore(sqlStore SqlStore) store.AuditStore {
-	s := &SqlAuditStore{sqlStore}
+func newSqlAuditStore(sqlSupplier *SqlSupplier) store.AuditStore {
+	s := &SqlAuditStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Audit{}, "Audits").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
