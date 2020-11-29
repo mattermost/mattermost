@@ -540,6 +540,7 @@ type AppIface interface {
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)
 	GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
 	GetCommand(commandId string) (*model.Command, *model.AppError)
@@ -892,6 +893,7 @@ type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
+	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
 	Session() *model.Session
