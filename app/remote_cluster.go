@@ -82,6 +82,10 @@ func (a *App) SetRemoteClusterLastPingAt(remoteClusterId string) *model.AppError
 	return nil
 }
 
-func (a *App) GetRemoteClusterService() *remotecluster.RemoteClusterService {
-	return a.Srv().GetRemoteClusterService()
+func (a *App) GetRemoteClusterService() (*remotecluster.RemoteClusterService, *model.AppError) {
+	service := a.Srv().GetRemoteClusterService()
+	if service == nil {
+		return nil, model.NewAppError("GetRemoteClusterService", "api.remote_cluster.service_not_enabled.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return service, nil
 }

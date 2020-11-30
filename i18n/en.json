@@ -1999,6 +1999,10 @@
     "translation": "We encountered an error saving the remote cluster."
   },
   {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "The remote cluster service is not enabled."
+  },
+  {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
   },

@@ -29,6 +29,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -7609,6 +7610,28 @@ func (a *OpenTracingAppLayer) GetRemoteCluster(remoteClusterId string) (*model.R
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetRemoteCluster(remoteClusterId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetRemoteClusterService() (*remotecluster.RemoteClusterService, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClusterService")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetRemoteClusterService()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

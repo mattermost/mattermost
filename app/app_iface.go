@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -653,6 +654,7 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)
+	GetRemoteClusterService() (*remotecluster.RemoteClusterService, *model.AppError)
 	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)

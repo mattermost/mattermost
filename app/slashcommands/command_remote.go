@@ -177,7 +177,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("Could not decrypt invitation. Incorrect password or corrupt invitation: %v", err)
 	}
 
-	rcs := a.GetRemoteClusterService()
+	rcs, _ := a.GetRemoteClusterService()
 	if rcs == nil {
 		return responsef("Remote cluster service not enabled.")
 	}
