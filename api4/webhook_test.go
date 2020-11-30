@@ -67,8 +67,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 		hook.UserId = th.BasicUser2.Id
 		defer func() { hook.UserId = "" }()
 
-		newHook, resp := client.CreateIncomingWebhook(hook)
-		CheckNoError(t, resp)
+		newHook, response := client.CreateIncomingWebhook(hook)
+		CheckNoError(t, response)
 		require.Equal(t, th.BasicUser2.Id, newHook.UserId)
 	}, "Create an incoming webhook for a different user")
 
@@ -76,23 +76,23 @@ func TestCreateIncomingWebhook(t *testing.T) {
 		hook.UserId = "invalid-user"
 		defer func() { hook.UserId = "" }()
 
-		_, resp := client.CreateIncomingWebhook(hook)
-		CheckNotFoundStatus(t, resp)
+		_, response := client.CreateIncomingWebhook(hook)
+		CheckNotFoundStatus(t, response)
 	}, "Create an incoming webhook for an invalid user")
 
 	t.Run("Create an incoming webhook for a different user without permissions", func(t *testing.T) {
 		hook.UserId = th.BasicUser2.Id
 		defer func() { hook.UserId = "" }()
 
-		_, resp := Client.CreateIncomingWebhook(hook)
-		CheckForbiddenStatus(t, resp)
+		_, response := Client.CreateIncomingWebhook(hook)
+		CheckForbiddenStatus(t, response)
 	})
 
 	t.Run("Create an incoming webhook in local mode without providing user", func(t *testing.T) {
 		hook.UserId = ""
 
-		_, resp := th.LocalClient.CreateIncomingWebhook(hook)
-		CheckBadRequestStatus(t, resp)
+		_, response := th.LocalClient.CreateIncomingWebhook(hook)
+		CheckBadRequestStatus(t, response)
 	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
@@ -414,6 +414,38 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 	_, resp = Client.CreateOutgoingWebhook(hook)
 	CheckNoError(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		hook.CreatorId = th.BasicUser2.Id
+		defer func() { hook.CreatorId = "" }()
+
+		newHook, response := client.CreateOutgoingWebhook(hook)
+		CheckNoError(t, response)
+		require.Equal(t, th.BasicUser2.Id, newHook.CreatorId)
+	}, "Create an outgoing webhook for a different user")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		hook.CreatorId = "invalid-user"
+		defer func() { hook.CreatorId = "" }()
+
+		_, response := client.CreateOutgoingWebhook(hook)
+		CheckNotFoundStatus(t, response)
+	}, "Create an incoming webhook for an invalid user")
+
+	t.Run("Create an outgoing webhook for a different user without permissions", func(t *testing.T) {
+		hook.CreatorId = th.BasicUser2.Id
+		defer func() { hook.CreatorId = "" }()
+
+		_, response := Client.CreateOutgoingWebhook(hook)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("Create an outgoing webhook in local mode without providing user", func(t *testing.T) {
+		hook.CreatorId = ""
+
+		_, response := th.LocalClient.CreateOutgoingWebhook(hook)
+		CheckBadRequestStatus(t, response)
+	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 	_, resp = Client.CreateOutgoingWebhook(hook)

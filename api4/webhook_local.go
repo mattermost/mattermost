@@ -17,6 +17,7 @@ func (api *API) InitWebhookLocal() {
 	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(updateIncomingHook)).Methods("PUT")
 	api.BaseRoutes.IncomingHook.Handle("", api.ApiLocal(deleteIncomingHook)).Methods("DELETE")
 
+	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(localCreateOutgoingHook)).Methods("POST")
 	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiLocal(getOutgoingHooks)).Methods("GET")
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(getOutgoingHook)).Methods("GET")
 	api.BaseRoutes.OutgoingHook.Handle("", api.ApiLocal(updateOutgoingHook)).Methods("PUT")
@@ -41,7 +42,7 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if _, err := c.App.GetUser(hook.UserId); err != nil {
+	if _, err = c.App.GetUser(hook.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -63,4 +64,44 @@ func localCreateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(incomingHook.ToJson()))
+}
+
+func localCreateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
+	hook := model.OutgoingWebhookFromJson(r.Body)
+	if hook == nil {
+		c.SetInvalidParam("outgoing_webhook")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createOutgoingHook", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("hook_id", hook.Id)
+	c.LogAudit("attempt")
+
+	if hook.CreatorId == "" {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	_, err := c.App.GetUser(hook.CreatorId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	rhook, err := c.App.CreateOutgoingWebhook(hook)
+	if err != nil {
+		c.LogAudit("fail")
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("hook_display", rhook.DisplayName)
+	auditRec.AddMeta("channel_id", rhook.ChannelId)
+	auditRec.AddMeta("team_id", rhook.TeamId)
+	c.LogAudit("success")
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(rhook.ToJson()))
 }
