@@ -12,13 +12,13 @@ import (
 )
 
 type sqlRemoteClusterStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlRemoteClustersStore(sqlStore SqlStore) store.RemoteClusterStore {
-	s := &sqlRemoteClusterStore{sqlStore}
+func newSqlRemoteClustersStore(sqlSupplier *SqlSupplier) store.RemoteClusterStore {
+	s := &sqlRemoteClusterStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("ClusterName").SetMaxSize(64)

@@ -34,16 +34,6 @@ func (me *DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 }
 
 func (me *DndProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	status, err := a.GetStatus(args.UserId)
-	if err != nil {
-		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.error")}
-	} else {
-		if status.Status == "dnd" {
-			a.SetStatusOnline(args.UserId, true)
-			return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.disabled")}
-		}
-	}
-
 	a.SetStatusDoNotDisturb(args.UserId)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_dnd.success")}
