@@ -821,11 +821,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 		t.Run("UpdateHookOfSameUser", func(t *testing.T) {
-			sameUserHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
+			sameUserHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
 			sameUserHook, resp := th.Client.CreateIncomingWebhook(sameUserHook)
 			CheckNoError(t, resp)
 
+			sameUserHook.UserId = th.BasicUser2.Id
 			_, resp = th.Client.UpdateIncomingWebhook(sameUserHook)
 			CheckNoError(t, resp)
 		})
