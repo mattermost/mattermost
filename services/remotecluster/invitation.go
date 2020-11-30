@@ -37,7 +37,10 @@ func (rcs *RemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInv
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*PingTimeoutMillis)
 	defer cancel()
 
-	return rcSaved, rcs.sendFrameToRemote(ctx, frame, url)
+	if _, err := rcs.sendFrameToRemote(ctx, frame, url); err != nil {
+		return nil, err
+	}
+	return rcSaved, nil
 }
 
 func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClusterFrame, error) {

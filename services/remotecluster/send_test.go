@@ -86,7 +86,7 @@ func TestSendMsg(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		err = service.SendOutgoingMsg(ctx, msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
+		err = service.SendOutgoingMsg(ctx, msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
@@ -139,7 +139,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
@@ -174,7 +174,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error) {
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {

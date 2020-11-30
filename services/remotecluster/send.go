@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type SendResultFunc func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, err error)
+type SendResultFunc func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error)
 
 type sendTask struct {
 	msg *model.RemoteClusterMsg
@@ -71,7 +71,7 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(task.msg.Topic)
 	if err != nil {
 		if task.f != nil {
-			task.f(task.msg, nil, fmt.Errorf("could not send msg to remote: %w", err))
+			task.f(task.msg, nil, nil, fmt.Errorf("could not send msg to remote: %w", err))
 		}
 	}
 
@@ -82,9 +82,9 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 		bound <- struct{}{}
 		go func(rc *model.RemoteCluster) {
 			defer func() { <-bound }()
-			err := rcs.sendMsgToRemote(rc, task)
+			resp, err := rcs.sendMsgToRemote(rc, task)
 			if task.f != nil {
-				task.f(task.msg, rc, err)
+				task.f(task.msg, rc, resp, err)
 			}
 			if err != nil {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send FAILED",
@@ -97,7 +97,7 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 	}
 }
 
-func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) error {
+func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]byte, error) {
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
 		Token:    rc.RemoteToken,
@@ -111,34 +111,34 @@ func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task s
 	return rcs.sendFrameToRemote(ctx, frame, url)
 }
 
-func (rcs *RemoteClusterService) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) error {
+func (rcs *RemoteClusterService) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
 	body, err := json.Marshal(frame)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
-	_, err = ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+		return body, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
 	}
-	return nil
+	return body, nil
 }
