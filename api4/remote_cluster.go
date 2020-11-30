@@ -18,6 +18,12 @@ func (api *API) InitRemoteCluster() {
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
+	// make sure remote cluster service is running.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
 	if appErr != nil {
 		c.Err = appErr
@@ -52,6 +58,7 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	ping.RecvAt = model.GetMillis()
 
 	auditRec.AddMeta("SentAt", ping.SentAt)
+	auditRec.AddMeta("RecvAt", ping.RecvAt)
 
 	if err := c.App.SetRemoteClusterLastPingAt(rc.RemoteId); err != nil {
 		auditRec.AddMeta("err", err)
@@ -66,6 +73,13 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	// make sure remote cluster service is running.
+	service, appErr := c.App.GetRemoteClusterService()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
 	if appErr != nil {
 		c.Err = appErr
@@ -77,12 +91,34 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// TODO: pass message to Remote Cluster Service
+	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
+	if err != nil {
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
+	}
+	auditRec.AddMeta("remoteCluster", rc)
+
+	if rc.Token != frame.Token {
+		c.SetInvalidRemoteClusterTokenError()
+		return
+	}
+
+	// pass message to Remote Cluster Service
+	service.ReceiveIncomingMsg(rc, frame.Msg)
 
 	ReturnStatusOK(w)
 }
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	// make sure remote cluster service is running.
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	frame, appErr := model.RemoteClusterFrameFromJSON(r.Body)
 	if appErr != nil {
 		c.Err = appErr
