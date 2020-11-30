@@ -4,12 +4,11 @@
 package searchlayer
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 )
 
 type SearchChannelStore struct {
@@ -130,15 +129,15 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 
 func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	var channelList *model.ChannelList
-	var appErr *model.AppError
+	var err error
 	var nErr error
 
 	allFailed := true
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			channelList, appErr = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
-			if appErr != nil {
-				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(appErr))
+			channelList, err = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
+			if err != nil {
+				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			allFailed = false
@@ -151,18 +150,18 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 		mlog.Debug("Using database search because no other search engine is available")
 		channelList, nErr = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 		if nErr != nil {
-			return nil, model.NewAppError("AutocompleteInTeam", "app.channel.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "AutocompleteInTeam")
 		}
 	}
 
-	if appErr != nil {
-		return channelList, appErr
+	if err != nil {
+		return channelList, err
 	}
 
 	return channelList, nil
 }
 
-func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, error) {
 	channelIds, err := engine.SearchChannels(teamId, term)
 	if err != nil {
 		return nil, err
@@ -172,7 +171,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, model.NewAppError("searchAutocompleteChannels", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "searchAutocompleteChannels")
 		}
 
 		for _, ch := range channels {
