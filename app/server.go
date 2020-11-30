@@ -599,6 +599,14 @@ func (s *Server) AppOptions() []AppOption {
 func (s *Server) initLogging() error {
 	if s.Log == nil {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+
+		// Use this app logger as the global logger (eventually remove all instances of global logging).
+		// This is deferred because a copy is made of the logger and it must be fully configured before
+		// the copy is made.
+		defer mlog.InitGlobalLogger(s.Log)
+
+		// Redirect default golang logger to this logger.
+		defer mlog.RedirectStdLog(s.Log)
 	}
 
 	if s.NotificationsLog == nil {
@@ -606,12 +614,6 @@ func (s *Server) initLogging() error {
 		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
 			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(s.Log)
 
 	if s.logListenerId != "" {
 		s.RemoveConfigListener(s.logListenerId)
