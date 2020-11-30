@@ -541,8 +541,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.enableLoggingMetrics()
 	})
 
-	s.startInterClusterServices(license)
-
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
@@ -712,7 +710,8 @@ func (s *Server) startInterClusterServices(license *model.License) {
 	var err error
 
 	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
-	if s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s); err != nil {
+	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	if err != nil {
 		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
 		return
 	}
@@ -1156,6 +1155,8 @@ func (s *Server) Start() error {
 			mlog.Critical(err.Error())
 		}
 	}
+
+	s.startInterClusterServices(s.License())
 
 	return nil
 }
