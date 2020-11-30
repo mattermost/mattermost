@@ -1620,11 +1620,11 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+    "translation": "Kan het Slack kanaal {{.DisplayName}} niet importeren.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "Het Slack kanaal {{.DisplayName}} bestaat reeds als een actief Mattermost kanaal. Beide kanalen zijn samengevoegd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -7848,7 +7848,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
+    "translation": ""
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7908,11 +7908,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
+    "translation": ""
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Er is een fout opgetreden bij het permanent wissen van de batch van berichten."
+    "translation": ""
   },
   {
     "id": "app.post.search.app_error",
@@ -7964,23 +7964,23 @@
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "We ontvingen een ongeldige tijd in het antwoord van de Identity Provider. Neem contact op met de beheerder."
+    "translation": ""
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+    "translation": ""
   },
   {
     "id": "ent.cloud.request_error",
-    "translation": "Fout bij het verwerken van het verzoek naar CWS"
+    "translation": ""
   },
   {
     "id": "ent.cloud.json_encode.error",
-    "translation": "Interne fout bij het opmaken van het verzoek naar CWS"
+    "translation": ""
   },
   {
     "id": "ent.cloud.authentication_failed",
-    "translation": "Authenticatie tegenover CWS mislukt"
+    "translation": ""
   },
   {
     "id": "api.file.test_connection.s3.list_objects.app_error",
@@ -8185,5 +8185,181 @@
   {
     "id": "api.roles.patch_roles.admin_role.error",
     "translation": "De rol Systeembeheerder kan niet worden bijgewerkt of gewijzigd"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Neem contact met de helpdesk"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Ingeklapte draadjesinstelling moet ofwel uitgeschakeld zijn, default_on of default_off"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Niet in staat om alle draadjes van deze gebruiker bij te werken als gelezen"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Niet in staat om de leesstatus voor het draadje bij te werken"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Niet in staat om de volgende status voor de draadje bij te werken"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Niet in staat om draadjes van gebruiker op te halen"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "fout bij bijwerken"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "fout bij selecteren"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "invoerfout"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "groepslid bestaat reeds"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "geen overeenkomende groep gevonden"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "ongeldige eigenschap voor ID voor groep."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "group syncable was reeds verwijderd"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Mislukte betaling"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Actie vereist: Betaling mislukt voor Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Om een ononderbroken abonnement op Mattermost Cloud te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "Zij gaven de volgende reden:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Jouw financiële instelling weigerde een betaling van uw {{{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloud Workspace opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "Jouw Mattermost Cloud abonnement is opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "Neem contact met ons op om jouw werkruimte opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "Jouw Mattermost-werkruimte is opgeschort. Alle inhoud en gegevens binnen jouw werkruimte worden binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Los het nu op"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "De opschorting van jouw Mattermost Cloud werkruimte is gepland voor morgen"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "Jouw Mattermost Cloud abonnement zal binnenkort worden opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "Zodra jouw werkruimte is geschorst, worden alle inhoud en gegevens binnen jouw werkruimte binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "Zodra jouw werkruimte is geschorst, kan niet meer inloggen op jouw account of de betalingsgegevens bijwerken. Je moet contact opnemen met onze helpdesk om jouw service opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "Om opschorting te voorkomen, voeg jouw betalingsgegevens toe"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "Geen betalingsmethode in jouw account"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost kon jouw meest recente automatische betaling niet verwerken. Om jouw dienst actief te houden, dien je zo snel mogelijk betalingsgegevens toe te voegen of uw dienst kan worden opgeschort."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud Werkplaats opschorting"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Handel nu om jouw Mattermost Cloud-abonnement te behouden"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "Je verliest de toegang tot jouw berichtgeschiedenis"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "Je kan de betalingsgegevens niet bijwerken zonder contact op te nemen met onze helpdesk"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "Je kunt niet inloggen op je werkplek"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "Als er geen actie wordt ondernomen, wordt jouw werkplek opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "Er is nog tijd om jouw Mattermost Cloud workspace actief te houden door problemen met jouw betaalmethode op te lossen. Om opschorting te voorkomen kan je jouw betaalmethode bijwerken."
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "Betaling niet ontvangen"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "Gewoon een herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost abonnement dat gefactureerd is op {{ .OverLimitDate }}.  We zullen binnenkort beginnen met een proces om jouuw dienst op te schorten als de betaling niet is ontvangen."
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Een of meer van de volgende rechten die je probeert toe te voegen of te verwijderen zijn niet toegestaan"
   }
 ]
