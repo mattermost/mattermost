@@ -17,9 +17,11 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+	})
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -60,6 +62,38 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	_, resp = Client.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		hook.UserId = th.BasicUser2.Id
+		defer func() { hook.UserId = "" }()
+
+		newHook, resp := client.CreateIncomingWebhook(hook)
+		CheckNoError(t, resp)
+		require.Equal(t, th.BasicUser2.Id, newHook.UserId)
+	}, "Create an incoming webhook for a different user")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		hook.UserId = "invalid-user"
+		defer func() { hook.UserId = "" }()
+
+		_, resp := client.CreateIncomingWebhook(hook)
+		CheckNotFoundStatus(t, resp)
+	}, "Create an incoming webhook for an invalid user")
+
+	t.Run("Create an incoming webhook for a different user without permissions", func(t *testing.T) {
+		hook.UserId = th.BasicUser2.Id
+		defer func() { hook.UserId = "" }()
+
+		_, resp := Client.CreateIncomingWebhook(hook)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Create an incoming webhook in local mode without providing user", func(t *testing.T) {
+		hook.UserId = ""
+
+		_, resp := th.LocalClient.CreateIncomingWebhook(hook)
+		CheckBadRequestStatus(t, resp)
+	})
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 	_, resp = Client.CreateIncomingWebhook(hook)
