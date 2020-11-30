@@ -543,9 +543,9 @@ func TestConfigMigrate(t *testing.T) {
 	sqlDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
 	fileDSN := "config.json"
 
-	ds, err := config.NewStore(sqlDSN, false)
+	ds, err := config.NewStore(sqlDSN, false, nil)
 	require.NoError(t, err)
-	fs, err := config.NewStore(fileDSN, false)
+	fs, err := config.NewStore(fileDSN, false, nil)
 	require.NoError(t, err)
 
 	defer ds.Close()
