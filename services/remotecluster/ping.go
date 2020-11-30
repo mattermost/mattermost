@@ -72,7 +72,7 @@ func (rcs *RemoteClusterService) pingEmitter(pingChan <-chan *model.RemoteCluste
 		case rc := <-pingChan:
 			if rc != nil {
 				if err := rcs.pingRemote(rc); err != nil {
-					rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster ping FAILED", mlog.Err(err))
+					rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping FAILED", mlog.Err(err))
 				}
 			}
 		case <-done:
@@ -91,7 +91,24 @@ func (rcs *RemoteClusterService) pingRemote(rc *model.RemoteCluster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*PingTimeoutMillis)
 	defer cancel()
 
-	return rcs.sendFrameToRemote(ctx, frame, url)
+	resp, err := rcs.sendFrameToRemote(ctx, frame, url)
+	if err != nil {
+		return err
+	}
+
+	ping := model.RemoteClusterPing{}
+	err = json.Unmarshal(resp, &ping)
+	if err != nil {
+		return err
+	}
+
+	// TODO: the ping response contains a timestamp when the ping was sent and the recv time when it was received by the
+	//       remote cluster. This can be added to Prometheus/Grafana to track latencies.
+	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
+		mlog.String("remote", rc.DisplayName), mlog.Int64("SentAt", ping.SentAt), mlog.Int64("RecvAt", ping.RecvAt),
+		mlog.Int64("Diff", ping.RecvAt-ping.SentAt))
+
+	return nil
 }
 
 func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
