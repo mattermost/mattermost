@@ -198,8 +198,6 @@ func NewServer(options ...Option) (*Server, error) {
 		uploadLockMap:       map[string]bool{},
 	}
 
-	model.AppErrorInit(utils.T)
-
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -271,6 +269,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
+	model.AppErrorInit(utils.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
