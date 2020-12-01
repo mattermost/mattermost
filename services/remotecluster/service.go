@@ -39,7 +39,7 @@ type ServerIface interface {
 }
 
 type TopicListener interface {
-	OnReceiveMessage(msg *model.RemoteClusterMsg) error
+	OnReceiveMessage(msg *model.RemoteClusterMsg, rc *model.RemoteCluster) error
 }
 
 // Service provides inter-cluster communication via topic based messages.
@@ -49,7 +49,7 @@ type Service struct {
 	send chan sendTask
 
 	// everything below guarded by `mux`
-	mux              sync.Mutex
+	mux              sync.RWMutex
 	active           bool
 	leaderListenerId string
 	remotes          []*model.RemoteCluster
@@ -132,6 +132,20 @@ func (rcs *Service) RemoveTopicListener(topic string, listener TopicListener) {
 		}
 	}
 	rcs.topicListeners[topic] = newList
+}
+
+func (rcs *Service) getTopicListeners(topic string) []TopicListener {
+	rcs.mux.RLock()
+	defer rcs.mux.RUnlock()
+
+	listeners, ok := rcs.topicListeners[topic]
+	if !ok {
+		return nil
+	}
+
+	cpListeners := make([]TopicListener, len(listeners))
+	copy(cpListeners, listeners)
+	return cpListeners
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
