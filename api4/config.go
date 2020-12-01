@@ -65,7 +65,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
 	} else {
 		w.Write([]byte(cfg.ToJson()))
@@ -160,7 +160,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
 	} else {
 		w.Write([]byte(cfg.ToJson()))
@@ -267,7 +267,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
 		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
 	} else {
 		w.Write([]byte(cfg.ToJson()))
