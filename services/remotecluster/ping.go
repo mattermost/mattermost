@@ -14,7 +14,7 @@ import (
 )
 
 // pingLoop periodically sends a ping to all remote clusters.
-func (rcs *RemoteClusterService) pingLoop(done <-chan struct{}) {
+func (rcs *Service) pingLoop(done <-chan struct{}) {
 	pingChan := make(chan *model.RemoteCluster, MaxConcurrentSends*2)
 
 	// create a thread pool to send pings concurrently to remotes.
@@ -25,7 +25,7 @@ func (rcs *RemoteClusterService) pingLoop(done <-chan struct{}) {
 	go rcs.pingGenerator(pingChan, done)
 }
 
-func (rcs *RemoteClusterService) pingGenerator(pingChan chan *model.RemoteCluster, done <-chan struct{}) {
+func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-chan struct{}) {
 	defer close(pingChan)
 
 	const freq = time.Millisecond * PingFreqMillis
@@ -66,7 +66,7 @@ func (rcs *RemoteClusterService) pingGenerator(pingChan chan *model.RemoteCluste
 
 // pingEmitter pulls Remotes from the ping queue (pingChan) and pings them.
 // Pinging a remote cannot take longer than PingTimeoutMillis.
-func (rcs *RemoteClusterService) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-chan struct{}) {
+func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-chan struct{}) {
 	for {
 		select {
 		case rc := <-pingChan:
@@ -81,7 +81,7 @@ func (rcs *RemoteClusterService) pingEmitter(pingChan <-chan *model.RemoteCluste
 	}
 }
 
-func (rcs *RemoteClusterService) pingRemote(rc *model.RemoteCluster) error {
+func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	frame, err := makePingFrame(rc)
 	if err != nil {
 		return err
