@@ -1434,8 +1434,6 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 		channels = append(channels, channel)
 	}
 
-	// TODO: Fix the performance of this queries to make them runnable in cockroachdb
-
 	defaultChannelRolesByChannel := map[string]struct {
 		Id    string
 		Guest sql.NullString
