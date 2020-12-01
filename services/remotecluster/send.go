@@ -30,7 +30,7 @@ type sendTask struct {
 //
 // An optional callback can be provided that receives the success or fail result of sending to each remote cluster.
 // Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
-func (rcs *RemoteClusterService) SendOutgoingMsg(ctx context.Context, msg *model.RemoteClusterMsg, f SendResultFunc) error {
+func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg *model.RemoteClusterMsg, f SendResultFunc) error {
 	task := sendTask{
 		msg: msg,
 		f:   f,
@@ -48,7 +48,7 @@ func (rcs *RemoteClusterService) SendOutgoingMsg(ctx context.Context, msg *model
 	}
 }
 
-func (rcs *RemoteClusterService) sendLoop(done chan struct{}) {
+func (rcs *Service) sendLoop(done chan struct{}) {
 	// create thread pool for concurrent message sending.
 	for i := 0; i < MaxConcurrentSends; i++ {
 		go func() {
@@ -66,7 +66,7 @@ func (rcs *RemoteClusterService) sendLoop(done chan struct{}) {
 	}
 }
 
-func (rcs *RemoteClusterService) sendMsg(task sendTask) {
+func (rcs *Service) sendMsg(task sendTask) {
 	// get list of interested remotes.
 	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(task.msg.Topic)
 	if err != nil {
@@ -97,7 +97,7 @@ func (rcs *RemoteClusterService) sendMsg(task sendTask) {
 	}
 }
 
-func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]byte, error) {
+func (rcs *Service) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]byte, error) {
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
 		Token:    rc.RemoteToken,
@@ -111,7 +111,7 @@ func (rcs *RemoteClusterService) sendMsgToRemote(rc *model.RemoteCluster, task s
 	return rcs.sendFrameToRemote(ctx, frame, url)
 }
 
-func (rcs *RemoteClusterService) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
+func (rcs *Service) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}

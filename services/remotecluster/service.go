@@ -42,8 +42,8 @@ type TopicListener interface {
 	OnReceiveMessage(msg *model.RemoteClusterMsg) error
 }
 
-// RemoteClusterService
-type RemoteClusterService struct {
+// Service provides inter-cluster communication via topic based messages.
+type Service struct {
 	server ServerIface
 
 	send chan sendTask
@@ -58,8 +58,8 @@ type RemoteClusterService struct {
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance.
-func NewRemoteClusterService(server ServerIface) (*RemoteClusterService, error) {
-	service := &RemoteClusterService{
+func NewRemoteClusterService(server ServerIface) (*Service, error) {
+	service := &Service{
 		server: server,
 		send:   make(chan sendTask, SendChanBuffer),
 	}
@@ -67,7 +67,7 @@ func NewRemoteClusterService(server ServerIface) (*RemoteClusterService, error) 
 }
 
 // Start is called by the server on server start-up.
-func (rcs *RemoteClusterService) Start() error {
+func (rcs *Service) Start() error {
 	defer rcs.onClusterLeaderChange()
 
 	rcs.mux.Lock()
@@ -79,7 +79,7 @@ func (rcs *RemoteClusterService) Start() error {
 }
 
 // Shutdown is called by the server on server shutdown.
-func (rcs *RemoteClusterService) Shutdown() error {
+func (rcs *Service) Shutdown() error {
 	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
 	rcs.pause()
 	return nil
@@ -87,14 +87,14 @@ func (rcs *RemoteClusterService) Shutdown() error {
 
 // NotifyRemoteClusterChange is called whenever a remote cluster is added or removed from
 // the database.
-func (rcs *RemoteClusterService) NotifyRemoteClusterChange() {
+func (rcs *Service) NotifyRemoteClusterChange() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
 	rcs.remotes = nil // force reload
 }
 
-func (rcs *RemoteClusterService) AddTopicListener(topic string, listener TopicListener) {
+func (rcs *Service) AddTopicListener(topic string, listener TopicListener) {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
@@ -116,7 +116,7 @@ func (rcs *RemoteClusterService) AddTopicListener(topic string, listener TopicLi
 	}
 }
 
-func (rcs *RemoteClusterService) RemoveTopicListener(topic string, listener TopicListener) {
+func (rcs *Service) RemoveTopicListener(topic string, listener TopicListener) {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
@@ -135,7 +135,7 @@ func (rcs *RemoteClusterService) RemoveTopicListener(topic string, listener Topi
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
-func (rcs *RemoteClusterService) onClusterLeaderChange() {
+func (rcs *Service) onClusterLeaderChange() {
 	if rcs.server.IsLeader() {
 		rcs.resume()
 	} else {
@@ -143,7 +143,7 @@ func (rcs *RemoteClusterService) onClusterLeaderChange() {
 	}
 }
 
-func (rcs *RemoteClusterService) resume() {
+func (rcs *Service) resume() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
@@ -161,7 +161,7 @@ func (rcs *RemoteClusterService) resume() {
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")
 }
 
-func (rcs *RemoteClusterService) pause() {
+func (rcs *Service) pause() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 

@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (rcs *RemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, siteURL string) (*model.RemoteCluster, error) {
+func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, siteURL string) (*model.RemoteCluster, error) {
 	rc := &model.RemoteCluster{
 		RemoteId:    invite.RemoteId,
 		DisplayName: name,

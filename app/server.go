@@ -144,7 +144,7 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
-	remoteClusterService *remotecluster.RemoteClusterService
+	remoteClusterService *remotecluster.Service
 
 	phase2PermissionsMigrationComplete bool
 
@@ -1638,6 +1638,6 @@ func (s *Server) GetStore() store.Store {
 
 // GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
 // May be nil if the service is not enabled via license.
-func (s *Server) GetRemoteClusterService() *remotecluster.RemoteClusterService {
+func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 	return s.remoteClusterService
 }
