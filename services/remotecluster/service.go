@@ -26,7 +26,8 @@ const (
 )
 
 var (
-	disablePing bool // override for testing
+	// TODO: remove this when https://mattermost.atlassian.net/browse/MM-30838 is merged.
+	DisablePing bool // override for testing
 )
 
 type ServerIface interface {
@@ -167,7 +168,7 @@ func (rcs *Service) resume() {
 	rcs.active = true
 	rcs.done = make(chan struct{})
 
-	if !disablePing {
+	if !DisablePing {
 		rcs.pingLoop(rcs.done)
 	}
 	rcs.sendLoop(rcs.done)

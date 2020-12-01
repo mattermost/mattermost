@@ -33,7 +33,7 @@ type testPayload struct {
 
 func TestSendMsg(t *testing.T) {
 	msgId := model.NewId()
-	disablePing = true
+	DisablePing = true
 
 	t.Run("No error", func(t *testing.T) {
 		var countCallbacks int32

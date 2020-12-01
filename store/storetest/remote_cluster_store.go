@@ -36,7 +36,7 @@ func testRemoteClusterSave(t *testing.T, ss store.Store) {
 		require.Equal(t, rc.DisplayName, rcSaved.DisplayName)
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
-		require.Greater(t, rc.LastPingAt, int64(0))
+		require.Equal(t, rc.LastPingAt, int64(0))
 	})
 
 	t.Run("Save missing display name", func(t *testing.T) {
@@ -90,10 +90,12 @@ func testRemoteClusterGet(t *testing.T, ss store.Store) {
 }
 
 func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
+	now := model.GetMillis()
+
 	data := []*model.RemoteCluster{
 		{DisplayName: "offline remote", SiteURL: "somewhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 2)},
 		{DisplayName: "some remote", SiteURL: "nowhere.com", LastPingAt: 0},
-		{DisplayName: "another remote", SiteURL: "underwhere.com", LastPingAt: 0},
+		{DisplayName: "another remote", SiteURL: "underwhere.com", LastPingAt: now},
 		{DisplayName: "another offline remote", SiteURL: "knowhere.com", LastPingAt: model.GetMillis() - (model.RemoteOfflineAfterMillis * 3)},
 	}
 
@@ -102,7 +104,7 @@ func testRemoteClusterGetAll(t *testing.T, ss store.Store) {
 	idsOffline := make([]string, 0)
 
 	for _, item := range data {
-		online := item.LastPingAt == 0
+		online := item.LastPingAt == now
 		saved, err := ss.RemoteCluster().Save(item)
 		require.Nil(t, err)
 		idsAll = append(idsAll, saved.RemoteId)
