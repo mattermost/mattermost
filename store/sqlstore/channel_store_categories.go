@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -454,6 +455,32 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	return s.completePopulatingCategoryChannels(result)
 }
 
+func (s SqlChannelStore) getSidebarCategoryT(transaction *gorp.Transaction, categoryId string) (*model.SidebarCategoryWithChannels, error) {
+	var categories []*sidebarCategoryForJoin
+	sql, args, _ := s.getQueryBuilder().
+		Select("SidebarCategories.*", "SidebarChannels.ChannelId").
+		From("SidebarCategories").
+		LeftJoin("SidebarChannels ON SidebarChannels.CategoryId=SidebarCategories.Id").
+		Where(sq.Eq{"SidebarCategories.Id": categoryId}).
+		OrderBy("SidebarChannels.SortOrder ASC").ToSql()
+	if _, err := transaction.Select(&categories, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	}
+	if len(categories) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, "", http.StatusNotFound)
+	}
+	result := &model.SidebarCategoryWithChannels{
+		SidebarCategory: categories[0].SidebarCategory,
+		Channels:        make([]string, 0),
+	}
+	for _, category := range categories {
+		if category.ChannelId != nil {
+			result.Channels = append(result.Channels, *category.ChannelId)
+		}
+	}
+	return s.completePopulatingCategoryChannelsT(transaction, result)
+}
+
 func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) (*model.OrderedSidebarCategories, error) {
 	oc := model.OrderedSidebarCategories{
 		Categories: make(model.SidebarCategoriesWithChannels, 0),
@@ -624,7 +651,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	originalCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		originalCategory, err2 := s.GetSidebarCategory(category.Id)
+		originalCategory, err2 := s.getSidebarCategoryT(transaction, category.Id)
 		if err2 != nil {
 			return nil, nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
