@@ -149,7 +149,11 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	ap.DetailedError = details
 	ap.StatusCode = status
 	ap.IsOAuth = false
-	ap.Translate(translateFunc.Load().(goi18n.TranslateFunc))
+	if fn, ok := translateFunc.Load().(goi18n.TranslateFunc); ok {
+		ap.Translate(fn)
+	} else {
+		ap.Translate(nil)
+	}
 	return ap
 }
 
