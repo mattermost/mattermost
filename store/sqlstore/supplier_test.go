@@ -4,12 +4,16 @@
 package sqlstore_test
 
 import (
+	"fmt"
 	"regexp"
 	"sync"
 	"testing"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -348,6 +352,23 @@ func TestGetColumnInfo(t *testing.T) {
 		_, err := supplier.GetColumnInfo("Systems", "Type")
 		require.Error(t, err)
 	})
+}
+
+func TestIsDuplicate(t *testing.T) {
+	testErrors := map[error]bool{
+		&pq.Error{Code: "42P06"}:                                       false,
+		&pq.Error{Code: sqlstore.PG_DUP_TABLE_ERROR_CODE}:              true,
+		&mysql.MySQLError{Number: uint16(1000)}:                        false,
+		&mysql.MySQLError{Number: sqlstore.MYSQL_DUP_TABLE_ERROR_CODE}: true,
+		errors.New("Random error"):                                     false,
+	}
+
+	for err, expected := range testErrors {
+		t.Run(fmt.Sprintf("Should return %t for %s", expected, err.Error()), func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, expected, sqlstore.IsDuplicate(err))
+		})
+	}
 }
 
 func makeSqlSettings(driver string) *model.SqlSettings {

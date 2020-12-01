@@ -33,7 +33,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 }
 
@@ -356,13 +356,13 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlSupplier: sqlSupplier,
+		metrics:     metrics,
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Channel{}, "Channels").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)
@@ -2100,7 +2100,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 			times[t.Id] = t.LastPostAt
 		}
 		if updateThreads {
-			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
 		}
 		return times, nil
 	}
@@ -2136,7 +2136,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
 	}
 	return times, nil
 }
@@ -2252,7 +2252,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate)
+		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, true)
 	}
 	return result, nil
 }
@@ -2282,7 +2282,7 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, 
 		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
 	}
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, false)
 	}
 	return nil
 }

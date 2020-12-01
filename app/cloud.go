@@ -4,8 +4,19 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  100,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+	return a.GetUsers(userOptions)
+}
 
 func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
@@ -30,13 +41,7 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	if remainingUsers > 0 {
 		return nil
 	}
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  100,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
-		Inactive: false,
-	}
-	sysAdmins, err := a.GetUsers(userOptions)
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
 	if err != nil {
 		return err
 	}
@@ -51,6 +56,21 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 		// At limit
 		for admin := range sysAdmins {
 			a.Srv().EmailService.SendAtUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		}
+	}
+	return nil
+}
+
+func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError {
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	if err != nil {
+		return err
+	}
+
+	for _, admin := range sysAdmins {
+		_, err := a.Srv().EmailService.SendPaymentFailedEmail(admin.Email, admin.Locale, failedPayment, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending payment failed email", mlog.Err(err))
 		}
 	}
 	return nil

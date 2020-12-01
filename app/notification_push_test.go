@@ -1252,7 +1252,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	assert.Equal(t, ack.NotificationType, handler.notificationAcks()[0].NotificationType)
 }
 
-// TestAllPushNotifications is a master test which sends all verious types
+// TestAllPushNotifications is a master test which sends all various types
 // of notifications and verifies they have been properly sent.
 func TestAllPushNotifications(t *testing.T) {
 	if testing.Short() {

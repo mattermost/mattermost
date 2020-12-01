@@ -56,16 +56,23 @@ func (o *Thread) ToJson() string {
 	return string(b)
 }
 
+func ThreadFromJson(s string) (*Thread, error) {
+	var t Thread
+	err := json.Unmarshal([]byte(s), &t)
+	return &t, err
+}
+
 func (o *Thread) Etag() string {
 	return Etag(o.PostId, o.LastReplyAt)
 }
 
 type ThreadMembership struct {
-	PostId      string `json:"post_id"`
-	UserId      string `json:"user_id"`
-	Following   bool   `json:"following"`
-	LastViewed  int64  `json:"last_view_at"`
-	LastUpdated int64  `json:"last_update_at"`
+	PostId         string `json:"post_id"`
+	UserId         string `json:"user_id"`
+	Following      bool   `json:"following"`
+	LastViewed     int64  `json:"last_view_at"`
+	LastUpdated    int64  `json:"last_update_at"`
+	UnreadMentions int64  `json:"unread_mentions"`
 }
 
 func (o *ThreadMembership) ToJson() string {
