@@ -55,6 +55,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		db:             db,
 	}
 	if err = initializeConfigurationsTable(ds.db); err != nil {
+		ds.Close()
 		return nil, errors.Wrap(err, "failed to initialize")
 	}
 

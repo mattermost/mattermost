@@ -97,6 +97,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
+		configStore.Close()
 		mlog.Critical(err.Error())
 		return err
 	}
