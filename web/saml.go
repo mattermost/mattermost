@@ -117,15 +117,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		teamId := relayProps["team_id"]
-		if len(teamId) > 0 {
-			c.App.Srv().Go(func() {
-				if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
-					mlog.Error(err.Error())
-				} else {
-					c.App.AddDirectChannels(teamId, user)
-				}
-			})
+		if teamId := relayProps["team_id"]; teamId != "" {
+			if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
+				mlog.Error(err.Error())
+				break
+			}
+			c.App.AddDirectChannels(teamId, user)
 		}
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {
