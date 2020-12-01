@@ -1933,7 +1933,6 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 		}
 		if thread != nil {
 			thread.ReplyCount -= 1
-			thread.Participants = thread.Participants.Remove(userId)
 			if _, err = s.Thread().Update(thread); err != nil {
 				return errors.Wrap(err, "failed to update thread")
 			}
