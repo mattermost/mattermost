@@ -198,6 +198,8 @@ func NewServer(options ...Option) (*Server, error) {
 		uploadLockMap:       map[string]bool{},
 	}
 
+	model.AppErrorInit(utils.T)
+
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -449,8 +451,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
-
-	model.AppErrorInit(utils.T)
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
