@@ -22,7 +22,7 @@ const (
 )
 
 func TestPing(t *testing.T) {
-	disablePing = false
+	DisablePing = false
 
 	t.Run("No error", func(t *testing.T) {
 		var countWebReq int32
