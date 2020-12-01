@@ -340,6 +340,13 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
 
+	api.BaseRoutes.Uploads = api.BaseRoutes.ApiRoot.PathPrefix("/uploads").Subrouter()
+	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
+
+	api.BaseRoutes.Imports = api.BaseRoutes.ApiRoot.PathPrefix("/imports").Subrouter()
+
+	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -354,6 +361,9 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitSystemLocal()
 	api.InitPostLocal()
 	api.InitRoleLocal()
+	api.InitUploadLocal()
+	api.InitImportLocal()
+	api.InitJobLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

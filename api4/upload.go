@@ -51,7 +51,9 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	us.Id = model.NewId()
-	us.UserId = c.App.Session().UserId
+	if c.App.Session().UserId != "" {
+		us.UserId = c.App.Session().UserId
+	}
 	us, err := c.App.CreateUploadSession(us)
 	if err != nil {
 		c.Err = err
@@ -75,7 +77,7 @@ func getUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if us.UserId != c.App.Session().UserId {
+	if us.UserId != c.App.Session().UserId && !c.IsSystemAdmin() {
 		c.Err = model.NewAppError("getUpload", "api.upload.get_upload.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -106,7 +108,7 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if us.Type == model.UploadTypeImport {
-		if us.UserId != c.App.Session().UserId || !c.IsSystemAdmin() {
+		if !c.IsSystemAdmin() {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -33,6 +34,10 @@ func TestListImports(t *testing.T) {
 			Type:     model.UploadTypeImport,
 		}
 
+		if c == th.LocalClient {
+			us.UserId = model.UploadNoUserID
+		}
+
 		u, resp := c.CreateUpload(us)
 		require.Nil(t, resp.Error)
 		require.NotNil(t, u)
@@ -51,37 +56,51 @@ func TestListImports(t *testing.T) {
 		require.Nil(t, imports)
 	})
 
-	t.Run("no imports", func(t *testing.T) {
-		imports, resp := th.SystemAdminClient.ListImports()
+	dataDir, found := fileutils.FindDir("data")
+	require.True(t, found)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		imports, resp := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, imports)
-	})
+	}, "no imports")
 
-	t.Run("expected imports", func(t *testing.T) {
-		id := uploadNewImport(th.SystemAdminClient, t)
-		id2 := uploadNewImport(th.SystemAdminClient, t)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		id := uploadNewImport(c, t)
+		id2 := uploadNewImport(c, t)
 
-		imports, resp := th.SystemAdminClient.ListImports()
+		importDir := filepath.Join(dataDir, "import")
+		f, err := os.Create(filepath.Join(importDir, "import.zip.tmp"))
+		require.Nil(t, err)
+		f.Close()
+
+		imports, resp := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 2)
 		require.Contains(t, imports, id+"_import_test.zip")
 		require.Contains(t, imports, id2+"_import_test.zip")
-	})
 
-	t.Run("change import directory", func(t *testing.T) {
+		require.Nil(t, os.RemoveAll(importDir))
+	}, "expected imports")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import_new" })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "import" })
 
-		imports, resp := th.SystemAdminClient.ListImports()
+		importDir := filepath.Join(dataDir, "import_new")
+
+		imports, resp := c.ListImports()
 		require.Nil(t, resp.Error)
 		require.Empty(t, imports)
 
-		id := uploadNewImport(th.SystemAdminClient, t)
-		imports, resp = th.SystemAdminClient.ListImports()
+		id := uploadNewImport(c, t)
+		imports, resp = c.ListImports()
 		require.Nil(t, resp.Error)
 		require.NotEmpty(t, imports)
 		require.Len(t, imports, 1)
 		require.Equal(t, id+"_import_test.zip", imports[0])
-	})
+
+		require.Nil(t, os.RemoveAll(importDir))
+	}, "change import directory")
 }
