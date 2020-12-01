@@ -788,3 +788,22 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 
 	return true, nil
 }
+
+func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed_no_card.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_no_card_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed_no_card.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
+	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}

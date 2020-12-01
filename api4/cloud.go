@@ -353,7 +353,11 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = nErr
 			return
 		}
-
+	case model.EventTypeFailedPaymentNoCard:
+		if nErr := c.App.SendNoCardPaymentFailedEmail(); nErr != nil {
+			c.Err = nErr
+			return
+		}
 	}
 
 	ReturnStatusOK(w)
