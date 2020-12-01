@@ -554,7 +554,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	mailToLinkContent := &MailToLinkContent{
 		MetricId:      warnMetricId,
-		MailRecipient: "support@mattermost.com",
+		MailRecipient: "support-advisor@mattermost.com",
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
 		MailBody:      mailBody,
