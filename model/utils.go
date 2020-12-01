@@ -73,9 +73,12 @@ func (sa StringArray) Equals(input StringArray) bool {
 }
 
 var translateFunc goi18n.TranslateFunc
+var translateFuncOnce sync.Once
 
 func AppErrorInit(t goi18n.TranslateFunc) {
-	translateFunc = t
+	translateFuncOnce.Do(func() {
+		translateFunc = t
+	})
 }
 
 type AppError struct {
