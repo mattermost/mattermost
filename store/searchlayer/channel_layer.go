@@ -8,6 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 )
 
@@ -150,7 +151,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 		mlog.Debug("Using database search because no other search engine is available")
 		channelList, nErr = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 		if nErr != nil {
-			return nil, errors.Wrapf(err, "AutocompleteInTeam")
+			return nil, errors.Wrapf(err, utils.T("app.channel.search.app_error"))
 		}
 	}
 
@@ -171,7 +172,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, errors.Wrapf(err, "searchAutocompleteChannels")
+			return nil, errors.Wrapf(err, utils.T("app.channel.get_channels_by_ids.app_error"))
 		}
 
 		for _, ch := range channels {
