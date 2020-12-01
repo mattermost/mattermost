@@ -162,21 +162,27 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
-	threadParticipants := []string{post.UserId}
+	threadParticipants := map[string]bool{post.UserId: true}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		if parentPostList != nil {
-			threadParticipants = append(threadParticipants, parentPostList.Posts[parentPostList.Order[0]].UserId)
+			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 		}
 		for id := range mentions.Mentions {
-			threadParticipants = append(threadParticipants, id)
+			threadParticipants[id] = true
 		}
-		// for each mention, make sure to update thread autofollow
-		for _, id := range threadParticipants {
+		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
+		for id := range threadParticipants {
 			mac := make(chan *model.AppError, 1)
 			go func(userId string) {
 				defer close(mac)
-
-				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true)
+				incrementMentions := false
+				for mid := range mentions.Mentions {
+					if userId == mid {
+						incrementMentions = true
+						break
+					}
+				}
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
