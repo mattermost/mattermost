@@ -3627,7 +3627,7 @@ func TestGetChannelModerations(t *testing.T) {
 		}
 	})
 
-	t.Run("Retuns the correct value for manage_members depending on whether the channel is public or private", func(t *testing.T) {
+	t.Run("Returns the correct value for manage_members depending on whether the channel is public or private", func(t *testing.T) {
 		scheme := th.SetupTeamScheme()
 		team.SchemeId = &scheme.Id
 		_, err := th.App.UpdateTeamScheme(team)

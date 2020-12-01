@@ -11,7 +11,7 @@ import (
 )
 
 func TestAutocompleteData(t *testing.T) {
-	ad := NewAutocompleteData("jira", "", "Avaliable commands:")
+	ad := NewAutocompleteData("jira", "", "Available commands:")
 	assert.Nil(t, ad.IsValid())
 	ad.RoleID = "some_id"
 	assert.NotNil(t, ad.IsValid())
@@ -75,7 +75,7 @@ func TestAutocompleteDataJSON(t *testing.T) {
 }
 
 func getAutocompleteData() *AutocompleteData {
-	ad := NewAutocompleteData("jira", "", "Avaliable commands:")
+	ad := NewAutocompleteData("jira", "", "Available commands:")
 	ad.RoleID = SYSTEM_USER_ROLE_ID
 	command := NewAutocompleteData("connect", "", "Connect to mattermost")
 	command.RoleID = SYSTEM_ADMIN_ROLE_ID
