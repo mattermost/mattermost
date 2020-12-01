@@ -6,6 +6,7 @@ package mlog
 import (
 	"io"
 	"strings"
+	"sync"
 	"testing"
 
 	"go.uber.org/zap"
@@ -33,6 +34,7 @@ func NewTestingLogger(tb testing.TB, writer io.Writer) *Logger {
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel("debug")),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel("info")),
 		logrLogger:   newLogr(),
+		mutex:        &sync.RWMutex{},
 	}
 
 	logWriterCore := zapcore.NewCore(makeEncoder(true), zapcore.Lock(logWriterSync), testingLogger.consoleLevel)
