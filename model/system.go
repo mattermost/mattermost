@@ -35,6 +35,7 @@ const (
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
 	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"
 	OVER_USER_LIMIT_FORGIVEN_COUNT                = "OverUserLimitForgivenCount"
+	OVER_USER_LIMIT_LAST_EMAIL_SENT               = "OverUserLimitLastEmailSent"
 )
 
 const (
