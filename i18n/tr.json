@@ -540,14 +540,6 @@
     "translation": "Rahatsız etmeyin kipini etkinleştirerek masaüstü ve mobil uygulamalarda anında bildirimleri devre dışı bırakır."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Rahatsız Etmeyin kipi devre dışı bırakılmış."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Kullanıcı durumu alınırken sorun çıktı."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "re"
   },
@@ -4371,20 +4363,12 @@
     "translation": "grubun eklenme zamanı özelliği geçersiz."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "grubun silinme zamanı özelliği geçersiz."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "grubun açıklama özelliği geçersiz."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "grubun görüntülenecek ad özelliği geçersiz."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "grubun kod özelliği geçersiz."
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4401,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "grup eşitlenebilirliği için eşitlenebilirlik kodu geçersiz."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "grup eşitlenebilirliği için tür özelliği geçersiz."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4891,6 @@
     "translation": "KİME adresi eksik."
   },
   {
-    "id": "store.insert_error",
-    "translation": "ekleme sorunu"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "seçim sorunu"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "Veritabanından: StringArray *string olarak dönüştürülemedi"
   },
@@ -4937,10 +4909,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Var olan kanal bulunamadı."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Kanal aranırken bir sorun çıktı."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4939,6 @@
     "translation": "Komut alınamadı."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grup eşitlenebilirliği zaten silinmiş"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "eşleşen bir grup bulunamadı"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "aynı adlı bir takım zaten var"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "grup üyesi zaten var"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Bu sunucu üzerinde arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
   },
@@ -5001,10 +4953,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Bu e-posta adresi zaten alınmış. Lütfen başka bir adres seçin."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "güncelleme sorunu"
   },
   {
     "id": "system.message.name",
@@ -5899,10 +5847,6 @@
     "translation": "Kullanıcılar alınamadı. Sıralama ölçütü geçersiz."
   },
   {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "\"{{.UserId}}\" kullanıcı kodlu grup üyesi çıkarılamadı."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Son Chrome tarayıcı sürümünü alın"
   },
@@ -6287,10 +6231,6 @@
     "translation": "E-posta adresi geçersiz."
   },
   {
-    "id": "store.sql_group.app_error",
-    "translation": "sorgu oluşturulamadı."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
     "translation": "Son Firefox tarayıcı sürümünü alın"
   },
@@ -6629,10 +6569,6 @@
   {
     "id": "app.command.createcommand.internal_error",
     "translation": "Komut kaydedilemedi."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Birden çok satır değiştirildi."
   },
   {
     "id": "store.sql_command.update.missing.app_error",
@@ -7412,7 +7348,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
+    "translation": " "
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7504,11 +7440,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
+    "translation": " "
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
+    "translation": " "
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7828,11 +7764,11 @@
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki zaman geçersiz. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": " "
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki imza geçersiz. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": " "
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
@@ -7912,15 +7848,15 @@
   },
   {
     "id": "ent.cloud.request_error",
-    "translation": "CWS isteği işlenirken sorun çıktı"
+    "translation": " "
   },
   {
     "id": "ent.cloud.json_encode.error",
-    "translation": "CWS isteği yapılırken bir iç sorun çıktı"
+    "translation": " "
   },
   {
     "id": "ent.cloud.authentication_failed",
-    "translation": "CWS kimliği doğrulanamadı"
+    "translation": " "
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -8265,5 +8201,129 @@
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
     "translation": "Projelerde genellikle bir kuruluşun hem içinden hem de dışından kişiler bulunur. Konuk Hesapları ile dış iş ortaklarınız Mattermost sisteminize erişmesini sağlayarak, kiminle çalışabileceklerini ve neleri görebileceklerini belirleyebilirsiniz.\n\n[Konuk Hesaplarını etkinleştirmek hakkında ayrıntılı bilgi alın](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nBizimle İletişim Kurun üzerine tıkladığınızda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Tüm kullanıcı konuları okunmuş olarak güncellenemedi"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Konunun okundu durumu güncellenemedi"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Konunun durumu şu şekilde güncellenemedi"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Kullanıcı konuları alınamadı"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloud çalışma alanı duraklatıldı"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "Mattermost Cloud aboneliğiniz duraklatıldı"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "Çalışma alanınızı yeniden etkinleştirmek için bizimle görüşün."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "Çalışma alanınız duraklatıldı. 1-3 ay içinde çalışma alanındaki tüm içerik ve veriler silinecek."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Destek Ekibi ile Görüşün"
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Şimdi Düzelt"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "Mattermost Cloud çalışma alanınız yarın duraklatılacak"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "Mattermost Cloud aboneliğiniz yakında duraklatılacak"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "Çalışma alanınız duraklatıldıktan sonraki 1-3 ay içinde çalışma alanındaki tüm içerik ve veriler silinecek."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "Çalışma alanınız duraklatıldığında hesabınızla oturum açamayacağınız için ödeme bilgilerinizi güncelleyemeyeceksiniz. Hizmetinizi yeniden etkinleştirmeniz için destek ekibimiz ile görüşmeniz gerekecek."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "Hizmetinizin duraklatılmaması için ödeme bilgilerinizi ekleyin"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "{{ .OverLimitDate }}. tarihindeki ödemesi yapılmayan Mattermost Cloud çalışma alanınız için son anımsatıcı. Hizmetiniz yarın durdurulacak."
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "Dosyada herhangi bir ödeme yöntemi yok"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost son otomatik ödemenizi alamadı. Hizmetinizin etkin kalması için en kısa sürede ödeme bilgilerinizi ekleyin yoksa hizmetiniz duraklatılabilir."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud Çalışma Alanı Duraklatılması"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Mattermost Cloud aboneliğinizi sürdürmek için bilgilerinizi güncelleyin"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "İleti geçmişinize erişemeyeceksiniz"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "Ödeme bilgilerinizi de güncelleyemeyeceğiniz için destek ekibimiz ile görüşmeniz gerekecek"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "Çalışma alanınıza oturum açamayacaksınız"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "Bir işlem yapmazsanız çalışma alanınız duraklatılacak"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "{{ .OverLimitDate }}. tarihli Mattermost aboneliği faturanızın ödenmediğini hatırlatırız. Ödeme yapılmaz ise yakında hizmetinizi duraklatmak zorunda kalacağız."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "Hala ödeme yönteminiz ile ilgili sorunları çözerek Mattermost Cloud çalışma alanınızı etkin tutmak için zamanınız var. Hizmetinizin duraklatılmaması için ödeme yönteminizi güncelleyin."
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "Ödeme yapılmadı"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Mattermost Cloud aboneliğinizin ödemesi yapılmadı"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
+  },
+  {
+    "id": "api.roles.patch_roles.admin_role.error",
+    "translation": "Sistem Yöneticisi rolü düzenlenemez ya da değiştirilemez"
   }
 ]
