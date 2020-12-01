@@ -370,7 +370,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 	return result, nil
 }
 
-func (s SqlChannelStore) completePopulatingCategoryChannelsT(transation *gorp.Transaction, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
+func (s SqlChannelStore) completePopulatingCategoryChannelsT(transaction *gorp.Transaction, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
 	}
@@ -415,7 +415,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(transation *gorp.Tr
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	if _, err = transation.Select(&channels, sql, args...); err != nil {
+	if _, err = transaction.Select(&channels, sql, args...); err != nil {
 		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>")
 	}
 

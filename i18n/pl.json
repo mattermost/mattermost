@@ -540,14 +540,6 @@
     "translation": "Tryb \"Nie przeszkadzać\" wyłącza powiadomienia desktopowe oraz mobilne powiadomienia push."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Tryb \"Nie przeszkadzać\" jest wyłączony."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Nie można odczytać statusu użytkownika."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
@@ -4376,20 +4368,12 @@
     "translation": "nieprawidłowe create at własności dla grupy"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "nieprawidłowe właściwości delete at dla grupy"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "nieprawidłowa właściwość opisu dla grupy"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "nieprawidłowa właściwość nazwy wyświetlanej dla grupy"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "nieprawidłowa właściwość id dla grupy"
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4406,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "nieprawidłowa wartość syncable id dla grupy syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "niepoprawna właściwość type dla grupy syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4916,14 +4896,6 @@
     "translation": "Brak adresu DO."
   },
   {
-    "id": "store.insert_error",
-    "translation": "błąd wstawiania"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "wybierz błąd"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Nie udało się skonwertować StringArray do *string"
   },
@@ -4942,10 +4914,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Nie można znaleźć istniejącego kanału"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4944,6 @@
     "translation": "Nie można uzyskać komendy"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grupa syncable została już usunięta"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nie znaleziono pasującej grupy"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "grupa o tej nazwie już istnieje"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "członek grupy już istnieje"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Wyszukiwanie zostało wyłączone na serwerze. Skontaktuj się z Administratorem."
   },
@@ -5006,10 +4958,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "błąd aktualizacji"
   },
   {
     "id": "system.message.name",
@@ -5246,14 +5194,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Pobierz najnowszą wersję Chrome"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Możesz usuwać członków grupy z userId \"{{.UserId}}\""
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "nie udało się zbudować zapytania"
   },
   {
     "id": "searchengine.bleve.disabled.error",
