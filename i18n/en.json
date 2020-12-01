@@ -6099,6 +6099,14 @@
     "translation": "We received an empty response from the Identity Provider."
   },
   {
+    "id": "ent.saml.do_login.invalid_signature.app_error",
+    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
+    "id": "ent.saml.do_login.invalid_time.app_error",
+    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
+  },
+  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
   },
