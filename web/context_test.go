@@ -32,6 +32,21 @@ func TestRequireHookId(t *testing.T) {
 	})
 }
 
+func TestCloudKeyRequired(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	c := &Context{
+		App: th.App,
+	}
+
+	c.CloudKeyRequired()
+
+	assert.Equal(t, c.Err.Id, "api.context.session_expired.app_error")
+}
+
 func TestMfaRequired(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()

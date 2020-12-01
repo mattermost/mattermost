@@ -4,6 +4,8 @@
 package app
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"sort"
 	"strings"
@@ -11,6 +13,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+// AutocompleteDynamicArgProvider dynamically provides auto-completion args for built-in commands.
+type AutocompleteDynamicArgProvider interface {
+	GetAutoCompleteListItems(a *App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
+}
 
 // GetSuggestions returns suggestions for user input.
 func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
@@ -233,6 +240,15 @@ func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed stri
 func (a *App) getDynamicListArgument(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
 	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
 
+	if strings.HasPrefix(dynamicArg.FetchURL, "builtin:") {
+		listItems, err := a.getBuiltinDynamicListArgument(commandArgs, arg, parsed, toBeParsed)
+		if err != nil {
+			a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", dynamicArg.FetchURL), mlog.Err(err))
+			return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
+		}
+		return parseListItems(listItems, parsed, toBeParsed)
+	}
+
 	params := url.Values{}
 	params.Add("user_input", parsed+toBeParsed)
 	params.Add("parsed", parsed)
@@ -285,4 +301,25 @@ func parseListItems(items []model.AutocompleteListItem, parsed, toBeParsed strin
 		}
 	}
 	return true, parsed + toBeParsed, "", suggestions
+}
+
+func (a *App) getBuiltinDynamicListArgument(commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
+	arr := strings.Split(dynamicArg.FetchURL, ":")
+	if len(arr) < 2 {
+		return nil, errors.New("Dynamic list URL missing built-in command name")
+	}
+	cmdName := arr[1]
+
+	provider := GetCommandProvider(cmdName)
+	if provider == nil {
+		return nil, fmt.Errorf("No command provider for %s", cmdName)
+	}
+
+	dp, ok := provider.(AutocompleteDynamicArgProvider)
+	if !ok {
+		return nil, fmt.Errorf("Auto-completion not available for built-in command %s", cmdName)
+	}
+
+	return dp.GetAutoCompleteListItems(a, commandArgs, arg, parsed, toBeParsed)
 }
