@@ -161,7 +161,7 @@ func tearDownStores() {
 // This test was used to consistently reproduce the race
 // before the fix in MM-28397.
 // Keeping it here to help avoiding future regressions.
-func TestSupplierLicenseRace(t *testing.T) {
+func TestStoreLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 	settings.DataSourceReplicas = []string{":memory:"}
 	settings.DataSourceSearchReplicas = []string{":memory:"}
