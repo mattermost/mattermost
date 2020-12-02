@@ -122,11 +122,11 @@ func TestGetSidebarCategories(t *testing.T) {
 		defer th.TearDown()
 
 		// Temporarily renaming a table to force a DB error.
-		sqlSupplier := mainHelper.GetSQLSupplier()
-		_, err := sqlSupplier.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
+		sqlStore := mainHelper.GetSQLStore()
+		_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
 		require.Nil(t, err)
 		defer func() {
-			_, err := sqlSupplier.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
+			_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
 			require.Nil(t, err)
 		}()
 

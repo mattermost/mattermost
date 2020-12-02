@@ -766,3 +766,25 @@ func (es *EmailService) SendSuspensionEmailToSupport(email string, installationI
 
 	return true, nil
 }
+
+func (es *EmailService) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]interface{}{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	bodyPage.Props["Info2"] = T("api.templates.payment_failed.info2")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed.info3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+
+	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
