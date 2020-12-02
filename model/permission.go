@@ -700,14 +700,14 @@ func initializePermissions() {
 	}
 	PERMISSION_SYSCONSOLE_READ_BILLING = &Permission{
 		"sysconsole_read_billing",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_WRITE_BILLING = &Permission{
 		"sysconsole_write_billing",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 	PERMISSION_SYSCONSOLE_READ_REPORTING = &Permission{
