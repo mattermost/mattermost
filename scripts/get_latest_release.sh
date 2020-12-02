@@ -37,7 +37,7 @@ PRERELEASE=$(curl \
 
 # Check if this is a release branch
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-#THIS_BRANCH="release-5.27"# - Used to test release logic on a non release branch
+#THIS_BRANCH="release-5.28"# - Used to test release logic on a non release branch
 
 if [[ "$THIS_BRANCH" =~ $BRANCH_TO_USE || $DRAFT =~ "true" ]]; then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
