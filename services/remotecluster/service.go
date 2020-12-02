@@ -5,6 +5,7 @@ package remotecluster
 
 import (
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -18,10 +19,10 @@ const (
 	ResultQueueDrainTimeoutMillis = 10000
 	MaxConcurrentSends            = 5
 	SendMsgURL                    = "api/v4/remotecluster/msg"
-	SendTimeoutMillis             = 60000
+	SendTimeout                   = time.Minute
 	PingURL                       = "api/v4/remotecluster/ping"
-	PingFreqMillis                = 60000 // once per minute
-	PingTimeoutMillis             = 15000
+	PingFreq                      = time.Minute
+	PingTimeout                   = time.Second * 15
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 )
 
@@ -39,7 +40,7 @@ type ServerIface interface {
 }
 
 type TopicListener interface {
-	OnReceiveMessage(msg *model.RemoteClusterMsg, rc *model.RemoteCluster) error
+	OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster) error
 }
 
 // Service provides inter-cluster communication via topic based messages.
@@ -68,12 +69,11 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 
 // Start is called by the server on server start-up.
 func (rcs *Service) Start() error {
-	defer rcs.onClusterLeaderChange()
-
 	rcs.mux.Lock()
-	defer rcs.mux.Unlock()
-
 	rcs.leaderListenerId = rcs.server.AddClusterLeaderChangedListener(rcs.onClusterLeaderChange)
+	rcs.mux.Unlock()
+
+	rcs.onClusterLeaderChange()
 
 	return nil
 }
@@ -104,16 +104,12 @@ func (rcs *Service) AddTopicListener(topic string, listener TopicListener) {
 		return
 	}
 
-	var found bool
 	for _, l := range listeners { // avoid duplicates
 		if l == listener {
-			found = true
-			break
+			return
 		}
 	}
-	if !found {
-		rcs.topicListeners[topic] = append(listeners, listener)
-	}
+	rcs.topicListeners[topic] = append(listeners, listener)
 }
 
 func (rcs *Service) RemoveTopicListener(topic string, listener TopicListener) {

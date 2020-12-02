@@ -36,11 +36,11 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Zero value", rc: &RemoteCluster{}, valid: false},
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster"}, valid: false},
-		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com"}, valid: false},
-		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com", CreateAt: now}, valid: true},
-		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com", CreateAt: now, LastPingAt: now}, valid: true},
-		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://blap.com", CreateAt: now, LastPingAt: now}, valid: true},
-		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://blap.com:8065", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com"}, valid: false},
+		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now}, valid: true},
+		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com:8065", CreateAt: now, LastPingAt: now}, valid: true},
 	}
 
 	for _, item := range data {
@@ -128,8 +128,8 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		password string
 		invite   RemoteClusterInvite
 	}{
-		{name: "empty password", password: "", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://somewhere.com:8065", Token: NewId()}},
-		{name: "good password", password: "Ultra secret password!", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://nowhere.com:8065", Token: NewId()}},
+		{name: "empty password", password: "", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
+		{name: "good password", password: "Ultra secret password!", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
 	}
 
 	for _, tt := range testData {

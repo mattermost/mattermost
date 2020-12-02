@@ -41,10 +41,6 @@ func TestPing(t *testing.T) {
 				merr.Append(err)
 				return
 			}
-			if frame.Msg == nil {
-				merr.Append(fmt.Errorf("Msg cannot be nil; remote_id=%s", frame.RemoteId))
-				return
-			}
 			if len(frame.Msg.Payload) == 0 {
 				merr.Append(fmt.Errorf("Payload should not be empty; remote_id=%s", frame.RemoteId))
 				return
