@@ -78,6 +78,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
+	defer configStore.Close()
 
 	return runServer(configStore, usedPlatform, interruptChan)
 }
@@ -97,7 +98,6 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
-		configStore.Close()
 		mlog.Critical(err.Error())
 		return err
 	}
