@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -101,21 +102,17 @@ func (rcs *Service) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]b
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, SendMsgURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), SendTimeout)
-	defer cancel()
-
-	return rcs.sendFrameToRemote(ctx, frame, url)
+	return rcs.sendFrameToRemote(SendTimeout, frame, url)
 }
 
-func (rcs *Service) sendFrameToRemote(ctx context.Context, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
+func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
 	body, err := json.Marshal(frame)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
