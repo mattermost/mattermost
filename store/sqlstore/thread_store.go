@@ -162,13 +162,18 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
+func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
-		if !membership.Following {
-			membership.Following = true
+		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions {
+			if updateFollowing {
+				membership.Following = following
+			}
 			membership.LastUpdated = now
+			if incrementMentions {
+				membership.UnreadMentions += 1
+			}
 			_, err = s.UpdateMembership(membership)
 		}
 		return err
@@ -179,12 +184,17 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string) error {
 	if !errors.As(err, &nfErr) {
 		return errors.Wrap(err, "failed to get thread membership")
 	}
+	mentions := 0
+	if incrementMentions {
+		mentions = 1
+	}
 	_, err = s.SaveMembership(&model.ThreadMembership{
-		PostId:      postId,
-		UserId:      userId,
-		Following:   true,
-		LastViewed:  0,
-		LastUpdated: now,
+		PostId:         postId,
+		UserId:         userId,
+		Following:      following,
+		LastViewed:     0,
+		LastUpdated:    now,
+		UnreadMentions: int64(mentions),
 	})
 	return err
 }
@@ -210,19 +220,38 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 	return changedThreads, nil
 }
 
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 	if len(changedThreads) == 0 {
 		return nil
 	}
-	updateQuery, updateArgs, _ := s.getQueryBuilder().
+
+	qb := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
-		Set("LastUpdated", timestamp).
-		Set("LastViewed", timestamp).
-		ToSql()
+		Set("LastUpdated", timestamp)
+
+	if updateViewedTimestamp {
+		qb = qb.Set("LastViewed", timestamp)
+	}
+	updateQuery, updateArgs, _ := qb.ToSql()
+
 	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {
 		return errors.Wrap(err, "failed to update thread membership")
 	}
 
 	return nil
+}
+
+func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
+	var result []*model.Post
+	if _, err := s.GetReplica().Select(&result, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+	return result, nil
 }

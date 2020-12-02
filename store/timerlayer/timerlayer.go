@@ -6872,10 +6872,10 @@ func (s *TimerLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string) error {
+func (s *TimerLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool, updateFollowing bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId)
+	err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions, updateFollowing)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6968,6 +6968,22 @@ func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.T
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetPosts(threadId, since)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetPosts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
 	start := timemodule.Now()
 
@@ -7048,10 +7064,10 @@ func (s *TimerLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+func (s *TimerLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp)
+	err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp, updateViewedTimestamp)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
