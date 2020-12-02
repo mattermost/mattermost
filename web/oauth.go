@@ -330,7 +330,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if action == model.OAUTH_ACTION_MOBILE {
-		return
+		if len(redirectUrl) == 0 {
+			return
+		}
+		redirectUrl = utils.BuildUrlQueryStringFromCookies(redirectUrl, r)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -367,13 +370,15 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redirectTo := r.URL.Query().Get("redirect_to")
+
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", "", true)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, redirectTo, "", true)
 	if err != nil {
 		c.Err = err
 		return

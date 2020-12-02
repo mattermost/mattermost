@@ -4,12 +4,13 @@
 package utils
 
 import (
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -171,4 +172,14 @@ func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 	cache.Key = resp.Header.Get("ETag")
 	cache.Date = resp.Header.Get("Date")
 	return cache.Data, err
+}
+
+func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
+	u, _ := url.Parse(baseUrl)
+	q, _ := url.ParseQuery(u.RawQuery)
+	for _, cookie := range r.Cookies() {
+		q.Add(cookie.Name, cookie.Value)
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
 }

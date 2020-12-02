@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+        "github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (w *Web) InitSaml() {
@@ -159,7 +160,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.AttachSessionCookies(w, r)
 
 	if val, ok := relayProps["redirect_to"]; ok {
-		http.Redirect(w, r, c.GetSiteURLHeader()+val, http.StatusFound)
+		var redirectUrl string
+		if action == model.OAUTH_ACTION_MOBILE {
+			redirectUrl = utils.BuildUrlQueryStringFromCookies(val, r)
+		} else {
+			redirectUrl = c.GetSiteURLHeader() + val
+		}
+		http.Redirect(w, r, redirectUrl, http.StatusFound)
 		return
 	}
 
