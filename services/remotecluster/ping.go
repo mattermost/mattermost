@@ -46,7 +46,9 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		}
 
 		for _, rc := range remotes {
-			pingChan <- rc
+			if rc.SiteURL != "" { // filter out unconfirmed invites
+				pingChan <- rc
+			}
 		}
 
 		// try to maintain frequency
@@ -72,7 +74,7 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 		case rc := <-pingChan:
 			if rc != nil {
 				if err := rcs.pingRemote(rc); err != nil {
-					rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping FAILED", mlog.Err(err))
+					rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping failed", mlog.Err(err))
 				}
 			}
 		case <-done:

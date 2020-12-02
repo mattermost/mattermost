@@ -19,7 +19,7 @@ func TestRemoteClusterJson(t *testing.T) {
 	require.NoError(t, err)
 
 	ro, err := RemoteClusterFromJSON(strings.NewReader(json))
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	require.Equal(t, o.RemoteId, ro.RemoteId)
 	require.Equal(t, o.DisplayName, ro.DisplayName)
@@ -37,7 +37,7 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster"}, valid: false},
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com"}, valid: false},
-		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com", CreateAt: now}, valid: false},
+		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com", CreateAt: now}, valid: true},
 		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "blap.com", CreateAt: now, LastPingAt: now}, valid: true},
 		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://blap.com", CreateAt: now, LastPingAt: now}, valid: true},
 		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://blap.com:8065", CreateAt: now, LastPingAt: now}, valid: true},
@@ -60,7 +60,6 @@ func TestRemoteClusterPreSave(t *testing.T) {
 	o.PreSave()
 
 	require.GreaterOrEqual(t, o.CreateAt, now)
-	require.GreaterOrEqual(t, o.LastPingAt, now)
 }
 
 func TestRemoteClusterMsgJson(t *testing.T) {
@@ -70,7 +69,7 @@ func TestRemoteClusterMsgJson(t *testing.T) {
 	require.NoError(t, err)
 
 	ro, err := RemoteClusterMsgFromJSON(strings.NewReader(string(json)))
-	require.NoError(t, err)
+	require.Nil(t, err)
 
 	require.Equal(t, o.Id, ro.Id)
 	require.Equal(t, o.CreateAt, ro.CreateAt)

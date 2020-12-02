@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
@@ -145,10 +144,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.PasswordSettings.Number = false
 
 		*cfg.ServiceSettings.ListenAddress = ":0"
-
-		// Disable Remote Cluster Service ping
-		// TODO: use config when https://mattermost.atlassian.net/browse/MM-30838 is merged.
-		remotecluster.DisablePing = true
 	})
 	if err := th.Server.Start(); err != nil {
 		panic(err)

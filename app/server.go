@@ -687,6 +687,11 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License) {
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return
+	}
+
 	var err error
 
 	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
