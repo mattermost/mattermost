@@ -1,4 +1,3 @@
-
 dist: | check-style test package
 
 build-linux:
@@ -97,6 +96,9 @@ package:
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
+	@#Download MMCTL
+	scripts/download_mmctl_release.sh "" $(DIST_PATH)/bin
+
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
@@ -105,6 +107,9 @@ else
 endif
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
+	if [ -f ../manifest.txt ]; then \
+		cp ../manifest.txt $(DIST_PATH); \
+	fi
 
 	@# Import Mattermost plugin public key
 	gpg --import build/plugin-production-public-key.gpg
@@ -130,7 +135,8 @@ else
 	cp $(GOBIN)/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.28.0/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for OSX
+	scripts/download_mmctl_release.sh "Darwin" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="osx-amd64"; \
@@ -164,7 +170,8 @@ else
 	cp $(GOBIN)/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.28.0/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for Windows
+	scripts/download_mmctl_release.sh "Windows" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="windows-amd64"; \
@@ -198,7 +205,8 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://releases.mattermost.com/mmctl/v5.28.0/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for Linux
+	scripts/download_mmctl_release.sh "Linux" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \
