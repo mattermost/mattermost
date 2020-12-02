@@ -87,7 +87,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 				task.f(task.msg, rc, resp, err)
 			}
 			if err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send FAILED",
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send failed",
 					mlog.String("remote", rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
 			} else {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
