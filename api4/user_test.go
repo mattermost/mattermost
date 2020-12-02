@@ -5608,7 +5608,12 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	// the other user should also have 2
 	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
 }
-
+func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model.Post, *model.Response) {
+	p, resp := client.CreatePost(post)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	return p, resp
+}
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5635,14 +5640,9 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	}
 
 	// create regular post
-	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
+	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// create reply and mention the original poster and another user
-	msg := "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username
-	rpost2, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: msg, RootId: rpost.Id})
-	CheckNoError(t, resp2)
-	CheckCreatedStatus(t, resp2)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username, RootId: rpost.Id})
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
@@ -5651,23 +5651,30 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	// basic user 2 was mentioned 1 time
 	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
 
-	// set read state, this should clear the mentions
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetMillis())
-	CheckNoError(t, resp)
-	CheckOKStatus(t, resp)
-
-	// basic user 1 mention count should be reset
-	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
-	// basic user 2 was mentioned 1 time, and not reset (UpdateThreadsReadForUser was called for another user)
-	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
-
-	// rewind read state to before the post
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
-	CheckNoError(t, resp)
-	CheckOKStatus(t, resp)
-
-	// basic user 1 was mentioned 1 time, so it should be restored
+	// test self mention, shouldn't increase mention count
+	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+	// count should increase
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+
+	// test DM
+	dm := th.CreateDmChannel(th.SystemAdminUser)
+	dm_root_post, _ := postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
+
+	// no changes
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+
+	// post reply by the same user
+	postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "how are you", RootId: dm_root_post.Id})
+
+	// thread created
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 2)
+
+	// post two replies by another user, without mentions. mention count should still increase since this is a DM
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg1", RootId: dm_root_post.Id})
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
+	// expect increment by two mentions
+	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
+
 }
 
 func TestReadThreads(t *testing.T) {

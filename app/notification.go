@@ -163,7 +163,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
-	if post.RootId != "" {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		if parentPostList != nil {
 			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
 		}
@@ -179,6 +179,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				for mid := range mentions.Mentions {
 					if userId == mid {
 						incrementMentions = true
+						break
 					}
 				}
 				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)

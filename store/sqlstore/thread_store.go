@@ -459,9 +459,14 @@ func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []
 }
 
 func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
-	query, args, _ := s.getQueryBuilder().Select("*").From("Posts").Where(sq.Eq{"RootId": threadId}).Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
 	var result []*model.Post
-	if _, err := s.GetMaster().Select(&result, query, args...); err != nil {
+	if _, err := s.GetReplica().Select(&result, query, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch thread posts")
 	}
 	return result, nil

@@ -121,7 +121,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(1), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId}, thread.Participants)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 	})
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
@@ -198,7 +198,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread2, err := ss.Thread().Get(rootPost.RootId)
 		require.Nil(t, err)
 		require.EqualValues(t, thread2.ReplyCount, 1)
-		require.Len(t, thread2.Participants, 1)
+		require.Len(t, thread2.Participants, 2)
 	})
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
