@@ -49,8 +49,8 @@ func TestSendMsg(t *testing.T) {
 				merr.Append(appErr)
 				return
 			}
-			if frame.Msg == nil || len(frame.Msg.Payload) == 0 {
-				merr.Append(fmt.Errorf("webrequest missing Msg or Msg.Payload"))
+			if len(frame.Msg.Payload) == 0 {
+				merr.Append(fmt.Errorf("webrequest missing Msg.Payload"))
 			}
 			if msgId != frame.Msg.Id {
 				merr.Append(fmt.Errorf("webrequest msgId expected %s, got %s", msgId, frame.Msg.Id))
@@ -86,7 +86,7 @@ func TestSendMsg(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		err = service.SendOutgoingMsg(ctx, msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.SendOutgoingMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
@@ -139,7 +139,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
@@ -174,7 +174,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
@@ -211,11 +211,11 @@ func makeRemoteCluster(name string, siteURL string, topics string) *model.Remote
 	}
 }
 
-func makeRemoteClusterMsg(id string, note string) *model.RemoteClusterMsg {
+func makeRemoteClusterMsg(id string, note string) model.RemoteClusterMsg {
 	payload := testPayload{Note: note}
 	raw, _ := json.Marshal(payload)
 
-	return &model.RemoteClusterMsg{
+	return model.RemoteClusterMsg{
 		Id:       id,
 		Token:    model.NewId(),
 		Topic:    TestTopic,

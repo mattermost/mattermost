@@ -28,8 +28,6 @@ func (rcs *Service) pingLoop(done <-chan struct{}) {
 func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-chan struct{}) {
 	defer close(pingChan)
 
-	const freq = time.Millisecond * PingFreqMillis
-
 	for {
 		start := time.Now()
 
@@ -38,7 +36,7 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		if err != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
 			select {
-			case <-time.After(freq):
+			case <-time.After(PingFreq):
 				continue
 			case <-done:
 				return
@@ -54,8 +52,8 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		// try to maintain frequency
 		elapsed := time.Since(start)
 		sleep := time.Second * 1
-		if elapsed < freq {
-			sleep = time.Until(start.Add(freq))
+		if elapsed < PingFreq {
+			sleep = time.Until(start.Add(PingFreq))
 		}
 
 		select {
@@ -72,10 +70,11 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 	for {
 		select {
 		case rc := <-pingChan:
-			if rc != nil {
-				if err := rcs.pingRemote(rc); err != nil {
-					rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping failed", mlog.Err(err))
-				}
+			if rc == nil {
+				break
+			}
+			if err := rcs.pingRemote(rc); err != nil {
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping failed", mlog.Err(err))
 			}
 		case <-done:
 			return
@@ -90,7 +89,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*PingTimeoutMillis)
+	ctx, cancel := context.WithTimeout(context.Background(), PingTimeout)
 	defer cancel()
 
 	resp, err := rcs.sendFrameToRemote(ctx, frame, url)
@@ -122,7 +121,7 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 		return nil, err
 	}
 
-	msg := &model.RemoteClusterMsg{
+	msg := model.RemoteClusterMsg{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
 		Payload:  pingRaw,

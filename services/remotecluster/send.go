@@ -10,16 +10,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type SendResultFunc func(msg *model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error)
+type SendResultFunc func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error)
 
 type sendTask struct {
-	msg *model.RemoteClusterMsg
+	msg model.RemoteClusterMsg
 	f   SendResultFunc
 }
 
@@ -30,7 +29,7 @@ type sendTask struct {
 //
 // An optional callback can be provided that receives the success or fail result of sending to each remote cluster.
 // Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
-func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg *model.RemoteClusterMsg, f SendResultFunc) error {
+func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
 	task := sendTask{
 		msg: msg,
 		f:   f,
@@ -55,9 +54,7 @@ func (rcs *Service) sendLoop(done chan struct{}) {
 			for {
 				select {
 				case task := <-rcs.send:
-					if task.msg != nil {
-						rcs.sendMsg(task)
-					}
+					rcs.sendMsg(task)
 				case <-done:
 					return
 				}
@@ -69,10 +66,9 @@ func (rcs *Service) sendLoop(done chan struct{}) {
 func (rcs *Service) sendMsg(task sendTask) {
 	// get list of interested remotes.
 	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(task.msg.Topic)
-	if err != nil {
-		if task.f != nil {
-			task.f(task.msg, nil, nil, fmt.Errorf("could not send msg to remote: %w", err))
-		}
+	if err != nil && task.f != nil {
+		task.f(task.msg, nil, nil, fmt.Errorf("could not send msg to remote: %w", err))
+		return
 	}
 
 	// bound the number of concurrent goroutines used to send using a semaphore.
@@ -105,7 +101,7 @@ func (rcs *Service) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]b
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, SendMsgURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*SendTimeoutMillis)
+	ctx, cancel := context.WithTimeout(context.Background(), SendTimeout)
 	defer cancel()
 
 	return rcs.sendFrameToRemote(ctx, frame, url)

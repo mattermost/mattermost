@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -34,7 +33,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*PingTimeoutMillis)
+	ctx, cancel := context.WithTimeout(context.Background(), PingTimeout)
 	defer cancel()
 
 	if _, err := rcs.sendFrameToRemote(ctx, frame, url); err != nil {
@@ -54,7 +53,7 @@ func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClu
 		return nil, err
 	}
 
-	msg := &model.RemoteClusterMsg{
+	msg := model.RemoteClusterMsg{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
 		Payload:  confirmRaw,

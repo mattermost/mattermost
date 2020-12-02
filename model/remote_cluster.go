@@ -108,9 +108,9 @@ func RemoteClusterFromJSON(data io.Reader) (*RemoteCluster, *AppError) {
 
 // RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.
 type RemoteClusterFrame struct {
-	RemoteId string            `json:"remote_id"`
-	Token    string            `json:"token"`
-	Msg      *RemoteClusterMsg `json:"msg"`
+	RemoteId string           `json:"remote_id"`
+	Token    string           `json:"token"`
+	Msg      RemoteClusterMsg `json:"msg"`
 }
 
 func (f *RemoteClusterFrame) IsValid() *AppError {
@@ -120,10 +120,6 @@ func (f *RemoteClusterFrame) IsValid() *AppError {
 
 	if !IsValidId(f.Token) {
 		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if f.Msg == nil {
-		return NewAppError("RemoteClusterFrame.IsValid", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "msg"}, "", http.StatusBadRequest)
 	}
 
 	if len(f.Msg.Payload) == 0 {
