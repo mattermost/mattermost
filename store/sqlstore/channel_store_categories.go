@@ -996,6 +996,8 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	var deleteQuery string
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId"
+	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		deleteQuery = `DELETE FROM SidebarChannels WHERE SidebarChannels.CategoryId IN (SELECT Id from SidebarCategories WHERE TeamId = :TeamId AND UserId = :UserId)`
 	} else {
 		deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.UserId = :UserId AND   cat.TeamId = :TeamId"
 	}

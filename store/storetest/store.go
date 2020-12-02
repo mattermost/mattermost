@@ -105,6 +105,10 @@ func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
 
+func (s *Store) DriverName() string {
+	return "mock"
+}
+
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,
 		&s.TeamStore,

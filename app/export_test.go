@@ -252,7 +252,7 @@ func TestExportDMChannel(t *testing.T) {
 	// Ensure the Members of the imported DM channel is the same was from the exported
 	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, nErr)
-	assert.Equal(t, 1, len(channels))
+	require.Equal(t, 1, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
 }
 
@@ -285,7 +285,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 
 	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	require.Nil(t, nErr)
-	assert.Equal(t, 1, len(channels))
+	require.Equal(t, 1, len(channels))
 	assert.Equal(t, 1, len((*channels[0].Members)))
 	assert.Equal(t, th1.BasicUser.Username, (*channels[0].Members)[0])
 }
@@ -361,7 +361,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 
 	// Adding some deteminism so its possible to assert on slice index
 	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
-	assert.Equal(t, 2, len(channels))
+	require.Equal(t, 2, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
 }
@@ -439,7 +439,7 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	// Adding some deteminism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
-	assert.Equal(t, 4, len(posts))
+	require.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[2].ChannelMembers)
@@ -514,7 +514,7 @@ func TestExportPostWithProps(t *testing.T) {
 
 	// Adding some determinism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
-	assert.Len(t, posts, 2)
+	require.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
 	assert.Contains(t, posts[0].Props["attachments"].([]interface{})[0], "footer")
@@ -553,7 +553,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 
 	posts, nErr = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, nErr)
-	assert.Equal(t, 1, len(posts))
+	require.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
 	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])
 }

@@ -2858,16 +2858,17 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextClause = fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
 	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		panic("Cockroachdb: not supported full text search")
-		// fulltextClause = "("
-		// for _, term := range strings.Fields(fulltextTerm) {
-		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchColumns, term)
-		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchColumns, term)
-		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchColumns, term)
-		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchColumns, term)
-		// }
-		// fulltextClause = fulltextClause[:len(fulltextClause)-4]
-		// fulltextClause += ")"
+		fulltextClause = "("
+		for _, term := range strings.Fields(fulltextTerm) {
+			for _, searchColumn := range strings.Split(searchColumns, ",") {
+				fulltextClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchColumn, term)
+				fulltextClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchColumn, term)
+				fulltextClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchColumn, term)
+				fulltextClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchColumn, term)
+			}
+		}
+		fulltextClause = fulltextClause[:len(fulltextClause)-4]
+		fulltextClause += ")"
 	}
 
 	return
