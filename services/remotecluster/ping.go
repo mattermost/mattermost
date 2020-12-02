@@ -4,7 +4,6 @@
 package remotecluster
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -89,10 +88,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), PingTimeout)
-	defer cancel()
-
-	resp, err := rcs.sendFrameToRemote(ctx, frame, url)
+	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
 	if err != nil {
 		return err
 	}

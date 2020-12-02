@@ -4,7 +4,6 @@
 package remotecluster
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -33,10 +32,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
 
-	ctx, cancel := context.WithTimeout(context.Background(), PingTimeout)
-	defer cancel()
-
-	if _, err := rcs.sendFrameToRemote(ctx, frame, url); err != nil {
+	if _, err := rcs.sendFrameToRemote(PingTimeout, frame, url); err != nil {
 		return nil, err
 	}
 	return rcSaved, nil
