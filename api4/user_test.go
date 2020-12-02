@@ -5630,7 +5630,6 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		})
 		CheckNoError(t, resp)
 		require.Len(t, uss.Threads, expectedThreads)
-		require.EqualValues(t, expectedMentions, uss.Threads[0].UnreadMentions)
 		sum := int64(0)
 		for _, thr := range uss.Threads {
 			sum += thr.UnreadMentions
