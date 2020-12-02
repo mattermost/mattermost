@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
@@ -129,7 +128,6 @@ type Server struct {
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
 	postActionCookieSecret  []byte
 
 	advancedLogListenerCleanup func()
@@ -137,9 +135,10 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        atomic.Value
-	clientConfigHash    atomic.Value
-	limitedClientConfig atomic.Value
+	asymmetricSigningKey atomic.Value
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
 

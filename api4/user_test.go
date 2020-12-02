@@ -5401,6 +5401,98 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 }
 
+func TestThreadSocketEvents(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	userWSClient, err := th.CreateWebSocketClient()
+	require.Nil(t, err)
+	defer userWSClient.Close()
+	userWSClient.Listen()
+
+	Client := th.Client
+
+	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	_, err = th.App.CreatePostAsUser(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", UserId: th.BasicUser2.Id, RootId: rpost.Id}, th.App.Session().Id, false)
+	require.Nil(t, err)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser2.Id)
+
+	t.Run("Listed for update event", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_UPDATED {
+						caught = true
+						thread, err := model.ThreadFromJson(ev.GetData()["thread"].(string))
+						require.Nil(t, err)
+						require.Contains(t, thread.Participants, th.BasicUser.Id)
+						require.Contains(t, thread.Participants, th.BasicUser2.Id)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_UPDATED)
+	})
+
+	resp = th.Client.UpdateThreadFollowForUser(th.BasicUser.Id, rpost.Id, false)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	t.Run("Listed for follow event", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED {
+						caught = true
+						require.Equal(t, ev.GetData()["state"], false)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED)
+	})
+
+	resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, rpost.Id, 123)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	t.Run("Listed for read event", func(t *testing.T) {
+		var caught bool
+		func() {
+			for {
+				select {
+				case ev := <-userWSClient.EventChannel:
+					if ev.EventType() == model.WEBSOCKET_EVENT_THREAD_READ_CHANGED {
+						caught = true
+						require.EqualValues(t, ev.GetData()["timestamp"], 123)
+					}
+				case <-time.After(1 * time.Second):
+					return
+				}
+			}
+		}()
+
+		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_READ_CHANGED)
+	})
+
+}
+
 func TestFollowThreads(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -5450,6 +5542,80 @@ func TestFollowThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 
 	})
+}
+
+func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model.Post, *model.Response) {
+	p, resp := client.CreatePost(post)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	return p, resp
+}
+
+func TestMaintainUnreadMentionsInThread(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
+		uss, resp := client.GetUserThreads(userId, model.GetUserThreadsOpts{
+			Page:     0,
+			PageSize: 30,
+			Deleted:  false,
+		})
+		CheckNoError(t, resp)
+		require.Len(t, uss.Threads, expectedThreads)
+
+		// validate amount of mentions via store. once GetUserThreads starts returning mentions - update
+		memberships, err := th.App.Srv().Store.Thread().GetMembershipsForUser(userId)
+		require.NoError(t, err)
+		sum := int64(0)
+		for _, membership := range memberships {
+			sum += membership.UnreadMentions
+		}
+		require.EqualValues(t, expectedMentions, sum)
+		return uss, resp
+	}
+
+	// create regular post
+	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	// create reply and mention the original poster and another user
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username, RootId: rpost.Id})
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+	// basic user 1 was mentioned 1 time
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	// basic user 2 was mentioned 1 time
+	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
+
+	// test self mention, shouldn't increase mention count
+	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
+	// count should increase
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+
+	// test DM
+	dm := th.CreateDmChannel(th.SystemAdminUser)
+	dm_root_post, _ := postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
+
+	// no changes
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+
+	// post reply by the same user
+	postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "how are you", RootId: dm_root_post.Id})
+
+	// thread created
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 2)
+
+	// post two replies by another user, without mentions. mention count should still increase since this is a DM
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg1", RootId: dm_root_post.Id})
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
+	// expect increment by two mentions
+	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
+
 }
 
 func TestReadThreads(t *testing.T) {

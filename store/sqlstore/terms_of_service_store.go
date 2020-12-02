@@ -14,14 +14,14 @@ import (
 )
 
 type SqlTermsOfServiceStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
-	s := SqlTermsOfServiceStore{sqlStore, metrics}
+func newSqlTermsOfServiceStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+	s := SqlTermsOfServiceStore{sqlSupplier, metrics}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.TermsOfService{}, "TermsOfService").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)

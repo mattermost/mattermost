@@ -15,17 +15,17 @@ import (
 )
 
 type SqlEmojiStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
+func newSqlEmojiStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	s := &SqlEmojiStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlSupplier: sqlSupplier,
+		metrics:     metrics,
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Emoji{}, "Emoji").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)

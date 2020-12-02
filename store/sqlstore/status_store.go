@@ -16,13 +16,13 @@ import (
 )
 
 type SqlStatusStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlStatusStore(sqlStore SqlStore) store.StatusStore {
-	s := &SqlStatusStore{sqlStore}
+func newSqlStatusStore(sqlSupplier *SqlSupplier) store.StatusStore {
+	s := &SqlStatusStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Status{}, "Status").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Status").SetMaxSize(32)

@@ -15,20 +15,20 @@ import (
 )
 
 type SqlWebhookStore struct {
-	SqlStore
+	*SqlSupplier
 	metrics einterfaces.MetricsInterface
 }
 
 func (s SqlWebhookStore) ClearCaches() {
 }
 
-func newSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
+func newSqlWebhookStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.WebhookStore {
 	s := &SqlWebhookStore{
-		SqlStore: sqlStore,
-		metrics:  metrics,
+		SqlSupplier: sqlSupplier,
+		metrics:     metrics,
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.IncomingWebhook{}, "IncomingWebhooks").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)

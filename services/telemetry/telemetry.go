@@ -405,6 +405,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"collapsed_threads":                                       *cfg.ServiceSettings.CollapsedThreads,
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,

@@ -15,13 +15,13 @@ import (
 )
 
 type SqlPreferenceStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
-	s := &SqlPreferenceStore{sqlStore}
+func newSqlPreferenceStore(sqlSupplier *SqlSupplier) store.PreferenceStore {
+	s := &SqlPreferenceStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Preference{}, "Preferences").SetKeys(false, "UserId", "Category", "Name")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Category").SetMaxSize(32)

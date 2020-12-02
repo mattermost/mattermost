@@ -17,13 +17,13 @@ import (
 )
 
 type SqlJobStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlJobStore(sqlStore SqlStore) store.JobStore {
-	s := &SqlJobStore{sqlStore}
+func newSqlJobStore(sqlSupplier *SqlSupplier) store.JobStore {
+	s := &SqlJobStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.Job{}, "Jobs").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)

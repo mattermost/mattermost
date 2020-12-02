@@ -17,15 +17,15 @@ import (
 )
 
 type SqlChannelMemberHistoryStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlChannelMemberHistoryStore(sqlStore SqlStore) store.ChannelMemberHistoryStore {
+func newSqlChannelMemberHistoryStore(sqlSupplier *SqlSupplier) store.ChannelMemberHistoryStore {
 	s := &SqlChannelMemberHistoryStore{
-		SqlStore: sqlStore,
+		SqlSupplier: sqlSupplier,
 	}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.ChannelMemberHistory{}, "ChannelMemberHistory").SetKeys(false, "ChannelId", "UserId", "JoinTime")
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)

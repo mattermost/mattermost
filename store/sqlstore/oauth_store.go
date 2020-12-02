@@ -15,13 +15,13 @@ import (
 )
 
 type SqlOAuthStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
-	as := &SqlOAuthStore{sqlStore}
+func newSqlOAuthStore(sqlSupplier *SqlSupplier) store.OAuthStore {
+	as := &SqlOAuthStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.OAuthApp{}, "OAuthApps").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)

@@ -228,7 +228,7 @@ type AppIface interface {
 	// belong to users in the specified team, linking them to their users
 	MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
-	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+	// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
@@ -540,6 +540,7 @@ type AppIface interface {
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)
 	GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetCloudSession(token string) (*model.Session, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
 	GetCommand(commandId string) (*model.Command, *model.AppError)
@@ -892,6 +893,7 @@ type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
+	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
 	Session() *model.Session

@@ -13,13 +13,13 @@ import (
 )
 
 type SqlUserTermsOfServiceStore struct {
-	SqlStore
+	*SqlSupplier
 }
 
-func newSqlUserTermsOfServiceStore(sqlStore SqlStore) store.UserTermsOfServiceStore {
-	s := SqlUserTermsOfServiceStore{sqlStore}
+func newSqlUserTermsOfServiceStore(sqlSupplier *SqlSupplier) store.UserTermsOfServiceStore {
+	s := SqlUserTermsOfServiceStore{sqlSupplier}
 
-	for _, db := range sqlStore.GetAllConns() {
+	for _, db := range sqlSupplier.GetAllConns() {
 		table := db.AddTableWithName(model.UserTermsOfService{}, "UserTermsOfService").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("TermsOfServiceId").SetMaxSize(26)
