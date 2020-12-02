@@ -73,6 +73,9 @@ pipeline {
               platformStages.platformCheckoutTE(env.BRANCH_NAME)
               platformStages.platformCheckoutEE(env.BRANCH_NAME)
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
+              platformStages.platformCheckoutEEGOSaml('release-5.x')
+              platformStages.platformCheckoutEEGOXML('release-5.x')
+              platformStages.platformCheckoutEEGOXMLDsig('release-5.x')
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
                 platformStages.cloudGAWithRudderBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEEProd, true, mmBuilderServer, mmBuilderWebapp)
