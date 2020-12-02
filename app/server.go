@@ -269,6 +269,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
+	model.AppErrorInit(utils.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
@@ -449,8 +450,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
-
-	model.AppErrorInit(utils.T)
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
