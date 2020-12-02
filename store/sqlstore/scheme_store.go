@@ -16,10 +16,10 @@ import (
 )
 
 type SqlSchemeStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
+func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 	s := &SqlSchemeStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

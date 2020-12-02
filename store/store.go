@@ -14,7 +14,6 @@ import (
 
 type StoreResult struct {
 	Data interface{}
-	Err  *model.AppError
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -207,6 +206,7 @@ type ChannelStore interface {
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, error)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, error)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error)
+	GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, error)
 	ClearCaches()
@@ -221,7 +221,7 @@ type ChannelStore interface {
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, error)
 	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) error
-	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error)
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error)
 	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarCategory(categoryId string) error
@@ -253,6 +253,7 @@ type ThreadStore interface {
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	Delete(postId string) error
+	GetPosts(threadId string, since int64) ([]*model.Post, error)
 
 	MarkAllAsRead(userId string, timestamp int64) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
@@ -262,9 +263,9 @@ type ThreadStore interface {
 	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
-	CreateMembershipIfNeeded(userId, postId string, following bool) error
+	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
-	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error
+	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
 }
 
 type PostStore interface {
@@ -687,90 +688,90 @@ type UserTermsOfServiceStore interface {
 }
 
 type GroupStore interface {
-	Create(group *model.Group) (*model.Group, *model.AppError)
-	Get(groupID string) (*model.Group, *model.AppError)
-	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
-	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
-	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
-	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetByUser(userId string) ([]*model.Group, *model.AppError)
-	Update(group *model.Group) (*model.Group, *model.AppError)
-	Delete(groupID string) (*model.Group, *model.AppError)
+	Create(group *model.Group) (*model.Group, error)
+	Get(groupID string) (*model.Group, error)
+	GetByName(name string, opts model.GroupSearchOpts) (*model.Group, error)
+	GetByIDs(groupIDs []string) ([]*model.Group, error)
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
+	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
+	GetByUser(userId string) ([]*model.Group, error)
+	Update(group *model.Group) (*model.Group, error)
+	Delete(groupID string) (*model.Group, error)
 
-	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
-	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, *model.AppError)
-	GetMemberCount(groupID string) (int64, *model.AppError)
+	GetMemberUsers(groupID string) ([]*model.User, error)
+	GetMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, error)
+	GetMemberCount(groupID string) (int64, error)
 
-	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, *model.AppError)
-	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, *model.AppError)
+	GetMemberUsersInTeam(groupID string, teamID string) ([]*model.User, error)
+	GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error)
 
-	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
-	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
-	PermanentDeleteMembersByUser(userId string) *model.AppError
+	UpsertMember(groupID string, userID string) (*model.GroupMember, error)
+	DeleteMember(groupID string, userID string) (*model.GroupMember, error)
+	PermanentDeleteMembersByUser(userId string) error
 
-	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
-	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
-	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
-	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
-	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error)
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error)
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, error)
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, error)
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error)
 
 	// TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given team.
 	//
 	// Typically since will be the last successful group sync time.
-	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
+	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error)
 
 	// ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 	// based on the groups configurations. The returned list can be optionally scoped to a single given channel.
 	//
 	// Typically since will be the last successful group sync time.
-	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, *model.AppError)
+	ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error)
 
 	// TeamMembersToRemove returns all team members that should be removed based on group constraints.
-	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
+	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, error)
 
 	// ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-	ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, *model.AppError)
+	ChannelMembersToRemove(channelID *string) ([]*model.ChannelMember, error)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
-	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, error)
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, error)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, *model.AppError)
-	GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError)
-	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, error)
+	GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error)
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, error)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, error)
 
-	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
-	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
-	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
-	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
+	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error)
+	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, error)
+	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, error)
+	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, error)
 
 	// AdminRoleGroupsForSyncableMember returns the IDs of all of the groups that the user is a member of that are
 	// configured as SchemeAdmin: true for the given syncable.
-	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+	AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, error)
 
 	// PermittedSyncableAdmins returns the IDs of all of the user who are permitted by the group syncable to have
 	// the admin role for the given syncable.
-	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, *model.AppError)
+	PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, error)
 
 	// GroupCount returns the total count of records in the UserGroups table.
-	GroupCount() (int64, *model.AppError)
+	GroupCount() (int64, error)
 
 	// GroupTeamCount returns the total count of records in the GroupTeams table.
-	GroupTeamCount() (int64, *model.AppError)
+	GroupTeamCount() (int64, error)
 
 	// GroupChannelCount returns the total count of records in the GroupChannels table.
-	GroupChannelCount() (int64, *model.AppError)
+	GroupChannelCount() (int64, error)
 
 	// GroupMemberCount returns the total count of records in the GroupMembers table.
-	GroupMemberCount() (int64, *model.AppError)
+	GroupMemberCount() (int64, error)
 
 	// DistinctGroupMemberCount returns the count of records in the GroupMembers table with distinct UserId values.
-	DistinctGroupMemberCount() (int64, *model.AppError)
+	DistinctGroupMemberCount() (int64, error)
 
 	// GroupCountWithAllowReference returns the count of records in the Groups table with AllowReference set to true.
-	GroupCountWithAllowReference() (int64, *model.AppError)
+	GroupCountWithAllowReference() (int64, error)
 }
 
 type LinkMetadataStore interface {

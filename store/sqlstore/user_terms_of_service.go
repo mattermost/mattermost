@@ -13,10 +13,10 @@ import (
 )
 
 type SqlUserTermsOfServiceStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUserTermsOfServiceStore(sqlStore SqlStore) store.UserTermsOfServiceStore {
+func newSqlUserTermsOfServiceStore(sqlStore *SqlStore) store.UserTermsOfServiceStore {
 	s := SqlUserTermsOfServiceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

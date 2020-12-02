@@ -164,6 +164,18 @@ func (o *ChannelMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
 }
 
+func (o *ChannelMember) SetChannelMuted(muted bool) {
+	if o.IsChannelMuted() {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_ALL
+	} else {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_MENTION
+	}
+}
+
+func (o *ChannelMember) IsChannelMuted() bool {
+	return o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] == CHANNEL_MARK_UNREAD_MENTION
+}
+
 func IsChannelNotifyLevelValid(notifyLevel string) bool {
 	return notifyLevel == CHANNEL_NOTIFY_DEFAULT ||
 		notifyLevel == CHANNEL_NOTIFY_ALL ||

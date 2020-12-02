@@ -16,10 +16,10 @@ import (
 )
 
 type SqlCommandWebhookStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlCommandWebhookStore(sqlStore SqlStore) store.CommandWebhookStore {
+func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
 	s := &SqlCommandWebhookStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

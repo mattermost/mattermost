@@ -458,7 +458,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true); err != nil {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
 			return err
 		}
 	}
@@ -1041,9 +1041,18 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post, false, false).ToJson())
-	a.Publish(message)
+	postData := a.PreparePostForClient(post, false, false).ToJson()
+
+	userMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	userMessage.Add("post", postData)
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	adminMessage.Add("post", postData)
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
 		a.DeletePostFiles(post)
@@ -1329,6 +1338,64 @@ func (s *Server) MaxPostSize() int {
 
 func (a *App) MaxPostSize() int {
 	return a.Srv().MaxPostSize()
+}
+
+// countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
+func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId string, timestamp int64) (int64, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return 0, err
+	}
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		map[string]string{},
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true, // Assume channel mentions are always allowed for simplicity
+	)
+
+	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	count := 0
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		// In a DM channel, every post made by the other user is a mention
+		otherId := channel.GetOtherUserIdForDM(user.Id)
+		for _, p := range posts {
+			if p.UserId == otherId {
+				count++
+			}
+		}
+
+		return int64(count), nil
+	}
+
+	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	mentions := getExplicitMentions(post, keywords, groups)
+	if _, ok := mentions.Mentions[user.Id]; ok {
+		count += 1
+	}
+
+	for _, p := range posts {
+		mentions = getExplicitMentions(p, keywords, groups)
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
+	}
+
+	return int64(count), nil
 }
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the

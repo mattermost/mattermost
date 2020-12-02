@@ -15,10 +15,10 @@ import (
 )
 
 type SqlUploadSessionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
+func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 	s := &SqlUploadSessionStore{
 		SqlStore: sqlStore,
 	}

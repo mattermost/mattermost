@@ -686,11 +686,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStore("from.json", false)
+		f, err := config.NewStore("from.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStore("to.json", false)
+		_, err = config.NewStore("to.json", false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

@@ -21,10 +21,10 @@ const (
 )
 
 type SqlSessionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSessionStore(sqlStore SqlStore) store.SessionStore {
+func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	us := &SqlSessionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

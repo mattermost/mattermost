@@ -386,7 +386,7 @@ func TestSentry(t *testing.T) {
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore)
+			store, _ := config.NewStoreFromBacking(configStore, nil)
 			server.configStore = store
 			server.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.ListenAddress = ":0"
@@ -437,7 +437,7 @@ func TestSentry(t *testing.T) {
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
-			store, _ := config.NewStoreFromBacking(configStore)
+			store, _ := config.NewStoreFromBacking(configStore, nil)
 			server.configStore = store
 			server.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.ListenAddress = ":0"

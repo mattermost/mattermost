@@ -308,19 +308,19 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
-	t.Run("should enable IncidentResponse plugin by default", func(t *testing.T) {
+func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
+	t.Run("should enable IncidentManagement plugin by default", func(t *testing.T) {
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
 	})
 
-	t.Run("should not re-enable IncidentResponse plugin after it has been disabled", func(t *testing.T) {
+	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
 		c1 := Config{
 			PluginSettings: PluginSettings{
 				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-incident-response": {
+					"com.mattermost.plugin-incident-management": {
 						Enable: false,
 					},
 				},
@@ -329,7 +329,7 @@ func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
 
 		c1.SetDefaults()
 
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
 	})
 }
 

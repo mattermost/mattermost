@@ -17,10 +17,10 @@ import (
 )
 
 type SqlChannelMemberHistoryStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlChannelMemberHistoryStore(sqlStore SqlStore) store.ChannelMemberHistoryStore {
+func newSqlChannelMemberHistoryStore(sqlStore *SqlStore) store.ChannelMemberHistoryStore {
 	s := &SqlChannelMemberHistoryStore{
 		SqlStore: sqlStore,
 	}
