@@ -65,7 +65,11 @@ func (b *Busy) setWithoutNotify(dur time.Duration) {
 	b.clearWithoutNotify()
 	atomic.StoreInt32(&b.busy, 1)
 	b.expires = time.Now().Add(dur)
-	b.timer = time.AfterFunc(dur, b.clearWithoutNotify)
+	b.timer = time.AfterFunc(dur, func() {
+		b.mux.Lock()
+		b.clearWithoutNotify()
+		b.mux.Unlock()
+	})
 }
 
 // ClearBusy marks the server as not busy and notifies cluster nodes.
