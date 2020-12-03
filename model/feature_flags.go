@@ -17,7 +17,7 @@ type FeatureFlags struct {
 	CloudDelinquentEmailJobsEnabled bool
 
 	// Feature flags to control plugin versions
-	PluginIncidentManagement string `pluginid:"com.mattermost.plugin-incident-management"`
+	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -37,7 +37,7 @@ func (f *FeatureFlags) Plugins() map[string]string {
 		rFieldVal := rFFVal.Field(i)
 		rFieldType := rFFType.Field(i)
 
-		pluginId, hasPluginId := rFieldType.Tag.Lookup("pluginid")
+		pluginId, hasPluginId := rFieldType.Tag.Lookup("plugin_id")
 		if !hasPluginId {
 			continue
 		}
