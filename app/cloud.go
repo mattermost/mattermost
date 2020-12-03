@@ -75,3 +75,19 @@ func (a *App) SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.
 	}
 	return nil
 }
+
+// SendNoCardPaymentFailedEmail
+func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
+	sysAdmins, err := a.getSysAdminsEmailRecipients()
+	if err != nil {
+		return err
+	}
+
+	for _, admin := range sysAdmins {
+		err := a.Srv().EmailService.SendNoCardPaymentFailedEmail(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending payment failed email", mlog.Err(err))
+		}
+	}
+	return nil
+}
