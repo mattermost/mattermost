@@ -5561,7 +5561,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 	// reply with another
-	rpost2, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+	_, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 	CheckNoError(t, resp2)
 	CheckCreatedStatus(t, resp2)
 
@@ -5597,13 +5597,13 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	// the other user should have 2 replies
 	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
 
-	// rewind read state to before the post
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
+	// mark all as read for user
+	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
-	// reply count should be 2
-	checkThreadList(th.Client, th.BasicUser.Id, 2, 1)
+	// reply count should be 0
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
 	// the other user should also have 2
 	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
@@ -5686,12 +5686,12 @@ func TestReadThreads(t *testing.T) {
 		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 		CheckNoError(t, resp)
 		CheckCreatedStatus(t, resp)
-		rpost2, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 		CheckNoError(t, resp2)
 		CheckCreatedStatus(t, resp2)
 		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-		var uss, uss2, uss3 *model.Threads
+		var uss, uss2 *model.Threads
 		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Page:     0,
 			PageSize: 30,
@@ -5701,7 +5701,7 @@ func TestReadThreads(t *testing.T) {
 		require.Len(t, uss.Threads, 1)
 
 		time.Sleep(1)
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetMillis())
+		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5713,19 +5713,6 @@ func TestReadThreads(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, uss2.Threads, 1)
 		require.Greater(t, uss2.Threads[0].LastViewedAt, uss.Threads[0].LastViewedAt)
-
-		resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost2.UpdateAt)
-		CheckNoError(t, resp)
-		CheckOKStatus(t, resp)
-
-		uss3, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-			Page:     0,
-			PageSize: 30,
-			Deleted:  false,
-		})
-		CheckNoError(t, resp)
-		require.Len(t, uss3.Threads, 1)
-		require.Equal(t, uss3.Threads[0].LastViewedAt, rpost2.UpdateAt)
 	})
 
 	t.Run("1 thread", func(t *testing.T) {

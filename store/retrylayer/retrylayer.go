@@ -8478,11 +8478,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, 
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamId string, timestamp int64) error {
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsRead(userId, teamId, timestamp)
+		err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 		if err == nil {
 			return nil
 		}

@@ -194,13 +194,13 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamId string, opts mode
 	return r0, r1
 }
 
-// MarkAllAsRead provides a mock function with given fields: userId, teamId, timestamp
-func (_m *ThreadStore) MarkAllAsRead(userId string, teamId string, timestamp int64) error {
-	ret := _m.Called(userId, teamId, timestamp)
+// MarkAllAsRead provides a mock function with given fields: userId, teamId
+func (_m *ThreadStore) MarkAllAsRead(userId string, teamId string) error {
+	ret := _m.Called(userId, teamId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, int64) error); ok {
-		r0 = rf(userId, teamId, timestamp)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userId, teamId)
 	} else {
 		r0 = ret.Error(0)
 	}

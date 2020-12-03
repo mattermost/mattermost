@@ -7048,10 +7048,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamId string, 
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, teamId string, timestamp int64) error {
+func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.MarkAllAsRead(userId, teamId, timestamp)
+	err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

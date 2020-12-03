@@ -5789,8 +5789,8 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	return &threads, BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadsReadForUser(userId, teamId string, timestamp int64) *Response {
-	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadsRoute(userId, teamId), timestamp), "")
+func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}

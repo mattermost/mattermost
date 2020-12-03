@@ -998,7 +998,7 @@ type AppIface interface {
 	UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError)
 	UpdateThreadFollowForUser(userId, threadId string, state bool) *model.AppError
 	UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *model.AppError
-	UpdateThreadsReadForUser(userId, teamId string, timestamp int64) *model.AppError
+	UpdateThreadsReadForUser(userId, teamId string) *model.AppError
 	UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserActive(userId string, active bool) *model.AppError
 	UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError)

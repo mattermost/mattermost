@@ -7810,7 +7810,7 @@ func (s *OpenTracingLayerThreadStore) GetThreadsForUser(userId string, teamId st
 	return result, err
 }
 
-func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, teamId string, timestamp int64) error {
+func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.MarkAllAsRead")
 	s.Root.Store.SetContext(newCtx)
@@ -7819,7 +7819,7 @@ func (s *OpenTracingLayerThreadStore) MarkAllAsRead(userId string, teamId string
 	}()
 
 	defer span.Finish()
-	err := s.ThreadStore.MarkAllAsRead(userId, teamId, timestamp)
+	err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

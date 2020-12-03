@@ -15253,7 +15253,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userId string, teamId stri
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, teamId string, timestamp int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, teamId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadsReadForUser")
 
@@ -15265,7 +15265,7 @@ func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, teamId str
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadsReadForUser(userId, teamId, timestamp)
+	resultVar0 := a.app.UpdateThreadsReadForUser(userId, teamId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
