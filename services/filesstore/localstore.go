@@ -63,6 +63,14 @@ func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
 	return true, nil
 }
 
+func (b *LocalFileBackend) FileSize(path string) (int64, *model.AppError) {
+	info, err := os.Stat(filepath.Join(b.directory, path))
+	if err != nil {
+		return 0, model.NewAppError("FileSize", "api.file.file_size.local.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return info.Size(), nil
+}
+
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	if err := utils.CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
