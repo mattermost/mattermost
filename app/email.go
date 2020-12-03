@@ -802,8 +802,8 @@ func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string
 	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
-	return true, nil
+	return nil
 }
