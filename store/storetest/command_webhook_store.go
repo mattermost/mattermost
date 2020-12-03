@@ -4,7 +4,7 @@
 package storetest
 
 import (
-	"net/http"
+	"errors"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -28,12 +28,13 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	var r1 *model.CommandWebhook
-	r1, err = cws.Get(h1.Id)
-	require.Nil(t, err)
+	r1, nErr := cws.Get(h1.Id)
+	require.Nil(t, nErr)
 	assert.Equal(t, *r1, *h1, "invalid returned webhook")
 
-	_, err = cws.Get("123")
-	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for missing id")
+	_, nErr = cws.Get("123")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for missing id")
 
 	h2 := &model.CommandWebhook{}
 	h2.CreateAt = model.GetMillis() - 2*model.COMMAND_WEBHOOK_LIFETIME
@@ -43,22 +44,23 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	h2, err = cws.Save(h2)
 	require.Nil(t, err)
 
-	_, err = cws.Get(h2.Id)
-	require.NotNil(t, err, "Should have set the status as not found for expired webhook")
-	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for expired webhook")
+	_, nErr = cws.Get(h2.Id)
+	require.NotNil(t, nErr, "Should have set the status as not found for expired webhook")
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
 	cws.Cleanup()
 
-	_, err = cws.Get(h1.Id)
-	require.Nil(t, err, "Should have no error getting unexpired webhook")
+	_, nErr = cws.Get(h1.Id)
+	require.Nil(t, nErr, "Should have no error getting unexpired webhook")
 
-	_, err = cws.Get(h2.Id)
-	assert.Equal(t, err.StatusCode, http.StatusNotFound, "Should have set the status as not found for expired webhook")
+	_, nErr = cws.Get(h2.Id)
+	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
-	err = cws.TryUse(h1.Id, 1)
-	require.Nil(t, err, "Should be able to use webhook once")
+	nErr = cws.TryUse(h1.Id, 1)
+	require.Nil(t, nErr, "Should be able to use webhook once")
 
-	err = cws.TryUse(h1.Id, 1)
-	require.NotNil(t, err, "Should be able to use webhook once")
-	assert.Equal(t, err.StatusCode, http.StatusBadRequest, "Should be able to use webhook once")
+	nErr = cws.TryUse(h1.Id, 1)
+	require.NotNil(t, nErr, "Should be able to use webhook once")
+	var invErr *store.ErrInvalidInput
+	require.True(t, errors.As(nErr, &invErr), "Should be able to use webhook once")
 }

@@ -76,3 +76,30 @@ func TestSanitizeSearchTerm(t *testing.T) {
 	result = sanitizeSearchTerm(term, "*")
 	require.Equal(t, result, expected)
 }
+
+func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
+	const (
+		sep           = " "
+		chineseHello  = "你好"
+		japaneseHello = "こんにちは"
+	)
+	tests := []struct {
+		term string
+		want string
+		name string
+	}{
+		{term: "", want: "", name: "empty"},
+		{term: "h", want: "h", name: "singleChar"},
+		{term: "hello", want: "hello", name: "multiChar"},
+		{term: `hel*lo "**" **& hello`, want: `hel*lo "**" hello`, name: "quoted_unquoted_english"},
+		{term: japaneseHello + chineseHello, want: japaneseHello + chineseHello, name: "japanese_chinese"},
+		{term: japaneseHello + ` "*" ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: `quoted_japanese_and_chinese`},
+		{term: japaneseHello + ` "*" &&* ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: "quoted_unquoted_japanese_and_chinese"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
+			require.Equal(t, test.want, got)
+		})
+	}
+}

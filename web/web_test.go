@@ -15,8 +15,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,7 +31,7 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    *app.App
+	App    app.AppIface
 	Server *app.Server
 	Web    *Web
 
@@ -37,36 +42,62 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	tempWorkspace string
+
+	IncludeCacheLayer bool
 }
 
-func Setup() *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	store := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(tb, store, false)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
+	return setupTestHelper(tb, store, true)
+}
 
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
-
+func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *TestHelper {
+	memoryStore := config.NewTestMemoryStore()
+	newConfig := memoryStore.Get().Clone()
+	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
+	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
+	memoryStore.Set(newConfig)
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	mlog.DisableZap()
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
-	a := s.FakeApp()
-	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
+
+	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
@@ -74,22 +105,24 @@ func Setup() *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
+	a := app.New(app.ServerConnector(s))
+	a.InitServer()
+
 	web := New(s, s.AppOptions, s.Router)
-	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
+	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAppMigrations()
+	s.Store.MarkSystemRanUnitTests()
 
-	a.Srv.Store.MarkSystemRanUnitTests()
-
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
 	th := &TestHelper{
-		App:    a,
-		Server: s,
-		Web:    web,
+		App:               a,
+		Server:            s,
+		Web:               web,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 
 	return th
@@ -123,14 +156,15 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
-	th.Server.Shutdown()
-	if err := recover(); err != nil {
-		panic(err)
+	if th.IncludeCacheLayer {
+		// Clean all the caches
+		th.App.Srv().InvalidateAllCaches()
 	}
+	th.Server.Shutdown()
 }
 
 func TestStaticFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginID := "com.mattermost.sample"
@@ -216,7 +250,7 @@ func TestStaticFilesRequest(t *testing.T) {
 }
 
 func TestPublicFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginDir, err := ioutil.TempDir("", "")
@@ -226,7 +260,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -335,7 +369,7 @@ func TestCheckClientCompatability(t *testing.T) {
 	}
 	for _, browser := range uaTestParameters {
 		t.Run(browser.Name, func(t *testing.T) {
-			result := CheckClientCompatability(browser.UserAgent)
+			result := CheckClientCompatibility(browser.UserAgent)
 			require.Equalf(t, result, browser.Result, "user agent test failed for %s", browser.Name)
 		})
 	}

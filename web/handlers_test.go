@@ -10,6 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +21,7 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	th := Setup().InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
 
 	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -59,8 +61,22 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	th := Setup().InitBasic()
+	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
 
 	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
@@ -103,7 +119,7 @@ func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeCSRFToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -113,7 +129,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
-	session.SetExpireInDays(1)
+	th.App.SetSessionExpireInDays(session, 1)
 	session, err := th.App.CreateSession(session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -243,7 +259,7 @@ func handlerForCSPHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func TestHandlerServeCSPHeader(t *testing.T) {
 	t.Run("non-static", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -265,7 +281,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 	})
 
 	t.Run("static, without subpath", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -283,12 +299,26 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
 	})
 
 	t.Run("static, with subpath", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
@@ -309,12 +339,12 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
 		// merged, allowing us to mock the desired initial config to take effect in Setup().
-		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='")
+		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath2"
@@ -324,9 +354,9 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/"})
+		assert.Equal(t, response.Header()["Content-Security-Policy"], []string{"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com"})
 		// TODO: See above.
-		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
+		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
 }
 
@@ -342,7 +372,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			th := Setup().InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -379,7 +409,7 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 
 func TestCheckCSRFToken(t *testing.T) {
 	t.Run("should allow a POST request with a valid CSRF token header", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -409,7 +439,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should allow a POST request with an X-Requested-With header", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -422,7 +452,7 @@ func TestCheckCSRFToken(t *testing.T) {
 
 		c := &Context{
 			App: th.App,
-			Log: th.App.Log,
+			Log: th.App.Log(),
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -440,8 +470,22 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not allow a POST request with an X-Requested-With header with strict CSRF enforcement enabled", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
+
+		mockStore := th.App.Srv().Store.(*mocks.Store)
+		mockUserStore := mocks.UserStore{}
+		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+		mockPostStore := mocks.PostStore{}
+		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Post").Return(&mockPostStore)
+		mockStore.On("System").Return(&mockSystemStore)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
@@ -457,7 +501,7 @@ func TestCheckCSRFToken(t *testing.T) {
 
 		c := &Context{
 			App: th.App,
-			Log: th.App.Log,
+			Log: th.App.Log(),
 		}
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
@@ -475,7 +519,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -504,7 +548,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check GET requests", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -533,7 +577,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check a request passing the auth token in a header", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -562,7 +606,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should not check a request passing a nil session", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{
@@ -587,7 +631,7 @@ func TestCheckCSRFToken(t *testing.T) {
 	})
 
 	t.Run("should check requests for handlers that don't require a session but have one", func(t *testing.T) {
-		th := Setup()
+		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
 		h := &Handler{

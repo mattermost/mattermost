@@ -34,6 +34,7 @@ const (
 	Radio
 	Text
 	LongText
+	Number
 	Username
 	Custom
 )
@@ -62,6 +63,8 @@ type PluginSetting struct {
 	//
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
+	// "number" will result in in integer setting that can be typed in manually.
+	//
 	// "username" will result in a text setting that will autocomplete to a username.
 	//
 	// "custom" will result in a custom defined setting and will load the custom component registered for the Web App System Console.
@@ -73,7 +76,7 @@ type PluginSetting struct {
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
-	// The placeholder to display for "text", "generated" and "username" types when blank.
+	// The placeholder to display for "generated", "text", "longtext", "number" and "username" types when blank.
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
@@ -108,6 +111,7 @@ type PluginSettingsSchema struct {
 //      "description": "This is my plugin",
 //      "homepage_url": "https://example.com",
 //      "support_url": "https://example.com/support",
+//      "release_notes_url": "https://example.com/releases/v0.0.1",
 //      "icon_path": "assets/logo.svg",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
@@ -143,7 +147,7 @@ type Manifest struct {
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name" yaml:"name"`
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -153,6 +157,9 @@ type Manifest struct {
 
 	// SupportURL is an optional URL where plugin issues can be reported.
 	SupportURL string `json:"support_url,omitempty" yaml:"support_url,omitempty"`
+
+	// ReleaseNotesURL is an optional URL where a changelog for the release can be found.
+	ReleaseNotesURL string `json:"release_notes_url,omitempty" yaml:"release_notes_url,omitempty"`
 
 	// A relative file path in the bundle that points to the plugins svg icon for use with the Plugin Marketplace.
 	// This should be relative to the root of your bundle and the location of the manifest file. Bitmap image formats are not supported.
@@ -322,35 +329,47 @@ func (m *Manifest) IsValid() error {
 		return errors.New("invalid plugin ID")
 	}
 
-	if m.HomepageURL == "" || !IsValidHttpUrl(m.HomepageURL) {
+	if strings.TrimSpace(m.Name) == "" {
+		return errors.New("a plugin name is needed")
+	}
+
+	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
 		return errors.New("invalid HomepageURL")
 	}
 
-	if m.SupportURL == "" || !IsValidHttpUrl(m.SupportURL) {
+	if m.SupportURL != "" && !IsValidHttpUrl(m.SupportURL) {
 		return errors.New("invalid SupportURL")
 	}
 
-	_, err := semver.Parse(m.Version)
-	if err != nil {
-		return errors.Wrap(err, "failed to parse Version")
+	if m.ReleaseNotesURL != "" && !IsValidHttpUrl(m.ReleaseNotesURL) {
+		return errors.New("invalid ReleaseNotesURL")
 	}
 
-	_, err2 := semver.Parse(m.MinServerVersion)
-	if err2 != nil {
-		return errors.Wrap(err2, "failed to parse MinServerVersion")
+	if m.Version != "" {
+		_, err := semver.Parse(m.Version)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse Version")
+		}
+	}
+
+	if m.MinServerVersion != "" {
+		_, err := semver.Parse(m.MinServerVersion)
+		if err != nil {
+			return errors.Wrap(err, "failed to parse MinServerVersion")
+		}
 	}
 
 	if m.SettingsSchema != nil {
-		err3 := m.SettingsSchema.isValidSchema()
-		if err3 != nil {
-			return errors.Wrap(err3, "invalid settings schema")
+		err := m.SettingsSchema.isValid()
+		if err != nil {
+			return errors.Wrap(err, "invalid settings schema")
 		}
 	}
 
 	return nil
 }
 
-func (s *PluginSettingsSchema) isValidSchema() error {
+func (s *PluginSettingsSchema) isValid() error {
 	for _, setting := range s.Settings {
 		err := setting.isValid()
 		if err != nil {
@@ -371,7 +390,11 @@ func (s *PluginSetting) isValid() error {
 		return errors.New("should not set RegenerateHelpText for setting type that is not generated")
 	}
 
-	if s.Placeholder != "" && !(pluginSettingType == Text || pluginSettingType == Generated || pluginSettingType == Username) {
+	if s.Placeholder != "" && !(pluginSettingType == Generated ||
+		pluginSettingType == Text ||
+		pluginSettingType == LongText ||
+		pluginSettingType == Number ||
+		pluginSettingType == Username) {
 		return errors.New("should not set Placeholder for setting type not in text, generated or username")
 	}
 
@@ -403,6 +426,8 @@ func convertTypeToPluginSettingType(t string) (PluginSettingType, error) {
 		return Radio, nil
 	case "text":
 		return Text, nil
+	case "number":
+		return Number, nil
 	case "longtext":
 		return LongText, nil
 	case "username":

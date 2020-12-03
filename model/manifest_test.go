@@ -23,20 +23,24 @@ func TestIsValid(t *testing.T) {
 		manifest    *Manifest
 		ExpectError bool
 	}{
-		{"Invalid Id", &Manifest{Id: "some id"}, true},
-		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
-		{"Invalid supportURL", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "some url"}, true},
-		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
-		{"Invalid min version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
-		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
+		{"Invalid Id", &Manifest{Id: "some id", Name: "some name"}, true},
+		{"Invalid Name", &Manifest{Id: "com.company.test", Name: "  "}, true},
+		{"Invalid homePageURL", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", Name: "some name", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", Name: "some name", ReleaseNotesURL: "some url"}, true},
+		{"Invalid version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
+		{"Invalid min version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
+		{"SettingSchema error", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
 			Settings: []*PluginSetting{{Type: "Invalid"}},
 		}}, true},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test", Name: "some name"}, false},
 		{"Happy case", &Manifest{
 			Id:               "com.company.test",
 			Name:             "thename",
 			Description:      "thedescription",
 			HomepageURL:      "http://someurl.com",
 			SupportURL:       "http://someotherurl.com",
+			ReleaseNotesURL:  "http://someotherurl.com/releases/v0.0.1",
 			Version:          "0.0.1",
 			MinServerVersion: "5.6.0",
 			Server: &ManifestServer{
@@ -44,7 +48,6 @@ func TestIsValid(t *testing.T) {
 			},
 			Webapp: &ManifestWebapp{
 				BundlePath: "thebundlepath",
-				BundleHash: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 			},
 			SettingsSchema: &PluginSettingsSchema{
 				Header: "theheadertext",
@@ -92,7 +95,7 @@ func TestIsValidSettingsSchema(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Title, func(t *testing.T) {
-			err := tc.settingsSchema.isValidSchema()
+			err := tc.settingsSchema.isValid()
 			if tc.ExpectError {
 				assert.Error(t, err)
 			} else {
@@ -103,38 +106,90 @@ func TestIsValidSettingsSchema(t *testing.T) {
 }
 
 func TestSettingIsValid(t *testing.T) {
-	testCases := []struct {
-		Title       string
-		setting     *PluginSetting
+	for name, test := range map[string]struct {
+		Setting     PluginSetting
 		ExpectError bool
 	}{
-		{"Invalid setting type", &PluginSetting{Type: "invalid"}, true},
-		{"RegenerateHelpText error", &PluginSetting{Type: "text", RegenerateHelpText: "some text"}, true},
-		{"Placeholder error", &PluginSetting{Type: "bool", Placeholder: "some text"}, true},
-		{"Nil Options", &PluginSetting{Type: "bool"}, false},
-		{"Options error", &PluginSetting{Type: "generated", Options: []*PluginOption{}}, true},
-		{"Options displayName error", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				Value: "some value",
+		"Invalid setting type": {
+			PluginSetting{Type: "invalid"},
+			true,
+		},
+		"RegenerateHelpText error": {
+			PluginSetting{Type: "text", RegenerateHelpText: "some text"},
+			true,
+		},
+		"Placeholder error": {
+			PluginSetting{Type: "bool", Placeholder: "some text"},
+			true,
+		},
+		"Nil Options": {
+			PluginSetting{Type: "bool"},
+			false,
+		},
+		"Options error": {
+			PluginSetting{Type: "generated", Options: []*PluginOption{}},
+			true,
+		},
+		"Options displayName error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					Value: "some value",
+				}},
 			},
-		}}, true},
-		{"Options value error", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				DisplayName: "some name",
+			true,
+		},
+		"Options value error": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "some name",
+				}},
 			},
-		}}, true},
-		{"Happy case", &PluginSetting{Type: "radio", Options: []*PluginOption{
-			{
-				DisplayName: "Name",
-				Value:       "value",
+			true,
+		},
+		"Happy case": {
+			PluginSetting{
+				Type: "radio",
+				Options: []*PluginOption{{
+					DisplayName: "Name",
+					Value:       "value",
+				}},
 			},
-		}}, false},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Title, func(t *testing.T) {
-			err := tc.setting.isValid()
-			if tc.ExpectError {
+			false,
+		},
+		"Valid number setting": {
+			PluginSetting{
+				Type:    "number",
+				Default: 10,
+			},
+			false,
+		},
+		"Placeholder is disallowed for bool settings": {
+			PluginSetting{
+				Type:        "bool",
+				Placeholder: "some Text",
+			},
+			true,
+		},
+		"Placeholder is allowed for text settings": {
+			PluginSetting{
+				Type:        "text",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+		"Placeholder is allowed for long text settings": {
+			PluginSetting{
+				Type:        "longtext",
+				Placeholder: "some Text",
+			},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := test.Setting.isValid()
+			if test.ExpectError {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)

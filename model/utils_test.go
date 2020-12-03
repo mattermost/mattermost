@@ -4,6 +4,8 @@
 package model
 
 import (
+	"bytes"
+	"encoding/base32"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -24,8 +26,16 @@ func TestNewId(t *testing.T) {
 
 func TestRandomString(t *testing.T) {
 	for i := 0; i < 1000; i++ {
-		r := NewRandomString(32)
-		require.Len(t, r, 32)
+		str := NewRandomString(i)
+		require.Len(t, str, i)
+		require.NotContains(t, str, "=")
+	}
+}
+
+func TestRandomBase32String(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		str := NewRandomBase32String(i)
+		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
 	}
 }
 
@@ -181,16 +191,6 @@ func TestIsValidEmail(t *testing.T) {
 		t.Run(testCase.Input, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, IsValidEmail(testCase.Input))
 		})
-	}
-}
-
-func TestValidLower(t *testing.T) {
-	if !IsLower("corey+test@hulen.com") {
-		t.Error("should be valid")
-	}
-
-	if IsLower("Corey+test@hulen.com") {
-		t.Error("should be invalid")
 	}
 }
 
@@ -744,5 +744,125 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 
 	default:
 		return true
+	}
+}
+
+func TestSanitizeUnicode(t *testing.T) {
+	buf := bytes.Buffer{}
+	buf.WriteString("Hello")
+	buf.WriteRune(0x1d173)
+	buf.WriteRune(0x1d17a)
+	buf.WriteString(" there.")
+
+	musicArg := buf.String()
+	musicWant := "Hello there."
+
+	tests := []struct {
+		name string
+		arg  string
+		want string
+	}{
+		{name: "empty string", arg: "", want: ""},
+		{name: "ascii only", arg: "Hello There", want: "Hello There"},
+		{name: "allowed unicode", arg: "Ādam likes Iñtërnâtiônàližætiøn", want: "Ādam likes Iñtërnâtiônàližætiøn"},
+		{name: "allowed unicode escaped", arg: "\u00eaI like hats\u00e2", want: "êI like hatsâ"},
+		{name: "blocklist char, don't reverse string", arg: "\u202E2resu", want: "2resu"},
+		{name: "blocklist chars, scoping musical notation", arg: musicArg, want: musicWant},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SanitizeUnicode(tt.arg)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestIsValidHttpUrl(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description string
+		Value       string
+		Expected    bool
+	}{
+		{
+			"empty url",
+			"",
+			false,
+		},
+		{
+			"bad url",
+			"bad url",
+			false,
+		},
+		{
+			"relative url",
+			"/api/test",
+			false,
+		},
+		{
+			"relative url ending with slash",
+			"/some/url/",
+			false,
+		},
+		{
+			"url with invalid scheme",
+			"htp://mattermost.com",
+			false,
+		},
+		{
+			"url with just http",
+			"http://",
+			false,
+		},
+		{
+			"url with just https",
+			"https://",
+			false,
+		},
+		{
+			"url with extra slashes",
+			"https:///mattermost.com",
+			false,
+		},
+		{
+			"correct url with http scheme",
+			"http://mattemost.com",
+			true,
+		},
+		{
+			"correct url with https scheme",
+			"https://mattermost.com/api/test",
+			true,
+		},
+		{
+			"correct url with port",
+			"https://localhost:8080/test",
+			true,
+		},
+		{
+			"correct url without scheme",
+			"mattermost.com/some/url/",
+			false,
+		},
+		{
+			"correct url with extra slashes",
+			"https://mattermost.com/some//url",
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("panic: %v", r)
+				}
+			}()
+
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+		})
 	}
 }

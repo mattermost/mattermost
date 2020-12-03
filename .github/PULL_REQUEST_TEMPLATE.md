@@ -18,3 +18,11 @@ If this pull request addresses a Help Wanted ticket, please link the relevant Gi
 
 Otherwise, link the JIRA ticket.
 -->
+#### Release Note
+<!--
+If no release notes are required, just write "NONE" in the release-note block below.
+If yes, a release note is required:
+Enter your past-tense release note in the block below.
+-->
+```release-note
+```

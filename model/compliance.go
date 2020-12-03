@@ -58,6 +58,11 @@ func (c *Compliance) PreSave() {
 	c.CreateAt = GetMillis()
 }
 
+func (c *Compliance) DeepCopy() *Compliance {
+	copy := *c
+	return &copy
+}
+
 func (c *Compliance) JobName() string {
 	jobName := c.Type
 	if c.Type == COMPLIANCE_TYPE_DAILY {
@@ -71,7 +76,7 @@ func (c *Compliance) JobName() string {
 
 func (c *Compliance) IsValid() *AppError {
 
-	if len(c.Id) != 26 {
+	if !IsValidId(c.Id) {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

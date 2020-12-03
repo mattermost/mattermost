@@ -38,6 +38,14 @@ You can also call the test helper at runtime if needed:
         TestHelper(&testing.RuntimeT{})
     }
 
+## Versioning
+
+The tagged version matches the version of Go that the interface is
+compatible with. For example, the version "1.14.0" is for Go 1.14 and
+introduced the `Cleanup` function. The patch version (the ".0" in the
+prior example) is used to fix any bugs found in this library and has no
+correlation to the supported Go version.
+
 ## Why?!
 
 **Why would I call a test helper that takes a *testing.T at runtime?**

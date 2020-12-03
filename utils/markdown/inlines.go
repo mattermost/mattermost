@@ -595,7 +595,7 @@ func ParseInlines(markdown string, ranges []Range, referenceDefinitions []*Refer
 }
 
 func MergeInlineText(inlines []Inline) []Inline {
-	var ret []Inline
+	ret := inlines[:0]
 	for i, v := range inlines {
 		// always add first node
 		if i == 0 {

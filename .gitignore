@@ -19,7 +19,7 @@ config/active.dat
 config/config.json
 /plugins
 
-# Enteprise imports file
+# Enterprise imports file
 imports/imports.go
 
 # Build Targets
@@ -36,7 +36,7 @@ imports/imports.go
 # Folders
 _obj
 _test
-.vscode
+testfiles
 
 # Architecture specific extensions/prefixes
 [568vq].out
@@ -56,6 +56,11 @@ _testmain.go
 # Log files
 *.log
 *.log.jsonl
+*.log.gz
+
+# Fuzz binaries and working dir
+*fuzz.zip
+app/workdir
 
 .tmp
 
@@ -66,6 +71,10 @@ _testmain.go
 Session.vim
 .netrwhist
 *~
+
+# VSCode project files
+.vscode
+*.code-workspace
 
 # Gogland project files
 mattermost-server.iml
@@ -96,8 +105,12 @@ webapp/coverage
 
 .agignore
 .ctags
-tags
+/tags
 .idea
 
 debug
-client
+/client
+__debug_bin
+report.xml
+go.*.orig
+config.override.mk

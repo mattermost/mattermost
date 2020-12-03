@@ -5,9 +5,14 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
+)
+
+const (
+	USERNAME = "Username"
 )
 
 type TeamMember struct {
@@ -38,6 +43,22 @@ type TeamMemberWithError struct {
 	Error  *AppError   `json:"error"`
 }
 
+type EmailInviteWithError struct {
+	Email string    `json:"email"`
+	Error *AppError `json:"error"`
+}
+
+type TeamMembersGetOptions struct {
+	// Sort the team members. Accepts "Username", but defaults to "Id".
+	Sort string
+
+	// If true, exclude team members whose corresponding user is deleted.
+	ExcludeDeletedUsers bool
+
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *ViewUsersRestrictions
+}
+
 func (o *TeamMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
@@ -60,6 +81,34 @@ func TeamUnreadFromJson(data io.Reader) *TeamUnread {
 	return o
 }
 
+func EmailInviteWithErrorFromJson(data io.Reader) []*EmailInviteWithError {
+	var o []*EmailInviteWithError
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
+func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
+	var ret []string
+	for _, o := range o {
+		if o.Error == nil {
+			ret = append(ret, o.Email)
+		}
+	}
+	return ret
+}
+
+func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
+	if b, err := json.Marshal(o); err != nil {
+		return "[]"
+	} else {
+		return string(b)
+	}
+}
+
+func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
+	return fmt.Sprintf("%s:%s", o.Email, o.Error.Error())
+}
+
 func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 	var ret []*TeamMember
 	for _, o := range o {
@@ -76,6 +125,10 @@ func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
 	} else {
 		return string(b)
 	}
+}
+
+func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
+	return fmt.Sprintf("%s:%s", o.UserId, o.Error.Error())
 }
 
 func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
@@ -114,11 +167,11 @@ func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
 
 func (o *TeamMember) IsValid() *AppError {
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

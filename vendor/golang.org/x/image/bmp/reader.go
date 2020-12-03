@@ -144,6 +144,9 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 	)
 	var b [1024]byte
 	if _, err := io.ReadFull(r, b[:fileHeaderLen+4]); err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
 		return image.Config{}, 0, false, err
 	}
 	if string(b[:2]) != "BM" {
@@ -155,6 +158,9 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 		return image.Config{}, 0, false, ErrUnsupported
 	}
 	if _, err := io.ReadFull(r, b[fileHeaderLen+4:fileHeaderLen+infoLen]); err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
 		return image.Config{}, 0, false, err
 	}
 	width := int(int32(readUint32(b[18:22])))

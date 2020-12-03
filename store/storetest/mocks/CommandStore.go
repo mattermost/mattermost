@@ -15,7 +15,7 @@ type CommandStore struct {
 }
 
 // AnalyticsCommandCount provides a mock function with given fields: teamId
-func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	ret := _m.Called(teamId)
 
 	var r0 int64
@@ -25,36 +25,32 @@ func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppE
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Delete provides a mock function with given fields: commandId, time
-func (_m *CommandStore) Delete(commandId string, time int64) *model.AppError {
+func (_m *CommandStore) Delete(commandId string, time int64) error {
 	ret := _m.Called(commandId, time)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
 		r0 = rf(commandId, time)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Get provides a mock function with given fields: id
-func (_m *CommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (_m *CommandStore) Get(id string) (*model.Command, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Command
@@ -66,20 +62,18 @@ func (_m *CommandStore) Get(id string) (*model.Command, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	ret := _m.Called(teamId)
 
 	var r0 []*model.Command
@@ -91,20 +85,18 @@ func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppEr
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(teamId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByTrigger provides a mock function with given fields: teamId, trigger
-func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	ret := _m.Called(teamId, trigger)
 
 	var r0 *model.Command
@@ -116,52 +108,46 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Comm
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamId, trigger)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // PermanentDeleteByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (_m *CommandStore) PermanentDeleteByTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *CommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (_m *CommandStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Save provides a mock function with given fields: webhook
-func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
+func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, error) {
 	ret := _m.Called(webhook)
 
 	var r0 *model.Command
@@ -173,20 +159,18 @@ func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, *model.App
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Command) error); ok {
 		r1 = rf(webhook)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Update provides a mock function with given fields: hook
-func (_m *CommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
+func (_m *CommandStore) Update(hook *model.Command) (*model.Command, error) {
 	ret := _m.Called(hook)
 
 	var r0 *model.Command
@@ -198,13 +182,11 @@ func (_m *CommandStore) Update(hook *model.Command) (*model.Command, *model.AppE
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Command) error); ok {
 		r1 = rf(hook)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

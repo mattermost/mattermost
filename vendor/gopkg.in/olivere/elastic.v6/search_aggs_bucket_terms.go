@@ -4,6 +4,8 @@
 
 package elastic
 
+import "fmt"
+
 // TermsAggregation is a multi-bucket value source based aggregation
 // where buckets are dynamically built - one per unique value.
 //
@@ -30,7 +32,7 @@ type TermsAggregation struct {
 
 func NewTermsAggregation() *TermsAggregation {
 	return &TermsAggregation{
-		subAggregations: make(map[string]Aggregation, 0),
+		subAggregations: make(map[string]Aggregation),
 	}
 }
 
@@ -131,6 +133,11 @@ func (a *TermsAggregation) NumPartitions(n int) *TermsAggregation {
 		a.includeExclude = &TermsAggregationIncludeExclude{}
 	}
 	a.includeExclude.NumPartitions = n
+	return a
+}
+
+func (a *TermsAggregation) IncludeExclude(includeExclude *TermsAggregationIncludeExclude) *TermsAggregation {
+	a.includeExclude = includeExclude
 	return a
 }
 
@@ -312,24 +319,11 @@ func (a *TermsAggregation) Source() (interface{}, error) {
 		}
 		opts["order"] = orderSlice
 	}
+
 	// Include/Exclude
 	if ie := a.includeExclude; ie != nil {
-		// Include
-		if ie.Include != "" {
-			opts["include"] = ie.Include
-		} else if len(ie.IncludeValues) > 0 {
-			opts["include"] = ie.IncludeValues
-		} else if ie.NumPartitions > 0 {
-			inc := make(map[string]interface{})
-			inc["partition"] = ie.Partition
-			inc["num_partitions"] = ie.NumPartitions
-			opts["include"] = inc
-		}
-		// Exclude
-		if ie.Exclude != "" {
-			opts["exclude"] = ie.Exclude
-		} else if len(ie.ExcludeValues) > 0 {
-			opts["exclude"] = ie.ExcludeValues
+		if err := ie.MergeInto(opts); err != nil {
+			return nil, err
 		}
 	}
 
@@ -366,6 +360,48 @@ type TermsAggregationIncludeExclude struct {
 	ExcludeValues []interface{}
 	Partition     int
 	NumPartitions int
+}
+
+// Source returns a JSON serializable struct.
+func (ie *TermsAggregationIncludeExclude) Source() (interface{}, error) {
+	source := make(map[string]interface{})
+
+	// Include
+	if ie.Include != "" {
+		source["include"] = ie.Include
+	} else if len(ie.IncludeValues) > 0 {
+		source["include"] = ie.IncludeValues
+	} else if ie.NumPartitions > 0 {
+		inc := make(map[string]interface{})
+		inc["partition"] = ie.Partition
+		inc["num_partitions"] = ie.NumPartitions
+		source["include"] = inc
+	}
+
+	// Exclude
+	if ie.Exclude != "" {
+		source["exclude"] = ie.Exclude
+	} else if len(ie.ExcludeValues) > 0 {
+		source["exclude"] = ie.ExcludeValues
+	}
+
+	return source, nil
+}
+
+// MergeInto merges the values of the include/exclude options into source.
+func (ie *TermsAggregationIncludeExclude) MergeInto(source map[string]interface{}) error {
+	values, err := ie.Source()
+	if err != nil {
+		return err
+	}
+	mv, ok := values.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("IncludeExclude: expected a map[string]interface{}, got %T", values)
+	}
+	for k, v := range mv {
+		source[k] = v
+	}
+	return nil
 }
 
 // TermsOrder specifies a single order field for a terms aggregation.

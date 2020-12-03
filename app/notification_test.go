@@ -29,7 +29,7 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
@@ -44,13 +44,13 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.InvalidateAllCaches()
+	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
 	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
@@ -60,12 +60,12 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
 }
@@ -162,7 +162,16 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
+	guest := th.CreateGuest()
+	user4 := th.CreateUser()
+	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteUser(guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.App.AddUserToChannel(guest, channel)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -174,6 +183,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return only visible users not in the channel (for guests)", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+
+		require.Nil(t, err)
+		require.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
@@ -247,7 +268,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Nil(t, outOfGroupUsers)
 	})
 
-	t.Run("should not return results for non-existant users", func(t *testing.T) {
+	t.Run("should not return results for non-existent users", func(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
@@ -296,48 +317,82 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 }
 
 func TestAllowChannelMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
+
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		post := &model.Post{}
-
 		allowChannelMentions := th.App.allowChannelMentions(post, 5)
-
 		assert.True(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a channel header post", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		post := &model.Post{Type: model.POST_HEADER_CHANGE}
-
-		allowChannelMentions := th.App.allowChannelMentions(post, 5)
-
+		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
+		allowChannelMentions := th.App.allowChannelMentions(headerChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a channel purpose post", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		post := &model.Post{Type: model.POST_PURPOSE_CHANGE}
-
-		allowChannelMentions := th.App.allowChannelMentions(post, 5)
-
+		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
+		allowChannelMentions := th.App.allowChannelMentions(purposeChangePost, 5)
 		assert.False(t, allowChannelMentions)
 	})
 
 	t.Run("should return false for a regular post with many channel members", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		post := &model.Post{}
-
 		allowChannelMentions := th.App.allowChannelMentions(post, int(*th.App.Config().TeamSettings.MaxNotificationsPerChannel)+1)
-
 		assert.False(t, allowChannelMentions)
+	})
+
+	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
+		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		defer th.AddPermissionToRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		allowChannelMentions := th.App.allowChannelMentions(post, 5)
+		assert.False(t, allowChannelMentions)
+	})
+}
+
+func TestAllowGroupMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
+
+	t.Run("should return false without ldap groups license", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
+
+	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.True(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a channel header post", func(t *testing.T) {
+		headerChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_HEADER_CHANGE}
+		allowGroupMentions := th.App.allowGroupMentions(headerChangePost)
+		assert.False(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a channel purpose post", func(t *testing.T) {
+		purposeChangePost := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id, Type: model.POST_PURPOSE_CHANGE}
+		allowGroupMentions := th.App.allowGroupMentions(purposeChangePost)
+		assert.False(t, allowGroupMentions)
+	})
+
+	t.Run("should return false for a post where the post user does not have USE_GROUP_MENTIONS permission", func(t *testing.T) {
+		defer func() {
+			th.AddPermissionToRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+			th.AddPermissionToRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		}()
+		th.RemovePermissionFromRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_USE_GROUP_MENTIONS.Id, model.CHANNEL_ADMIN_ROLE_ID)
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
 	})
 }
 
@@ -730,6 +785,24 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.NotContains(t, keywords["Robert"], user.Id)
 	})
 
+	t.Run("should not add case sensitive first name if enabled but empty First Name", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.NotContains(t, keywords[""], user.Id)
+	})
+
 	t.Run("should not add case sensitive first name if disabled", func(t *testing.T) {
 		user := &model.User{
 			Id:        model.NewId(),
@@ -823,6 +896,30 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		}
 		channelNotifyProps := map[string]string{
 			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_ON,
+		}
+		status := &model.Status{
+			Status: model.STATUS_ONLINE,
+		}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, status, true)
+
+		assert.NotContains(t, keywords["@channel"], user.Id)
+		assert.NotContains(t, keywords["@all"], user.Id)
+		assert.NotContains(t, keywords["@here"], user.Id)
+	})
+
+	t.Run("should not add @channel/@all/@here when channel is muted and channel mention setting is not updated by user", func(t *testing.T) {
+		user := &model.User{
+			Id:       model.NewId(),
+			Username: "user",
+			NotifyProps: map[string]string{
+				model.CHANNEL_MENTIONS_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{
+			model.MARK_UNREAD_NOTIFY_PROP:             model.USER_NOTIFY_MENTION,
+			model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: model.IGNORE_CHANNEL_MENTIONS_DEFAULT,
 		}
 		status := &model.Status{
 			Status: model.STATUS_ONLINE,
@@ -1010,7 +1107,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		"overridden username": {
 			post:           overriddenPost,
 			allowOverrides: true,
-			expected:       overriddenPost.Props["override_username"].(string),
+			expected:       overriddenPost.GetProp("override_username").(string),
 		},
 		"overridden username, direct channel": {
 			channel:        &model.Channel{Type: model.CHANNEL_DIRECT},
@@ -1070,7 +1167,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {
@@ -1164,4 +1261,208 @@ func TestUserAllowsEmail(t *testing.T) {
 		assert.False(t, th.App.userAllowsEmail(user, channelMemberNotificationProps, &model.Post{Type: model.POST_AUTO_RESPONDER}))
 	})
 
+}
+
+func TestInsertGroupMentions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.BasicTeam
+	channel := th.BasicChannel
+	group := th.CreateGroup()
+	group.DisplayName = "engineering"
+	group.Name = model.NewString("engineering")
+	group, err := th.App.UpdateGroup(group)
+	require.Nil(t, err)
+
+	groupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(groupChannelMember, team)
+	th.App.AddUserToChannel(groupChannelMember, channel)
+	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
+	require.Nil(t, err)
+
+	nonGroupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(nonGroupChannelMember, team)
+	th.App.AddUserToChannel(nonGroupChannelMember, channel)
+
+	nonChannelGroupMember := th.CreateUser()
+	th.LinkUserToTeam(nonChannelGroupMember, team)
+	_, err = th.App.UpsertGroupMember(group.Id, nonChannelGroupMember.Id)
+	require.Nil(t, err)
+
+	groupWithNoMembers := th.CreateGroup()
+	groupWithNoMembers.DisplayName = "marketing"
+	groupWithNoMembers.Name = model.NewString("marketing")
+	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
+	require.Nil(t, err)
+
+	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
+
+	t.Run("should add expected mentions for users part of the mentioned group", func(t *testing.T) {
+		mentions := &model.ExplicitMentions{}
+		usersMentioned, err := th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, true)
+
+		// Ensure group member that is also a channel member is added to the mentions list.
+		require.Equal(t, len(mentions.Mentions), 1)
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
+
+		// Ensure group member that is not a channel member is added to the other potential mentions list.
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
+	})
+
+	t.Run("should add no expected or potential mentions if the group has no users ", func(t *testing.T) {
+		mentions := &model.ExplicitMentions{}
+		usersMentioned, err := th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, false)
+
+		// Ensure no mentions are added for a group with no users
+		require.Equal(t, len(mentions.Mentions), 0)
+		require.Equal(t, len(mentions.OtherPotentialMentions), 0)
+	})
+
+	t.Run("should keep existing mentions", func(t *testing.T) {
+		mentions := &model.ExplicitMentions{}
+		th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+
+		// Ensure mentions from group are kept after running with groupWithNoMembers
+		require.Equal(t, len(mentions.Mentions), 1)
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+	})
+
+	t.Run("should return true if no members mentioned while in group or direct message channel", func(t *testing.T) {
+		mentions := &model.ExplicitMentions{}
+		emptyProfileMap := make(map[string]*model.User)
+
+		groupChannel := &model.Channel{Type: model.CHANNEL_GROUP}
+		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
+		// Ensure group channel with no group members mentioned always returns true
+		require.Equal(t, usersMentioned, true)
+		require.Equal(t, len(mentions.Mentions), 0)
+
+		directChannel := &model.Channel{Type: model.CHANNEL_DIRECT}
+		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
+		// Ensure direct channel with no group members mentioned always returns true
+		require.Equal(t, usersMentioned, true)
+		require.Equal(t, len(mentions.Mentions), 0)
+	})
+
+	t.Run("should add mentions for members while in group channel", func(t *testing.T) {
+		groupChannel, err := th.App.CreateGroupChannel([]string{groupChannelMember.Id, nonGroupChannelMember.Id, th.BasicUser.Id}, groupChannelMember.Id)
+		require.Nil(t, err)
+
+		mentions := &model.ExplicitMentions{}
+		th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+
+		require.Equal(t, len(mentions.Mentions), 1)
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
+	})
+}
+
+func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var err *model.AppError
+
+	team := th.BasicTeam
+	channel := th.BasicChannel
+	group1 := th.CreateGroup()
+
+	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 0)
+	})
+
+	group1.AllowReference = true
+	group1, err = th.App.UpdateGroup(group1)
+	require.Nil(t, err)
+
+	group2 := th.CreateGroup()
+	t.Run("should only return groups with allow reference", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	group2.AllowReference = true
+	group2, err = th.App.UpdateGroup(group2)
+	require.Nil(t, err)
+
+	// Sync first group to constrained channel
+	constrainedChannel := th.CreateChannel(th.BasicTeam)
+	constrainedChannel.GroupConstrained = model.NewBool(true)
+	constrainedChannel, err = th.App.UpdateChannel(constrainedChannel)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group1.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		SyncableId: constrainedChannel.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	// Create a third group not synced with a team or channel
+	group3 := th.CreateGroup()
+	group3.AllowReference = true
+	group3, err = th.App.UpdateGroup(group3)
+	require.Nil(t, err)
+
+	// Sync group2 to the team
+	team.GroupConstrained = model.NewBool(true)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group2.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		SyncableId: team.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 2)
+		require.Nil(t, groupsMap[*group3.Name])
+		require.Equal(t, groupsMap[*group2.Name], group2)
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group3.Name])
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	team.GroupConstrained = model.NewBool(false)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
+		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, nErr)
+		require.Len(t, groupsMap, 3)
+		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Equal(t, groupsMap[*group2.Name], group2)
+		require.Equal(t, groupsMap[*group3.Name], group3)
+	})
 }

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -20,12 +21,14 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestCreatePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -38,7 +41,7 @@ func TestCreatePost(t *testing.T) {
 	require.Equal(t, "#hashtag", rpost.Hashtags, "hashtag didn't match")
 	require.Empty(t, rpost.FileIds)
 	require.Equal(t, 0, int(rpost.EditAt), "newly created post shouldn't have EditAt set")
-	require.Nil(t, rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "newly created post shouldn't have Props['add_channel_member'] set")
+	require.Nil(t, rpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "newly created post shouldn't have Props['add_channel_member'] set")
 
 	post.RootId = rpost.Id
 	post.ParentId = rpost.Id
@@ -112,6 +115,67 @@ func TestCreatePost(t *testing.T) {
 		assert.Equal(t, model.StringArray{fileId}, actualPostWithFiles.FileIds)
 	})
 
+	t.Run("Create posts without the USE_CHANNEL_MENTIONS Permission - returns ephemeral message with mentions and no ephemeral message without mentions", func(t *testing.T) {
+		WebSocketClient, err := th.CreateWebSocketClient()
+		WebSocketClient.Listen()
+		require.Nil(t, err)
+
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.RemovePermissionFromRole(model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with no channel mentions"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		// Message with no channel mentions should result in no ephemeral message
+		timeout := time.After(300 * time.Millisecond)
+		waiting := true
+		for waiting {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				require.NotEqual(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.EventType(), "should not have ephemeral message event")
+			case <-timeout:
+				waiting = false
+			}
+		}
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @channel"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @all"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		post.RootId = rpost.Id
+		post.ParentId = rpost.Id
+		post.Message = "a post with @here"
+		_, resp = Client.CreatePost(post)
+		CheckNoError(t, resp)
+
+		timeout = time.After(600 * time.Millisecond)
+		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
+		for eventsToGo > 0 {
+			select {
+			case event := <-WebSocketClient.EventChannel:
+				if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+					require.Equal(t, model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, event.Event)
+					eventsToGo = eventsToGo - 1
+				}
+			case <-timeout:
+				require.Fail(t, "Should have received ephemeral message event and not timedout")
+				eventsToGo = 0
+			}
+		}
+	})
+
 	post.RootId = ""
 	post.ParentId = ""
 	post.Type = model.POST_SYSTEM_GENERIC
@@ -150,7 +214,7 @@ func TestCreatePost(t *testing.T) {
 }
 
 func TestCreatePostEphemeral(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -185,7 +249,7 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 	commentPostType bool,
 ) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	user := th.SystemAdminUser
 	team := th.BasicTeam
@@ -365,7 +429,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestCreatePostPublic(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -382,7 +446,7 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -396,7 +460,7 @@ func TestCreatePostPublic(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_PUBLIC_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -410,7 +474,7 @@ func TestCreatePostPublic(t *testing.T) {
 }
 
 func TestCreatePostAll(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -429,7 +493,7 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -447,7 +511,7 @@ func TestCreatePostAll(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -465,7 +529,7 @@ func TestCreatePostAll(t *testing.T) {
 }
 
 func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -513,7 +577,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 
 			wpost := model.PostFromJson(strings.NewReader(event.GetData()["post"].(string)))
 
-			acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{})
+			acm, ok := wpost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER).(map[string]interface{})
 			require.True(t, ok, "should have received ephemeral post with 'add_channel_member' in props")
 			require.True(t, acm["post_id"] != nil, "should not be nil")
 			require.True(t, acm["user_ids"] != nil, "should not be nil")
@@ -526,11 +590,39 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 }
 
 func TestCreatePostCheckOnlineStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
+
+	cli := th.CreateClient()
+	_, loginResp := cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
+	require.Nil(t, loginResp.Error)
+
+	wsClient, err := th.CreateWebSocketClientWithClient(cli)
+	require.Nil(t, err)
+	defer wsClient.Close()
+
+	wsClient.Listen()
+
+	waitForEvent := func(isSetOnline bool) {
+		timeout := time.After(5 * time.Second)
+		for {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
+					assert.True(t, ev.GetData()["set_online"].(bool) == isSetOnline)
+					return
+				}
+			case <-timeout:
+				// We just skip the test instead of failing because waiting for more than 5 seconds
+				// to get a response does not make sense, and it will unncessarily slow down
+				// the tests further in an already congested CI environment.
+				t.Skip("timed out waiting for event")
+			}
+		}
+	}
 
 	handler := api.ApiHandler(createPost)
 	resp := httptest.NewRecorder()
@@ -544,16 +636,18 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
+	waitForEvent(false)
 
-	_, err := th.App.GetStatus(th.BasicUser.Id)
+	_, err = th.App.GetStatus(th.BasicUser.Id)
 	require.NotNil(t, err)
-	assert.Equal(t, "store.sql_status.get.missing.app_error", err.Id)
+	assert.Equal(t, "app.status.get.missing.app_error", err.Id)
 
 	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
 	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
+	waitForEvent(true)
 
 	st, err := th.App.GetStatus(th.BasicUser.Id)
 	require.Nil(t, err)
@@ -561,12 +655,12 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 }
 
 func TestUpdatePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -582,7 +676,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
-	}, channel, false)
+	}, channel, false, true)
 	require.Nil(t, err)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
@@ -616,20 +710,20 @@ func TestUpdatePost(t *testing.T) {
 	t.Run("new message, invalid props", func(t *testing.T) {
 		msg1 := "#hashtag a" + model.NewId() + " update post again"
 		rpost.Message = msg1
-		rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
+		rpost.AddProp(model.PROPS_ADD_CHANNEL_MEMBER, "no good")
 		rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, rrupost.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", rrupost.Hashtags, "failed to update hashtags")
-		assert.Nil(t, rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, rrupost.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 
 		actual, resp := Client.GetPost(rpost.Id, "")
 		CheckNoError(t, resp)
 
 		assert.Equal(t, msg1, actual.Message, "failed to update message")
 		assert.Equal(t, "#hashtag", actual.Hashtags, "failed to update hashtags")
-		assert.Nil(t, actual.Props[model.PROPS_ADD_CHANNEL_MEMBER], "failed to sanitize Props['add_channel_member'], should be nil")
+		assert.Nil(t, actual.GetProp(model.PROPS_ADD_CHANNEL_MEMBER), "failed to sanitize Props['add_channel_member'], should be nil")
 	})
 
 	t.Run("join/leave post", func(t *testing.T) {
@@ -638,7 +732,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.POST_JOIN_LEAVE,
 			UserId:    th.BasicUser.Id,
-		}, channel, false)
+		}, channel, false, true)
 		require.Nil(t, err)
 
 		up2 := &model.Post{
@@ -654,7 +748,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
-	}, channel, false)
+	}, channel, false, true)
 	require.Nil(t, err)
 
 	t.Run("new message, add files", func(t *testing.T) {
@@ -722,7 +816,7 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 	// This test checks that a sysadmin with the "EDIT_OTHERS_POSTS" permission can edit someone else's post in a
 	// channel without a team (DM/GM). This indirectly checks for the proper cascading all the way to system-wide roles
 	// on the user object of permissions based on a post in a channel with no team ID.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	dmChannel := th.CreateDmChannel(th.SystemAdminUser)
@@ -744,12 +838,12 @@ func TestUpdateOthersPostInDirectMessageChannel(t *testing.T) {
 }
 
 func TestPatchPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -787,7 +881,7 @@ func TestPatchPost(t *testing.T) {
 
 		assert.False(t, rpost.IsPinned, "IsPinned did not update properly")
 		assert.Equal(t, "#otherhashtag other message", rpost.Message, "Message did not update properly")
-		assert.Equal(t, *patch.Props, rpost.Props, "Props did not update properly")
+		assert.Equal(t, *patch.Props, rpost.GetProps(), "Props did not update properly")
 		assert.Equal(t, "#otherhashtag", rpost.Hashtags, "Message did not update properly")
 		assert.Equal(t, model.StringArray(fileIds[0:2]), rpost.FileIds, "FileIds should not update")
 		assert.False(t, rpost.HasReactions, "HasReactions did not update properly")
@@ -804,13 +898,13 @@ func TestPatchPost(t *testing.T) {
 
 		rpost2, resp := Client.PatchPost(post.Id, patch2)
 		CheckNoError(t, resp)
-		assert.NotEmpty(t, rpost2.Props["attachments"])
+		assert.NotEmpty(t, rpost2.GetProp("attachments"))
 		assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 	})
 
 	t.Run("invalid requests", func(t *testing.T) {
 		r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage")
-		require.EqualError(t, err, ": Invalid or missing post in request body, ")
+		require.EqualError(t, err, ": Invalid or missing post in request body., ")
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "wrong status code")
 
 		patch := &model.PostPatch{}
@@ -850,10 +944,25 @@ func TestPatchPost(t *testing.T) {
 		_, resp := th.SystemAdminClient.PatchPost(post.Id, patch)
 		CheckNoError(t, resp)
 	})
+
+	t.Run("edit others posts permission can function independently of edit own post", func(t *testing.T) {
+		th.LoginBasic2()
+		patch := &model.PostPatch{}
+		_, resp := Client.PatchPost(post.Id, patch)
+		CheckForbiddenStatus(t, resp)
+
+		// Add permission to edit others'
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+		th.RemovePermissionFromRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHERS_POSTS.Id, model.CHANNEL_USER_ROLE_ID)
+
+		_, resp = Client.PatchPost(post.Id, patch)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPinPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -875,10 +984,10 @@ func TestPinPost(t *testing.T) {
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
 		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
-		defer th.App.RemoveLicense()
+		defer th.App.Srv().RemoveLicense()
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
@@ -898,7 +1007,7 @@ func TestPinPost(t *testing.T) {
 }
 
 func TestUnpinPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -927,7 +1036,7 @@ func TestUnpinPost(t *testing.T) {
 }
 
 func TestGetPostsForChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -942,72 +1051,73 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post4 := th.CreatePost()
 
-	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Equal(t, post4.Id, posts.Order[0], "wrong order")
-	require.Equal(t, post3.Id, posts.Order[1], "wrong order")
-	require.Equal(t, post2.Id, posts.Order[2], "wrong order")
-	require.Equal(t, post1.Id, posts.Order[3], "wrong order")
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		posts, resp := c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Equal(t, post4.Id, posts.Order[0], "wrong order")
+		require.Equal(t, post3.Id, posts.Order[1], "wrong order")
+		require.Equal(t, post2.Id, posts.Order[2], "wrong order")
+		require.Equal(t, post1.Id, posts.Order[3], "wrong order")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag)
-	CheckEtag(t, posts, resp)
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag)
+		CheckEtag(t, posts, resp)
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "wrong number returned")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "wrong number returned")
 
-	_, ok := posts.Posts[post3.Id]
-	require.True(t, ok, "missing comment")
-	_, ok = posts.Posts[post1.Id]
-	require.True(t, ok, "missing root post")
+		_, ok := posts.Posts[post3.Id]
+		require.True(t, ok, "missing comment")
+		_, ok = posts.Posts[post1.Id]
+		require.True(t, ok, "missing root post")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 1, "")
-	CheckNoError(t, resp)
-	require.Equal(t, post3.Id, posts.Order[0], "wrong order")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Equal(t, post3.Id, posts.Order[0], "wrong order")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, posts.Order, "should be no posts")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, posts.Order, "should be no posts")
+	})
 
 	post5 := th.CreatePost()
 
-	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, since)
-	CheckNoError(t, resp)
-	require.Len(t, posts.Posts, 2, "should return 2 posts")
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		posts, resp := c.GetPostsSince(th.BasicChannel.Id, since)
+		CheckNoError(t, resp)
+		require.Len(t, posts.Posts, 2, "should return 2 posts")
 
-	// "since" query to return empty NextPostId and PrevPostId
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// "since" query to return empty NextPostId and PrevPostId
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	found := make([]bool, 2)
-	for _, p := range posts.Posts {
-		require.LessOrEqual(t, since, p.CreateAt, "bad create at for post returned")
+		found := make([]bool, 2)
+		for _, p := range posts.Posts {
+			require.LessOrEqual(t, since, p.CreateAt, "bad create at for post returned")
 
-		if p.Id == post4.Id {
-			found[0] = true
-		} else if p.Id == post5.Id {
-			found[1] = true
+			if p.Id == post4.Id {
+				found[0] = true
+			} else if p.Id == post5.Id {
+				found[1] = true
+			}
 		}
-	}
-	for _, f := range found {
-		require.True(t, f, "missing post")
-	}
+		for _, f := range found {
+			require.True(t, f, "missing post")
+		}
 
-	_, resp = Client.GetPostsForChannel("", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPostsForChannel("", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPostsForChannel("junk", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
+	_, resp := Client.GetPostsForChannel(model.NewId(), 0, 60, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
 
 	// more tests for next_post_id, prev_post_id, and order
 	// There are 12 posts composed of first 2 system messages and 10 created posts
@@ -1018,65 +1128,68 @@ func TestGetPostsForChannel(t *testing.T) {
 	th.CreatePost() // post9
 	post10 := th.CreatePost()
 
-	// get the system post IDs posted before the created posts above
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
-	systemPostId1 := posts.Order[1]
+	var posts *model.PostList
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		// get the system post IDs posted before the created posts above
+		posts, resp = c.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+		systemPostId1 := posts.Order[1]
 
-	// similar to '/posts'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 12, "expected 12 posts")
-	require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, systemPostId1, posts.Order[11], "posts not in order")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 12, "expected 12 posts")
+		require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, systemPostId1, posts.Order[11], "posts not in order")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	// similar to '/posts?per_page=3'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post8.Id, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
+		// similar to '/posts?per_page=3'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post8.Id, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=1'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post7.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post5.Id, posts.Order[2], "posts not in order")
-	require.Equal(t, post8.Id, posts.NextPostId, "should return post8.Id as NextPostId")
-	require.Equal(t, post4.Id, posts.PrevPostId, "should return post4.Id as PrevPostId")
+		// similar to '/posts?per_page=3&page=1'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post7.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post5.Id, posts.Order[2], "posts not in order")
+		require.Equal(t, post8.Id, posts.NextPostId, "should return post8.Id as NextPostId")
+		require.Equal(t, post4.Id, posts.PrevPostId, "should return post4.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=2'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 2, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post4.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post2.Id, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, post5.Id, posts.NextPostId, "should return post5.Id as NextPostId")
-	require.Equal(t, post1.Id, posts.PrevPostId, "should return post1.Id as PrevPostId")
+		// similar to '/posts?per_page=3&page=2'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 2, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post4.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post2.Id, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, post5.Id, posts.NextPostId, "should return post5.Id as NextPostId")
+		require.Equal(t, post1.Id, posts.PrevPostId, "should return post1.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=3'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post1.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, systemPostId1, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, post2.Id, posts.NextPostId, "should return post2.Id as NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts?per_page=3&page=3'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post1.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, systemPostId1, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, post2.Id, posts.NextPostId, "should return post2.Id as NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	// similar to '/posts?per_page=3&page=4'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 4, 3, "")
-	CheckNoError(t, resp)
-	require.Empty(t, posts.Order, "should return 0 post")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts?per_page=3&page=4'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 4, 3, "")
+		CheckNoError(t, resp)
+		require.Empty(t, posts.Order, "should return 0 post")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+	})
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -1244,10 +1357,30 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
 	CheckNoError(t, resp)
+
+	mockStore := mocks.Store{}
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(nil, errors.New("some-error"))
+	mockPostStore.On("ClearCaches").Return()
+	mockStore.On("Team").Return(th.App.Srv().Store.Team())
+	mockStore.On("Channel").Return(th.App.Srv().Store.Channel())
+	mockStore.On("User").Return(th.App.Srv().Store.User())
+	mockStore.On("Scheme").Return(th.App.Srv().Store.Scheme())
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("FileInfo").Return(th.App.Srv().Store.FileInfo())
+	mockStore.On("Webhook").Return(th.App.Srv().Store.Webhook())
+	mockStore.On("System").Return(th.App.Srv().Store.System())
+	mockStore.On("License").Return(th.App.Srv().Store.License())
+	mockStore.On("Role").Return(th.App.Srv().Store.Role())
+	mockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &mockStore
+
+	_, resp = th.SystemAdminClient.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckInternalErrorStatus(t, resp)
 }
 
 func TestGetPostsBefore(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1389,7 +1522,7 @@ func TestGetPostsBefore(t *testing.T) {
 }
 
 func TestGetPostsAfter(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1512,7 +1645,7 @@ func TestGetPostsAfter(t *testing.T) {
 }
 
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -1586,19 +1719,25 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		require.Equal(t, namePost(expected.PrevPostId), namePost(actual.PrevPostId), "unexpected prev post id")
 	}
 
+	// Setting limit_after to zero should fail with a 400 BadRequest.
+	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 0)
+	require.Error(t, resp.Error)
+	require.Equal(t, "api.context.invalid_url_param.app_error", resp.Error.Id)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
 	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
+	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
 	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
 	// Set channel member's last viewed to 0.
 	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember, err := th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err := th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 0
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
 	CheckNoError(t, resp)
@@ -1614,12 +1753,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[systemPost1.Id] = "system post 1"
 
 	// Set channel member's last viewed before post1.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1638,12 +1777,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post6.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1665,12 +1804,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed before post10.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1690,12 +1829,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}, posts)
 
 	// Set channel member's last viewed equal to post10.
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)
@@ -1730,12 +1869,12 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	postIdNames[post12.Id] = "post12 (reply to post4)"
 	postIdNames[post13.Id] = "post13"
 
-	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
+	channelMember, err = th.App.Srv().Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post12.CreateAt - 1
-	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+	th.App.Srv().Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 1, 2)
 	CheckNoError(t, resp)
@@ -1759,54 +1898,67 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 }
 
 func TestGetPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	// TODO: migrate this entirely to the subtest's client
+	// once the other methods are migrated too.
 	Client := th.Client
 
-	post, resp := Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	var privatePost *model.Post
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		t.Helper()
 
-	require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
+		post, resp := c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	post, resp = Client.GetPost(th.BasicPost.Id, resp.Etag)
-	CheckEtag(t, post, resp)
+		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-	_, resp = Client.GetPost("", "")
-	CheckNotFoundStatus(t, resp)
+		post, resp = c.GetPost(th.BasicPost.Id, resp.Etag)
+		CheckEtag(t, post, resp)
 
-	_, resp = Client.GetPost("junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPost("", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetPost(model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = c.GetPost("junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		_, resp = c.GetPost(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
 
-	// Channel is public, should be able to read post
-	_, resp = Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+		Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+		// Channel is public, should be able to read post
+		_, resp = c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = Client.GetPost(privatePost.Id, "")
-	CheckNoError(t, resp)
+		privatePost = th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+
+		_, resp = c.GetPost(privatePost.Id, "")
+		CheckNoError(t, resp)
+	})
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp = Client.GetPost(privatePost.Id, "")
+	_, resp := Client.GetPost(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
+	// But local client should.
+	_, resp = th.LocalClient.GetPost(privatePost.Id, "")
+	CheckNoError(t, resp)
+
 	Client.Logout()
+
+	// Normal client should get unauthorized, but local client should get 404.
 	_, resp = Client.GetPost(model.NewId(), "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	_, resp = th.LocalClient.GetPost(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestDeletePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1841,8 +1993,58 @@ func TestDeletePost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeletePostMessage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.App.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+
+	defer th.TearDown()
+
+	testCases := []struct {
+		description string
+		client      *model.Client4
+		delete_by   interface{}
+	}{
+		{"Do not send delete_by to regular user", th.Client, nil},
+		{"Send delete_by to system admin user", th.SystemAdminClient, th.SystemAdminUser.Id},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			wsClient, err := th.CreateWebSocketClientWithClient(tc.client)
+			require.Nil(t, err)
+			defer wsClient.Close()
+
+			wsClient.Listen()
+
+			post := th.CreatePost()
+
+			status, resp := th.SystemAdminClient.DeletePost(post.Id)
+			require.True(t, status, "post should return status OK")
+			CheckNoError(t, resp)
+
+			timeout := time.After(5 * time.Second)
+
+			for {
+				select {
+				case ev := <-wsClient.EventChannel:
+					if ev.EventType() == model.WEBSOCKET_EVENT_POST_DELETED {
+						assert.Equal(t, tc.delete_by, ev.GetData()["delete_by"])
+						return
+					}
+				case <-timeout:
+					// We just skip the test instead of failing because waiting for more than 5 seconds
+					// to get a response does not make sense, and it will unncessarily slow down
+					// the tests further in an already congested CI environment.
+					t.Skip("timed out waiting for event")
+				}
+			}
+		})
+	}
+}
+
 func TestGetPostThread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1895,7 +2097,7 @@ func TestGetPostThread(t *testing.T) {
 }
 
 func TestSearchPosts(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
 	defer func() {
@@ -2024,7 +2226,7 @@ func TestSearchPosts(t *testing.T) {
 }
 
 func TestSearchHashtagPosts(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2048,7 +2250,7 @@ func TestSearchHashtagPosts(t *testing.T) {
 }
 
 func TestSearchPostsInChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2102,7 +2304,7 @@ func TestSearchPostsInChannel(t *testing.T) {
 }
 
 func TestSearchPostsFromUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2158,7 +2360,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 }
 
 func TestSearchPostsWithDateFlags(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
@@ -2210,7 +2412,7 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -2262,7 +2464,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 }
 
 func TestSetChannelUnread(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	u1 := th.BasicUser

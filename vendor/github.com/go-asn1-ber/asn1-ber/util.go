@@ -3,7 +3,7 @@ package ber
 import "io"
 
 func readByte(reader io.Reader) (byte, error) {
-	bytes := make([]byte, 1, 1)
+	bytes := make([]byte, 1)
 	_, err := io.ReadFull(reader, bytes)
 	if err != nil {
 		if err == io.EOF {

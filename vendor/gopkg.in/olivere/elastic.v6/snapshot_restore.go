@@ -1,9 +1,14 @@
+// Copyright 2012-present Oliver Eilhard. All rights reserved.
+// Use of this source code is governed by a MIT-license.
+// See http://olivere.mit-license.org/license.txt for details.
+
 package elastic
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -15,10 +20,16 @@ import (
 // It is documented at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/modules-snapshots.html#_restore.
 type SnapshotRestoreService struct {
-	client             *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	repository         string
 	snapshot           string
-	pretty             bool
 	masterTimeout      string
 	waitForCompletion  *bool
 	ignoreUnavailable  *bool
@@ -37,6 +48,46 @@ func NewSnapshotRestoreService(client *Client) *SnapshotRestoreService {
 	return &SnapshotRestoreService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *SnapshotRestoreService) Pretty(pretty bool) *SnapshotRestoreService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *SnapshotRestoreService) Human(human bool) *SnapshotRestoreService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *SnapshotRestoreService) ErrorTrace(errorTrace bool) *SnapshotRestoreService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *SnapshotRestoreService) FilterPath(filterPath ...string) *SnapshotRestoreService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *SnapshotRestoreService) Header(name string, value string) *SnapshotRestoreService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *SnapshotRestoreService) Headers(headers http.Header) *SnapshotRestoreService {
+	s.headers = headers
+	return s
 }
 
 // Repository name.
@@ -94,12 +145,6 @@ func (s *SnapshotRestoreService) Partial(partial bool) *SnapshotRestoreService {
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *SnapshotRestoreService) Pretty(pretty bool) *SnapshotRestoreService {
-	s.pretty = pretty
-	return s
-}
-
 // BodyString allows the user to specify the body of the HTTP request manually.
 func (s *SnapshotRestoreService) BodyString(body string) *SnapshotRestoreService {
 	s.bodyString = body
@@ -143,10 +188,11 @@ func (s *SnapshotRestoreService) Do(ctx context.Context) (*SnapshotRestoreRespon
 	}
 
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -184,9 +230,17 @@ func (s *SnapshotRestoreService) buildURL() (string, url.Values, error) {
 	}
 
 	params := url.Values{}
-
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.masterTimeout != "" {
 		params.Set("master_timeout", s.masterTimeout)

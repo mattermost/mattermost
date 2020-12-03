@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -17,8 +19,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/security-api-get-role-mapping.html.
 type XPackSecurityGetRoleMappingService struct {
 	client *Client
-	pretty bool
-	name   string
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
+	name string
 }
 
 // NewXPackSecurityGetRoleMappingService creates a new XPackSecurityGetRoleMappingService.
@@ -28,15 +36,49 @@ func NewXPackSecurityGetRoleMappingService(client *Client) *XPackSecurityGetRole
 	}
 }
 
-// Name is name of the role mapping to retrieve.
-func (s *XPackSecurityGetRoleMappingService) Name(name string) *XPackSecurityGetRoleMappingService {
-	s.name = name
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackSecurityGetRoleMappingService) Pretty(pretty bool) *XPackSecurityGetRoleMappingService {
+	s.pretty = &pretty
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackSecurityGetRoleMappingService) Pretty(pretty bool) *XPackSecurityGetRoleMappingService {
-	s.pretty = pretty
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackSecurityGetRoleMappingService) Human(human bool) *XPackSecurityGetRoleMappingService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackSecurityGetRoleMappingService) ErrorTrace(errorTrace bool) *XPackSecurityGetRoleMappingService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackSecurityGetRoleMappingService) FilterPath(filterPath ...string) *XPackSecurityGetRoleMappingService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackSecurityGetRoleMappingService) Header(name string, value string) *XPackSecurityGetRoleMappingService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackSecurityGetRoleMappingService) Headers(headers http.Header) *XPackSecurityGetRoleMappingService {
+	s.headers = headers
+	return s
+}
+
+// Name is name of the role mapping to retrieve.
+func (s *XPackSecurityGetRoleMappingService) Name(name string) *XPackSecurityGetRoleMappingService {
+	s.name = name
 	return s
 }
 
@@ -52,8 +94,17 @@ func (s *XPackSecurityGetRoleMappingService) buildURL() (string, url.Values, err
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	return path, params, nil
 }
@@ -85,9 +136,10 @@ func (s *XPackSecurityGetRoleMappingService) Do(ctx context.Context) (*XPackSecu
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

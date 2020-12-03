@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -22,13 +23,18 @@ import (
 // Find further documentation at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-segments.html.
 type IndicesSegmentsService struct {
-	client             *Client
-	pretty             bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index              []string
 	allowNoIndices     *bool
 	expandWildcards    string
 	ignoreUnavailable  *bool
-	human              *bool
 	operationThreading interface{}
 	verbose            *bool
 }
@@ -38,6 +44,46 @@ func NewIndicesSegmentsService(client *Client) *IndicesSegmentsService {
 	return &IndicesSegmentsService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesSegmentsService) Pretty(pretty bool) *IndicesSegmentsService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesSegmentsService) Human(human bool) *IndicesSegmentsService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesSegmentsService) ErrorTrace(errorTrace bool) *IndicesSegmentsService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesSegmentsService) FilterPath(filterPath ...string) *IndicesSegmentsService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesSegmentsService) Header(name string, value string) *IndicesSegmentsService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesSegmentsService) Headers(headers http.Header) *IndicesSegmentsService {
+	s.headers = headers
+	return s
 }
 
 // Index is a comma-separated list of index names; use `_all` or empty string
@@ -69,12 +115,6 @@ func (s *IndicesSegmentsService) IgnoreUnavailable(ignoreUnavailable bool) *Indi
 	return s
 }
 
-// Human, when set to true, returns time and byte-values in human-readable format.
-func (s *IndicesSegmentsService) Human(human bool) *IndicesSegmentsService {
-	s.human = &human
-	return s
-}
-
 // OperationThreading is undocumented in Elasticsearch as of now.
 func (s *IndicesSegmentsService) OperationThreading(operationThreading interface{}) *IndicesSegmentsService {
 	s.operationThreading = operationThreading
@@ -84,12 +124,6 @@ func (s *IndicesSegmentsService) OperationThreading(operationThreading interface
 // Verbose, when set to true, includes detailed memory usage by Lucene.
 func (s *IndicesSegmentsService) Verbose(verbose bool) *IndicesSegmentsService {
 	s.verbose = &verbose
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesSegmentsService) Pretty(pretty bool) *IndicesSegmentsService {
-	s.pretty = pretty
 	return s
 }
 
@@ -111,8 +145,17 @@ func (s *IndicesSegmentsService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.allowNoIndices != nil {
 		params.Set("allow_no_indices", fmt.Sprintf("%v", *s.allowNoIndices))
@@ -122,9 +165,6 @@ func (s *IndicesSegmentsService) buildURL() (string, url.Values, error) {
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
-	}
-	if s.human != nil {
-		params.Set("human", fmt.Sprintf("%v", *s.human))
 	}
 	if s.operationThreading != nil {
 		params.Set("operation_threading", fmt.Sprintf("%v", s.operationThreading))
@@ -155,9 +195,10 @@ func (s *IndicesSegmentsService) Do(ctx context.Context) (*IndicesSegmentsRespon
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

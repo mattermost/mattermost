@@ -11,7 +11,7 @@ import (
 )
 
 func TestChannelGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create public channel
@@ -29,7 +29,7 @@ func TestChannelGroupEnable(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -56,7 +56,7 @@ func TestChannelGroupEnable(t *testing.T) {
 }
 
 func TestChannelGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -73,7 +73,7 @@ func TestChannelGroupDisable(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -106,7 +106,7 @@ func TestChannelGroupDisable(t *testing.T) {
 }
 
 func TestChannelGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -120,7 +120,7 @@ func TestChannelGroupStatus(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -150,7 +150,7 @@ func TestChannelGroupStatus(t *testing.T) {
 }
 
 func TestChannelGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// create private channel
@@ -163,7 +163,7 @@ func TestChannelGroupList(t *testing.T) {
 	id1 := model.NewId()
 	g1, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id1,
-		Name:        "name" + id1,
+		Name:        model.NewString("name" + id1),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id1,
 		RemoteId:    model.NewId(),
@@ -181,7 +181,7 @@ func TestChannelGroupList(t *testing.T) {
 	id2 := model.NewId()
 	g2, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id2,
-		Name:        "name" + id2,
+		Name:        model.NewString("name" + id2),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id2,
 		RemoteId:    model.NewId(),
@@ -212,7 +212,7 @@ func TestChannelGroupList(t *testing.T) {
 }
 
 func TestTeamGroupEnable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to enable, should fail because team has no groups
@@ -222,7 +222,7 @@ func TestTeamGroupEnable(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -249,7 +249,7 @@ func TestTeamGroupEnable(t *testing.T) {
 }
 
 func TestTeamGroupDisable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// try to disable, should work
@@ -263,7 +263,7 @@ func TestTeamGroupDisable(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -296,7 +296,7 @@ func TestTeamGroupDisable(t *testing.T) {
 }
 
 func TestTeamGroupStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// get status, should be Disabled
@@ -307,7 +307,7 @@ func TestTeamGroupStatus(t *testing.T) {
 	id := model.NewId()
 	group, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
@@ -337,7 +337,7 @@ func TestTeamGroupStatus(t *testing.T) {
 }
 
 func TestTeamGroupList(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// list groups for a team with none, should work
@@ -347,7 +347,7 @@ func TestTeamGroupList(t *testing.T) {
 	id1 := model.NewId()
 	g1, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id1,
-		Name:        "name" + id1,
+		Name:        model.NewString("name" + id1),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id1,
 		RemoteId:    model.NewId(),
@@ -365,7 +365,7 @@ func TestTeamGroupList(t *testing.T) {
 	id2 := model.NewId()
 	g2, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id2,
-		Name:        "name" + id2,
+		Name:        model.NewString("name" + id2),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id2,
 		RemoteId:    model.NewId(),

@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -25,6 +26,7 @@ import (
 const (
 	ME                                 = "me"
 	USER_NOTIFY_ALL                    = "all"
+	USER_NOTIFY_HERE                   = "here"
 	USER_NOTIFY_MENTION                = "mention"
 	USER_NOTIFY_NONE                   = "none"
 	DESKTOP_NOTIFY_PROP                = "desktop"
@@ -58,6 +60,11 @@ const (
 	USER_LOCALE_MAX_LENGTH    = 5
 )
 
+//msgp:tuple User
+
+// User contains the details about the user.
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type User struct {
 	Id                     string    `json:"id"`
 	CreateAt               int64     `json:"create_at,omitempty"`
@@ -92,6 +99,12 @@ type User struct {
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
 
+//msgp UserMap
+
+// UserMap is a map from a userId to a user object.
+// It is used to generate methods which can be used for fast serialization/de-serialization.
+type UserMap map[string]*User
+
 type UserUpdate struct {
 	Old *User
 	New *User
@@ -123,6 +136,7 @@ type UserForIndexing struct {
 	Nickname    string   `json:"nickname"`
 	FirstName   string   `json:"first_name"`
 	LastName    string   `json:"last_name"`
+	Roles       string   `json:"roles"`
 	CreateAt    int64    `json:"create_at"`
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`
@@ -237,7 +251,7 @@ func (u *User) DeepCopy() *User {
 // correctly.
 func (u *User) IsValid() *AppError {
 
-	if len(u.Id) != 26 {
+	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
 
@@ -329,6 +343,11 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
@@ -362,9 +381,20 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
+
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
 
 	if u.AuthData != nil && *u.AuthData == "" {
 		u.AuthData = nil
@@ -391,7 +421,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
 	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
 	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
@@ -406,7 +436,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 		}
 	}
 
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	if len(nonUsernameKeys) > 0 {
 		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
@@ -517,11 +547,11 @@ func (u *User) SanitizeInput(isAdmin bool) {
 	if !isAdmin {
 		u.AuthData = NewString("")
 		u.AuthService = ""
+		u.EmailVerified = false
 	}
 	u.LastPasswordUpdate = 0
 	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
-	u.EmailVerified = false
 	u.MfaActive = false
 	u.MfaSecret = ""
 }
@@ -861,7 +891,22 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	return uwg
 }
 
-var passwordRandomSource = rand.NewSource(time.Now().Unix())
+type lockedRand struct {
+	mu sync.Mutex
+	rn *rand.Rand
+}
+
+func (r *lockedRand) Intn(n int) int {
+	r.mu.Lock()
+	m := r.rn.Intn(n)
+	r.mu.Unlock()
+	return m
+}
+
+var passwordRandom = lockedRand{
+	rn: rand.New(rand.NewSource(time.Now().Unix())),
+}
+
 var passwordSpecialChars = "!$%^&*(),."
 var passwordNumbers = "0123456789"
 var passwordUpperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -869,16 +914,14 @@ var passwordLowerCaseLetters = "abcdefghijklmnopqrstuvwxyz"
 var passwordAllChars = passwordSpecialChars + passwordNumbers + passwordUpperCaseLetters + passwordLowerCaseLetters
 
 func GeneratePassword(minimumLength int) string {
-	r := rand.New(passwordRandomSource)
-
 	// Make sure we are guaranteed at least one of each type to meet any possible password complexity requirements.
-	password := string([]rune(passwordUpperCaseLetters)[r.Intn(len(passwordUpperCaseLetters))]) +
-		string([]rune(passwordNumbers)[r.Intn(len(passwordNumbers))]) +
-		string([]rune(passwordLowerCaseLetters)[r.Intn(len(passwordLowerCaseLetters))]) +
-		string([]rune(passwordSpecialChars)[r.Intn(len(passwordSpecialChars))])
+	password := string([]rune(passwordUpperCaseLetters)[passwordRandom.Intn(len(passwordUpperCaseLetters))]) +
+		string([]rune(passwordNumbers)[passwordRandom.Intn(len(passwordNumbers))]) +
+		string([]rune(passwordLowerCaseLetters)[passwordRandom.Intn(len(passwordLowerCaseLetters))]) +
+		string([]rune(passwordSpecialChars)[passwordRandom.Intn(len(passwordSpecialChars))])
 
 	for len(password) < minimumLength {
-		i := r.Intn(len(passwordAllChars))
+		i := passwordRandom.Intn(len(passwordAllChars))
 		password = password + string([]rune(passwordAllChars)[i])
 	}
 

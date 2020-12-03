@@ -4,6 +4,7 @@
 package manualtesting
 
 import (
+	"errors"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
@@ -13,8 +14,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/slashcommands"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 )
@@ -70,14 +73,23 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:        utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
+			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TEAM_OPEN,
 		}
 
-		createdTeam, err := c.App.Srv.Store.Team().Save(team)
+		createdTeam, err := c.App.Srv().Store.Team().Save(team)
 		if err != nil {
-			c.Err = err
+			var invErr *store.ErrInvalidInput
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &invErr):
+				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			case errors.As(err, &appErr):
+				c.Err = appErr
+			default:
+				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 
@@ -93,7 +105,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
-			Password: app.USER_PASSWORD}
+			Password: slashcommands.USER_PASSWORD}
 
 		user, resp := client.CreateUser(user)
 		if resp.Error != nil {
@@ -101,13 +113,13 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, app.USER_PASSWORD)
+		_, resp = client.LoginById(user.Id, slashcommands.USER_PASSWORD)
 		if resp.Error != nil {
 			c.Err = resp.Error
 			return
@@ -151,9 +163,9 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv.Store.Channel().GetChannels(teamid, userid, false)
+	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, false, 0)
 	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false

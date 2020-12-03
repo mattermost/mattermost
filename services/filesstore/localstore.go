@@ -103,6 +103,23 @@ func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
 	return written, nil
 }
 
+func (b *LocalFileBackend) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	fp := filepath.Join(b.directory, path)
+	if _, err := os.Stat(fp); err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.no_exist.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	fw, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND, 0600)
+	if err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.opening.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer fw.Close()
+	written, err := io.Copy(fw, fr)
+	if err != nil {
+		return written, model.NewAppError("AppendFile", "api.file.append_file.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return written, nil
+}
+
 func (b *LocalFileBackend) RemoveFile(path string) *model.AppError {
 	if err := os.Remove(filepath.Join(b.directory, path)); err != nil {
 		return model.NewAppError("RemoveFile", "utils.file.remove_file.local.app_error", nil, err.Error(), http.StatusInternalServerError)

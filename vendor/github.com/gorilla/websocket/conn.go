@@ -244,8 +244,8 @@ type Conn struct {
 	subprotocol string
 
 	// Write fields
-	mu            chan bool // used as mutex to protect write to conn
-	writeBuf      []byte    // frame is constructed in this buffer.
+	mu            chan struct{} // used as mutex to protect write to conn
+	writeBuf      []byte        // frame is constructed in this buffer.
 	writePool     BufferPool
 	writeBufSize  int
 	writeDeadline time.Time
@@ -302,8 +302,8 @@ func newConn(conn net.Conn, isServer bool, readBufferSize, writeBufferSize int, 
 		writeBuf = make([]byte, writeBufferSize)
 	}
 
-	mu := make(chan bool, 1)
-	mu <- true
+	mu := make(chan struct{}, 1)
+	mu <- struct{}{}
 	c := &Conn{
 		isServer:               isServer,
 		br:                     br,
@@ -377,7 +377,7 @@ func (c *Conn) read(n int) ([]byte, error) {
 
 func (c *Conn) write(frameType int, deadline time.Time, buf0, buf1 []byte) error {
 	<-c.mu
-	defer func() { c.mu <- true }()
+	defer func() { c.mu <- struct{}{} }()
 
 	c.writeErrMu.Lock()
 	err := c.writeErr
@@ -429,7 +429,7 @@ func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) er
 		maskBytes(key, 0, buf[6:])
 	}
 
-	d := time.Hour * 1000
+	d := 1000 * time.Hour
 	if !deadline.IsZero() {
 		d = deadline.Sub(time.Now())
 		if d < 0 {
@@ -444,7 +444,7 @@ func (c *Conn) WriteControl(messageType int, data []byte, deadline time.Time) er
 	case <-timer.C:
 		return errWriteTimeout
 	}
-	defer func() { c.mu <- true }()
+	defer func() { c.mu <- struct{}{} }()
 
 	c.writeErrMu.Lock()
 	err := c.writeErr

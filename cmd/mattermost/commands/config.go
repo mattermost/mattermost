@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -123,7 +122,7 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	path, err := command.Flags().GetString("path")
 	if err != nil {
@@ -141,14 +140,12 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func getConfigStore(command *cobra.Command) (config.Store, error) {
+func getConfigStore(command *cobra.Command) (*config.Store, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configDSN := viper.GetString("config")
-
-	configStore, err := config.NewStore(configDSN, false)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), false, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}
@@ -251,9 +248,22 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
+	if _, errSet := configStore.Set(newConfig); errSet != nil {
+		return errors.Wrap(errSet, "failed to set config")
 	}
+
+	/*
+		Uncomment when CI unit test fail resolved.
+
+		a, errInit := InitDBCommandContextCobra(command)
+		if errInit == nil {
+			auditRec := a.MakeAuditRecord("configSet", audit.Success)
+			auditRec.AddMeta("setting", configSetting)
+			auditRec.AddMeta("new_value", newVal)
+			a.LogAuditRec(auditRec, nil)
+			a.Srv().Shutdown()
+		}
+	*/
 
 	return nil
 }
@@ -456,9 +466,20 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	if _, err := configStore.Set(tempConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
+	if _, errSet := configStore.Set(tempConfig); errSet != nil {
+		return errors.Wrap(errSet, "failed to set config")
 	}
+
+	/*
+		Uncomment when CI unit test fail resolved.
+
+		a, errInit := InitDBCommandContextCobra(command)
+		if errInit == nil {
+			auditRec := a.MakeAuditRecord("configReset", audit.Success)
+			a.LogAuditRec(auditRec, nil)
+			a.Srv().Shutdown()
+		}
+	*/
 
 	return nil
 }

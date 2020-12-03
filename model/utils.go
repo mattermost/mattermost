@@ -18,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -36,6 +37,26 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
+func (sa StringArray) Remove(input string) StringArray {
+	for index := range sa {
+		if sa[index] == input {
+			ret := make(StringArray, 0, len(sa)-1)
+			ret = append(ret, sa[:index]...)
+			return append(ret, sa[index+1:]...)
+		}
+	}
+	return sa
+}
+
+func (sa StringArray) Contains(input string) bool {
+	for index := range sa {
+		if sa[index] == input {
+			return true
+		}
+	}
+
+	return false
+}
 func (sa StringArray) Equals(input StringArray) bool {
 
 	if len(sa) != len(input) {
@@ -52,10 +73,13 @@ func (sa StringArray) Equals(input StringArray) bool {
 	return true
 }
 
-var translateFunc goi18n.TranslateFunc = nil
+var translateFunc goi18n.TranslateFunc
+var translateFuncOnce sync.Once
 
 func AppErrorInit(t goi18n.TranslateFunc) {
-	translateFunc = t
+	translateFuncOnce.Do(func() {
+		translateFunc = t
+	})
 }
 
 type AppError struct {
@@ -155,15 +179,20 @@ func NewRandomTeamName() string {
 	return teamName
 }
 
+// NewRandomString returns a random string of the given length.
+// The resulting entropy will be (5 * length) bits.
 func NewRandomString(length int) string {
-	var b bytes.Buffer
-	str := make([]byte, length+8)
-	rand.Read(str)
-	encoder := base32.NewEncoder(encoding, &b)
-	encoder.Write(str)
-	encoder.Close()
-	b.Truncate(length) // removes the '==' padding
-	return b.String()
+	data := make([]byte, 1+(length*5/8))
+	rand.Read(data)
+	return encoding.EncodeToString(data)[:length]
+}
+
+// NewRandomBase32String returns a base32 encoded string of a random slice
+// of bytes of the given size. The resulting entropy will be (8 * size) bits.
+func NewRandomBase32String(size int) string {
+	data := make([]byte, size)
+	rand.Read(data)
+	return base32.StdEncoding.EncodeToString(data)
 }
 
 // GetMillis is a convenience method to get milliseconds since epoch.
@@ -367,16 +396,20 @@ func IsValidEmail(email string) bool {
 }
 
 var reservedName = []string{
-	"signup",
-	"login",
 	"admin",
-	"channel",
-	"post",
 	"api",
-	"oauth",
+	"channel",
+	"claim",
 	"error",
 	"help",
+	"landing",
+	"login",
+	"mfa",
+	"oauth",
+	"plug",
 	"plugins",
+	"post",
+	"signup",
 }
 
 func IsValidChannelIdentifier(s string) bool {
@@ -487,7 +520,7 @@ func IsValidHttpUrl(rawUrl string) bool {
 		return false
 	}
 
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 
@@ -638,4 +671,57 @@ func GetPreferredTimezone(timezone StringMap) string {
 // IsSamlFile checks if filename is a SAML file.
 func IsSamlFile(saml *SamlSettings, filename string) bool {
 	return filename == *saml.PublicCertificateFile || filename == *saml.PrivateKeyFile || filename == *saml.IdpCertificateFile
+}
+
+func AsStringBoolMap(list []string) map[string]bool {
+	listMap := map[string]bool{}
+	for _, p := range list {
+		listMap[p] = true
+	}
+	return listMap
+}
+
+// SanitizeUnicode will remove undesirable Unicode characters from a string.
+func SanitizeUnicode(s string) string {
+	return strings.Map(filterBlocklist, s)
+}
+
+// filterBlocklist returns `r` if it is not in the blocklist, otherwise drop (-1).
+// Blocklist is taken from https://www.w3.org/TR/unicode-xml/#Charlist
+func filterBlocklist(r rune) rune {
+	const drop = -1
+	switch r {
+	case '\u0340', '\u0341': // clones of grave and acute; deprecated in Unicode
+		return drop
+	case '\u17A3', '\u17D3': // obsolete characters for Khmer; deprecated in Unicode
+		return drop
+	case '\u2028', '\u2029': // line and paragraph separator
+		return drop
+	case '\u202A', '\u202B', '\u202C', '\u202D', '\u202E': // BIDI embedding controls
+		return drop
+	case '\u206A', '\u206B': // activate/inhibit symmetric swapping; deprecated in Unicode
+		return drop
+	case '\u206C', '\u206D': // activate/inhibit Arabic form shaping; deprecated in Unicode
+		return drop
+	case '\u206E', '\u206F': // activate/inhibit national digit shapes; deprecated in Unicode
+		return drop
+	case '\uFFF9', '\uFFFA', '\uFFFB': // interlinear annotation characters
+		return drop
+	case '\uFEFF': // byte order mark
+		return drop
+	case '\uFFFC': // object replacement character
+		return drop
+	}
+
+	// Scoping for musical notation
+	if r >= 0x0001D173 && r <= 0x0001D17A {
+		return drop
+	}
+
+	// Language tag code points
+	if r >= 0x000E0000 && r <= 0x000E007F {
+		return drop
+	}
+
+	return r
 }

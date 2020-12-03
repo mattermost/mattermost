@@ -152,8 +152,14 @@ type fieldWithPrefix struct {
 func isEmptyFields(fields []fieldWithPrefix, src map[string][]string) bool {
 	for _, f := range fields {
 		for _, path := range f.paths(f.prefix) {
-			if !isEmpty(f.typ, src[path]) {
+			v, ok := src[path]
+			if ok && !isEmpty(f.typ, v) {
 				return false
+			}
+			for key := range src {
+				if !isEmpty(f.typ, src[key]) && strings.HasPrefix(key, path) {
+					return false
+				}
 			}
 		}
 	}
@@ -182,6 +188,17 @@ func (d *Decoder) decode(v reflect.Value, path string, parts []pathPart, values 
 			}
 			v = v.Elem()
 		}
+
+		// alloc embedded structs
+		if v.Type().Kind() == reflect.Struct {
+			for i := 0; i < v.NumField(); i++ {
+				field := v.Field(i)
+				if field.Type().Kind() == reflect.Ptr && field.IsNil() && v.Type().Field(i).Anonymous == true {
+					field.Set(reflect.New(field.Type().Elem()))
+				}
+			}
+		}
+
 		v = v.FieldByName(name)
 	}
 	// Don't even bother for unexported fields.

@@ -131,8 +131,9 @@ type PostImportData struct {
 	Channel *string `json:"channel"`
 	User    *string `json:"user"`
 
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
+	Message  *string                `json:"message"`
+	Props    *model.StringInterface `json:"props"`
+	CreateAt *int64                 `json:"create_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
 	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
@@ -151,8 +152,9 @@ type DirectPostImportData struct {
 	ChannelMembers *[]string `json:"channel_members"`
 	User           *string   `json:"user"`
 
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
+	Message  *string                `json:"message"`
+	Props    *model.StringInterface `json:"props"`
+	CreateAt *int64                 `json:"create_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`

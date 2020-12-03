@@ -5,10 +5,28 @@ package api4
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+var allowedPermissions = []string{
+	model.PERMISSION_CREATE_TEAM.Id,
+	model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+	model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
+	model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+	model.PERMISSION_MANAGE_OAUTH.Id,
+	model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
+	model.PERMISSION_CREATE_EMOJIS.Id,
+	model.PERMISSION_DELETE_EMOJIS.Id,
+	model.PERMISSION_EDIT_OTHERS_POSTS.Id,
+}
+
+var notAllowedPermissions = []string{
+	model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES.Id,
+	model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_SYSTEM_ROLES.Id,
+	model.PERMISSION_MANAGE_ROLES.Id,
+}
 
 func (api *API) InitRole() {
 	api.BaseRoutes.Roles.Handle("/{role_id:[A-Za-z0-9]+}", api.ApiSessionRequiredTrustRequester(getRole)).Methods("GET")
@@ -55,18 +73,10 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cleanedRoleNames []string
-	for _, rolename := range rolenames {
-		if strings.TrimSpace(rolename) == "" {
-			continue
-		}
-
-		if !model.IsValidRoleName(rolename) {
-			c.SetInvalidParam("rolename")
-			return
-		}
-
-		cleanedRoleNames = append(cleanedRoleNames, rolename)
+	cleanedRoleNames, valid := model.CleanRoleNames(rolenames)
+	if !valid {
+		c.SetInvalidParam("rolename")
+		return
 	}
 
 	roles, err := c.App.GetRolesByNames(cleanedRoleNames)
@@ -90,27 +100,26 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchRole", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	oldRole, err := c.App.GetRole(c.Params.RoleId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("role", oldRole)
 
-	if c.App.License() == nil && patch.Permissions != nil {
-		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
+	if oldRole.Name == model.SYSTEM_ADMIN_ROLE_ID {
+		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.admin_role.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	isGuest := oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID
+	if c.App.Srv().License() == nil && patch.Permissions != nil {
+		if isGuest {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
-		}
-		allowedPermissions := []string{
-			model.PERMISSION_CREATE_TEAM.Id,
-			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
-			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_OAUTH.Id,
-			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-			model.PERMISSION_CREATE_EMOJIS.Id,
-			model.PERMISSION_DELETE_EMOJIS.Id,
-			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		}
 
 		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
@@ -129,14 +138,39 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.License().Features.GuestAccountsPermissions {
+	if patch.Permissions != nil {
+		deltaPermissions := model.PermissionsChangedByPatch(oldRole, patch)
+
+		for _, permission := range deltaPermissions {
+			notAllowed := false
+			for _, notAllowedPermission := range notAllowedPermissions {
+				if permission == notAllowedPermission {
+					notAllowed = true
+				}
+			}
+
+			if notAllowed {
+				c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
+				return
+			}
+		}
+	}
+
+	if c.App.Srv().License() != nil && isGuest && !*c.App.Srv().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
+	if oldRole.Name == model.TEAM_ADMIN_ROLE_ID || oldRole.Name == model.CHANNEL_ADMIN_ROLE_ID || oldRole.Name == model.SYSTEM_USER_ROLE_ID || oldRole.Name == model.TEAM_USER_ROLE_ID || oldRole.Name == model.CHANNEL_USER_ROLE_ID || oldRole.Name == model.SYSTEM_GUEST_ROLE_ID || oldRole.Name == model.TEAM_GUEST_ROLE_ID || oldRole.Name == model.CHANNEL_GUEST_ROLE_ID {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_SYSTEM_ROLES)
+			return
+		}
 	}
 
 	role, err := c.App.PatchRole(oldRole, patch)
@@ -145,6 +179,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("patch", role)
 	c.LogAudit("")
+
 	w.Write([]byte(role.ToJson()))
 }

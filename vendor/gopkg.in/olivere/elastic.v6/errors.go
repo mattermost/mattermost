@@ -170,6 +170,7 @@ type ShardsInfo struct {
 	Successful int             `json:"successful"`
 	Failed     int             `json:"failed"`
 	Failures   []*ShardFailure `json:"failures,omitempty"`
+	Skipped    int             `json:"skipped,omitempty"`
 }
 
 // ShardFailure represents details about a failure.

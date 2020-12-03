@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	errIncompleteCode          = errors.New("ccitt: incomplete code")
 	errInvalidBounds           = errors.New("ccitt: invalid bounds")
 	errInvalidCode             = errors.New("ccitt: invalid code")
 	errInvalidMode             = errors.New("ccitt: invalid mode")
@@ -47,6 +48,10 @@ const (
 	Group3 SubFormat = iota
 	Group4
 )
+
+// AutoDetectHeight is passed as the height argument to NewReader to indicate
+// that the image height (the number of rows) is not known in advance.
+const AutoDetectHeight = -1
 
 // Options are optional parameters.
 type Options struct {
@@ -158,13 +163,13 @@ func (b *bitReader) alignToByteBoundary() {
 // bitReader.nBits value above nextBitMaxNBits.
 const nextBitMaxNBits = 31
 
-func (b *bitReader) nextBit() (uint32, error) {
+func (b *bitReader) nextBit() (uint64, error) {
 	for {
 		if b.nBits > 0 {
-			bit := (b.bits >> 63) & 1
+			bit := b.bits >> 63
 			b.bits <<= 1
 			b.nBits--
-			return uint32(bit), nil
+			return bit, nil
 		}
 
 		if available := b.bw - b.br; available >= 4 {
@@ -205,10 +210,14 @@ func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
 	for {
 		bit, err := b.nextBit()
 		if err != nil {
+			if err == io.EOF {
+				err = errIncompleteCode
+			}
 			return 0, err
 		}
-		bitsRead |= uint64(bit) << (63 - nBitsRead)
+		bitsRead |= bit << (63 - nBitsRead)
 		nBitsRead++
+
 		// The "&1" is redundant, but can eliminate a bounds check.
 		state = int32(decodeTable[state][bit&1])
 		if state < 0 {
@@ -222,6 +231,35 @@ func decode(b *bitReader, decodeTable [][2]int16) (uint32, error) {
 	}
 }
 
+// decodeEOL decodes the 12-bit EOL code 0000_0000_0001.
+func decodeEOL(b *bitReader) error {
+	nBitsRead, bitsRead := uint32(0), uint64(0)
+	for {
+		bit, err := b.nextBit()
+		if err != nil {
+			if err == io.EOF {
+				err = errMissingEOL
+			}
+			return err
+		}
+		bitsRead |= bit << (63 - nBitsRead)
+		nBitsRead++
+
+		if nBitsRead < 12 {
+			if bit&1 == 0 {
+				continue
+			}
+		} else if bit&1 != 0 {
+			return nil
+		}
+
+		// Unread the bits we've read, then return errMissingEOL.
+		b.bits = (b.bits >> nBitsRead) | bitsRead
+		b.nBits += nBitsRead
+		return errMissingEOL
+	}
+}
+
 type reader struct {
 	br        bitReader
 	subFormat SubFormat
@@ -231,7 +269,10 @@ type reader struct {
 
 	// rowsRemaining starts at the image height in pixels, when the reader is
 	// driven through the io.Reader interface, and decrements to zero as rows
-	// are decoded. When driven through DecodeIntoGray, this field is unused.
+	// are decoded. Alternatively, it may be negative if the image height is
+	// not known in advance at the time of the NewReader call.
+	//
+	// When driven through DecodeIntoGray, this field is unused.
 	rowsRemaining int
 
 	// curr and prev hold the current and previous rows. Each element is either
@@ -269,6 +310,19 @@ type reader struct {
 	// seenStartOfImage is whether we've called the startDecode method.
 	seenStartOfImage bool
 
+	// truncated is whether the input is missing the final 6 consecutive EOL's
+	// (for Group3) or 2 consecutive EOL's (for Group4). Omitting that trailer
+	// (but otherwise padding to a byte boundary, with either all 0 bits or all
+	// 1 bits) is invalid according to the spec, but happens in practice when
+	// exporting from Adobe Acrobat to TIFF + CCITT. This package silently
+	// ignores the format error for CCITT input that has been truncated in that
+	// fashion, returning the full decoded image.
+	//
+	// Detecting trailer truncation (just after the final row of pixels)
+	// requires knowing which row is the final row, and therefore does not
+	// trigger if the image height is not known in advance.
+	truncated bool
+
 	// readErr is a sticky error for the Read method.
 	readErr error
 }
@@ -294,17 +348,50 @@ func (z *reader) Read(p []byte) (int, error) {
 
 		// Decode the next row, if necessary.
 		if z.atStartOfRow {
-			if z.rowsRemaining <= 0 {
-				if z.readErr = z.finishDecode(); z.readErr != nil {
+			if z.rowsRemaining < 0 {
+				// We do not know the image height in advance. See if the next
+				// code is an EOL. If it is, it is consumed. If it isn't, the
+				// bitReader shouldn't advance along the bit stream, and we
+				// simply decode another row of pixel data.
+				//
+				// For the Group4 subFormat, we may need to align to a byte
+				// boundary. For the Group3 subFormat, the previous z.decodeRow
+				// call (or z.startDecode call) has already consumed one of the
+				// 6 consecutive EOL's. The next EOL is actually the second of
+				// 6, in the middle, and we shouldn't align at that point.
+				if z.align && (z.subFormat == Group4) {
+					z.br.alignToByteBoundary()
+				}
+
+				if err := z.decodeEOL(); err == errMissingEOL {
+					// No-op. It's another row of pixel data.
+				} else if err != nil {
+					z.readErr = err
+					break
+				} else {
+					if z.readErr = z.finishDecode(true); z.readErr != nil {
+						break
+					}
+					z.readErr = io.EOF
+					break
+				}
+
+			} else if z.rowsRemaining == 0 {
+				// We do know the image height in advance, and we have already
+				// decoded exactly that many rows.
+				if z.readErr = z.finishDecode(false); z.readErr != nil {
 					break
 				}
 				z.readErr = io.EOF
 				break
+
+			} else {
+				z.rowsRemaining--
 			}
-			if z.readErr = z.decodeRow(); z.readErr != nil {
+
+			if z.readErr = z.decodeRow(z.rowsRemaining == 0); z.readErr != nil {
 				break
 			}
-			z.rowsRemaining--
 		}
 
 		// Pack from z.curr (1 byte per pixel) to p (1 bit per pixel).
@@ -351,32 +438,44 @@ func (z *reader) startDecode() error {
 	return nil
 }
 
-func (z *reader) finishDecode() error {
+func (z *reader) finishDecode(alreadySeenEOL bool) error {
 	numberOfEOLs := 0
 	switch z.subFormat {
 	case Group3:
+		if z.truncated {
+			return nil
+		}
 		// The stream ends with a RTC (Return To Control) of 6 consecutive
 		// EOL's, but we should have already just seen an EOL, either in
 		// z.startDecode (for a zero-height image) or in z.decodeRow.
 		numberOfEOLs = 5
 
 	case Group4:
-		// The stream ends with two EOL's, the first of which is possibly
-		// byte-aligned.
-		numberOfEOLs = 2
-		if err := z.decodeEOL(); err == nil {
-			numberOfEOLs--
-		} else if err == errInvalidCode {
-			// Try again, this time starting from a byte boundary.
+		autoDetectHeight := z.rowsRemaining < 0
+		if autoDetectHeight {
+			// Aligning to a byte boundary was already handled by reader.Read.
+		} else if z.align {
 			z.br.alignToByteBoundary()
-		} else {
+		}
+		// The stream ends with two EOL's. If the first one is missing, and we
+		// had an explicit image height, we just assume that the trailing two
+		// EOL's were truncated and return a nil error.
+		if err := z.decodeEOL(); err != nil {
+			if (err == errMissingEOL) && !autoDetectHeight {
+				z.truncated = true
+				return nil
+			}
 			return err
 		}
+		numberOfEOLs = 1
 
 	default:
 		return errUnsupportedSubFormat
 	}
 
+	if alreadySeenEOL {
+		numberOfEOLs--
+	}
 	for ; numberOfEOLs > 0; numberOfEOLs-- {
 		if err := z.decodeEOL(); err != nil {
 			return err
@@ -386,19 +485,10 @@ func (z *reader) finishDecode() error {
 }
 
 func (z *reader) decodeEOL() error {
-	// TODO: EOL doesn't have to be in the modeDecodeTable. It could be in its
-	// own table, or we could just hard-code it, especially if we might need to
-	// cater for optional byte-alignment, or an arbitrary number (potentially
-	// more than 8) of 0-valued padding bits.
-	if mode, err := decode(&z.br, modeDecodeTable[:]); err != nil {
-		return err
-	} else if mode != modeEOL {
-		return errMissingEOL
-	}
-	return nil
+	return decodeEOL(&z.br)
 }
 
-func (z *reader) decodeRow() error {
+func (z *reader) decodeRow(finalRow bool) error {
 	z.wi = 0
 	z.atStartOfRow = true
 	z.penColorIsWhite = true
@@ -414,7 +504,12 @@ func (z *reader) decodeRow() error {
 				return err
 			}
 		}
-		return z.decodeEOL()
+		err := z.decodeEOL()
+		if finalRow && (err == errMissingEOL) {
+			z.truncated = true
+			return nil
+		}
+		return err
 
 	case Group4:
 		for ; z.wi < len(z.curr); z.atStartOfRow = false {
@@ -654,13 +749,13 @@ func DecodeIntoGray(dst *image.Gray, r io.Reader, order Order, sf SubFormat, opt
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		p := (y - bounds.Min.Y) * dst.Stride
 		z.curr = dst.Pix[p : p+width]
-		if err := z.decodeRow(); err != nil {
+		if err := z.decodeRow(y+1 == bounds.Max.Y); err != nil {
 			return err
 		}
 		z.curr, z.prev = nil, z.curr
 	}
 
-	if err := z.finishDecode(); err != nil {
+	if err := z.finishDecode(false); err != nil {
 		return err
 	}
 
@@ -677,9 +772,12 @@ func DecodeIntoGray(dst *image.Gray, r io.Reader, order Order, sf SubFormat, opt
 // NewReader returns an io.Reader that decodes the CCITT-formatted data in r.
 // The resultant byte stream is one bit per pixel (MSB first), with 1 meaning
 // white and 0 meaning black. Each row in the result is byte-aligned.
+//
+// A negative height, such as passing AutoDetectHeight, means that the image
+// height is not known in advance. A negative width is invalid.
 func NewReader(r io.Reader, order Order, sf SubFormat, width int, height int, opts *Options) io.Reader {
 	readErr := error(nil)
-	if (width < 0) || (height < 0) {
+	if width < 0 {
 		readErr = errInvalidBounds
 	} else if width > maxWidth {
 		readErr = errUnsupportedWidth

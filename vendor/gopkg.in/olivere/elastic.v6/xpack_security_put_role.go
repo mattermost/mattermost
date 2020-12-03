@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -17,9 +19,15 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/security-api-put-role.html.
 type XPackSecurityPutRoleService struct {
 	client *Client
-	pretty bool
-	name   string
-	body   interface{}
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
+	name string
+	body interface{}
 }
 
 // NewXPackSecurityPutRoleService creates a new XPackSecurityPutRoleService.
@@ -29,15 +37,49 @@ func NewXPackSecurityPutRoleService(client *Client) *XPackSecurityPutRoleService
 	}
 }
 
-// Name is name of the role to create.
-func (s *XPackSecurityPutRoleService) Name(name string) *XPackSecurityPutRoleService {
-	s.name = name
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackSecurityPutRoleService) Pretty(pretty bool) *XPackSecurityPutRoleService {
+	s.pretty = &pretty
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackSecurityPutRoleService) Pretty(pretty bool) *XPackSecurityPutRoleService {
-	s.pretty = pretty
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackSecurityPutRoleService) Human(human bool) *XPackSecurityPutRoleService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackSecurityPutRoleService) ErrorTrace(errorTrace bool) *XPackSecurityPutRoleService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackSecurityPutRoleService) FilterPath(filterPath ...string) *XPackSecurityPutRoleService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackSecurityPutRoleService) Header(name string, value string) *XPackSecurityPutRoleService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackSecurityPutRoleService) Headers(headers http.Header) *XPackSecurityPutRoleService {
+	s.headers = headers
+	return s
+}
+
+// Name is name of the role to create.
+func (s *XPackSecurityPutRoleService) Name(name string) *XPackSecurityPutRoleService {
+	s.name = name
 	return s
 }
 
@@ -59,8 +101,17 @@ func (s *XPackSecurityPutRoleService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	return path, params, nil
 }
@@ -95,10 +146,11 @@ func (s *XPackSecurityPutRoleService) Do(ctx context.Context) (*XPackSecurityPut
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   s.body,
+		Method:  "PUT",
+		Path:    path,
+		Params:  params,
+		Body:    s.body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

@@ -152,7 +152,7 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
-// NotificationWillBeSent provides a mock function with given fields: c, post, userList
+// NotificationWillBeSent provides a mock function with given fields: c, post, mentions
 func (_m *Hooks) NotificationWillBeSent(c *plugin.Context, post *model.Post, mentions *model.ExplicitMentions) *model.ExplicitMentions {
 	ret := _m.Called(c, post, mentions)
 
@@ -208,6 +208,16 @@ func (_m *Hooks) OnDeactivate() error {
 	}
 
 	return r0
+}
+
+// ReactionHasBeenAdded provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
+	_m.Called(c, reaction)
+}
+
+// ReactionHasBeenRemoved provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
+	_m.Called(c, reaction)
 }
 
 // ServeHTTP provides a mock function with given fields: c, w, r

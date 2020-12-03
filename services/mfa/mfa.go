@@ -4,7 +4,6 @@
 package mfa
 
 import (
-	b32 "encoding/base32"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -18,6 +17,7 @@ import (
 )
 
 const (
+	// This will result in 160 bits of entropy (base32 encoded), as recommended by rfc4226.
 	MFA_SECRET_SIZE = 20
 )
 
@@ -58,7 +58,7 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 
 	issuer := getIssuerFromUrl(*m.ConfigService.Config().ServiceSettings.SiteURL)
 
-	secret := b32.StdEncoding.EncodeToString([]byte(model.NewRandomString(MFA_SECRET_SIZE)))
+	secret := model.NewRandomBase32String(MFA_SECRET_SIZE)
 
 	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, user.Email, secret, issuer)
 
@@ -111,7 +111,7 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 		return err
 	}
 
-	schan := make(chan *model.AppError, 1)
+	schan := make(chan error, 1)
 	go func() {
 		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)
