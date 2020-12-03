@@ -108,6 +108,12 @@ func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInte
 	jobsExpiryNotifyInterface = f
 }
 
+var jobsImportProcessInterface func(*App) tjobs.ImportProcessInterface
+
+func RegisterJobsImportProcessInterface(f func(*App) tjobs.ImportProcessInterface) {
+	jobsImportProcessInterface = f
+}
+
 var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
