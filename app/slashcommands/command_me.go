@@ -39,8 +39,5 @@ func (me *MeProvider) DoCommand(a *app.App, args *model.CommandArgs, message str
 		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
 		Type:         model.POST_ME,
 		Text:         "*" + message + "*",
-		Props: model.StringInterface{
-			"message": message,
-		},
 	}
 }
