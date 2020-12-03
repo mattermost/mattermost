@@ -14,11 +14,11 @@ import (
 )
 
 type SqlTermsOfServiceStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {

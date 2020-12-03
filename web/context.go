@@ -143,6 +143,13 @@ func (c *Context) SessionRequired() {
 	}
 }
 
+func (c *Context) CloudKeyRequired() {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
+		return
+	}
+}
+
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
 	if license := c.App.Srv().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {

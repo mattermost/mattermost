@@ -33,6 +33,8 @@ const (
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
 	AWS_METERING_REPORT_INTERVAL                  = 1
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
+	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"
+	OVER_USER_LIMIT_FORGIVEN_COUNT                = "OverUserLimitForgivenCount"
 )
 
 const (

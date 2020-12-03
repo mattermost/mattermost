@@ -33,7 +33,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
@@ -356,7 +356,7 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func newSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -2100,7 +2100,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 			times[t.Id] = t.LastPostAt
 		}
 		if updateThreads {
-			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+			s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
 		}
 		return times, nil
 	}
@@ -2136,7 +2136,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string, 
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, true)
 	}
 	return times, nil
 }
@@ -2252,7 +2252,7 @@ func (s SqlChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID s
 	}
 
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate)
+		s.Thread().UpdateUnreadsByChannel(userID, threadsToUpdate, unreadDate, true)
 	}
 	return result, nil
 }
@@ -2282,7 +2282,7 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string, 
 		return errors.Wrapf(err, "failed to Update ChannelMembers with channelId=%s and userId=%s", channelId, userId)
 	}
 	if updateThreads {
-		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now)
+		s.Thread().UpdateUnreadsByChannel(userId, threadsToUpdate, now, false)
 	}
 	return nil
 }
@@ -2955,22 +2955,25 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.Channe
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	var dbMembers channelMemberWithSchemeRolesList
-	props := make(map[string]interface{})
-	idQuery := ""
 
-	for index, userId := range userIds {
-		if len(idQuery) > 0 {
-			idQuery += ", "
-		}
-
-		props["userId"+strconv.Itoa(index)] = userId
-		idQuery += ":userId" + strconv.Itoa(index)
-	}
-
+	keys, props := MapStringsToQueryParams(userIds, "User")
 	props["ChannelId"] = channelId
 
-	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN ("+idQuery+")", props); err != nil {
+	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN "+keys, props); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
+	}
+
+	return dbMembers.ToModel(), nil
+}
+
+func (s SqlChannelStore) GetMembersByChannelIds(channelIds []string, userId string) (*model.ChannelMembers, error) {
+	var dbMembers channelMemberWithSchemeRolesList
+
+	keys, props := MapStringsToQueryParams(channelIds, "Channel")
+	props["UserId"] = userId
+
+	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId AND ChannelMembers.ChannelId IN "+keys, props); err != nil {
+		return nil, errors.Wrapf(err, "failed to find ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
 	}
 
 	return dbMembers.ToModel(), nil

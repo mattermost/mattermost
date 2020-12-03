@@ -66,8 +66,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 
-	props["ExperimentalDataPrefetch"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalDataPrefetch)
-
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
 	props["RequireEmailVerification"] = strconv.FormatBool(*c.EmailSettings.RequireEmailVerification)
@@ -332,6 +330,10 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		if *license.Features.MFA {
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
+	}
+
+	for key, value := range featureFlagsToMap(c.FeatureFlags) {
+		props["FeatureFlag"+key] = value
 	}
 
 	return props
