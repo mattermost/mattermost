@@ -53,7 +53,6 @@ type Service struct {
 	mux              sync.RWMutex
 	active           bool
 	leaderListenerId string
-	remotes          []*model.RemoteCluster
 	topicListeners   map[string][]TopicListener
 	done             chan struct{}
 }
@@ -83,15 +82,6 @@ func (rcs *Service) Shutdown() error {
 	rcs.server.RemoveClusterLeaderChangedListener(rcs.leaderListenerId)
 	rcs.pause()
 	return nil
-}
-
-// NotifyRemoteClusterChange is called whenever a remote cluster is added or removed from
-// the database.
-func (rcs *Service) NotifyRemoteClusterChange() {
-	rcs.mux.Lock()
-	defer rcs.mux.Unlock()
-
-	rcs.remotes = nil // force reload
 }
 
 func (rcs *Service) AddTopicListener(topic string, listener TopicListener) {
@@ -174,8 +164,6 @@ func (rcs *Service) resume() {
 func (rcs *Service) pause() {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
-
-	rcs.remotes = nil // force reload
 
 	if !rcs.active {
 		return // already inactive
