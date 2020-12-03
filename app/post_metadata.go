@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"image"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -16,16 +17,23 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
+type linkMetadataCache struct {
+	OpenGraph *opengraph.OpenGraph
+	PostImage *model.PostImage
+}
+
 const LINK_CACHE_SIZE = 10000
-const LINK_CACHE_DURATION = 3600
+const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = lru.New(LINK_CACHE_SIZE)
+var linkCache = cache.NewLRU(&cache.LRUOptions{
+	Size: LINK_CACHE_SIZE,
+})
 
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -59,20 +67,26 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
-	prop, ok := post.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	prop, ok := post.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
 	if !ok || prop == nil {
 		return
 	}
-	emojiName := prop.(string)
+
+	emojiName, ok := prop.(string)
+	if !ok {
+		return
+	}
 
 	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
 		return
 	}
 
+	emojiName = strings.ReplaceAll(emojiName, ":", "")
+
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
 		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
 	} else {
-		mlog.Warn("Failed to retrieve URL for overriden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		mlog.Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
@@ -87,7 +101,8 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	post.Metadata = &model.PostMetadata{}
 
 	if post.DeleteAt > 0 {
-		// Don't fill out metadata for deleted posts
+		// For deleted posts we don't fill out metadata nor do we return the post content
+		post.Message = ""
 		return post
 	}
 
@@ -149,7 +164,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 }
 
 func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
-	if _, ok := post.Props["attachments"]; ok {
+	if _, ok := post.GetProps()["attachments"]; ok {
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
 		}, nil
@@ -384,13 +399,19 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
-		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
+		body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
 	} else {
 		request.Header.Add("Accept", "image/*")
 		request.Header.Add("Accept", "text/html;q=0.8")
 
-		client := a.HTTPService.MakeClient(false)
+		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		mmTransport := a.HTTPService().MakeTransport(false)
+		client.Transport = mmTransport.Transport
+
+		if strings.HasPrefix(requestURL, "https://twitter.com/") || strings.HasPrefix(requestURL, "https://mobile.twitter.com/") {
+			request.Header.Add("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
+		}
 
 		var res *http.Response
 		res, err = client.Do(request)
@@ -402,7 +423,10 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	}
 
 	if body != nil {
-		defer body.Close()
+		defer func() {
+			io.Copy(ioutil.Discard, body)
+			body.Close()
+		}()
 	}
 
 	if err == nil {
@@ -435,23 +459,17 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 }
 
 func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	cached, ok := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16))
-	if !ok {
+	var cached linkMetadataCache
+	err := linkCache.Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
+	if err != nil {
 		return nil, nil, false
 	}
 
-	switch v := cached.(type) {
-	case *opengraph.OpenGraph:
-		return v, nil, true
-	case *model.PostImage:
-		return nil, v, true
-	default:
-		return nil, nil, true
-	}
+	return cached.OpenGraph, cached.PostImage, true
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	linkMetadata, err := a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
+	linkMetadata, err := a.Srv().Store.LinkMetadata().Get(requestURL, timestamp)
 	if err != nil {
 		return nil, nil, false
 	}
@@ -484,21 +502,19 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LINK_METADATA_TYPE_NONE
 	}
 
-	_, err := a.Srv.Store.LinkMetadata().Save(metadata)
+	_, err := a.Srv().Store.LinkMetadata().Save(metadata)
 	if err != nil {
 		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 
 func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
-	var val interface{}
-	if og != nil {
-		val = og
-	} else if image != nil {
-		val = image
+	metadata := linkMetadataCache{
+		OpenGraph: og,
+		PostImage: image,
 	}
 
-	linkCache.AddWithExpiresInSecs(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), val, LINK_CACHE_DURATION)
+	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {

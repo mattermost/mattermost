@@ -4,12 +4,15 @@
 package testlib
 
 import (
+	"sync"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type FakeClusterInterface struct {
 	clusterMessageHandler einterfaces.ClusterMessageHandler
+	mut                   sync.RWMutex
 	messages              []*model.ClusterMessage
 }
 
@@ -21,6 +24,10 @@ func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm e
 	c.clusterMessageHandler = crm
 }
 
+func (c *FakeClusterInterface) HealthScore() int {
+	return 0
+}
+
 func (c *FakeClusterInterface) GetClusterId() string { return "" }
 
 func (c *FakeClusterInterface) IsLeader() bool { return false }
@@ -30,6 +37,8 @@ func (c *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo { return ni
 func (c *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo { return nil }
 
 func (c *FakeClusterInterface) SendClusterMessage(message *model.ClusterMessage) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	c.messages = append(c.messages, message)
 }
 
@@ -60,9 +69,13 @@ func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model
 }
 
 func (c *FakeClusterInterface) GetMessages() []*model.ClusterMessage {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
 	return c.messages
 }
 
 func (c *FakeClusterInterface) ClearMessages() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	c.messages = nil
 }

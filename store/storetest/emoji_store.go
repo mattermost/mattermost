@@ -206,21 +206,20 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 		}
 	}()
 
-	if result, err := ss.Emoji().GetList(0, 100, ""); err != nil {
-		t.Fatal(err)
-	} else {
-		for _, emoji := range emojis {
-			found := false
+	result, err := ss.Emoji().GetList(0, 100, "")
+	require.Nil(t, err)
 
-			for _, savedEmoji := range result {
-				if emoji.Id == savedEmoji.Id {
-					found = true
-					break
-				}
+	for _, emoji := range emojis {
+		found := false
+
+		for _, savedEmoji := range result {
+			if emoji.Id == savedEmoji.Id {
+				found = true
+				break
 			}
-
-			require.Truef(t, found, "failed to get emoji with id %v", emoji.Id)
 		}
+
+		require.Truef(t, found, "failed to get emoji with id %v", emoji.Id)
 	}
 
 	remojis, err := ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)

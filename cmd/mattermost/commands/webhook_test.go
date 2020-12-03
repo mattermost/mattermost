@@ -4,10 +4,11 @@
 package commands
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/require"
 
@@ -16,7 +17,7 @@ import (
 )
 
 func TestListWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -59,7 +60,7 @@ func TestListWebhooks(t *testing.T) {
 }
 
 func TestShowWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -125,7 +126,7 @@ func TestShowWebhook(t *testing.T) {
 }
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -173,7 +174,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestModifyIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -237,7 +238,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -290,7 +291,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	th.CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
-	require.Nil(t, err, "Unable to retreive outgoing webhooks")
+	require.Nil(t, err, "Unable to retrieve outgoing webhooks")
 
 	found := false
 	for _, webhook := range webhooks {
@@ -302,7 +303,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestModifyOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -396,7 +397,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 }
 
 func TestDeleteWebhooks(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -447,7 +448,7 @@ func TestDeleteWebhooks(t *testing.T) {
 }
 
 func TestMoveOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()

@@ -6,10 +6,9 @@ package api4
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
-
-var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
@@ -17,9 +16,10 @@ func TestMain(m *testing.M) {
 		EnableResources: true,
 	}
 
+	mlog.DisableZap()
+
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	UseTestStore(mainHelper.GetStore())
 	mainHelper.Main(m)
 }

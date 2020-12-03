@@ -16,7 +16,7 @@
 //
 // To achieve this coordination, each server instead checks the status of its peers after unpacking. If it finds peers with
 // differing versions of the plugin, it skips the notification. If it finds all peers with the same version of the plugin,
-// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the the last
+// it notifies all websocket clients connected to all peers. There's a small chance that this never occurs if the last
 // server to finish unpacking dies before it can announce. There is also a chance that multiple servers decide to notify,
 // but the webapp handles this idempotently.
 //
@@ -376,6 +376,8 @@ func (a *App) installExtractedPlugin(manifest *model.Manifest, fromPluginDir str
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if updatedManifest == nil {
+			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, "failed to activate plugin: plugin already active", http.StatusInternalServerError)
 		}
 		manifest = updatedManifest
 	}

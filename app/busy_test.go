@@ -23,10 +23,10 @@ func TestBusySet(t *testing.T) {
 
 	require.False(t, busy.IsBusy())
 
-	busy.Set(time.Second * 3)
+	busy.Set(time.Millisecond * 100)
 	require.True(t, busy.IsBusy())
 	require.True(t, compareBusyState(t, busy, cluster.Busy))
-	// should automatically expire after 3s.
+	// should automatically expire after 100ms.
 	require.Eventually(t, isNotBusy, time.Second*15, time.Millisecond*20)
 	// allow a moment for cluster to sync.
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
@@ -86,6 +86,16 @@ func TestBusyExpires(t *testing.T) {
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
 }
 
+func TestBusyRace(t *testing.T) {
+	cluster := &ClusterMock{Busy: &Busy{}}
+	busy := NewBusy(cluster)
+
+	busy.Set(500 * time.Millisecond)
+
+	// We are sleeping in order to let the race trigger.
+	time.Sleep(time.Second)
+}
+
 func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {
 	t.Helper()
 	if busy1.IsBusy() != busy2.IsBusy() {
@@ -124,3 +134,4 @@ func (c *ClusterMock) GetPluginStatuses() (model.PluginStatuses, *model.AppError
 func (c *ClusterMock) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
 	return nil
 }
+func (c *ClusterMock) HealthScore() int { return 0 }

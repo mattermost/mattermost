@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/olivere/elastic/uritemplates"
@@ -18,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/watcher-api-get-watch.html.
 type XPackWatcherGetWatchService struct {
 	client *Client
-	pretty bool
-	id     string
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
+	id string
 }
 
 // NewXPackWatcherGetWatchService creates a new XPackWatcherGetWatchService.
@@ -29,15 +37,49 @@ func NewXPackWatcherGetWatchService(client *Client) *XPackWatcherGetWatchService
 	}
 }
 
-// Id is ID of the watch to retrieve.
-func (s *XPackWatcherGetWatchService) Id(id string) *XPackWatcherGetWatchService {
-	s.id = id
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackWatcherGetWatchService) Pretty(pretty bool) *XPackWatcherGetWatchService {
+	s.pretty = &pretty
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackWatcherGetWatchService) Pretty(pretty bool) *XPackWatcherGetWatchService {
-	s.pretty = pretty
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackWatcherGetWatchService) Human(human bool) *XPackWatcherGetWatchService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackWatcherGetWatchService) ErrorTrace(errorTrace bool) *XPackWatcherGetWatchService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackWatcherGetWatchService) FilterPath(filterPath ...string) *XPackWatcherGetWatchService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackWatcherGetWatchService) Header(name string, value string) *XPackWatcherGetWatchService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackWatcherGetWatchService) Headers(headers http.Header) *XPackWatcherGetWatchService {
+	s.headers = headers
+	return s
+}
+
+// Id is ID of the watch to retrieve.
+func (s *XPackWatcherGetWatchService) Id(id string) *XPackWatcherGetWatchService {
+	s.id = id
 	return s
 }
 
@@ -53,8 +95,17 @@ func (s *XPackWatcherGetWatchService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	return path, params, nil
 }
@@ -86,9 +137,10 @@ func (s *XPackWatcherGetWatchService) Do(ctx context.Context) (*XPackWatcherGetW
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -134,8 +186,8 @@ type XPackWatchActionStatus struct {
 }
 
 type XPackWatchActionAckStatus struct {
-	Timestamp      time.Time `json:"timestamp"`
-	AckStatusState string    `json:"ack_status_state"`
+	Timestamp time.Time `json:"timestamp"`
+	State     string    `json:"state"`
 }
 
 type XPackWatchActionExecutionState struct {
@@ -150,13 +202,13 @@ type XPackWatchActionThrottle struct {
 }
 
 type XPackWatch struct {
-	Trigger                map[string]map[string]interface{}  `json:"trigger"`
-	Input                  map[string]map[string]interface{}  `json:"input"`
-	Condition              map[string]map[string]interface{}  `json:"condition"`
-	Transform              map[string]interface{}             `json:"transform,omitempty"`
-	ThrottlePeriod         string                             `json:"throttle_period,omitempty"`
-	ThrottlePeriodInMillis int64                              `json:"throttle_period_in_millis,omitempty"`
-	Actions                map[string]*XPackWatchActionStatus `json:"actions"`
-	Metadata               map[string]interface{}             `json:"metadata,omitempty"`
-	Status                 *XPackWatchStatus                  `json:"status,omitempty"`
+	Trigger                map[string]map[string]interface{} `json:"trigger"`
+	Input                  map[string]map[string]interface{} `json:"input"`
+	Condition              map[string]map[string]interface{} `json:"condition"`
+	Transform              map[string]interface{}            `json:"transform,omitempty"`
+	ThrottlePeriod         string                            `json:"throttle_period,omitempty"`
+	ThrottlePeriodInMillis int64                             `json:"throttle_period_in_millis,omitempty"`
+	Actions                map[string]map[string]interface{} `json:"actions"`
+	Metadata               map[string]interface{}            `json:"metadata,omitempty"`
+	Status                 *XPackWatchStatus                 `json:"status,omitempty"`
 }

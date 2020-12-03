@@ -33,7 +33,7 @@ func CompileGo(t *testing.T, sourceCode, outputPath string) {
 	serverPath := filepath.Dir(filepath.Dir(sourceFile))
 
 	out := &bytes.Buffer{}
-	cmd := exec.Command("go", "build", "-mod=vendor", "-o", outputPath, main)
+	cmd := exec.Command("go", "build", "-o", outputPath, main)
 	cmd.Dir = serverPath
 	cmd.Stdout = out
 	cmd.Stderr = out

@@ -18,7 +18,7 @@ type UserAccessToken struct {
 }
 
 func (t *UserAccessToken) IsValid() *AppError {
-	if len(t.Id) != 26 {
+	if !IsValidId(t.Id) {
 		return NewAppError("UserAccessToken.IsValid", "model.user_access_token.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -26,7 +26,7 @@ func (t *UserAccessToken) IsValid() *AppError {
 		return NewAppError("UserAccessToken.IsValid", "model.user_access_token.is_valid.token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(t.UserId) != 26 {
+	if !IsValidId(t.UserId) {
 		return NewAppError("UserAccessToken.IsValid", "model.user_access_token.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

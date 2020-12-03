@@ -10,7 +10,7 @@ import (
 )
 
 type OauthProvider interface {
-	GetUserFromJson(data io.Reader) *model.User
+	GetUserFromJson(data io.Reader) (*model.User, error)
 }
 
 var oauthProviders = make(map[string]OauthProvider)

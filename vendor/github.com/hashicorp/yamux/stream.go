@@ -446,15 +446,17 @@ func (s *Stream) SetDeadline(t time.Time) error {
 	return nil
 }
 
-// SetReadDeadline sets the deadline for future Read calls.
+// SetReadDeadline sets the deadline for blocked and future Read calls.
 func (s *Stream) SetReadDeadline(t time.Time) error {
 	s.readDeadline.Store(t)
+	asyncNotify(s.recvNotifyCh)
 	return nil
 }
 
-// SetWriteDeadline sets the deadline for future Write calls
+// SetWriteDeadline sets the deadline for blocked and future Write calls
 func (s *Stream) SetWriteDeadline(t time.Time) error {
 	s.writeDeadline.Store(t)
+	asyncNotify(s.sendNotifyCh)
 	return nil
 }
 

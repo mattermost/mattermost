@@ -6,6 +6,7 @@ package plugin
 import (
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/blang/semver"
@@ -53,4 +54,27 @@ func (p *HelpersImpl) ensureServerVersion(required string) error {
 		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
 	}
 	return nil
+}
+
+// GetPluginAssetURL implements GetPluginAssetURL.
+func (p *HelpersImpl) GetPluginAssetURL(pluginID, asset string) (string, error) {
+	if len(pluginID) == 0 {
+		return "", errors.New("empty pluginID provided")
+	}
+
+	if len(asset) == 0 {
+		return "", errors.New("empty asset name provided")
+	}
+
+	siteURL := *p.API.GetConfig().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return "", errors.New("no SiteURL configured by the server")
+	}
+
+	u, err := url.Parse(siteURL + path.Join("/", pluginID, asset))
+	if err != nil {
+		return "", err
+	}
+
+	return u.String(), nil
 }

@@ -99,6 +99,9 @@ func init() {
 	gob.Register(&model.AppError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&opengraph.OpenGraph{})
+	gob.Register(&model.AutocompleteDynamicListArg{})
+	gob.Register(&model.AutocompleteStaticListArg{})
+	gob.Register(&model.AutocompleteTextArg{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -108,7 +111,7 @@ var _ plugin.Plugin = &hooksPlugin{}
 var _ Hooks = &hooksRPCClient{}
 
 //
-// Below are specal cases for hooks or APIs that can not be auto generated
+// Below are special cases for hooks or APIs that can not be auto generated
 //
 
 func (g *hooksRPCClient) Implemented() (impl []string, err error) {

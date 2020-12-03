@@ -187,9 +187,9 @@
 // than the largest message do not provide any benefit.
 //
 // Depending on the distribution of message sizes, setting the buffer size to
-// to a value less than the maximum expected message size can greatly reduce
-// memory use with a small impact on performance. Here's an example: If 99% of
-// the messages are smaller than 256 bytes and the maximum message size is 512
+// a value less than the maximum expected message size can greatly reduce memory
+// use with a small impact on performance. Here's an example: If 99% of the
+// messages are smaller than 256 bytes and the maximum message size is 512
 // bytes, then a buffer size of 256 bytes will result in 1.01 more system calls
 // than a buffer size of 512 bytes. The memory savings is 50%.
 //

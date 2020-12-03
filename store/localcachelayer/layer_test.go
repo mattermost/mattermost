@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"os"
 	"sync"
 	"testing"
 
@@ -16,11 +17,18 @@ import (
 type storeType struct {
 	Name        string
 	SqlSettings *model.SqlSettings
-	SqlSupplier *sqlstore.SqlSupplier
+	SqlStore    *sqlstore.SqlStore
 	Store       store.Store
 }
 
 var storeTypes []*storeType
+
+func newStoreType(name, driver string) *storeType {
+	return &storeType{
+		Name:        name,
+		SqlSettings: storetest.MakeSqlSettings(driver),
+	}
+}
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
@@ -31,11 +39,16 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store)
+		})
 	}
 }
 
-func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, storetest.SqlSupplier)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -44,19 +57,33 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store, st.SqlStore)
+		})
 	}
 }
 
 func initStores() {
-	storeTypes = append(storeTypes, &storeType{
-		Name:        "LocalCache+MySQL",
-		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
-	})
-	storeTypes = append(storeTypes, &storeType{
-		Name:        "LocalCache+PostgreSQL",
-		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
-	})
+	if testing.Short() {
+		return
+	}
+
+	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
+	// So we just run the tests for the current database set.
+	if os.Getenv("IS_CI") == "true" {
+		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
+		case "mysql":
+			storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL))
+		case "postgres":
+			storeTypes = append(storeTypes, newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+		}
+	} else {
+		storeTypes = append(storeTypes, newStoreType("LocalCache+MySQL", model.DATABASE_DRIVER_MYSQL),
+			newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -70,8 +97,8 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
-			st.Store = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
+			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
+			st.Store = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
@@ -82,6 +109,9 @@ func initStores() {
 var tearDownStoresOnce sync.Once
 
 func tearDownStores() {
+	if testing.Short() {
+		return
+	}
 	tearDownStoresOnce.Do(func() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))

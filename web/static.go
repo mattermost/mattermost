@@ -4,14 +4,12 @@
 package web
 
 import (
-	"mime"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -30,8 +28,6 @@ func (w *Web) InitStatic() {
 		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
-
-		mime.AddExtensionType(".wasm", "application/wasm")
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
@@ -59,7 +55,7 @@ func (w *Web) InitStatic() {
 
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
-	if !CheckClientCompatability(r.UserAgent()) {
+	if !CheckClientCompatibility(r.UserAgent()) {
 		renderUnsupportedBrowser(c.App, w, r)
 		return
 	}
@@ -86,6 +82,7 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
+
 		handler.ServeHTTP(w, r)
 	})
 }

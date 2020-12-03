@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -20,9 +21,15 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/cluster-reroute.html
 // for details.
 type ClusterRerouteService struct {
-	client        *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	metrics       []string
-	pretty        bool
 	dryRun        *bool
 	explain       *bool
 	retryFailed   *bool
@@ -37,6 +44,46 @@ func NewClusterRerouteService(client *Client) *ClusterRerouteService {
 	return &ClusterRerouteService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *ClusterRerouteService) Pretty(pretty bool) *ClusterRerouteService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *ClusterRerouteService) Human(human bool) *ClusterRerouteService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *ClusterRerouteService) ErrorTrace(errorTrace bool) *ClusterRerouteService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *ClusterRerouteService) FilterPath(filterPath ...string) *ClusterRerouteService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *ClusterRerouteService) Header(name string, value string) *ClusterRerouteService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *ClusterRerouteService) Headers(headers http.Header) *ClusterRerouteService {
+	s.headers = headers
+	return s
 }
 
 // Metric limits the information returned to the specified metric.
@@ -80,12 +127,6 @@ func (s *ClusterRerouteService) Timeout(timeout string) *ClusterRerouteService {
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *ClusterRerouteService) Pretty(pretty bool) *ClusterRerouteService {
-	s.pretty = pretty
-	return s
-}
-
 // Add adds one or more commands to be executed.
 func (s *ClusterRerouteService) Add(commands ...AllocationCommand) *ClusterRerouteService {
 	s.commands = append(s.commands, commands...)
@@ -107,8 +148,17 @@ func (s *ClusterRerouteService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if v := s.dryRun; v != nil {
 		params.Set("dry_run", fmt.Sprint(*v))
@@ -127,9 +177,6 @@ func (s *ClusterRerouteService) buildURL() (string, url.Values, error) {
 	}
 	if s.timeout != "" {
 		params.Set("timeout", s.timeout)
-	}
-	if s.pretty {
-		params.Set("pretty", "true")
 	}
 	return path, params, nil
 }
@@ -177,10 +224,11 @@ func (s *ClusterRerouteService) Do(ctx context.Context) (*ClusterRerouteResponse
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

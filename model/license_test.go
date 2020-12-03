@@ -116,6 +116,15 @@ func TestLicenseIsExpired(t *testing.T) {
 	assert.False(t, l1.IsExpired())
 }
 
+func TestLicenseIsPastGracePeriod(t *testing.T) {
+	l1 := License{}
+	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1000
+	assert.True(t, l1.IsPastGracePeriod())
+
+	l1.ExpiresAt = GetMillis() + 1000
+	assert.False(t, l1.IsPastGracePeriod())
+}
+
 func TestLicenseIsStarted(t *testing.T) {
 	l1 := License{}
 	l1.StartsAt = GetMillis() - 1000
@@ -136,11 +145,10 @@ func TestLicenseToFromJson(t *testing.T) {
 		StartsAt:  GetMillis(),
 		ExpiresAt: GetMillis(),
 		Customer: &Customer{
-			Id:          NewId(),
-			Name:        NewId(),
-			Email:       NewId(),
-			Company:     NewId(),
-			PhoneNumber: NewId(),
+			Id:      NewId(),
+			Name:    NewId(),
+			Email:   NewId(),
+			Company: NewId(),
 		},
 		Features: &f,
 	}
@@ -159,7 +167,6 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
 	CheckString(t, l1.Customer.Email, l.Customer.Email)
 	CheckString(t, l1.Customer.Company, l.Customer.Company)
-	CheckString(t, l1.Customer.PhoneNumber, l.Customer.PhoneNumber)
 
 	f1 := l1.Features
 

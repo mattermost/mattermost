@@ -6,7 +6,7 @@ package config
 import (
 	"bytes"
 	"database/sql"
-	"io/ioutil"
+	"encoding/json"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -28,9 +28,8 @@ import (
 const MaxWriteLength = 4 * 1024 * 1024
 
 // DatabaseStore is a config store backed by a database.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type DatabaseStore struct {
-	commonStore
-
 	originalDsn    string
 	driverName     string
 	dataSourceName string
@@ -57,10 +56,6 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 	}
 	if err = initializeConfigurationsTable(ds.db); err != nil {
 		return nil, errors.Wrap(err, "failed to initialize")
-	}
-
-	if err = ds.Load(); err != nil {
-		return nil, errors.Wrap(err, "failed to load")
 	}
 
 	return ds, nil
@@ -102,7 +97,7 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
 	// backwards-compatible migration for any existing schema.
-	// Also fix using the wrong encoding initally
+	// Also fix using the wrong encoding initially
 	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
 		if err != nil {
@@ -139,7 +134,7 @@ func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
 	if len(s) != 2 {
-		errors.New("failed to parse DSN as URL")
+		return "", "", errors.New("failed to parse DSN as URL")
 	}
 
 	scheme := s[0]
@@ -159,8 +154,8 @@ func parseDSN(dsn string) (string, string, error) {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return ds.commonStore.set(newCfg, true, ds.commonStore.validate, ds.persist)
+func (ds *DatabaseStore) Set(newCfg *model.Config) error {
+	return ds.persist(newCfg)
 }
 
 // maxLength identifies the maximum length of a configuration or configuration file
@@ -232,35 +227,23 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 }
 
 // Load updates the current configuration from the backing store.
-func (ds *DatabaseStore) Load() (err error) {
-	var needsSave bool
+func (ds *DatabaseStore) Load() ([]byte, error) {
 	var configurationData []byte
 
 	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
-	if err = row.Scan(&configurationData); err != nil && err != sql.ErrNoRows {
-		return errors.Wrap(err, "failed to query active configuration")
+	if err := row.Scan(&configurationData); err != nil && err != sql.ErrNoRows {
+		return nil, errors.Wrap(err, "failed to query active configuration")
 	}
 
 	// Initialize from the default config if no active configuration could be found.
 	if len(configurationData) == 0 {
-		needsSave = true
-
-		defaultCfg := &model.Config{}
-		defaultCfg.SetDefaults()
-
-		// Assume the database storing the config is also to be used for the application.
-		// This can be overridden using environment variables on first start if necessary,
-		// or changed from the system console afterwards.
-		*defaultCfg.SqlSettings.DriverName = ds.driverName
-		*defaultCfg.SqlSettings.DataSource = ds.dataSourceName
-
-		configurationData, err = marshalConfig(defaultCfg)
-		if err != nil {
-			return errors.Wrap(err, "failed to serialize default config")
-		}
+		configWithDB := model.Config{}
+		configWithDB.SqlSettings.DriverName = model.NewString(ds.driverName)
+		configWithDB.SqlSettings.DataSource = model.NewString(ds.dataSourceName)
+		return json.Marshal(configWithDB)
 	}
 
-	return ds.commonStore.load(ioutil.NopCloser(bytes.NewReader(configurationData)), needsSave, ds.commonStore.validate, ds.persist)
+	return configurationData, nil
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.
@@ -273,7 +256,7 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 	}
 
 	var data []byte
-	row := ds.db.QueryRowx(query, args...)
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&data); err != nil {
 		return nil, errors.Wrapf(err, "failed to scan data from row for %s", name)
 	}
@@ -287,7 +270,6 @@ func (ds *DatabaseStore) SetFile(name string, data []byte) error {
 	if err != nil {
 		return errors.Wrap(err, "file data failed length check")
 	}
-
 	params := map[string]interface{}{
 		"name":      name,
 		"data":      data,
@@ -324,8 +306,8 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 		return false, err
 	}
 
-	var count int
-	row := ds.db.QueryRowx(query, args...)
+	var count int64
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&count); err != nil {
 		return false, errors.Wrapf(err, "failed to scan count of rows for %s", name)
 	}
@@ -352,8 +334,10 @@ func (ds *DatabaseStore) String() string {
 
 // Close cleans up resources associated with the store.
 func (ds *DatabaseStore) Close() error {
-	ds.configLock.Lock()
-	defer ds.configLock.Unlock()
-
 	return ds.db.Close()
+}
+
+// Watch nothing on memory store
+func (ds *DatabaseStore) Watch(_ func()) error {
+	return nil
 }

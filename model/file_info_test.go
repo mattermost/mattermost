@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/base64"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -185,7 +186,7 @@ func TestGetInfoForFile(t *testing.T) {
 
 	for _, tc := range ttc {
 		t.Run(tc.testName, func(t *testing.T) {
-			info, errApp := GetInfoForBytes(tc.filename, tc.file)
+			info, errApp := GetInfoForBytes(tc.filename, bytes.NewReader(tc.file), len(tc.file))
 			require.Nil(t, errApp)
 
 			assert.Equalf(t, tc.filename, info.Name, "Got incorrect filename: %v", info.Name)

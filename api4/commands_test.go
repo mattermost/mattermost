@@ -13,7 +13,7 @@ import (
 )
 
 func TestEchoCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -34,7 +34,7 @@ func TestEchoCommand(t *testing.T) {
 }
 
 func TestGroupmsgCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -74,7 +74,7 @@ func TestGroupmsgCommands(t *testing.T) {
 }
 
 func TestInvitePeopleCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -92,7 +92,7 @@ func TestInvitePeopleCommand(t *testing.T) {
 
 // also used to test /open (see command_open_test.go)
 func testJoinCommands(t *testing.T, alias string) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -118,7 +118,7 @@ func testJoinCommands(t *testing.T, alias string) {
 	rs6 := Client.Must(Client.ExecuteCommand(channel0.Id, "/"+alias+" "+channel3.Name)).(*model.CommandResponse)
 	require.False(t, strings.HasSuffix(rs6.GotoLocation, "/"+team.Name+"/channels/"+channel3.Name), "should not have joined direct message channel")
 
-	c1 := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")).([]*model.Channel)
+	c1 := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")).([]*model.Channel)
 
 	found := false
 	for _, c := range c1 {
@@ -134,7 +134,7 @@ func TestJoinCommands(t *testing.T) {
 }
 
 func TestLoadTestHelpCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -154,7 +154,7 @@ func TestLoadTestHelpCommands(t *testing.T) {
 }
 
 func TestLoadTestSetupCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -174,7 +174,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 }
 
 func TestLoadTestUsersCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -194,7 +194,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 }
 
 func TestLoadTestChannelsCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -214,7 +214,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 }
 
 func TestLoadTestPostsCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -234,7 +234,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 }
 
 func TestLeaveCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -261,7 +261,7 @@ func TestLeaveCommands(t *testing.T) {
 	_, err := Client.ExecuteCommand(channel3.Id, "/leave")
 	require.NotNil(t, err, "should fail leaving direct channel")
 
-	cdata := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, "")).([]*model.Channel)
+	cdata := Client.Must(Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")).([]*model.Channel)
 
 	found := false
 	for _, c := range cdata {
@@ -281,14 +281,14 @@ func TestLeaveCommands(t *testing.T) {
 }
 
 func TestLogoutTestCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.Client.Must(th.Client.ExecuteCommand(th.BasicChannel.Id, "/logout"))
 }
 
 func TestMeCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -313,7 +313,7 @@ func TestMeCommand(t *testing.T) {
 }
 
 func TestMsgCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -356,28 +356,28 @@ func TestOpenCommands(t *testing.T) {
 }
 
 func TestSearchCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.Client.Must(th.Client.ExecuteCommand(th.BasicChannel.Id, "/search"))
 }
 
 func TestSettingsCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.Client.Must(th.Client.ExecuteCommand(th.BasicChannel.Id, "/settings"))
 }
 
 func TestShortcutsCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.Client.Must(th.Client.ExecuteCommand(th.BasicChannel.Id, "/shortcuts"))
 }
 
 func TestShrugCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	Client := th.Client
@@ -396,7 +396,7 @@ func TestShrugCommand(t *testing.T) {
 }
 
 func TestStatusCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	commandAndTest(t, th, "away")

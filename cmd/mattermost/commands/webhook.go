@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
@@ -91,7 +92,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	var teams []*model.Team
 	if len(args) < 1 {
@@ -114,18 +115,18 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		// Fetch all hooks with a very large limit so we get them all.
 		incomingResult := make(chan store.StoreResult, 1)
 		go func() {
-			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
+			incomingHooks, err := app.Srv().Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+			incomingResult <- store.StoreResult{Data: incomingHooks, NErr: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan store.StoreResult, 1)
 		go func() {
-			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
-			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			outgoingHooks, err := app.Srv().Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, NErr: err}
 			close(outgoingResult)
 		}()
 
-		if result := <-incomingResult; result.Err == nil {
+		if result := <-incomingResult; result.NErr == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
@@ -135,7 +136,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
 		}
 
-		if result := <-outgoingResult; result.Err == nil {
+		if result := <-outgoingResult; result.NErr == nil {
 			hooks := result.Data.([]*model.OutgoingWebhook)
 			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range hooks {
@@ -153,7 +154,7 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	channelArg, errChannel := command.Flags().GetString("channel")
 	if errChannel != nil || channelArg == "" {
@@ -194,15 +195,21 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Id: " + createdIncoming.Id)
 	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
+	auditRec := app.MakeAuditRecord("createIncomingWebhook", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("channel", channel)
+	auditRec.AddMeta("hook", createdIncoming)
+	app.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
-func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
+func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError error) {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -215,6 +222,10 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 
 	updatedHook := oldHook
+
+	auditRec := app.MakeAuditRecord("createIncomingWebhook", audit.Fail)
+	defer func() { app.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("hook", oldHook)
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
@@ -240,9 +251,13 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
 	updatedHook.ChannelLocked = channelLocked
 
-	if _, err := app.UpdateIncomingWebhook(oldHook, updatedHook); err != nil {
-		return err
+	updatedIncomingHook, errUpdated := app.UpdateIncomingWebhook(oldHook, updatedHook)
+	if errUpdated != nil {
+		return errUpdated
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("update", updatedIncomingHook)
 
 	return nil
 }
@@ -252,7 +267,7 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	teamArg, errTeam := command.Flags().GetString("team")
 	if errTeam != nil || teamArg == "" {
@@ -313,9 +328,10 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		IconURL:      iconURL,
 	}
 
+	var channel *model.Channel
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
-		channel := getChannelFromChannelArg(app, channelArg)
+		channel = getChannelFromChannelArg(app, channelArg)
 		if channel != nil {
 			outgoingWebhook.ChannelId = channel.Id
 		}
@@ -329,6 +345,14 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
 	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 
+	auditRec := app.MakeAuditRecord("createOutgoingWebhook", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("hook", createdOutgoing)
+	if channel != nil {
+		auditRec.AddMeta("channel", channel)
+	}
+	app.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -337,7 +361,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -409,9 +433,15 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		updatedHook.CallbackURLs = callbackURLs
 	}
 
-	if _, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook); appErr != nil {
+	updatedWebhook, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook)
+	if appErr != nil {
 		return appErr
 	}
+
+	auditRec := app.MakeAuditRecord("modifyOutgoingWebhook", audit.Success)
+	auditRec.AddMeta("hook", oldHook)
+	auditRec.AddMeta("update", updatedWebhook)
+	app.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -421,7 +451,7 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -435,6 +465,10 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to delete webhook '" + webhookId + "'")
 	}
 
+	auditRec := app.MakeAuditRecord("deleteWebhook", audit.Success)
+	auditRec.AddMeta("hook_id", webhookId)
+	app.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -443,7 +477,7 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	webhookId := args[0]
 	if incomingWebhook, err := app.GetIncomingWebhook(webhookId); err == nil {
@@ -458,12 +492,12 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	return errors.New("Webhook with id " + webhookId + " not found")
 }
 
-func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
+func moveOutgoingWebhookCmd(command *cobra.Command, args []string) (cmdError error) {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	newTeamId := args[0]
 	_, teamError := app.GetTeam(newTeamId)
@@ -483,6 +517,10 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 	if appError != nil {
 		return appError
 	}
+
+	auditRec := app.MakeAuditRecord("moveOutgoingWebhook", audit.Fail)
+	defer func() { app.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("hook", webhook)
 
 	channelName, channelErr := command.Flags().GetString("channel")
 	if channelErr != nil {
@@ -507,10 +545,14 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) error {
 	webhook.Id = ""
 	webhook.TeamId = newTeamId
 
-	_, createErr := app.CreateOutgoingWebhook(webhook)
+	updatedWebHook, createErr := app.CreateOutgoingWebhook(webhook)
 	if createErr != nil {
 		return model.NewAppError("moveOutgoingWebhookCmd", "cli.outgoing_webhook.inconsistent_state.app_error", nil, "", http.StatusInternalServerError)
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("update", updatedWebHook)
+
 	return nil
 }
 

@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,8 +18,14 @@ import (
 // expensive query without executing it.
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-validate.html.
 type ValidateService struct {
-	client            *Client
-	pretty            bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index             []string
 	typ               []string
 	q                 string
@@ -42,6 +49,46 @@ func NewValidateService(client *Client) *ValidateService {
 	return &ValidateService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *ValidateService) Pretty(pretty bool) *ValidateService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *ValidateService) Human(human bool) *ValidateService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *ValidateService) ErrorTrace(errorTrace bool) *ValidateService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *ValidateService) FilterPath(filterPath ...string) *ValidateService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *ValidateService) Header(name string, value string) *ValidateService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *ValidateService) Headers(headers http.Header) *ValidateService {
+	s.headers = headers
+	return s
 }
 
 // Index sets the names of the indices to use for search.
@@ -109,12 +156,6 @@ func (s *ValidateService) Df(df string) *ValidateService {
 // DefaultOperator is the default operator for query string query (AND or OR).
 func (s *ValidateService) DefaultOperator(defaultOperator string) *ValidateService {
 	s.defaultOperator = defaultOperator
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *ValidateService) Pretty(pretty bool) *ValidateService {
-	s.pretty = pretty
 	return s
 }
 
@@ -190,8 +231,17 @@ func (s *ValidateService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.explain != nil {
 		params.Set("explain", fmt.Sprintf("%v", *s.explain))
@@ -260,10 +310,11 @@ func (s *ValidateService) Do(ctx context.Context) (*ValidateResponse, error) {
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

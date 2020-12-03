@@ -150,7 +150,7 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 
 		m := db.ToModel()
 
-		assert.Equal(t, "team_user custom_role", m.Roles)
+		assert.Equal(t, "custom_role team_user", m.Roles)
 		assert.Equal(t, false, m.SchemeGuest)
 		assert.Equal(t, true, m.SchemeUser)
 		assert.Equal(t, false, m.SchemeAdmin)
@@ -170,7 +170,7 @@ func testTeamMemberWithSchemeRolesToModel(t *testing.T) {
 
 		m := db.ToModel()
 
-		assert.Equal(t, "team_user team_admin custom_role", m.Roles)
+		assert.Equal(t, "custom_role team_user team_admin", m.Roles)
 		assert.Equal(t, false, m.SchemeGuest)
 		assert.Equal(t, true, m.SchemeUser)
 		assert.Equal(t, true, m.SchemeAdmin)

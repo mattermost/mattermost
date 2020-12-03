@@ -36,13 +36,14 @@ func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
 	}
 }
 
-func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
+func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	if !allowFromCache {
 		return s.WebhookStore.GetIncoming(id, allowFromCache)
 	}
 
-	if incomingWebhook := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id); incomingWebhook != nil {
-		return incomingWebhook.(*model.IncomingWebhook), nil
+	var incomingWebhook *model.IncomingWebhook
+	if err := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id, &incomingWebhook); err == nil {
+		return incomingWebhook, nil
 	}
 
 	incomingWebhook, err := s.WebhookStore.GetIncoming(id, allowFromCache)
@@ -55,7 +56,7 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 	return incomingWebhook, nil
 }
 
-func (s LocalCacheWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+func (s LocalCacheWebhookStore) DeleteIncoming(webhookId string, time int64) error {
 	err := s.WebhookStore.DeleteIncoming(webhookId, time)
 	if err != nil {
 		return err
@@ -65,7 +66,7 @@ func (s LocalCacheWebhookStore) DeleteIncoming(webhookId string, time int64) *mo
 	return nil
 }
 
-func (s LocalCacheWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
+func (s LocalCacheWebhookStore) PermanentDeleteIncomingByUser(userId string) error {
 	err := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
 	if err != nil {
 		return err
@@ -75,7 +76,7 @@ func (s LocalCacheWebhookStore) PermanentDeleteIncomingByUser(userId string) *mo
 	return nil
 }
 
-func (s LocalCacheWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
+func (s LocalCacheWebhookStore) PermanentDeleteIncomingByChannel(channelId string) error {
 	err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
 	if err != nil {
 		return err

@@ -11,8 +11,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -39,29 +41,38 @@ type pluginSignaturePath struct {
 //
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
-func (a *App) GetPluginsEnvironment() *plugin.Environment {
-	if !*a.Config().PluginSettings.Enable {
+func (s *Server) GetPluginsEnvironment() *plugin.Environment {
+	if !*s.Config().PluginSettings.Enable {
 		return nil
 	}
 
-	a.Srv.PluginsLock.RLock()
-	defer a.Srv.PluginsLock.RUnlock()
+	s.PluginsLock.RLock()
+	defer s.PluginsLock.RUnlock()
 
-	return a.Srv.PluginsEnvironment
+	return s.PluginsEnvironment
+}
+
+// GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
+// initialized.
+//
+// To get the plugins environment when the plugins are disabled, manually acquire the plugins
+// lock instead.
+func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	return a.Srv().GetPluginsEnvironment()
 }
 
 func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
-	a.Srv.PluginsLock.Lock()
-	defer a.Srv.PluginsLock.Unlock()
+	a.Srv().PluginsLock.Lock()
+	defer a.Srv().PluginsLock.Unlock()
 
-	a.Srv.PluginsEnvironment = pluginsEnvironment
+	a.Srv().PluginsEnvironment = pluginsEnvironment
 }
 
 func (a *App) SyncPluginsActiveState() {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
-	a.Srv.PluginsLock.RLock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	a.Srv.PluginsLock.RUnlock()
+	a.Srv().PluginsLock.RLock()
+	pluginsEnvironment := a.Srv().PluginsEnvironment
+	a.Srv().PluginsLock.RUnlock()
 
 	if pluginsEnvironment == nil {
 		return
@@ -72,60 +83,67 @@ func (a *App) SyncPluginsActiveState() {
 	if *config.Enable {
 		availablePlugins, err := pluginsEnvironment.Available()
 		if err != nil {
-			a.Log.Error("Unable to get available plugins", mlog.Err(err))
+			a.Log().Error("Unable to get available plugins", mlog.Err(err))
 			return
 		}
 
-		// Deactivate any plugins that have been disabled.
+		// Determine which plugins need to be activated or deactivated.
+		disabledPlugins := []*model.BundleInfo{}
+		enabledPlugins := []*model.BundleInfo{}
 		for _, plugin := range availablePlugins {
-			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to deactivate it
-			if !pluginEnabled {
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
+			if pluginEnabled {
+				enabledPlugins = append(enabledPlugins, plugin)
+			} else {
+				disabledPlugins = append(disabledPlugins, plugin)
+			}
+		}
+
+		// Concurrently activate/deactivate each plugin appropriately.
+		var wg sync.WaitGroup
+
+		// Deactivate any plugins that have been disabled.
+		for _, plugin := range disabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
+
+				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					a.Publish(message)
 				}
-			}
+			}(plugin)
 		}
 
 		// Activate any plugins that have been enabled
-		for _, plugin := range availablePlugins {
-			if plugin.Manifest == nil {
-				plugin.WrapLogger(a.Log).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-				continue
-			}
+		for _, plugin := range enabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
 
-			// Determine if plugin is enabled
-			pluginId := plugin.Manifest.Id
-			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginId]; ok {
-				pluginEnabled = state.Enable
-			}
-
-			// Activate plugin if enabled
-			if pluginEnabled {
+				pluginId := plugin.Manifest.Id
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
 				if err != nil {
-					plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
-					continue
+					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
+					return
 				}
 
 				if activated {
 					// Notify all cluster clients if ready
 					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
-						a.Log.Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
-			}
+			}(plugin)
 		}
+		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
@@ -141,15 +159,15 @@ func (a *App) NewPluginAPI(manifest *model.Manifest) plugin.API {
 
 func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
-	a.Srv.PluginsLock.RLock()
-	pluginsEnvironment := a.Srv.PluginsEnvironment
-	a.Srv.PluginsLock.RUnlock()
+	a.Srv().PluginsLock.RLock()
+	pluginsEnvironment := a.Srv().PluginsEnvironment
+	a.Srv().PluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*a.Config().PluginSettings.Enable {
 		a.SyncPluginsActiveState()
 		return
 	}
 
-	a.Log.Info("Starting up plugins")
+	a.Log().Info("Starting up plugins")
 
 	if err := os.Mkdir(pluginDir, 0744); err != nil && !os.IsExist(err) {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
@@ -161,7 +179,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 		return
 	}
 
-	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log)
+	env, err := plugin.NewEnvironment(a.NewPluginAPI, pluginDir, webappPluginDir, a.Log(), a.Metrics())
 	if err != nil {
 		mlog.Error("Failed to start up plugins", mlog.Err(err))
 		return
@@ -174,21 +192,27 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
 	pluginsEnvironment = a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		mlog.Info("Plugins environment not found, server is likely shutting down")
+		return
+	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
 	// Sync plugin active state when config changes. Also notify plugins.
-	a.Srv.PluginsLock.Lock()
-	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
-	a.Srv.PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
+	a.Srv().PluginsLock.Lock()
+	a.RemoveConfigListener(a.Srv().PluginConfigListenerId)
+	a.Srv().PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
 		a.SyncPluginsActiveState()
 		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.OnConfigurationChange()
+				if err := hooks.OnConfigurationChange(); err != nil {
+					a.Log().Error("Plugin OnConfigurationChange hook failed", mlog.Err(err))
+				}
 				return true
 			}, plugin.OnConfigurationChangeId)
 		}
 	})
-	a.Srv.PluginsLock.Unlock()
+	a.Srv().PluginsLock.Unlock()
 
 	a.SyncPluginsActiveState()
 }
@@ -208,22 +232,26 @@ func (a *App) SyncPlugins() *model.AppError {
 		return model.NewAppError("SyncPlugins", "app.plugin.sync.read_local_folder.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
-		pluginId := plugin.Manifest.Id
-
-		// Only handle managed plugins with .filestore flag file.
-		_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginId, managedPluginFileName))
-		if os.IsNotExist(err) {
-			mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginId))
-		} else if err != nil {
-			mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginId), mlog.Err(err))
-		} else {
-			mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginId))
-			if err := a.removePluginLocally(pluginId); err != nil {
-				mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginId), mlog.Err(err))
+		wg.Add(1)
+		go func(pluginID string) {
+			defer wg.Done()
+			// Only handle managed plugins with .filestore flag file.
+			_, err := os.Stat(filepath.Join(*a.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
+			if os.IsNotExist(err) {
+				mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginID))
+			} else if err != nil {
+				mlog.Error("Skipping sync for plugin after failure to check if managed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+			} else {
+				mlog.Debug("Removing local installation of managed plugin before sync", mlog.String("plugin_id", pluginID))
+				if err := a.removePluginLocally(pluginID); err != nil {
+					mlog.Error("Failed to remove local installation of managed plugin before sync", mlog.String("plugin_id", pluginID), mlog.Err(err))
+				}
 			}
-		}
+		}(plugin.Manifest.Id)
 	}
+	wg.Wait()
 
 	// Install plugins from the file store.
 	pluginSignaturePathMap, appErr := a.getPluginsFromFolder()
@@ -232,33 +260,39 @@ func (a *App) SyncPlugins() *model.AppError {
 	}
 
 	for _, plugin := range pluginSignaturePathMap {
-		reader, appErr := a.FileReader(plugin.path)
-		if appErr != nil {
-			mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
-			continue
-		}
-		defer reader.Close()
-
-		var signature filesstore.ReadCloseSeeker
-		if *a.Config().PluginSettings.RequirePluginSignature {
-			signature, appErr = a.FileReader(plugin.signaturePath)
+		wg.Add(1)
+		go func(plugin *pluginSignaturePath) {
+			defer wg.Done()
+			reader, appErr := a.FileReader(plugin.path)
 			if appErr != nil {
-				mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
-				continue
+				mlog.Error("Failed to open plugin bundle from file store.", mlog.String("bundle", plugin.path), mlog.Err(appErr))
+				return
 			}
-			defer signature.Close()
-		}
+			defer reader.Close()
 
-		mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
-		if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
-			mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
-		}
+			var signature filesstore.ReadCloseSeeker
+			if *a.Config().PluginSettings.RequirePluginSignature {
+				signature, appErr = a.FileReader(plugin.signaturePath)
+				if appErr != nil {
+					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
+					return
+				}
+				defer signature.Close()
+			}
+
+			mlog.Info("Syncing plugin from file store", mlog.String("bundle", plugin.path))
+			if _, err := a.installPluginLocally(reader, signature, installPluginLocallyAlways); err != nil {
+				mlog.Error("Failed to sync plugin from file store", mlog.String("bundle", plugin.path), mlog.Err(err))
+			}
+		}(plugin)
 	}
+
+	wg.Wait()
 	return nil
 }
 
-func (a *App) ShutDownPlugins() {
-	pluginsEnvironment := a.GetPluginsEnvironment()
+func (s *Server) ShutDownPlugins() {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -267,14 +301,14 @@ func (a *App) ShutDownPlugins() {
 
 	pluginsEnvironment.Shutdown()
 
-	a.RemoveConfigListener(a.Srv.PluginConfigListenerId)
-	a.Srv.PluginConfigListenerId = ""
+	s.RemoveConfigListener(s.PluginConfigListenerId)
+	s.PluginConfigListenerId = ""
 
 	// Acquiring lock manually before cleaning up PluginsEnvironment.
-	a.Srv.PluginsLock.Lock()
-	defer a.Srv.PluginsLock.Unlock()
-	if a.Srv.PluginsEnvironment == pluginsEnvironment {
-		a.Srv.PluginsEnvironment = nil
+	s.PluginsLock.Lock()
+	defer s.PluginsLock.Unlock()
+	if s.PluginsEnvironment == pluginsEnvironment {
+		s.PluginsEnvironment = nil
 	} else {
 		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
@@ -415,7 +449,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
-		p, appErr := a.getRemotePlugins(filter)
+		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -469,13 +503,15 @@ func (a *App) getPrepackagedPlugin(pluginId, version string) (*plugin.Prepackage
 func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
 		*a.Config().PluginSettings.MarketplaceUrl,
-		a.HTTPService,
+		a.HTTPService(),
 	)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
+	filter := a.getBaseMarketplaceFilter()
+	filter.Filter = pluginId
+
 	plugin, err := marketplaceClient.GetPlugin(filter, version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -484,7 +520,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.AppError) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -494,17 +530,17 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 
 	marketplaceClient, err := marketplace.NewClient(
 		*a.Config().PluginSettings.MarketplaceUrl,
-		a.HTTPService,
+		a.HTTPService(),
 	)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	filter := a.getBaseMarketplaceFilter()
 	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
-		PerPage:       -1,
-		ServerVersion: model.CurrentVersion,
-	})
+	filter.PerPage = -1
+
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -534,9 +570,10 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 
 		prepackagedMarketplace := &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: prepackaged.Manifest.HomepageURL,
-				IconData:    prepackaged.IconData,
-				Manifest:    prepackaged.Manifest,
+				HomepageURL:     prepackaged.Manifest.HomepageURL,
+				IconData:        prepackaged.IconData,
+				ReleaseNotesURL: prepackaged.Manifest.ReleaseNotesURL,
+				Manifest:        prepackaged.Manifest,
 			},
 		}
 
@@ -608,16 +645,40 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 
 		remoteMarketplacePlugins[plugin.Manifest.Id] = &model.MarketplacePlugin{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				IconData:    iconData,
-				HomepageURL: plugin.Manifest.HomepageURL,
-				Labels:      labels,
-				Manifest:    plugin.Manifest,
+				HomepageURL:     plugin.Manifest.HomepageURL,
+				IconData:        iconData,
+				ReleaseNotesURL: plugin.Manifest.ReleaseNotesURL,
+				Labels:          labels,
+				Manifest:        plugin.Manifest,
 			},
 			InstalledVersion: plugin.Manifest.Version,
 		}
 	}
 
 	return nil
+}
+
+func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
+	filter := &model.MarketplacePluginFilter{
+		ServerVersion: model.CurrentVersion,
+	}
+
+	license := a.Srv().License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if license != nil && *license.Features.Cloud {
+		filter.Cloud = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	filter.Platform = runtime.GOOS + "-" + runtime.GOARCH
+
+	return filter
 }
 
 func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
@@ -660,9 +721,9 @@ func (a *App) notifyPluginEnabled(manifest *model.Manifest) error {
 
 	var statuses model.PluginStatuses
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		var err *model.AppError
-		statuses, err = a.Cluster.GetPluginStatuses()
+		statuses, err = a.Cluster().GetPluginStatuses()
 		if err != nil {
 			return err
 		}
@@ -699,12 +760,22 @@ func (a *App) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.Ap
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	return getPluginsFromFilePaths(fileStorePaths), nil
+	return a.getPluginsFromFilePaths(fileStorePaths), nil
 }
 
-func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
+func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignaturePath {
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
+
+	fsPrefix := ""
+	if *a.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		ptr := a.Config().FileSettings.AmazonS3PathPrefix
+		if ptr != nil && *ptr != "" {
+			fsPrefix = *ptr + "/"
+		}
+	}
+
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz")
 			helper := &pluginSignaturePath{
@@ -716,6 +787,7 @@ func getPluginsFromFilePaths(fileStorePaths []string) map[string]*pluginSignatur
 		}
 	}
 	for _, path := range fileStorePaths {
+		path = strings.TrimPrefix(path, fsPrefix)
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
@@ -735,7 +807,7 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	fileStorePaths := []string{}
+	var fileStorePaths []string
 	err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 		fileStorePaths = append(fileStorePaths, walkPath)
 		return nil
@@ -745,16 +817,29 @@ func (a *App) processPrepackagedPlugins(pluginsDir string) []*plugin.Prepackaged
 		return nil
 	}
 
-	pluginSignaturePathMap := getPluginsFromFilePaths(fileStorePaths)
+	pluginSignaturePathMap := a.getPluginsFromFilePaths(fileStorePaths)
 	plugins := make([]*plugin.PrepackagedPlugin, 0, len(pluginSignaturePathMap))
-	for _, pluginPaths := range pluginSignaturePathMap {
-		plugin, err := a.processPrepackagedPlugin(pluginPaths)
-		if err != nil {
-			mlog.Error("Failed to install prepackaged plugin", mlog.String("path", pluginPaths.path), mlog.Err(err))
-			continue
-		}
+	prepackagedPlugins := make(chan *plugin.PrepackagedPlugin, len(pluginSignaturePathMap))
 
-		plugins = append(plugins, plugin)
+	var wg sync.WaitGroup
+	for _, psPath := range pluginSignaturePathMap {
+		wg.Add(1)
+		go func(psPath *pluginSignaturePath) {
+			defer wg.Done()
+			p, err := a.processPrepackagedPlugin(psPath)
+			if err != nil {
+				mlog.Error("Failed to install prepackaged plugin", mlog.String("path", psPath.path), mlog.Err(err))
+				return
+			}
+			prepackagedPlugins <- p
+		}(psPath)
+	}
+
+	wg.Wait()
+	close(prepackagedPlugins)
+
+	for p := range prepackagedPlugins {
+		plugins = append(plugins, p)
 	}
 
 	return plugins
@@ -769,6 +854,8 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to open prepackaged plugin %s", pluginPath.path)
 	}
+	defer fileReader.Close()
+
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create temp dir plugintmp")
@@ -839,8 +926,10 @@ func getIcon(iconPath string) (string, error) {
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}
+
 	if !svg.Is(icon) {
-		return "", errors.Wrapf(err, "icon is not svg %s", iconPath)
+		return "", errors.Errorf("icon is not svg %s", iconPath)
 	}
+
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }

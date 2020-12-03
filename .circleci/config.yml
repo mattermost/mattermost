@@ -2,43 +2,90 @@ version: 2.1
 
 orbs:
   aws-s3: circleci/aws-s3@1.0.11
+  owasp: entur/owasp@0.0.10
 
 executors:
   ubuntu:
     working_directory: ~/mattermost/
+    resource_class: xlarge
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "large"
-
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    resource_class: xlarge
     steps:
       - checkout
       - run: |
           cd ../
-          GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone --depth=1 git@github.com:mattermost/mattermost-webapp.git
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          export CURL_FAILED=0
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
 
-          if [ $CURL_FAILED -eq 1 ]
-          then
-            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
-          fi
+          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
+          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
+          mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          trap - ERR
       - persist_to_workspace:
           root: ~/mattermost
           paths:
             - mattermost-webapp
             - mattermost-server
+
+  check-deps:
+    parameters:
+      cve_data_directory:
+        type: string
+        default: "~/.owasp/dependency-check-data"
+    working_directory: ~/mattermost/mattermost-server
+    executor: owasp/default
+    environment:
+      version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
+      executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          name: Checkout config
+          command: cd .. && git clone --depth=1 https://github.com/mattermost/security-automation-config
+      - run:
+          name: Install Go
+          command: sudo apt-get update && sudo apt-get install golang
+      - owasp/with_commandline:
+          steps:
+            # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
+            - owasp/generate_cache_keys:
+                cache_key: commmandline-default-cache-key-v6
+            - owasp/restore_owasp_cache
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: |
+                  if ! ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly; then
+                    # Update failed, probably due to a bad DB version; delete cached DB and try again
+                    rm -rv ~/.owasp/dependency-check-data/*.db
+                    ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                  fi
+            - owasp/store_owasp_cache:
+                cve_data_directory: <<parameters.cve_data_directory>>
+            - run:
+                name: Run OWASP Dependency-Check Analyzer
+                command: |
+                  ~/.owasp/dependency-check/bin/dependency-check.sh \
+                    --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
+                    --suppression ../security-automation-config/dependency-check/suppression.xml \
+                    --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
+                    --scan './**/*' || true
+            - owasp/collect_reports:
+                persist_to_workspace: false
+      - run:
+          name: Post results to Mattermost
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
@@ -56,9 +103,54 @@ jobs:
   #           make i18n-extract
   #           diff /tmp/en.json i18n/en.json
 
+  check-app-layers:
+    docker:
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make app-layers
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+
+  check-store-layers:
+    docker:
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make store-layers
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+
+  build-api-spec:
+    docker:
+      - image: circleci/node:lts
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
+            cd mattermost-api-reference
+            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+            git checkout ${CIRCLE_BRANCH} || true
+            make build
+      - persist_to_workspace:
+          root: ~/mattermost
+          paths:
+            - mattermost-api-reference
+
   build:
     docker:
-      - image: mattermost/mattermost-build-server:oct-18-2019
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -67,16 +159,21 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.0 # Keep this in sync with .golangci.yml and Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.31.0
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
-            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+            make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            curl -sL https://sentry.io/get-cli/ | bash
+            echo Sentry will use version `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -92,6 +189,11 @@ jobs:
   test:
     executor:
       name: ubuntu
+    parameters:
+      dbdriver:
+        type: string
+      dbsource:
+        type: string
     steps:
       - attach_workspace:
           at: ~/mattermost
@@ -115,26 +217,15 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
+            cd mattermost-server/build
             docker run -it --net circleci_mm-test \
-              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
-              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
-              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              --env GOBIN=/mattermost/mattermost-server/bin \
+              --env-file=dotenv/test.env \
+              --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
+              --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
-              bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE="
           no_output_timeout: 1h
       - run:
           name: Capture docker logs
@@ -184,30 +275,22 @@ jobs:
       - run:
           name: Postgres schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
+
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d latest -U mmuser > latest.sql
@@ -220,30 +303,22 @@ jobs:
       - run:
           name: MySQL schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
+
             docker run -it --net circleci_mm-test \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
+              --env-file="dotenv/test-schema-validation.env" \
               --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:oct-18-2019 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
@@ -278,7 +353,7 @@ jobs:
 
   upload-s3:
     docker:
-    - image: 'circleci/python:2.7'
+      - image: 'circleci/python:2.7'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -310,19 +385,6 @@ jobs:
             echo $DOCKER_PASSWORD | docker login --username $DOCKER_USERNAME --password-stdin
             docker push mattermost/mattermost-team-edition:${TAG}
 
-  trigger-ee-tests:
-    machine: true
-    steps:
-      - run:
-          name: Trigger enterprise
-          command: |
-            curl \
-              --request POST \
-              --url https://circleci.com/api/v2/project/gh/mattermost/enterprise/pipeline \
-              --user ${CIRCLECI_TOKEN} \
-              --data parameters[external_branch]=$CIRCLE_BRANCH \
-              --data parameters[external_sha]=$CIRCLE_SHA1
-
 workflows:
   version: 2
   untagged-build:
@@ -330,15 +392,31 @@ workflows:
       - setup:
           filters:
             branches:
-                ignore:
-                  - master
-                  - /^release-.*/
+              ignore:
+                - master
+                - /^release-.*/
+      - check-deps:
+          context: sast-webhook
+          requires:
+            - setup
       # - check-i18n:
       #     requires:
       #       - setup
-      - build:
+      - check-app-layers:
           requires:
             - setup
+      - check-store-layers:
+          requires:
+            - setup
+      - build-api-spec:
+          requires:
+            - setup
+      - build:
+          context: matterbuild-sentry
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
@@ -352,19 +430,20 @@ workflows:
           requires:
             - upload-s3-sha
       - test:
+          name: test-mysql
+          dbdriver: mysql
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
           requires:
-            - setup
+            - check-app-layers
+            - check-store-layers
+      - test:
+          name: test-postgres
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          requires:
+            - check-app-layers
+            - check-store-layers
       - test-schema:
           requires:
-            - setup
-      - trigger-ee-tests:
-          context: matterbuild-circleci-token
-          requires:
-            - test
-            - test-schema
-            - upload-s3
-            - upload-s3-sha
-            - build-docker
-          filters:
-            branches:
-              only: /^pull\/.*$/
+            - check-app-layers
+            - check-store-layers

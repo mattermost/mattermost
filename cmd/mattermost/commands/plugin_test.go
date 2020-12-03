@@ -14,7 +14,7 @@ import (
 )
 
 func TestPlugin(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -23,24 +23,35 @@ func TestPlugin(t *testing.T) {
 	*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
 	th.SetConfig(cfg)
 
-	os.MkdirAll("./test-plugins", os.ModePerm)
-	os.MkdirAll("./test-client-plugins", os.ModePerm)
+	err := os.MkdirAll("./test-plugins", os.ModePerm)
+	require.Nil(t, err)
+	err = os.MkdirAll("./test-client-plugins", os.ModePerm)
+	require.Nil(t, err)
 
 	path, _ := fileutils.FindDir("tests")
 
-	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	output := th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	assert.Contains(t, output, "Added plugin:")
+	output = th.CheckCommand(t, "plugin", "enable", "testplugin")
+	assert.Contains(t, output, "Enabled plugin: testplugin")
 
-	th.CheckCommand(t, "plugin", "enable", "testplugin")
 	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.True(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
-	fs.Close()
+	cfsStore, err := config.NewStoreFromBacking(fs, nil)
+	require.Nil(t, err)
+	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
+	assert.True(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	cfsStore.Close()
 
-	th.CheckCommand(t, "plugin", "disable", "testplugin")
+	output = th.CheckCommand(t, "plugin", "disable", "testplugin")
+	assert.Contains(t, output, "Disabled plugin: testplugin")
 	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.False(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
-	fs.Close()
+	cfsStore, err = config.NewStoreFromBacking(fs, nil)
+	require.Nil(t, err)
+	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
+	assert.False(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	cfsStore.Close()
 
 	th.CheckCommand(t, "plugin", "list")
 
@@ -48,7 +59,7 @@ func TestPlugin(t *testing.T) {
 }
 
 func TestPluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -61,7 +72,7 @@ func TestPluginPublicKeys(t *testing.T) {
 }
 
 func TestPluginPublicKeyDetails(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -76,7 +87,7 @@ func TestPluginPublicKeyDetails(t *testing.T) {
 }
 
 func TestAddPluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -88,7 +99,7 @@ func TestAddPluginPublicKeys(t *testing.T) {
 }
 
 func TestDeletePluginPublicKeys(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	cfg := th.Config()
@@ -100,7 +111,7 @@ func TestDeletePluginPublicKeys(t *testing.T) {
 }
 
 func TestPluginPublicKeysFlow(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")

@@ -62,6 +62,21 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
 	}
 
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
+	}
+
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, activeUsersInterface.MakeScheduler())
+	}
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
+	}
+
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }
@@ -186,7 +201,7 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
 }
 
-func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
 	schedulers.configChanged <- newConfig
 }

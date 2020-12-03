@@ -13,29 +13,27 @@ func SplitDomainName(s string) (labels []string) {
 	if len(s) == 0 {
 		return nil
 	}
-	if s == "." {
-		return nil
-	}
-	// offset of the final '.' or the length of the name
-	var fqdnEnd int
+	fqdnEnd := 0 // offset of the final '.' or the length of the name
+	idx := Split(s)
+	begin := 0
 	if IsFqdn(s) {
 		fqdnEnd = len(s) - 1
 	} else {
 		fqdnEnd = len(s)
 	}
-	var (
-		begin int
-		off   int
-		end   bool
-	)
-	for {
-		off, end = NextLabel(s, off)
-		if end {
-			break
+
+	switch len(idx) {
+	case 0:
+		return nil
+	case 1:
+		// no-op
+	default:
+		for _, end := range idx[1:] {
+			labels = append(labels, s[begin:end-1])
+			begin = end
 		}
-		labels = append(labels, s[begin:off-1])
-		begin = off
 	}
+
 	return append(labels, s[begin:fqdnEnd])
 }
 
@@ -54,50 +52,52 @@ func CompareDomainName(s1, s2 string) (n int) {
 		return 0
 	}
 
-	j1 := len(s1)
-	if s1[j1-1] == '.' {
-		j1--
+	l1 := Split(s1)
+	l2 := Split(s2)
+
+	j1 := len(l1) - 1 // end
+	i1 := len(l1) - 2 // start
+	j2 := len(l2) - 1
+	i2 := len(l2) - 2
+	// the second check can be done here: last/only label
+	// before we fall through into the for-loop below
+	if equal(s1[l1[j1]:], s2[l2[j2]:]) {
+		n++
+	} else {
+		return
 	}
-	j2 := len(s2)
-	if s2[j2-1] == '.' {
-		j2--
-	}
-	var i1, i2 int
 	for {
-		i1 = prevLabel(s1, j1-1)
-		i2 = prevLabel(s2, j2-1)
-		if equal(s1[i1:j1], s2[i2:j2]) {
+		if i1 < 0 || i2 < 0 {
+			break
+		}
+		if equal(s1[l1[i1]:l1[j1]], s2[l2[i2]:l2[j2]]) {
 			n++
 		} else {
 			break
 		}
-		if i1 == 0 || i2 == 0 {
-			break
-		}
-		j1 = i1 - 2
-		j2 = i2 - 2
+		j1--
+		i1--
+		j2--
+		i2--
 	}
 	return
 }
 
-// CountLabel counts the the number of labels in the string s.
+// CountLabel counts the number of labels in the string s.
 // s must be a syntactically valid domain name.
-func CountLabel(s string) int {
+func CountLabel(s string) (labels int) {
 	if s == "." {
-		return 0
+		return
 	}
-	labels := 1
-	for i := 0; i < len(s)-1; i++ {
-		c := s[i]
-		if c == '\\' {
-			i++
-			continue
-		}
-		if c == '.' {
-			labels++
+	off := 0
+	end := false
+	for {
+		off, end = NextLabel(s, off)
+		labels++
+		if end {
+			return
 		}
 	}
-	return labels
 }
 
 // Split splits a name s into its label indexes.
@@ -126,42 +126,25 @@ func Split(s string) []int {
 // The bool end is true when the end of the string has been reached.
 // Also see PrevLabel.
 func NextLabel(s string, offset int) (i int, end bool) {
+	if s == "" {
+		return 0, true
+	}
 	for i = offset; i < len(s)-1; i++ {
-		c := s[i]
-		if c == '\\' {
-			i++
+		if s[i] != '.' {
 			continue
 		}
-		if c == '.' {
-			return i + 1, false
+		j := i - 1
+		for j >= 0 && s[j] == '\\' {
+			j--
 		}
+
+		if (j-i)%2 == 0 {
+			continue
+		}
+
+		return i + 1, false
 	}
 	return i + 1, true
-}
-
-func prevLabel(s string, offset int) int {
-	for i := offset; i >= 0; i-- {
-		if s[i] == '.' {
-			if i == 0 || s[i-1] != '\\' {
-				return i + 1 // the '.' is not escaped
-			}
-			// We are at '\.' and need to check if the '\' itself is escaped.
-			// We do this by walking backwards from '\.' and counting the
-			// number of '\' we encounter.  If the number of '\' is even
-			// (though here it's actually odd since we start at '\.') the '\'
-			// is escaped.
-			j := i - 2
-			for ; j >= 0 && s[j] == '\\'; j-- {
-			}
-			// An odd number here indicates that the '\' preceding the '.'
-			// is escaped.
-			if (i-j)&1 == 1 {
-				return i + 1
-			}
-			i = j + 1
-		}
-	}
-	return 0
 }
 
 // PrevLabel returns the index of the label when starting from the right and
@@ -169,27 +152,38 @@ func prevLabel(s string, offset int) int {
 // The bool start is true when the start of the string has been overshot.
 // Also see NextLabel.
 func PrevLabel(s string, n int) (i int, start bool) {
-	if s == "." {
+	if s == "" {
 		return 0, true
 	}
 	if n == 0 {
 		return len(s), false
 	}
-	i = len(s) - 1
-	if s[i] == '.' {
-		i--
+
+	l := len(s) - 1
+	if s[l] == '.' {
+		l--
 	}
-	for ; n > 0; n-- {
-		i = prevLabel(s, i)
-		if i == 0 {
-			break
+
+	for ; l >= 0 && n > 0; l-- {
+		if s[l] != '.' {
+			continue
 		}
-		i -= 2
+		j := l - 1
+		for j >= 0 && s[j] == '\\' {
+			j--
+		}
+
+		if (j-l)%2 == 0 {
+			continue
+		}
+
+		n--
+		if n == 0 {
+			return l + 1, false
+		}
 	}
-	if n > 0 {
-		return 0, true
-	}
-	return i + 2, false
+
+	return 0, n > 1
 }
 
 // equal compares a and b while ignoring case. It returns true when equal otherwise false.
@@ -200,19 +194,18 @@ func equal(a, b string) bool {
 	if la != lb {
 		return false
 	}
-	if a != b {
-		// case-insensitive comparison
-		for i := la - 1; i >= 0; i-- {
-			ai := a[i]
-			bi := b[i]
-			if ai != bi {
-				if bi < ai {
-					bi, ai = ai, bi
-				}
-				if !('A' <= ai && ai <= 'Z' && bi == ai+'a'-'A') {
-					return false
-				}
-			}
+
+	for i := la - 1; i >= 0; i-- {
+		ai := a[i]
+		bi := b[i]
+		if ai >= 'A' && ai <= 'Z' {
+			ai |= 'a' - 'A'
+		}
+		if bi >= 'A' && bi <= 'Z' {
+			bi |= 'a' - 'A'
+		}
+		if ai != bi {
+			return false
 		}
 	}
 	return true

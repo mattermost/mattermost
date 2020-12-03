@@ -46,6 +46,21 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: elasticsearch
+  dejavu:
+    container_name: mattermost-dejavu
+    ports:
+      - "1358:1358"
+    extends:
+        file: build/docker-compose.common.yml
+        service: dejavu
+  keycloak:
+    container_name: mattermost-saml
+    ports:
+      - "8484:8080"
+    extends:
+        file: build/docker-compose.common.yml
+        service: keycloak
+
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
     networks:
@@ -62,3 +77,8 @@ services:
 networks:
   mm-test:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.0/24
+          ip_range: 192.168.254.0/24

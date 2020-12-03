@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -19,8 +21,14 @@ import (
 // It is documented at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-rollover-index.html.
 type IndicesRolloverService struct {
-	client              *Client
-	pretty              bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	dryRun              bool
 	newIndex            string
 	alias               string
@@ -42,6 +50,46 @@ func NewIndicesRolloverService(client *Client) *IndicesRolloverService {
 		settings:   make(map[string]interface{}),
 		mappings:   make(map[string]interface{}),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesRolloverService) Pretty(pretty bool) *IndicesRolloverService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesRolloverService) Human(human bool) *IndicesRolloverService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesRolloverService) ErrorTrace(errorTrace bool) *IndicesRolloverService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesRolloverService) FilterPath(filterPath ...string) *IndicesRolloverService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesRolloverService) Header(name string, value string) *IndicesRolloverService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesRolloverService) Headers(headers http.Header) *IndicesRolloverService {
+	s.headers = headers
+	return s
 }
 
 // Alias is the name of the alias to rollover.
@@ -72,12 +120,6 @@ func (s *IndicesRolloverService) Timeout(timeout string) *IndicesRolloverService
 // newly created rollover index before the operation returns.
 func (s *IndicesRolloverService) WaitForActiveShards(waitForActiveShards string) *IndicesRolloverService {
 	s.waitForActiveShards = waitForActiveShards
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesRolloverService) Pretty(pretty bool) *IndicesRolloverService {
-	s.pretty = pretty
 	return s
 }
 
@@ -188,8 +230,17 @@ func (s *IndicesRolloverService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.dryRun {
 		params.Set("dry_run", "true")
@@ -243,10 +294,11 @@ func (s *IndicesRolloverService) Do(ctx context.Context) (*IndicesRolloverRespon
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

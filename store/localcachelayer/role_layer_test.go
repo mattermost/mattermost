@@ -14,7 +14,7 @@ import (
 )
 
 func TestRoleStore(t *testing.T) {
-	StoreTest(t, storetest.TestRoleStore)
+	StoreTestWithSqlStore(t, storetest.TestRoleStore)
 }
 
 func TestRoleStoreCache(t *testing.T) {

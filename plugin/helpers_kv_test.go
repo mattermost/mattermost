@@ -4,6 +4,7 @@
 package plugin_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -394,4 +395,244 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 		api.AssertExpectations(t)
 		assert.NoError(t, err)
 	})
+}
+
+func TestKVListWithOptions(t *testing.T) {
+	t.Run("incompatible server version", func(t *testing.T) {
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.1.0")
+
+		p := &plugin.HelpersImpl{API: api}
+
+		keys, err := p.KVListWithOptions()
+
+		api.AssertExpectations(t)
+		assert.Nil(t, keys)
+		assert.Error(t, err)
+		assert.Equal(t, "incompatible server version for plugin, minimum required version: 5.6.0, current version: 5.1.0", err.Error())
+	})
+
+	t.Run("KVList error", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return([]string{}, &model.AppError{})
+		p.API = api
+
+		keys, err := p.KVListWithOptions()
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Error(t, err)
+	})
+
+	t.Run("No keys", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(nil, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions()
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Basic Success, one page", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return([]string{"key1", "key2"}, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions()
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, []string{"key1", "key2"})
+		assert.Nil(t, err)
+	})
+
+	t.Run("Basic Success, two page", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions()
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, getKeys(101))
+		assert.Nil(t, err)
+	})
+
+	t.Run("error on second page", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, &model.AppError{})
+		p.API = api
+
+		keys, err := p.KVListWithOptions()
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Error(t, err)
+	})
+
+	t.Run("success, two page, filter prefix, one", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("key99"))
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, []string{"key99"})
+		assert.Nil(t, err)
+	})
+
+	t.Run("success, two page, filter prefix, all", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("notkey"))
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Nil(t, err)
+	})
+
+	t.Run("success, two page, filter prefix, none", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("key"))
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, getKeys(101))
+		assert.Nil(t, err)
+	})
+
+	t.Run("success, two page, checker func, one", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		check := func(key string) (bool, error) {
+			if key == "key1" {
+				return true, nil
+			}
+			return false, nil
+		}
+
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, []string{"key1"})
+		assert.Nil(t, err)
+	})
+
+	t.Run("success, two page, checker func, all", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		check := func(key string) (bool, error) {
+			return false, nil
+		}
+
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Nil(t, err)
+	})
+
+	t.Run("success, two page, checker func, none", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return(getKeys(100), nil)
+		api.On("KVList", 1, 100).Return([]string{"key100"}, nil)
+		p.API = api
+
+		check := func(key string) (bool, error) {
+			return true, nil
+		}
+
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, getKeys(101))
+		assert.Nil(t, err)
+	})
+
+	t.Run("error, checker func", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return([]string{"key1"}, nil)
+		p.API = api
+
+		check := func(key string) (bool, error) {
+			return true, &model.AppError{}
+		}
+
+		keys, err := p.KVListWithOptions(plugin.WithChecker(check))
+		api.AssertExpectations(t)
+		assert.Empty(t, keys)
+		assert.Error(t, err)
+	})
+
+	t.Run("success, filter and checker func, partial on both", func(t *testing.T) {
+		p := &plugin.HelpersImpl{}
+
+		api := &plugintest.API{}
+		api.On("GetServerVersion").Return("5.6.0")
+		api.On("KVList", 0, 100).Return([]string{"key1", "key2", "notkey3", "key4", "key5"}, nil)
+		p.API = api
+
+		check := func(key string) (bool, error) {
+			if key == "key1" || key == "key5" {
+				return false, nil
+			}
+			return true, nil
+		}
+
+		keys, err := p.KVListWithOptions(plugin.WithPrefix("key"), plugin.WithChecker(check))
+		api.AssertExpectations(t)
+		assert.ElementsMatch(t, keys, []string{"key2", "key4"})
+		assert.Nil(t, err)
+	})
+}
+
+func getKeys(count int) []string {
+	ret := make([]string, count)
+	for i := 0; i < count; i++ {
+		ret[i] = "key" + strconv.Itoa(i)
+	}
+	return ret
 }

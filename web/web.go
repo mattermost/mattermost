@@ -50,7 +50,7 @@ var browserMinimumSupported = map[string]int{
 	"BrowserSafari": 12,
 }
 
-func CheckClientCompatability(agentString string) bool {
+func CheckClientCompatibility(agentString string) bool {
 	ua := uasurfer.Parse(agentString)
 
 	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && (ua.Browser.Version.Major < version || version < 0) {
@@ -82,7 +82,7 @@ func IsApiCall(config configservice.ConfigService, r *http.Request) bool {
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }
 
-func IsWebhookCall(a *app.App, r *http.Request) bool {
+func IsWebhookCall(a app.AppIface, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")

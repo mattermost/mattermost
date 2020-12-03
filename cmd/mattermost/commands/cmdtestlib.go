@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
@@ -36,13 +37,41 @@ type testHelper struct {
 }
 
 // Setup creates an instance of testHelper.
-func Setup() *testHelper {
+func Setup(t testing.TB) *testHelper {
 	dir, err := ioutil.TempDir("", "testHelper")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	api4TestHelper := api4.Setup()
+	api4TestHelper := api4.Setup(t)
+
+	testHelper := &testHelper{
+		TestHelper:     api4TestHelper,
+		tempDir:        dir,
+		configFilePath: filepath.Join(dir, "config-helper.json"),
+	}
+
+	config := &model.Config{}
+	config.SetDefaults()
+	testHelper.SetConfig(config)
+
+	return testHelper
+}
+
+// Setup creates an instance of testHelper.
+func SetupWithStoreMock(t testing.TB) *testHelper {
+	dir, err := ioutil.TempDir("", "testHelper")
+	if err != nil {
+		panic("failed to create temporary directory: " + err.Error())
+	}
+
+	api4TestHelper := api4.SetupWithStoreMock(t)
+	systemStore := mocks.SystemStore{}
+	systemStore.On("Get").Return(make(model.StringMap), nil)
+	licenseStore := mocks.LicenseStore{}
+	licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
+	api4TestHelper.App.Srv().Store.(*mocks.Store).On("System").Return(&systemStore)
+	api4TestHelper.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
 
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
@@ -80,7 +109,9 @@ func (h *testHelper) ConfigPath() string {
 
 // SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
-	config.SqlSettings = *mainHelper.GetSQLSettings()
+	if !testing.Short() {
+		config.SqlSettings = *mainHelper.GetSQLSettings()
+	}
 
 	// Disable strict password requirements for test
 	*config.PasswordSettings.MinimumLength = 5

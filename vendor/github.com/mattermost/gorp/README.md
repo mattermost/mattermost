@@ -536,9 +536,9 @@ func (i *Invoice) PreUpdate(s gorp.SqlExecutor) error {
 //
 func (p *Person) PreDelete(s gorp.SqlExecutor) error {
     query := "delete from invoice_test where PersonId=?"
-    
+
     _, err := s.Exec(query, p.Id)
-    
+
     if err != nil {
         return err
     }
@@ -655,7 +655,7 @@ MariaDB [test]> show create table Account;
   `AcctId` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `AcctIdIndex` (`AcctId`) USING BTREE   <<<--- yes! index added.
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
 +---------+--------------------------+
 
 ```
@@ -732,14 +732,18 @@ Raw SQL strings passed to `Exec`, `Select`, `SelectOne`, `SelectInt`,
 etc will not be parsed.  Consequently you may have portability issues
 if you write a query like this:
 
-```go // works on MySQL and Sqlite3, but not with Postgresql err :=
+```go
+go // works on MySQL and Sqlite3, but not with Postgresql err :=
 dbmap.SelectOne(&val, "select * from foo where id = ?", 30) ```
+```
 
 In `Select` and `SelectOne` you can use named parameters to work
 around this.  The following is portable:
 
-```go err := dbmap.SelectOne(&val, "select * from foo where id = :id",
-map[string]interface{} { "id": 30}) ```
+```go
+go err := dbmap.SelectOne(&val, "select * from foo where id = :id",
+map[string]interface{} { "id": 30})
+```
 
 Additionally, when using Postgres as your database, you should utilize
 `$1` instead of `?` placeholders as utilizing `?` placeholders when
@@ -753,8 +757,7 @@ gorp will pass `time.Time` fields through to the `database/sql`
 driver, but note that the behavior of this type varies across database
 drivers.
 
-MySQL users should be especially cautious.  See:
-https://github.com/ziutek/mymysql/pull/77
+MySQL users should be especially cautious.  See [this PR](https://github.com/ziutek/mymysql/pull/77)
 
 To avoid any potential issues with timezone/DST, consider:
 
@@ -766,25 +769,26 @@ To avoid any potential issues with timezone/DST, consider:
 ## Running the tests
 
 The included tests may be run against MySQL, Postgresql, or sqlite3.
-You must set two environment variables so the test code knows which
-driver to use, and how to connect to your database.
+You must set two flags, dsn and dialect, in order to test the environment you want.
+If not flag is passed the tests are going to use the default ones which are:
+- DSN: `gorptest:gorptest@tcp(localhost:3306)/gorptest`
+- Dialect: `gomysql`
 
-```sh
+```bash
 # MySQL example:
-export GORP_TEST_DSN=gomysql_test/gomysql_test/abc123
-export GORP_TEST_DIALECT=mysql
-
 # run the tests
-go test
+go test -dsn="gorptest:gorptest@tcp(localhost:3306)/gorptest" -dialect="gomysql"
 
 # run the tests and benchmarks
 go test -bench="Bench" -benchtime 10
 ```
 
-Valid `GORP_TEST_DIALECT` values are: "mysql"(for mymysql),
-"gomysql"(for go-sql-driver), "postgres", "sqlite" See the
-`test_all.sh` script for examples of all 3 databases.  This is the
-script I run locally to test the library.
+Valid `dialect` flag values are:
+
+- [mysql](https://github.com/ziutek/mymysql)
+- [gomysql](https://github.com/Go-SQL-Driver/MySQL)
+- [postgres](https://github.com/lib/pq)
+- [sqlite](https://github.com/mattn/go-sqlite3)
 
 ## Performance
 

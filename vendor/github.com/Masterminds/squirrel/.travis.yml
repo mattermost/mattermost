@@ -1,11 +1,9 @@
 language: go
 
 go:
-  - 1.8.x
-  - 1.9.x
-  - 1.10.x
   - 1.11.x
-  - tip
+  - 1.12.x
+  - 1.13.x
 
 services:
   - mysql
@@ -17,18 +15,16 @@ services:
 # - http://docs.travis-ci.com/user/workers/standard-infrastructure/
 sudo: false
 
-install:
-  - go get -t -tags integration
-  - go install github.com/mattn/go-sqlite3 # Precompile so test timing is accurate
-
 before_script:
   - mysql -e 'CREATE DATABASE squirrel;'
   - psql -c 'CREATE DATABASE squirrel;' -U postgres
 
 script:
-  - go test -tags integration -args -driver sqlite3
-  - go test -tags integration -args -driver mysql -dataSource travis@/squirrel
-  - go test -tags integration -args -driver postgres -dataSource 'postgres://postgres@localhost/squirrel?sslmode=disable'
+  - go test
+  - cd integration
+  - go test -args -driver sqlite3
+  - go test -args -driver mysql -dataSource travis@/squirrel
+  - go test -args -driver postgres -dataSource 'postgres://postgres@localhost/squirrel?sslmode=disable'
 
 notifications:
   irc: "irc.freenode.net#masterminds"
