@@ -1832,3 +1832,25 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.Equal(t, team1.Id, newCmd4.TeamId)
 
 }
+
+func TestPluginNotificationWillBeSent(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_notification_plugin", "main.go")
+	id := "testnotificationplugin"
+
+	data, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+
+	code := string(data)
+	schema := `{"settings": [ ]	}`
+	setupPluginApiTest(t, code, fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema), id, th.App)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
+	require.NoError(t, err)
+	require.NotNil(t, hooks)
+	ret := hooks.NotificationWillBeSent(nil, nil, nil)
+	require.Nil(t, ret)
+}
