@@ -93,9 +93,6 @@ func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 }
 
 func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
-	if !model.IsValidId(userId) {
-		return nil, errors.New("SqlUploadSessionStore.GetForUser: userId is not valid")
-	}
 	query := us.getQueryBuilder().
 		Select("*").
 		From("UploadSessions").
