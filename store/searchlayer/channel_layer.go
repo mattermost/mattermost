@@ -149,7 +149,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 		mlog.Debug("Using database search because no other search engine is available")
 		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 		if err != nil {
-			return nil, errors.Wrapf(err, "Failed to autocomplete channels in team")
+			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
 		}
 	}
 
@@ -170,7 +170,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, errors.Wrapf(err, "Failed to autocomplete channels in team")
+			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
 		}
 
 		for _, ch := range channels {
