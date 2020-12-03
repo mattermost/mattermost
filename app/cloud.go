@@ -84,7 +84,7 @@ func (a *App) SendNoCardPaymentFailedEmail() *model.AppError {
 	}
 
 	for _, admin := range sysAdmins {
-		_, err := a.Srv().EmailService.SendNoCardPaymentFailedEmail(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+		err := a.Srv().EmailService.SendNoCardPaymentFailedEmail(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
 		if err != nil {
 			a.Log().Error("Error sending payment failed email", mlog.Err(err))
 		}

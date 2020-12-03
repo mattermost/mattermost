@@ -789,7 +789,7 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	return true, nil
 }
 
-func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.payment_failed_no_card.subject")
