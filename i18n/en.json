@@ -2875,6 +2875,26 @@
     "translation": "Failed Payment"
   },
   {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Pay now"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Your Mattermost Cloud invoice for the most recent billing period has been processed. However, we don't have your payment details on file."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "To review your invoice and add a payment method, select Pay now."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Payment is due for your Mattermost Cloud subscription"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Your Mattermost Cloud Invoice is due"
+  },
+  {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
   },
