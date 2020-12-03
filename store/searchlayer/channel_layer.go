@@ -170,7 +170,7 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, errors.Wrap(err, "Failed to autocomplete channels in team")
+			return nil, errors.Wrap(err, "Failed to get channels by ids")
 		}
 
 		for _, ch := range channels {
