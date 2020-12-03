@@ -12,13 +12,13 @@ import (
 )
 
 type sqlClusterDiscoveryStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlClusterDiscoveryStore(sqlSupplier *SqlSupplier) store.ClusterDiscoveryStore {
-	s := &sqlClusterDiscoveryStore{sqlSupplier}
+func newSqlClusterDiscoveryStore(sqlStore *SqlStore) store.ClusterDiscoveryStore {
+	s := &sqlClusterDiscoveryStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.ClusterDiscovery{}, "ClusterDiscovery").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(64)
