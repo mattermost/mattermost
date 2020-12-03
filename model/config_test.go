@@ -308,19 +308,19 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 	})
 }
 
-func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
-	t.Run("should enable IncidentResponse plugin by default", func(t *testing.T) {
+func TestConfigDefaultIncidentManagementPluginState(t *testing.T) {
+	t.Run("should enable IncidentManagement plugin by default", func(t *testing.T) {
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
 	})
 
-	t.Run("should not re-enable IncidentResponse plugin after it has been disabled", func(t *testing.T) {
+	t.Run("should not re-enable IncidentManagement plugin after it has been disabled", func(t *testing.T) {
 		c1 := Config{
 			PluginSettings: PluginSettings{
 				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-incident-response": {
+					"com.mattermost.plugin-incident-management": {
 						Enable: false,
 					},
 				},
@@ -329,7 +329,7 @@ func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
 
 		c1.SetDefaults()
 
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-management"].Enable)
 	})
 }
 
@@ -1388,4 +1388,32 @@ func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	require.NotNil(t, cfg.FeatureFlags)
 	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
 
+}
+
+func TestConfigImportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./import", *cfg.ImportSettings.Directory)
+	require.Equal(t, 30, *cfg.ImportSettings.RetentionDays)
+}
+
+func TestConfigImportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ImportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ImportSettings.Directory = ""
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ImportSettings.RetentionDays = 0
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
 }

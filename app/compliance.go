@@ -43,8 +43,9 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 		}
 	}
 
+	jCopy := job.DeepCopy()
 	a.Srv().Go(func() {
-		a.Compliance().RunComplianceJob(job)
+		a.Compliance().RunComplianceJob(jCopy)
 	})
 
 	return job, nil

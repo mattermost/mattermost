@@ -48,10 +48,10 @@ type groupChannelJoin struct {
 }
 
 type SqlGroupStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlGroupStore(sqlStore SqlStore) store.GroupStore {
+func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")

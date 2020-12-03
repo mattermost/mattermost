@@ -167,7 +167,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 
 	// Don't persist feature flags unless we are on MM cloud
 	// MM cloud uses config in the DB as a cache of the feature flag
-	// settings in case the managment system is down when a pod starts.
+	// settings in case the management system is down when a pod starts.
 	if !s.persistFeatureFlags {
 		newCfg.FeatureFlags = nil
 	}

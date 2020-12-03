@@ -13,10 +13,10 @@ import (
 )
 
 type SqlReactionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlReactionStore(sqlStore SqlStore) store.ReactionStore {
+func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
