@@ -54,7 +54,13 @@ func NewStore(dsn string, watch bool, customDefaults *model.Config) (*Store, err
 		return nil, err
 	}
 
-	return NewStoreFromBacking(backingStore, customDefaults)
+	store, err := NewStoreFromBacking(backingStore, customDefaults)
+	if err != nil {
+		backingStore.Close()
+		return nil, errors.Wrap(err, "failed to create store")
+	}
+
+	return store, nil
 }
 
 func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config) (*Store, error) {
@@ -167,7 +173,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, error) {
 
 	// Don't persist feature flags unless we are on MM cloud
 	// MM cloud uses config in the DB as a cache of the feature flag
-	// settings in case the managment system is down when a pod starts.
+	// settings in case the management system is down when a pod starts.
 	if !s.persistFeatureFlags {
 		newCfg.FeatureFlags = nil
 	}
