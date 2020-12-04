@@ -47,6 +47,7 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to connect to %s database", driverName)
 	}
+	db.SetMaxIdleConns(0)
 
 	defer func() {
 		if err != nil {
