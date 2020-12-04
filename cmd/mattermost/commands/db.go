@@ -28,7 +28,10 @@ This command should be run using a database configuration DSN.`,
   $ mattermost db init --config postgres://localhost/mattermost
 
   # or you can use the MM_CONFIG environment variable
-  $ MM_CONFIG=postgres://localhost/mattermost mattermost db init`,
+  $ MM_CONFIG=postgres://localhost/mattermost mattermost db init
+
+  # and you can set a custom defaults file to be loaded into the database
+  $ MM_CUSTOM_DEFAULTS_PATH=custom.json MM_CONFIG=postgres://localhost/mattermost mattermost db init`,
 	Args: cobra.NoArgs,
 	RunE: initDbCmdF,
 }
