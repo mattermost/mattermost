@@ -147,7 +147,7 @@ type Manifest struct {
 	Id string `json:"id" yaml:"id"`
 
 	// The name to be displayed for the plugin.
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	Name string `json:"name" yaml:"name"`
 
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
@@ -327,6 +327,10 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 func (m *Manifest) IsValid() error {
 	if !IsValidPluginId(m.Id) {
 		return errors.New("invalid plugin ID")
+	}
+
+	if strings.TrimSpace(m.Name) == "" {
+		return errors.New("a plugin name is needed")
 	}
 
 	if m.HomepageURL != "" && !IsValidHttpUrl(m.HomepageURL) {
