@@ -621,7 +621,7 @@ func BenchmarkLRU(b *testing.B) {
 }
 
 func TestLRURace(t *testing.T) {
-	l2 := NewLRU(&LRUOptions{
+	l2 := NewLRU(LRUOptions{
 		Size:                   1,
 		DefaultExpiry:          0,
 		InvalidateClusterEvent: "",
