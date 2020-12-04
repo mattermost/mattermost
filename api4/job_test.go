@@ -199,7 +199,7 @@ func TestDownloadJob(t *testing.T) {
 	_, resp = th.Client.DownloadJob(job.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// System admin trying to download the results of a non-existant job
+	// System admin trying to download the results of a non-existent job
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckNotFoundStatus(t, resp)
 
