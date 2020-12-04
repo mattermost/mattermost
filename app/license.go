@@ -223,7 +223,7 @@ func (s *Server) GetSanitizedClientLicense() map[string]string {
 	return sanitizedLicense
 }
 
-// RequestTrialLicense request a trial license from the mattermost offical license server
+// RequestTrialLicense request a trial license from the mattermost official license server
 func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError {
 	resp, err := http.Post(requestTrialURL, "application/json", bytes.NewBuffer([]byte(trialRequest.ToJson())))
 	if err != nil {

@@ -24,7 +24,7 @@ func makeBotWithUser(t *testing.T, ss store.Store, bot *model.Bot) (*model.Bot, 
 	return bot, user
 }
 
-func TestBotStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestBotStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, ss, s) })
 	t.Run("GetAll", func(t *testing.T) { testBotStoreGetAll(t, ss, s) })
 	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, ss) })
@@ -32,7 +32,7 @@ func TestBotStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, ss) })
 }
 
-func testBotStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
+func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	deletedBot, _ := makeBotWithUser(t, ss, &model.Bot{
 		Username:       "deleted_bot",
 		Description:    "A deleted bot",
@@ -117,7 +117,7 @@ func testBotStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 }
 
-func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlSupplier) {
+func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlStore) {
 	OwnerId1 := model.NewId()
 	OwnerId2 := model.NewId()
 
