@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -139,14 +140,15 @@ func (h *MainHelper) setupResources() {
 func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
+	basePath := os.Getenv("MM_SERVER_PATH")
 	switch *h.Settings.DriverName {
 	case model.DATABASE_DRIVER_POSTGRES:
-		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/postgres_migration_warmup.sql")
+		buf, err = ioutil.ReadFile(filepath.Join(basePath, "mattermost-server/testlib/testdata/postgres_migration_warmup.sql"))
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DATABASE_DRIVER_MYSQL:
-		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/mysql_migration_warmup.sql")
+		buf, err = ioutil.ReadFile(filepath.Join(basePath, "mattermost-server/testlib/testdata/mysql_migration_warmup.sql"))
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
