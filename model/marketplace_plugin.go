@@ -20,8 +20,12 @@ type BaseMarketplacePlugin struct {
 	IconData        string             `json:"icon_data"`
 	DownloadURL     string             `json:"download_url"`
 	ReleaseNotesURL string             `json:"release_notes_url"`
-	Labels          []MarketplaceLabel `json:"labels"`
-	Signature       string             `json:"signature"` // Signature represents a signature of a plugin saved in base64 encoding.
+	Labels          []MarketplaceLabel `json:"labels,omitempty"`
+	Hosting         string             `json:"hosting"`       // Indicated if the plugin is limited to a certain hosting type
+	AuthorType      string             `json:"author_type"`   // The maintainer of the plugin
+	ReleaseStage    string             `json:"release_stage"` // The stage in the software release cycle that the plugin is in
+	Enterprise      bool               `json:"enterprise"`    // Indicated if the plugin is an enterprise plugin
+	Signature       string             `json:"signature"`     // Signature represents a signature of a plugin saved in base64 encoding.
 	Manifest        *Manifest          `json:"manifest"`
 }
 
