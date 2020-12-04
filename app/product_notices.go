@@ -19,7 +19,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
-	"github.com/reflog/dateconstraints"
+	date_constraints "github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
@@ -179,7 +179,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userId string, k
 	}
 	pref, err := preferences.Get(userId, parts[0], parts[1])
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 	return pref.Value == expectedValue, nil
 }

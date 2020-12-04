@@ -31,6 +31,7 @@ const (
 	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
+	HEADER_CLOUD_TOKEN        = "X-Cloud-Token"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 	STATUS                    = "status"
@@ -540,6 +541,10 @@ func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType
 
 func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
 	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
+func (c *Client4) GetImportsRoute() string {
+	return "/imports"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -5751,6 +5756,15 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r)
+}
+
+func (c *Client4) ListImports() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetImportsRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
 }
 
 func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Threads, *Response) {
