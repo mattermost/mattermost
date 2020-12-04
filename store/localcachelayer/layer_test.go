@@ -17,7 +17,7 @@ import (
 type storeType struct {
 	Name        string
 	SqlSettings *model.SqlSettings
-	SqlSupplier *sqlstore.SqlSupplier
+	SqlStore    *sqlstore.SqlStore
 	Store       store.Store
 }
 
@@ -48,7 +48,7 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}
 }
 
-func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, storetest.SqlSupplier)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, store.Store, storetest.SqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -61,7 +61,7 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 			if testing.Short() {
 				t.SkipNow()
 			}
-			f(t, st.Store, st.SqlSupplier)
+			f(t, st.Store, st.SqlStore)
 		})
 	}
 }
@@ -98,8 +98,8 @@ func initStores() {
 		go func() {
 			var err error
 			defer wg.Done()
-			st.SqlSupplier = sqlstore.NewSqlSupplier(*st.SqlSettings, nil)
-			st.Store, err = NewLocalCacheLayer(st.SqlSupplier, nil, nil, getMockCacheProvider())
+			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			if err != nil {
 				panic(err)
 			}

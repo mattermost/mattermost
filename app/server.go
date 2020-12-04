@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
@@ -65,7 +64,7 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 var SENTRY_DSN = "placeholder_sentry_dsn"
 
 type Server struct {
-	sqlStore           *sqlstore.SqlSupplier
+	sqlStore           *sqlstore.SqlStore
 	Store              store.Store
 	WebSocketRouter    *WebSocketRouter
 	AppInitializedOnce sync.Once
@@ -130,7 +129,6 @@ type Server struct {
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
 	postActionCookieSecret  []byte
 
 	advancedLogListenerCleanup func()
@@ -138,9 +136,10 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        atomic.Value
-	clientConfigHash    atomic.Value
-	limitedClientConfig atomic.Value
+	asymmetricSigningKey atomic.Value
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
 
@@ -271,6 +270,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
+	model.AppErrorInit(utils.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
@@ -318,7 +318,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
 				s.Metrics,
@@ -328,6 +329,7 @@ func NewServer(options ...Option) (*Server, error) {
 			if err2 != nil {
 				return nil, errors.Wrap(err2, "cannot create local cache layer")
 			}
+
 			searchStore := searchlayer.NewSearchLayer(
 				lcl,
 				s.SearchEngine,
@@ -469,8 +471,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
-
-	model.AppErrorInit(utils.T)
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
