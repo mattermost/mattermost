@@ -2403,6 +2403,63 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Equal(t, 0, errLine)
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+
+	// Create another Team.
+	teamName2 := model.NewRandomTeamName()
+	th.App.importTeam(&TeamImportData{
+		Name:        &teamName2,
+		DisplayName: ptrStr("Display Name 2"),
+		Type:        ptrStr("O"),
+	}, false)
+	team2, err := th.App.GetTeamByName(teamName2)
+	require.Nil(t, err, "Failed to get team from database.")
+
+	// Create another Channel for the another team.
+	th.App.importChannel(&ChannelImportData{
+		Team:        &teamName2,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
+	require.Nil(t, err, "Failed to get channel from database.")
+
+	// Count the number of posts in the team2.
+	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team2.Id, false, false)
+	require.Nil(t, nErr)
+
+	// Try adding two valid posts in apply mode.
+	data = LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName,
+				Channel:  &channelName,
+				User:     &username,
+				Message:  ptrStr("another message"),
+				CreateAt: &time,
+			},
+		},
+		1,
+	}
+	data2 := LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName2,
+				Channel:  &channelName,
+				User:     &username,
+				Message:  ptrStr("another message"),
+				CreateAt: &time,
+			},
+		},
+		1,
+	}
+	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data, data2}, false)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, errLine)
+
+	// Posts should be added to the right team
+	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
