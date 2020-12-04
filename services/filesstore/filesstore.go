@@ -21,6 +21,7 @@ type FileBackend interface {
 	Reader(path string) (ReadCloseSeeker, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
+	FileSize(path string) (int64, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
