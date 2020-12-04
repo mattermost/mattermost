@@ -611,7 +611,6 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 }
 
 func searchChannelCmdF(command *cobra.Command, args []string) error {
-
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return errors.Wrap(err, "failed to InitDBCommandContextCobra")
