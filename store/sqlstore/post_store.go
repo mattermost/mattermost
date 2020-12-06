@@ -505,7 +505,7 @@ type etagPosts struct {
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string {
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
 	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId})
 	if collapsedThreads {
 		q.Where(sq.Eq{"RootId": ""})
