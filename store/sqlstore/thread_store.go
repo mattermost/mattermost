@@ -414,6 +414,18 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, followi
 		LastUpdated:    now,
 		UnreadMentions: int64(mentions),
 	})
+	if err != nil {
+		return err
+	}
+
+	thread, err := s.Get(postId)
+	if err != nil {
+		return err
+	}
+	if !thread.Participants.Contains(userId) {
+		thread.Participants = append(thread.Participants, userId)
+		_, err = s.Update(thread)
+	}
 	return err
 }
 
