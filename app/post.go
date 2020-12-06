@@ -1426,7 +1426,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 		user,
 		channelMember.NotifyProps,
 		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
-		true,                                       // Assume channel mentions are always allowed for simplicity
+		true, // Assume channel mentions are always allowed for simplicity
 	)
 	commentMentions := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]
 	checkForCommentMentions := commentMentions == model.COMMENTS_NOTIFY_ROOT || commentMentions == model.COMMENTS_NOTIFY_ANY
