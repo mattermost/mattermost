@@ -418,8 +418,29 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 	return pl, nil
 }
+func (s *SqlPostStore) getCollapsedThreads(id string) (*model.PostList, error) {
+	pl := model.NewPostList()
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+	if len(id) == 0 {
+		return nil, store.NewErrInvalidInput("Post", "id", id)
+	}
+
+	var post model.Post
+	postFetchQuery := "SELECT p.* FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
+	}
+	pl.AddPost(&post)
+	pl.AddOrder(id)
+	return pl, nil
+}
+
+func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	if len(id) == 0 {
@@ -484,9 +505,14 @@ type etagPosts struct {
 func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string {
+	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId})
+	if collapsedThreads {
+		q.Where(sq.Eq{"RootId": ""})
+	}
+	sql, args, _ := q.ToSql()
 	var et etagPosts
-	err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
+	err := s.GetReplica().SelectOne(&et, sql, args...)
 	var result string
 	if err != nil {
 		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
@@ -616,9 +642,30 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	return nil
 }
 
+func (s *SqlPostStore) getPostsThreaded(options model.GetPostsOptions) (*model.PostList, error) {
+	offset := options.PerPage * options.Page
+	posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, true)
+	if err != nil {
+		return nil, err
+	}
+	list := model.NewPostList()
+
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+
+	list.MakeNonNil()
+
+	return list, nil
+}
+
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, error) {
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
+	}
+	if options.CollapsedThreads {
+		return s.getPostsThreaded(options)
 	}
 	offset := options.PerPage * options.Page
 
@@ -664,7 +711,29 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 	return list, nil
 }
 
+func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSinceOptions) (*model.PostList, error) {
+	var posts []*model.Post
+	query := `SELECT * FROM Posts WHERE	(UpdateAt > :Time AND ChannelId = :ChannelId AND RootId = "") ORDER BY CreateAt DESC`
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	}
+
+	list := model.NewPostList()
+
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+
+	return list, nil
+}
+
 func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+	if options.CollapsedThreads {
+		return s.getPostsSinceCollapsedThreads(options)
+	}
 	var posts []*model.Post
 
 	replyCountQuery1 := ""
