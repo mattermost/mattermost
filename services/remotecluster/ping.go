@@ -68,7 +68,7 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 		select {
 		case rc := <-pingChan:
 			if rc == nil {
-				break
+				return
 			}
 			if err := rcs.pingRemote(rc); err != nil {
 				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping failed", mlog.Err(err))
