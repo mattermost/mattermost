@@ -476,6 +476,20 @@ func (_m *SqlStore) GetSearchReplica() *gorp.DbMap {
 	return r0
 }
 
+// IsVarchar provides a mock function with given fields: columnType
+func (_m *SqlStore) IsVarchar(columnType string) bool {
+	ret := _m.Called(columnType)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(columnType)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Job provides a mock function with given fields:
 func (_m *SqlStore) Job() store.JobStore {
 	ret := _m.Called()
