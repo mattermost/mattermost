@@ -81,6 +81,29 @@ func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, 
 	return r0, r1
 }
 
+// GetAllInChannel provides a mock function with given fields: channelId, inclOffline
+func (_m *RemoteClusterStore) GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(channelId, inclOffline)
+
+	var r0 []*model.RemoteCluster
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.RemoteCluster); ok {
+		r0 = rf(channelId, inclOffline)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.RemoteCluster)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(channelId, inclOffline)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetAllNotInChannel provides a mock function with given fields: channelId, inclOffline
 func (_m *RemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
 	ret := _m.Called(channelId, inclOffline)
@@ -187,13 +210,13 @@ func (_m *RemoteClusterStore) Update(rc *model.RemoteCluster) (*model.RemoteClus
 	return r0, r1
 }
 
-// UpdateTopics provides a mock function with given fields: remoteClusterid, topics
-func (_m *RemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
-	ret := _m.Called(remoteClusterid, topics)
+// UpdateTopics provides a mock function with given fields: remoteClusterId, topics
+func (_m *RemoteClusterStore) UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error) {
+	ret := _m.Called(remoteClusterId, topics)
 
 	var r0 *model.RemoteCluster
 	if rf, ok := ret.Get(0).(func(string, string) *model.RemoteCluster); ok {
-		r0 = rf(remoteClusterid, topics)
+		r0 = rf(remoteClusterId, topics)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.RemoteCluster)
@@ -202,7 +225,7 @@ func (_m *RemoteClusterStore) UpdateTopics(remoteClusterid string, topics string
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(remoteClusterid, topics)
+		r1 = rf(remoteClusterId, topics)
 	} else {
 		r1 = ret.Error(1)
 	}

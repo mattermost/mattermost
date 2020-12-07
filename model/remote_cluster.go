@@ -67,6 +67,10 @@ func (rc *RemoteCluster) PreUpdate() {
 	rc.fixTopics()
 }
 
+func (rc *RemoteCluster) IsOnline() bool {
+	return rc.LastPingAt > GetMillis()-RemoteOfflineAfterMillis
+}
+
 // fixTopics ensures all topics are separated by one, and only one, space.
 func (rc *RemoteCluster) fixTopics() {
 	trimmed := strings.TrimSpace(rc.Topics)

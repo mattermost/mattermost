@@ -6550,6 +6550,26 @@ func (s *RetryLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.Remote
 
 }
 
+func (s *RetryLayerRemoteClusterStore) GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetAllInChannel(channelId, inclOffline)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
 
 	tries := 0
@@ -6650,11 +6670,11 @@ func (s *RetryLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*model.R
 
 }
 
-func (s *RetryLayerRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+func (s *RetryLayerRemoteClusterStore) UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterid, topics)
+		result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterId, topics)
 		if err == nil {
 			return result, nil
 		}

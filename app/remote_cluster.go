@@ -50,6 +50,14 @@ func (a *App) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster,
 	return list, nil
 }
 
+func (a *App) GetAllRemoteClustersInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
+	list, err := a.Srv().Store.RemoteCluster().GetAllInChannel(channelId, includeOffline)
+	if err != nil {
+		return nil, model.NewAppError("GetAllRemoteClustersInChannel", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return list, nil
+}
+
 func (a *App) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
 	list, err := a.Srv().Store.RemoteCluster().GetAllNotInChannel(channelId, includeOffline)
 	if err != nil {

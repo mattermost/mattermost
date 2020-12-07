@@ -5477,6 +5477,22 @@ func (s *TimerLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.Remote
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
+	start := timemodule.Now()
+
+	result, err := s.RemoteClusterStore.GetAllInChannel(channelId, inclOffline)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetAllInChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
 	start := timemodule.Now()
 
@@ -5557,10 +5573,10 @@ func (s *TimerLayerRemoteClusterStore) Update(rc *model.RemoteCluster) (*model.R
 	return result, err
 }
 
-func (s *TimerLayerRemoteClusterStore) UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error) {
+func (s *TimerLayerRemoteClusterStore) UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error) {
 	start := timemodule.Now()
 
-	result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterid, topics)
+	result, err := s.RemoteClusterStore.UpdateTopics(remoteClusterId, topics)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

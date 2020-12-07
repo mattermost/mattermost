@@ -444,9 +444,10 @@ type RemoteClusterStore interface {
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
 	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
+	GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
 	GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
 	GetByTopic(topic string) ([]*model.RemoteCluster, error)
-	UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error)
+	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
 
