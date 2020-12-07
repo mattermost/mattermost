@@ -128,8 +128,11 @@ func (scs *Service) processTask(task syncTask) error {
 		if err := scs.updateForRemote(task.channelId, rc); err != nil {
 			errs.Append(err)
 			// retry...
-			retryTask := newSyncTask(task.channelId, rc.RemoteId)
-			scs.addTask(retryTask)
+			if task.retryCount < MaxRetries {
+				retryTask := newSyncTask(task.channelId, rc.RemoteId)
+				retryTask.retryCount = task.retryCount + 1
+				scs.addTask(retryTask)
+			}
 		}
 	}
 	return errs.ErrorOrNil()
