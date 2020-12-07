@@ -20,13 +20,13 @@ const (
 )
 
 type SqlPluginStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlPluginStore(sqlSupplier *SqlSupplier) store.PluginStore {
-	s := &SqlPluginStore{sqlSupplier}
+func newSqlPluginStore(sqlStore *SqlStore) store.PluginStore {
+	s := &SqlPluginStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.PluginKeyValue{}, "PluginKeyValueStore").SetKeys(false, "PluginId", "Key")
 		table.ColMap("PluginId").SetMaxSize(190)
 		table.ColMap("Key").SetMaxSize(50)

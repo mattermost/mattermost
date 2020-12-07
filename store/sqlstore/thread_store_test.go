@@ -10,5 +10,5 @@ import (
 )
 
 func TestThreadStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestThreadStore)
+	StoreTestWithSqlStore(t, storetest.TestThreadStore)
 }
