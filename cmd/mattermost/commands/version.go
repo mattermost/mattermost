@@ -32,6 +32,7 @@ func versionCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Srv().Shutdown()
 
 	printVersion(a)
 
