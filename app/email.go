@@ -604,7 +604,7 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
-	bodyPage.Props["Footer"] = T("api.templates.copyright")
+	bodyPage.Props["Footer"] = T("")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
