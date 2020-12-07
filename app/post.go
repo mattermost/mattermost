@@ -1378,9 +1378,9 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId str
 		return int64(count), nil
 	}
 
-	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
-	if nErr != nil {
-		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	groups, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
+	if err != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	mentions := getExplicitMentions(post, keywords, groups)

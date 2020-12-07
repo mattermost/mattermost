@@ -8,8 +8,6 @@ import (
 	gorp "github.com/mattermost/gorp"
 	mock "github.com/stretchr/testify/mock"
 
-	sqlstore "github.com/mattermost/mattermost-server/v5/store/sqlstore"
-
 	squirrel "github.com/Masterminds/squirrel"
 
 	store "github.com/mattermost/mattermost-server/v5/store"
@@ -379,29 +377,6 @@ func (_m *SqlStore) GetAllConns() []*gorp.DbMap {
 	}
 
 	return r0
-}
-
-// GetColumnInfo provides a mock function with given fields: tableName, columName
-func (_m *SqlStore) GetColumnInfo(tableName string, columName string) (*sqlstore.ColumnInfo, error) {
-	ret := _m.Called(tableName, columName)
-
-	var r0 *sqlstore.ColumnInfo
-	if rf, ok := ret.Get(0).(func(string, string) *sqlstore.ColumnInfo); ok {
-		r0 = rf(tableName, columName)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*sqlstore.ColumnInfo)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(tableName, columName)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // GetCurrentSchemaVersion provides a mock function with given fields:
