@@ -44,7 +44,7 @@ func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteCluster
 	case rcs.send <- task:
 		return nil
 	case <-ctx.Done():
-		return NewBufferFullError(cap(rcs.send))
+		return fmt.Errorf("Could not enqueue outbound remote cluster message; queue full or timeout. Queue %d/%d. Err:%w", len(rcs.send), cap(rcs.send), ctx.Err())
 	}
 }
 

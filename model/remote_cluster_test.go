@@ -4,7 +4,9 @@
 package model
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"io"
 	"strings"
 	"testing"
 
@@ -124,12 +126,14 @@ func TestFixTopics(t *testing.T) {
 
 func TestRemoteClusterInviteEncryption(t *testing.T) {
 	testData := []struct {
-		name     string
-		password string
-		invite   RemoteClusterInvite
+		name       string
+		badDecrypt bool
+		password   string
+		invite     RemoteClusterInvite
 	}{
-		{name: "empty password", password: "", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
-		{name: "good password", password: "Ultra secret password!", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
+		{name: "empty password", badDecrypt: false, password: "", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
+		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
+		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: RemoteClusterInvite{RemoteId: NewId(), SiteURL: "https://example.com:8065", Token: NewId()}},
 	}
 
 	for _, tt := range testData {
@@ -137,9 +141,17 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		require.NoError(t, err)
 
 		invite := RemoteClusterInvite{}
-		err = invite.Decrypt(encrypted, tt.password)
-		require.NoError(t, err)
+		if tt.badDecrypt {
+			buf := make([]byte, len(encrypted))
+			_, err = io.ReadFull(rand.Reader, buf)
+			assert.NoError(t, err)
 
-		assert.Equal(t, tt.invite, invite)
+			err = invite.Decrypt(buf, tt.password)
+			require.Error(t, err)
+		} else {
+			err = invite.Decrypt(encrypted, tt.password)
+			require.NoError(t, err)
+			assert.Equal(t, tt.invite, invite)
+		}
 	}
 }

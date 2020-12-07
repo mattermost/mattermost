@@ -66,12 +66,8 @@ func (rc *RemoteCluster) PreUpdate() {
 // fixTopics ensures all topics are separated by one, and only one, space.
 func (rc *RemoteCluster) fixTopics() {
 	trimmed := strings.TrimSpace(rc.Topics)
-	if trimmed == "" {
-		rc.Topics = ""
-		return
-	}
-	if trimmed == "*" {
-		rc.Topics = "*"
+	if trimmed == "" || trimmed == "*" {
+		rc.Topics = trimmed
 		return
 	}
 
