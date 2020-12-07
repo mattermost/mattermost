@@ -11,6 +11,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
+const (
+	MaxConcurrentUpdates = 5
+	MaxRetries           = 3
+)
+
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
@@ -22,19 +27,23 @@ type ServerIface interface {
 
 // Service provides shared channel synchronization.
 type Service struct {
-	server ServerIface
+	server       ServerIface
+	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
 	mux              sync.RWMutex
 	active           bool
 	leaderListenerId string
 	done             chan struct{}
+	tasks            map[string]syncTask
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
 func NewSharedChannelService(server ServerIface) (*Service, error) {
 	service := &Service{
-		server: server,
+		server:       server,
+		changeSignal: make(chan struct{}, 1),
+		tasks:        make(map[string]syncTask),
 	}
 	return service, nil
 }
@@ -76,7 +85,7 @@ func (scs *Service) resume() {
 	scs.active = true
 	scs.done = make(chan struct{})
 
-	//scs.syncLoop(scs.done)
+	scs.syncLoop(scs.done)
 
 	scs.server.GetLogger().Debug("Shared Channel Service active")
 }

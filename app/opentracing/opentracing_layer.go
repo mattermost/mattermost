@@ -4186,6 +4186,28 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*mode
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetAllRemoteClustersInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClustersInChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetAllRemoteClustersInChannel(channelId, includeOffline)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClustersNotInChannel")
