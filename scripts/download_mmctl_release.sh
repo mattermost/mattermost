@@ -17,7 +17,7 @@ BIN_PATH=${2:-bin}
 
 # strip whitespace
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
+if [[ "$THIS_BRANCH" =~ '^release-'[0-9] ]];
 then
   RELEASE_TO_DOWNLOAD="$THIS_BRANCH"
 else
