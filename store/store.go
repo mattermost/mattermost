@@ -320,7 +320,7 @@ type UserStore interface {
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error)
 	UpdateMfaSecret(userId, secret string) error
 	UpdateMfaActive(userId string, active bool) error
-	Get(id string) (*model.User, error)
+	Get(ctx context.Context, id string) (*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)

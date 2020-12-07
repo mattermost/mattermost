@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -675,7 +676,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(hook.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), hook.UserId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()

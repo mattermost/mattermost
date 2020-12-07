@@ -734,7 +734,7 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.
 
 	var teamMembers []*model.UserTeamIDPair
 
-	_, err = s.GetReplica().Select(&teamMembers, query, params...)
+	_, err = s.GetMaster().Select(&teamMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserTeamIDPairs")
 	}
@@ -771,7 +771,7 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*
 
 	var channelMembers []*model.UserChannelIDPair
 
-	_, err = s.GetReplica().Select(&channelMembers, query, params...)
+	_, err = s.GetMaster().Select(&channelMembers, query, params...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find UserChannelIDPairs")
 	}

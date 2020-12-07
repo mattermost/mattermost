@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"strconv"
@@ -195,7 +196,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (es *EmailService) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userId)
+	user, err := es.srv.Store.User().Get(context.Background(), userId)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
@@ -206,7 +207,7 @@ func (es *EmailService) sendBatchedEmailNotification(userId string, notification
 
 	var contents string
 	for _, notification := range notifications {
-		sender, err := es.srv.Store.User().Get(notification.post.UserId)
+		sender, err := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
 		if err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue

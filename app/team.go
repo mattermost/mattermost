@@ -489,7 +489,7 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -566,7 +566,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -641,7 +641,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1178,7 +1178,7 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1221,7 +1221,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 	message.Add("team_id", teamMember.TeamId)
 	a.Publish(message)
 
-	user, nErr := a.Srv().Store.User().Get(teamMember.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), teamMember.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1383,7 +1383,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User,
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(senderId)
+		user, err := a.Srv().Store.User().Get(context.Background(), senderId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1514,7 +1514,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	}()
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(senderId)
+		user, err := a.Srv().Store.User().Get(context.Background(), senderId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()

@@ -9050,11 +9050,11 @@ func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) error {
 
 }
 
-func (s *RetryLayerUserStore) Get(id string) (*model.User, error) {
+func (s *RetryLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Get(id)
+		result, err := s.UserStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}

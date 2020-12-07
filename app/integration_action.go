@@ -19,6 +19,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -84,7 +85,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(upstreamRequest.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), upstreamRequest.UserId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()

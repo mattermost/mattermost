@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
@@ -288,7 +289,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		user, nErr = a.Srv().Store.User().Get(authData.UserId)
+		user, nErr = a.Srv().Store.User().Get(context.Background(), authData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
@@ -348,7 +349,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
 		}
 
-		user, nErr := a.Srv().Store.User().Get(accessData.UserId)
+		user, nErr := a.Srv().Store.User().Get(context.Background(), accessData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}

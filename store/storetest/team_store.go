@@ -2829,7 +2829,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should have 5 team members again, had %v instead", totalMemberCount)
 
 	// Deactivating a user should make them stop counting against max members
-	user2, nErr := ss.User().Get(userIds[1])
+	user2, nErr := ss.User().Get(context.Background(), userIds[1])
 	require.Nil(t, nErr)
 	user2.DeleteAt = 1234
 	_, nErr = ss.User().Update(user2, true)

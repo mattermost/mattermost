@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"math"
 	"net/http"
@@ -415,7 +416,7 @@ func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 
-	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -464,7 +465,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, nErr := a.Srv().Store.User().Get(token.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

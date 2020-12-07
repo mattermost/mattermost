@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -137,7 +139,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
-func (s LocalCacheUserStore) Get(id string) (*model.User, error) {
+func (s LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	var cacheItem *model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
 		if s.rootStore.metrics != nil {
@@ -148,7 +150,7 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, error) {
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
 	}
-	user, err := s.UserStore.Get(id)
+	user, err := s.UserStore.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}

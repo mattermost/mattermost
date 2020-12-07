@@ -8340,7 +8340,7 @@ func (s *OpenTracingLayerUserStore) DemoteUserToGuest(userID string) error {
 	return err
 }
 
-func (s *OpenTracingLayerUserStore) Get(id string) (*model.User, error) {
+func (s *OpenTracingLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -8349,7 +8349,7 @@ func (s *OpenTracingLayerUserStore) Get(id string) (*model.User, error) {
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.Get(id)
+	result, err := s.UserStore.Get(ctx, id)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
