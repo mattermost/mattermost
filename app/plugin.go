@@ -921,8 +921,11 @@ func (a *App) installFeatureFlagPlugins() {
 			if err != nil {
 				a.Log().Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
 			} else {
-				a.EnablePlugin(pluginId)
-				a.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginId), mlog.String("version", version))
+				if err := a.EnablePlugin(pluginId); err != nil {
+					a.Log().Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
+				} else {
+					a.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginId), mlog.String("version", version))
+				}
 			}
 		}
 	}
