@@ -922,6 +922,28 @@ func (a *OpenTracingAppLayer) BulkImport(fileReader io.Reader, dryRun bool, work
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) BulkImportWithPath(fileReader io.Reader, dryRun bool, workers int, importPath string) (*model.AppError, int) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkImportWithPath")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.BulkImportWithPath(fileReader, dryRun, workers, importPath)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CancelJob(jobId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CancelJob")
@@ -3658,6 +3680,28 @@ func (a *OpenTracingAppLayer) FileReader(path string) (filesstore.ReadCloseSeeke
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.FileReader(path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) FileSize(path string) (int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileSize")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.FileSize(path)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8441,7 +8485,7 @@ func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfServic
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userId string, teamId string) ([]*model.ThreadMembership, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadMembershipsForUser")
 
@@ -8453,7 +8497,7 @@ func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userId string) ([]*mod
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadMembershipsForUser(userId)
+	resultVar0, resultVar1 := a.app.GetThreadMembershipsForUser(userId, teamId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8463,7 +8507,7 @@ func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userId string) ([]*mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadsForUser(userId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+func (a *OpenTracingAppLayer) GetThreadsForUser(userId string, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadsForUser")
 
@@ -8475,7 +8519,7 @@ func (a *OpenTracingAppLayer) GetThreadsForUser(userId string, options model.Get
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadsForUser(userId, options)
+	resultVar0, resultVar1 := a.app.GetThreadsForUser(userId, teamId, options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10243,6 +10287,28 @@ func (a *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppEr
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.ListDirectory(path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) ListImports() ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListImports")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ListImports()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13044,6 +13110,28 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post)
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SendNoCardPaymentFailedEmail() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNoCardPaymentFailedEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendNoCardPaymentFailedEmail()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendNotifications")
@@ -15231,7 +15319,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userId string, threadId 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userId string, threadId string, timestamp int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userId string, teamId string, threadId string, timestamp int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUser")
 
@@ -15243,7 +15331,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userId string, threadId st
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadReadForUser(userId, threadId, timestamp)
+	resultVar0 := a.app.UpdateThreadReadForUser(userId, teamId, threadId, timestamp)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15253,7 +15341,7 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userId string, threadId st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, teamId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadsReadForUser")
 
@@ -15265,7 +15353,7 @@ func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userId string, timestamp 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadsReadForUser(userId, timestamp)
+	resultVar0 := a.app.UpdateThreadsReadForUser(userId, teamId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
