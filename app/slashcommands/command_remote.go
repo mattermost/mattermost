@@ -139,7 +139,7 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 	}
 	encrypted, err := invite.Encrypt(password)
 	if err != nil {
-		return responsef("Could not create invitation: %v", err)
+		return responsef("Could not encrypt invitation: %v", err)
 	}
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 
