@@ -4,11 +4,13 @@
 package sharedchannel
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/wiggin77/merror"
 )
 
@@ -142,6 +144,48 @@ func (scs *Service) processTask(task syncTask) error {
 // channel.  If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
-func (scs *Service) updateForRemote(channelId string, remote *model.RemoteCluster) error {
+func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) error {
+	scr, err := scs.server.GetStore().Channel().GetSharedChannelRemoteByIds(channelId, rc.RemoteId)
+	if err != nil {
+		return err
+	}
+
+	opts := model.GetPostsSinceOptions{
+		ChannelId: channelId,
+		Time:      scr.LastSyncAt,
+	}
+	posts, err := scs.server.GetStore().Post().GetPostsSince(opts, true)
+	if err != nil {
+		return err
+	}
+
+	pSlice := posts.ToSlice()
+	last := len(pSlice)
+	if last > MaxPostsPerSync {
+		last = MaxPostsPerSync
+	}
+
+	msg, err := scs.postsToMsg(pSlice[:last])
+	if err != nil {
+		return err
+	}
+
+	// (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return fmt.Errorf("Cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
+	defer cancel()
+
+	//err = rcs.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
+
+	})
+
 	return fmt.Errorf("Not implemented yet")
+}
+
+func (scs *Service) postsToMsg(posts []*model.Post) (model.RemoteClusterMsg, error) {
+	return model.RemoteClusterMsg{}, fmt.Errorf("Not implemented yet")
 }

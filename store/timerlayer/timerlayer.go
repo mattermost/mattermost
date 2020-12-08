@@ -1409,10 +1409,10 @@ func (s *TimerLayerChannelStore) GetSharedChannel(channelId string) (*model.Shar
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
+func (s *TimerLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.GetSharedChannelRemote(remoteId)
+	result, err := s.ChannelStore.GetSharedChannelRemote(id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -1421,6 +1421,22 @@ func (s *TimerLayerChannelStore) GetSharedChannelRemote(remoteId string) (*model
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemote", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetSharedChannelRemoteByIds(channelId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemoteByIds", success, elapsed)
 	}
 	return result, err
 }

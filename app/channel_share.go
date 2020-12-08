@@ -77,8 +77,12 @@ func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model
 	return a.Srv().Store.Channel().SaveSharedChannelRemote(remote)
 }
 
-func (a *App) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
-	return a.Srv().Store.Channel().GetSharedChannelRemote(remoteId)
+func (a *App) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+	return a.Srv().Store.Channel().GetSharedChannelRemote(id)
+}
+
+func (a *App) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	return a.Srv().Store.Channel().GetSharedChannelRemoteByIds(channelId, remoteId)
 }
 
 func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {

@@ -8,12 +8,14 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
 	MaxConcurrentUpdates = 5
 	MaxRetries           = 3
+	MaxPostsPerSync      = 50
 )
 
 type ServerIface interface {
@@ -23,6 +25,7 @@ type ServerIface interface {
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
 	GetLogger() mlog.LoggerIFace
+	GetRemoteClusterService() *remotecluster.Service
 }
 
 // Service provides shared channel synchronization.

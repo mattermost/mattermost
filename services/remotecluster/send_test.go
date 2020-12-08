@@ -33,7 +33,7 @@ type testPayload struct {
 	Note string `json:"note"`
 }
 
-func TestSendMsg(t *testing.T) {
+func TestBroadcastMsg(t *testing.T) {
 	msgId := model.NewId()
 	disablePing = true
 
@@ -88,7 +88,7 @@ func TestSendMsg(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		err = service.SendOutgoingMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
@@ -141,7 +141,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
@@ -176,7 +176,7 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
+		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
 			wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
