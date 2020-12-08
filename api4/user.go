@@ -93,7 +93,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
-	api.BaseRoutes.UserThreads.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
+	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(unfollowThreadByUser)).Methods("DELETE")
@@ -2815,7 +2815,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
 		return
 	}
@@ -2869,7 +2869,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
-	threads, err := c.App.GetThreadsForUser(c.Params.UserId, options)
+	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
 		c.Err = err
 		return
@@ -2879,7 +2879,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId().RequireTimestamp()
+	c.RequireUserId().RequireThreadId().RequireTimestamp().RequireTeamId()
 	if c.Err != nil {
 		return
 	}
@@ -2888,13 +2888,14 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
 	auditRec.AddMeta("timestamp", c.Params.Timestamp)
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.ThreadId, c.Params.Timestamp)
+	err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
@@ -2906,7 +2907,7 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId()
+	c.RequireUserId().RequireThreadId().RequireTeamId()
 	if c.Err != nil {
 		return
 	}
@@ -2915,6 +2916,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -2933,7 +2935,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireThreadId()
+	c.RequireUserId().RequireThreadId().RequireTeamId()
 	if c.Err != nil {
 		return
 	}
@@ -2942,6 +2944,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
 	auditRec.AddMeta("thread_id", c.Params.ThreadId)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -2959,7 +2962,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireTimestamp()
+	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
 		return
 	}
@@ -2967,14 +2970,14 @@ func updateReadStateAllThreadsByUser(c *Context, w http.ResponseWriter, r *http.
 	auditRec := c.MakeAuditRecord("updateReadStateAllThreadsByUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("user_id", c.Params.UserId)
-	auditRec.AddMeta("timestamp", c.Params.Timestamp)
+	auditRec.AddMeta("team_id", c.Params.TeamId)
 
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.Timestamp)
+	err := c.App.UpdateThreadsReadForUser(c.Params.UserId, c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
