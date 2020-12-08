@@ -1124,7 +1124,7 @@
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
-    "translation": ""
+    "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.migrate_config.app_error",
@@ -1132,7 +1132,7 @@
   },
   {
     "id": "api.config.patch_config.restricted_merge.app_error",
-    "translation": ""
+    "translation": "Failed to merge given config."
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -2360,7 +2360,7 @@
   },
   {
     "id": "api.system.update_viewed_notices.failed",
-    "translation": ""
+    "translation": "Updating viewed notices failed"
   },
   {
     "id": "api.team.add_members.error",
@@ -3508,7 +3508,7 @@
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
-    "translation": ""
+    "translation": "Custom Permission Schemes not supported by current license"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3904,7 +3904,7 @@
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": ""
+    "translation": "A channel member with that ID already exists."
   },
   {
     "id": "app.channel.search.app_error",
@@ -6028,15 +6028,15 @@
   },
   {
     "id": "ent.cloud.authentication_failed",
-    "translation": ""
+    "translation": "Unable to authenticate to CWS"
   },
   {
     "id": "ent.cloud.json_encode.error",
-    "translation": ""
+    "translation": "Internal error marshaling request to CWS"
   },
   {
     "id": "ent.cloud.request_error",
-    "translation": ""
+    "translation": "Error processing request to CWS"
   },
   {
     "id": "ent.cluster.404.app_error",
@@ -6148,7 +6148,7 @@
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": ""
+    "translation": "We encountered an error permanently deleting the batch of posts."
   },
   {
     "id": "ent.data_retention.reactions_batch.internal_error",
@@ -6224,7 +6224,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": ""
+    "translation": "Unable to get the channels batch for indexing."
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -6256,7 +6256,7 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": ""
+    "translation": "Unable to get the posts batch for indexing."
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -6616,11 +6616,11 @@
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": ""
+    "translation": "We received an invalid signature in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": ""
+    "translation": "We received an invalid time in the response from the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
