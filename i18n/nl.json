@@ -8304,7 +8304,7 @@
   },
   {
     "id": "api.templates.over_limit_90_days_info1",
-    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
+    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
   },
   {
     "id": "api.templates.over_limit_7_days_title",
