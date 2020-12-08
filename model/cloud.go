@@ -3,6 +3,11 @@
 
 package model
 
+const (
+	EventTypeFailedPayment       = "failed-payment"
+	EventTypeFailedPaymentNoCard = "failed-payment-no-card"
+)
+
 // Product model represents a product on the cloud system.
 type Product struct {
 	ID           string   `json:"id"`
@@ -73,16 +78,18 @@ type PaymentMethod struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID         string   `json:"id"`
-	CustomerID string   `json:"customer_id"`
-	ProductID  string   `json:"product_id"`
-	AddOns     []string `json:"add_ons"`
-	StartAt    int64    `json:"start_at"`
-	EndAt      int64    `json:"end_at"`
-	CreateAt   int64    `json:"create_at"`
-	Seats      int      `json:"seats"`
-	DNS        string   `json:"dns"`
-	IsPaidTier string   `json:"is_paid_tier"`
+	ID          string   `json:"id"`
+	CustomerID  string   `json:"customer_id"`
+	ProductID   string   `json:"product_id"`
+	AddOns      []string `json:"add_ons"`
+	StartAt     int64    `json:"start_at"`
+	EndAt       int64    `json:"end_at"`
+	CreateAt    int64    `json:"create_at"`
+	Seats       int      `json:"seats"`
+	Status      string   `json:"status"`
+	DNS         string   `json:"dns"`
+	IsPaidTier  string   `json:"is_paid_tier"`
+	LastInvoice *Invoice `json:"last_invoice"`
 }
 
 // Invoice model represents a cloud invoice
@@ -109,4 +116,15 @@ type InvoiceLineItem struct {
 	Description  string                 `json:"description"`
 	Type         string                 `json:"type"`
 	Metadata     map[string]interface{} `json:"metadata"`
+}
+
+type CWSWebhookPayload struct {
+	Event         string         `json:"event"`
+	FailedPayment *FailedPayment `json:"failed_payment"`
+}
+
+type FailedPayment struct {
+	CardBrand      string `json:"card_brand"`
+	LastFour       int    `json:"last_four"`
+	FailureMessage string `json:"failure_message"`
 }

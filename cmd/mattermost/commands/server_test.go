@@ -57,13 +57,12 @@ func TestRunServerSuccess(t *testing.T) {
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 }
 
@@ -108,14 +107,13 @@ func TestRunServerSystemdNotification(t *testing.T) {
 		ch <- string(data)
 	}(socketReader)
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
 	// Start and stop the server
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -132,12 +130,11 @@ func TestRunServerNoSystemd(t *testing.T) {
 	os.Unsetenv("NOTIFY_SOCKET")
 	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 }

@@ -79,16 +79,12 @@ func (l *LRU) SetWithDefaultExpiry(key string, value interface{}) error {
 // SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
 // already exists, it will overwrite the previoous value
 func (l *LRU) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
 	return l.set(key, value, ttl)
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
 // return ErrKeyNotFound if the key is missing from the cache
 func (l *LRU) Get(key string, value interface{}) error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
 	return l.get(key, value)
 }
 
@@ -160,6 +156,9 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 		}
 	}
 
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
 	// Check for existing item, ignoring expiry since we'd update anyway.
 	if ent, ok := l.items[key]; ok {
 		l.evictList.MoveToFront(ent)
@@ -186,47 +185,62 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 }
 
 func (l *LRU) get(key string, value interface{}) error {
-	if ent, ok := l.items[key]; ok {
-		e := ent.Value.(*entry)
-
-		if e.generation != l.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
-			l.removeElement(ent)
-			return ErrKeyNotFound
-		}
-
-		l.evictList.MoveToFront(ent)
-
-		// We use a fast path for hot structs.
-		if msgpVal, ok := value.(msgp.Unmarshaler); ok {
-			_, err := msgpVal.UnmarshalMsg(e.value)
-			return err
-		}
-
-		// This is ugly and makes the cache package aware of the model package.
-		// But this is due to 2 things.
-		// 1. The msgp package works on methods on structs rather than functions.
-		// 2. Our cache interface passes pointers to empty pointers, and not pointers
-		// to values. This is mainly how all our model structs are passed around.
-		// It might be technically possible to use values _just_ for hot structs
-		// like these and then return a pointer while returning from the cache function,
-		// but it will make the codebase inconsistent, and has some edge-cases to take care of.
-		switch v := value.(type) {
-		case **model.User:
-			var u model.User
-			_, err := u.UnmarshalMsg(e.value)
-			*v = &u
-			return err
-		case **model.Session:
-			var s model.Session
-			_, err := s.UnmarshalMsg(e.value)
-			*v = &s
-			return err
-		}
-
-		// Slow path for other structs.
-		return msgpack.Unmarshal(e.value, value)
+	val, err := l.getItem(key)
+	if err != nil {
+		return err
 	}
-	return ErrKeyNotFound
+
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Unmarshaler); ok {
+		_, err := msgpVal.UnmarshalMsg(val)
+		return err
+	}
+
+	// This is ugly and makes the cache package aware of the model package.
+	// But this is due to 2 things.
+	// 1. The msgp package works on methods on structs rather than functions.
+	// 2. Our cache interface passes pointers to empty pointers, and not pointers
+	// to values. This is mainly how all our model structs are passed around.
+	// It might be technically possible to use values _just_ for hot structs
+	// like these and then return a pointer while returning from the cache function,
+	// but it will make the codebase inconsistent, and has some edge-cases to take care of.
+	switch v := value.(type) {
+	case **model.User:
+		var u model.User
+		_, err := u.UnmarshalMsg(val)
+		*v = &u
+		return err
+	case **model.Session:
+		var s model.Session
+		_, err := s.UnmarshalMsg(val)
+		*v = &s
+		return err
+	case *map[string]*model.User:
+		var u model.UserMap
+		_, err := u.UnmarshalMsg(val)
+		*v = u
+		return err
+	}
+
+	// Slow path for other structs.
+	return msgpack.Unmarshal(val, value)
+}
+
+func (l *LRU) getItem(key string) ([]byte, error) {
+	l.lock.Lock()
+	defer l.lock.Unlock()
+
+	ent, ok := l.items[key]
+	if !ok {
+		return nil, ErrKeyNotFound
+	}
+	e := ent.Value.(*entry)
+	if e.generation != l.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
+		l.removeElement(ent)
+		return nil, ErrKeyNotFound
+	}
+	l.evictList.MoveToFront(ent)
+	return e.value, nil
 }
 
 func (l *LRU) removeElement(e *list.Element) {

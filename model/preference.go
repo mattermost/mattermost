@@ -13,20 +13,22 @@ import (
 )
 
 const (
-	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
-	PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW  = "group_channel_show"
-	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
-	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
-	PREFERENCE_CATEGORY_FLAGGED_POST        = "flagged_post"
-	PREFERENCE_CATEGORY_FAVORITE_CHANNEL    = "favorite_channel"
-	PREFERENCE_CATEGORY_SIDEBAR_SETTINGS    = "sidebar_settings"
+	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW        = "direct_channel_show"
+	PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW         = "group_channel_show"
+	PREFERENCE_CATEGORY_TUTORIAL_STEPS             = "tutorial_step"
+	PREFERENCE_CATEGORY_ADVANCED_SETTINGS          = "advanced_settings"
+	PREFERENCE_CATEGORY_FLAGGED_POST               = "flagged_post"
+	PREFERENCE_CATEGORY_FAVORITE_CHANNEL           = "favorite_channel"
+	PREFERENCE_CATEGORY_SIDEBAR_SETTINGS           = "sidebar_settings"
+	PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS = "collapsed_threads_settings"
 
-	PREFERENCE_CATEGORY_DISPLAY_SETTINGS = "display_settings"
-	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE = "channel_display_mode"
-	PREFERENCE_NAME_COLLAPSE_SETTING     = "collapse_previews"
-	PREFERENCE_NAME_MESSAGE_DISPLAY      = "message_display"
-	PREFERENCE_NAME_NAME_FORMAT          = "name_format"
-	PREFERENCE_NAME_USE_MILITARY_TIME    = "use_military_time"
+	PREFERENCE_CATEGORY_DISPLAY_SETTINGS      = "display_settings"
+	PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED = "collapsed_threads_enabled"
+	PREFERENCE_NAME_CHANNEL_DISPLAY_MODE      = "channel_display_mode"
+	PREFERENCE_NAME_COLLAPSE_SETTING          = "collapse_previews"
+	PREFERENCE_NAME_MESSAGE_DISPLAY           = "message_display"
+	PREFERENCE_NAME_NAME_FORMAT               = "name_format"
+	PREFERENCE_NAME_USE_MILITARY_TIME         = "use_military_time"
 
 	PREFERENCE_CATEGORY_THEME = "theme"
 	// the name for theme props is the team id

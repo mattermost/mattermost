@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"image"
 	"image/color"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -361,6 +363,46 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 	})
 }
 
+func TestCreateUserConflict(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := &model.User{
+		Email:    "test@localhost",
+		Username: model.NewId(),
+	}
+	user, err := th.App.Srv().Store.User().Save(user)
+	require.NoError(t, err)
+	username := user.Username
+
+	var invErr *store.ErrInvalidInput
+	// Same id
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "id", invErr.Field)
+
+	// Same email
+	user = &model.User{
+		Email:    "test@localhost",
+		Username: model.NewId(),
+	}
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "email", invErr.Field)
+
+	// Same username
+	user = &model.User{
+		Email:    "test2@localhost",
+		Username: username,
+	}
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "username", invErr.Field)
+}
+
 func TestUpdateUserEmail(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -419,7 +461,8 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
 		assert.Nil(t, user3)
 	})
 
@@ -449,6 +492,21 @@ func TestUpdateUserEmail(t *testing.T) {
 		botuser2, err := th.App.UpdateUser(&botuser, false)
 		assert.Nil(t, err)
 		assert.Equal(t, botuser2.Email, newBotEmail)
+	})
+
+	t.Run("NoVerificationAlreadyUsedEmail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = false
+		})
+
+		user2 := th.CreateUser()
+		newEmail := user2.Email
+
+		user.Email = newEmail
+		user3, err := th.App.UpdateUser(user, false)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Nil(t, user3)
 	})
 }
 
@@ -828,8 +886,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 	var bots1 []*model.Bot
 	var bots2 []*model.Bot
 
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	_, err1 := sqlSupplier.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	sqlStore := mainHelper.GetSQLStore()
+	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -840,7 +898,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(retUser1)
 	assert.Nil(t, err)
 
-	_, err1 = sqlSupplier.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 0, len(bots2))
 

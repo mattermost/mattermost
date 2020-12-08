@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"net/http"
 
@@ -632,4 +633,179 @@ func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale strin
 	}
 
 	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_30_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_30_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_30_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_30_days_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_30_days_info2")
+	bodyPage.Props["Info2Item1"] = T("api.templates.over_limit_30_days_info2_item1")
+	bodyPage.Props["Info2Item2"] = T("api.templates.over_limit_30_days_info2_item2")
+	bodyPage.Props["Info2Item3"] = T("api.templates.over_limit_30_days_info2_item3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_90_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_90_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_90_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_90_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_90_days_info2")
+	bodyPage.Props["Info3"] = T("api.templates.over_limit_90_days_info3")
+	bodyPage.Props["Info4"] = T("api.templates.over_limit_90_days_info4")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_suspended_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_workspace_suspended_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_suspended_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_suspended_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_suspended_info2")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_suspended_contact_support")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_14_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_7_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_14_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_14_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_7_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_7_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_7_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_7_days_info1")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, *model.AppError) {
+	// Localization not needed
+
+	subject := fmt.Sprintf("Cloud Installation %s Scheduled Suspension", installationID)
+	bodyPage := es.newEmailTemplate("over_user_limit_support_body", "en")
+	bodyPage.Props["CustomerID"] = customerID
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["SubscriptionID"] = subscriptionID
+	bodyPage.Props["InstallationID"] = installationID
+	bodyPage.Props["SuspensionDate"] = time.Now().AddDate(0, 0, 61).Format("2006-01-02")
+	bodyPage.Props["UserCount"] = userCount
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]interface{}{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	bodyPage.Props["Info2"] = T("api.templates.payment_failed.info2")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed.info3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed_no_card.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_no_card_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed_no_card.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
+	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return nil
 }

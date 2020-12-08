@@ -38,7 +38,7 @@ import (
 type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
-	ConfigStore config.Store
+	ConfigStore *config.Store
 
 	Client               *model.Client4
 	BasicUser            *model.User
@@ -79,35 +79,44 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	config := memoryStore.Get()
-	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
-	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
-	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
-	*config.AnnouncementSettings.AdminNoticesEnabled = false
-	*config.AnnouncementSettings.UserNoticesEnabled = false
+	memoryConfig := &model.Config{}
+	memoryConfig.SetDefaults()
+	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
+	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	if updateConfig != nil {
-		updateConfig(config)
+		updateConfig(memoryConfig)
 	}
-	memoryStore.Set(config)
+	memoryStore.Set(memoryConfig)
+
+	configStore, err := config.NewStoreFromBacking(memoryStore, nil)
+	if err != nil {
+		panic(err)
+	}
 
 	var options []app.Option
-	options = append(options, app.ConfigStore(memoryStore))
-	options = append(options, app.StoreOverride(dbStore))
+	options = append(options, app.ConfigStore(configStore))
+	if includeCache {
+		// Adds the cache layer to the test store
+		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
+			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+		}))
+	} else {
+		options = append(options, app.StoreOverride(dbStore))
+	}
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
-	if includeCache {
-		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
-	}
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
-		ConfigStore:       memoryStore,
+		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 	}
 
@@ -124,30 +133,26 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		// Disable sniffing, otherwise elastic client fails to connect to docker node
 		// More details: https://github.com/olivere/elastic/wiki/Sniffing
 		*cfg.ElasticsearchSettings.Sniff = false
-	})
-	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	if err := th.Server.Start(); err != nil {
-		panic(err)
-	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
-	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App.Srv())
-	th.App.DoAppMigrations()
+		*cfg.TeamSettings.EnableOpenServer = true
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-
-	// Disable strict password requirements for test
-	th.App.UpdateConfig(func(cfg *model.Config) {
+		// Disable strict password requirements for test
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
 		*cfg.PasswordSettings.Symbol = false
 		*cfg.PasswordSettings.Number = false
+
+		*cfg.ServiceSettings.ListenAddress = ":0"
 	})
+	if err := th.Server.Start(); err != nil {
+		panic(err)
+	}
+
+	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
+	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	wsapi.Init(th.App.Srv())
 
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
@@ -168,7 +173,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
 
-	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
+	th.LocalClient = th.CreateLocalClient(*memoryConfig.ServiceSettings.LocalModeSocketLocation)
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
@@ -191,6 +196,7 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
 	th.InitLogin()
@@ -209,6 +215,7 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
 	th.InitLogin()
@@ -321,7 +328,7 @@ func (me *TestHelper) InitLogin() *TestHelper {
 	me.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
+	mainHelper.GetSQLStore().GetMaster().Insert(me.SystemAdminUser, me.TeamAdminUser, me.BasicUser, me.BasicUser2)
 	// restore non hashed password for login
 	me.SystemAdminUser.Password = "Pa$$word11"
 	me.TeamAdminUser.Password = "Pa$$word11"
@@ -875,7 +882,7 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 	t.Helper()
 
 	require.NotNilf(t, resp.Error, "should have errored with message: %s", errorId)
-	require.Equalf(t, resp.Error.Id, errorId, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
+	require.Equalf(t, errorId, resp.Error.Id, "incorrect error message, actual: %s, expected: %s", resp.Error.Id, errorId)
 }
 
 func CheckStartsWith(t *testing.T, value, prefix, message string) {

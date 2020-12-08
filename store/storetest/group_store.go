@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -116,7 +117,9 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	data, err := ss.Group().Create(g2)
 	require.Nil(t, data)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.display_name.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Won't accept a duplicate name
 	g4 := &model.Group{
@@ -135,7 +138,8 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	data, err = ss.Group().Create(g4b)
 	require.Nil(t, data)
-	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g4b.Name))
 
 	// Fields cannot be greater than max values
 	g5 := &model.Group{
@@ -211,7 +215,8 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().Get(model.NewId())
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetByName(t *testing.T, ss store.Store) {
@@ -246,7 +251,8 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().GetByName(model.NewId(), g1Opts)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetByIDs(t *testing.T, ss store.Store) {
@@ -310,7 +316,8 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	// Get an invalid group
 	_, err = ss.Group().GetByRemoteID(model.NewId(), model.GroupSource("fake"))
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
@@ -464,7 +471,9 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, data)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "model.group.display_name.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
 
 	// Create another Group
 	g2 := &model.Group{
@@ -486,7 +495,8 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
-	require.Equal(t, err.Id, "store.sql_group.unique_constraint")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), fmt.Sprintf("Group with name %s already exists", *g1Update.Name))
 
 	// Cannot update CreateAt
 	someVal := model.GetMillis()
@@ -498,7 +508,8 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to non-zero
 	d1.DeleteAt = 1
 	_, err = ss.Group().Update(d1)
-	require.Equal(t, "model.group.delete_at.app_error", err.Id)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "DeleteAt should be 0 when updating")
 
 	//...except for 0 for DeleteAt
 	d1.DeleteAt = 0
@@ -548,11 +559,12 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Cannot delete again
 	_, err = ss.Group().Delete(d1.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
@@ -737,7 +749,7 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// returns no members when team does not exist
-	groupMembers, err := ss.Group().GetMemberUsersInTeam(group.Id, "non-existant-channel-id")
+	groupMembers, err := ss.Group().GetMemberUsersInTeam(group.Id, "non-existent-channel-id")
 	require.Nil(t, err)
 	require.Equal(t, 0, len(groupMembers))
 
@@ -833,7 +845,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	// returns no members when channel does not exist
-	groupMembers, err := ss.Group().GetMemberUsersNotInChannel(group.Id, "non-existant-channel-id")
+	groupMembers, err := ss.Group().GetMemberUsersNotInChannel(group.Id, "non-existent-channel-id")
 	require.Nil(t, err)
 	require.Equal(t, 0, len(groupMembers))
 
@@ -942,7 +954,8 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Invalid GroupId
 	_, err = ss.Group().UpsertMember(model.NewId(), user.Id)
-	require.Equal(t, err.Id, "store.insert_error")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get UserGroup with")
 
 	// Restores a deleted member
 	// Ensure new CreateAt > previous CreateAt for the same (groupId, userId)
@@ -998,15 +1011,16 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 
 	// Delete an already deleted member
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Delete with non-existent User
 	_, err = ss.Group().DeleteMember(group.Id, model.NewId())
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Delete non-existent Group
 	_, err = ss.Group().DeleteMember(model.NewId(), group.Id)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 }
 
 func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
@@ -1048,7 +1062,9 @@ func testGroupPermanentDeleteMembersByUser(t *testing.T, ss store.Store) {
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid GroupID
 	_, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam("x", model.NewId(), false))
-	require.Equal(t, err.Id, "model.group_syncable.group_id.app_error")
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.Equal(t, appErr.Id, "model.group_syncable.group_id.app_error")
 
 	// Create Group
 	g1 := &model.Group{
@@ -1225,12 +1241,13 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Non-existent Group
 	gt2 := model.NewGroupTeam(model.NewId(), team.Id, false)
 	_, err = ss.Group().UpdateGroupSyncable(gt2)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Non-existent Team
 	gt3 := model.NewGroupTeam(group.Id, model.NewId(), false)
 	_, err = ss.Group().UpdateGroupSyncable(gt3)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Cannot update CreateAt or DeleteAt
 	origCreateAt := d1.CreateAt
@@ -1243,7 +1260,8 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Cannot update DeleteAt to arbitrary value
 	d1.DeleteAt = 1
 	_, err = ss.Group().UpdateGroupSyncable(d1)
-	require.Equal(t, "model.group.delete_at.app_error", err.Id)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "DeleteAt should be 0 when updating")
 
 	// Can update DeleteAt to 0
 	d1.DeleteAt = 0
@@ -1284,11 +1302,12 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Non-existent Group
 	_, err = ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GroupSyncableTypeTeam)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
 
 	// Non-existent Team
 	_, err = ss.Group().DeleteGroupSyncable(groupTeam.GroupId, model.NewId(), model.GroupSyncableTypeTeam)
-	require.Equal(t, err.Id, "store.sql_group.no_rows")
+	require.True(t, errors.As(err, &nfErr))
 
 	// Happy path...
 	d1, err := ss.Group().DeleteGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
@@ -1303,7 +1322,8 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
 	require.NotNil(t, err)
-	require.Equal(t, err.Id, "store.sql_group.group_syncable_already_deleted")
+	var invErr *store.ErrInvalidInput
+	require.True(t, errors.As(err, &invErr))
 }
 
 func testTeamMembersToAdd(t *testing.T, ss store.Store) {

@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -598,13 +600,13 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: userId
-func (_m *TeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
-	ret := _m.Called(userId)
+// GetTeamsForUser provides a mock function with given fields: ctx, userId
+func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
+	ret := _m.Called(ctx, userId)
 
 	var r0 []*model.TeamMember
-	if rf, ok := ret.Get(0).(func(string) []*model.TeamMember); ok {
-		r0 = rf(userId)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.TeamMember); ok {
+		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -612,8 +614,8 @@ func (_m *TeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userId)
 	} else {
 		r1 = ret.Error(1)
 	}

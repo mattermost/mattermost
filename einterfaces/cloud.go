@@ -19,5 +19,5 @@ type CloudInterface interface {
 
 	GetSubscription() (*model.Subscription, *model.AppError)
 	GetInvoicesForSubscription() ([]*model.Invoice, *model.AppError)
-	GetInvoicePDF(invoiceID string) ([]byte, *model.AppError)
+	GetInvoicePDF(invoiceID string) ([]byte, string, *model.AppError)
 }

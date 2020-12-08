@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/spf13/cobra"
 )
 
 // prettyPrintStruct will return a prettyPrint version of a given struct
@@ -98,4 +99,20 @@ func printStringMap(value reflect.Value, tabVal int) string {
 	}
 
 	return out.String()
+}
+
+func getConfigDSN(command *cobra.Command, env map[string]string) string {
+	configDSN, _ := command.Flags().GetString("config")
+
+	// Config not supplied in flag, check env
+	if configDSN == "" {
+		configDSN = env["MM_CONFIG"]
+	}
+
+	// Config not supplied in env or flag use default
+	if configDSN == "" {
+		configDSN = "config.json"
+	}
+
+	return configDSN
 }

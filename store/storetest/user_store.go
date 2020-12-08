@@ -21,12 +21,12 @@ const (
 	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
 )
 
-func cleanupStatusStore(t *testing.T, s SqlSupplier) {
+func cleanupStatusStore(t *testing.T, s SqlStore) {
 	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
 	require.Nil(t, execerr)
 }
 
-func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	users, err := ss.User().GetAll()
 	require.Nil(t, err, "failed cleaning up test users")
 
@@ -368,6 +368,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
@@ -375,6 +376,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u2" + model.NewId(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
@@ -423,14 +425,15 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u7" + model.NewId(),
 		DeleteAt: model.GetMillis(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u7.Id)) }()
 
 	t.Run("get offset 0, limit 100", func(t *testing.T) {
 		options := &model.UserGetOptions{Page: 0, PerPage: 100}
-		actual, err := ss.User().GetAllProfiles(options)
-		require.Nil(t, err)
+		actual, userErr := ss.User().GetAllProfiles(options)
+		require.Nil(t, userErr)
 
 		require.Equal(t, []*model.User{
 			sanitized(u1),
@@ -444,19 +447,19 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset 0, limit 1", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 1,
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 		}, actual)
 	})
 
 	t.Run("get all", func(t *testing.T) {
-		actual, err := ss.User().GetAll()
-		require.Nil(t, err)
+		actual, userErr := ss.User().GetAll()
+		require.Nil(t, userErr)
 
 		require.Equal(t, []*model.User{
 			u1,
@@ -474,8 +477,8 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 		uNew := &model.User{}
 		uNew.Email = MakeEmail()
-		_, err := ss.User().Save(uNew)
-		require.Nil(t, err)
+		_, userErr := ss.User().Save(uNew)
+		require.Nil(t, userErr)
 		defer func() { require.Nil(t, ss.User().PermanentDelete(uNew.Id)) }()
 
 		updatedEtag := ss.User().GetEtagForAllProfiles()
@@ -483,12 +486,12 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Role:    "system_admin",
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u5),
 			sanitized(u6),
@@ -496,25 +499,25 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to system_admin role, inactive", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Role:     "system_admin",
 			Inactive: true,
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 		}, actual)
 	})
 
 	t.Run("filter to inactive", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 			sanitized(u7),
@@ -522,12 +525,12 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("filter to active", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
 			Active:  true,
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -538,15 +541,84 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("try to filter to active and inactive", func(t *testing.T) {
-		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
 			Active:   true,
 		})
-		require.Nil(t, err)
+		require.Nil(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
+			sanitized(u7),
+		}, actual)
+	})
+
+	u8, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u8" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_user_manager system_user",
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u8.Id)) }()
+
+	u9, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u9" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_manager system_user",
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u9.Id)) }()
+
+	u10, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u10" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_read_only_admin system_user",
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u10.Id)) }()
+
+	t.Run("filter by system_user_manager role", func(t *testing.T) {
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_user_manager"},
+		})
+		require.Nil(t, userErr)
+		require.Equal(t, []*model.User{
+			sanitized(u8),
+		}, actual)
+	})
+
+	t.Run("filter by multiple system roles", func(t *testing.T) {
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_manager", "system_user_manager", "system_read_only_admin", "system_admin"},
+		})
+		require.Nil(t, userErr)
+		require.Equal(t, []*model.User{
+			sanitized(u10),
+			sanitized(u5),
+			sanitized(u6),
+			sanitized(u8),
+			sanitized(u9),
+		}, actual)
+	})
+
+	t.Run("filter by system_user only", func(t *testing.T) {
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_user"},
+		})
+		require.Nil(t, userErr)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
 			sanitized(u7),
 		}, actual)
 	})
@@ -885,7 +957,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -1423,6 +1495,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.Nil(t, nErr)
 
+	time.Sleep(time.Millisecond)
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
@@ -2172,7 +2245,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, nErr = ss.Post().Save(&p1)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	// Post 2 messages without mention to direct channel
@@ -2183,7 +2256,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.Post().Save(&p2)
 	require.Nil(t, nErr)
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	p3 := model.Post{}
@@ -2193,7 +2266,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, nErr = ss.Post().Save(&p3)
 	require.Nil(t, nErr)
 
-	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	nErr = ss.Channel().IncrementMentionCount(c2.Id, u2.Id, false)
 	require.Nil(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
@@ -2244,7 +2317,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 }
 
-func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -2436,7 +2509,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u2 := &model.User{
 		Username: "jim2-bobby" + model.NewId(),
 		Email:    MakeEmail(),
-		Roles:    "system_user",
+		Roles:    "system_user system_user_manager",
 	}
 	_, err = ss.User().Save(u2)
 	require.Nil(t, err)
@@ -3750,7 +3823,7 @@ func testCount(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -3835,7 +3908,7 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	assert.Equal(t, int64(4), count)
 }
 
-func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 

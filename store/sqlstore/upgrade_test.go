@@ -12,7 +12,7 @@ import (
 
 func TestStoreUpgrade(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		sqlStore := ss.(SqlStore)
+		sqlStore := ss.(*SqlStore)
 
 		t.Run("invalid currentModelVersion", func(t *testing.T) {
 			err := upgradeDatabase(sqlStore, "notaversion")
@@ -57,10 +57,10 @@ func TestStoreUpgrade(t *testing.T) {
 		})
 
 		t.Run("upgrade schema running later minor version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, "5.29.0")
+			saveSchemaVersion(sqlStore, "5.99.0")
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
-			require.Equal(t, "5.29.0", sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, "5.99.0", sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier major version", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestStoreUpgrade(t *testing.T) {
 
 func TestSaveSchemaVersion(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
-		sqlStore := ss.(SqlStore)
+		sqlStore := ss.(*SqlStore)
 
 		t.Run("set earliest version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, VERSION_3_0_0)

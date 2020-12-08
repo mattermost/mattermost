@@ -194,6 +194,16 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// ReactionHasBeenAdded provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
+	_m.Called(c, reaction)
+}
+
+// ReactionHasBeenRemoved provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.Reaction) {
+	_m.Called(c, reaction)
+}
+
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
