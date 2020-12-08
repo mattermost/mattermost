@@ -16,17 +16,21 @@ type Thread struct {
 }
 
 type ThreadResponse struct {
-	PostId       string  `json:"id"`
-	ReplyCount   int64   `json:"reply_count"`
-	LastReplyAt  int64   `json:"last_reply_at"`
-	LastViewedAt int64   `json:"last_viewed_at"`
-	Participants []*User `json:"participants"`
-	Post         *Post   `json:"post"`
+	PostId         string  `json:"id"`
+	ReplyCount     int64   `json:"reply_count"`
+	LastReplyAt    int64   `json:"last_reply_at"`
+	LastViewedAt   int64   `json:"last_viewed_at"`
+	Participants   []*User `json:"participants"`
+	Post           *Post   `json:"post"`
+	UnreadReplies  int64   `json:"unread_replies"`
+	UnreadMentions int64   `json:"unread_mentions"`
 }
 
 type Threads struct {
-	Total   int64             `json:"total"`
-	Threads []*ThreadResponse `json:"threads"`
+	Total               int64             `json:"total"`
+	TotalUnreadReplies  int64             `json:"total_unread_replies"`
+	TotalUnreadMentions int64             `json:"total_unread_mentions"`
+	Threads             []*ThreadResponse `json:"threads"`
 }
 
 type GetUserThreadsOpts struct {
