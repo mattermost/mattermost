@@ -531,7 +531,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThreads bool) string {
-	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId})
+	q := s.getQueryBuilder().Select("Id", "UpdateAt").From("Posts").Where(sq.Eq{"ChannelId": channelId}).OrderBy("UpdateAt DESC").Limit(1)
 	if collapsedThreads {
 		q.Where(sq.Eq{"RootId": ""})
 	}
