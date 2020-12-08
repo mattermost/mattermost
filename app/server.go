@@ -45,6 +45,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -143,7 +144,8 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
-	remoteClusterService *remotecluster.Service
+	remoteClusterService     *remotecluster.Service
+	sharedChannelSyncService *sharedchannel.Service
 
 	phase2PermissionsMigrationComplete bool
 
@@ -687,6 +689,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License) {
+	// TODO:  remove this when the TODO's below are completed.
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return
@@ -694,6 +697,7 @@ func (s *Server) startInterClusterServices(license *model.License) {
 
 	var err error
 
+	// Remote Cluster Service
 	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
 	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
 	if err != nil {
@@ -707,8 +711,24 @@ func (s *Server) startInterClusterServices(license *model.License) {
 		return
 	}
 
-	// TODO: init and start shared channels service here. (MM-28519)
+	// Shared Channels Sync service
+	// TODO:  check license features (MM-29027 & MM-30838)
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Shared Channel Sync Service disabled via config")
+		return
+	}
 
+	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s)
+	if err != nil {
+		mlog.Error("Error initializing Shared Channel Sync Service", mlog.Err(err))
+		return
+	}
+
+	if err = s.sharedChannelSyncService.Start(); err != nil {
+		mlog.Error("Error starting Shared Channel Sync Service", mlog.Err(err))
+		s.remoteClusterService = nil
+		return
+	}
 }
 
 func (s *Server) enableLoggingMetrics() {

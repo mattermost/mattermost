@@ -247,7 +247,31 @@ func (s SqlChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannel
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", id)
 		}
-		return nil, errors.Wrapf(err, "failed to find remote with id=%s", id)
+		return nil, errors.Wrapf(err, "failed to find shared channel remote with id=%s", id)
+	}
+	return &remote, nil
+}
+
+// GetSharedChannelRemoteByIds fetches a shared channel remote by channel id and remote cluster id.
+func (s SqlChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	var remote model.SharedChannelRemote
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelRemotes").
+		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId}).
+		Where(sq.Eq{"SharedChannelRemotes.RemoteClusterId": remoteId})
+
+	squery, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "get_shared_channel_remote_by_ids_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&remote, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelRemote", fmt.Sprintf("channelId=%s, remoteId=%s", channelId, remoteId))
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel remote with channelId=%s, remoteId=%s", channelId, remoteId)
 	}
 	return &remote, nil
 }
@@ -270,7 +294,7 @@ func (s SqlChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.Sha
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemote", channelId)
 		}
-		return nil, errors.Wrapf(err, "failed to get remotes for channel_id=%s", channelId)
+		return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s", channelId)
 	}
 	return remotes, nil
 }
@@ -320,7 +344,7 @@ func (s SqlChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*mod
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelRemoteStatus", channelId)
 		}
-		return nil, errors.Wrapf(err, "failed to get status for channel_id=%s", channelId)
+		return nil, errors.Wrapf(err, "failed to get shared channel remote status for channel_id=%s", channelId)
 	}
 	return status, nil
 }

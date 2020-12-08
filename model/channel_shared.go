@@ -117,6 +117,7 @@ type SharedChannelRemote struct {
 	IsInviteAccepted  bool   `json:"is_invite_accepted"`
 	IsInviteConfirmed bool   `json:"is_invite_confirmed"`
 	RemoteClusterId   string `json:"remote_cluster_id"`
+	LastSyncAt        int64  `json:"last_sync_at"`
 }
 
 func (sc *SharedChannelRemote) ToJson() string {

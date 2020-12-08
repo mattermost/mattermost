@@ -1660,11 +1660,31 @@ func (s *RetryLayerChannelStore) GetSharedChannel(channelId string) (*model.Shar
 
 }
 
-func (s *RetryLayerChannelStore) GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error) {
+func (s *RetryLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetSharedChannelRemote(remoteId)
+		result, err := s.ChannelStore.GetSharedChannelRemote(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetSharedChannelRemoteByIds(channelId, remoteId)
 		if err == nil {
 			return result, nil
 		}

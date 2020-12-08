@@ -21,6 +21,7 @@ func TestChannelStoreSharedChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	t.Run("SaveSharedChannelRemote", func(t *testing.T) { testSaveSharedChannelRemote(t, ss) })
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, ss) })
+	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
 }
@@ -416,7 +417,7 @@ func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Get existing shared channel remote", func(t *testing.T) {
 		r, err := ss.Channel().GetSharedChannelRemote(remoteSaved.Id)
-		require.Nil(t, err, "couldn't get shared channel remote", err)
+		require.Nil(t, err, "could not get shared channel remote", err)
 
 		require.Equal(t, remoteSaved.Id, r.Id)
 		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
@@ -428,6 +429,40 @@ func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Get non-existent shared channel remote", func(t *testing.T) {
 		r, err := ss.Channel().GetSharedChannelRemote(model.NewId())
+		require.NotNil(t, err)
+		require.Nil(t, r)
+	})
+}
+
+func testGetSharedChannelRemoteByIds(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_remote_get_by_ids")
+	require.Nil(t, err)
+
+	remote := &model.SharedChannelRemote{
+		ChannelId:       channel.Id,
+		Token:           model.NewId(),
+		Description:     "test_remote_by_ids",
+		CreatorId:       model.NewId(),
+		RemoteClusterId: model.NewId(),
+	}
+
+	remoteSaved, err := ss.Channel().SaveSharedChannelRemote(remote)
+	require.Nil(t, err, "could not save remote", err)
+
+	t.Run("Get existing shared channel remote by ids", func(t *testing.T) {
+		r, err := ss.Channel().GetSharedChannelRemoteByIds(remoteSaved.ChannelId, remoteSaved.RemoteClusterId)
+		require.Nil(t, err, "couldn't get shared channel remote by ids", err)
+
+		require.Equal(t, remoteSaved.Id, r.Id)
+		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
+		require.Equal(t, remoteSaved.Token, r.Token)
+		require.Equal(t, remoteSaved.Description, r.Description)
+		require.Equal(t, remoteSaved.CreatorId, r.CreatorId)
+		require.Equal(t, remoteSaved.RemoteClusterId, r.RemoteClusterId)
+	})
+
+	t.Run("Get non-existent shared channel remote by ids", func(t *testing.T) {
+		r, err := ss.Channel().GetSharedChannelRemoteByIds(model.NewId(), model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, r)
 	})
