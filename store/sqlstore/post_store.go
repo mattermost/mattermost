@@ -1000,14 +1000,14 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			}).
 			OrderBy("CreateAt DESC")
 
-		rootQueryString, rootArgs, err := rootQuery.ToSql()
+		rootQueryString, rootArgs, nErr := rootQuery.ToSql()
 
-		if err != nil {
-			return nil, errors.Wrap(err, "post_tosql")
+		if nErr != nil {
+			return nil, errors.Wrap(nErr, "post_tosql")
 		}
-		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		_, nErr = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
+		if nErr != nil {
+			return nil, errors.Wrapf(nErr, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
 	}
 
