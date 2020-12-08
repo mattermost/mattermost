@@ -1955,11 +1955,18 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Nil(t, nErr)
 		require.Len(t, thread.Participants, 2)
 		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id)
-		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true)
+		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
 		require.Nil(t, err)
 		require.Len(t, l.Order, 1)
 		require.EqualValues(t, 1, l.Posts[postRoot.Id].ReplyCount)
 		require.EqualValues(t, []string{user1.Id, user2.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id, l.Posts[postRoot.Id].Participants[1].Id})
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
 		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
+
+		// try extended fetch
+		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 	})
 }

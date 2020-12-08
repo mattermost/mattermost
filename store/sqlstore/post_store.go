@@ -424,9 +424,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 	return pl, nil
 }
-func (s *SqlPostStore) getPostWithCollapsedThreads(id string) (*model.PostList, error) {
-	pl := model.NewPostList()
-
+func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*model.PostList, error) {
 	if len(id) == 0 {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
@@ -453,18 +451,12 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string) (*model.PostList, 
 
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
-	post.Post.ReplyCount = post.ThreadReplyCount
-	for _, th := range post.ThreadParticipants {
-		post.Post.Participants = append(post.Post.Participants, &model.User{Id: th})
-	}
-	pl.AddPost(&post.Post)
-	pl.AddOrder(id)
-	return pl, nil
+	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
 	if collapsedThreads {
-		return s.getPostWithCollapsedThreads(id)
+		return s.getPostWithCollapsedThreads(id, collapsedThreadsExtended)
 	}
 	pl := model.NewPostList()
 
@@ -667,6 +659,69 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	return nil
 }
 
+func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended, reversed bool) (*model.PostList, error) {
+	list := model.NewPostList()
+	var userIds []string
+	userIdMap := map[string]bool{}
+	for _, thread := range posts {
+		for _, participantId := range thread.ThreadParticipants {
+			if _, ok := userIdMap[participantId]; !ok {
+				userIdMap[participantId] = true
+				userIds = append(userIds, participantId)
+			}
+		}
+	}
+	var users []*model.User
+	if extended {
+		var err error
+		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		for _, userId := range userIds {
+			users = append(users, &model.User{Id: userId})
+		}
+	}
+	processPost := func(p *postWithExtra) error {
+		p.Post.ReplyCount = p.ThreadReplyCount
+		for _, th := range p.ThreadParticipants {
+			var participant *model.User
+			for _, u := range users {
+				if u.Id == th {
+					participant = u
+					break
+				}
+			}
+			if participant == nil {
+				return errors.New("cannot find thread participant with id=" + th)
+			}
+			p.Post.Participants = append(p.Post.Participants, participant)
+		}
+		return nil
+	}
+	// We need to flip the order if we selected backwards
+	if !reversed {
+		for _, p := range posts {
+			if err := processPost(p); err != nil {
+				return nil, err
+			}
+			list.AddPost(&p.Post)
+			list.AddOrder(p.Id)
+		}
+	} else {
+		l := len(posts)
+		for i := range posts {
+			if err := processPost(posts[l-i-1]); err != nil {
+				return nil, err
+			}
+			list.AddPost(&posts[l-i-1].Post)
+			list.AddOrder(posts[l-i-1].Id)
+		}
+	}
+	return list, nil
+}
+
 func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (*model.PostList, error) {
 	var columns []string
 	for _, c := range postSliceColumns() {
@@ -693,18 +748,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
-	list := model.NewPostList()
-
-	for _, p := range posts {
-		p.Post.ReplyCount = p.ThreadReplyCount
-		for _, th := range p.ThreadParticipants {
-			p.Post.Participants = append(p.Post.Participants, &model.User{Id: th})
-		}
-		list.AddPost(&p.Post)
-		list.AddOrder(p.Id)
-	}
-
-	return list, nil
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
 }
 
 func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.PostList, error) {
@@ -781,19 +825,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
-
-	list := model.NewPostList()
-
-	for _, p := range posts {
-		p.Post.ReplyCount = p.ThreadReplyCount
-		for _, th := range p.ThreadParticipants {
-			p.Post.Participants = append(p.Post.Participants, &model.User{Id: th})
-		}
-		list.AddPost(&p.Post)
-		list.AddOrder(p.Id)
-	}
-
-	return list, nil
+	return s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, false)
 }
 
 func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
@@ -888,7 +920,8 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 
 	offset := options.Page * options.PerPage
-	var posts, parents []*model.Post
+	var posts []*postWithExtra
+	var parents []*model.Post
 
 	var direction string
 	var sort string
@@ -906,25 +939,30 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
 	}
-
-	query := s.getQueryBuilder().Select("p.*")
+	columns := []string{"p.*"}
+	if options.CollapsedThreads {
+		columns = append(columns, "Threads.ReplyCount as ThreadReplyCount", "Threads.LastReplyAt", "Threads.Participants as ThreadParticipants")
+	}
+	query := s.getQueryBuilder().Select(columns...)
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
-	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 
 	conditions := sq.And{
 		sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
-		sq.Eq{"ChannelId": options.ChannelId},
+		sq.Eq{"p.ChannelId": options.ChannelId},
 		sq.Eq{"DeleteAt": int(0)},
 	}
 	if options.CollapsedThreads {
 		conditions = append(conditions, sq.Eq{"RootId": ""})
+		query = query.LeftJoin("Threads ON Threads.PostId = p.Id")
+	} else {
+		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	}
 	query = query.From(table).
 		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-24170.
-		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
+		OrderBy("p.ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
@@ -973,20 +1011,9 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		}
 	}
 
-	list := model.NewPostList()
-
-	// We need to flip the order if we selected backwards
-	if before {
-		for _, p := range posts {
-			list.AddPost(p)
-			list.AddOrder(p.Id)
-		}
-	} else {
-		l := len(posts)
-		for i := range posts {
-			list.AddPost(posts[l-i-1])
-			list.AddOrder(posts[l-i-1].Id)
-		}
+	list, err := s.prepareThreadedResponse(posts, options.CollapsedThreadsExtended, !before)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, p := range parents {

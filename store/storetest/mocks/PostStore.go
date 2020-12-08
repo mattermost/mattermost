@@ -100,13 +100,13 @@ func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error 
 	return r0
 }
 
-// Get provides a mock function with given fields: id, skipFetchThreads, collapsedThreads
-func (_m *PostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool) (*model.PostList, error) {
-	ret := _m.Called(id, skipFetchThreads, collapsedThreads)
+// Get provides a mock function with given fields: id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended
+func (_m *PostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
+	ret := _m.Called(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(string, bool, bool) *model.PostList); ok {
-		r0 = rf(id, skipFetchThreads, collapsedThreads)
+	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) *model.PostList); ok {
+		r0 = rf(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -114,8 +114,8 @@ func (_m *PostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool, bool) error); ok {
-		r1 = rf(id, skipFetchThreads, collapsedThreads)
+	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) error); ok {
+		r1 = rf(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	} else {
 		r1 = ret.Error(1)
 	}

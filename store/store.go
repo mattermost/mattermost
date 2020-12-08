@@ -272,7 +272,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(id string, skipFetchThreads, collapsedThreads bool) (*model.PostList, error)
+	Get(id string, skipFetchThreads, collapsedThreads,collapsedThreadsExtended bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error

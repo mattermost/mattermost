@@ -234,8 +234,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 	var users []*model.User
 	if opts.Extended {
-		query, args, _ := s.getQueryBuilder().Select("*").From("Users").Where(sq.Eq{"Id": userIds}).ToSql()
-		if _, err := s.GetReplica().Select(&users, query, args...); err != nil {
+		var err error
+		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
 	} else {
