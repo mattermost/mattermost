@@ -8272,7 +8272,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{. LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
+    "translation": "Sua instituição financeira recusou um pagamento de seu {{.CardBrand}} ****{{.LastFour}} associado ao seu espaço de trabalho Mattermost Cloud."
   },
   {
     "id": "api.templates.over_limit_suspended_title",
