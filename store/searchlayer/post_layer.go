@@ -134,10 +134,10 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	}
 
 	// We only allow the user to search in channels they are a member of.
-	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
-	if nErr != nil {
-		mlog.Error("error getting channel for user", mlog.Err(nErr))
-		return nil, nErr
+	userChannels, err := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
+	if err != nil {
+		mlog.Error("error getting channel for user", mlog.Err(err))
+		return nil, err
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)
