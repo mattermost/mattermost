@@ -8260,7 +8260,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Jouw financiële instelling weigerde een betaling van uw {{{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
+    "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
   },
   {
     "id": "api.templates.over_limit_suspended_title",
