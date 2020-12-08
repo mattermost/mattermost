@@ -24,7 +24,7 @@ import (
 )
 
 type SqlPostStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics           einterfaces.MetricsInterface
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
@@ -60,14 +60,14 @@ func postToSlice(post *model.Post) []interface{} {
 	}
 }
 
-func newSqlPostStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.PostStore {
+func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
-		SqlSupplier:       sqlSupplier,
+		SqlStore:          sqlStore,
 		metrics:           metrics,
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Post{}, "Posts").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
@@ -1937,7 +1937,6 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent b
 		}
 		if thread != nil {
 			thread.ReplyCount -= 1
-			thread.Participants = thread.Participants.Remove(userId)
 			if _, err = s.Thread().Update(thread); err != nil {
 				return errors.Wrap(err, "failed to update thread")
 			}

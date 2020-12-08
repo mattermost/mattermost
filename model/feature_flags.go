@@ -7,7 +7,7 @@ type FeatureFlags struct {
 	// Exists only for unit and manual testing.
 	// When set to a value, will be returned by the ping endpoint.
 	TestFeature string
-	// Exists only for testing bool functionality. Boolean feature flags interprate "on" or "true" as true and
+	// Exists only for testing bool functionality. Boolean feature flags interpret "on" or "true" as true and
 	// all other values as false.
 	TestBoolFeature bool
 
