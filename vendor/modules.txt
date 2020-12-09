@@ -371,7 +371,7 @@ github.com/mattermost/gorp
 github.com/mattermost/gosaml2
 github.com/mattermost/gosaml2/types
 github.com/mattermost/gosaml2/uuid
-# github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+# github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 ## explicit
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
