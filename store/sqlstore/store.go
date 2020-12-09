@@ -83,6 +83,7 @@ type SqlStoreStores struct {
 	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
+	remoteCluster        store.RemoteClusterStore
 	compliance           store.ComplianceStore
 	session              store.SessionStore
 	oauth                store.OAuthStore
@@ -153,6 +154,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
 	store.stores.cluster = newSqlClusterDiscoveryStore(store)
+	store.stores.remoteCluster = newSqlRemoteClusterStore(store)
 	store.stores.compliance = newSqlComplianceStore(store)
 	store.stores.session = newSqlSessionStore(store)
 	store.stores.oauth = newSqlOAuthStore(store)
@@ -1101,6 +1103,10 @@ func (ss *SqlStore) Audit() store.AuditStore {
 
 func (ss *SqlStore) ClusterDiscovery() store.ClusterDiscoveryStore {
 	return ss.stores.cluster
+}
+
+func (ss *SqlStore) RemoteCluster() store.RemoteClusterStore {
+	return ss.stores.remoteCluster
 }
 
 func (ss *SqlStore) Compliance() store.ComplianceStore {

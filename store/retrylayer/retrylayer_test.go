@@ -20,6 +20,7 @@ func genStore() *mocks.Store {
 	mock.On("Channel").Return(&mocks.ChannelStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
+	mock.On("RemoteCluster").Return(&mocks.RemoteClusterStore{})
 	mock.On("Command").Return(&mocks.CommandStore{})
 	mock.On("CommandWebhook").Return(&mocks.CommandWebhookStore{})
 	mock.On("Compliance").Return(&mocks.ComplianceStore{})
