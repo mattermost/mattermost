@@ -8418,11 +8418,11 @@ func (s *RetryLayerThreadStore) GetMembershipForUser(userId string, postId strin
 
 }
 
-func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamId string) ([]*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetMembershipsForUser(userId)
+		result, err := s.ThreadStore.GetMembershipsForUser(userId, teamId)
 		if err == nil {
 			return result, nil
 		}
@@ -8458,11 +8458,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+		result, err := s.ThreadStore.GetThreadsForUser(userId, teamId, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -8478,11 +8478,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
+		err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 		if err == nil {
 			return nil
 		}

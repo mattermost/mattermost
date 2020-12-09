@@ -7000,10 +7000,10 @@ func (s *TimerLayerThreadStore) GetMembershipForUser(userId string, postId strin
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *TimerLayerThreadStore) GetMembershipsForUser(userId string, teamId string) ([]*model.ThreadMembership, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetMembershipsForUser(userId)
+	result, err := s.ThreadStore.GetMembershipsForUser(userId, teamId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7032,10 +7032,10 @@ func (s *TimerLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+	result, err := s.ThreadStore.GetThreadsForUser(userId, teamId, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7048,10 +7048,10 @@ func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+func (s *TimerLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 	start := timemodule.Now()
 
-	err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
+	err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
