@@ -17,7 +17,6 @@ func (a *App) checkChannelNotShared(channelId string) error {
 		return fmt.Errorf("cannot share this channel: %w", err)
 	}
 
-func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	// Check channel is not already shared.
 	if _, err := a.GetSharedChannel(channelId); err == nil {
 		var errNotFound *store.ErrNotFound
