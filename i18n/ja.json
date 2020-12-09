@@ -8116,5 +8116,333 @@
   {
     "id": "api.templates.over_limit_info1",
     "translation": "ワークスペースにMattermost Cloud Professionalの無料枠を超える10名以上のユーザーがいるようです。ワークスペースの混乱を避けるために、アップグレードしてください。"
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "RetentionDaysに対する不正な値です。値が低すぎます。"
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "ディレクトリに対する不正な値です。"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads設定は、無効、デフォルトON、デフォルトOFFのいずれかでなければなりません"
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "インポートを処理できませんでした: ファイルをunzipできませんでした。"
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "インポートを処理できませんでした: 一時ディレクトリを作成できませんでした。"
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "インポートを処理できませんでした: ファイルを開けません。"
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "インポートを処理できませんでした: JSONファイルが見つかりません。"
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "インポートを処理できませんでした: import_file パラメータが見つかりません。"
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "インポートを処理できませんでした: ファイルが存在しません。"
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": "電子メール検証フィールドを更新できませんでした。"
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "ユーザーの最終更新日を更新できませんでした。"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "すべてのユーザースレッドを既読状態に更新できませんでした"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "スレッドの既読状態を更新できませんでした"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "スレッドの以下の状態を更新できませんでした"
+  },
+  {
+    "id": "app.user.update_password.app_error",
+    "translation": "ユーザーパスワードを更新できませんでした。"
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": "failed_attemptsを更新できませんでした。"
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "アカウントを{{.Service}}へ切り替えることができませんでした。電子メール {{.Email}} を使用しているアカウントが既に存在します。"
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "認証データを更新できませんでした。"
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": "ゲストを無効化できませんでした。"
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "アカウントを検索する際にエラーが発生しました。"
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "更新対象の既存アカウントが見つかりませんでした。"
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "検索パラメータに一致するユーザーが見つかりませんでした。"
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "そのユーザー名を持つアカウントは既に存在します。"
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "既存のユーザーに対する更新を呼び出す必要があります。"
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "その電子メールアドレスを持つアカウントは既に存在します。"
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "アカウントを保存できませんでした。"
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "ユーザーを更新できませんでした。"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "ユーザーのスレッドを取得できませんでした"
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "アップロードされたファイルを移動できませんでした。"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "更新エラー"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "選択エラー"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "挿入エラー"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "レスポンスを変換できませんでした。"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "グループメンバーが既に存在します"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "UserID \"{{.UserId}}\"を持つグループメンバーを削除できませんでした。"
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "一致するグループが見つかりませんでした"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "グループに対する不正なIDです。"
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "同期可能なグループは既に削除されています"
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "そのIDを持つチャンネルメンバーは既に存在します。"
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "カスタム権限スキームは現在のライセンスではサポートされていません"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Mattermost Cloudサブスクリプションへの支払い予定"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Mattermost Cloud請求期限"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "請求書を確認し、支払い方法を追加するには「今すぐしはらい」を選択してください。"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "直近支払い期限に対するMattermost Cloudの請求書が処理されましたが、有効な支払い情報がありません。"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "今すぐ支払う"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "支払いができませんでした"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "注意: Mattermost Cloudへの支払いができませんでした"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Mattermost Cloudへの支払いを続けるために、支払いの問題についてあなたの金融機関に問い合わせるか、支払い情報を更新してください。支払い情報が更新されると、Mattermostは未払いの支払いを解決しようとします。"
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "理由:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Mattermost Cloudワークスペースに関連付けられたあなたの {{.CardBrand}} ****{{.LastFour}} からの支払いを金融機関が拒否しました。"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloudワークスペースの停止"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "あなたのMattermost Cloudサブスクリプションは停止されました"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "ワークスペースを再度有効にするには我々に連絡してください。"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "あなたのMattermostワークスペースは停止されました。すべてのコンテンツやデータは1~3ヶ月以内に削除されます。"
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "今すぐ対応する"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "あなたのMattermost Cloudワークスペースの停止が明日に予定されています"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "あなたのMattermost Cloudサブスクリプションがもうすぐ停止されます"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "あなたのワークスペースが停止されると、すべてのコンテンツやデータは1~3ヶ月以内に削除されます。"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "あなたのワークスペースが停止されると、支払い情報が更新されるまでログインできなくなります。サービスを再び有効にするには我々のサポートチームに連絡する必要があります。"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "停止を避けるには、支払い情報を追加してください"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "これは、{{.OverLimitDate}}を過ぎてもMattermost Cloudワークスペースへの支払いがないことに対する最後の通知です。明日、あなたのサービスは停止されます。"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "有効な支払い方法がありません"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Mattermostサブスクリプションの支払いが滞納されています"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermostは自動支払いを処理できませんでした。サービスを使い続けるには、すぐに支払い情報を追加してください。でなければ、あなたのサービスが停止される可能性があります。"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud ワークスペースの停止"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Mattermost Cloudサブスクリプションを使い続けるためのお願い"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "メッセージ履歴にへアクセスできなくなります"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "支払い情報を更新するには、サポートチームに連絡してください"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "ワークスペースにログインできません"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "作業を行わない場合、あなたのワークスペースは停止されます"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "支払い方法に関する問題を解決することで、Mattermost Cloudのワークスペースを有効なままにし続けることができます。ワークスペースが停止されるのを避けるために、支払い方法を更新してください。"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "支払いが確認できていません"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Mattermost Cloudサブスクリプションの支払いが滞納されています"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "{{.OverLimitDate}} に設定されたMattermostサブスクリプションの支払日までに支払いがありませんでした。支払いが確認できない場合、あなたのサービスの一時停止プロセスを開始します。"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "閲覧済みのお知らせを更新できませんでした"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "あなたが追加、もしくは削除しようとした以下の権限に許可されていないものがあります"
+  },
+  {
+    "id": "api.roles.patch_roles.admin_role.error",
+    "translation": "システム管理者の役割の編集や変更はできません"
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "ファイルサイズを取得できませんでした。"
+  },
+  {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "ファイルサイズを取得できませんでした。"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "設定をマージできませんでした。"
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "設定をマージできませんでした。"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "サポートに連絡する"
   }
 ]
