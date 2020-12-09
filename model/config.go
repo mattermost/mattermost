@@ -335,7 +335,6 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
-	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -359,6 +358,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableLegacySidebar                               *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -697,10 +697,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
-	}
-
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -795,6 +791,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.EnableLegacySidebar == nil {
+		s.EnableLegacySidebar = NewBool(false)
 	}
 }
 
