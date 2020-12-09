@@ -2511,10 +2511,10 @@ func (s *TimerLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 	return result, err
 }
 
-func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
+func (s *TimerLayerComplianceStore) MessageExport(after int64, before int64, limit int) ([]*model.MessageExport, error) {
 	start := timemodule.Now()
 
-	result, err := s.ComplianceStore.MessageExport(after, limit)
+	result, err := s.ComplianceStore.MessageExport(after, before, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -83,13 +83,13 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) (model.Compliances, err
 	return r0, r1
 }
 
-// MessageExport provides a mock function with given fields: after, limit
-func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	ret := _m.Called(after, limit)
+// MessageExport provides a mock function with given fields: after, before, limit
+func (_m *ComplianceStore) MessageExport(after int64, before int64, limit int) ([]*model.MessageExport, error) {
+	ret := _m.Called(after, before, limit)
 
 	var r0 []*model.MessageExport
-	if rf, ok := ret.Get(0).(func(int64, int) []*model.MessageExport); ok {
-		r0 = rf(after, limit)
+	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.MessageExport); ok {
+		r0 = rf(after, before, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.MessageExport)
@@ -97,8 +97,8 @@ func (_m *ComplianceStore) MessageExport(after int64, limit int) ([]*model.Messa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
-		r1 = rf(after, limit)
+	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
+		r1 = rf(after, before, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

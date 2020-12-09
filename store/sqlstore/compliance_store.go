@@ -207,8 +207,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 	return cposts, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "Limit": limit}
+func (s SqlComplianceStore) MessageExport(after, before int64, limit int) ([]*model.MessageExport, error) {
+	props := map[string]interface{}{"StartTime": after, "EndTime": before, "Limit": limit}
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -244,6 +244,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Posts.UpdateAt > :StartTime AND
+			Posts.UpdateAt <= :EndTime AND
 			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt
 		LIMIT :Limit`
