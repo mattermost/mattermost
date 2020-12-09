@@ -29,7 +29,7 @@ type sendTask struct {
 // BufferFullError if the message cannot be enqueued before the timeout. A background context will block indefinitely.
 //
 // An optional callback can be provided that receives the success or fail result of sending to each remote cluster.
-// Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
+// Success or fail is regarding message delivery only. If a callback is provided it should return quickly.
 func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
 	task := sendTask{
 		msg: msg,
@@ -44,7 +44,7 @@ func (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteCluster
 	case rcs.send <- task:
 		return nil
 	case <-ctx.Done():
-		return fmt.Errorf("Could not enqueue outbound remote cluster message; queue full or timeout. Queue %d/%d. Err:%w", len(rcs.send), cap(rcs.send), ctx.Err())
+		return fmt.Errorf("Could not enqueue outbound remote cluster message; queue full or timeout. Queue %d/%d. Err: %w", len(rcs.send), cap(rcs.send), ctx.Err())
 	}
 }
 
