@@ -89,8 +89,12 @@ func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelR
 	return a.Srv().Store.Channel().GetSharedChannelRemotes(channelId)
 }
 
-func (a *App) DeleteSharedChannelRemote(remoteId string) (bool, error) {
-	return a.Srv().Store.Channel().DeleteSharedChannelRemote(remoteId)
+func (a *App) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+	return a.Srv().Store.Channel().UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
+}
+
+func (a *App) DeleteSharedChannelRemote(id string) (bool, error) {
+	return a.Srv().Store.Channel().DeleteSharedChannelRemote(id)
 }
 
 func (a *App) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {

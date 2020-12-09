@@ -2151,6 +2151,20 @@ func (_m *ChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.Sha
 	return r0, r1
 }
 
+// UpdateSharedChannelRemoteLastSyncAt provides a mock function with given fields: id, syncTime
+func (_m *ChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+	ret := _m.Called(id, syncTime)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(id, syncTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateSidebarCategories provides a mock function with given fields: userId, teamId, categories
 func (_m *ChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	ret := _m.Called(userId, teamId, categories)

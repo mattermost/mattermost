@@ -180,8 +180,24 @@ type SharedChannelRemoteStatus struct {
 	Hostname         string `json:"hostname"`
 	Port             int32  `json:"port"`
 	LastPingAt       int64  `json:"last_ping_at"`
+	LastSyncAt       int64  `json:"last_sync_at"`
 	Description      string `json:"description"`
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
+}
+
+type SyncResponse struct {
+	LastSyncAt int64 `json:"last_sync_at"`
+}
+
+func (sr SyncResponse) ToJson() string {
+	b, _ := json.Marshal(sr)
+	return string(b)
+}
+
+func SyncResponseFromJson(data io.Reader) (SyncResponse, error) {
+	var sr SyncResponse
+	err := json.NewDecoder(data).Decode(&sr)
+	return sr, err
 }

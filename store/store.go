@@ -251,6 +251,7 @@ type ChannelStore interface {
 	GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error)
 	GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error
 	DeleteSharedChannelRemote(remoteId string) (bool, error)
 	GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 }

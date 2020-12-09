@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"time"
@@ -160,30 +161,37 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 	}
 
 	pSlice := posts.ToSlice()
-	last := len(pSlice)
-	if last > MaxPostsPerSync {
-		last = MaxPostsPerSync
+	max := len(pSlice)
+	if max > MaxPostsPerSync {
+		max = MaxPostsPerSync
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:last])
+	msg, err := scs.postsToMsg(pSlice[:max])
 	if err != nil {
 		return err
 	}
 
-	// (rcs *Service) SendOutgoingMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
-		return fmt.Errorf("Cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	//err = rcs.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
-
+	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
+		// update SharedChannelRemote's LastSyncAt if send was successful
+		if err != nil {
+			return
+		}
+		syncResp, err := model.SyncResponseFromJson(bytes.NewReader(resp))
+		if err != nil {
+			scs.server.GetLogger().Error("invalid response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		}
+		if err := scs.server.GetStore().Channel().UpdateSharedChannelRemoteLastSyncAt(rc.RemoteId, syncResp.LastSyncAt); err != nil {
+			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		}
 	})
-
-	return fmt.Errorf("Not implemented yet")
 }
 
 func (scs *Service) postsToMsg(posts []*model.Post) (model.RemoteClusterMsg, error) {

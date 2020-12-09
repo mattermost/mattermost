@@ -14,11 +14,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/wiggin77/merror"
 )
 
 type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error)
 
 type sendTask struct {
+	rc  *model.RemoteCluster
 	msg model.RemoteClusterMsg
 	f   SendResultFunc
 }
@@ -31,13 +33,38 @@ type sendTask struct {
 // An optional callback can be provided that receives the success or fail result of sending to each remote cluster.
 // Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
 func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
-	task := sendTask{
-		msg: msg,
-		f:   f,
+	// get list of interested remotes.
+	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(msg.Topic)
+	if err != nil {
+		return err
 	}
 
+	errs := merror.New()
+
+	for _, rc := range list {
+		if err := rcs.SendMsg(ctx, msg, rc, f); err != nil {
+			errs.Append(err)
+		}
+	}
+	return errs.ErrorOrNil()
+}
+
+// SendMsg asynchronously sends a message to a remote cluster.
+//
+// `ctx` determines behaviour when the outbound queue is full. A timeout or deadline context will return a
+// BufferFullError if the message cannot be enqueued before the timeout. A background context will block indefinitely.
+//
+// An optional callback can be provided that receives the success or fail result of sending to the remote cluster.
+// Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
+func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendResultFunc) error {
 	if ctx == nil {
 		ctx = context.Background()
+	}
+
+	task := sendTask{
+		rc:  rc,
+		msg: msg,
+		f:   f,
 	}
 
 	select {
@@ -46,6 +73,7 @@ func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg
 	case <-ctx.Done():
 		return NewBufferFullError(cap(rcs.send))
 	}
+
 }
 
 func (rcs *Service) sendLoop(done chan struct{}) {
@@ -65,44 +93,33 @@ func (rcs *Service) sendLoop(done chan struct{}) {
 }
 
 func (rcs *Service) sendMsg(task sendTask) {
-	// get list of interested remotes.
-	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(task.msg.Topic)
-	if err != nil && task.f != nil {
-		task.f(task.msg, nil, nil, fmt.Errorf("could not send msg to remote: %w", err))
-		return
-	}
+	// Ensure a panic from the callback doesn't exit the pool thread.
+	defer func() {
+		if r := recover(); r != nil {
+			rcs.server.GetLogger().Log(mlog.LvlPanic, "Remote Cluster sendMsg panic",
+				mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Any("panic", r))
+		}
+	}()
 
-	// bound the number of concurrent goroutines used to send using a semaphore.
-	bound := make(chan struct{}, MaxConcurrentSends)
-
-	for _, rc := range list {
-		bound <- struct{}{}
-		go func(rc *model.RemoteCluster) {
-			defer func() { <-bound }()
-			resp, err := rcs.sendMsgToRemote(rc, task)
-			if task.f != nil {
-				task.f(task.msg, rc, resp, err)
-			}
-			if err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster message send failed",
-					mlog.String("remote", rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
-			} else {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
-					mlog.String("remote", rc.DisplayName), mlog.String("msgId", task.msg.Id))
-			}
-		}(rc)
-	}
-}
-
-func (rcs *Service) sendMsgToRemote(rc *model.RemoteCluster, task sendTask) ([]byte, error) {
 	frame := &model.RemoteClusterFrame{
-		RemoteId: rc.RemoteId,
-		Token:    rc.RemoteToken,
+		RemoteId: task.rc.RemoteId,
+		Token:    task.rc.RemoteToken,
 		Msg:      task.msg,
 	}
-	url := fmt.Sprintf("%s/%s", rc.SiteURL, SendMsgURL)
+	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
-	return rcs.sendFrameToRemote(SendTimeout, frame, url)
+	resp, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
+	if task.f != nil {
+		task.f(task.msg, task.rc, resp, err)
+	}
+
+	if err != nil {
+		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
+			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
+	} else {
+		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
+			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
+	}
 }
 
 func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.RemoteClusterFrame, url string) ([]byte, error) {

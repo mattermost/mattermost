@@ -2218,6 +2218,22 @@ func (s *TimerLayerChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+	start := timemodule.Now()
+
+	err := s.ChannelStore.UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSharedChannelRemoteLastSyncAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	start := timemodule.Now()
 
