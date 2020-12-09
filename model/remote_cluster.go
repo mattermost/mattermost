@@ -118,8 +118,8 @@ func (f *RemoteClusterFrame) IsValid() *AppError {
 		return NewAppError("RemoteClusterFrame.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(f.Msg.Payload) == 0 {
-		return NewAppError("RemoteClusterFrame.IsValid", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "msg.payLoad"}, "", http.StatusBadRequest)
+	if err := f.Msg.IsValid(); err != nil {
+		return err
 	}
 
 	return nil
@@ -156,6 +156,11 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 	if !IsValidId(m.Token) {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	if len(m.Payload) == 0 {
+		return NewAppError("RemoteClusterMsg.IsValid", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "PayLoad"}, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
