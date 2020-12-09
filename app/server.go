@@ -618,17 +618,19 @@ func (s *Server) initLogging() error {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
 	}
 
+	// Use this app logger as the global logger (eventually remove all instances of global logging).
+	// This is deferred because a copy is made of the logger and it must be fully configured before
+	// the copy is made.
+	defer mlog.InitGlobalLogger(s.Log)
+
+	// Redirect default Go logger to this logger.
+	defer mlog.RedirectStdLog(s.Log)
+
 	if s.NotificationsLog == nil {
 		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
 			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(s.Log)
 
 	if s.logListenerId != "" {
 		s.RemoveConfigListener(s.logListenerId)
@@ -659,7 +661,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
 
-		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
+		if err := s.Log.ConfigAdvancedLogging(cfg.Get()); err != nil {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
@@ -668,7 +670,7 @@ func (s *Server) initLogging() error {
 		}
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
-			if err := mlog.ConfigAdvancedLogging(newCfg); err != nil {
+			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
 				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
 			} else {
 				mlog.Info("Re-configured advanced logging")
