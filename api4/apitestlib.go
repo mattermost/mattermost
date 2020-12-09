@@ -531,7 +531,7 @@ func (th *TestHelper) CreatePinnedPost() *model.Post {
 	return th.CreatePinnedPostWithClient(th.Client, th.BasicChannel)
 }
 
-func (th *TestHelper) CreatethssagePost(message string) *model.Post {
+func (th *TestHelper) CreateMessagePost(message string) *model.Post {
 	return th.CreateMessagePostWithClient(th.Client, th.BasicChannel, message)
 }
 
