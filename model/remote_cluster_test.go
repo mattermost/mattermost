@@ -91,7 +91,8 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 		{name: "Missing remote id", msg: &RemoteClusterMsg{Id: id}, valid: false},
 		{name: "Missing Token", msg: &RemoteClusterMsg{Id: id}, valid: false},
 		{name: "Missing Topic", msg: &RemoteClusterMsg{Id: id, Token: NewId()}, valid: false},
-		{name: "RemoteClusterMsg valid", msg: &RemoteClusterMsg{Id: id, Token: NewId(), CreateAt: now, Topic: "shared_channel"}, valid: true},
+		{name: "Missing Payload", msg: &RemoteClusterMsg{Id: id, Token: NewId(), CreateAt: now, Topic: "shared_channel"}, valid: false},
+		{name: "RemoteClusterMsg valid", msg: &RemoteClusterMsg{Id: id, Token: NewId(), CreateAt: now, Topic: "shared_channel", Payload: []byte("{\"hello\":\"world\"}")}, valid: true},
 	}
 
 	for _, item := range data {
