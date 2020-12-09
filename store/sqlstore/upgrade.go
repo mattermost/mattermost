@@ -953,9 +953,9 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
 		// allow 10 files per post
 		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-		saveSchemaVersion(sqlStore, VERSION_5_31_0)
-	}
+		// saveSchemaVersion(sqlStore, VERSION_5_31_0)
+	// }
 }
