@@ -299,12 +299,38 @@ func (s SqlChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.Sha
 	return remotes, nil
 }
 
+// UpdateSharedChannelRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.
+func (s SqlChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("SharedChannelRemotes").
+		Set("LastSyncAt", syncTime).
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "update_shared_channel_remote_last_sync_at_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelRemote")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", id)
+	}
+	return nil
+}
+
 // DeleteSharedChannelRemote deletes a single shared channel remote.
 // Returns true if remote found and deleted, false if not found.
-func (s SqlChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
+func (s SqlChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
 	squery, args, err := s.getQueryBuilder().
 		Delete("SharedChannelRemotes").
-		Where(sq.Eq{"Id": remoteId}).
+		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
 		return false, errors.Wrap(err, "delete_shared_channel_remote_tosql")
@@ -329,7 +355,7 @@ func (s SqlChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*mod
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.ClusterName, rc.HostName, rc.Port, rc.LastPingAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted, scr.Token").
+		Select("scr.ChannelId, rc.ClusterName, rc.HostName, rc.Port, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted, scr.Token").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteClusterId=rc.Id").
 		Where("scr.ChannelId = sc.ChannelId").

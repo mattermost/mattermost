@@ -23,6 +23,7 @@ func TestChannelStoreSharedChannels(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, ss) })
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
+	t.Run("UpdateSharedChannelRemoteLastSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteLastSyncAt(t, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
 }
 
@@ -509,9 +510,41 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	})
 }
 
+func testUpdateSharedChannelRemoteLastSyncAt(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_remote_update_last_sync_at")
+	require.NoError(t, err)
+
+	remote := &model.SharedChannelRemote{
+		ChannelId:       channel.Id,
+		Token:           model.NewId(),
+		Description:     "test_remote",
+		CreatorId:       model.NewId(),
+		RemoteClusterId: model.NewId(),
+	}
+
+	remoteSaved, err := ss.Channel().SaveSharedChannelRemote(remote)
+	require.NoError(t, err, "couldn't save remote", err)
+
+	future := model.GetMillis() + 3600000 // 1 hour in the future
+
+	t.Run("Update LastSyncAt", func(t *testing.T) {
+		err := ss.Channel().UpdateSharedChannelRemoteLastSyncAt(remoteSaved.Id, future)
+		require.Nil(t, err, "update LasTSyncAt should not error", err)
+
+		r, err := ss.Channel().GetSharedChannelRemote(remoteSaved.Id)
+		require.NoError(t, err)
+		require.Equal(t, future, r.LastSyncAt)
+	})
+
+	t.Run("Update LastSyncAt for non-existent shared channel remote", func(t *testing.T) {
+		err := ss.Channel().UpdateSharedChannelRemoteLastSyncAt(model.NewId(), future)
+		require.Error(t, err, "update non-existent remote should error", err)
+	})
+}
+
 func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remote_delete")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
 		ChannelId:       channel.Id,
