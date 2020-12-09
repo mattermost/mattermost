@@ -9,21 +9,22 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 // LRU is a thread-safe fixed size LRU cache.
 type LRU struct {
-	name                   string
+	lock                   sync.RWMutex
 	size                   int
+	len                    int
+	currentGeneration      int64
 	evictList              *list.List
 	items                  map[string]*list.Element
-	lock                   sync.RWMutex
 	defaultExpiry          time.Duration
+	name                   string
 	invalidateClusterEvent string
-	currentGeneration      int64
-	len                    int
 }
 
 // LRUOptions contains options for initializing LRU cache
@@ -32,6 +33,9 @@ type LRUOptions struct {
 	Size                   int
 	DefaultExpiry          time.Duration
 	InvalidateClusterEvent string
+	// StripedBuckets is used only by LRUStriped and shouldn't be greater than the number
+	// of CPUs available on the machine running this cache.
+	StripedBuckets int
 }
 
 // entry is used to hold a value in the evictList.
@@ -43,7 +47,7 @@ type entry struct {
 }
 
 // NewLRU creates an LRU of the given size.
-func NewLRU(opts *LRUOptions) Cache {
+func NewLRU(opts LRUOptions) Cache {
 	return &LRU{
 		name:                   opts.Name,
 		size:                   opts.Size,
@@ -141,19 +145,15 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 
 	var buf []byte
 	var err error
-
 	// We use a fast path for hot structs.
 	if msgpVal, ok := value.(msgp.Marshaler); ok {
 		buf, err = msgpVal.MarshalMsg(nil)
-		if err != nil {
-			return err
-		}
 	} else {
 		// Slow path for other structs.
 		buf, err = msgpack.Marshal(value)
-		if err != nil {
-			return err
-		}
+	}
+	if err != nil {
+		return err
 	}
 
 	l.lock.Lock()
