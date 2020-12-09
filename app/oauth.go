@@ -795,7 +795,6 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	stateStr := string(b)
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
-	mlog.Debug(stateStr)
 
 	expectedToken, appErr := a.GetOAuthStateToken(stateProps["token"])
 	if appErr != nil {
