@@ -4,6 +4,8 @@
 package remotecluster
 
 import (
+	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -45,9 +47,9 @@ type TopicListener interface {
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {
-	server ServerIface
-
-	send chan sendTask
+	server     ServerIface
+	send       chan sendTask
+	httpClient *http.Client
 
 	// everything below guarded by `mux`
 	mux              sync.RWMutex
@@ -59,9 +61,30 @@ type Service struct {
 
 // NewRemoteClusterService creates a RemoteClusterService instance.
 func NewRemoteClusterService(server ServerIface) (*Service, error) {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          200,
+		MaxIdleConnsPerHost:   2,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   SendTimeout,
+	}
+
 	service := &Service{
-		server: server,
-		send:   make(chan sendTask, SendChanBuffer),
+		server:     server,
+		send:       make(chan sendTask, SendChanBuffer),
+		httpClient: client,
 	}
 	return service, nil
 }

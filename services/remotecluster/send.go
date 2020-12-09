@@ -120,7 +120,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.Remote
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
+	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}

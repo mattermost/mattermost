@@ -118,6 +118,11 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("Missing or empty `name`")
 	}
 
+	url := a.GetSiteURL()
+	if url == "" {
+		return responsef("SiteURL not set. Please set this via the system console.")
+	}
+
 	rc := &model.RemoteCluster{
 		DisplayName: name,
 		Token:       model.NewId(),
@@ -126,11 +131,6 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 	rcSaved, appErr := a.AddRemoteCluster(rc)
 	if appErr != nil {
 		return responsef("Could not add remote cluster: %v", appErr)
-	}
-
-	url := a.GetSiteURL()
-	if url == "" {
-		return responsef("SiteURL not set. Please set this via the system console.")
 	}
 
 	// Display the encrypted invitation
