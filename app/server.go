@@ -626,7 +626,7 @@ func (s *Server) initLogging() error {
 	// the copy is made.
 	defer mlog.InitGlobalLogger(s.Log)
 
-	// Redirect default golang logger to this logger.
+	// Redirect default Go logger to this logger.
 	defer mlog.RedirectStdLog(s.Log)
 
 	if s.NotificationsLog == nil {
