@@ -117,7 +117,7 @@ func (worker *BleveIndexerWorker) Stop() {
 func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	claimed, err := worker.jobServer.ClaimJob(job)
 	if err != nil {
-		mlog.Warn("Worker: Error ocurred while trying to claim job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		mlog.Warn("Worker: Error occurred while trying to claim job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
 		return
 	}
 	if !claimed {

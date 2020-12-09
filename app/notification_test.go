@@ -847,7 +847,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				OtherPotentialMentions: nil,
 			},
 		},
-		"matching group with preceeding @": {
+		"matching group with preceding @": {
 			Message: "@engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
@@ -858,7 +858,7 @@ func TestGetExplicitMentions(t *testing.T) {
 				OtherPotentialMentions: []string{"engineering"},
 			},
 		},
-		"matching upper case group with preceeding @": {
+		"matching upper case group with preceding @": {
 			Message: "@Engineering",
 			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
@@ -2092,12 +2092,12 @@ func TestAddGroupMention(t *testing.T) {
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: false,
 		},
-		"matching group with preceeding @": {
+		"matching group with preceding @": {
 			Word:     "@engineering",
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: true,
 		},
-		"matching upper case group with preceeding @": {
+		"matching upper case group with preceding @": {
 			Word:     "@Engineering",
 			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: true,
