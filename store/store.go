@@ -14,6 +14,7 @@ import (
 
 type StoreResult struct {
 	Data interface{}
+	Err  *model.AppError
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -439,10 +440,13 @@ type ClusterDiscoveryStore interface {
 
 type RemoteClusterStore interface {
 	Save(rc *model.RemoteCluster) (*model.RemoteCluster, error)
+	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
 	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
 	GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
+	GetByTopic(topic string) ([]*model.RemoteCluster, error)
+	UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
 

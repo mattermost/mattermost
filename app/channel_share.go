@@ -69,6 +69,7 @@ func (a *App) DeleteSharedChannel(channelId string) (bool, error) {
 }
 
 // SharedChannelRemotes
+
 func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	if err := a.checkChannelIsShared(remote.ChannelId); err != nil {
 		return nil, err

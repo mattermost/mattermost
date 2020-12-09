@@ -49,6 +49,8 @@ func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {
 		return newAuditIncomingWebhook(v), true
 	case *OutgoingWebhook:
 		return newAuditOutgoingWebhook(v), true
+	case *RemoteCluster:
+		return newRemoteCluster(v), true
 	}
 	return val, false
 }
@@ -663,5 +665,38 @@ func (h auditOutgoingWebhook) MarshalJSONObject(enc *gojay.Encoder) {
 }
 
 func (h auditOutgoingWebhook) IsNil() bool {
+	return false
+}
+
+type auditRemoteCluster struct {
+	RemoteId    string
+	DisplayName string
+	SiteURL     string
+	CreateAt    int64
+	LastPingAt  int64
+}
+
+// newRemoteCluster creates a simplified representation of RemoteCluster for output to audit log.
+func newRemoteCluster(r *RemoteCluster) auditRemoteCluster {
+	var rc auditRemoteCluster
+	if r != nil {
+		rc.RemoteId = r.RemoteId
+		rc.DisplayName = r.DisplayName
+		rc.SiteURL = r.SiteURL
+		rc.CreateAt = r.CreateAt
+		rc.LastPingAt = r.LastPingAt
+	}
+	return rc
+}
+
+func (r auditRemoteCluster) MarshalJSONObject(enc *gojay.Encoder) {
+	enc.StringKey("remote_id", r.RemoteId)
+	enc.StringKey("display_name", r.DisplayName)
+	enc.StringKey("site_url", r.SiteURL)
+	enc.Int64Key("create_at", r.CreateAt)
+	enc.Int64Key("last_ping_at", r.LastPingAt)
+}
+
+func (r auditRemoteCluster) IsNil() bool {
 	return false
 }

@@ -1032,7 +1032,7 @@
   },
   {
     "id": "api.command_remote.desc",
-    "translation": "Add/remove a remote Mattermost cluster for inter-cluster communication."
+    "translation": "Invite remote Mattermost clusters for inter-cluster communication."
   },
   {
     "id": "api.command_remote.hint",
@@ -1201,6 +1201,14 @@
   {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions."
+  },
+  {
+    "id": "api.context.remote_id_invalid.app_error",
+    "translation": "Unable to find remote id {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.remote_token_invalid.app_error",
+    "translation": "Invalid remote token."
   },
   {
     "id": "api.context.server_busy.app_error",
@@ -1973,6 +1981,34 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
+    "id": "api.remote_cluster.delete.app_error",
+    "translation": "We encountered an error deleting the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.get.app_error",
+    "translation": "We encountered an error retrieving a remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.invalid_id.app_error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "api.remote_cluster.invalid_token.app_error",
+    "translation": "Invalid token."
+  },
+  {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Invalid topic."
+  },
+  {
+    "id": "api.remote_cluster.save.app_error",
+    "translation": "We encountered an error saving the remote cluster."
+  },
+  {
+    "id": "api.remote_cluster.service_not_enabled.app_error",
+    "translation": "The remote cluster service is not enabled."
   },
   {
     "id": "api.restricted_system_admin",

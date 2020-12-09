@@ -43,6 +43,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
@@ -142,6 +143,8 @@ type Server struct {
 	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
+
+	remoteClusterService *remotecluster.Service
 
 	phase2PermissionsMigrationComplete bool
 
@@ -703,6 +706,31 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
+func (s *Server) startInterClusterServices(license *model.License) {
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return
+	}
+
+	var err error
+
+	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
+	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	if err != nil {
+		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
+		return
+	}
+
+	if err = s.remoteClusterService.Start(); err != nil {
+		mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
+		s.remoteClusterService = nil
+		return
+	}
+
+	// TODO: init and start shared channels service here. (MM-28519)
+
+}
+
 func (s *Server) enableLoggingMetrics() {
 	if s.Metrics == nil {
 		return
@@ -759,6 +787,12 @@ func (s *Server) Shutdown() error {
 	err := s.telemetryService.Shutdown()
 	if err != nil {
 		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+	}
+
+	if s.remoteClusterService != nil {
+		if err = s.remoteClusterService.Shutdown(); err != nil {
+			mlog.Error("Error shutting down intercluster services", mlog.Err(err))
+		}
 	}
 
 	s.StopHTTPServer()
@@ -1126,6 +1160,8 @@ func (s *Server) Start() error {
 			mlog.Critical(err.Error())
 		}
 	}
+
+	s.startInterClusterServices(s.License())
 
 	return nil
 }
@@ -1585,4 +1621,20 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (s *Server) GetLogger() mlog.LoggerIFace {
+	return s.Log
+}
+
+// GetStore returns the server's Store. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetStore() store.Store {
+	return s.Store
+}
+
+// GetRemoteClusterService returns the `RemoteClusterService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetRemoteClusterService() *remotecluster.Service {
+	return s.remoteClusterService
 }
