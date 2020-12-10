@@ -6483,6 +6483,10 @@
     "translation": "unable to migrate."
   },
   {
+    "id": "ent.license.renewal_token.app_error",
+    "translation": "Failed to generate a new renewal token."
+  },
+  {
     "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": "Failed to get file info for a post."
   },

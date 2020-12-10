@@ -5,20 +5,31 @@ package app
 
 import (
 	"bytes"
-	"errors"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
+
+	"github.com/pkg/errors"
 )
 
 const (
-	requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
-	LicenseEnv      = "MM_LICENSE"
+	requestTrialURL           = "https://customers.mattermost.com/api/v1/trials"
+	LicenseEnv                = "MM_LICENSE"
+	JWTDefaultTokenExpiration = 7 * 24 * time.Hour // 7 days of expiration
 )
+
+// JWTClaims custom JWT claims with the needed information for the
+// renewal process
+type JWTClaims struct {
+	LicenseID string `json:"license_id"`
+	jwt.StandardClaims
+}
 
 func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
@@ -244,4 +255,63 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	s.InvalidateAllCaches()
 
 	return nil
+}
+
+// GenerateRenewalToken returns the current active token or generate a new one if
+// the current active one has expired
+func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
+	if license := s.License(); license != nil {
+		currentToken, err := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		if currentToken != nil {
+			tokenIsValid, err2 := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
+			if err2 != nil {
+				mlog.Warn("error checking license renewal token validation", mlog.Err(err))
+			}
+			if currentToken.Value != "" && tokenIsValid {
+				return currentToken.Value, nil
+			}
+		}
+
+		expirationTime := time.Now().UTC().Add(expiration)
+		claims := &JWTClaims{
+			LicenseID: license.Id,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString([]byte(license.Customer.Email))
+		if err != nil {
+			return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		err = s.Store.System().SaveOrUpdate(&model.System{
+			Name:  model.SYSTEM_LICENSE_RENEWAL_TOKEN,
+			Value: tokenString,
+		})
+		if err != nil {
+			return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return tokenString, nil
+	} else {
+		// Clean renewal token if there is no license present
+		_, _ = s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.no_license", nil, "", http.StatusBadRequest)
+	}
+}
+
+func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error) {
+	claims := &JWTClaims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(signingKey), nil
+	})
+	if err != nil && !token.Valid {
+		return false, errors.Wrapf(err, "Error validating JWT token")
+	}
+	expirationTime := time.Unix(claims.ExpiresAt, 0)
+	if expirationTime.Before(time.Now().UTC()) {
+		return false, nil
+	}
+	return true, nil
 }

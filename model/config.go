@@ -265,6 +265,7 @@ type ServiceSettings struct {
 	SiteURL                                           *string  `access:"environment,authentication,write_restrictable"`
 	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`
+	LicenseRenewalURL                                 *string  `access:"write_restrictable,cloud_restrictable"`
 	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnectionSecurity                                *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	TLSCertFile                                       *string  `access:"environment,write_restrictable,cloud_restrictable"`
@@ -387,6 +388,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.LicenseFileLocation == nil {
 		s.LicenseFileLocation = NewString("")
+	}
+
+	if s.LicenseRenewalURL == nil {
+		s.LicenseRenewalURL = NewString("")
 	}
 
 	if s.ListenAddress == nil {
