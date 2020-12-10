@@ -112,6 +112,9 @@ func initStores() {
 			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 	}
 
+	featureFlags := model.FeatureFlags{}
+	featureFlags.SetDefaults()
+
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -124,7 +127,7 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlStore = New(*st.SqlSettings, nil)
+			st.SqlStore = New(*st.SqlSettings, &featureFlags, nil)
 			st.Store = st.SqlStore
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
@@ -165,7 +168,11 @@ func TestStoreLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 	settings.DataSourceReplicas = []string{":memory:"}
 	settings.DataSourceSearchReplicas = []string{":memory:"}
-	store := New(*settings, nil)
+
+	featureFlags := model.FeatureFlags{}
+	featureFlags.SetDefaults()
+
+	store := New(*settings, &featureFlags, nil)
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
@@ -250,7 +257,11 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			store := New(*settings, nil)
+
+			featureFlags := model.FeatureFlags{}
+			featureFlags.SetDefaults()
+
+			store := New(*settings, &featureFlags, nil)
 			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
@@ -307,7 +318,11 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			store := New(*settings, nil)
+
+			featureFlags := model.FeatureFlags{}
+			featureFlags.SetDefaults()
+
+			store := New(*settings, &featureFlags, nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -368,7 +383,11 @@ func TestGetDbVersion(t *testing.T) {
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-			store := New(*settings, nil)
+
+			featureFlags := model.FeatureFlags{}
+			featureFlags.SetDefaults()
+
+			store := New(*settings, &featureFlags, nil)
 
 			version, err := store.GetDbVersion(false)
 			require.Nil(t, err)
@@ -448,7 +467,11 @@ func TestGetAllConns(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-			store := New(*settings, nil)
+
+			featureFlags := model.FeatureFlags{}
+			featureFlags.SetDefaults()
+
+			store := New(*settings, &featureFlags, nil)
 
 			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
 		})

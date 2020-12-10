@@ -466,7 +466,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := s.SelectOneLazy(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
@@ -529,7 +529,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	}
 	sql, args, _ := q.ToSql()
 	var et etagPosts
-	err := s.GetReplica().SelectOne(&et, sql, args...)
+	err := s.GetReplica().SelectOne(&et, sql, args)
 	var result string
 	if err != nil {
 		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())

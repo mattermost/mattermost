@@ -50,7 +50,8 @@ func (s *BleveEngineTestSuite) setupStore() {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName)
-	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
+
+	s.SQLStore = sqlstore.New(*s.SQLSettings, s.BleveEngine.jobServer.Config().FeatureFlags, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

@@ -4,6 +4,7 @@
 package searchlayer
 
 import (
+	"context"
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -89,7 +90,7 @@ func (s *SearchStore) indexUser(user *model.User) {
 					userTeamsIds = append(userTeamsIds, team.Id)
 				}
 
-				userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(user.Id, false, true)
+				userChannelMembers, err := s.Channel().GetAllChannelMembersForUser(context.Background(), user.Id, false, true)
 				if err != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return

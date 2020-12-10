@@ -24,8 +24,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+const (
+	FlagNameMySQLReplica        = "mysql-replica"
+	FlagDescriptionMySQLReplica = "sets whether a mysql replicas are being tested"
+)
+
 type MainHelper struct {
 	Settings         *model.SqlSettings
+	FeatureFlags     *model.FeatureFlags
 	Store            store.Store
 	SearchEngine     *searchengine.Broker
 	SQLStore         *sqlstore.SqlStore
@@ -110,9 +116,11 @@ func (h *MainHelper) setupStore() {
 	config := &model.Config{}
 	config.SetDefaults()
 
+	h.FeatureFlags = config.FeatureFlags
 	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	h.SQLStore = sqlstore.New(*h.Settings, h.FeatureFlags, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)

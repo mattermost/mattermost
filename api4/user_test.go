@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -3345,6 +3346,49 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.Id, th.BasicUser.Id)
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginReplicationLag(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	t.Run("with replication lag, caches cleared", func(t *testing.T) {
+		if !replicaFlag {
+			t.Skipf("requires test flag: -%s", testlib.FlagNameMySQLReplica)
+		}
+
+		if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+			t.Skipf("requires %q database driver", model.DATABASE_DRIVER_MYSQL)
+		}
+
+		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+		sessions, err := th.App.GetSessions(th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, sessions, 0)
+
+		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(30)
+		require.Nil(t, cmdErr)
+		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
+
+		*mainHelper.Settings.ReplicaLazyReads = true
+		mainHelper.FeatureFlags.ReplicaLazyReads = true
+		defer func() {
+			*mainHelper.Settings.ReplicaLazyReads = false
+			mainHelper.FeatureFlags.ReplicaLazyReads = false
+		}()
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+
+		err = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, err)
+
+		session, err := th.App.GetSession(th.Client.AuthToken)
+		require.Nil(t, err)
+		require.NotNil(t, session)
 	})
 }
 

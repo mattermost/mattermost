@@ -4,6 +4,7 @@
 package app
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -11,8 +12,12 @@ import (
 )
 
 var mainHelper *testlib.MainHelper
+var replicaFlag bool
 
 func TestMain(m *testing.M) {
+	flag.BoolVar(&replicaFlag, testlib.FlagNameMySQLReplica, false, testlib.FlagDescriptionMySQLReplica)
+	flag.Parse()
+
 	var options = testlib.HelperOptions{
 		EnableStore:     true,
 		EnableResources: true,

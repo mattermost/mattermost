@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -1675,7 +1676,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
+	ids, err := s.GetAllChannelMembersForUser(context.Background(), userId, true, false)
 	if err != nil {
 		mlog.Error("Error getting all channel members for user", mlog.Err(err))
 		return false
@@ -1721,7 +1722,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(ctx context.Context, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	cache_key := userId
 	if includeDeleted {
 		cache_key += "_deleted"
@@ -1765,7 +1766,14 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	var dbMap *gorp.DbMap
+	if hasMaster(ctx) {
+		dbMap = s.GetMaster()
+	} else {
+		dbMap = s.GetReplica()
+	}
+
+	rows, err := dbMap.Db.Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
 	}

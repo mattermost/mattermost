@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check test-replication-lag
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -163,6 +163,9 @@ else
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
+ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+	./scripts/replica-mysql-config.sh
+endif
 endif
 
 run-haserver: run-client
@@ -190,7 +193,6 @@ else
 	docker-compose down -v
 	docker-compose rm -v
 endif
-
 
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./plugin/checker
@@ -387,6 +389,18 @@ test-client: ## Test client app.
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
 
 test: test-server test-client ## Runs all checks and tests below (except race detection and postgres).
+
+test-replication-lag: check-prereqs-enterprise start-docker-check start-docker ## Run tests involving replication lag.
+ifeq ($(MM_SQLSETTINGS_DRIVERNAME),mysql)
+	@echo Running replication lag tests
+	$(GO) test $(GOFLAGS) \
+		github.com/mattermost/mattermost-server/v5/api4 \
+		github.com/mattermost/mattermost-server/v5/app \
+		github.com/mattermost/mattermost-server/v5/enterprise/ldap \
+		-run="^TestLoginReplicationLag|TestReplyToPost|TestSyncMembershipsWithLag|TestFirstLoginSync$$" -mysql-replica
+else
+	@echo Must use 'mysql' database driver for replication lag tests
+endif
 
 cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	@echo Opening coverage info in browser. If this failed run make test first

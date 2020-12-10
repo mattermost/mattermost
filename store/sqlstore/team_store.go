@@ -1013,7 +1013,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	}
 
 	var dbMember teamMemberWithSchemeRoles
-	err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
+	err = s.SelectOneLazy(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))

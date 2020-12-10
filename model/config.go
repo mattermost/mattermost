@@ -1102,6 +1102,7 @@ type SqlSettings struct {
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
+	ReplicaLazyReads            *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1157,6 +1158,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.DisableDatabaseSearch == nil {
 		s.DisableDatabaseSearch = NewBool(false)
+	}
+
+	if s.ReplicaLazyReads == nil {
+		s.ReplicaLazyReads = NewBool(false)
 	}
 }
 

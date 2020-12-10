@@ -20,6 +20,8 @@ type FeatureFlags struct {
 	CollapsedThreads bool
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
+
+	ReplicaLazyReads bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -28,6 +30,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.PluginIncidentManagement = "1.1.1"
+	f.ReplicaLazyReads = false
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {
