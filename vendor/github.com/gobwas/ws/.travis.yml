@@ -1,0 +1,25 @@
+sudo: required
+
+language: go
+
+services:
+  - docker
+
+os:
+  - linux
+  - windows
+
+go:
+  - 1.8.x
+  - 1.9.x
+  - 1.10.x
+  - 1.11.x
+  - 1.x
+
+install:
+  - go get github.com/gobwas/pool
+  - go get github.com/gobwas/httphead
+
+script:
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then go test ./...; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then make test autobahn; fi

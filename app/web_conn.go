@@ -7,13 +7,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
-	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -31,12 +33,12 @@ const (
 )
 
 // WebConn represents a single websocket connection to a user.
-// It contains all the necesarry state to manage sending/receiving data to/from
+// It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
-	WebSocket        *websocket.Conn
+	WebSocket        net.Conn
 	T                goi18n.TranslateFunc
 	Locale           string
 	Sequence         int64
@@ -53,7 +55,7 @@ type WebConn struct {
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
 	if session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)
@@ -83,6 +85,10 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 // Close closes the WebConn.
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
+	// This triggers the pump exit.
+	// If the pump has already exited, this just becomes a noop.
+	close(wc.endWritePump)
+	// We wait for the pump to fully exit.
 	<-wc.pumpFinished
 }
 
@@ -123,43 +129,45 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		wc.writePump()
-	}()
-	wc.readPump()
-	close(wc.endWritePump)
-	wg.Wait()
+	wc.writePump()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
 }
 
-func (wc *WebConn) readPump() {
-	defer func() {
-		wc.WebSocket.Close()
-	}()
-	wc.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
+// ReadMsg will read a single message from the websocket connection.
+func (wc *WebConn) ReadMsg() error {
+	// TODO(agniva):
+	// wc.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
-	wc.WebSocket.SetPongHandler(func(string) error {
-		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+
+	r := wsutil.NewReader(wc.WebSocket, ws.StateServerSide)
+	decoder := json.NewDecoder(r)
+
+	var req model.WebSocketRequest
+	hdr, err := r.NextFrame()
+	if err != nil {
+		return errors.Wrap(err, "error while getting the next websocket frame")
+	}
+	switch hdr.OpCode {
+	case ws.OpClose:
+		// Return if closed.
+		return nil
+	case ws.OpPong:
+		// Handle pongs
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
 				wc.App.SetStatusAwayIfNeeded(wc.UserId, false)
 			})
 		}
-		return nil
-	})
-
-	for {
-		var req model.WebSocketRequest
-		if err := wc.WebSocket.ReadJSON(&req); err != nil {
-			wc.logSocketErr("websocket.read", err)
-			return
+	default:
+		// Default case of data message.
+		if err := decoder.Decode(&req); err != nil {
+			return errors.Wrap(err, "error during decoding websocket message")
 		}
+
 		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 	}
+	return nil
 }
 
 func (wc *WebConn) writePump() {
@@ -182,7 +190,7 @@ func (wc *WebConn) writePump() {
 		case msg, ok := <-wc.send:
 			if !ok {
 				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-				wc.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				wsutil.WriteServerMessage(wc.WebSocket, ws.OpClose, []byte{})
 				return
 			}
 
@@ -237,7 +245,7 @@ func (wc *WebConn) writePump() {
 			}
 
 			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, buf.Bytes()); err != nil {
+			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpText, buf.Bytes()); err != nil {
 				wc.logSocketErr("websocket.send", err)
 				return
 			}
@@ -247,7 +255,7 @@ func (wc *WebConn) writePump() {
 			}
 		case <-ticker.C:
 			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-			if err := wc.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := wsutil.WriteServerMessage(wc.WebSocket, ws.OpPing, []byte{}); err != nil {
 				wc.logSocketErr("websocket.ticker", err)
 				return
 			}
@@ -434,10 +442,5 @@ func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 }
 
 func (wc *WebConn) logSocketErr(source string, err error) {
-	// browsers will appear as CloseNoStatusReceived
-	if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-		mlog.Debug(source+": client side closed socket", mlog.String("user_id", wc.UserId))
-	} else {
-		mlog.Debug(source+": closing websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
-	}
+	mlog.Debug(source+": error during writing to websocket", mlog.String("user_id", wc.UserId), mlog.Err(err))
 }
