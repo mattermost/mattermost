@@ -47,7 +47,13 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(redirectTo) != 0 {
+	// Redirect url is only needed for mobile
+	if isMobile && len(redirectTo) > 0 {
+		if !utils.IsValidCustomSchemeUrl(redirectTo) {
+			err := model.NewAppError("loginWithSaml", "api.invalid_custom_scheme_url", nil, "", http.StatusBadRequest)
+			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+			return
+		}
 		relayProps["redirect_to"] = redirectTo
 	}
 

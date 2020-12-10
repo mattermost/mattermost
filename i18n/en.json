@@ -1485,6 +1485,10 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
+    "id": "api.invalid_custom_scheme_url",
+    "translation": "Invalid custom scheme url provided"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },

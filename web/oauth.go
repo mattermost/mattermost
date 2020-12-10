@@ -347,7 +347,6 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginHint := r.URL.Query().Get("login_hint")
-	redirectTo := r.URL.Query().Get("redirect_to")
 
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
@@ -355,7 +354,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint, false)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, "", loginHint, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -371,6 +370,12 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectTo := r.URL.Query().Get("redirect_to")
+
+	if len(redirectTo) > 0 && !utils.IsValidCustomSchemeUrl(redirectTo) {
+		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_scheme_url", nil, "", http.StatusBadRequest)
+		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		return
+	}
 
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
