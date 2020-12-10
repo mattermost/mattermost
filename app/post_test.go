@@ -1892,11 +1892,11 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of the thread since they replied to a post
-		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id)
+		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 1)
 		// second user should also be part of a thread since they were mentioned
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id)
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 1)
 
@@ -1916,7 +1916,7 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of two threads
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id)
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 2)
 	})
