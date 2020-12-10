@@ -331,7 +331,7 @@ func (us SqlUserStore) Get(id string) (*model.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.GetReplica().Db.QueryRow(queryString, args...)
+	row := us.GetLazyRowScanner(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte

@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
@@ -2163,7 +2164,7 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		}
 	}
 
-	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(userId, true, true)
+	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), userId, true, true)
 	if err != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

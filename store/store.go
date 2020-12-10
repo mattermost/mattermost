@@ -68,6 +68,7 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	SetMySQLReplicationLagForTesting(seconds int) error
 }
 
 type TeamStore interface {
@@ -171,7 +172,7 @@ type ChannelStore interface {
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, error)
 	GetMember(channelId string, userId string) (*model.ChannelMember, error)
 	GetChannelMembersTimezones(channelId string) ([]model.StringMap, error)
-	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
+	GetAllChannelMembersForUser(ctx context.Context, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error)

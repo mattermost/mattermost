@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
@@ -78,6 +79,7 @@ const (
 	ExitTableExists_SQLITE       = 137
 	ExitDoesColumnExistsSqlite   = 138
 	ExitAlterPrimaryKey          = 139
+	DebugMsgReadReplicaMiss      = "replica_read_miss"
 )
 
 type SqlStoreStores struct {
@@ -373,6 +375,78 @@ func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
+}
+
+// SelectOneLazy returns the result of (*gorp.DbMap).SelectOne from a read replica
+// database but if that results in a sql.ErrNoRows then it retries against the
+// master database.
+//
+// The retry is enabled by (model.SqlSettings).ReplicaLazyReads.
+func (ss *SqlStore) SelectOneLazy(holder interface{}, query string, args ...interface{}) error {
+	err := ss.GetReplica().SelectOne(holder, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows && amIConfiguredToRetryMaster(ss) {
+			mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "SelectOneLazy"), mlog.String("query", query), mlog.Any("args", args))
+			return ss.GetMaster().SelectOne(holder, query, args...)
+		}
+		return err
+	}
+	return nil
+}
+
+// SelectLazy returns the result of (*gorp.DbMap).Select from a read replica
+// database but if shouldIRetryUsingMaster returns true then it retries against
+// the master database.
+//
+// The retry is enabled by (model.SqlSettings).ReplicaLazyReads.
+func (ss *SqlStore) SelectLazy(i interface{}, query string, shouldIRetryUsingMaster func(interface{}, error) bool, args ...interface{}) ([]interface{}, error) {
+	result, err := ss.GetReplica().Select(i, query, args...)
+	if shouldIRetryUsingMaster(i, err) && amIConfiguredToRetryMaster(ss) {
+		mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "SelectLazy"), mlog.String("query", query), mlog.Any("args", args))
+		return ss.GetMaster().Select(i, query, args...)
+	}
+	return result, err
+}
+
+type LazyRowScanner struct {
+	store *SqlStore
+	query string
+	args  []interface{}
+}
+
+// GetLazyRowScanner creates a new LazyScanner.
+func (ss *SqlStore) GetLazyRowScanner(query string, args ...interface{}) *LazyRowScanner {
+	return &LazyRowScanner{
+		store: ss,
+		query: query,
+		args:  args,
+	}
+}
+
+// Scan gets a *dbsql.Row instance from a read replica database and scans the
+// result. If there's a sql.ErrNoRows error then it retries the procedure
+// against the master database.
+//
+// The retry is enabled by (model.SqlSettings).ReplicaLazyReads.
+func (ls *LazyRowScanner) Scan(dest ...interface{}) error {
+	row := ls.store.GetReplica().Db.QueryRow(ls.query, ls.args...)
+	err := row.Scan(dest...)
+	if err != nil {
+		if err == sql.ErrNoRows && amIConfiguredToRetryMaster(ls.store) {
+			mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "Scan"), mlog.String("query", ls.query), mlog.Any("args", ls.args))
+			row = ls.store.GetMaster().Db.QueryRow(ls.query, ls.args...)
+			return row.Scan(dest...)
+		}
+		return err
+	}
+	return nil
+}
+
+func amIConfiguredToRetryMaster(store *SqlStore) bool {
+	// check that there are read replicas configured because if not then even
+	// though the first read attempt was using (*SqlStore).GetReplica it was
+	// actually using the master database, so no need to retry.
+	return store.settings.ReplicaLazyReads != nil && *store.settings.ReplicaLazyReads && len(store.replicas) > 0
 }
 
 func (ss *SqlStore) GetReplica() *gorp.DbMap {
@@ -1369,4 +1443,39 @@ func VersionString(v int) string {
 	minor := v % 10000
 	major := v / 10000
 	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+}
+
+func (ss *SqlStore) SetMySQLReplicationLagForTesting(seconds int) error {
+	if dn := ss.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
+		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
+	}
+
+	err := ss.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	err = ss.execOnEachReplica(fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
+	if err != nil {
+		return err
+	}
+
+	err = ss.execOnEachReplica("START SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	time.Sleep(2 * time.Second)
+
+	return nil
+}
+
+func (ss *SqlStore) execOnEachReplica(query string, args ...interface{}) error {
+	for _, replica := range ss.replicas {
+		_, err := replica.Exec(query, args...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

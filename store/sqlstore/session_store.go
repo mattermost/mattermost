@@ -58,7 +58,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
+	teamMembers, err := me.Team().GetTeamsForUser(WithMaster(context.Background()), session.UserId) // here from master
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -76,7 +76,18 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	retryUsingMasterF := func(result interface{}, err error) bool {
+		if err != nil {
+			return false
+		}
+		items, ok := result.([]*model.Session)
+		if !ok {
+			return true
+		}
+		return len(items) == 0
+	}
+
+	if _, err := me.SelectLazy(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", retryUsingMasterF, map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	} else if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
@@ -84,7 +95,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		withMaster(context.Background()),
+		WithMaster(context.Background()),
 		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -105,7 +116,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId) // here from master
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}

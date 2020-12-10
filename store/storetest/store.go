@@ -89,19 +89,20 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) Group() store.GroupStore               { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore { return &s.LinkMetadataStore }
-func (s *Store) MarkSystemRanUnitTests()               { /* do nothing */ }
-func (s *Store) Close()                                { /* do nothing */ }
-func (s *Store) LockToMaster()                         { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
-func (s *Store) DropAllTables()                        { /* do nothing */ }
-func (s *Store) GetDbVersion(bool) (string, error)     { return "", nil }
-func (s *Store) RecycleDBConnections(time.Duration)    {}
-func (s *Store) TotalMasterDbConnections() int         { return 1 }
-func (s *Store) TotalReadDbConnections() int           { return 1 }
-func (s *Store) TotalSearchDbConnections() int         { return 1 }
-func (s *Store) GetCurrentSchemaVersion() string       { return "" }
+func (s *Store) Group() store.GroupStore                    { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore      { return &s.LinkMetadataStore }
+func (s *Store) MarkSystemRanUnitTests()                    { /* do nothing */ }
+func (s *Store) Close()                                     { /* do nothing */ }
+func (s *Store) LockToMaster()                              { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                          { /* do nothing */ }
+func (s *Store) DropAllTables()                             { /* do nothing */ }
+func (s *Store) GetDbVersion(bool) (string, error)          { return "", nil }
+func (s *Store) RecycleDBConnections(time.Duration)         {}
+func (s *Store) TotalMasterDbConnections() int              { return 1 }
+func (s *Store) TotalReadDbConnections() int                { return 1 }
+func (s *Store) TotalSearchDbConnections() int              { return 1 }
+func (s *Store) GetCurrentSchemaVersion() string            { return "" }
+func (s *Store) SetMySQLReplicationLagForTesting(int) error { return nil }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }

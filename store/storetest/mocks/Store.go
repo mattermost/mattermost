@@ -485,6 +485,20 @@ func (_m *Store) SetContext(_a0 context.Context) {
 	_m.Called(_a0)
 }
 
+// SetMySQLReplicationLagForTesting provides a mock function with given fields: seconds
+func (_m *Store) SetMySQLReplicationLagForTesting(seconds int) error {
+	ret := _m.Called(seconds)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int) error); ok {
+		r0 = rf(seconds)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Status provides a mock function with given fields:
 func (_m *Store) Status() store.StatusStore {
 	ret := _m.Called()

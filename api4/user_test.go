@@ -3348,6 +3348,45 @@ func TestLogin(t *testing.T) {
 	})
 }
 
+func TestLoginReplicationLag(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	t.Run("with replication lag, caches cleared", func(t *testing.T) {
+		if !replicaFlag {
+			t.Skip("requires test flag: -mysql-replica=true")
+		}
+
+		if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+			t.Skip(fmt.Sprintf("requires %[1]q driver which can be set with MM_SQLSETTINGS_DRIVERNAME=%[1]s", model.DATABASE_DRIVER_MYSQL))
+		}
+
+		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+		sessions, err := th.App.GetSessions(th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Len(t, sessions, 0)
+
+		cmdErr := th.App.Srv().Store.SetMySQLReplicationLagForTesting(30)
+		require.Nil(t, cmdErr)
+		defer th.App.Srv().Store.SetMySQLReplicationLagForTesting(0)
+
+		*mainHelper.Settings.ReplicaLazyReads = true
+		defer func() { *mainHelper.Settings.ReplicaLazyReads = false }()
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+
+		err = th.App.Srv().InvalidateAllCaches()
+		require.Nil(t, err)
+
+		session, err := th.App.GetSession(th.Client.AuthToken)
+		require.Nil(t, err)
+		require.NotNil(t, session)
+	})
+}
+
 func TestLoginCookies(t *testing.T) {
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
 		th := Setup(t).InitBasic()

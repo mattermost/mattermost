@@ -1970,3 +1970,44 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 	})
 }
+
+func TestReplyToPost(t *testing.T) {
+	if !replicaFlag {
+		t.Skip("requires test flag: -mysql-replica=true")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {
+		t.Skip(fmt.Sprintf("requires %[1]q driver which can be set with MM_SQLSETTINGS_DRIVERNAME=%[1]s", model.DATABASE_DRIVER_MYSQL))
+	}
+
+	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
+
+	t.Run("replication lag time great than reply time", func(t *testing.T) {
+		err := th.App.Srv().Store.SetMySQLReplicationLagForTesting(30)
+		require.Nil(t, err)
+		defer th.App.Srv().Store.SetMySQLReplicationLagForTesting(0)
+
+		*mainHelper.Settings.ReplicaLazyReads = true
+		defer func() { *mainHelper.Settings.ReplicaLazyReads = false }()
+
+		root, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "root post",
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		reply, err := th.App.CreatePost(&model.Post{
+			UserId:    th.BasicUser2.Id,
+			ChannelId: th.BasicChannel.Id,
+			RootId:    root.Id,
+			ParentId:  root.Id,
+			Message:   fmt.Sprintf("@%s", th.BasicUser2.Username),
+		}, th.BasicChannel, false, true)
+		require.Nil(t, err)
+		require.NotNil(t, reply)
+	})
+}

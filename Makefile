@@ -163,6 +163,9 @@ else
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
+ifneq (,$(findstring mysql-read-replica,$(ENABLED_DOCKER_SERVICES)))
+	./scripts/replica-mysql-config.sh
+endif
 endif
 
 run-haserver: run-client
@@ -190,7 +193,6 @@ else
 	docker-compose down -v
 	docker-compose rm -v
 endif
-
 
 plugin-checker:
 	$(GO) run $(GOFLAGS) ./plugin/checker
