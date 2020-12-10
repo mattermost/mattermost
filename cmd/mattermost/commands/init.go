@@ -13,7 +13,6 @@ import (
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
-
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
@@ -32,7 +31,7 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 	model.AppErrorInit(utils.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false),
+		app.Config(configDSN, false, nil),
 		app.StartSearchEngine,
 	)
 	if err != nil {

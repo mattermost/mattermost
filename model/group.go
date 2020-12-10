@@ -157,7 +157,7 @@ func (group *Group) requiresRemoteId() bool {
 
 func (group *Group) IsValidForUpdate() *AppError {
 	if !IsValidId(group.Id) {
-		return NewAppError("Group.IsValidForUpdate", "model.group.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Group.IsValidForUpdate", "app.group.id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if group.CreateAt == 0 {
 		return NewAppError("Group.IsValidForUpdate", "model.group.create_at.app_error", nil, "", http.StatusBadRequest)

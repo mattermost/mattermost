@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
 	"hash/maphash"
@@ -16,6 +15,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -64,7 +64,7 @@ var MaxNotificationsPerChannelDefault int64 = 1000000
 var SENTRY_DSN = "placeholder_sentry_dsn"
 
 type Server struct {
-	sqlStore           *sqlstore.SqlSupplier
+	sqlStore           *sqlstore.SqlStore
 	Store              store.Store
 	WebSocketRouter    *WebSocketRouter
 	AppInitializedOnce sync.Once
@@ -115,7 +115,7 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
-	newStore func() store.Store
+	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            cache.Cache
@@ -129,7 +129,6 @@ type Server struct {
 	searchLicenseListenerId string
 	loggerLicenseListenerId string
 	configStore             *config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
 	postActionCookieSecret  []byte
 
 	advancedLogListenerCleanup func()
@@ -137,9 +136,10 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig        atomic.Value
-	clientConfigHash    atomic.Value
-	limitedClientConfig atomic.Value
+	asymmetricSigningKey atomic.Value
+	clientConfig         atomic.Value
+	clientConfigHash     atomic.Value
+	limitedClientConfig  atomic.Value
 
 	telemetryService *telemetry.TelemetryService
 
@@ -210,7 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-		configStore, err := config.NewStoreFromBacking(innerStore)
+		configStore, err := config.NewStoreFromBacking(innerStore, nil)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -270,6 +270,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
+	model.AppErrorInit(utils.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
@@ -286,34 +287,51 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.SESSION_CACHE_SIZE,
-	})
-	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(&cache.CacheOptions{
+	var err error
+	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.SESSION_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create session cache")
+	}
+	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PENDING_POST_IDS_CACHE_SIZE,
-	})
-	s.statusCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.STATUS_CACHE_SIZE,
-	})
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
+	}
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.STATUS_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
 
 	s.createPushNotificationsHub()
 
-	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	if err2 := utils.InitTranslations(s.Config().LocalizationSettings); err2 != nil {
+		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
 	s.initEnterprise()
 
 	if s.newStore == nil {
-		s.newStore = func() store.Store {
-			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+		s.newStore = func() (store.Store, error) {
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(
+				retrylayer.New(s.sqlStore),
+				s.Metrics,
+				s.Cluster,
+				s.CacheProvider,
+			)
+			if err2 != nil {
+				return nil, errors.Wrap(err2, "cannot create local cache layer")
+			}
+
 			searchStore := searchlayer.NewSearchLayer(
-				localcachelayer.NewLocalCacheLayer(
-					retrylayer.New(s.sqlStore),
-					s.Metrics,
-					s.Cluster,
-					s.CacheProvider,
-				),
+				lcl,
 				s.SearchEngine,
 				s.Config(),
 			)
@@ -330,17 +348,20 @@ func NewServer(options ...Option) (*Server, error) {
 			return timerlayer.New(
 				searchStore,
 				s.Metrics,
-			)
+			), nil
 		}
 	}
 
-	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error("Failed to parse server templates", mlog.Err(err))
+	if htmlTemplateWatcher, err2 := utils.NewHTMLTemplateWatcher("templates"); err2 != nil {
+		mlog.Error("Failed to parse server templates", mlog.Err(err2))
 	} else {
 		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	s.Store = s.newStore()
+	s.Store, err = s.newStore()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create store")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()
@@ -451,8 +472,6 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
-	model.AppErrorInit(utils.T)
-
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
 	s.AddConfigListener(func(_, _ *model.Config) {
@@ -545,6 +564,13 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func (s *Server) RunJobs() {
 	if s.runjobs {
 		s.Go(func() {
@@ -599,17 +625,19 @@ func (s *Server) initLogging() error {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
 	}
 
+	// Use this app logger as the global logger (eventually remove all instances of global logging).
+	// This is deferred because a copy is made of the logger and it must be fully configured before
+	// the copy is made.
+	defer mlog.InitGlobalLogger(s.Log)
+
+	// Redirect default Go logger to this logger.
+	defer mlog.RedirectStdLog(s.Log)
+
 	if s.NotificationsLog == nil {
 		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
 			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(s.Log)
 
 	if s.logListenerId != "" {
 		s.RemoveConfigListener(s.logListenerId)
@@ -640,7 +668,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
 
-		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
+		if err := s.Log.ConfigAdvancedLogging(cfg.Get()); err != nil {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
@@ -649,7 +677,7 @@ func (s *Server) initLogging() error {
 		}
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
-			if err := mlog.ConfigAdvancedLogging(newCfg); err != nil {
+			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
 				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
 			} else {
 				mlog.Info("Re-configured advanced logging")

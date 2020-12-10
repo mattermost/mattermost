@@ -16,7 +16,7 @@ import (
 )
 
 type SqlFileInfoStore struct {
-	SqlStore
+	*SqlStore
 	metrics     einterfaces.MetricsInterface
 	queryFields []string
 }
@@ -24,7 +24,7 @@ type SqlFileInfoStore struct {
 func (fs SqlFileInfoStore) ClearCaches() {
 }
 
-func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
+func newSqlFileInfoStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.FileInfoStore {
 	s := &SqlFileInfoStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,

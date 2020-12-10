@@ -23,7 +23,7 @@ const (
 )
 
 type SqlTeamStore struct {
-	SqlStore
+	*SqlStore
 
 	teamsQuery sq.SelectBuilder
 }
@@ -202,7 +202,7 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func newSqlTeamStore(sqlStore SqlStore) store.TeamStore {
+func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
 		SqlStore: sqlStore,
 	}

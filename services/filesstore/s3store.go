@@ -195,6 +195,17 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 	return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 }
 
+func (b *S3FileBackend) FileSize(path string) (int64, *model.AppError) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return 0, model.NewAppError("FileSize", "api.file.file_size.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return info.Size, nil
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)

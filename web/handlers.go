@@ -72,6 +72,7 @@ type Handler struct {
 	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName         string
 	RequireSession      bool
+	RequireCloudKey     bool
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
@@ -187,7 +188,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 {
+	if len(token) != 0 && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
@@ -209,6 +210,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
+	} else if len(token) != 0 && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+		// Check to see if this provided token matches our CWS Token
+		session, err := c.App.GetCloudSession(token)
+		if err != nil {
+			c.Log.Warn("Invalid CWS token", mlog.Err(err))
+			c.Err = err
+		} else {
+			c.App.SetSession(session)
+		}
 	}
 
 	c.Log = c.App.Log().With(
@@ -229,6 +239,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
 		c.SetServerBusyError()
+	}
+
+	if c.Err == nil && h.RequireCloudKey {
+		c.CloudKeyRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {

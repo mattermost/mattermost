@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -60,7 +59,6 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (s *Server) ReloadConfig() error {
-	debug.FreeOSMemory()
 	if err := s.configStore.Load(); err != nil {
 		return err
 	}
@@ -166,7 +164,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 // ensureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
 func (s *Server) ensureAsymmetricSigningKey() error {
-	if s.asymmetricSigningKey != nil {
+	if s.AsymmetricSigningKey() != nil {
 		return nil
 	}
 
@@ -229,14 +227,14 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	s.asymmetricSigningKey = &ecdsa.PrivateKey{
+	s.asymmetricSigningKey.Store(&ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
 			Y:     key.ECDSAKey.Y,
 		},
 		D: key.ECDSAKey.D,
-	}
+	})
 	s.regenerateClientConfig()
 	return nil
 }
@@ -281,7 +279,10 @@ func (s *Server) ensureFirstServerRunTimestamp() error {
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
 func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return s.asymmetricSigningKey
+	if key := s.asymmetricSigningKey.Load(); key != nil {
+		return key.(*ecdsa.PrivateKey)
+	}
+	return nil
 }
 
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {

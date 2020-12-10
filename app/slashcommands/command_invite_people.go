@@ -23,11 +23,11 @@ func init() {
 	app.RegisterCommandProvider(&InvitePeopleProvider{})
 }
 
-func (me *InvitePeopleProvider) GetTrigger() string {
+func (*InvitePeopleProvider) GetTrigger() string {
 	return CMD_INVITE_PEOPLE
 }
 
-func (me *InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
 	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
 		autoComplete = false
@@ -41,7 +41,7 @@ func (me *InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *
 	}
 }
 
-func (me *InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_INVITE_USER) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

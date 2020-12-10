@@ -3,13 +3,16 @@
 
 package markdown
 
+import "strings"
+
 type Line struct {
 	Range
 }
 
-func ParseLines(markdown string) (lines []Line) {
+func ParseLines(markdown string) []Line {
 	lineStartPosition := 0
 	isAfterCarriageReturn := false
+	lines := make([]Line, 0, strings.Count(markdown, "\n"))
 	for position, r := range markdown {
 		if r == '\n' {
 			lines = append(lines, Line{Range{lineStartPosition, position + 1}})
@@ -23,5 +26,5 @@ func ParseLines(markdown string) (lines []Line) {
 	if lineStartPosition < len(markdown) {
 		lines = append(lines, Line{Range{lineStartPosition, len(markdown)}})
 	}
-	return
+	return lines
 }

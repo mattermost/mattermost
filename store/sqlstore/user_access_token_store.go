@@ -15,10 +15,10 @@ import (
 )
 
 type SqlUserAccessTokenStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
+func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 	s := &SqlUserAccessTokenStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
