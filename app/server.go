@@ -287,15 +287,11 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	cpus := runtime.NumCPU() - 1
-	if cpus == 0 {
-		cpus = 1
-	}
 	var err error
 	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size:           model.SESSION_CACHE_SIZE,
 		Striped:        true,
-		StripedBuckets: cpus,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
@@ -307,7 +303,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size:           model.STATUS_CACHE_SIZE,
 		Striped:        true,
-		StripedBuckets: cpus,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create status cache")
 	}
@@ -566,6 +562,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	return s, nil
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func (s *Server) RunJobs() {
