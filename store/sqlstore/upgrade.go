@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_31_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
 	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
@@ -954,8 +954,8 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
-		// allow 10 files per post
-		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-		// saveSchemaVersion(sqlStore, VERSION_5_31_0)
+	// allow 10 files per post
+	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	// saveSchemaVersion(sqlStore, VERSION_5_31_0)
 	// }
 }
