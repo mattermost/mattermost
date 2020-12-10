@@ -41,7 +41,7 @@ func (_m *Provider) Connect() error {
 }
 
 // NewCache provides a mock function with given fields: opts
-func (_m *Provider) NewCache(opts *cache.CacheOptions) (cache.Cache, error) {
+func (_m *Provider) NewCache(opts *cache.CacheOptions) cache.Cache {
 	ret := _m.Called(opts)
 
 	var r0 cache.Cache
@@ -53,12 +53,5 @@ func (_m *Provider) NewCache(opts *cache.CacheOptions) (cache.Cache, error) {
 		}
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*cache.CacheOptions) error); ok {
-		r1 = rf(opts)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }

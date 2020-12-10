@@ -23,8 +23,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by id not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		emoji, err := cachedStore.Emoji().Get("123", true)
 		require.Nil(t, err)
@@ -39,8 +38,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by name not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		emoji, err := cachedStore.Emoji().GetByName("name123", true)
 		require.Nil(t, err)
@@ -55,8 +53,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by id not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().Get("123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
@@ -67,8 +64,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by name not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().GetByName("name123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -79,8 +75,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by id force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().Get("123", false)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
@@ -93,8 +88,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by name force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().GetByName("name123", false)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -107,8 +101,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by id, second call by name cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().Get("123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
@@ -119,8 +112,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by name, second call by id cached", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().GetByName("name123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)
@@ -131,8 +123,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by id not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().Get("123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
@@ -144,8 +135,7 @@ func TestEmojiStoreCache(t *testing.T) {
 	t.Run("first call by name not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
-		require.NoError(t, err)
+		cachedStore := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 
 		cachedStore.Emoji().GetByName("name123", true)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)

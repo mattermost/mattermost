@@ -102,11 +102,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if includeCache {
 		// Adds the cache layer to the test store
 		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
-			if err2 != nil {
-				panic(err2)
-			}
-			return lcl
+			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
 		}))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))

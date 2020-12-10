@@ -43,10 +43,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 	// Adds the cache layer to the test store
-	s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
-	if err != nil {
-		panic(err)
-	}
+	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 
 	th := &TestHelper{
 		App:    app.New(app.ServerConnector(s)),
