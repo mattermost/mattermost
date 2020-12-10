@@ -31,7 +31,7 @@ const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = cache.NewLRU(&cache.LRUOptions{
+var linkCache = cache.NewLRU(cache.LRUOptions{
 	Size: LINK_CACHE_SIZE,
 })
 
@@ -315,10 +315,6 @@ func getFirstLinkAndImages(str string) (string, []string) {
 	markdown.Inspect(str, func(blockOrInline interface{}) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			if firstLink == "" {
-				firstLink = v.Destination()
-			}
-		case *markdown.InlineLink:
 			if firstLink == "" {
 				firstLink = v.Destination()
 			}

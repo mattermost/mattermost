@@ -15,11 +15,11 @@ import (
 )
 
 type SqlEmojiStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
+func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	s := &SqlEmojiStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,

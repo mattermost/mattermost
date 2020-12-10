@@ -15,10 +15,10 @@ import (
 // SqlLicenseStore encapsulates the database writes and reads for
 // model.LicenseRecord objects.
 type SqlLicenseStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
+func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
