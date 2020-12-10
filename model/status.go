@@ -20,14 +20,14 @@ const (
 )
 
 type Status struct {
-	UserId         string `json:"user_id"`
-	Status         string `json:"status"`
-	Manual         bool   `json:"manual"`
-	LastActivityAt int64  `json:"last_activity_at"`
-	ActiveChannel  string `json:"active_channel,omitempty" db:"-"`
-	DNDEndTime     string `json:"dnd_end_time" db:"-"`
-	DNDEndTimeUnix int64  `json:"-"`
-	PrevStatus     string `json:"-"`
+	UserId              string `json:"user_id"`
+	Status              string `json:"status"`
+	Manual              bool   `json:"manual"`
+	LastActivityAt      int64  `json:"last_activity_at"`
+	ActiveChannel       string `json:"active_channel,omitempty" db:"-"`
+	StatusClearTime     string `json:"status_clear_time" db:"-"`
+	StatusClearTimeUnix int64  `json:"-"`
+	PrevStatus          string `json:"-"`
 }
 
 func (o *Status) ToJson() string {
