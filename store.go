@@ -127,8 +127,8 @@ func setupConnection(dataSourceName string, settings model.SqlSettings) (*sql.DB
 		return nil, errors.Wrap(err, "failed to open SQL connection")
 	}
 
-	db.SetMaxOpenConns(15)
-	db.SetMaxIdleConns(2)
+	db.SetMaxOpenConns(2)
+	db.SetMaxIdleConns(0)
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 
 	return db, nil
