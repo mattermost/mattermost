@@ -174,6 +174,7 @@ func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 	return cache.Data, err
 }
 
+// Append cookies to passed baseUrl into query params
 func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
 	u, err := url.Parse(baseUrl)
 	if err != nil {
@@ -192,8 +193,8 @@ func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
 
 var DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
 
-// Validate if passed redirect url is valid custom scheme url
-// Scheme should not match the any default schemes
+// Validate .. if passed redirectUrl is a valid mobile app custom scheme url
+// Scheme should not match any default schemes
 func IsValidCustomSchemeUrl(customSchemeUrl string) bool {
 	u, err := url.Parse(customSchemeUrl)
 	if err != nil {
