@@ -115,6 +115,10 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster: cluster,
 		metrics: metrics,
 	}
+	cpus := runtime.NumCPU() - 1
+	if cpus == 0 {
+		cpus = 1
+	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   REACTION_CACHE_SIZE,
@@ -133,7 +137,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          ROLE_CACHE_SEC * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
 		Striped:                true,
-		StripedBuckets:         runtime.NumCPU() - 1,
+		StripedBuckets:         cpus,
 	}); err != nil {
 		return
 	}
@@ -271,7 +275,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          USER_PROFILE_BY_ID_SEC * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS,
 		Striped:                true,
-		StripedBuckets:         runtime.NumCPU() - 1,
+		StripedBuckets:         cpus,
 	}); err != nil {
 		return
 	}
