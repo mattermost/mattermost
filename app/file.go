@@ -785,19 +785,19 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	if t.fileinfo.HasPreviewImage {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
-			writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
-		}()
+	wg.Add(3)
+	// Generating thumbnail and preview regardless of HasPreviewImage value.
+	// This is needed on mobile in case of animated GIFs.
+	go func() {
+		defer wg.Done()
+		writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
+	}()
 
-		go func() {
-			defer wg.Done()
-			writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
-		}()
-	}
+	go func() {
+		defer wg.Done()
+		writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
+	}()
+
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
