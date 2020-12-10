@@ -175,11 +175,29 @@ func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 }
 
 func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
-	u, _ := url.Parse(baseUrl)
-	q, _ := url.ParseQuery(u.RawQuery)
+	u, err := url.Parse(baseUrl)
+	if err != nil {
+		return ""
+	}
+	q, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return ""
+	}
 	for _, cookie := range r.Cookies() {
 		q.Add(cookie.Name, cookie.Value)
 	}
 	u.RawQuery = q.Encode()
 	return u.String()
+}
+
+var DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
+
+// Validate if passed redirect url is valid custom scheme url
+// Scheme should not match the any default schemes
+func IsValidCustomSchemeUrl(customSchemeUrl string) bool {
+	u, err := url.Parse(customSchemeUrl)
+	if err != nil {
+		return false
+	}
+	return !StringInSlice(u.Scheme, DefaultUrlSchemes)
 }
