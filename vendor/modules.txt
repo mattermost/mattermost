@@ -176,7 +176,7 @@ github.com/dsnet/compress/bzip2/internal/sais
 github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
-# github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
+# github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8 => github.com/hmhealey/go-opengraph v0.0.0-20201209151214-f2d823730dba
 ## explicit
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c
@@ -919,3 +919,4 @@ willnorris.com/go/gifresize
 ## explicit
 willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http
+# github.com/dyatlov/go-opengraph => github.com/hmhealey/go-opengraph v0.0.0-20201209151214-f2d823730dba
