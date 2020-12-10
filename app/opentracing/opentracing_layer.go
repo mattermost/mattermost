@@ -3095,7 +3095,7 @@ func (a *OpenTracingAppLayer) DeleteSharedChannel(channelId string) (bool, error
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DeleteSharedChannelRemote(remoteId string) (bool, error) {
+func (a *OpenTracingAppLayer) DeleteSharedChannelRemote(id string) (bool, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSharedChannelRemote")
 
@@ -3107,7 +3107,7 @@ func (a *OpenTracingAppLayer) DeleteSharedChannelRemote(remoteId string) (bool, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.DeleteSharedChannelRemote(remoteId)
+	resultVar0, resultVar1 := a.app.DeleteSharedChannelRemote(id)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15648,6 +15648,28 @@ func (a *OpenTracingAppLayer) UpdateSharedChannel(sc *model.SharedChannel) (*mod
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelRemoteLastSyncAt")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {

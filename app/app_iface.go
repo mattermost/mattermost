@@ -479,7 +479,7 @@ type AppIface interface {
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannel(channelId string) (bool, error)
-	DeleteSharedChannelRemote(remoteId string) (bool, error)
+	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
@@ -1018,6 +1018,7 @@ type AppIface interface {
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error
 	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
