@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestThreadStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 }
 

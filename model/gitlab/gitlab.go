@@ -91,7 +91,7 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
+func (m *GitLabProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	glu, err := gitLabUserFromJson(data)
 	if err != nil {
 		return nil, err
@@ -101,4 +101,12 @@ func (m *GitLabProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
 	}
 
 	return userFromGitLabUser(glu), nil
+}
+
+func (m *GitLabProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *GitLabProvider) GetUserFromIdToken(idToken string) (*model.User, error) {
+	return nil, nil
 }

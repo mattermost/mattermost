@@ -47,6 +47,15 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to connect to %s database", driverName)
 	}
+	// Set conservative connection configuration for configuration database.
+	db.SetMaxIdleConns(0)
+	db.SetMaxOpenConns(2)
+
+	defer func() {
+		if err != nil {
+			db.Close()
+		}
+	}()
 
 	ds = &DatabaseStore{
 		driverName:     driverName,
@@ -55,7 +64,8 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		db:             db,
 	}
 	if err = initializeConfigurationsTable(ds.db); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize")
+		err = errors.Wrap(err, "failed to initialize")
+		return nil, err
 	}
 
 	return ds, nil
