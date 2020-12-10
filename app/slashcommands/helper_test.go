@@ -62,7 +62,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	options = append(options, app.ConfigStore(memoryStore))
 	if includeCacheLayer {
 		options = append(options, app.StoreOverride(func(s *app.Server) store.Store {
-			return localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(dbStore, s.Metrics, s.Cluster, s.CacheProvider)
+			if err2 != nil {
+				panic(err2)
+			}
+			return lcl
 		}))
 	} else {
 		options = append(options, app.StoreOverride(dbStore))
@@ -160,7 +164,7 @@ func (me *TestHelper) initBasic() *TestHelper {
 	me.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	me.BasicUser = userCache.BasicUser.DeepCopy()
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
+	mainHelper.GetSQLStore().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
 
 	me.BasicTeam = me.createTeam()
 
