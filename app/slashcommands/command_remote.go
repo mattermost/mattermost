@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
@@ -130,11 +129,6 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 	rcSaved, appErr := a.AddRemoteCluster(rc)
 	if appErr != nil {
 		return responsef("Could not add remote cluster: %v", appErr)
-	}
-
-	url := a.GetSiteURL()
-	if url == "" {
-		return responsef("SiteURL not set. Please set this via the system console.")
 	}
 
 	// Display the encrypted invitation
