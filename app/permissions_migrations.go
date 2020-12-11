@@ -516,6 +516,15 @@ func (a *App) getAddManageSharedChannelsPermissionsMigration() (permissionsMap, 
 	}, nil
 }
 
+func (a *App) getBillingPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{model.PERMISSION_SYSCONSOLE_READ_BILLING.Id, model.PERMISSION_SYSCONSOLE_WRITE_BILLING.Id},
+		},
+	}, nil
+}
+
 func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -547,6 +556,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Migration: a.getAddManageSharedChannelsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Migration: a.getAddManageRemoteClustersPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Migration: a.getSystemRolesPermissionsMigration},
+		{Key: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Migration: a.getBillingPermissionsMigration},
 	}
 
 	roles, err := a.GetAllRoles()
