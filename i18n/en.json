@@ -716,14 +716,6 @@
     "translation": "Do not disturb disables desktop and mobile push notifications."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
@@ -2931,6 +2923,46 @@
     "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Your financial institution declined a payment from your {{.CardBrand}} ****{{.LastFour}} associated with your Mattermost Cloud workspace."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "They provided the following reason:"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "To ensure uninterrupted subscription to Mattermost Cloud, please either contact your financial institution to fix the underlying problem or update your payment information. Once payment information is updated, Mattermost will attempt to settle any outstanding balance."
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Action required: Payment failed for Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Failed Payment"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Pay now"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Your Mattermost Cloud invoice for the most recent billing period has been processed. However, we don't have your payment details on file."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "To review your invoice and add a payment method, select Pay now."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Payment is due for your Mattermost Cloud subscription"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Your Mattermost Cloud Invoice is due"
+  },
+  {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
   },
@@ -3176,7 +3208,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
@@ -3203,10 +3235,6 @@
     "translation": "Could not parse auth data out of {{.Service}} user object."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -3217,10 +3245,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Could not create user out of {{.Service}} user object."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -3299,8 +3323,8 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -3536,7 +3560,7 @@
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
-    "translation": ""
+    "translation": "Custom Permission Schemes not supported by current license"
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3932,7 +3956,7 @@
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": ""
+    "translation": "A channel member with that ID already exists."
   },
   {
     "id": "app.channel.search.app_error",
@@ -4139,6 +4163,26 @@
     "translation": "Unable to save the file info."
   },
   {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "invalid id property for group."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "group member already exists"
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -4289,6 +4333,10 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Unable to marshal response."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -4697,6 +4745,10 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "insert error"
   },
   {
     "id": "app.job.download_export_results_not_enabled",
@@ -5223,6 +5275,10 @@
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
   {
+    "id": "app.select_error",
+    "translation": "select error"
+  },
+  {
     "id": "app.session.analytics_session_count.app_error",
     "translation": "Unable to count the sessions."
   },
@@ -5499,6 +5555,10 @@
     "translation": "No terms of service found."
   },
   {
+    "id": "app.update_error",
+    "translation": "update error"
+  },
+  {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Cannot upload to a deleted channel."
   },
@@ -5541,6 +5601,10 @@
   {
     "id": "app.upload.upload_data.large_image.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Failed to move uploaded file."
   },
   {
     "id": "app.upload.upload_data.read_file.app_error",
@@ -6651,6 +6715,30 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Unable to process import: file does not exists."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Unable to process import: import_file parameter is missing."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Unable to process import: JSONL file is missing."
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Unable to process import: failed to open file."
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "Unable to process import: failed to create temporary directory."
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "Unable to process import: failed to unzip file."
+  },
+  {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Failed to decode base64 for trigger ID for interactive dialog."
   },
@@ -7063,6 +7151,10 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
+  },
+  {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
@@ -7149,6 +7241,14 @@
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Invalid value for Directory."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Invalid value for RetentionDays. Value is too low."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -7451,20 +7551,12 @@
     "translation": "invalid create at property for group."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "invalid description property for group."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "invalid display name property for group."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group."
   },
   {
     "id": "model.group.name.app_error",
@@ -7505,10 +7597,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable."
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
@@ -8135,14 +8223,6 @@
     "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },
@@ -8161,10 +8241,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "We encountered an error finding the channel."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -8203,34 +8279,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_group.app_error",
-    "translation": "failed to build query."
-  },
-  {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "More than one row changed."
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "a group with that name already exists"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
@@ -8245,10 +8293,6 @@
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "This email is already taken. Please choose another."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
   },
   {
     "id": "system.message.name",

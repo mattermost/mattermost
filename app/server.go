@@ -635,14 +635,6 @@ func (s *Server) initLogging() error {
 	// the copy is made.
 	defer mlog.InitGlobalLogger(s.Log)
 
-	// Redirect default golang logger to this logger.
-	defer mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging).
-	// This is deferred because a copy is made of the logger and it must be fully configured before
-	// the copy is made.
-	defer mlog.InitGlobalLogger(s.Log)
-
 	// Redirect default Go logger to this logger.
 	defer mlog.RedirectStdLog(s.Log)
 
