@@ -224,6 +224,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("requestRenewalLink", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	renewalToken, err := c.App.Srv().GenerateRenewalToken(app.JWTDefaultTokenExpiration)
 	if err != nil {
 		c.Err = err
