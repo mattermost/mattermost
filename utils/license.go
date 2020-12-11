@@ -139,6 +139,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Metrics"] = strconv.FormatBool(*l.Features.Metrics)
 		props["GoogleOAuth"] = strconv.FormatBool(*l.Features.GoogleOAuth)
 		props["Office365OAuth"] = strconv.FormatBool(*l.Features.Office365OAuth)
+		props["OpenId"] = strconv.FormatBool(*l.Features.OpenId)
 		props["Compliance"] = strconv.FormatBool(*l.Features.Compliance)
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)
 		props["Announcement"] = strconv.FormatBool(*l.Features.Announcement)
@@ -159,6 +160,8 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["CustomTermsOfService"] = strconv.FormatBool(*l.Features.CustomTermsOfService)
 		props["LockTeammateNameDisplay"] = strconv.FormatBool(*l.Features.LockTeammateNameDisplay)
 		props["Cloud"] = strconv.FormatBool(*l.Features.Cloud)
+		props["SharedChannels"] = strconv.FormatBool(*l.Features.SharedChannels)
+		props["RemoteClusterService"] = strconv.FormatBool(*l.Features.RemoteClusterService)
 	}
 
 	return props
