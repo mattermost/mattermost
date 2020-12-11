@@ -260,44 +260,48 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 // GenerateRenewalToken returns the current active token or generate a new one if
 // the current active one has expired
 func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.AppError) {
-	if license := s.License(); license != nil {
-		currentToken, err := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
-		if currentToken != nil {
-			tokenIsValid, err2 := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
-			if err2 != nil {
-				mlog.Warn("error checking license renewal token validation", mlog.Err(err))
-			}
-			if currentToken.Value != "" && tokenIsValid {
-				return currentToken.Value, nil
-			}
-		}
-
-		expirationTime := time.Now().UTC().Add(expiration)
-		claims := &JWTClaims{
-			LicenseID: license.Id,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expirationTime.Unix(),
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString([]byte(license.Customer.Email))
-		if err != nil {
-			return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		err = s.Store.System().SaveOrUpdate(&model.System{
-			Name:  model.SYSTEM_LICENSE_RENEWAL_TOKEN,
-			Value: tokenString,
-		})
-		if err != nil {
-			return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		return tokenString, nil
-	} else {
+	license := s.License()
+	if license == nil {
 		// Clean renewal token if there is no license present
-		_, _ = s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		_, err := s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+		if err != nil {
+			mlog.Error("error removing the renewal token", mlog.Err(err))
+		}
 		return "", model.NewAppError("GenerateRenewalToken", "ent.license.no_license", nil, "", http.StatusBadRequest)
 	}
+
+	currentToken, _ := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
+	if currentToken != nil {
+		tokenIsValid, err := s.renewalTokenValid(currentToken.Value, license.Customer.Email)
+		if err != nil {
+			mlog.Warn("error checking license renewal token validation", mlog.Err(err))
+		}
+		if currentToken.Value != "" && tokenIsValid {
+			return currentToken.Value, nil
+		}
+	}
+
+	expirationTime := time.Now().UTC().Add(expiration)
+	claims := &JWTClaims{
+		LicenseID: license.Id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(license.Customer.Email))
+	if err != nil {
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	err = s.Store.System().SaveOrUpdate(&model.System{
+		Name:  model.SYSTEM_LICENSE_RENEWAL_TOKEN,
+		Value: tokenString,
+	})
+	if err != nil {
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return tokenString, nil
 }
 
 func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error) {
