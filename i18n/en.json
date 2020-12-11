@@ -1573,6 +1573,10 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request_renewal_link.no-site-url.app_error",
+    "translation": "The LicenseRenewalURL setting is not defined in the configuration"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -6483,8 +6487,12 @@
     "translation": "unable to migrate."
   },
   {
-    "id": "ent.license.renewal_token.app_error",
+    "id": "ent.license.generate_renewal_token.app_error",
     "translation": "Failed to generate a new renewal token."
+  },
+  {
+    "id": "ent.license.generate_renewal_token.no_license",
+    "translation": "No license present"
   },
   {
     "id": "ent.message_export.actiance_export.get_attachment_error",

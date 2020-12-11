@@ -267,7 +267,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		if err != nil {
 			mlog.Error("error removing the renewal token", mlog.Err(err))
 		}
-		return "", model.NewAppError("GenerateRenewalToken", "ent.license.no_license", nil, "", http.StatusBadRequest)
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
 	}
 
 	currentToken, _ := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
@@ -292,14 +292,14 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(license.Customer.Email))
 	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	err = s.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_LICENSE_RENEWAL_TOKEN,
 		Value: tokenString,
 	})
 	if err != nil {
-		return "", model.NewAppError("GenerateRenewalToken", "ent.license.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", model.NewAppError("GenerateRenewalToken", "ent.license.generate_renewal_token.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return tokenString, nil
 }
