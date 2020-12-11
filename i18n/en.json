@@ -133,7 +133,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "It appears your Mattermost email is setup correctly!"
+    "translation": "It appears your Fish email is setup correctly!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -145,7 +145,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - Testing Email Settings"
+    "translation": "Fish - Testing Email Settings"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -209,7 +209,7 @@
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
-    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Fish Desktop App."
   },
   {
     "id": "api.channel.add_guest.added",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Send an email invite to your Mattermost team"
+    "translation": "Send an email invite to your Fish team"
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
@@ -812,7 +812,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Open the Fish help page"
   },
   {
     "id": "api.command_help.name",
@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Logout of Mattermost"
+    "translation": "Logout of Fish"
   },
   {
     "id": "api.command_logout.name",
@@ -1570,19 +1570,19 @@
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
-    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+    "translation": "You must accept the Fish Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
     "id": "api.license.request_trial_license.app_error",
-    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+    "translation": "Unable to get a trial license, please try again or contact with hirefishcommunity@gmail.com."
   },
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
+    "translation": "Unable to get a trial license, please try again or contact with hirefishcommunity@gmail.com. Cannot obtain the number of registered users."
   },
   {
     "id": "api.license.request_trial_license.no-site-url.app_error",
-    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
+    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Fish System Console."
   },
   {
     "id": "api.marshal_error",
@@ -2020,7 +2020,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
+    "translation": "If you have any additional inquiries, please contact hirefishcommunity@gmail.com"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
@@ -2032,7 +2032,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Contact Us request"
+    "translation": "Fish Contact Us request"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_failure.body",
@@ -2044,11 +2044,11 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Thank you for contacting Mattermost. We will follow up with you soon."
+    "translation": "Thank you for contacting Fish. We will follow up with you soon."
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Trial license could not be retrieved. Visit https://mattermost.com/trial/ to request a license."
+    "translation": "Trial license could not be retrieved. Visit https://fish.co/trial/ to request a license."
   },
   {
     "id": "api.server.warn_metric.contact_us",
@@ -2060,11 +2060,11 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about using Guest Accounts.\r\n"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Fish system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Projects often involve people both inside and outside of an organization. With Guest Accounts, you can bring external partners into your Fish system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
@@ -2084,11 +2084,11 @@
   },
   {
     "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\r\n"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Fish system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Fish accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -2096,7 +2096,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Fish system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Fish accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
@@ -2104,19 +2104,19 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 100 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+    "translation": "Fish contact us request. My team now has 100 users, and I'm considering Fish Enterprise Edition.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Fish system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Fish.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Scaling with Mattermost"
+    "translation": "Scaling with Fish"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Your Mattermost system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Fish system has over 100 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Fish.\r\n\r\n[Learn more about integrating with AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
@@ -2124,19 +2124,19 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 200 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+    "translation": "Fish contact us request. My team now has 200 users, and I'm considering Fish Enterprise Edition.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Fish system now has 200 users. When you connect Fish with your organization's single sign-on provider, users can access Fish without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Fish server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Scaling with Mattermost"
+    "translation": "Scaling with Fish"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Your Mattermost system now has 200 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Mattermost server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Fish system now has 200 users. When you connect Fish with your organization's single sign-on provider, users can access Fish without having to re-enter their credentials. We recommend you integrate your SAML 2.0 provider with your Fish server.[Learn more about integrating with SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
@@ -2144,15 +2144,15 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about creating read-only Announcement Channels.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about creating read-only Announcement Channels.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "With so much conversation happening across Fish, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "With so much conversation happening across Mattermost, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "With so much conversation happening across Fish, it can be challenging to know where to look for important information. If you want to broadcast a message to a large audience, you can set up read-only Announcement Channels where anyone can join but only channel admins can post messages.\r\n\r\n[Learn more about creating read-only Announcement Channels](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
@@ -2164,19 +2164,19 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 500 users, and I'm considering Mattermost Enterprise Edition.\r\n"
+    "translation": "Fish contact us request. My team now has 500 users, and I'm considering Fish Enterprise Edition.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Fish strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Scaling with Mattermost"
+    "translation": "Scaling with Fish"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Fish strongly recommends that deployments of over 500 users take advantage of features such as user management, server clustering and performance monitoring. Contact us to learn more and let us know how we can help.\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
@@ -2184,11 +2184,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Channels help improve communication, but with users across Fish joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.notification_title",
@@ -2196,7 +2196,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Channels help improve communication, but with users across Mattermost joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Channels help improve communication, but with users across Fish joining and creating channels, the challenge of keeping the system organized increases. Advanced Permissions enable you to set which users or roles can perform certain actions, including managing channel settings and members, using @channel or @here to tag broad groups of users, and creating new webhooks.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
@@ -2204,11 +2204,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Fish system has a large number of messages. The default Fish database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
@@ -2216,7 +2216,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Fish system has a large number of messages. The default Fish database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
@@ -2224,11 +2224,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\r\n"
+    "translation": "Fish contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\r\n"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Fish system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Fish, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
@@ -2236,7 +2236,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Your Mattermost system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Fish system now has several teams. Many teams have their own preferred way of coordinating and collaborating, including how channels are created, who can invite new teammates, and how integrations are managed. Team Override Schemes allow you to customize user permissions within each team to meet their specific needs.\r\n\r\n[Learn more about using Advanced Permissions](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\r\n\r\nBy clicking Start trial, I agree to the [Fish Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
@@ -2272,7 +2272,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "The Slack channel {{.DisplayName}} already exists as an active Fish channel. Both channels have been merged.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -2284,11 +2284,11 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack user merged with an existing Fish user with matching email {{.Email}} and username {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slack user merged with an existing Fish user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
@@ -2300,7 +2300,7 @@
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Import Log\r\n"
+    "translation": "Fish Slack Import Log\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
@@ -2596,7 +2596,7 @@
   },
   {
     "id": "api.templates.at_limit_info1",
-    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Mattermost Cloud Professional now."
+    "translation": "It looks like you have 10 or more users in your workspace now — that’s great! If you want to invite more team members, consider upgrading Fish Cloud Professional now."
   },
   {
     "id": "api.templates.at_limit_info2",
@@ -2604,7 +2604,7 @@
   },
   {
     "id": "api.templates.at_limit_subject",
-    "translation": "Mattermost Cloud User Limit Reached"
+    "translation": "Fish Cloud User Limit Reached"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -2612,7 +2612,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2017 Fish, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -2692,7 +2692,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
+    "translation": "Fish lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined [[{{.TeamDisplayName}}]], you can sign-in to your new team and access these features anytime from the web address:"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2736,11 +2736,11 @@
   },
   {
     "id": "api.templates.over_limit_14_days_info1",
-    "translation": "Just a reminder that we have not received payment for your Mattermost subscription invoiced on {{ .OverLimitDate }}.  We will soon begin a process to suspend your service if payment is not received."
+    "translation": "Just a reminder that we have not received payment for your Fish subscription invoiced on {{ .OverLimitDate }}.  We will soon begin a process to suspend your service if payment is not received."
   },
   {
     "id": "api.templates.over_limit_14_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
+    "translation": "Payment is overdue for your Fish Cloud subscription"
   },
   {
     "id": "api.templates.over_limit_14_days_title",
@@ -2748,7 +2748,7 @@
   },
   {
     "id": "api.templates.over_limit_30_days_info1",
-    "translation": "There’s still time to keep your Mattermost Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
+    "translation": "There’s still time to keep your Fish Cloud workspace active by resolving issues with your payment method. To avoid suspension update your method of payment."
   },
   {
     "id": "api.templates.over_limit_30_days_info2",
@@ -2768,19 +2768,19 @@
   },
   {
     "id": "api.templates.over_limit_30_days_subject",
-    "translation": " Act to keep your Mattermost Cloud subscription"
+    "translation": " Act to keep your Fish Cloud subscription"
   },
   {
     "id": "api.templates.over_limit_30_days_title",
-    "translation": "Mattermost Cloud Workspace Suspension"
+    "translation": "Fish Cloud Workspace Suspension"
   },
   {
     "id": "api.templates.over_limit_7_days_info1",
-    "translation": "Mattermost couldn’t process your most recent automatic payment. To keep your service active, please add payment details as soon as possible or your service may be suspended."
+    "translation": "Fish couldn’t process your most recent automatic payment. To keep your service active, please add payment details as soon as possible or your service may be suspended."
   },
   {
     "id": "api.templates.over_limit_7_days_subject",
-    "translation": "Payment is overdue for your Mattermost Cloud subscription"
+    "translation": "Payment is overdue for your Fish Cloud subscription"
   },
   {
     "id": "api.templates.over_limit_7_days_title",
@@ -2788,7 +2788,7 @@
   },
   {
     "id": "api.templates.over_limit_90_days_info1",
-    "translation": "This is a final reminder that we have not received payment for your Mattermost Cloud workspace, which has been overdue since {{ .OverLimitDate }}. Tomorrow we will suspend your service."
+    "translation": "This is a final reminder that we have not received payment for your Fish Cloud workspace, which has been overdue since {{ .OverLimitDate }}. Tomorrow we will suspend your service."
   },
   {
     "id": "api.templates.over_limit_90_days_info2",
@@ -2804,11 +2804,11 @@
   },
   {
     "id": "api.templates.over_limit_90_days_subject",
-    "translation": "Your Mattermost Cloud subscription will soon be suspended"
+    "translation": "Your Fish Cloud subscription will soon be suspended"
   },
   {
     "id": "api.templates.over_limit_90_days_title",
-    "translation": "Your Mattermost Cloud workspace suspension is scheduled for tomorrow"
+    "translation": "Your Fish Cloud workspace suspension is scheduled for tomorrow"
   },
   {
     "id": "api.templates.over_limit_fix_now",
@@ -2816,7 +2816,7 @@
   },
   {
     "id": "api.templates.over_limit_info1",
-    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Mattermost Cloud Professional. To avoid any disruption in your Mattermost workspace, please upgrade."
+    "translation": "It looks like you have more than 10 users in your workspace which is beyond the free tier limits of Fish Cloud Professional. To avoid any disruption in your Fish workspace, please upgrade."
   },
   {
     "id": "api.templates.over_limit_info2",
@@ -2824,7 +2824,7 @@
   },
   {
     "id": "api.templates.over_limit_subject",
-    "translation": "Mattermost Cloud Workspace Over User Limit"
+    "translation": "Fish Cloud Workspace Over User Limit"
   },
   {
     "id": "api.templates.over_limit_suspended_contact_support",
@@ -2832,7 +2832,7 @@
   },
   {
     "id": "api.templates.over_limit_suspended_info1",
-    "translation": "Your Mattermost workspace has been suspended. All contents and data within your workspace will be deleted within 1-3 months."
+    "translation": "Your Fish workspace has been suspended. All contents and data within your workspace will be deleted within 1-3 months."
   },
   {
     "id": "api.templates.over_limit_suspended_info2",
@@ -2840,11 +2840,11 @@
   },
   {
     "id": "api.templates.over_limit_suspended_subject",
-    "translation": "Your Mattermost Cloud subscription has been suspended"
+    "translation": "Your Fish Cloud subscription has been suspended"
   },
   {
     "id": "api.templates.over_limit_suspended_title",
-    "translation": "Mattermost Cloud Workspace suspended"
+    "translation": "Fish Cloud Workspace suspended"
   },
   {
     "id": "api.templates.over_limit_title",
@@ -2876,7 +2876,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Fish Enterprise license has been disabled."
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2980,11 +2980,11 @@
   },
   {
     "id": "api.templates.warn_metric_ack.footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
+    "translation": "If you have any additional inquiries, please contact hirefishcommunity@gmail.com"
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Contact Us request"
+    "translation": "Fish Contact Us request"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -3004,7 +3004,7 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving."
+    "translation": "Fish lets you share messages and files from your PC or phone, with instant search and archiving."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3016,43 +3016,43 @@
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
+    "translation": "You have already upgraded to Fish Enterprise Edition. Please restart the server to finish the upgrade."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
+    "translation": "You cannot upgrade because you are already running Fish Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
+    "translation": "An upgrade to Fish Enterprise Edition is already running."
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+    "translation": "Fish was unable to upgrade to Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Fish was unable to upgrade to Enterprise Edition. The Fish system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Fish is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Fish again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Fish was unable to upgrade to Enterprise Edition. The Fish system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Fish is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Fish again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    "translation": "Fish was unable to upgrade to Enterprise Edition. The Fish system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Fish is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Fish again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
+    "translation": "Fish was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+    "translation": "Fish was unable to upgrade to Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+    "translation": "Fish was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
     "id": "api.upload.get_upload.forbidden.app_error",
@@ -5248,11 +5248,11 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
+    "translation": "[Learn more about the Fish Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
+    "translation": "Fish Advisor"
   },
   {
     "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
@@ -6360,7 +6360,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Your AD/LDAP account does not have permission to use this Mattermost server. Please ask your System Administrator to check the AD/LDAP user filter."
+    "translation": "Your AD/LDAP account does not have permission to use this Fish server. Please ask your System Administrator to check the AD/LDAP user filter."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -6400,7 +6400,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+    "translation": "Failed to search users in AD/LDAP. Test if the Fish server can connect to your AD/LDAP server and try again."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -6528,7 +6528,7 @@
   },
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
-    "translation": "Username already used by another Mattermost user."
+    "translation": "Username already used by another Fish user."
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -6660,7 +6660,7 @@
   },
   {
     "id": "mattermost.bulletin.subject",
-    "translation": "Mattermost Security Bulletin"
+    "translation": "Fish Security Bulletin"
   },
   {
     "id": "mfa.activate.authenticate.app_error",
@@ -8044,7 +8044,7 @@
   },
   {
     "id": "oauth.gitlab.tos.error",
-    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+    "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Fish again."
   },
   {
     "id": "plugin.api.get_users_in_channel",
@@ -8264,7 +8264,7 @@
   },
   {
     "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-    "translation": "Download the Mattermost app or use a supported browser for a better experience."
+    "translation": "Download the Fish app or use a supported browser for a better experience."
   },
   {
     "id": "web.error.unsupported_browser.download_the_app",
@@ -8308,11 +8308,11 @@
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
-    "translation": "This browser is no longer supported by Mattermost"
+    "translation": "This browser is no longer supported by Fish"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
-    "translation": "This version of your browser is no longer supported by Mattermost"
+    "translation": "This version of your browser is no longer supported by Fish"
   },
   {
     "id": "web.error.unsupported_browser.open_system_browser.edge",
