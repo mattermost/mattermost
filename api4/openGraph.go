@@ -13,7 +13,7 @@ import (
 
 const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
-var openGraphDataCache = cache.NewLRU(&cache.LRUOptions{
+var openGraphDataCache = cache.NewLRU(cache.LRUOptions{
 	Size: OPEN_GRAPH_METADATA_CACHE_SIZE,
 })
 
