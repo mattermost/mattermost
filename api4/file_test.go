@@ -404,6 +404,18 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
+		// animated GIF
+		{
+			title:                       "Happy image thumbnail/preview 12",
+			names:                       []string{"testgif.gif"},
+			expectedImageThumbnailNames: []string{"testgif_expected_thumbnail.jpg"},
+			expectedImagePreviewNames:   []string{"testgif_expected_preview.jpg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{118},
+			expectedImageHeights:        []int{118},
+			expectedImageHasPreview:     []bool{false},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
 		{
 			title:                    "Happy admin",
 			client:                   th.SystemAdminClient,
