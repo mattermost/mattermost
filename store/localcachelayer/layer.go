@@ -133,7 +133,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          ROLE_CACHE_SEC * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
 		Striped:                true,
-		StripedBuckets:         runtime.NumCPU() - 1,
+		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
@@ -271,7 +271,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		DefaultExpiry:          USER_PROFILE_BY_ID_SEC * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS,
 		Striped:                true,
-		StripedBuckets:         runtime.NumCPU() - 1,
+		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
 	}); err != nil {
 		return
 	}
@@ -317,6 +317,13 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func (s LocalCacheStore) Reaction() store.ReactionStore {
