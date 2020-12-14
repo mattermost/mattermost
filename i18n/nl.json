@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Niet ondersteunde OAuth service provider."
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
