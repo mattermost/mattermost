@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "OAuth hizmeti sağlayıcısı desteklenmiyor."
+    "translation": "OAuth 2.0 üzerinden {{.Service}} Tek Oturum Açma hizmeti bu sunucu üzerinde kullanılamıyor."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -8437,5 +8437,9 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Yüklenen dosya taşınamadı."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": " "
   }
 ]
