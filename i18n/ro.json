@@ -2121,7 +2121,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Neacceptat OAuth furnizorul."
+    "translation": "{{.Service}} SSO prin OAuth 2.0 nu este disponibil pe acest server"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
