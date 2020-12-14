@@ -2124,7 +2124,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Niet ondersteunde OAuth service provider."
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2147,10 +2147,6 @@
     "translation": "Kan de auth data niet verwerken voor gebruikers object bij {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -2161,10 +2157,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2209,10 +2201,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Ongeldige OAuth service provider"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",

@@ -2142,10 +2142,6 @@
     "translation": "無法解析 {{.Service}} 使用者物件的認證資料"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "建立電子郵件驗證的 Token 資料失敗"
   },
@@ -2156,10 +2152,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "無法建立用於 {{.Service}} 的使用者物件"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2204,10 +2196,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "此伺服器尚未設定或不支援認證轉移。"
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "不支援的 OAuth 服務供應者"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",

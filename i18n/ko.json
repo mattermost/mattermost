@@ -2142,10 +2142,6 @@
     "translation": "Could not parse auth data out of {{.Service}} user object"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -2156,10 +2152,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Could not create user out of {{.Service}} user object"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2204,10 +2196,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "지원하지 않는 OAuth 서비스 프로바이더"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
