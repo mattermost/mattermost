@@ -47,9 +47,8 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Redirect url is only needed for mobile
-	if isMobile && len(redirectTo) > 0 {
-		if !utils.IsValidCustomSchemeUrl(redirectTo) {
+	if len(redirectTo) > 0 {
+		if isMobile && !utils.IsValidCustomSchemeUrl(redirectTo) {
 			err := model.NewAppError("loginWithSaml", "api.invalid_custom_scheme_url", nil, "", http.StatusBadRequest)
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 			return
@@ -103,22 +102,37 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	auditRec.AddMeta("action", action)
 
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
-	if err != nil {
-		c.LogAudit("fail")
-		if action == model.OAUTH_ACTION_MOBILE {
+	isActionMobileAuth := action == model.OAUTH_ACTION_MOBILE
+	redirectUrl := ""
+	hasRedirectUrl := false
+	if val, ok := relayProps["redirect_to"]; ok {
+		redirectUrl = val
+		hasRedirectUrl = len(val) > 0
+	}
+
+	handleError := func(err *model.AppError) {
+		if isActionMobileAuth {
 			err.Translate(c.App.T)
-			w.Write([]byte(err.ToJson()))
+			if hasRedirectUrl {
+				utils.RenderMobileError(c.App.Config(), w, err, redirectUrl)
+			} else {
+				w.Write([]byte(err.ToJson()))
+			}
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 		}
+	}
+
+	user, err := samlInterface.DoLogin(encodedXML, relayProps)
+	if err != nil {
+		c.LogAudit("fail")
+		handleError(err)
 		return
 	}
 
 	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusFound
+		handleError(err)
 		return
 	}
 
@@ -156,7 +170,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
 	if err != nil {
-		c.Err = err
+		handleError(err)
 		return
 	}
 
@@ -165,14 +179,14 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AttachSessionCookies(w, r)
 
-	if val, ok := relayProps["redirect_to"]; ok {
-		var redirectUrl string
-		if action == model.OAUTH_ACTION_MOBILE {
-			redirectUrl = utils.BuildUrlQueryStringFromCookies(val, r)
+	if hasRedirectUrl {
+		if isActionMobileAuth {
+			redirectUrl = utils.BuildUrlQueryStringFromCookies(redirectUrl, r)
+			utils.RenderMobileAuthComplete(w, redirectUrl)
 		} else {
-			redirectUrl = c.GetSiteURLHeader() + val
+			redirectUrl = c.GetSiteURLHeader() + redirectUrl
+			http.Redirect(w, r, redirectUrl, http.StatusFound)
 		}
-		http.Redirect(w, r, redirectUrl, http.StatusFound)
 		return
 	}
 

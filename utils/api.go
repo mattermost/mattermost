@@ -101,10 +101,10 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
-		<h2> `+T("api.oauth.auth_complete")+` </h2>
+		<h2> `+T("error")+` </h2>
 		<p> `+err.Message+` </p>
 		<a href="`+redirectUrl+`">
-			`+T("api.oauth.auth_complete", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
 }

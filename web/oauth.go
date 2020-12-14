@@ -273,18 +273,34 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
 
 	action := ""
+	hasRedirectUrl := false
+	isActionMobileAuth := false
+	redirectUrl := ""
 	if props != nil {
 		action = props["action"]
+		isActionMobileAuth = action == model.OAUTH_ACTION_MOBILE
+		if _, ok := props["redirect_to"]; ok {
+			redirectUrl = props["redirect_to"]
+			hasRedirectUrl = len(redirectUrl) > 0
+		}
+	}
+
+	renderError := func(err *model.AppError) {
+		if isActionMobileAuth {
+			if hasRedirectUrl {
+				utils.RenderMobileError(c.App.Config(), w, err, redirectUrl)
+			} else {
+				w.Write([]byte(err.ToJson()))
+			}
+		} else {
+			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		}
 	}
 
 	if err != nil {
 		err.Translate(c.App.T)
 		mlog.Error(err.Error())
-		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
-		}
+		renderError(err)
 		return
 	}
 
@@ -292,15 +308,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err.Translate(c.App.T)
 		mlog.Error(err.Error())
-		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
-		}
+		renderError(err)
 		return
 	}
 
-	var redirectUrl string
 	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
 		redirectUrl = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
@@ -313,27 +324,27 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
-			c.Err = err
-			if action == model.OAUTH_ACTION_MOBILE {
-				w.Write([]byte(err.ToJson()))
-			}
+			mlog.Error(err.Error())
+			renderError(err)
 			return
 		}
 
 		c.App.AttachSessionCookies(w, r)
 
-		if _, ok := props["redirect_to"]; ok {
-			redirectUrl = props["redirect_to"]
-		} else {
+		if !isActionMobileAuth {
 			redirectUrl = c.GetSiteURLHeader()
 		}
 	}
 
-	if action == model.OAUTH_ACTION_MOBILE {
-		if len(redirectUrl) == 0 {
+	if isActionMobileAuth {
+		// Mobile clients with webview support
+		if !hasRedirectUrl {
 			return
 		}
+		// Mobile clients with redirect url support
 		redirectUrl = utils.BuildUrlQueryStringFromCookies(redirectUrl, r)
+		utils.RenderMobileAuthComplete(w, redirectUrl)
+		return
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
