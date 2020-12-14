@@ -1597,6 +1597,26 @@
     "translation": "Unable to migrate SAML."
   },
   {
+    "id": "error",
+    "translation": "Error"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this tab now."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
