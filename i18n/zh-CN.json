@@ -3783,7 +3783,7 @@
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "名称必须是2个或以上的小写字母"
+    "translation": "名称必须是2个或更多小写字母数字字符。"
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -3795,11 +3795,11 @@
   },
   {
     "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "无效显示名"
+    "translation": "无效的显示名。"
   },
   {
     "id": "model.channel.is_valid.header.app_error",
-    "translation": "无效标题"
+    "translation": "无效的标题。"
   },
   {
     "id": "model.channel.is_valid.id.app_error",
@@ -3807,39 +3807,39 @@
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",
-    "translation": "无效用途"
+    "translation": "无效的用途。"
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "无效类型"
+    "translation": "无效的类型。"
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.channel_member.is_valid.channel_id.app_error",
-    "translation": "无效的频道id"
+    "translation": "无效的频道 id。"
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "无效的电子邮件通知值"
+    "translation": "无效的电子邮件通知值。"
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "无效的忽略频道提及状态"
+    "translation": "无效的忽略频道提及状态。"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
-    "translation": "无效通知级别"
+    "translation": "无效的通知级别。"
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "无效的推送通知等级"
+    "translation": "无效的推送通知等级。"
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
-    "translation": "无效的未读标记级别"
+    "translation": "无效的未读标记级别。"
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
@@ -3847,11 +3847,11 @@
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
-    "translation": "必须设定 CreateAt"
+    "translation": "必须设定 CreateAt。"
   },
   {
     "id": "model.cluster.is_valid.hostname.app_error",
-    "translation": "必须设定 Hostname"
+    "translation": "必须设定 Hostname。"
   },
   {
     "id": "model.cluster.is_valid.id.app_error",
@@ -3859,15 +3859,15 @@
   },
   {
     "id": "model.cluster.is_valid.last_ping_at.app_error",
-    "translation": "必须设定 LastPingAt"
+    "translation": "必须设定 LastPingAt。"
   },
   {
     "id": "model.cluster.is_valid.name.app_error",
-    "translation": "必须设定 ClusterName"
+    "translation": "必须设定 ClusterName。"
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
-    "translation": "必须设定类型"
+    "translation": "必须设定类型。"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -3903,7 +3903,7 @@
   },
   {
     "id": "model.command.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间。"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.command.is_valid.url.app_error",
@@ -3911,7 +3911,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "无效URL. URL必须以http:// or https://开头"
+    "translation": "无效的网址。必须以 http:// 或 https:// 开头的有效网址。"
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -3919,11 +3919,11 @@
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "无效的频道 id"
+    "translation": "无效的频道 id。"
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "无效命令 id"
+    "translation": "无效的命令 id。"
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -3931,15 +3931,15 @@
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "无效的命令钩子 id"
+    "translation": "无效的命令钩子 id。"
   },
   {
     "id": "model.command_hook.parent_id.app_error",
-    "translation": "无效父 id"
+    "translation": "无效的父 id。"
   },
   {
     "id": "model.command_hook.root_id.app_error",
-    "translation": "无效根 id"
+    "translation": "无效的根 id。"
   },
   {
     "id": "model.command_hook.user_id.app_error",
@@ -4003,7 +4003,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字"
+    "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字。"
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
@@ -4015,15 +4015,15 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是。"
+    "translation": "当 Elastic Search SearchEnabled 设为是时必须设定 Elastic Search IndexingEnabled 为是"
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch 即时索引批量大小必须至少为 1"
+    "translation": "Elasticsearch 即时索引批量大小必须至少为 1。"
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime 设定必须以 \"hh:mm\" 格式的时间"
+    "translation": "Elasticsearch PostsAggregatorJobStartTime 设定必须以 \"hh:mm\" 的时间格式。"
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
@@ -4043,7 +4043,7 @@
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "无效的电子邮件设置中的连接安全性。必须为 ''、'TLS' 或者 'STARTTLS'"
+    "translation": "无效的电子邮件设置中的连接安全性。必须为 ''，'TLS' 或 'STARTTLS'。"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -4307,7 +4307,7 @@
   },
   {
     "id": "model.emoji.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -4387,7 +4387,7 @@
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
-    "translation": "无效的频道id"
+    "translation": "无效的频道 id。"
   },
   {
     "id": "model.incoming_hook.create_at.app_error",
@@ -4419,7 +4419,7 @@
   },
   {
     "id": "model.incoming_hook.update_at.app_error",
-    "translation": "更新时必须是有效时间。"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.incoming_hook.user_id.app_error",
@@ -4511,7 +4511,7 @@
   },
   {
     "id": "model.oauth.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",
@@ -4523,7 +4523,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-    "translation": "无效的频道id"
+    "translation": "无效的频道 id。"
   },
   {
     "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -4559,7 +4559,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.outgoing_hook.is_valid.url.app_error",
@@ -4591,7 +4591,7 @@
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
-    "translation": "无效的频道id"
+    "translation": "无效的频道 id。"
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -4623,7 +4623,7 @@
   },
   {
     "id": "model.post.is_valid.parent_id.app_error",
-    "translation": "无效父id"
+    "translation": "无效的父 id。"
   },
   {
     "id": "model.post.is_valid.props.app_error",
@@ -4631,7 +4631,7 @@
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "无效根id"
+    "translation": "无效的根 id。"
   },
   {
     "id": "model.post.is_valid.root_parent.app_error",
@@ -4639,11 +4639,11 @@
   },
   {
     "id": "model.post.is_valid.type.app_error",
-    "translation": "无效类型"
+    "translation": "无效的类型。"
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
@@ -4687,7 +4687,7 @@
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "名称必须是2个或以上的小写字母"
+    "translation": "名称必须是2个或更多小写字母数字字符。"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -4723,11 +4723,11 @@
   },
   {
     "id": "model.team.is_valid.type.app_error",
-    "translation": "无效类型"
+    "translation": "无效的类型。"
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -5431,15 +5431,15 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "当 Bleve EnableSearching 设为是时必须设定 Bleve EnableIndexing 为是。"
+    "translation": "当 Bleve EnableSearching 设为是时必须设定 Bleve EnableIndexing 为是"
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "当 Bleve IndexingDir 设为是时必须设定 Bleve EnableIndexing 为是。"
+    "translation": "当 Bleve IndexingDir 设为是时必须设定 Bleve EnableIndexing 为是"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "当 Elasticsearch EnableAutocomplete 设为是时必须设定 Elasticsearch EnableIndexing 为是。"
+    "translation": "当 Elasticsearch EnableAutocomplete 设为是时必须设定 Elasticsearch EnableIndexing 为是"
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -5759,7 +5759,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "当 Bleve AutocompleteEnabled 设为是时必须设定 Bleve EnableIndexing 为是。"
+    "translation": "当 Bleve AutocompleteEnabled 设为是时必须设定 Bleve EnableIndexing 为是"
   },
   {
     "id": "model.config.is_valid.saml_guest_attribute.app_error",
@@ -5787,7 +5787,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "更新时必须是有效时间。"
+    "translation": "更新时必须是有效的时间。"
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -7055,7 +7055,7 @@
   },
   {
     "id": "api.admin.add_certificate.parseform.app_error",
-    "translation": "解析 multiform 请求出错"
+    "translation": "解析 multiform 请求错误"
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
@@ -7583,7 +7583,7 @@
   },
   {
     "id": "api.cloud.app_error",
-    "translation": "云 API 请求期间发生内部错误。"
+    "translation": "云 API 请求时发生内部错误。"
   },
   {
     "id": "app.upload.get_for_user.app_error",
