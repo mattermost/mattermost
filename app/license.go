@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -28,7 +29,8 @@ const (
 // JWTClaims custom JWT claims with the needed information for the
 // renewal process
 type JWTClaims struct {
-	LicenseID string `json:"license_id"`
+	LicenseID   string `json:"license_id"`
+	ActiveUsers int64  `json:"active_users"`
 	jwt.StandardClaims
 }
 
@@ -267,7 +269,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		if _, err := s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN); err != nil {
 			mlog.Error("error removing the renewal token", mlog.Err(err))
 		}
-		return "", model.NewAppError("GenerateRenewalToken", "ent.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
+		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
 	}
 
 	currentToken, _ := s.Store.System().GetByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
@@ -281,9 +283,17 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		}
 	}
 
+	activeUsers, err := s.Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+	mlog.Info(fmt.Sprintf("Active users %d", activeUsers))
+
 	expirationTime := time.Now().UTC().Add(expiration)
 	claims := &JWTClaims{
-		LicenseID: license.Id,
+		LicenseID:   license.Id,
+		ActiveUsers: activeUsers,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
