@@ -27,6 +27,9 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
+	"github.com/o1egl/govatar"
+	"github.com/smt923/genderize"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -857,6 +860,21 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	return buf.Bytes(), nil
 }
 
+func CreateGovatarImage(gender govatar.Gender, username string) ([]byte, *model.AppError) {
+	img, err := govatar.GenerateForUsername(gender, username)
+	if err != nil {
+		return nil, model.NewAppError("CreateGovatarImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	buf := new(bytes.Buffer)
+
+	err = png.Encode(buf, img)
+	if err != nil {
+		return nil, model.NewAppError("CreateGovatarImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return buf.Bytes(), nil
+}
+
 func getFont(initialFont string) (*truetype.Font, error) {
 	// Some people have the old default font still set, so just treat that as if they're using the new default
 	if initialFont == "luximbi.ttf" {
@@ -908,6 +926,20 @@ func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 	if user.IsBot {
 		img = model.BotDefaultImage
 		appErr = nil
+	} else if *a.Config().ExperimentalSettings.EnableGovatar {
+		locale := user.Locale
+		if locale == "en" {
+			locale = "us"
+		}
+		res, err := genderize.SingleLocalize(user.FirstName, genderize.Config{Country: locale})
+		if err != nil {
+			return nil, model.NewAppError("CreateGovatarImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if res.Gender == genderize.Male {
+			img, appErr = CreateGovatarImage(govatar.MALE, user.Username)
+		} else {
+			img, appErr = CreateGovatarImage(govatar.FEMALE, user.Username)
+		}
 	} else {
 		img, appErr = CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 	}
