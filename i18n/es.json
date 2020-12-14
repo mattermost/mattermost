@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Proveedor de servicios de OAuth no es compatible."
+    "translation": "{{.Service}} SSO a través de OAuth 2.0 no está disponible en este servidor."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -7993,5 +7993,13 @@
   {
     "id": "api.file.new_backend.s3.app_error",
     "translation": "Se encontró un error al abrir una conexión a S3."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Actualizar"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Contactar a Soporte"
   }
 ]
