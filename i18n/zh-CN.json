@@ -2134,10 +2134,6 @@
     "translation": "无法解析数据验证 {{.Service}} 用户对象。"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO。"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "创建邮件验证令牌数据失败"
   },
@@ -2148,10 +2144,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "无法创建用户 {{.Service}} 用户对象。"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO。"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2196,10 +2188,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "此服务器未配置验证转移。"
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "不支持的 OAuth 服务商。"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
