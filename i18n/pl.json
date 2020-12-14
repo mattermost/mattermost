@@ -2144,10 +2144,6 @@
     "translation": "Nie udało się przetworzyć danych uwierzytelniania z obiektu użytkownika {{.Service}}"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO za pomocą protokołu OAuth 2.0 nie jest dostępne na tym serwerze"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Nie udało się utworzyć danych tokena dla weryfikacji adresu e-mail"
   },
@@ -2158,10 +2154,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Nie udało się utworzyć konta z obiektu użytkownika {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO za pomocą protokołu OAuth 2.0 nie jest dostępne na tym serwerze"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2206,10 +2198,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Transfer uwierzytelnienia nie jest skonfigurowany lub dostępny na tym serwerze."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Niewspierany usługodawca OAuth"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",

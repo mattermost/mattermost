@@ -2139,10 +2139,6 @@
     "translation": "Impossibile parsare gli auth data dall'oggetto {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO tramite OAuth 2.0 non è disponibile su questo server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Errore nel creare i dati per l'email di verifica"
   },
@@ -2153,10 +2149,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Impossibile creare l'utente dall'oggetto {{.Service}}."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO tramite OAuth 2.0 non è disponibile su questo server."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2201,10 +2193,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Autenticazione sul Trasferimento non configurata o non disponibile su questo server."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "OAuth Service Provider non supportato."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",

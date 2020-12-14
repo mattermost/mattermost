@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "OAuth hizmeti sağlayıcısı desteklenmiyor."
+    "translation": "OAuth 2.0 üzerinden {{.Service}} Tek Oturum Açma hizmeti bu sunucu üzerinde kullanılamıyor."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2139,10 +2139,6 @@
     "translation": "{{.Service}} hizmeti kullanıcı nesnesinden kimlik doğrulama bilgileri alınamadı."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "OAuth 2.0 üzerinden {{.Service}} Tek Oturum Açma hizmeti bu sunucu üzerinde kullanılamıyor."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "E-posta doğrulaması için kod verisi oluşturulamadı"
   },
@@ -2153,10 +2149,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "{{.Service}} hizmeti kullanıcı nesnesinden kullanıcı oluşturulamadı."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "OAuth 2.0 üzerinden {{.Service}} Tek Oturum Açma hizmeti bu sunucu üzerinde kullanılamıyor."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2201,10 +2193,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Kimlik Doğrulama Aktarımı yapılandırması yapılmamış ya da bu sunucu üzerinde kullanılamıyor."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "OAuth hizmeti sağlayıcısı desteklenmiyor."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -8449,5 +8437,9 @@
   {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Yüklenen dosya taşınamadı."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": " "
   }
 ]
