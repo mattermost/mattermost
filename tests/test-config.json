@@ -3,7 +3,6 @@
         "SiteURL": "",
         "WebsocketURL": "",
         "LicenseFileLocation": "",
-        "LicenseRenewalURL": "",
         "ListenAddress": ":8065",
         "ConnectionSecurity": "",
         "TLSCertFile": "",

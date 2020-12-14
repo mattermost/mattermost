@@ -234,15 +234,14 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	licenseRenewalURL := *c.App.Srv().Config().ServiceSettings.LicenseRenewalURL
-	if licenseRenewalURL == "" {
-		c.Err = model.NewAppError("RequestRenewalLink", "api.license.request_renewal_link.no-site-url.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-	renewalLink := licenseRenewalURL + "?token=" + renewalToken
+	renewalLink := app.LicenseRenewalURL + "?token=" + renewalToken
 
 	auditRec.Success()
 	c.LogAudit("success")
 
-	w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
+	_, werr := w.Write([]byte(fmt.Sprintf(`{"renewal_link": "%s"}`, renewalLink)))
+	if werr != nil {
+		c.Err = model.NewAppError("requestRenewalLink", "api.license.request_renewal_link.app_error", nil, werr.Error(), http.StatusForbidden)
+		return
+	}
 }

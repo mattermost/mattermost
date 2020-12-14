@@ -1573,8 +1573,8 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
-    "id": "api.license.request_renewal_link.no-site-url.app_error",
-    "translation": "The LicenseRenewalURL setting is not defined in the configuration"
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error getting the license renewal link"
   },
   {
     "id": "api.license.request_trial_license.app_error",
