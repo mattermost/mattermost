@@ -4616,7 +4616,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Id file non valido. I caricamenti sono limitati ad un massimo di 5 file. Utilizzare più pubblicazioni per più file."
+    "translation": "Id file non valido. I caricamenti sono limitati ad un massimo di 10 file. Utilizzare più pubblicazioni per più file."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

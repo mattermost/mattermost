@@ -398,7 +398,7 @@ CREATE TABLE public.posts (
     props character varying(8000),
     hashtags character varying(1000),
     filenames character varying(4000),
-    fileids character varying(150),
+    fileids character varying(300),
     hasreactions boolean
 );
 
