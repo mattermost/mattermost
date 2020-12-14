@@ -13,10 +13,14 @@ type FeatureFlags struct {
 
 	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
 	CloudDelinquentEmailJobsEnabled bool
+
+	// Toggle on or off the new quick switcher
+	NewQuickSwitcher bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
+	f.NewQuickSwitcher = false
 }
