@@ -4621,7 +4621,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identitatea fișierului invalidă. Rețineți că încărcările sunt limitate la maxim 5 fișiere. Utilizați postări suplimentare pentru mai multe fișiere."
+    "translation": "Identitatea fișierului invalidă. Rețineți că încărcările sunt limitate la maxim 10 fișiere. Utilizați postări suplimentare pentru mai multe fișiere."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
