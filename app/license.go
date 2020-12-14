@@ -264,8 +264,7 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 	license := s.License()
 	if license == nil {
 		// Clean renewal token if there is no license present
-		_, err := s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN)
-		if err != nil {
+		if _, err := s.Store.System().PermanentDeleteByName(model.SYSTEM_LICENSE_RENEWAL_TOKEN); err != nil {
 			mlog.Error("error removing the renewal token", mlog.Err(err))
 		}
 		return "", model.NewAppError("GenerateRenewalToken", "ent.license.generate_renewal_token.no_license", nil, "", http.StatusBadRequest)
