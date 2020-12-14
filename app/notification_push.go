@@ -583,7 +583,9 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	for _, attachment := range post.Attachments() {
-		post.Message += "\n" + attachment.Fallback
+		if attachment.Fallback != "" {
+			post.Message += "\n" + attachment.Fallback
+		}
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)
