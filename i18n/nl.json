@@ -1620,11 +1620,11 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+    "translation": "Kan het Slack kanaal {{.DisplayName}} niet importeren.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "Het Slack kanaal {{.DisplayName}} bestaat reeds als een actief Mattermost kanaal. Beide kanalen zijn samengevoegd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -1632,19 +1632,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Slackgebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} is geïmporteerd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack gebruiker is samengevoegd met een bestaande Mattermost gebruiker met zelfde e-mail {{.Email}} en gebruikersnaam {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slackgebruiker is samengevoegd met een bestaande Mattermostgebruiker met overeenstemmend e-mail {{.Email}} en gebruikersnaam{{.Username}}, maar kon niet toevoegd worden aan het team.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+    "translation": "Gebruiker {{.Username}} heeft geen e-mailadres in de Slack-export. We gebruikten voorlopig {{.Email}} . De gebruiker zou zijn e-mailadres moeten bijwerken eens deze is aangemeld in het systeem.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1664,7 +1664,7 @@
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n"
+    "translation": "- Bijkomende fouten kunnen gevonden worden in de serverlogs.\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1680,7 +1680,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
+    "translation": "Kan het Slack-exportbestand niet openen.\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -1692,7 +1692,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Waarde verplicht om gebruiker toe te voegen aan het team."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1704,7 +1704,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Unable to read the team icon file."
+    "translation": "Kan het teamicoonbestand liet lezen."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1732,15 +1732,15 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
+    "translation": "Fout verzoek: bestandsgrootte veld is niet aanwezig."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "E-mailuitnodigingen zijn uitgeschakeld."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+    "translation": "Volgende e-mailadressen maken geen deel uit van een aanvaard domein: {{.Addresses}}. Contacteer je systeembeheerder voor verdere details."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -1756,7 +1756,7 @@
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "%v joined the team."
+    "translation": "%v werd lid van het team."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -1764,7 +1764,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v verliet het team."
   },
   {
     "id": "api.team.move_channel.post.error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "This channel has been moved to this team from %v."
+    "translation": "Het kanaal werd verplaatst van dit team naar %v."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1836,15 +1836,15 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Specified user is not a member of specified team."
+    "translation": "De opgegeven gebruiker is geen lid van het opgegeven team."
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "Your license does not support updating a team's scheme"
+    "translation": "Jouw licentie staat niet toe om een teamschema te wijzigen"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -4616,7 +4616,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -7848,7 +7848,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
+    "translation": "De kanelenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7908,11 +7908,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
+    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Er is een fout opgetreden bij het permanent wissen van de batch van berichten."
+    "translation": "Er liep iets mis bij het permanent verwijden van de batch met berichten."
   },
   {
     "id": "app.post.search.app_error",
@@ -7964,11 +7964,11 @@
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "We ontvingen een ongeldige tijd in het antwoord van de Identity Provider. Neem contact op met de beheerder."
+    "translation": "We kregen een ongeldige tijd in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+    "translation": "We hebben een ongeldige handtekening ontvangen in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "ent.cloud.request_error",
@@ -8185,5 +8185,269 @@
   {
     "id": "api.roles.patch_roles.admin_role.error",
     "translation": "De rol Systeembeheerder kan niet worden bijgewerkt of gewijzigd"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Neem contact met de helpdesk"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Ingeklapte draadjesinstelling moet ofwel uitgeschakeld zijn, default_on of default_off"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Niet in staat om alle draadjes van deze gebruiker bij te werken als gelezen"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Niet in staat om de leesstatus voor het draadje bij te werken"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Niet in staat om de volgende status voor de draadje bij te werken"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Niet in staat om draadjes van gebruiker op te halen"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "fout bij bijwerken"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "fout bij selecteren"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "invoerfout"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "groepslid bestaat reeds"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "geen overeenkomende groep gevonden"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "ongeldige eigenschap voor ID voor groep."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "group syncable was reeds verwijderd"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Mislukte betaling"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Actie vereist: Betaling mislukt voor Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Om een ononderbroken abonnement op Mattermost Cloud te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "Zij gaven de volgende reden:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloud Workspace opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "Jouw Mattermost Cloud abonnement is opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "Neem contact met ons op om jouw werkruimte opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "Jouw Mattermost-werkruimte is opgeschort. Alle inhoud en gegevens binnen jouw werkruimte worden binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Los het nu op"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "De opschorting van jouw Mattermost Cloud werkruimte is gepland voor morgen"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "Jouw Mattermost Cloud abonnement zal binnenkort worden opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "Zodra jouw werkruimte is geschorst, worden alle inhoud en gegevens binnen jouw werkruimte binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "Zodra jouw werkruimte is geschorst, kan niet meer inloggen op jouw account of de betalingsgegevens bijwerken. Je moet contact opnemen met onze helpdesk om jouw service opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "Om opschorting te voorkomen, voeg jouw betalingsgegevens toe"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "Geen betalingsmethode in jouw account"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost kon jouw meest recente automatische betaling niet verwerken. Om jouw dienst actief te houden, dien je zo snel mogelijk betalingsgegevens toe te voegen of uw dienst kan worden opgeschort."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud Werkplaats opschorting"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Handel nu om jouw Mattermost Cloud-abonnement te behouden"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "Je verliest de toegang tot jouw berichtgeschiedenis"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "Je kan de betalingsgegevens niet bijwerken zonder contact op te nemen met onze helpdesk"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "Je kunt niet inloggen op je werkplek"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "Als er geen actie wordt ondernomen, wordt jouw werkplek opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "Er is nog tijd om jouw Mattermost Cloud workspace actief te houden door problemen met jouw betaalmethode op te lossen. Om opschorting te voorkomen kan je jouw betaalmethode bijwerken."
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "Betaling niet ontvangen"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "Gewoon een herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost abonnement dat gefactureerd is op {{ .OverLimitDate }}.  We zullen binnenkort beginnen met een proces om jouuw dienst op te schorten als de betaling niet is ontvangen."
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Een of meer van de volgende rechten die je probeert toe te voegen of te verwijderen zijn niet toegestaan"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Betaal nu"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Het bijwerken van bekeken berichten is mislukt"
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "De bestandsgrootte kan niet worden opgehaald."
+  },
+  {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "De bestandsgrootte kan niet worden opgehaald."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Ongeldige waarde voor RetentionDays. Waarde is te laag."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Ongeldige waarde voor map."
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "Fout bij het importeren: kon bestand niet decomprimeren."
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "Fout bij het importeren: kon geen tijdelijke map aanmaken."
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Fout bij het importeren: kan het bestand niet openen."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Fout bij het importeren: JSONL bestand ontbreekt."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Fout bij het importeren: import_file parameter ontbreekt."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Fout bij het importeren: bestand bestaat niet."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Fout bij het verplaatsen van het geüploade bestand."
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Kan het antwoord niet verwerken."
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "Er bestaat al een kanaallid met dat id."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "Aangepaste rechtenschema's worden niet ondersteund door je huidige licentie"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Je Mattermost Cloud factuur moet worden betaald"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "Om je factuur te bekijken en een betalingswijze toe te voegen, selecteer Nu betalen."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Jouw Mattermost Cloud factuur voor de meest recente factuurperiode is verwerkt. Wij hebben jouw betalingsgegevens echter niet in ons bestand."
   }
 ]

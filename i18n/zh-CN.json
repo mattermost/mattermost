@@ -2351,7 +2351,7 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "更新密码失败因为 user_id 提供用户ID不匹配"
+    "translation": "更新密码失败，因为当前 user_id 与 user_id 属性不匹配。"
   },
   {
     "id": "api.user.update_password.failed.app_error",
@@ -2375,11 +2375,11 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "根据“图像”请求的空数组"
+    "translation": "根据“图像”请求的空数组。"
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "无法解码配置文件"
+    "translation": "无法解码个人资料图片。"
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
@@ -2387,11 +2387,11 @@
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "无法编码图像"
+    "translation": "无法编码个人资料图片。"
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "请求中图像不是文件"
+    "translation": "请求中缺失图片文件。"
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
@@ -2411,7 +2411,7 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "无法上传配置文件"
+    "translation": "无法上传个人资料图片。"
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -4611,7 +4611,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "无效的文件 id。上传只允许最多 5 个文件。请考虑创建新的消息以上传更多文件。"
+    "translation": "无效的文件 id。上传只允许最多 10 个文件。请考虑创建新的消息以上传更多文件。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8056,5 +8056,273 @@
   {
     "id": "api.roles.patch_roles.admin_role.error",
     "translation": "系统管理员角色无法编辑或更改"
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "无法获得该用户的未读消息数。"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "无法计算用户数。"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "无法获得用户串"
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "查找最近活跃的用户时遇到错误。"
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "查找用户个人资料时遇到错误。"
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "查找用户个人资料时遇到错误。"
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "查找新用户时遇到错误。"
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "无法从数据库中获取已知用户。"
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "找不到与您的用户名匹配的现有帐户。该团队可能需要团队所有者的邀请才能加入。"
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "尝试按身份验证类型查找帐户时遇到错误。"
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "找不到与您的验证类型匹配的现有帐户。该团队可能需要团队所有者的邀请才能加入。"
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "查找帐户时遇到错误。"
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "更新用户失败。"
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "检索用户失败。"
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "无法计算不活跃的用户。"
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "在请求的时间内无法获得活动用户。"
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "移动上传文件失败。"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "更新错误"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "选择错误"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "插入出错"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "无法封装响应。"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "群组成员已存在"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "无法删除成员 ID为 “{{.UserId}}” 的组成员。"
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "未找到匹配的群组"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "无效的群组 id 属性。"
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "群组同步已被删除"
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "具有该 ID 的频道成员已经存在。"
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "当前许可证不支持自定义权限方案"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "您的 Mattermost Cloud 发票到期"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "您的 Mattermost Cloud 订阅需要付款"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "要查看发票并添加付款方式，请选择立即付款。"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "您最近计费期的 Mattermost Cloud 发票已处理。但是，我们没有记录您的付款明细。"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "立刻付款"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "付款失败"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "需要采取的措施：Mattermost Cloud 付款失败"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "为确保不间断地订阅 Mattermost Cloud，请与您的金融机构联系以解决潜在问题或更新您的付款信息。付款信息更新后，Mattermost 将尝试结清任何未结余额。"
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "他们提供以下原因："
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "您的金融机构拒绝了与您的 Mattermost Cloud 工作区相关的 {{.CardBrand}} ****{{.LastFour}} 的付款。"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "您的工作区超出了免费套餐的用户限制"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloud 工作区已被暂停"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "您的 Mattermost Cloud 订阅已被暂停"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "与我们联系以重新激活您的工作区。"
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud 工作区超出用户限制"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud 工作区暂停"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "您的 Mattermost Cloud 工作区计划在明天暂停"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "您的 Mattermost 工作区已被暂停。工作区中的所有内容和数据将在 1-3 个月内删除。"
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "或者，您可以在管理控制台中停用用户以腾出更多用户的位置，或保持在免费用户限制以下。"
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "您的工作区中似乎有 10 个以上的用户，这超出了 Mattermost Cloud Professional 的免费层限制。为了避免对您的 Mattermost 工作区造成任何干扰，请升级。"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "您的 Mattermost Cloud 订阅即将被暂停"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "工作区暂停后，工作区中的所有内容和数据将在 1-3 个月内删除。"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "工作空间暂停后，您将无法登录帐户或更新付款信息。您需要联系我们的支持团队才能重新激活您的服务。"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "为避免暂停，请添加您的付款信息"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "这是最后的提醒。我们尚未收到您的 Mattermost Cloud 工作区的付款，该工作区自 {{.OverLimitDate}} 起已经过期。明天我们将暂停您的服务。"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "您的 Mattermost Cloud 订阅逾期付款"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost 无法处理您最近的自动付款。为了保持您的服务有效，请尽快添加付款明细，否则您的服务可能会被暂停。"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " 采取行动以保持您的 Mattermost Cloud 订阅"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "您将无法访问您的消息历史记录"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "如果不联系我们的支持团队，您将无法更新付款信息"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "您将无法登录工作区"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "如果不采取任何措施，您的工作区将被暂停"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "现在仍有时间通过解决付款方式方面的问题来保持 Mattermost Cloud 工作区的活动状态。为避免服务被暂停，请更新您的付款方式。"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "更新查看的通知失败"
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "升级"
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "无法获取文件大小。"
+  },
+  {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "无法获取文件大小。"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "合并配置失败。"
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "合并配置失败。"
   }
 ]

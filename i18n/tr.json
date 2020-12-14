@@ -4616,7 +4616,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -7348,7 +7348,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": " "
+    "translation": "Dizine eklenecek kanal topluluğu alınamadı."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7440,11 +7440,11 @@
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": " "
+    "translation": "Dizine eklenecek ileti topluluğu alınamadı."
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": " "
+    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7764,11 +7764,11 @@
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": " "
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki zaman geçersiz. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": " "
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt içindeki imza geçersiz. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
@@ -7776,23 +7776,23 @@
   },
   {
     "id": "app.channel.save_member.exists.app_error",
-    "translation": " "
+    "translation": "Aynı kodlu bir kanal üyesi zaten var."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
-    "translation": " "
+    "translation": "Geçerli lisans Özel İzin Şemaları özelliğini desteklemiyor"
   },
   {
     "id": "api.system.update_viewed_notices.failed",
-    "translation": " "
+    "translation": "Görüntülenmiş bildirimler güncellenemedi"
   },
   {
     "id": "api.config.patch_config.restricted_merge.app_error",
-    "translation": " "
+    "translation": "Belirtilen yapılandırma aktarılamadı."
   },
   {
     "id": "api.config.get_config.restricted_merge.app_error",
-    "translation": " "
+    "translation": "Belirtilen yapılandırma aktarılamadı."
   },
   {
     "id": "model.upload_session.is_valid.filename.app_error",
@@ -7848,15 +7848,15 @@
   },
   {
     "id": "ent.cloud.request_error",
-    "translation": " "
+    "translation": "CWS isteği işlenirken sorun çıktı"
   },
   {
     "id": "ent.cloud.json_encode.error",
-    "translation": " "
+    "translation": "CWS isteği yapılırken bir iç sorun çıktı"
   },
   {
     "id": "ent.cloud.authentication_failed",
-    "translation": " "
+    "translation": "CWS kimliği doğrulanamadı"
   },
   {
     "id": "app.user.verify_email.app_error",
@@ -8325,5 +8325,129 @@
   {
     "id": "api.roles.patch_roles.admin_role.error",
     "translation": "Sistem Yöneticisi rolü düzenlenemez ya da değiştirilemez"
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "Dosya boyutu alınamadı."
+  },
+  {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "Dosya boyutu alınamadı."
+  },
+  {
+    "id": "app.select_error",
+    "translation": "seçme sorunu"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "güncelleme sorunu"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "ekleme sorunu"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "grup üyesi zaten var"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "\"{{.UserId}}\" kullanıcı kodlu grup üyesi çıkarılamadı."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "eşleşen bir grup bulunamadı"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "grubun kod özelliği geçersiz."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "grup eşitlenebilirliği zaten silinmiş"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Mattermost Cloud faturanızın ödemesi var"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Mattermost Cloud aboneliğinizin ödemesi var"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "Faturanızı gözden geçirmek ve bir ödeme yöntemi eklemek için Ödeme yapın üzerine tıklayın."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Son ödeme dönemine ait Mattermost Cloud faturanız ödendi. Ancak dosyada ödeme bilgileriniz yok."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Ödeme yapın"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Ödeme Alınamadı"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "İşlem gerekli: Mattermost Cloud ödemesi alınamadı"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Mattermost Cloud aboneliğinizin kesintiye uğramaması için sorunu çözmesi için bankanızla görüşün ya da ödeme bilgilerinizi güncelleyin. Ödeme bilgileri güncellendikten sonra Mattermost kalan ödemeyi almayı deneyecek."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "Reddedilme nedeni:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Bankanız, Mattermost Cloud çalışma alanınız ile ilişkilendirilmiş {{.CardBrand}} ****{{.LastFour}} karından ödeme yapılmasına izin vermedi."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "RetentionDays değeri geçersiz. Değer çok küçük."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "CollapsedThreads ayarı disabled,default_on ya da default_off olabilir"
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Klasör değeri geçersiz."
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "İçe aktarılamadı: Dosya ayıklanamadı."
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "İçe aktarılamadı: Geçici klasör oluşturulamadı."
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "İçe aktarılamadı: Dosya açılamadı."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "İçe aktarılamadı: JSONL dosyası eksik."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "İçe aktarılamadı: import_file parametresi eksik."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "İçe aktarılamadı: Dosya bulunamadı."
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Yanıt iletilemedi."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Yüklenen dosya taşınamadı."
   }
 ]
