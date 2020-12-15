@@ -278,16 +278,16 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map
 
 	fmt.Fprintf(&sb, "Status for channel Id `%s`\n\n", statuses[0].ChannelId)
 
-	fmt.Fprintf(&sb, "| Remote | Host | Description | ReadOnly | InviteAccepted | Online | Token |\n")
-	fmt.Fprintf(&sb, "| ------ | ---- | ----------- | -------- | -------------- | ------ | ----- |\n")
+	fmt.Fprintf(&sb, "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Token |\n")
+	fmt.Fprintf(&sb, "| ------ | ------- | ----------- | -------- | -------------- | ------ | ----- |\n")
 
 	for _, status := range statuses {
 		online := ":white_check_mark:"
 		if !isOnline(status.LastPingAt) {
 			online = ":skull_and_crossbones:"
 		}
-		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %t | %t | %s | %s |\n",
-			status.ClusterName, status.Hostname, status.Port, status.Description,
+		fmt.Fprintf(&sb, "| %s | %s | %s | %t | %t | %s | %s |\n",
+			status.DisplayName, status.SiteURL, status.Description,
 			status.ReadOnly, status.IsInviteAccepted, online, status.Token)
 	}
 	return responsef(sb.String())
