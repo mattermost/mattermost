@@ -24,11 +24,11 @@ func init() {
 	app.RegisterCommandProvider(&groupmsgProvider{})
 }
 
-func (me *groupmsgProvider) GetTrigger() string {
+func (*groupmsgProvider) GetTrigger() string {
 	return CMD_GROUPMSG
 }
 
-func (me *groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_GROUPMSG,
 		AutoComplete:     true,
@@ -38,7 +38,7 @@ func (me *groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mode
 	}
 }
 
-func (me *groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	targetUsers := map[string]*model.User{}
 	targetUsersSlice := []string{args.UserId}
 	invalidUsernames := []string{}
