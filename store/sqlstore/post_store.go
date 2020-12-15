@@ -433,7 +433,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "Threads.ReplyCount as ThreadReplyCount", "Threads.LastReplyAt", "Threads.Participants as ThreadParticipants")
+	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
 	var post postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
@@ -727,7 +727,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "Threads.ReplyCount as ThreadReplyCount", "Threads.LastReplyAt", "Threads.Participants as ThreadParticipants")
+	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
@@ -736,7 +736,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(options model.GetPostsOptions) (
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
 		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"RootId": ""}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
@@ -807,7 +807,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 	for _, c := range postSliceColumns() {
 		columns = append(columns, "Posts."+c)
 	}
-	columns = append(columns, "Threads.ReplyCount as ThreadReplyCount", "Threads.LastReplyAt", "Threads.Participants as ThreadParticipants")
+	columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
 	var posts []*postWithExtra
 
 	postFetchQuery, args, _ := s.getQueryBuilder().
@@ -815,7 +815,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(options model.GetPostsSince
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Id").
 		Where(sq.Eq{"DeleteAt": 0}).
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"UpdateAt": options.Time}).
 		Where(sq.Eq{"RootId": ""}).
 		OrderBy("CreateAt DESC").ToSql()
@@ -941,7 +941,7 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	}
 	columns := []string{"p.*"}
 	if options.CollapsedThreads {
-		columns = append(columns, "Threads.ReplyCount as ThreadReplyCount", "Threads.LastReplyAt", "Threads.Participants as ThreadParticipants")
+		columns = append(columns, "COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount", "COALESCE(Threads.LastReplyAt, 0) as LastReplyAt", "COALESCE(Threads.Participants, '[]') as ThreadParticipants")
 	}
 	query := s.getQueryBuilder().Select(columns...)
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
