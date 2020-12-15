@@ -22,11 +22,11 @@ func init() {
 	app.RegisterCommandProvider(&CodeProvider{})
 }
 
-func (me *CodeProvider) GetTrigger() string {
+func (*CodeProvider) GetTrigger() string {
 	return CMD_CODE
 }
 
-func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_CODE,
 		AutoComplete:     true,
@@ -36,7 +36,7 @@ func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

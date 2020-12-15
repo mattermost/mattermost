@@ -22,14 +22,14 @@ func StoreOverride(override interface{}) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:
-			s.newStore = func() store.Store {
-				return o
+			s.newStore = func() (store.Store, error) {
+				return o, nil
 			}
 			return nil
 
 		case func(*Server) store.Store:
-			s.newStore = func() store.Store {
-				return o(s)
+			s.newStore = func() (store.Store, error) {
+				return o(s), nil
 			}
 			return nil
 
