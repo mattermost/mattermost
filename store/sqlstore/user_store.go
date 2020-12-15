@@ -1949,11 +1949,11 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 func (us SqlUserStore) GetUsersWithCustomStatus() ([]*model.User, error) {
 	queryString := fmt.Sprintf(`
 		SELECT
-			id, CAST(props as JSONB) as json_props'
+			id, CAST(props as JSONB)'
 		FROM
 			USERS
 		WHERE
-			json_props -> 'custom_status' IS NOT NULL;
+			CAST(props as JSONB) -> 'custom_status' IS NOT NULL;
 	`)
 	rows, err := us.GetReplica().Query(queryString)
 	if err != nil {
