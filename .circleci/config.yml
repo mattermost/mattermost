@@ -128,7 +128,18 @@ jobs:
             cd mattermost-server
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
-
+  check-mocks:
+    docker:
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make einterfaces-mocks store-mocks
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using make make einterfaces-mocks store-mocks"; exit 1; fi
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -408,6 +419,9 @@ workflows:
       - check-store-layers:
           requires:
             - setup
+      - check-mocks:
+          requires:
+            - setup            
       - build-api-spec:
           requires:
             - setup
@@ -416,6 +430,7 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -436,6 +451,7 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -443,7 +459,9 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
