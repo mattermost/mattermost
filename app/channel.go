@@ -2337,6 +2337,24 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, post.RootId)
+		if threadMembership != nil {
+			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
+			if nErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+			threadMembership.UnreadMentions, err = a.countThreadMentions(user, post, channel.TeamId, post.UpdateAt-1)
+			if err != nil {
+				return nil, err
+			}
+			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
+			if nErr != nil {
+				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+		}
+	}
+
 	channelUnread, nErr := a.Srv().Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
 	if nErr != nil {
 		return channelUnread, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2596,7 +2614,7 @@ func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *mo
 }
 
 // MoveChannel method is prone to data races if someone joins to channel during the move process. However this
-// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+// function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)

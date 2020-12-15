@@ -14,13 +14,13 @@ import (
 )
 
 type SqlComplianceStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlComplianceStore(sqlSupplier *SqlSupplier) store.ComplianceStore {
-	s := &SqlComplianceStore{sqlSupplier}
+func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
+	s := &SqlComplianceStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Compliance{}, "Compliances").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)

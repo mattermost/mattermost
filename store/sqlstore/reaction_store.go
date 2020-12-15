@@ -13,13 +13,13 @@ import (
 )
 
 type SqlReactionStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlReactionStore(sqlSupplier *SqlSupplier) store.ReactionStore {
-	s := &SqlReactionStore{sqlSupplier}
+func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
+	s := &SqlReactionStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)

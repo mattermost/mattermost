@@ -67,7 +67,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 	github.com/mattermost/gosaml2 v0.3.2
-	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr v1.0.13
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattn/go-colorable v0.1.8 // indirect
@@ -139,3 +139,5 @@ require (
 )
 
 replace github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
+
+replace github.com/dyatlov/go-opengraph => github.com/hmhealey/go-opengraph v0.0.0-20201209151214-f2d823730dba
