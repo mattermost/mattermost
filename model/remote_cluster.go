@@ -151,7 +151,16 @@ type RemoteClusterMsg struct {
 	Payload  json.RawMessage `json:"payload"`
 }
 
-func (m *RemoteClusterMsg) IsValid() *AppError {
+func NewRemoteClusterMsg(topic string, payload json.RawMessage) RemoteClusterMsg {
+	return RemoteClusterMsg{
+		Id:       NewId(),
+		Topic:    topic,
+		CreateAt: GetMillis(),
+		Payload:  payload,
+	}
+}
+
+func (m RemoteClusterMsg) IsValid() *AppError {
 	if !IsValidId(m.Id) {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "Id="+m.Id, http.StatusBadRequest)
 	}
@@ -167,13 +176,13 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 	return nil
 }
 
-func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
+func RemoteClusterMsgFromJSON(data io.Reader) (RemoteClusterMsg, *AppError) {
 	var msg RemoteClusterMsg
 	err := json.NewDecoder(data).Decode(&msg)
 	if err != nil {
-		return nil, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
+		return RemoteClusterMsg{}, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	return &msg, nil
+	return msg, nil
 }
 
 // RemoteClusterPing represents a ping that is sent and received between clusters

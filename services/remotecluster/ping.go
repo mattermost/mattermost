@@ -115,11 +115,7 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 		return nil, err
 	}
 
-	msg := model.RemoteClusterMsg{
-		Id:       model.NewId(),
-		CreateAt: model.GetMillis(),
-		Payload:  pingRaw,
-	}
+	msg := model.NewRemoteClusterMsg(PingTopic, pingRaw)
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,

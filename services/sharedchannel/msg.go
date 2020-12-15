@@ -49,12 +49,6 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 		return model.RemoteClusterMsg{}, err
 	}
 
-	msg := model.RemoteClusterMsg{
-		Id:       model.NewId(),
-		Topic:    Topic,
-		CreateAt: model.GetMillis(),
-		Payload:  json,
-	}
-
+	msg := model.NewRemoteClusterMsg(Topic, json)
 	return msg, nil
 }

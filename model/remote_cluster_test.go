@@ -65,7 +65,7 @@ func TestRemoteClusterPreSave(t *testing.T) {
 }
 
 func TestRemoteClusterMsgJson(t *testing.T) {
-	o := RemoteClusterMsg{Id: NewId(), CreateAt: GetMillis(), Topic: "shared_channel"}
+	o := NewRemoteClusterMsg("shared_channel", json.RawMessage{})
 
 	json, err := json.Marshal(o)
 	require.NoError(t, err)
