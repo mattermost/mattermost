@@ -14702,6 +14702,21 @@ func (a *OpenTracingAppLayer) UpdateEphemeralPost(userId string, post *model.Pos
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) UpdateExpiredCustomStatuses() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateExpiredCustomStatuses")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UpdateExpiredCustomStatuses()
+}
+
 func (a *OpenTracingAppLayer) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateGroup")

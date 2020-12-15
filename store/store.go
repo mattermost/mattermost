@@ -379,6 +379,7 @@ type UserStore interface {
 	DeactivateGuests() ([]string, error)
 	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
+	GetUsersWithCustomStatus() ([]*model.User, error)
 }
 
 type BotStore interface {

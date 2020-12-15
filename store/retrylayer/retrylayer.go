@@ -9668,6 +9668,26 @@ func (s *RetryLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime 
 
 }
 
+func (s *RetryLayerUserStore) GetUsersWithCustomStatus() ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetUsersWithCustomStatus()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, error) {
 
 	tries := 0

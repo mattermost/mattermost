@@ -99,6 +99,9 @@ func (a *App) InitServer() {
 			})
 		}
 		a.srv.RunJobs()
+		if a.IsLeader() {
+			model.CreateRecurringTask("Unset Custom Statuses", a.UpdateExpiredCustomStatuses, time.Duration(300)*time.Second)
+		}
 	})
 }
 

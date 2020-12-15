@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/golang/freetype"
@@ -2441,4 +2442,38 @@ func (a *App) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp
 	message.Add("timestamp", timestamp)
 	a.Publish(message)
 	return nil
+}
+
+type customStatus struct {
+	userID     string
+	text       string
+	emoji      string
+	expireTime string
+}
+
+func (a *App) UpdateExpiredCustomStatuses() {
+	users, err := a.Srv().Store.User().GetUsersWithCustomStatus()
+	if err != nil {
+		mlog.Error("Failed to fetch users with custom statuses from store", mlog.String("err", err.Error()))
+	}
+	for _, u := range users {
+		var cs customStatus
+		cstr := u.Props["custom_status"]
+		err := json.Unmarshal([]byte(cstr), &cs)
+		if err != nil {
+			mlog.Error("Failed to unmarshall custom status from props", mlog.String("user_id", u.Id), mlog.String("err", err.Error()))
+			continue
+		}
+		exp, tErr := time.Parse(time.RFC3339, cs.expireTime)
+		if tErr != nil {
+			mlog.Error("Failed to parse expire time from custom status", mlog.String("user_id", u.Id), mlog.String("err", tErr.Error()))
+			continue
+		}
+		curr := time.Now().UTC()
+		if exp.Sub(curr) <= 0 {
+			delete(u.Props, "custom_status")
+			patch := model.UserPatch{Props: u.Props}
+			a.PatchUser(u.Id, &patch, false)
+		}
+	}
 }

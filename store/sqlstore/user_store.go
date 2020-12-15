@@ -1945,3 +1945,31 @@ func (us SqlUserStore) GetKnownUsers(userId string) ([]string, error) {
 
 	return userIds, nil
 }
+
+func (us SqlUserStore) GetUsersWithCustomStatus() ([]*model.User, error) {
+	queryString := fmt.Sprintf(`
+		SELECT
+			id, CAST(props as JSONB) as json_props'
+		FROM
+			USERS
+		WHERE
+			json_props -> 'custom_status' IS NOT NULL;
+	`)
+	rows, err := us.GetReplica().Query(queryString)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find users with custom statuses")
+	}
+	var users []*model.User
+	defer rows.Close()
+	for rows.Next() {
+		var user model.User
+		if err = rows.Scan(&user.Id, &user.Props); err != nil {
+			return nil, errors.Wrap(err, "unable to scan from rows")
+		}
+		users = append(users, &user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed while iterating over rows")
+	}
+	return users, nil
+}
