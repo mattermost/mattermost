@@ -1,10 +1,8 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config
-
-ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
-IS_CI ?= false
-MM_NO_DOCKER ?= false
-# Build Flags
+.PHONY: builda sdfasd fasdf a package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config
+ asdf
+ROOT := $(dasdf asdfe
+MM_NO_DOCKER d fasdfasdfasdf   ?asdflse
+# Build Flagsdfasdfa
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
@@ -12,7 +10,7 @@ BUILD_HASH = $(shell git rev-parse HEAD)
 ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
-BUILD_ENTERPRISE_DIR ?= ../enterprise
+BUILD_ENTERPf asdf asdfa sdfa sdRISE_DIR ?= ../enterprise
 BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
