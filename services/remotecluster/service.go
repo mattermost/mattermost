@@ -26,6 +26,7 @@ const (
 	PingFreq                      = time.Minute
 	PingTimeout                   = time.Second * 15
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
+	InvitationTopic               = "invitation"
 )
 
 var (

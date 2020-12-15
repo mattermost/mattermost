@@ -217,7 +217,6 @@ func makeRemoteClusterMsg(id string, note string) model.RemoteClusterMsg {
 
 	return model.RemoteClusterMsg{
 		Id:       id,
-		Token:    model.NewId(),
 		Topic:    TestTopic,
 		CreateAt: model.GetMillis(),
 		Payload:  raw}

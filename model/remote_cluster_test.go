@@ -65,7 +65,7 @@ func TestRemoteClusterPreSave(t *testing.T) {
 }
 
 func TestRemoteClusterMsgJson(t *testing.T) {
-	o := RemoteClusterMsg{Id: NewId(), CreateAt: GetMillis(), Token: NewId(), Topic: "shared_channel"}
+	o := RemoteClusterMsg{Id: NewId(), CreateAt: GetMillis(), Topic: "shared_channel"}
 
 	json, err := json.Marshal(o)
 	require.NoError(t, err)
@@ -75,7 +75,6 @@ func TestRemoteClusterMsgJson(t *testing.T) {
 
 	require.Equal(t, o.Id, ro.Id)
 	require.Equal(t, o.CreateAt, ro.CreateAt)
-	require.Equal(t, o.Token, ro.Token)
 	require.Equal(t, o.Topic, ro.Topic)
 }
 
@@ -89,10 +88,9 @@ func TestRemoteClusterMsgIsValid(t *testing.T) {
 	}{
 		{name: "Zero value", msg: &RemoteClusterMsg{}, valid: false},
 		{name: "Missing remote id", msg: &RemoteClusterMsg{Id: id}, valid: false},
-		{name: "Missing Token", msg: &RemoteClusterMsg{Id: id}, valid: false},
-		{name: "Missing Topic", msg: &RemoteClusterMsg{Id: id, Token: NewId()}, valid: false},
-		{name: "Missing Payload", msg: &RemoteClusterMsg{Id: id, Token: NewId(), CreateAt: now, Topic: "shared_channel"}, valid: false},
-		{name: "RemoteClusterMsg valid", msg: &RemoteClusterMsg{Id: id, Token: NewId(), CreateAt: now, Topic: "shared_channel", Payload: []byte("{\"hello\":\"world\"}")}, valid: true},
+		{name: "Missing Topic", msg: &RemoteClusterMsg{Id: id}, valid: false},
+		{name: "Missing Payload", msg: &RemoteClusterMsg{Id: id, CreateAt: now, Topic: "shared_channel"}, valid: false},
+		{name: "RemoteClusterMsg valid", msg: &RemoteClusterMsg{Id: id, CreateAt: now, Topic: "shared_channel", Payload: []byte("{\"hello\":\"world\"}")}, valid: true},
 	}
 
 	for _, item := range data {

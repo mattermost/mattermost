@@ -148,7 +148,6 @@ type RemoteClusterMsg struct {
 	Id       string          `json:"id"`
 	Topic    string          `json:"topic"`
 	CreateAt int64           `json:"create_at"`
-	Token    string          `json:"token"`
 	Payload  json.RawMessage `json:"payload"`
 }
 
@@ -159,10 +158,6 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 
 	if m.Topic == "" {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
-	}
-
-	if !IsValidId(m.Token) {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(m.Payload) == 0 {
