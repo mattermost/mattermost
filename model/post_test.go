@@ -884,3 +884,51 @@ func TestSearchParameterFromJson(t *testing.T) {
 		require.Equal(t, "test", *params.Terms)
 	})
 }
+
+func TestPostAttachments(t *testing.T) {
+	p := &Post{
+		Props: map[string]interface{}{
+			"attachments": `[{
+				"actions" : {null}
+			}]
+			`,
+		},
+	}
+
+	t.Run("empty actions", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			attachments := p.Attachments()
+			for _, at := range attachments {
+				require.Empty(t, at.Actions)
+			}
+		})
+	})
+
+	t.Run("a couple of actions", func(t *testing.T) {
+		p.Props["attachments"] = `[{
+			"actions" : [{"id": "test1"}, {"id": "test2"}]
+		}]
+		`
+
+		require.NotPanics(t, func() {
+			attachments := p.Attachments()
+			for _, at := range attachments {
+				require.Len(t, at.Actions, 2)
+			}
+		})
+	})
+
+	t.Run("should ignore null actions", func(t *testing.T) {
+		p.Props["attachments"] = `[{
+			"actions" : [{"id": "test1"}, null]
+		}]
+		`
+
+		require.NotPanics(t, func() {
+			attachments := p.Attachments()
+			for _, at := range attachments {
+				require.Len(t, at.Actions, 1)
+			}
+		})
+	})
+}

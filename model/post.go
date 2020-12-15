@@ -557,6 +557,13 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					for i := 0; i < len(decoded.Actions); i++ {
+						if decoded.Actions[i] == nil {
+							copy(decoded.Actions[i:], decoded.Actions[i+1:])
+							decoded.Actions = decoded.Actions[:len(decoded.Actions)-1]
+							i--
+						}
+					}
 					ret = append(ret, &decoded)
 				}
 			}
