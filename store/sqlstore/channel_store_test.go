@@ -17,7 +17,7 @@ import (
 )
 
 func TestChannelStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestChannelStore)
+	StoreTestWithSqlStore(t, storetest.TestChannelStore)
 }
 
 func TestSearchChannelStore(t *testing.T) {
@@ -31,7 +31,7 @@ func TestChannelSearchQuerySQLInjection(t *testing.T) {
 				t.Skip("Cockroach db doesn't support full text search")
 			}
 			s := &SqlChannelStore{
-				SqlSupplier: st.SqlSupplier,
+				SqlStore: st.SqlStore,
 			}
 
 			opts := store.ChannelSearchOpts{}

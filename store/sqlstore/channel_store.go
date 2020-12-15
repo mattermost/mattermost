@@ -33,7 +33,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
@@ -334,13 +334,13 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = cache.NewLRU(&cache.LRUOptions{
+var allChannelMembersForUserCache = cache.NewLRU(cache.LRUOptions{
 	Size: ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE,
 })
-var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU(&cache.LRUOptions{
+var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU(cache.LRUOptions{
 	Size: ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE,
 })
-var channelByNameCache = cache.NewLRU(&cache.LRUOptions{
+var channelByNameCache = cache.NewLRU(cache.LRUOptions{
 	Size: model.CHANNEL_CACHE_SIZE,
 })
 
@@ -356,13 +356,13 @@ func (s SqlChannelStore) ClearCaches() {
 	}
 }
 
-func newSqlChannelStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.ChannelStore {
+func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.ChannelStore {
 	s := &SqlChannelStore{
-		SqlSupplier: sqlSupplier,
-		metrics:     metrics,
+		SqlStore: sqlStore,
+		metrics:  metrics,
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Channel{}, "Channels").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("TeamId").SetMaxSize(26)

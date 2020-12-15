@@ -48,12 +48,12 @@ type groupChannelJoin struct {
 }
 
 type SqlGroupStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlGroupStore(sqlSupplier *SqlSupplier) store.GroupStore {
-	s := &SqlGroupStore{SqlSupplier: sqlSupplier}
-	for _, db := range sqlSupplier.GetAllConns() {
+func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
+	s := &SqlGroupStore{SqlStore: sqlStore}
+	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")
 		groups.ColMap("Id").SetMaxSize(26)
 		groups.ColMap("Name").SetMaxSize(model.GroupNameMaxLength).SetUnique(true)

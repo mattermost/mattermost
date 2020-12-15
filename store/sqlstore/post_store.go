@@ -25,7 +25,7 @@ import (
 )
 
 type SqlPostStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics           einterfaces.MetricsInterface
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
@@ -61,14 +61,14 @@ func postToSlice(post *model.Post) []interface{} {
 	}
 }
 
-func newSqlPostStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.PostStore {
+func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
-		SqlSupplier:       sqlSupplier,
+		SqlStore:          sqlStore,
 		metrics:           metrics,
 		maxPostSizeCached: model.POST_MESSAGE_MAX_RUNES_V1,
 	}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Post{}, "Posts").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
@@ -81,7 +81,7 @@ func newSqlPostStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterf
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(150)
+		table.ColMap("FileIds").SetMaxSize(300)
 	}
 
 	return s

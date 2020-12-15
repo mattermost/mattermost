@@ -15,14 +15,14 @@ import (
 )
 
 type SqlUploadSessionStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlUploadSessionStore(sqlSupplier *SqlSupplier) store.UploadSessionStore {
+func newSqlUploadSessionStore(sqlStore *SqlStore) store.UploadSessionStore {
 	s := &SqlUploadSessionStore{
-		SqlSupplier: sqlSupplier,
+		SqlStore: sqlStore,
 	}
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.UploadSession{}, "UploadSessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Type").SetMaxSize(32)
@@ -93,9 +93,6 @@ func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 }
 
 func (us SqlUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
-	if !model.IsValidId(userId) {
-		return nil, errors.New("SqlUploadSessionStore.GetForUser: userId is not valid")
-	}
 	query := us.getQueryBuilder().
 		Select("*").
 		From("UploadSessions").
