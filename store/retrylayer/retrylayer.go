@@ -578,11 +578,11 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamId string, channelType s
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
+func (s *RetryLayerChannelStore) AutocompleteInTeam(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+		result, err := s.ChannelStore.AutocompleteInTeam(teamId, userId, term, includeDeleted)
 		if err == nil {
 			return result, nil
 		}

@@ -2383,7 +2383,7 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
+func (s SqlChannelStore) AutocompleteInTeam(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	deleteFilter := "AND Channels.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
@@ -2391,13 +2391,14 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 
 	queryFormat := `
 		SELECT
-			Channels.*
+			C.*
 		FROM
-			Channels
+			Channels AS C
 		JOIN
-			PublicChannels c ON (c.Id = Channels.Id)
+			ChannelMembers AS CM ON CM.ChannelId = C.Id
 		WHERE
-			Channels.TeamId = :TeamId
+			(C.TeamId = :TeamId OR (C.TeamId = '' AND C.Type = 'G'))
+			AND CM.UserId = :UserId
 			` + deleteFilter + `
 			%v
 		LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
@@ -2405,7 +2406,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 	var channels model.ChannelList
 
 	if likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose"); likeClause == "" {
-		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
+		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	} else {
@@ -2416,7 +2417,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 		fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
 		query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
 
-		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
+		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
 			return nil, errors.Wrapf(err, "failed to find Channels with term='%s'", term)
 		}
 	}

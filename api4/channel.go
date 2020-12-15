@@ -906,7 +906,7 @@ func autocompleteChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Requ
 
 	name := r.URL.Query().Get("name")
 
-	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, name)
+	channels, err := c.App.AutocompleteChannels(c.Params.TeamId, c.App.Session().UserId, name)
 	if err != nil {
 		c.Err = err
 		return

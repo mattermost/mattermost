@@ -5142,23 +5142,12 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
 		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},
 	}
 
-	for name, search := range map[string]func(teamId string, term string, includeDeleted bool) (*model.ChannelList, error){
-		"AutocompleteInTeam": ss.Channel().AutocompleteInTeam,
-		"SearchInTeam":       ss.Channel().SearchInTeam,
-	} {
-		for _, testCase := range testCases {
-			t.Run(name+"/"+testCase.Description, func(t *testing.T) {
-				channels, err := search(testCase.TeamId, testCase.Term, testCase.IncludeDeleted)
-				require.Nil(t, err)
-
-				// AutoCompleteInTeam doesn't currently sort its output results.
-				if name == "AutocompleteInTeam" {
-					sort.Sort(ByChannelDisplayName(*channels))
-				}
-
-				require.Equal(t, testCase.ExpectedResults, channels)
-			})
-		}
+	for _, testCase := range testCases {
+		t.Run("SearchInTeam"+"/"+testCase.Description, func(t *testing.T) {
+			channels, err := ss.Channel().SearchInTeam(testCase.TeamId, testCase.Term, testCase.IncludeDeleted)
+			require.Nil(t, err)
+			require.Equal(t, testCase.ExpectedResults, channels)
+		})
 	}
 }
 
