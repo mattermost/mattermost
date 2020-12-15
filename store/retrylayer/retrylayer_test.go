@@ -31,6 +31,7 @@ func genStore() *mocks.Store {
 	mock.On("Job").Return(&mocks.JobStore{})
 	mock.On("License").Return(&mocks.LicenseStore{})
 	mock.On("LinkMetadata").Return(&mocks.LinkMetadataStore{})
+	mock.On("SharedChannel").Return(&mocks.SharedChannelStore{})
 	mock.On("OAuth").Return(&mocks.OAuthStore{})
 	mock.On("Plugin").Return(&mocks.PluginStore{})
 	mock.On("Post").Return(&mocks.PostStore{})
