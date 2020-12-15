@@ -13,9 +13,11 @@ import (
 )
 
 const (
+	Topic                = "shared_channels"
 	MaxConcurrentUpdates = 5
 	MaxRetries           = 3
 	MaxPostsPerSync      = 50
+	StatusDescription    = "status_description"
 )
 
 type ServerIface interface {
@@ -85,6 +87,14 @@ func (scs *Service) resume() {
 	if scs.active {
 		return // already active
 	}
+
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
+		return
+	}
+	rcs.AddTopicListener(Topic, scs)
+
 	scs.active = true
 	scs.done = make(chan struct{})
 
@@ -100,6 +110,13 @@ func (scs *Service) pause() {
 	if !scs.active {
 		return // already inactive
 	}
+
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		scs.server.GetLogger().Error("Shared Channel Service activitate: requires Remote Cluster Service")
+	}
+	rcs.RemoveTopicListener(Topic, scs)
+
 	scs.active = false
 	close(scs.done)
 	scs.done = nil

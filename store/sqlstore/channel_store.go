@@ -409,6 +409,7 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
+		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteClusterId")
 
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
 		tableSidebarCategories.ColMap("Id").SetMaxSize(128)

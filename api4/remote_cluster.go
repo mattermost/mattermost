@@ -106,10 +106,18 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// pass message to Remote Cluster Service
-	service.ReceiveIncomingMsg(rc, frame.Msg)
+	// pass message to Remote Cluster Service and write response
+	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
+	if _, ok := resp[model.STATUS]; !ok {
+		resp[model.STATUS] = model.STATUS_OK
+	}
 
-	ReturnStatusOK(w)
+	b, errMarshall := json.Marshal(resp)
+	if errMarshall != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, errMarshall.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
 }
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {

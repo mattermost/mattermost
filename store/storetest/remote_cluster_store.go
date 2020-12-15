@@ -156,7 +156,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, ss store.Store) {
 		{ChannelId: channel3.Id, TeamId: model.NewId(), Home: true, ShareName: "test_chan_3", CreatorId: model.NewId()},
 	}
 	for _, item := range scData {
-		_, err := ss.Channel().SaveSharedChannel(item)
+		_, err := ss.SharedChannel().Save(item)
 		require.Nil(t, err)
 	}
 
@@ -182,7 +182,7 @@ func testRemoteClusterGetAllInChannel(t *testing.T, ss store.Store) {
 		{ChannelId: channel2.Id, Description: "EEE Inc Share", Token: model.NewId(), RemoteClusterId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
 	for _, item := range scrData {
-		_, err := ss.Channel().SaveSharedChannelRemote(item)
+		_, err := ss.SharedChannel().SaveRemote(item)
 		require.Nil(t, err)
 	}
 
@@ -228,7 +228,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 		{ChannelId: channel3.Id, TeamId: model.NewId(), Home: true, ShareName: "test_chan_3", CreatorId: model.NewId()},
 	}
 	for _, item := range scData {
-		_, err := ss.Channel().SaveSharedChannel(item)
+		_, err := ss.SharedChannel().Save(item)
 		require.Nil(t, err)
 	}
 
@@ -254,7 +254,7 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 		{ChannelId: channel3.Id, Description: "EEE Inc Share", Token: model.NewId(), RemoteClusterId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
 	for _, item := range scrData {
-		_, err := ss.Channel().SaveSharedChannelRemote(item)
+		_, err := ss.SharedChannel().SaveRemote(item)
 		require.Nil(t, err)
 	}
 

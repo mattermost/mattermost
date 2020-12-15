@@ -45,27 +45,27 @@ func (a *App) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, 
 	if err := a.checkChannelNotShared(sc.ChannelId); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.Channel().SaveSharedChannel(sc)
+	return a.Srv().Store.SharedChannel().Save(sc)
 }
 
 func (a *App) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
-	return a.Srv().Store.Channel().GetSharedChannel(channelId)
+	return a.Srv().Store.SharedChannel().Get(channelId)
 }
 
 func (a *App) GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
-	return a.Srv().Store.Channel().GetSharedChannels(page*perPage, perPage, opts)
+	return a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
 }
 
 func (a *App) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
-	return a.Srv().Store.Channel().GetSharedChannelsCount(opts)
+	return a.Srv().Store.SharedChannel().GetAllCount(opts)
 }
 
 func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return a.Srv().Store.Channel().UpdateSharedChannel(sc)
+	return a.Srv().Store.SharedChannel().Update(sc)
 }
 
 func (a *App) DeleteSharedChannel(channelId string) (bool, error) {
-	return a.Srv().Store.Channel().DeleteSharedChannel(channelId)
+	return a.Srv().Store.SharedChannel().Delete(channelId)
 }
 
 // SharedChannelRemotes
@@ -74,32 +74,32 @@ func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model
 	if err := a.checkChannelIsShared(remote.ChannelId); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.Channel().SaveSharedChannelRemote(remote)
+	return a.Srv().Store.SharedChannel().SaveRemote(remote)
 }
 
 func (a *App) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
-	return a.Srv().Store.Channel().GetSharedChannelRemote(id)
+	return a.Srv().Store.SharedChannel().GetRemote(id)
 }
 
 func (a *App) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
-	return a.Srv().Store.Channel().GetSharedChannelRemoteByIds(channelId, remoteId)
+	return a.Srv().Store.SharedChannel().GetRemoteByIds(channelId, remoteId)
 }
 
 func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
-	return a.Srv().Store.Channel().GetSharedChannelRemotes(channelId)
+	return a.Srv().Store.SharedChannel().GetRemotes(channelId)
 }
 
 func (a *App) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
-	return a.Srv().Store.Channel().UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
+	return a.Srv().Store.SharedChannel().UpdateRemoteLastSyncAt(id, syncTime)
 }
 
 func (a *App) DeleteSharedChannelRemote(id string) (bool, error) {
-	return a.Srv().Store.Channel().DeleteSharedChannelRemote(id)
+	return a.Srv().Store.SharedChannel().DeleteRemote(id)
 }
 
 func (a *App) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
 	if err := a.checkChannelIsShared(channelId); err != nil {
 		return nil, err
 	}
-	return a.Srv().Store.Channel().GetSharedChannelRemotesStatus(channelId)
+	return a.Srv().Store.SharedChannel().GetRemotesStatus(channelId)
 }

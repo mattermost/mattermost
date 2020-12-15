@@ -42,8 +42,10 @@ type ServerIface interface {
 }
 
 type TopicListener interface {
-	OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster) error
+	OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
 }
+
+type Response map[string]interface{}
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {

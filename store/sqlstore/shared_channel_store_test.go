@@ -9,6 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
-func TestChannelStoreSharedChannels(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestChannelStoreSharedChannels)
+func TestSharedChannelStore(t *testing.T) {
+	StoreTestWithSqlStore(t, storetest.TestSharedChannelStore)
 }

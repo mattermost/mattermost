@@ -126,9 +126,10 @@ func (scs *Service) processTask(task syncTask) error {
 		remotes = []*model.RemoteCluster{rc}
 	}
 
+	cache := make(msgCache)
 	errs := merror.New()
 	for _, rc := range remotes {
-		if err := scs.updateForRemote(task.channelId, rc); err != nil {
+		if err := scs.updateForRemote(task.channelId, rc, cache); err != nil {
 			errs.Append(err)
 			// retry...
 			if task.retryCount < MaxRetries {
@@ -145,8 +146,8 @@ func (scs *Service) processTask(task syncTask) error {
 // channel.  If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
-func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) error {
-	scr, err := scs.server.GetStore().Channel().GetSharedChannelRemoteByIds(channelId, rc.RemoteId)
+func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, cache msgCache) error {
+	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelId, rc.RemoteId)
 	if err != nil {
 		return err
 	}
@@ -166,7 +167,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		max = MaxPostsPerSync
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max])
+	msg, err := scs.postsToMsg(pSlice[:max], cache)
 	if err != nil {
 		return err
 	}
@@ -188,12 +189,8 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		if err != nil {
 			scs.server.GetLogger().Error("invalid response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		}
-		if err := scs.server.GetStore().Channel().UpdateSharedChannelRemoteLastSyncAt(rc.RemoteId, syncResp.LastSyncAt); err != nil {
+		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(rc.RemoteId, syncResp.LastSyncAt); err != nil {
 			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		}
 	})
-}
-
-func (scs *Service) postsToMsg(posts []*model.Post) (model.RemoteClusterMsg, error) {
-	return model.RemoteClusterMsg{}, fmt.Errorf("Not implemented yet")
 }

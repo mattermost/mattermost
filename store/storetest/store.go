@@ -49,6 +49,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	SharedChannelStore        mocks.SharedChannelStore
 	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 }
@@ -90,19 +91,20 @@ func (s *Store) UserTermsOfService() store.UserTermsOfServiceStore { return &s.U
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
-func (s *Store) Group() store.GroupStore               { return &s.GroupStore }
-func (s *Store) LinkMetadata() store.LinkMetadataStore { return &s.LinkMetadataStore }
-func (s *Store) MarkSystemRanUnitTests()               { /* do nothing */ }
-func (s *Store) Close()                                { /* do nothing */ }
-func (s *Store) LockToMaster()                         { /* do nothing */ }
-func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
-func (s *Store) DropAllTables()                        { /* do nothing */ }
-func (s *Store) GetDbVersion() (string, error)         { return "", nil }
-func (s *Store) RecycleDBConnections(time.Duration)    {}
-func (s *Store) TotalMasterDbConnections() int         { return 1 }
-func (s *Store) TotalReadDbConnections() int           { return 1 }
-func (s *Store) TotalSearchDbConnections() int         { return 1 }
-func (s *Store) GetCurrentSchemaVersion() string       { return "" }
+func (s *Store) Group() store.GroupStore                 { return &s.GroupStore }
+func (s *Store) LinkMetadata() store.LinkMetadataStore   { return &s.LinkMetadataStore }
+func (s *Store) SharedChannel() store.SharedChannelStore { return &s.SharedChannelStore }
+func (s *Store) MarkSystemRanUnitTests()                 { /* do nothing */ }
+func (s *Store) Close()                                  { /* do nothing */ }
+func (s *Store) LockToMaster()                           { /* do nothing */ }
+func (s *Store) UnlockFromMaster()                       { /* do nothing */ }
+func (s *Store) DropAllTables()                          { /* do nothing */ }
+func (s *Store) GetDbVersion() (string, error)           { return "", nil }
+func (s *Store) RecycleDBConnections(time.Duration)      {}
+func (s *Store) TotalMasterDbConnections() int           { return 1 }
+func (s *Store) TotalReadDbConnections() int             { return 1 }
+func (s *Store) TotalSearchDbConnections() int           { return 1 }
+func (s *Store) GetCurrentSchemaVersion() string         { return "" }
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }
@@ -116,6 +118,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.BotStore,
 		&s.AuditStore,
 		&s.ClusterDiscoveryStore,
+		&s.RemoteClusterStore,
 		&s.ComplianceStore,
 		&s.SessionStore,
 		&s.OAuthStore,
@@ -139,5 +142,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.SchemeStore,
 		&s.ThreadStore,
 		&s.ProductNoticesStore,
+		&s.SharedChannelStore,
 	)
 }

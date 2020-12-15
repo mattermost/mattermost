@@ -42,6 +42,7 @@ type TimerLayer struct {
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
 	SessionStore              store.SessionStore
+	SharedChannelStore        store.SharedChannelStore
 	StatusStore               store.StatusStore
 	SystemStore               store.SystemStore
 	TeamStore                 store.TeamStore
@@ -149,6 +150,10 @@ func (s *TimerLayer) Scheme() store.SchemeStore {
 
 func (s *TimerLayer) Session() store.SessionStore {
 	return s.SessionStore
+}
+
+func (s *TimerLayer) SharedChannel() store.SharedChannelStore {
+	return s.SharedChannelStore
 }
 
 func (s *TimerLayer) Status() store.StatusStore {
@@ -312,6 +317,11 @@ type TimerLayerSchemeStore struct {
 
 type TimerLayerSessionStore struct {
 	store.SessionStore
+	Root *TimerLayer
+}
+
+type TimerLayerSharedChannelStore struct {
+	store.SharedChannelStore
 	Root *TimerLayer
 }
 
@@ -687,38 +697,6 @@ func (s *TimerLayerChannelStore) Delete(channelId string, time int64) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.Delete", success, elapsed)
 	}
 	return err
-}
-
-func (s *TimerLayerChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.DeleteSharedChannel(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteSharedChannel", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) DeleteSharedChannelRemote(remoteId string) (bool, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.DeleteSharedChannelRemote(remoteId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteSharedChannelRemote", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryId string) error {
@@ -1393,118 +1371,6 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannel(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannel", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannelRemote(id)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemote", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannelRemoteByIds(channelId, remoteId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemoteByIds", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannelRemotes(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemotes", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannelRemotesStatus(channelId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelRemotesStatus", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannels(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannels(offset, limit, opts)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannels", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.GetSharedChannelsCount(opts)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetSharedChannelsCount", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, error) {
 	start := timemodule.Now()
 
@@ -1962,38 +1828,6 @@ func (s *TimerLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.SaveSharedChannel(sc)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SaveSharedChannel", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.SaveSharedChannelRemote(remote)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SaveSharedChannelRemote", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
 	start := timemodule.Now()
 
@@ -2200,38 +2034,6 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateMultipleMembers", success, elapsed)
 	}
 	return result, err
-}
-
-func (s *TimerLayerChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	start := timemodule.Now()
-
-	result, err := s.ChannelStore.UpdateSharedChannel(sc)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSharedChannel", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
-	start := timemodule.Now()
-
-	err := s.ChannelStore.UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.UpdateSharedChannelRemoteLastSyncAt", success, elapsed)
-	}
-	return err
 }
 
 func (s *TimerLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
@@ -6164,6 +5966,214 @@ func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) Delete(channelId string) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.Delete(channelId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Delete", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) DeleteRemote(remoteId string) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.DeleteRemote(remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.DeleteRemote", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) Get(channelId string) (*model.SharedChannel, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.Get(channelId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetAll(offset int, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetAll(offset, limit, opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetAllCount(opts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetAllCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetRemote(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemote", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetRemoteByIds(channelId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemoteByIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetRemotes(channelId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemotes", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetRemotesStatus(channelId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetRemotesStatus", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.Save(sc)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.SaveRemote(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveRemote", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.Update(sc)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+	start := timemodule.Now()
+
+	err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteLastSyncAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, error) {
 	start := timemodule.Now()
 
@@ -9505,6 +9515,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
+	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &TimerLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}

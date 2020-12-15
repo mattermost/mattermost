@@ -14,15 +14,78 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SaveSharedChannel inserts a new shared channel record.
-func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+type SqlSharedChannelStore struct {
+	*SqlStore
+}
+
+func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
+	s := &SqlSharedChannelStore{
+		SqlStore: sqlStore,
+	}
+
+	for _, db := range sqlStore.GetAllConns() {
+		tableSharedChannels := db.AddTableWithName(model.SharedChannel{}, "SharedChannels").SetKeys(false, "ChannelId")
+		tableSharedChannels.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannels.ColMap("TeamId").SetMaxSize(26)
+		tableSharedChannels.ColMap("CreatorId").SetMaxSize(26)
+		tableSharedChannels.ColMap("ShareName").SetMaxSize(64)
+		tableSharedChannels.SetUniqueTogether("ShareName", "TeamId")
+		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
+		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
+		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
+		tableSharedChannels.ColMap("Token").SetMaxSize(26)
+		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
+
+		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
+		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
+		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
+		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
+		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteClusterId")
+	}
+
+	return s
+}
+
+func (s SqlSharedChannelStore) createIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("idx_channels_team_id", "Channels", "TeamId")
+	s.CreateIndexIfNotExists("idx_channels_name", "Channels", "Name")
+	s.CreateIndexIfNotExists("idx_channels_update_at", "Channels", "UpdateAt")
+	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
+	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
+		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
+	}
+
+	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
+	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
+
+	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
+
+	s.CreateIndexIfNotExists("idx_publicchannels_team_id", "PublicChannels", "TeamId")
+	s.CreateIndexIfNotExists("idx_publicchannels_name", "PublicChannels", "Name")
+	s.CreateIndexIfNotExists("idx_publicchannels_delete_at", "PublicChannels", "DeleteAt")
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		s.CreateIndexIfNotExists("idx_publicchannels_name_lower", "PublicChannels", "lower(Name)")
+		s.CreateIndexIfNotExists("idx_publicchannels_displayname_lower", "PublicChannels", "lower(DisplayName)")
+	}
+	s.CreateFullTextIndexIfNotExists("idx_publicchannels_search_txt", "PublicChannels", "Name, DisplayName, Purpose")
+	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+}
+
+// Save inserts a new shared channel record.
+func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	sc.PreSave()
 	if err := sc.IsValid(); err != nil {
 		return nil, err
 	}
 
 	// make sure the shared channel is associated with a real channel.
-	if _, err := s.Get(sc.ChannelId, true); err != nil {
+	if _, err := s.stores.channel.Get(sc.ChannelId, true); err != nil {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
@@ -32,8 +95,8 @@ func (s SqlChannelStore) SaveSharedChannel(sc *model.SharedChannel) (*model.Shar
 	return sc, nil
 }
 
-// GetSharedChannel fetches a shared channel by channel_id.
-func (s SqlChannelStore) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
+// Get fetches a shared channel by channel_id.
+func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, error) {
 	var sc model.SharedChannel
 
 	query := s.getQueryBuilder().
@@ -55,8 +118,8 @@ func (s SqlChannelStore) GetSharedChannel(channelId string) (*model.SharedChanne
 	return &sc, nil
 }
 
-// GetSharedChannels fetches a paginated list of shared channels filtered by SharedChannelSearchOpts.
-func (s SqlChannelStore) GetSharedChannels(offset, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
+// GetAll fetches a paginated list of shared channels filtered by SharedChannelSearchOpts.
+func (s SqlSharedChannelStore) GetAll(offset, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	if opts.ExcludeHome && opts.ExcludeRemote {
 		return nil, errors.New("cannot exclude home and remote shared channels")
 	}
@@ -92,8 +155,8 @@ func (s SqlChannelStore) GetSharedChannels(offset, limit int, opts store.SharedC
 	return channels, nil
 }
 
-// GetSharedChannelsCount returns the number of shared channels that would be fetched using SharedChannelSearchOpts.
-func (s SqlChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOpts) (int64, error) {
+// GetAllCount returns the number of shared channels that would be fetched using SharedChannelSearchOpts.
+func (s SqlSharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (int64, error) {
 	if opts.ExcludeHome && opts.ExcludeRemote {
 		return 0, errors.New("cannot exclude home and remote shared channels")
 	}
@@ -111,7 +174,7 @@ func (s SqlChannelStore) GetSharedChannelsCount(opts store.SharedChannelFilterOp
 	return count, nil
 }
 
-func (s SqlChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
+func (s SqlSharedChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOpts, forCount bool) sq.SelectBuilder {
 	var selectStr string
 	if forCount {
 		selectStr = "count(sc.ChannelId)"
@@ -146,8 +209,8 @@ func (s SqlChannelStore) getSharedChannelsQuery(opts store.SharedChannelFilterOp
 	return query
 }
 
-// UpdateSharedChannel updates the shared channel.
-func (s SqlChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+// Update updates the shared channel.
+func (s SqlSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	if err := sc.IsValid(); err != nil {
 		return nil, err
 	}
@@ -163,9 +226,9 @@ func (s SqlChannelStore) UpdateSharedChannel(sc *model.SharedChannel) (*model.Sh
 	return sc, nil
 }
 
-// DeleteSharedChannel deletes a single shared channel plus associated SharedChannelRemotes.
+// Delete deletes a single shared channel plus associated SharedChannelRemotes.
 // Returns true if shared channel found and deleted, false if not found.
-func (s SqlChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
+func (s SqlSharedChannelStore) Delete(channelId string) (bool, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return false, errors.Wrap(err, "DeleteSharedChannel: begin_transaction")
@@ -211,15 +274,15 @@ func (s SqlChannelStore) DeleteSharedChannel(channelId string) (bool, error) {
 	return count > 0, nil
 }
 
-// SaveSharedChannelRemote inserts a new shared channel remote record.
-func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+// SaveRemote inserts a new shared channel remote record.
+func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	remote.PreSave()
 	if err := remote.IsValid(); err != nil {
 		return nil, err
 	}
 
 	// make sure the shared channel remote is associated with a real channel.
-	if _, err := s.Get(remote.ChannelId, true); err != nil {
+	if _, err := s.stores.channel.Get(remote.ChannelId, true); err != nil {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
@@ -229,8 +292,8 @@ func (s SqlChannelStore) SaveSharedChannelRemote(remote *model.SharedChannelRemo
 	return remote, nil
 }
 
-// GetSharedChannelRemote fetches a shared channel remote by id.
-func (s SqlChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error) {
+// GetRemote fetches a shared channel remote by id.
+func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
@@ -252,8 +315,8 @@ func (s SqlChannelStore) GetSharedChannelRemote(id string) (*model.SharedChannel
 	return &remote, nil
 }
 
-// GetSharedChannelRemoteByIds fetches a shared channel remote by channel id and remote cluster id.
-func (s SqlChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
+// GetRemoteByIds fetches a shared channel remote by channel id and remote cluster id.
+func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
@@ -276,8 +339,8 @@ func (s SqlChannelStore) GetSharedChannelRemoteByIds(channelId string, remoteId 
 	return &remote, nil
 }
 
-// GetSharedChannelRemotes fetches all shared channel remotes associated with channel_id.
-func (s SqlChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
+// GetRemotes fetches all shared channel remotes associated with channel_id.
+func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
 	var remotes []*model.SharedChannelRemote
 
 	query := s.getQueryBuilder().
@@ -299,8 +362,8 @@ func (s SqlChannelStore) GetSharedChannelRemotes(channelId string) ([]*model.Sha
 	return remotes, nil
 }
 
-// UpdateSharedChannelRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.
-func (s SqlChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+// UpdateRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.
+func (s SqlSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
 	squery, args, err := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
 		Set("LastSyncAt", syncTime).
@@ -325,9 +388,9 @@ func (s SqlChannelStore) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime
 	return nil
 }
 
-// DeleteSharedChannelRemote deletes a single shared channel remote.
+// DeleteRemote deletes a single shared channel remote.
 // Returns true if remote found and deleted, false if not found.
-func (s SqlChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
+func (s SqlSharedChannelStore) DeleteRemote(id string) (bool, error) {
 	squery, args, err := s.getQueryBuilder().
 		Delete("SharedChannelRemotes").
 		Where(sq.Eq{"Id": id}).
@@ -349,9 +412,9 @@ func (s SqlChannelStore) DeleteSharedChannelRemote(id string) (bool, error) {
 	return count > 0, nil
 }
 
-// GetSharedChannelRemotesStatus returns the status for each remote invited to the
+// GetRemotesStatus returns the status for each remote invited to the
 // specified shared channel.
-func (s SqlChannelStore) GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
+func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error) {
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
