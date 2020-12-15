@@ -4,8 +4,8 @@
 package sharedchannel
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -181,15 +181,25 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 	defer cancel()
 
 	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
-		// update SharedChannelRemote's LastSyncAt if send was successful
 		if err != nil {
 			return
 		}
-		syncResp, err := model.SyncResponseFromJson(bytes.NewReader(resp))
+		var syncResponse remotecluster.Response
+		err = json.Unmarshal(resp, &syncResponse)
 		if err != nil {
 			scs.server.GetLogger().Error("invalid response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+			return
 		}
-		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(rc.RemoteId, syncResp.LastSyncAt); err != nil {
+
+		// update SharedChannelRemote's LastSyncAt if send was successful
+		ls := syncResponse[LastUpdateAt]
+		lastSync, ok := ls.(int64)
+		if !ok || lastSync == 0 {
+			scs.server.GetLogger().Error("invalid last sync response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+			return
+		}
+
+		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(rc.RemoteId, lastSync); err != nil {
 			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		}
 	})

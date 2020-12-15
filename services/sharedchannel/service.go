@@ -18,6 +18,7 @@ const (
 	MaxRetries           = 3
 	MaxPostsPerSync      = 50
 	StatusDescription    = "status_description"
+	LastUpdateAt         = "LastUpdateAt"
 )
 
 type ServerIface interface {

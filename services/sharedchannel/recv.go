@@ -26,9 +26,15 @@ func (scs *Service) OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.Remot
 		return err
 	}
 
-	//for _, sm := range syncMessages {
+	var lastUpdate int64
 
-	//	}
+	for _, sm := range syncMessages {
+		// TODO: write posts to table;  write reactions
 
-	return nil //fmt.Errorf("Not implemented yet")
+		lastUpdate = sm.Post.UpdateAt
+	}
+
+	response[LastUpdateAt] = lastUpdate
+
+	return nil
 }

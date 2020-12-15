@@ -186,18 +186,3 @@ type SharedChannelRemoteStatus struct {
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
 }
-
-type SyncResponse struct {
-	LastSyncAt int64 `json:"last_sync_at"`
-}
-
-func (sr SyncResponse) ToJson() string {
-	b, _ := json.Marshal(sr)
-	return string(b)
-}
-
-func SyncResponseFromJson(data io.Reader) (SyncResponse, error) {
-	var sr SyncResponse
-	err := json.NewDecoder(data).Decode(&sr)
-	return sr, err
-}
