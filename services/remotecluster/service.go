@@ -84,9 +84,10 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	}
 
 	service := &Service{
-		server:     server,
-		send:       make(chan sendTask, SendChanBuffer),
-		httpClient: client,
+		server:         server,
+		send:           make(chan sendTask, SendChanBuffer),
+		httpClient:     client,
+		topicListeners: make(map[string][]TopicListener),
 	}
 	return service, nil
 }
