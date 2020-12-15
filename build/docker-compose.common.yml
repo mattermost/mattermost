@@ -38,7 +38,7 @@ services:
     restart: always
     networks:
       - mm-test
-    command: start-single-node --insecure
+    command: start-single-node --insecure --store=type=mem,size=20%
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost", "-p", "26257" ]
       interval: 5s
