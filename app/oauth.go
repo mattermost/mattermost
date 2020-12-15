@@ -720,7 +720,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
+		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e2.Error(), http.StatusNotImplemented)
 	}
 
 	secure := false
@@ -785,7 +785,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return nil, "", nil, nil, model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
+		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
 	}
 
 	b, strErr := b64.StdEncoding.DecodeString(state)
