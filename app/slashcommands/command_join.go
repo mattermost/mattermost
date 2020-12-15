@@ -22,11 +22,11 @@ func init() {
 	app.RegisterCommandProvider(&JoinProvider{})
 }
 
-func (me *JoinProvider) GetTrigger() string {
+func (*JoinProvider) GetTrigger() string {
 	return CMD_JOIN
 }
 
-func (me *JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_JOIN,
 		AutoComplete:     true,
@@ -36,7 +36,7 @@ func (me *JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*JoinProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channelName := message
 
 	if strings.HasPrefix(message, "~") {

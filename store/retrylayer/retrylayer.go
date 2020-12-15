@@ -8358,11 +8358,11 @@ func (s *RetryLayerThreadStore) CollectThreadsWithNewerReplies(userId string, ch
 
 }
 
-func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool) error {
+func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postId string, following bool, incrementMentions bool, updateFollowing bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following)
+		err := s.ThreadStore.CreateMembershipIfNeeded(userId, postId, following, incrementMentions, updateFollowing)
 		if err == nil {
 			return nil
 		}
@@ -8458,11 +8458,11 @@ func (s *RetryLayerThreadStore) GetMembershipForUser(userId string, postId strin
 
 }
 
-func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamId string) ([]*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetMembershipsForUser(userId)
+		result, err := s.ThreadStore.GetMembershipsForUser(userId, teamId)
 		if err == nil {
 			return result, nil
 		}
@@ -8478,11 +8478,11 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.T
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+		result, err := s.ThreadStore.GetPosts(threadId, since)
 		if err == nil {
 			return result, nil
 		}
@@ -8498,11 +8498,31 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
+		result, err := s.ThreadStore.GetThreadsForUser(userId, teamId, opts)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 		if err == nil {
 			return nil
 		}
@@ -8638,11 +8658,11 @@ func (s *RetryLayerThreadStore) UpdateMembership(membership *model.ThreadMembers
 
 }
 
-func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp)
+		err := s.ThreadStore.UpdateUnreadsByChannel(userId, changedThreads, timestamp, updateViewedTimestamp)
 		if err == nil {
 			return nil
 		}

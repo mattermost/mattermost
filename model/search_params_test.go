@@ -1231,7 +1231,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : and should result in a single InChannel",
+			Name:  "input is two words separated with : and should result in a single InChannel",
 			Input: "in:channel",
 			Output: []*SearchParams{
 				{
@@ -1248,7 +1248,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with :, prefied with - and should result in a single ExcludedChannel",
+			Name:  "input is two words separated with :, prefied with - and should result in a single ExcludedChannel",
 			Input: "-in:channel",
 			Output: []*SearchParams{
 				{
@@ -1265,7 +1265,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a prefixed word should result in a single InChannel and a term",
+			Name:  "input is two words separated with : with a prefixed word should result in a single InChannel and a term",
 			Input: "testing in:channel",
 			Output: []*SearchParams{
 				{
@@ -1282,7 +1282,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a prefixed word should result in a single ExcludedChannel and a term",
+			Name:  "input is two words separated with : with a prefixed word should result in a single ExcludedChannel and a term",
 			Input: "testing -in:channel",
 			Output: []*SearchParams{
 				{
@@ -1299,7 +1299,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a postfix word should result in a single InChannel and a term",
+			Name:  "input is two words separated with : with a postfix word should result in a single InChannel and a term",
 			Input: "in:channel testing",
 			Output: []*SearchParams{
 				{
@@ -1316,7 +1316,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is four words seperated with : should result in a two InChannels",
+			Name:  "input is four words separated with : should result in a two InChannels",
 			Input: "in:channel in:otherchannel",
 			Output: []*SearchParams{
 				{
@@ -1333,7 +1333,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is four words seperated with : prefixed with a word should result in two InChannels and one term",
+			Name:  "input is four words separated with : prefixed with a word should result in two InChannels and one term",
 			Input: "testing in:channel in:otherchannel",
 			Output: []*SearchParams{
 				{
@@ -1350,7 +1350,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is four words seperated with : prefixed with a word should result in one InChannel, one FromUser and one term",
+			Name:  "input is four words separated with : prefixed with a word should result in one InChannel, one FromUser and one term",
 			Input: "testing in:channel from:someone",
 			Output: []*SearchParams{
 				{
@@ -1367,7 +1367,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is four words seperated with : prefixed with a word should result in one InChannel, one ExcludedUser and one term",
+			Name:  "input is four words separated with : prefixed with a word should result in one InChannel, one ExcludedUser and one term",
 			Input: "testing in:channel -from:someone",
 			Output: []*SearchParams{
 				{
@@ -1384,7 +1384,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is six words seperated with : prefixed with a word should result in one InChannel, one FromUser, one ExcludedUser and one term",
+			Name:  "input is six words separated with : prefixed with a word should result in one InChannel, one FromUser, one ExcludedUser and one term",
 			Input: "testing in:channel from:someone -from:someoneelse",
 			Output: []*SearchParams{
 				{

@@ -105,6 +105,9 @@ var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
 
+var PERMISSION_SYSCONSOLE_READ_BILLING *Permission
+var PERMISSION_SYSCONSOLE_WRITE_BILLING *Permission
+
 var PERMISSION_SYSCONSOLE_READ_REPORTING *Permission
 var PERMISSION_SYSCONSOLE_WRITE_REPORTING *Permission
 
@@ -695,6 +698,18 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	PERMISSION_SYSCONSOLE_READ_BILLING = &Permission{
+		"sysconsole_read_billing",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_BILLING = &Permission{
+		"sysconsole_write_billing",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
 	PERMISSION_SYSCONSOLE_READ_REPORTING = &Permission{
 		"sysconsole_read_reporting",
 		"authentication.permissions.use_group_mentions.name",
@@ -878,6 +893,7 @@ func initializePermissions() {
 
 	SysconsoleReadPermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_READ_ABOUT,
+		PERMISSION_SYSCONSOLE_READ_BILLING,
 		PERMISSION_SYSCONSOLE_READ_REPORTING,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS,
@@ -896,6 +912,7 @@ func initializePermissions() {
 
 	SysconsoleWritePermissions = []*Permission{
 		PERMISSION_SYSCONSOLE_WRITE_ABOUT,
+		PERMISSION_SYSCONSOLE_WRITE_BILLING,
 		PERMISSION_SYSCONSOLE_WRITE_REPORTING,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS,
 		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS,

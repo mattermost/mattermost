@@ -24,11 +24,11 @@ func init() {
 	app.RegisterCommandProvider(&InviteProvider{})
 }
 
-func (me *InviteProvider) GetTrigger() string {
+func (*InviteProvider) GetTrigger() string {
 	return CMD_INVITE
 }
 
-func (me *InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_INVITE,
 		AutoComplete:     true,
@@ -38,7 +38,7 @@ func (me *InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_message.app_error"),
