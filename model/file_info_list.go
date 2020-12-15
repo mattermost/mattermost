@@ -53,7 +53,6 @@ func (o *FileInfoList) MakeNonNil() {
 }
 
 func (o *FileInfoList) AddOrder(id string) {
-
 	if o.Order == nil {
 		o.Order = make([]string, 0, 128)
 	}
@@ -62,7 +61,6 @@ func (o *FileInfoList) AddOrder(id string) {
 }
 
 func (o *FileInfoList) AddFileInfo(fileInfo *FileInfo) {
-
 	if o.FileInfos == nil {
 		o.FileInfos = make(map[string]*FileInfo)
 	}
@@ -102,7 +100,6 @@ func (o *FileInfoList) SortByCreateAt() {
 }
 
 func (o *FileInfoList) Etag() string {
-
 	id := "0"
 	var t int64 = 0
 
