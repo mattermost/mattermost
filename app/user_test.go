@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"strings"
@@ -1373,4 +1374,44 @@ func TestDeactivateGuests(t *testing.T) {
 	user, err = th.App.GetUser(user.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), user.DeleteAt)
+}
+
+func TestUpdateUserCustomStatus(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	t.Run("Set and Clear Custom Status", func(t *testing.T) {
+		task := model.CreateRecurringTask("Unset Custom Statuses From Test", th.App.UpdateExpiredCustomStatuses, time.Duration(1)*time.Second)
+		newProps := user.Props
+
+		type customStatus struct {
+			userID     string
+			text       string
+			emoji      string
+			expireTime string
+		}
+
+		cs := customStatus{userID: user.Id, text: "Hello World", emoji: ":grin:",
+			expireTime: time.Now().Add(time.Duration(2) * time.Second).Format(time.RFC3339)}
+
+		cstr, err := json.Marshal(cs)
+		assert.Nil(t, err)
+		newProps["custom_status"] = string(cstr)
+
+		patch := model.UserPatch{Props: newProps}
+		u, aErr := th.App.PatchUser(user.Id, &patch, false)
+		assert.Nil(t, aErr)
+		fmt.Println(string(cstr), u.Props["custom_status"])
+		assert.Equal(t, string(cstr), u.Props["custom_status"])
+
+		time.Sleep(time.Second * 3)
+
+		user, err := th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "{}", user.Props["custom_status"])
+
+		task.Cancel()
+	})
 }
