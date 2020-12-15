@@ -139,7 +139,7 @@ jobs:
           command: |
             cd mattermost-server
             make einterfaces-mocks store-mocks
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using make make einterfaces-mocks store-mocks"; exit 1; fi
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
   build-api-spec:
     docker:
       - image: circleci/node:lts
