@@ -947,7 +947,7 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
 
-		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "StatusClearTimeUnix", "BIGINT", "BIGINT")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "DNDEndTimeUnix", "BIGINT", "BIGINT")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Status", "PrevStatus", "VARCHAR(32)", "VARCHAR(32)")
 
 		saveSchemaVersion(sqlStore, VERSION_5_30_0)

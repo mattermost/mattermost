@@ -106,10 +106,10 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		UPDATE
 			Status
 		SET
-			StatusClearTimeUnix = %v, Manual = %v,
+			DNDEndTimeUnix = %v, Manual = %v,
 			PrevStatus = '%v', Status = PrevStatus
 		WHERE
-			(Status = '%v' AND StatusClearTimeUnix <= %v AND StatusClearTimeUnix > %v)
+			(Status = '%v' AND DNDEndTimeUnix <= %v AND DNDEndTimeUnix > %v)
 		RETURNING
 			UserId, Status`,
 		-1, false, model.STATUS_DND, model.STATUS_DND, time.Now().UTC().Unix(), 1,
