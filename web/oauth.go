@@ -279,8 +279,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props != nil {
 		action = props["action"]
 		isActionMobileAuth = action == model.OAUTH_ACTION_MOBILE
-		if _, ok := props["redirect_to"]; ok {
-			redirectUrl = props["redirect_to"]
+		if val, ok := props["redirect_to"]; ok {
+			redirectUrl = val
 			hasRedirectUrl = len(redirectUrl) > 0
 		}
 	}
