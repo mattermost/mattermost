@@ -420,7 +420,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	query := s.getQueryBuilder().
 		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted, scr.Token").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
-		Where("scr.RemoteClusterId=rc.Id").
+		Where("scr.RemoteClusterId=rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").
 		Where(sq.Eq{"scr.ChannelId": channelId})
 
