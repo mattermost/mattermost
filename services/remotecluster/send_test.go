@@ -87,7 +87,7 @@ func TestBroadcastMsg(t *testing.T) {
 		defer cancel()
 
 		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
-			wg.Done()
+			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
 			if err != nil {
@@ -140,7 +140,7 @@ func TestBroadcastMsg(t *testing.T) {
 		wg.Add(NumRemotes)
 
 		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
-			wg.Done()
+			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
 				atomic.AddInt32(&countErrors, 1)

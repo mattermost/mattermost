@@ -110,8 +110,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
-	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
-	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
+	t.Run("SetShared", func(t *testing.T) { testSetShared(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -6847,4 +6846,34 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	countAfter, appErr := ss.Channel().GroupSyncedChannelCount()
 	require.Nil(t, appErr)
 	require.GreaterOrEqual(t, countAfter, count+1)
+}
+
+func testSetShared(t *testing.T, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "test_share_flag",
+		Name:        "test_share_flag",
+		Type:        model.CHANNEL_OPEN,
+	}
+	channelSaved, err := ss.Channel().Save(channel, 999)
+	require.NoError(t, err)
+
+	t.Run("Check default", func(t *testing.T) {
+		assert.False(t, *channelSaved.Shared)
+	})
+
+	t.Run("Set Shared flag", func(t *testing.T) {
+		err := ss.Channel().SetShared(channelSaved.Id, true)
+		require.NoError(t, err)
+
+		channelMod, err := ss.Channel().Get(channelSaved.Id, false)
+		require.NoError(t, err)
+
+		assert.True(t, channelMod.IsShared())
+	})
+
+	t.Run("Set Shared for invalid id", func(t *testing.T) {
+		err := ss.Channel().SetShared(model.NewId(), true)
+		require.Error(t, err)
+	})
 }

@@ -41,11 +41,16 @@ func testSaveSharedChannel(t *testing.T, ss store.Store) {
 		}
 
 		scSaved, err := ss.SharedChannel().Save(sc)
-		require.Nil(t, err, "couldn't save shared channel", err)
+		require.NoError(t, err, "couldn't save shared channel")
 
 		require.Equal(t, sc.ChannelId, scSaved.ChannelId)
 		require.Equal(t, sc.TeamId, scSaved.TeamId)
 		require.Equal(t, sc.CreatorId, scSaved.CreatorId)
+
+		// ensure channel's Shared flag is set
+		channelMod, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, channelMod.IsShared())
 	})
 
 	t.Run("Save shared channel (remote)", func(t *testing.T) {
@@ -67,6 +72,11 @@ func testSaveSharedChannel(t *testing.T, ss store.Store) {
 		require.Equal(t, sc.ChannelId, scSaved.ChannelId)
 		require.Equal(t, sc.TeamId, scSaved.TeamId)
 		require.Equal(t, sc.CreatorId, scSaved.CreatorId)
+
+		// ensure channel's Shared flag is set
+		channelMod, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.True(t, channelMod.IsShared())
 	})
 
 	t.Run("Save invalid shared channel", func(t *testing.T) {
@@ -344,6 +354,11 @@ func testDeleteSharedChannel(t *testing.T, ss store.Store) {
 		remotes, err := ss.SharedChannel().GetRemotes(channel.Id)
 		require.Nil(t, err)
 		require.Len(t, remotes, 0, "expected empty remotes list")
+
+		// ensure channel's Shared flag is unset
+		channelMod, err := ss.Channel().Get(channel.Id, false)
+		require.NoError(t, err)
+		require.False(t, channelMod.IsShared())
 	})
 
 	t.Run("Delete non-existent shared channel", func(t *testing.T) {

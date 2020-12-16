@@ -1940,6 +1940,22 @@ func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 	return err
 }
 
+func (s *TimerLayerChannelStore) SetShared(channelId string, shared bool) error {
+	start := timemodule.Now()
+
+	err := s.ChannelStore.SetShared(channelId, shared)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.SetShared", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	start := timemodule.Now()
 

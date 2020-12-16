@@ -85,12 +85,28 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 	}
 
 	// make sure the shared channel is associated with a real channel.
-	if _, err := s.stores.channel.Get(sc.ChannelId, true); err != nil {
+	channel, err := s.stores.channel.Get(sc.ChannelId, true)
+	if err != nil {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	if err := s.GetMaster().Insert(sc); err != nil {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	if err := transaction.Insert(sc); err != nil {
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
+	}
+
+	// set `Shared` flag in Channels table
+	if err := s.stores.channel.SetShared(channel.Id, true); err != nil {
+		return nil, err
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 	return sc, nil
 }
@@ -262,13 +278,20 @@ func (s SqlSharedChannelStore) Delete(channelId string) (bool, error) {
 		return false, errors.Wrap(err, "failed to delete SharedChannelRemotes")
 	}
 
-	if err = transaction.Commit(); err != nil {
-		return false, errors.Wrap(err, "commit_transaction")
-	}
-
 	count, err := result.RowsAffected()
 	if err != nil {
 		return false, errors.Wrap(err, "failed to determine rows affected")
+	}
+
+	if count > 0 {
+		// unset the channel's Shared flag
+		if err = s.Channel().SetShared(channelId, false); err != nil {
+			return false, errors.Wrap(err, "error unsetting channel share flag")
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return false, errors.Wrap(err, "commit_transaction")
 	}
 
 	return count > 0, nil

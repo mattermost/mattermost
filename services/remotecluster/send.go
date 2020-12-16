@@ -109,9 +109,6 @@ func (rcs *Service) sendMsg(task sendTask) {
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
 	resp, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
-	if task.f != nil {
-		task.f(task.msg, task.rc, resp, err)
-	}
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
@@ -119,6 +116,11 @@ func (rcs *Service) sendMsg(task sendTask) {
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
+	}
+
+	// If callback provided then call it with the results.
+	if task.f != nil {
+		task.f(task.msg, task.rc, resp, err)
 	}
 }
 

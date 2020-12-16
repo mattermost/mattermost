@@ -3358,3 +3358,29 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 
 	return count, nil
 }
+
+// SetShared sets the Shared flag true/false
+func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("Channels").
+		Set("Shared", shared).
+		Where(sq.Eq{"Id": channelId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "channel_set_shared_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update `Shared` for Channels")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", channelId)
+	}
+	return nil
+}

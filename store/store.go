@@ -240,6 +240,8 @@ type ChannelStore interface {
 
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
+
+	SetShared(channelId string, shared bool) error
 }
 
 type ChannelMemberHistoryStore interface {

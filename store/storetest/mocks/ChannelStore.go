@@ -1752,6 +1752,20 @@ func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt i
 	return r0
 }
 
+// SetShared provides a mock function with given fields: channelId, shared
+func (_m *ChannelStore) SetShared(channelId string, shared bool) error {
+	ret := _m.Called(channelId, shared)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
+		r0 = rf(channelId, shared)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: channel
 func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	ret := _m.Called(channel)

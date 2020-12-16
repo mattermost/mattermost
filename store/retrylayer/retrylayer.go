@@ -2218,6 +2218,26 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 
 }
 
+func (s *RetryLayerChannelStore) SetShared(channelId string, shared bool) error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.SetShared(channelId, shared)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 
 	tries := 0
