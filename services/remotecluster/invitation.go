@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// AcceptInvitation is called when accepting an invitation to connect with a remote cluster.
 func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name string, siteURL string) (*model.RemoteCluster, error) {
 	rc := &model.RemoteCluster{
 		RemoteId:    invite.RemoteId,
