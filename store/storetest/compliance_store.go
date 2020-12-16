@@ -366,7 +366,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime, startTime+10, 10, 0)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -470,7 +470,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime, startTime+10, 10, 0)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -561,7 +561,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime, startTime+20, 10, 0)
 	require.Nil(t, err)
 
 	assert.Equal(t, 1, len(messages))
@@ -659,7 +659,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	messages, err = ss.Compliance().MessageExport(startTime-10, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime, startTime+20, 10, 0)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(messages))
 
@@ -740,7 +740,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime-1, post1e.UpdateAt, 10, 0)
 	require.Nil(t, err)
 	assert.Equal(t, 2, len(messages))
 
@@ -827,7 +827,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	// fetch the message exports from the start
 	messages, err = ss.Compliance().MessageExport(startTime-1, startTime, 10, 0)
 	require.Nil(t, err)
-	assert.Equal(t, 1, len(messages))
+	assert.Len(t, messages, 1)
 
 	v := messages[0]
 	// post1 was made by user1 in channel1 and team1
@@ -852,9 +852,9 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// fetch the message exports after edit
-	messages, err = ss.Compliance().MessageExport(postEditTime-1, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(post1.UpdateAt, post1e.UpdateAt, 10, 0)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(messages))
+	assert.Len(t, messages, 2)
 
 	for _, v := range messages {
 		if *v.PostDeleteAt > 0 {
@@ -942,7 +942,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// fetch the message exports from the start
-	messages, err = ss.Compliance().MessageExport(startTime-1, startTime, 10, 0)
+	messages, err = ss.Compliance().MessageExport(startTime-1, postDeleteTime, 10, 0)
 	require.Nil(t, err)
 	assert.Equal(t, 1, len(messages))
 
