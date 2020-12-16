@@ -2924,11 +2924,11 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 
 }
 
-func (s *RetryLayerComplianceStore) MessageExport(after int64, before int64, limit int) ([]*model.MessageExport, error) {
+func (s *RetryLayerComplianceStore) MessageExport(after int64, before int64, limit int, offset int) ([]*model.MessageExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.ComplianceStore.MessageExport(after, before, limit)
+		result, err := s.ComplianceStore.MessageExport(after, before, limit, offset)
 		if err == nil {
 			return result, nil
 		}

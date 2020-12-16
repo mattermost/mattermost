@@ -207,8 +207,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 	return cposts, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after, before int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "EndTime": before, "Limit": limit}
+func (s SqlComplianceStore) MessageExport(after, before int64, limit, offset int) ([]*model.MessageExport, error) {
+	props := map[string]interface{}{"StartTime": after, "EndTime": before, "Limit": limit, "Offset": offset}
 	query :=
 		`SELECT
 			Posts.Id AS PostId,
@@ -243,11 +243,12 @@ func (s SqlComplianceStore) MessageExport(after, before int64, limit int) ([]*mo
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			Posts.UpdateAt > :StartTime AND
+			Posts.UpdateAt >= :StartTime AND
 			Posts.UpdateAt <= :EndTime AND
 			Posts.Type NOT LIKE 'system_%'
 		ORDER BY PostUpdateAt
-		LIMIT :Limit`
+		LIMIT :Limit
+		OFFSET :Offset`
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {

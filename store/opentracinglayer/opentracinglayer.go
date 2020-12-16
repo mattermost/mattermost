@@ -2735,7 +2735,7 @@ func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.C
 	return result, err
 }
 
-func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, before int64, limit int) ([]*model.MessageExport, error) {
+func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, before int64, limit int, offset int) ([]*model.MessageExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.MessageExport")
 	s.Root.Store.SetContext(newCtx)
@@ -2744,7 +2744,7 @@ func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, before int6
 	}()
 
 	defer span.Finish()
-	result, err := s.ComplianceStore.MessageExport(after, before, limit)
+	result, err := s.ComplianceStore.MessageExport(after, before, limit, offset)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

@@ -429,7 +429,7 @@ type ComplianceStore interface {
 	Get(id string) (*model.Compliance, error)
 	GetAll(offset, limit int) (model.Compliances, error)
 	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error)
-	MessageExport(after int64, before int64, limit int) ([]*model.MessageExport, error)
+	MessageExport(after int64, before int64, limit, offset int) ([]*model.MessageExport, error)
 }
 
 type OAuthStore interface {
