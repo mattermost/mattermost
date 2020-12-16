@@ -485,8 +485,8 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
 		s.PluginsLock.RLock()
-		defer s.PluginsLock.RUnlock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
