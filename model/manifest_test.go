@@ -23,16 +23,17 @@ func TestIsValid(t *testing.T) {
 		manifest    *Manifest
 		ExpectError bool
 	}{
-		{"Invalid Id", &Manifest{Id: "some id"}, true},
-		{"Invalid homePageURL", &Manifest{Id: "com.company.test", HomepageURL: "some url"}, true},
-		{"Invalid supportURL", &Manifest{Id: "com.company.test", SupportURL: "some url"}, true},
-		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", ReleaseNotesURL: "some url"}, true},
-		{"Invalid version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
-		{"Invalid min version", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
-		{"SettingSchema error", &Manifest{Id: "com.company.test", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
+		{"Invalid Id", &Manifest{Id: "some id", Name: "some name"}, true},
+		{"Invalid Name", &Manifest{Id: "com.company.test", Name: "  "}, true},
+		{"Invalid homePageURL", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "some url"}, true},
+		{"Invalid supportURL", &Manifest{Id: "com.company.test", Name: "some name", SupportURL: "some url"}, true},
+		{"Invalid ReleaseNotesURL", &Manifest{Id: "com.company.test", Name: "some name", ReleaseNotesURL: "some url"}, true},
+		{"Invalid version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "version"}, true},
+		{"Invalid min version", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "version"}, true},
+		{"SettingSchema error", &Manifest{Id: "com.company.test", Name: "some name", HomepageURL: "http://someurl.com", SupportURL: "http://someotherurl.com", Version: "5.10.0", MinServerVersion: "5.10.8", SettingsSchema: &PluginSettingsSchema{
 			Settings: []*PluginSetting{{Type: "Invalid"}},
 		}}, true},
-		{"Minimal valid manifest", &Manifest{Id: "com.company.test"}, false},
+		{"Minimal valid manifest", &Manifest{Id: "com.company.test", Name: "some name"}, false},
 		{"Happy case", &Manifest{
 			Id:               "com.company.test",
 			Name:             "thename",
