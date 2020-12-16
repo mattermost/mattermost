@@ -101,9 +101,8 @@ func SchemesFromJson(data io.Reader) []*Scheme {
 	var schemes []*Scheme
 	if err := json.NewDecoder(data).Decode(&schemes); err == nil {
 		return schemes
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (scheme *Scheme) IsValid() bool {

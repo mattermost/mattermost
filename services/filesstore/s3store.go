@@ -172,11 +172,11 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 
 	defer minioObject.Close()
-	if f, err := ioutil.ReadAll(minioObject); err != nil {
+	f, err := ioutil.ReadAll(minioObject)
+	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return f, nil
 	}
+	return f, nil
 }
 
 func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {

@@ -258,9 +258,8 @@ func MapFromJson(data io.Reader) map[string]string {
 	var objmap map[string]string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]string)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 // MapFromJson will decode the key/value pair map
@@ -270,9 +269,8 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 	var objmap map[string]bool
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]bool)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func ArrayToJson(objmap []string) string {
@@ -286,9 +284,8 @@ func ArrayFromJson(data io.Reader) []string {
 	var objmap []string
 	if err := decoder.Decode(&objmap); err != nil {
 		return make([]string, 0)
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func ArrayFromInterface(data interface{}) []string {
@@ -319,9 +316,8 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 	var objmap map[string]interface{}
 	if err := decoder.Decode(&objmap); err != nil {
 		return make(map[string]interface{})
-	} else {
-		return objmap
 	}
+	return objmap
 }
 
 func StringToJson(s string) string {
@@ -335,9 +331,8 @@ func StringFromJson(data io.Reader) string {
 	var s string
 	if err := decoder.Decode(&s); err != nil {
 		return ""
-	} else {
-		return s
 	}
+	return s
 }
 
 func GetServerIpAddress(iface string) string {
