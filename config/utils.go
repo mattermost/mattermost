@@ -173,6 +173,10 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 	return &retCfg, nil
 }
 
+func IsDatabaseDSN(dsn string) bool {
+	return strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://")
+}
+
 // stripPassword remove the password from a given DSN
 func stripPassword(dsn, schema string) string {
 	prefix := schema + "://"
