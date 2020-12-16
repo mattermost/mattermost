@@ -219,8 +219,8 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ABOUT) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ABOUT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ABOUT) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT)
 		return
 	}
 
