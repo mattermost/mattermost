@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
@@ -226,8 +227,8 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | SiteURL  | RemoteId   | Invite Accepted | Online |\n")
-	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | \n")
+	fmt.Fprintf(&sb, "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  | \n")
+	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | ---------- |\n")
 
 	for _, rc := range list {
 		accepted := ":white_check_mark:"
@@ -240,7 +241,9 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 			online = ":skull_and_crossbones:"
 		}
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online)
+		lastPing := formatTimestamp(time.Unix(0, rc.LastPingAt*int64(time.Millisecond)))
+
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
 	}
 	return responsef(sb.String())
 }
