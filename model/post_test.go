@@ -888,47 +888,40 @@ func TestSearchParameterFromJson(t *testing.T) {
 func TestPostAttachments(t *testing.T) {
 	p := &Post{
 		Props: map[string]interface{}{
-			"attachments": `[{
+			"attachments": []byte(`[{
 				"actions" : {null}
 			}]
-			`,
+			`),
 		},
 	}
 
 	t.Run("empty actions", func(t *testing.T) {
-		require.NotPanics(t, func() {
-			attachments := p.Attachments()
-			for _, at := range attachments {
-				require.Empty(t, at.Actions)
-			}
-		})
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{}},
+		}
+		attachments := p.Attachments()
+		require.Empty(t, attachments[0].Actions)
 	})
 
 	t.Run("a couple of actions", func(t *testing.T) {
-		p.Props["attachments"] = `[{
-			"actions" : [{"id": "test1"}, {"id": "test2"}]
-		}]
-		`
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{
+				map[string]interface{}{"id": "test1"}, map[string]interface{}{"id": "test2"}},
+			},
+		}
 
-		require.NotPanics(t, func() {
-			attachments := p.Attachments()
-			for _, at := range attachments {
-				require.Len(t, at.Actions, 2)
-			}
-		})
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Actions, 2)
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
-		p.Props["attachments"] = `[{
-			"actions" : [{"id": "test1"}, null]
-		}]
-		`
+		p.Props["attachments"] = []interface{}{
+			map[string]interface{}{"actions": []interface{}{
+				map[string]interface{}{"id": "test"}, nil, map[string]interface{}{"id": "test"}, nil, nil},
+			},
+		}
 
-		require.NotPanics(t, func() {
-			attachments := p.Attachments()
-			for _, at := range attachments {
-				require.Len(t, at.Actions, 1)
-			}
-		})
+		attachments := p.Attachments()
+		require.Len(t, attachments[0].Actions, 2)
 	})
 }
