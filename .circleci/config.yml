@@ -491,6 +491,9 @@ workflows:
       - build-api-spec:
           requires:
             - setup
+      - check-mocks:
+          requires:
+            - setup
       - build:
           context: matterbuild-sentry
           requires:
