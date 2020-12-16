@@ -210,7 +210,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	notification := &PostNotification{
-		Post:       post,
+		Post:       post.Clone(),
 		Channel:    channel,
 		ProfileMap: profileMap,
 		Sender:     sender,

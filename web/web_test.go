@@ -85,7 +85,10 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	}
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+		s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress

@@ -110,8 +110,16 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("role", oldRole)
 
-	if oldRole.Name == model.SYSTEM_ADMIN_ROLE_ID {
-		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.admin_role.error", nil, "", http.StatusNotImplemented)
+	// manage_system permission is required to patch system_admin
+	requiredPermission := model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS
+	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SYSTEM_ADMIN_ROLE_ID)
+	for _, roleID := range specialProtectedSystemRoles {
+		if oldRole.Name == roleID {
+			requiredPermission = model.PERMISSION_MANAGE_SYSTEM
+		}
+	}
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), requiredPermission) {
+		c.SetPermissionError(requiredPermission)
 		return
 	}
 

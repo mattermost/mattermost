@@ -139,3 +139,5 @@ require (
 )
 
 replace github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
+
+replace github.com/dyatlov/go-opengraph => github.com/hmhealey/go-opengraph v0.0.0-20201209151214-f2d823730dba
