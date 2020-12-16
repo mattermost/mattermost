@@ -2134,10 +2134,6 @@
     "translation": "{{.Service}}ユーザーオブジェクトから認証データを読み込めませんでした。"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "このサーバーではOAuth 2.0を利用した{{.Service}}のシングルサインオンは利用できません。"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "電子メール確認のトークンデータを生成できませんでした"
   },
@@ -2148,10 +2144,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "{{.Service}}ユーザーオブジェクトからユーザーを作成できませんでした。"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "このサーバーではOAuth 2.0を利用した{{.Service}}のシングルサインオンは利用できません。"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2196,10 +2188,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "認証委譲は、このサーバーでは設定されていないか利用不可になっています。"
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "サポートされていないOAuthサービスプロバイダーです。"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",

@@ -60,7 +60,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	} else {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
-	props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 
 	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
@@ -135,6 +134,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
+	props["ExperimentalSharedChannels"] = "false"
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
@@ -198,6 +198,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.Cloud {
 			props["CWSUrl"] = *c.CloudSettings.CWSUrl
+		}
+
+		if *license.Features.SharedChannels {
+			props["ExperimentalSharedChannels"] = strconv.FormatBool(*c.ExperimentalSettings.EnableSharedChannels)
 		}
 	}
 
