@@ -912,16 +912,20 @@ func TestPostAttachments(t *testing.T) {
 
 		attachments := p.Attachments()
 		require.Len(t, attachments[0].Actions, 2)
+		require.Equal(t, attachments[0].Actions[0].Id, "test1")
+		require.Equal(t, attachments[0].Actions[1].Id, "test2")
 	})
 
 	t.Run("should ignore null actions", func(t *testing.T) {
 		p.Props["attachments"] = []interface{}{
 			map[string]interface{}{"actions": []interface{}{
-				map[string]interface{}{"id": "test"}, nil, map[string]interface{}{"id": "test"}, nil, nil},
+				map[string]interface{}{"id": "test1"}, nil, map[string]interface{}{"id": "test2"}, nil, nil},
 			},
 		}
 
 		attachments := p.Attachments()
 		require.Len(t, attachments[0].Actions, 2)
+		require.Equal(t, attachments[0].Actions[0].Id, "test1")
+		require.Equal(t, attachments[0].Actions[1].Id, "test2")
 	})
 }
