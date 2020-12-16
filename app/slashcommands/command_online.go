@@ -20,11 +20,11 @@ func init() {
 	app.RegisterCommandProvider(&OnlineProvider{})
 }
 
-func (me *OnlineProvider) GetTrigger() string {
+func (*OnlineProvider) GetTrigger() string {
 	return CMD_ONLINE
 }
 
-func (me *OnlineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*OnlineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_ONLINE,
 		AutoComplete:     true,
@@ -33,7 +33,7 @@ func (me *OnlineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *OnlineProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*OnlineProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusOnline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_online.success")}

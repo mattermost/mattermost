@@ -483,8 +483,8 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			subject := T("api.templates.warn_metric_ack.subject")
 			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
-				mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
+			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+				mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADVISOR_ADDRESS), mlog.Err(err))
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}

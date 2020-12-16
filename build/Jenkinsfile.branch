@@ -49,9 +49,9 @@ pipeline {
               platformStages.platformCheckoutTE(env.BRANCH_NAME)
               platformStages.platformCheckoutEE(env.BRANCH_NAME)
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
-              platformStages.platformCheckoutEEGOSaml('master')
-              platformStages.platformCheckoutEEGOXML('master')
-              platformStages.platformCheckoutEEGOXMLDsig('master')
+              platformStages.platformCheckoutEEGOSaml('release-5.x')
+              platformStages.platformCheckoutEEGOXML('release-5.x')
+              platformStages.platformCheckoutEEGOXMLDsig('release-5.x')
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
                 platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
