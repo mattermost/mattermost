@@ -246,7 +246,7 @@ func (s SqlComplianceStore) MessageExport(after, before int64, limit, offset int
 			Posts.UpdateAt >= :StartTime AND
 			Posts.UpdateAt <= :EndTime AND
 			Posts.Type NOT LIKE 'system_%'
-		ORDER BY PostUpdateAt
+		ORDER BY PostUpdateAt, PostId
 		LIMIT :Limit
 		OFFSET :Offset`
 
