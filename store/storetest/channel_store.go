@@ -6859,7 +6859,7 @@ func testSetShared(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("Check default", func(t *testing.T) {
-		assert.False(t, *channelSaved.Shared)
+		assert.False(t, channelSaved.IsShared())
 	})
 
 	t.Run("Set Shared flag", func(t *testing.T) {
