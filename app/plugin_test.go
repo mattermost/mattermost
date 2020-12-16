@@ -715,7 +715,6 @@ func TestPluginPanicLogs(t *testing.T) {
 		}
 		`,
 		}, th.App, th.App.NewPluginAPI)
-		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -725,6 +724,9 @@ func TestPluginPanicLogs(t *testing.T) {
 		}
 		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
+		// We shutdown plugins first so that the read on the log buffer is race-free.
+		th.App.Srv().ShutDownPlugins()
+		tearDown()
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")
 	})
