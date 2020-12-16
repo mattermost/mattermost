@@ -70,6 +70,11 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+		return
+	}
+
 	isDownloadable, _ := strconv.ParseBool(job.Data["is_downloadable"])
 	if !isDownloadable {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil, "", http.StatusBadRequest)
@@ -113,6 +118,11 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE)
+		return
+	}
+
 	job, err := c.App.CreateJob(job)
 	if err != nil {
 		c.Err = err
@@ -153,6 +163,11 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
 		c.SetPermissionError(model.PERMISSION_READ_JOBS)
+		return
+	}
+
+	if c.Params.JobType == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
 		return
 	}
 

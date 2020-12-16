@@ -18,11 +18,14 @@ func TestCreateJob(t *testing.T) {
 	defer th.TearDown()
 
 	job := &model.Job{
-		Type: model.JOB_TYPE_DATA_RETENTION,
+		Type: model.JOB_TYPE_MESSAGE_EXPORT,
 		Data: map[string]string{
 			"thing": "stuff",
 		},
 	}
+
+	_, resp := th.SystemManagerClient.CreateJob(job)
+	CheckForbiddenStatus(t, resp)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
@@ -172,6 +175,9 @@ func TestGetJobsByType(t *testing.T) {
 
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestDownloadJob(t *testing.T) {
@@ -213,6 +219,10 @@ func TestDownloadJob(t *testing.T) {
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.Nil(t, mkdirAllErr)
 	os.Create(filePath)
+
+	// System manager with default permisions cannot download the results of these job (Doesn't have permission)
+	_, resp = th.SystemManagerClient.DownloadJob(job.Id)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckBadRequestStatus(t, resp)

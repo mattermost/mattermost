@@ -57,6 +57,9 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 	tempWorkspace     string
 
+	SystemManagerClient *model.Client4
+	SystemManagerUser   *model.User
+
 	LocalClient *model.Client4
 
 	IncludeCacheLayer bool
@@ -166,6 +169,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
+	th.SystemManagerClient = th.CreateClient()
 
 	// Verify handling of the supported true/false values by randomizing on each run.
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -298,10 +302,11 @@ func (th *TestHelper) TearDown() {
 
 var initBasicOnce sync.Once
 var userCache struct {
-	SystemAdminUser *model.User
-	TeamAdminUser   *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
+	SystemAdminUser   *model.User
+	SystemManagerUser *model.User
+	TeamAdminUser     *model.User
+	BasicUser         *model.User
+	BasicUser2        *model.User
 }
 
 func (th *TestHelper) InitLogin() *TestHelper {
@@ -313,6 +318,11 @@ func (th *TestHelper) InitLogin() *TestHelper {
 		th.App.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
+
+		th.SystemManagerUser = th.CreateUser()
+		th.App.UpdateUserRoles(th.SystemManagerUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_MANAGER_ROLE_ID, false)
+		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
+		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
@@ -329,20 +339,26 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	})
 	// restore cached users
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
+	th.SystemManagerUser = userCache.SystemManagerUser.DeepCopy()
 	th.TeamAdminUser = userCache.TeamAdminUser.DeepCopy()
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
-	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2)
+	mainHelper.GetSQLStore().GetMaster().Insert(th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser)
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
 	th.TeamAdminUser.Password = "Pa$$word11"
 	th.BasicUser.Password = "Pa$$word11"
 	th.BasicUser2.Password = "Pa$$word11"
+	th.SystemManagerUser.Password = "Pa$$word11"
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		th.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		th.LoginSystemManager()
 		wg.Done()
 	}()
 	go func() {
@@ -417,6 +433,10 @@ func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.Ap
 
 func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, *model.AppError) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
+}
+
+func (th *TestHelper) CreateWebSocketSystemManagerClient() (*model.WebSocketClient, *model.AppError) {
+	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemManagerClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, *model.AppError) {
@@ -634,6 +654,10 @@ func (th *TestHelper) LoginSystemAdmin() {
 	th.LoginSystemAdminWithClient(th.SystemAdminClient)
 }
 
+func (th *TestHelper) LoginSystemManager() {
+	th.LoginSystemManagerWithClient(th.SystemManagerClient)
+}
+
 func (th *TestHelper) LoginBasicWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
 	_, resp := client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -655,6 +679,15 @@ func (th *TestHelper) LoginBasic2WithClient(client *model.Client4) {
 func (th *TestHelper) LoginTeamAdminWithClient(client *model.Client4) {
 	utils.DisableDebugLogForTest()
 	_, resp := client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	if resp.Error != nil {
+		panic(resp.Error)
+	}
+	utils.EnableDebugLogForTest()
+}
+
+func (th *TestHelper) LoginSystemManagerWithClient(client *model.Client4) {
+	utils.DisableDebugLogForTest()
+	_, resp := client.Login(th.SystemManagerUser.Email, th.SystemManagerUser.Password)
 	if resp.Error != nil {
 		panic(resp.Error)
 	}
