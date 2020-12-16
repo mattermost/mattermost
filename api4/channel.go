@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -1382,6 +1383,20 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 
 	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_CHANNEL_ROLES)
+		return
+	}
+
+	channel, err := c.App.Srv().Store.Channel().Get(c.Params.ChannelId, true)
+	if err != nil {
+		c.LogError(model.NewAppError("Failed to retrieve channel", "app.update_member_role.channel_not_found", map[string]interface{}{"channelId": c.Params.ChannelId}, fmt.Sprintf("Couldn't find channel %s", c.Params.ChannelId), http.StatusNotFound))
+		return
+	}
+	if channel.Type == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.App.Session(), channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+		return
+	}
+	if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(*c.App.Session(), channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
 		return
 	}
 
