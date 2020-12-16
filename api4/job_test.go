@@ -220,7 +220,7 @@ func TestDownloadJob(t *testing.T) {
 	require.Nil(t, mkdirAllErr)
 	os.Create(filePath)
 
-	// System manager with default permisions cannot download the results of these job (Doesn't have permission)
+	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
 	_, resp = th.SystemManagerClient.DownloadJob(job.Id)
 	CheckForbiddenStatus(t, resp)
 
