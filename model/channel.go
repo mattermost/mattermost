@@ -51,6 +51,7 @@ type Channel struct {
 	SchemeId         *string                `json:"scheme_id"`
 	Props            map[string]interface{} `json:"props" db:"-"`
 	GroupConstrained *bool                  `json:"group_constrained"`
+	Shared           *bool                  `json:"shared"`
 }
 
 type ChannelWithTeamData struct {
@@ -311,6 +312,10 @@ func (o *Channel) AddProp(key string, value interface{}) {
 
 func (o *Channel) IsGroupConstrained() bool {
 	return o.GroupConstrained != nil && *o.GroupConstrained
+}
+
+func (o *Channel) IsShared() bool {
+	return o.Shared != nil && *o.Shared
 }
 
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
