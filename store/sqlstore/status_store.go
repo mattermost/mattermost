@@ -12,6 +12,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -101,7 +102,57 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	return statuses, nil
 }
 
+// MySql doesn't has support for RETURNING clause or any euivalent so use transaction
+func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
+	selectQuery, selectParams, _ := s.getQueryBuilder().
+		Select("UserId, Status").
+		From("Status").
+		Where(
+			sq.Eq{"Status": model.STATUS_DND},
+			sq.Gt{"DNDEndTimeUnix": -1},
+			sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+		).ToSql()
+	var selectedStatuses []*model.Status
+	_, err := t.Select(&selectedStatuses, selectQuery, selectParams...)
+	if err != nil {
+		return nil, errors.Wrap(err, "getExpiredDNDStatusesT: failed to get expired dnd statuses")
+	}
+	updateQuery, args, _ := s.getQueryBuilder().
+		Update("Status").
+		Where(
+			sq.Eq{"Status": model.STATUS_DND},
+			sq.Gt{"DNDEndTimeUnix": 1},
+			sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+		).
+		Set("Status", "PrevStatus").
+		Set("PrevStatus", model.STATUS_DND).
+		Set("DNDEndTimeUnix", -1).
+		Set("Manual", false).
+		ToSql()
+	if _, err := t.Exec(updateQuery, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to update statuses")
+	}
+	return selectedStatuses, nil
+}
+
 func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
+	var statuses []*model.Status
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
+		}
+		defer finalizeTransaction(transaction)
+		statuses, err = s.updateExpiredStatuses(transaction)
+		if err != nil {
+			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
+		}
+		if err := transaction.Commit(); err != nil {
+			return nil, errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
+		}
+		return statuses, nil
+	}
+
 	queryString := fmt.Sprintf(`
 		UPDATE
 			Status
@@ -114,11 +165,11 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 			UserId, Status`,
 		-1, false, model.STATUS_DND, model.STATUS_DND, time.Now().UTC().Unix(), 1,
 	)
+
 	rows, err := s.GetMaster().Query(queryString)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
-	var statuses []*model.Status
 	defer rows.Close()
 	for rows.Next() {
 		var status model.Status
@@ -130,6 +181,7 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	if err = rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "failed while iterating over rows")
 	}
+
 	return statuses, nil
 }
 
