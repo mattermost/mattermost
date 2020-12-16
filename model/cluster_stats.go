@@ -15,13 +15,13 @@ type ClusterStats struct {
 	TotalMasterDbConnections  int    `json:"total_master_db_connections"`
 }
 
-func (me *ClusterStats) ToJson() string {
-	b, _ := json.Marshal(me)
+func (cs *ClusterStats) ToJson() string {
+	b, _ := json.Marshal(cs)
 	return string(b)
 }
 
 func ClusterStatsFromJson(data io.Reader) *ClusterStats {
-	var me *ClusterStats
-	json.NewDecoder(data).Decode(&me)
-	return me
+	var cs *ClusterStats
+	json.NewDecoder(data).Decode(&cs)
+	return cs
 }

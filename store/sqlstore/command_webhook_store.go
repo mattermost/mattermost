@@ -16,13 +16,13 @@ import (
 )
 
 type SqlCommandWebhookStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlCommandWebhookStore(sqlSupplier *SqlSupplier) store.CommandWebhookStore {
-	s := &SqlCommandWebhookStore{sqlSupplier}
+func newSqlCommandWebhookStore(sqlStore *SqlStore) store.CommandWebhookStore {
+	s := &SqlCommandWebhookStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		tablec := db.AddTableWithName(model.CommandWebhook{}, "CommandWebhooks").SetKeys(false, "Id")
 		tablec.ColMap("Id").SetMaxSize(26)
 		tablec.ColMap("CommandId").SetMaxSize(26)

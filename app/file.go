@@ -101,6 +101,14 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 	return backend.FileExists(path)
 }
 
+func (a *App) FileSize(path string) (int64, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return 0, err
+	}
+	return backend.FileSize(path)
+}
+
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -785,19 +793,19 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	if t.fileinfo.HasPreviewImage {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
-			writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
-		}()
+	wg.Add(3)
+	// Generating thumbnail and preview regardless of HasPreviewImage value.
+	// This is needed on mobile in case of animated GIFs.
+	go func() {
+		defer wg.Done()
+		writeJPEG(genThumbnail(decoded), t.fileinfo.ThumbnailPath)
+	}()
 
-		go func() {
-			defer wg.Done()
-			writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
-		}()
-	}
+	go func() {
+		defer wg.Done()
+		writeJPEG(genPreview(decoded), t.fileinfo.PreviewPath)
+	}()
+
 	go func() {
 		defer wg.Done()
 		if t.fileinfo.MiniPreview == nil {
