@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -292,7 +291,6 @@ func (s *Server) GenerateRenewalToken(expiration time.Duration) (string, *model.
 		return "", model.NewAppError("GenerateRenewalToken", "app.license.generate_renewal_token.app_error",
 			nil, err.Error(), http.StatusInternalServerError)
 	}
-	mlog.Info(fmt.Sprintf("Active users %d", activeUsers))
 
 	expirationTime := time.Now().UTC().Add(expiration)
 	claims := &JWTClaims{
