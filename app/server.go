@@ -721,6 +721,7 @@ func (s *Server) startInterClusterServices(license *model.License) {
 
 	if !*s.License().Features.SharedChannels {
 		mlog.Debug("License does not have shared channels enabled")
+		return
 	}
 
 	var err error
