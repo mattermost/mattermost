@@ -2144,10 +2144,6 @@
     "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Не удалось создать данные токена для проверки электронной почты"
   },
@@ -2158,10 +2154,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2206,10 +2198,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Передача аутентификации не настроена или недоступна на этом сервере."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Неподдерживаемый провайдер услуг OAuth."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4621,7 +4609,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 5 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
+    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 10 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
