@@ -4,8 +4,6 @@
 package searchlayer
 
 import (
-	"errors"
-	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -100,7 +98,7 @@ func (s *SearchUserStore) PermanentDelete(userId string) error {
 	return err
 }
 
-func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine.SearchEngineInterface, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var err *model.AppError
 	uchanIds := []string{}
 	nuchanIds := []string{}
@@ -132,14 +130,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	result := <-uchan
 	if result.NErr != nil {
-		return nil, model.NewAppError("autocompleteUsersInChannelByEngine", "app.user.get_profiles.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, result.NErr
 	}
 	inUsers := result.Data.([]*model.User)
 	autocomplete.InChannel = inUsers
 
 	result = <-nuchan
 	if result.NErr != nil {
-		return nil, model.NewAppError("autocompleteUsersInChannelByEngine", "app.user.get_profiles.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+		return nil, result.NErr
 	}
 	outUsers := result.Data.([]*model.User)
 	autocomplete.OutOfChannel = outUsers
@@ -158,7 +156,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 //		- If we receive channels restrictions we get:
 //			- If we don't have team id, we get those restricted channels (guest accounts and quick search)
 //			- If we have a team id then we only return those restricted channels that belongs to that team
-func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
+func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, error) {
 	var listOfAllowedChannels []string
 	if viewRestrictions == nil && teamId == "" {
 		// nil return without error means all channels are allowed
@@ -168,13 +166,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if teamId != "" && (viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId)) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
-				return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+			return nil, err
 		}
 		for _, channel := range *channels {
 			listOfAllowedChannels = append(listOfAllowedChannels, channel.Id)
@@ -185,7 +177,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if len(viewRestrictions.Channels) > 0 {
 		channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
 		if err != nil {
-			return nil, model.NewAppError("getListOfAllowedChannelsForTeam", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
 		for _, c := range channels {
 			if teamId == "" || (teamId != "" && c.TeamId == teamId) {
@@ -216,7 +208,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
-			return autocomplete, err
+			return autocomplete, nil
 		}
 	}
 

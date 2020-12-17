@@ -27,7 +27,7 @@ func TestSearchChannelStore(t *testing.T) {
 func TestChannelSearchQuerySQLInjection(t *testing.T) {
 	for _, st := range storeTypes {
 		t.Run(st.Name, func(t *testing.T) {
-			if st.SqlSupplier.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+			if st.SqlStore.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 				t.Skip("Cockroach db doesn't support full text search")
 			}
 			s := &SqlChannelStore{

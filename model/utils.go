@@ -94,6 +94,10 @@ type AppError struct {
 }
 
 func (er *AppError) Error() string {
+	// TODO: Remove this before merge and after fixing the weirdness around errors on search engines
+	if er == nil {
+		return ""
+	}
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 

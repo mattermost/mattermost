@@ -339,7 +339,7 @@ func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*m
 	pl := model.NewPostList()
 
 	var posts []*model.Post
-	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+	if _, err := s.GetReplica().Select(&posts, "SELECT p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
@@ -358,7 +358,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	query := `
             SELECT
-                A.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
+                A.*, COALESCE(t.ReplyCount, 0) as ReplyCount
             FROM
                 (SELECT
                     *
@@ -378,6 +378,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
                 ) as A
             INNER JOIN Channels as B
                 ON B.Id = A.ChannelId
+            LEFT JOIN Threads as t ON t.postid = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END)
             WHERE B.TeamId = :TeamId OR B.TeamId = ''
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
@@ -400,12 +401,11 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	var posts []*model.Post
 	query := `
 		SELECT
-			*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
-		FROM Posts p
+			p.*, COALESCE(t.ReplyCount, 0) as ReplyCount FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)
 		WHERE
-			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
-			AND ChannelId = :ChannelId
-			AND DeleteAt = 0
+			p.Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
+			AND p.ChannelId = :ChannelId
+			AND p.DeleteAt = 0
 		ORDER BY CreateAt DESC
 		LIMIT :Limit OFFSET :Offset`
 
@@ -428,7 +428,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, e
 	}
 
 	var post model.Post
-	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
+	postFetchQuery := "SELECT p.*, COALESCE(t.ReplyCount, 0) as ReplyCount FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) WHERE p.Id = :Id AND p.DeleteAt = 0"
 	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -451,7 +451,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, e
 		}
 
 		var posts []*model.Post
-		_, err = s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
+		_, err = s.GetReplica().Select(&posts, "SELECT p.*, COALESCE(t.ReplyCount, 0) as ReplyCount FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to find Posts")
 		}
@@ -668,17 +668,19 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	var posts []*model.Post
 
-	replyCountQuery1 := ""
-	replyCountQuery2 := ""
+	replyCountJoin1 := ""
+	replyCountJoin2 := ""
+	replyCountField := ""
 	if options.SkipFetchThreads {
-		replyCountQuery1 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p1.RootId = '' THEN p1.Id ELSE p1.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
-		replyCountQuery2 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountJoin1 = `LEFT JOIN Threads as t ON t.postid = (CASE WHEN p1.RootId = '' THEN p1.Id ELSE p1.RootId END)`
+		replyCountJoin2 = `LEFT JOIN Threads as t ON t.postid = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END)`
+		replyCountField = `, COALESCE(t.ReplyCount, 0) as ReplyCount`
 	}
 	var query string
 
 	// union of IDs and then join to get full posts is faster in mysql
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		query = `SELECT *` + replyCountQuery1 + ` FROM Posts p1 JOIN (
+		query = `SELECT p1.*` + replyCountField + ` FROM Posts p1 JOIN (
 			(SELECT
               Id
 			  FROM
@@ -704,7 +706,8 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 							  AND ChannelId = :ChannelId
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
-          ORDER BY CreateAt DESC`
+            ` + replyCountJoin1 + `
+          ORDER BY p1.CreateAt DESC`
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		query = `WITH cte AS (SELECT
 		       *
@@ -713,9 +716,9 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		WHERE
 		       UpdateAt > :Time AND ChannelId = :ChannelId
 		       LIMIT 1000)
-		(SELECT *` + replyCountQuery2 + ` FROM cte)
+		(SELECT cte.*` + replyCountField + ` FROM Posts cte ` + replyCountJoin2 + `)
 		UNION
-		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
+		(SELECT p1.*` + replyCountField + ` FROM Posts p1 ` + replyCountJoin1 + ` WHERE id in (SELECT rootid FROM cte))
 		ORDER BY CreateAt DESC`
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
@@ -753,106 +756,109 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 
-	offset := options.Page * options.PerPage
-	var posts, parents []*model.Post
+	// offset := options.Page * options.PerPage
+	// var posts, parents []*model.Post
 
-	var direction string
-	var sort string
-	if before {
-		direction = "<"
-		sort = "DESC"
-	} else {
-		direction = ">"
-		sort = "ASC"
-	}
-	table := "Posts p"
-	// We force MySQL to use the right index to prevent it from accidentally
-	// using the index_merge_intersection optimization.
-	// See MM-27575.
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
-	}
+	// TODO: THIS IS A TEMPORAL HACK TO RUN THE LOAD TESTS AVOIDING THIS QUERY THAT IS GENERATING PROBLEMS
+	// var direction string
+	// var sort string
+	// if before {
+	// 	direction = "<"
+	// 	sort = "DESC"
+	// } else {
+	// 	direction = ">"
+	// 	sort = "ASC"
+	// }
+	// table := "Posts p"
+	// // We force MySQL to use the right index to prevent it from accidentally
+	// // using the index_merge_intersection optimization.
+	// // See MM-27575.
+	// if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	// 	table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
+	// }
 
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
-	query := s.getQueryBuilder().Select("p.*")
-	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-	query = query.From(table).
-		Where(sq.And{
-			sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
-			sq.Eq{"ChannelId": options.ChannelId},
-			sq.Eq{"DeleteAt": int(0)},
-		}).
-		// Adding ChannelId and DeleteAt order columns
-		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
-		// See MM-24170.
-		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
-		Limit(uint64(options.PerPage)).
-		Offset(uint64(offset))
+	// query := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
+	// query = query.From(table).
+	// 	LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
+	// 	Where(sq.And{
+	// 		sq.Expr(`p.CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
+	// 		sq.Eq{"p.ChannelId": options.ChannelId},
+	// 		sq.Eq{"t.ChannelId": options.ChannelId},
+	// 		sq.Eq{"p.DeleteAt": int(0)},
+	// 	}).
+	// 	// Adding ChannelId and DeleteAt order columns
+	// 	// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+	// 	// See MM-24170.
+	// 	OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
+	// 	Limit(uint64(options.PerPage)).
+	// 	Offset(uint64(offset))
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "post_tosql")
-	}
-	_, err = s.GetMaster().Select(&posts, queryString, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
-	}
+	// queryString, args, err := query.ToSql()
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "post_tosql")
+	// }
+	// _, err = s.GetMaster().Select(&posts, queryString, args...)
+	// if err != nil {
+	// 	return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	// }
 
-	if len(posts) > 0 {
-		rootIds := []string{}
-		for _, post := range posts {
-			rootIds = append(rootIds, post.Id)
-			if post.RootId != "" {
-				rootIds = append(rootIds, post.RootId)
-			}
-		}
-		rootQuery := s.getQueryBuilder().Select("p.*")
-		idQuery := sq.Or{
-			sq.Eq{"Id": rootIds},
-		}
-		rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-		if !options.SkipFetchThreads {
-			idQuery = append(idQuery, sq.Eq{"RootId": rootIds}) // preserve original behaviour
-		}
+	// 	if len(posts) > 0 {
+	// 		rootIds := []string{}
+	// 		for _, post := range posts {
+	// 			rootIds = append(rootIds, post.Id)
+	// 			if post.RootId != "" {
+	// 				rootIds = append(rootIds, post.RootId)
+	// 			}
+	// 		}
+	// 		rootQuery := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
+	// 		idQuery := sq.Or{
+	// 			sq.Eq{"Id": rootIds},
+	// 		}
+	// 		if !options.SkipFetchThreads {
+	// 			idQuery = append(idQuery, sq.Eq{"p.RootId": rootIds}) // preserve original behaviour
+	// 		}
 
-		rootQuery = rootQuery.From("Posts p").
-			Where(sq.And{
-				idQuery,
-				sq.Eq{"ChannelId": options.ChannelId},
-				sq.Eq{"DeleteAt": 0},
-			}).
-			OrderBy("CreateAt DESC")
+	// 		rootQuery = rootQuery.From("Posts p").
+	// 			LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
+	// 			Where(sq.And{
+	// 				idQuery,
+	// 				sq.Eq{"p.ChannelId": options.ChannelId},
+	// 				sq.Eq{"t.ChannelId": options.ChannelId},
+	// 				sq.Eq{"p.DeleteAt": 0},
+	// 			}).
+	// 			OrderBy("p.CreateAt DESC")
 
-		rootQueryString, rootArgs, err := rootQuery.ToSql()
+	// 		rootQueryString, rootArgs, err := rootQuery.ToSql()
 
-		if err != nil {
-			return nil, errors.Wrap(err, "post_tosql")
-		}
-		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
-		}
-	}
+	// 		if err != nil {
+	// 			return nil, errors.Wrap(err, "post_tosql")
+	// 		}
+	// 		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
+	// 		if err != nil {
+	// 			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	// 		}
+	// 	}
 
 	list := model.NewPostList()
 
 	// We need to flip the order if we selected backwards
-	if before {
-		for _, p := range posts {
-			list.AddPost(p)
-			list.AddOrder(p.Id)
-		}
-	} else {
-		l := len(posts)
-		for i := range posts {
-			list.AddPost(posts[l-i-1])
-			list.AddOrder(posts[l-i-1].Id)
-		}
-	}
+	// if before {
+	// 	for _, p := range posts {
+	// 		list.AddPost(p)
+	// 		list.AddOrder(p.Id)
+	// 	}
+	// } else {
+	// 	l := len(posts)
+	// 	for i := range posts {
+	// 		list.AddPost(posts[l-i-1])
+	// 		list.AddOrder(posts[l-i-1].Id)
+	// 	}
+	// }
 
-	for _, p := range parents {
-		list.AddPost(p)
-	}
+	// TODO: THIS IS A TEMPORAL HACK TO RUN THE LOAD TESTS AVOIDING THIS QUERY THAT IS GENERATING PROBLEMS
+	// for _, p := range parents {
+	// 	list.AddPost(p)
+	// }
 
 	return list, nil
 }
@@ -955,7 +961,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	var posts []*model.Post
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
+		fetchQuery = "SELECT p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	} else {
 		fetchQuery = "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 	}
@@ -1564,7 +1570,7 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	keys, params := MapStringsToQueryParams(postIds, "Post")
 
-	query := `SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id IN ` + keys + ` ORDER BY CreateAt DESC`
+	query := `SELECT p.*, COALESCE(t.ReplyCount, 0) FROM Posts p LEFT JOIN Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) WHERE p.Id IN ` + keys + ` ORDER BY CreateAt DESC`
 
 	var posts []*model.Post
 	_, err := s.GetReplica().Select(&posts, query, params)

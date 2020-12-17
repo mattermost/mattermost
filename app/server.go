@@ -316,9 +316,9 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initEnterprise()
 
-	if *s.Config().SqlSettings.DriverName == model.DATABASE_DRIVER_COCKROACH && model.BuildEnterpriseReady != "true" {
-		return nil, errors.New("Unable to use CockroachDB as database in Team Edition, you need a mattermost EE and a license compatible with the CockroachDB feature")
-	}
+	// if *s.Config().SqlSettings.DriverName == model.DATABASE_DRIVER_COCKROACH && model.BuildEnterpriseReady != "true" {
+	// 	return nil, errors.New("Unable to use CockroachDB as database in Team Edition, you need a mattermost EE and a license compatible with the CockroachDB feature")
+	// }
 
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
@@ -400,9 +400,9 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
-	if *s.Config().SqlSettings.DriverName == model.DATABASE_DRIVER_COCKROACH && (s.License() == nil || !*s.License().Features.CockroachDB) {
-		return nil, errors.New("Unable to use CockroachDB as database, you need a license compatible with the CockroachDB feature")
-	}
+	// if *s.Config().SqlSettings.DriverName == model.DATABASE_DRIVER_COCKROACH && (s.License() == nil || !*s.License().Features.CockroachDB) {
+	// 	return nil, errors.New("Unable to use CockroachDB as database, you need a license compatible with the CockroachDB feature")
+	// }
 
 	s.setupFeatureFlags()
 
