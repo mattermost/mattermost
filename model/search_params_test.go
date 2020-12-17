@@ -1564,7 +1564,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : and should result in a single Extension",
+			Name:  "input is two words separated with : and should result in a single Extension",
 			Input: "ext:png",
 			Output: []*SearchParams{
 				{
@@ -1581,7 +1581,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with :, prefied with - and should result in a single ExcludedExtensions",
+			Name:  "input is two words separated with :, prefied with - and should result in a single ExcludedExtensions",
 			Input: "-ext:png",
 			Output: []*SearchParams{
 				{
@@ -1598,7 +1598,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a prefixed word should result in a single Extension and a term",
+			Name:  "input is two words separated with : with a prefixed word should result in a single Extension and a term",
 			Input: "testing ext:png",
 			Output: []*SearchParams{
 				{
@@ -1615,7 +1615,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a prefixed word should result in a single ExcludedExtension and a term",
+			Name:  "input is two words separated with : with a prefixed word should result in a single ExcludedExtension and a term",
 			Input: "testing -ext:png",
 			Output: []*SearchParams{
 				{
@@ -1632,7 +1632,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is two words seperated with : with a postfix word should result in a single Extension and a term",
+			Name:  "input is two words separated with : with a postfix word should result in a single Extension and a term",
 			Input: "ext:png testing",
 			Output: []*SearchParams{
 				{
@@ -1649,7 +1649,7 @@ func TestParseSearchParams(t *testing.T) {
 			},
 		},
 		{
-			Name:  "input is four words seperated with : should result in a two Extensions",
+			Name:  "input is four words separated with : should result in a two Extensions",
 			Input: "ext:png ext:jpg",
 			Output: []*SearchParams{
 				{
