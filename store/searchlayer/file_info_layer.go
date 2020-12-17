@@ -30,6 +30,7 @@ func (s SearchFileInfoStore) indexFile(file *model.FileInfo) {
 
 				if err := engineCopy.IndexFile(file, post.ChannelId); err != nil {
 					mlog.Error("Encountered error indexing file", mlog.String("file_info_id", file.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Indexed file in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", file.Id))
 			})
@@ -43,6 +44,7 @@ func (s SearchFileInfoStore) deleteFileIndex(fileID string) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteFile(fileID); err != nil {
 					mlog.Error("Encountered error deleting file", mlog.String("file_info_id", fileID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed file from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("file_info_id", fileID))
 			})
@@ -56,6 +58,7 @@ func (s SearchFileInfoStore) deleteFileIndexForUser(userID string) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUserFiles(userID); err != nil {
 					mlog.Error("Encountered error deleting files for user", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed user's files from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", userID))
 			})
@@ -69,6 +72,7 @@ func (s SearchFileInfoStore) deleteFileIndexForPost(postID string) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeletePostFiles(postID); err != nil {
 					mlog.Error("Encountered error deleting files for post", mlog.String("post_id", postID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed post's files from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", postID))
 			})
@@ -82,6 +86,7 @@ func (s SearchFileInfoStore) deleteFileIndexBatch(endTime, limit int64) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteFilesBatch(endTime, limit); err != nil {
 					mlog.Error("Encountered error deleting a batch of files", mlog.Int64("limit", limit), mlog.Int64("end_time", endTime), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed batch of files from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.Int64("end_time", endTime), mlog.Int64("limit", limit))
 			})
