@@ -216,7 +216,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
-			return autocomplete, err
+			return autocomplete, nil
 		}
 	}
 

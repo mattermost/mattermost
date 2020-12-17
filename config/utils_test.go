@@ -145,6 +145,51 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
 }
 
+func TestIsDatabaseDSN(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		DSN      string
+		Expected bool
+	}{
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Empty DSN",
+			DSN:      "",
+			Expected: false,
+		},
+		{
+			Name:     "Default file DSN",
+			DSN:      "config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Relative path DSN",
+			DSN:      "configuration/config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Absolute path DSN",
+			DSN:      "/opt/mattermost/configuration/config.json",
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsDatabaseDSN(tc.DSN))
+		})
+	}
+}
+
 func TestStripPassword(t *testing.T) {
 	for name, test := range map[string]struct {
 		DSN         string
