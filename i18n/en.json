@@ -6359,6 +6359,10 @@
     "translation": "Could not parse message export job ExportFromTimestamp."
   },
   {
+    "id": "ent.jobs.do_job.batch_end_timestamp.parse_error",
+    "translation": "Could not parse message export job ExportEndTimestamp."
+  },
+  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
@@ -6557,6 +6561,10 @@
   {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Failed to select message export data."
+  },
+  {
+    "id": "ent.message_export.run_export.create_export_files_error",
+    "translation": "Failed to create message export files."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
