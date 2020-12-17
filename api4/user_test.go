@@ -2447,7 +2447,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-	require.Len(t, rusers, 1, "should be 1 user in total")
+	require.Len(t, rusers, 2, "should be 2 users in total")
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 0, 60, resp.Etag)
 	CheckEtag(t, rusers, resp)
@@ -2456,7 +2456,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Len(t, rusers, 1, "should be 1 per page")
 
-	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 1, 1, "")
+	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 2, 1, "")
 	CheckNoError(t, resp)
 	require.Empty(t, rusers, "should be no users")
 
