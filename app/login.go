@@ -5,7 +5,6 @@ package app
 
 import (
 	"crypto/subtle"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -19,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/pkg/errors"
 )
 
 const cwsTokenEnv = "CWS_CLOUD_TOKEN"

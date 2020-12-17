@@ -43,8 +43,10 @@ const (
 	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
 	TOKEN_TYPE_GUEST_INVITATION   = "guest_invitation"
 	TOKEN_TYPE_CWS_ACCESS         = "cws_access_token"
+	TOKEN_TYPE_MAGIC_LINK         = "magic_link"
 	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
 	INVITATION_EXPIRY_TIME        = 1000 * 60 * 60 * 48 // 48 hours
+	MAGIC_LINK_EXPIRY_TIME        = 1000 * 60 * 5       // 5 minutes
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 

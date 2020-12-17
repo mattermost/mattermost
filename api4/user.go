@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/pkg/errors"
 )
 
 func (api *API) InitUser() {
@@ -64,6 +65,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/magic_link", api.ApiHandler(loginMagicLink)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/magic_link/send", api.ApiHandler(sendMagicLink)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -1756,6 +1759,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
+	doLogin(c, w, r, user, deviceId)
+	if c.Err != nil {
+		auditRec.Success()
+	}
+}
+
+func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) {
 	if user.IsGuest() {
 		if c.App.Srv().License() == nil {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
@@ -1769,7 +1779,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(w, r, user, deviceId, false, false, false)
+	err := c.App.DoLogin(w, r, user, deviceId, false, false, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -1794,7 +1804,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user.Sanitize(map[string]bool{})
 
-	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
 }
 
@@ -1838,6 +1847,76 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(w, r)
 	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+}
+
+func loginMagicLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	token := props["token"]
+	if len(token) != model.TOKEN_SIZE {
+		c.SetInvalidParam("token")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("loginMagicLink", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("token", token)
+	c.LogAudit("magic link attempt - token=" + token)
+
+	user, nErr := c.App.AuthenticateUserWithToken(token)
+	if nErr != nil {
+		c.LogAudit("magic link fail - token=" + token)
+
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			c.Err = appErr
+		default:
+			c.Err = model.NewAppError("loginMagicLink", "app.magic_link.app_error", nil, nErr.Error(), http.StatusInternalServerError) // TODO add i18n
+		}
+
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	c.LogAudit("magic link success - token=" + token)
+
+	doLogin(c, w, r, user, "")
+	if c.Err != nil {
+		auditRec.Success()
+	}
+}
+
+func sendMagicLink(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+
+	loginId := props["login_id"]
+	loginId = strings.ToLower(loginId)
+	if len(loginId) == 0 {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("sendMagicLink", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginId)
+
+	sent, err := c.App.SendMagicLink(loginId, c.App.GetSiteURL())
+	if err != nil {
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode {
+			ReturnStatusOK(w)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	if sent {
+		auditRec.Success()
+		c.LogAudit("sent=" + loginId)
+	}
+
+	ReturnStatusOK(w)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -2715,6 +2715,26 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
   },
   {
+    "id": "api.templates.magic_link_body.button",
+    "translation": "Sign in"
+  },
+  {
+    "id": "api.templates.magic_link_body.info1",
+    "translation": "To sign into {{ .SiteName }}, click \"Sign in\" below."
+  },
+  {
+    "id": "api.templates.magic_link_body.info2",
+    "translation": "If you did not expect to receive this email. Please tell someone somewhere. I don't care who."
+  },
+  {
+    "id": "api.templates.magic_link_body.title",
+    "translation": "You requested a sign-in link"
+  },
+  {
+    "id": "api.templates.magic_link_subject",
+    "translation": "[{{ .SiteName }}] Sign into [{{ .SiteName }}]"
+  },
+  {
     "id": "api.templates.mfa_activated_body.info",
     "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
   },
@@ -3413,6 +3433,10 @@
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
+  },
+  {
+    "id": "api.user.send_magic_link.app_error",
+    "translation": "Unable to send magic link email for login."
   },
   {
     "id": "api.user.send_mfa_change_email.error",

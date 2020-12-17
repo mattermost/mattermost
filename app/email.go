@@ -809,3 +809,27 @@ func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string
 
 	return nil
 }
+
+func (es *EmailService) SendMagicLinkEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	link := fmt.Sprintf("%s/login/magic_link?token=%s", siteURL, url.QueryEscape(token.Token))
+
+	subject := T("api.templates.magic_link_subject",
+		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
+
+	bodyPage := es.newEmailTemplate("magic_link_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.magic_link_body.title")
+	bodyPage.Props["Info1"] = T("api.templates.magic_link_body.info1",
+		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
+	bodyPage.Props["Info2"] = T("api.templates.magic_link_body.info2")
+	bodyPage.Props["LoginUrl"] = link
+	bodyPage.Props["Button"] = T("api.templates.magic_link_body.button")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendMagicLinkEmail", "api.user.send_magic_link.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
