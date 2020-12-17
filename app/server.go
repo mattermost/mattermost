@@ -1665,3 +1665,9 @@ func (s *Server) GetStore() store.Store {
 func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 	return s.remoteClusterService
 }
+
+// GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
+	return s.sharedChannelSyncService
+}

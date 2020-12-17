@@ -39,8 +39,6 @@ func (scs *Service) NotifyChannelChanged(channelId string) {
 	scs.addTask(task)
 }
 
-// notifyChannelChanged is called to indicate that a shared channel has been modified for a
-// specific remote cluster. If `remoteId` is empty then all clusters are signaled to be updated.
 func (scs *Service) addTask(task syncTask) {
 	scs.mux.Lock()
 	if _, ok := scs.tasks[task.id]; !ok {
@@ -111,7 +109,7 @@ func (scs *Service) processTask(task syncTask) error {
 	var remotes []*model.RemoteCluster
 
 	if task.remoteId == "" {
-		remotes, err = scs.server.GetStore().RemoteCluster().GetAllInChannel(task.channelId, false)
+		remotes, err = scs.server.GetStore().RemoteCluster().GetAllInChannel(task.channelId, true)
 		if err != nil {
 			return err
 		}
@@ -143,7 +141,7 @@ func (scs *Service) processTask(task syncTask) error {
 }
 
 // updateForRemote updates a remote cluster with any new posts/reactions for a specific
-// channel.  If many changes are found, only the oldest X changes are sent and the channel
+// channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
 func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, cache msgCache) error {
@@ -161,10 +159,13 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return err
 	}
 
+	var repeat bool
+
 	pSlice := posts.ToSlice()
 	max := len(pSlice)
 	if max > MaxPostsPerSync {
 		max = MaxPostsPerSync
+		repeat = true
 	}
 
 	msg, err := scs.postsToMsg(pSlice[:max], cache)
@@ -180,7 +181,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
+	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
 		if err != nil {
 			return
 		}
@@ -203,4 +204,10 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		}
 	})
+
+	if err == nil && repeat {
+		contTask := newSyncTask(channelId, rc.RemoteId)
+		scs.addTask(contTask)
+	}
+	return err
 }
