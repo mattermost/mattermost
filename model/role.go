@@ -133,6 +133,7 @@ func init() {
 		PERMISSION_SYSCONSOLE_READ_SITE.Id,
 		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id,
 		PERMISSION_SYSCONSOLE_READ_PLUGINS.Id,
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id,
 		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id,
 	}
@@ -277,7 +278,7 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
-		// For the channel admin role always look to the higher scope to determine if the role has ther permission.
+		// For the channel admin role always look to the higher scope to determine if the role has their permission.
 		// The channel admin is a special case because they're not part of the UI to be "channel moderated", only
 		// channel members and channel guests are.
 		if higherScopedPermissions.RoleID == CHANNEL_ADMIN_ROLE_ID && presentOnHigherScope {
@@ -482,15 +483,16 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 
-	for _, permission := range r.Permissions {
-		permissionValidated := false
-		for _, p := range append(AllPermissions, DeprecatedPermissions...) {
+	check := func(perms []*Permission, permission string) bool {
+		for _, p := range perms {
 			if permission == p.Id {
-				permissionValidated = true
-				break
+				return true
 			}
 		}
-
+		return false
+	}
+	for _, permission := range r.Permissions {
+		permissionValidated := check(AllPermissions, permission) || check(DeprecatedPermissions, permission)
 		if !permissionValidated {
 			return false
 		}

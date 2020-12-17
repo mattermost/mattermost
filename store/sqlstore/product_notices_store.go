@@ -4,19 +4,20 @@
 package sqlstore
 
 import (
+	"time"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"time"
 
 	"github.com/pkg/errors"
 )
 
 type SqlProductNoticesStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlProductNoticesStore(sqlStore SqlStore) store.ProductNoticesStore {
+func newSqlProductNoticesStore(sqlStore *SqlStore) store.ProductNoticesStore {
 	s := SqlProductNoticesStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

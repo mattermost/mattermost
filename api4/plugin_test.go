@@ -633,7 +633,57 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		plugins, resp := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
 		require.Empty(t, plugins)
-	}, "verify EnterprisePlugins is false for E20")
+	}, "verify EnterprisePlugins is true for E20")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			cloud, ok := req.URL.Query()["cloud"]
+			require.True(t, ok)
+			require.Len(t, cloud, 1)
+			require.Equal(t, "false", cloud[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		plugins, resp := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Empty(t, plugins)
+	}, "verify EnterprisePlugins is false if there is no license")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			cloud, ok := req.URL.Query()["cloud"]
+			require.True(t, ok)
+			require.Len(t, cloud, 1)
+			require.Equal(t, "true", cloud[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			res.Write(json)
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		plugins, resp := client.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+		require.Empty(t, plugins)
+	}, "verify Cloud is true for cloud license")
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {

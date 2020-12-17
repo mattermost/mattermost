@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -303,7 +304,7 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for open team without results",
-			&model.TeamSearch{Term: "junk"},
+			&model.TeamSearch{Term: "notexists"},
 			0,
 			[]string{},
 		},
@@ -464,7 +465,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for open team without results",
-			"junk",
+			"notexists",
 			0,
 			"",
 		},
@@ -570,7 +571,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search for private team without results",
-			"junk",
+			"notexists",
 			0,
 			"",
 		},
@@ -1208,7 +1209,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
-	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
+	ctx := context.Background()
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
 	require.Nil(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1237,14 +1239,14 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(uid)
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid)
 	require.Nil(t, err)
 	require.Len(t, ms, 2)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
 	require.Nil(t, err)
 	require.Empty(t, ms)
 }

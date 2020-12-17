@@ -540,14 +540,6 @@
     "translation": "Non disturbare disattiva le notifiche desktop e mobile."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Non Disturbare non è attivo."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Impossibile recuperare lo stato dell'utente."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
@@ -4371,20 +4363,12 @@
     "translation": "proprietà create at non valida per il gruppo."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "proprietà delete at non valida per il gruppo."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "proprietà description non valida per il gruppo."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "proprietà display name non valida per il gruppo."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "proprietà id non valida per il gruppo."
   },
   {
     "id": "model.group.name.app_error",
@@ -4417,10 +4401,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "proprietà syncable id non valida per il gruppo syncable."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "proprietà type non valida per il gruppo syncable."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4911,14 +4891,6 @@
     "translation": "Manca l'indirizzo del destinatario."
   },
   {
-    "id": "store.insert_error",
-    "translation": "errore inserimento"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "errore selezione"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Impossibile convertire StringArray a *string"
   },
@@ -4937,10 +4909,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Non è stato possibile trovare il canale."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Riscontrato un errore nella ricerca del canale."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4971,22 +4939,6 @@
     "translation": "Impossibile ottenere il comando."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "il gruppo syncable è già stato cancellato"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nessun gruppo corrispondente trovato"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Un gruppo con quel nome esiste già"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "il membro del gruppo esiste già"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "La ricerca è stata disabilitata per questo server. Per piacere contatta il tuo Amministratore di Sistema."
   },
@@ -4995,188 +4947,12 @@
     "translation": "Un membro gruppo con quell'ID esiste già."
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Impossibile ottenere gli utenti attivi durante il periodo richiesto."
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "Impossibile effettuare il conteggio degli utenti inattivi."
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Impossibile ottenere il conteggio degli amministratori di sistema."
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Errore nella costruzione della query."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione a database."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Impossibile avviare una transazione database."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Impossibile recuperare gli utenti."
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Impossibile aggiornare l'utente."
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Errore riscontrato nel trovare l'account."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Non è stato possibile trovare un account esistente per questo gruppo con il tipo di autenticazione specificato. Per accedere a questo gruppo è necessario un invito da parte del proprietario."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Errore riscontrato durante la ricerca dell'account tramite tipo di autenticazione."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Non è stato possibile trovare un account esistente con il nome utente specificato per questo gruppo. Potrebbe essere necessario disporre di un invito da parte del proprietario per poter accedere a questo gruppo."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
   },
   {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Sono stati trovati diversi utenti con le credenziali fornite ed è stato impossibile effettuare l'accesso. Per favore contatta un amministratore."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Errore riscontrato durante la ricerca dei nuovi utenti."
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Errore riscontrato durante la ricerca dei profili utente."
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Errore riscontrato durante la ricerca degli utenti attivi recentemente."
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Errore riscontrato durante la ricercare dei profili utente."
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Impossibile ottenere la data del sistema basandosi sulla data di creazione del primo utente."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Impossibile contare gli utenti."
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Non è stato possibile ottenere il numero di messaggi non letti per l'utente."
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Non è stato possibile ottenere il numero di messaggi per l'utente ed il canale."
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Impossibile trovare l'utente."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Impossibile cancellare l'account esistente."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Impossibile aggiornare l'account."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "È già presente un account con lo stesso indirizzo email."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Deve essere chiamato un aggiornamento per l'utente esistente."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Esiste già un account con questo nome utente."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Impossibile trovare degli utenti corrispondenti ai parametri di ricerca."
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Impossibile aggiornare l'account."
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Non è possibile modificare i campi impostati da AD/LDAP."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Questo indirizzo email è già in uso. Sceglierne un altro."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Non è stato possibile trovare la pubblicazione o il commento all'aggiornamento."
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Errore riscontrato durante la ricerca dell'account."
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Errore riscontrato durante l'aggiornamento dell'account."
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Questo nome utente è già in uso. Sceglierne un altro."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Impossibile aggiornare i dati di autenticazione."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Impossibile cambiare account a {{.Service}}. Esiste già un account che utilizza l'indirizzo email {{.Email}}."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Impossibile aggiornare failed_attempts."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Impossibile aggiornare update_at."
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Errore riscontrato durante l'aggiornamento dello stato MFA dell'utente."
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Errore riscontrato durante l'aggiornamento del segreto MFA dell'utente."
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Impossibile aggiornare la password."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Impossibile aggiornare la date dell'ultimo aggiornamento dell'utente."
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Impossibile aggiornare il campo verifica email."
-  },
-  {
-    "id": "store.update_error",
-    "translation": "errore aggiornamento"
   },
   {
     "id": "system.message.name",
@@ -6087,30 +5863,6 @@
     "translation": "Errore cancellazione indici Bleve: il motore non è attivo"
   },
   {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Impossibile cancellare i membri del gruppo con UserID \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Errore durante l'aggiornamento delle squadre utente."
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Impossibile ottenere gli utenti conosciuti dal database."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Non è stato possibile ottenere i membri del canale per il gruppo di utenti da indicizzare."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Errore durante l'aggiornamento delle squadre utente."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Impossibile ottenere la lista degli id ospiti disattivati."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Ottieni l'ultima versione del browser Chrome"
   },
@@ -6465,62 +6217,6 @@
   {
     "id": "app.channel.get_deleted.missing.app_error",
     "translation": "Non ci sono canali eliminati."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "errore nella costruzione della query."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions non ha senso."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Errore durante l'aggiornamento dei canali utente."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione sul database."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Impossibile avviare una transazione sul database."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Impossibile aggiornare l'utente."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Errore riscontrato durante la ricerca dei profili utente."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Non è stato possibile ottenere i membri della squadra per la squadra di utenti da indicizzare."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Impossibile trovare il gruppo di utenti da indicizzare."
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Errore durante l'aggiornamento dei canali utente."
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Impossibile confermare la transazione sul database."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Impossibile avviare una transazione sul database."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Impossibile aggiornare l'utente."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Impossibile disattivare gli ospiti."
   },
   {
     "id": "web.error.unsupported_browser.browser_get_latest.firefox",
@@ -7205,10 +6901,6 @@
   {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json è falso. Modificare il valore in \"vero\" per poter scaricare i risultati di questo lavoro."
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Più di una riga è stata modificata."
   },
   {
     "id": "store.sql_command.update.missing.app_error",

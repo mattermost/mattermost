@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,10 +21,10 @@ const (
 )
 
 type SqlSessionStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSessionStore(sqlStore SqlStore) store.SessionStore {
+func newSqlSessionStore(sqlStore *SqlStore) store.SessionStore {
 	us := &SqlSessionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -57,7 +58,7 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to save Session with id=%s", session.Id)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(session.UserId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -82,7 +83,9 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	}
 	session := sessions[0]
 
-	tempMembers, err := me.Team().GetTeamsForUser(session.UserId)
+	tempMembers, err := me.Team().GetTeamsForUser(
+		withMaster(context.Background()),
+		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
 	}
@@ -102,7 +105,7 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 
-	teamMembers, err := me.Team().GetTeamsForUser(userId)
+	teamMembers, err := me.Team().GetTeamsForUser(context.Background(), userId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", userId)
 	}

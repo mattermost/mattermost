@@ -115,10 +115,18 @@ func (a *App) initJobs() {
 	if productNoticesJobInterface != nil {
 		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
 	}
+	if jobsImportProcessInterface != nil {
+		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
+	}
 
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
 	}
+
+	if jobsCloudInterface != nil {
+		a.srv.Jobs.Cloud = jobsCloudInterface(a.srv)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }

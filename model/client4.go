@@ -31,6 +31,7 @@ const (
 	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
+	HEADER_CLOUD_TOKEN        = "X-Cloud-Token"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
 	STATUS                    = "status"
@@ -187,6 +188,14 @@ func (c *Client4) GetUsersRoute() string {
 
 func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
+}
+
+func (c *Client4) GetUserThreadsRoute(userID, teamID string) string {
+	return c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/threads"
+}
+
+func (c *Client4) GetUserThreadRoute(userId, teamId, threadId string) string {
+	return c.GetUserThreadsRoute(userId, teamId) + "/" + threadId
 }
 
 func (c *Client4) GetUserCategoryRoute(userID, teamID string) string {
@@ -532,6 +541,10 @@ func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType
 
 func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
 	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
+func (c *Client4) GetImportsRoute() string {
+	return "/imports"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -5702,6 +5715,19 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
+func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var invoices []*Invoice
+	json.NewDecoder(r.Body).Decode(&invoices)
+
+	return invoices, BuildResponse(r)
+}
+
 func (c *Client4) UpdateCloudCustomer(customerInfo *CloudCustomerInfo) (*CloudCustomer, *Response) {
 	customerBytes, _ := json.Marshal(customerInfo)
 
@@ -5730,4 +5756,84 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	json.NewDecoder(r.Body).Decode(&customer)
 
 	return customer, BuildResponse(r)
+}
+
+func (c *Client4) ListImports() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetImportsRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
+	v := url.Values{}
+	if options.Since != 0 {
+		v.Set("since", fmt.Sprintf("%d", options.Since))
+	}
+	if options.Page != 0 {
+		v.Set("page", fmt.Sprintf("%d", options.Page))
+	}
+	if options.PageSize != 0 {
+		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
+	}
+	if options.Extended {
+		v.Set("extended", "true")
+	}
+	if options.Deleted {
+		v.Set("deleted", "true")
+	}
+
+	url := c.GetUserThreadsRoute(userId, teamId)
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var threads Threads
+	json.NewDecoder(r.Body).Decode(&threads)
+
+	return &threads, BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
+}
+
+func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
+	var appErr *AppError
+	var r *http.Response
+	if state {
+		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, teamId, threadId)+"/following", "")
+	} else {
+		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, teamId, threadId) + "/following")
+	}
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
 }

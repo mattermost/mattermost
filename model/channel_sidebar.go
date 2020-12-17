@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"regexp"
 )
 
 type SidebarCategoryType string
@@ -45,6 +46,7 @@ type SidebarCategory struct {
 	Sorting     SidebarCategorySorting `json:"sorting"`
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`
+	Muted       bool                   `json:"muted"`
 }
 
 // SidebarCategoryWithChannels combines data from SidebarCategory table with the Channel IDs that belong to that category
@@ -108,4 +110,16 @@ func (o OrderedSidebarCategories) ToJson() []byte {
 	} else {
 		return b
 	}
+}
+
+var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
+
+func IsValidCategoryId(s string) bool {
+	// Category IDs can either be regular IDs
+	if IsValidId(s) {
+		return true
+	}
+
+	// Or default categories can follow the pattern {type}_{userID}_{teamID}
+	return categoryIdPattern.MatchString(s)
 }

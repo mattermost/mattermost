@@ -7,6 +7,8 @@ import (
 	"errors"
 	"math"
 	"net/http"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -34,12 +36,34 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
+var UserSessionPool = sync.Pool{
+	New: func() interface{} {
+		return &model.Session{}
+	},
+}
+
+func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
+	apiKey := os.Getenv("MM_CLOUD_API_KEY")
+	if apiKey != "" && apiKey == token {
+		// Need a bare-bones session object for later checks
+		session := &model.Session{
+			Token:   token,
+			IsOAuth: false,
+		}
+
+		session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_CLOUD_KEY)
+		return session, nil
+	}
+	return nil, model.NewAppError("GetCloudSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "The provided token is invalid", http.StatusUnauthorized)
+}
+
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 
-	var session *model.Session
+	var session = UserSessionPool.Get().(*model.Session)
+
 	var err *model.AppError
-	if err := a.Srv().sessionCache.Get(token, &session); err == nil {
+	if err := a.Srv().sessionCache.Get(token, session); err == nil {
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
 		}
@@ -49,7 +73,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session.Id == "" {
 		var nErr error
 		if session, nErr = a.Srv().Store.Session().Get(token); nErr == nil {
 			if session != nil {
@@ -66,7 +90,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session == nil || session.Id == "" {
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
 			detailedError := ""
@@ -81,7 +105,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil || session.IsExpired() {
+	if session.Id == "" || session.IsExpired() {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
 	}
 

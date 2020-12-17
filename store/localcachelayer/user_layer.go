@@ -85,7 +85,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	}
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, userMap)
+		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, model.UserMap(userMap))
 	}
 
 	return userMap, nil

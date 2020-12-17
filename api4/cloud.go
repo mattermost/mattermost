@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -30,6 +33,11 @@ func (api *API) InitCloud() {
 
 	// GET /api/v4/cloud/subscription
 	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
+
+	// POST /api/v4/cloud/webhook
+	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -38,8 +46,8 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
@@ -65,8 +73,8 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
@@ -91,8 +99,8 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
 		return
 	}
 
@@ -117,8 +125,8 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
 
@@ -155,8 +163,8 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
 
@@ -193,8 +201,8 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
 
@@ -224,8 +232,8 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_BILLING)
 		return
 	}
 
@@ -251,6 +259,106 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+		return
+	}
+
+	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription()
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(invoices)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(json)
+}
+
+func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireInvoiceId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+		return
+	}
+
+	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err := writeFileResponse(
+		filename,
+		"application/pdf",
+		int64(binary.Size(pdfData)),
+		time.Now(),
+		*c.App.Config().ServiceSettings.WebserverMode,
+		bytes.NewReader(pdfData),
+		false,
+		w,
+		r,
+	)
+	if err != nil {
+		c.Err = err
+		return
+	}
+}
+
+func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var event *model.CWSWebhookPayload
+	if err = json.Unmarshal(bodyBytes, &event); err != nil {
+		c.Err = model.NewAppError("Api4.handleCWSWebhook", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	switch event.Event {
+	case model.EventTypeFailedPayment:
+		if nErr := c.App.SendPaymentFailedEmail(event.FailedPayment); nErr != nil {
+			c.Err = nErr
+			return
+		}
+	case model.EventTypeFailedPaymentNoCard:
+		if nErr := c.App.SendNoCardPaymentFailedEmail(); nErr != nil {
+			c.Err = nErr
+			return
+		}
+	}
 
 	ReturnStatusOK(w)
 }

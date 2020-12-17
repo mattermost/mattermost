@@ -47,6 +47,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableMarketplace"] = strconv.FormatBool(*c.PluginSettings.EnableMarketplace)
 	props["EnableLatex"] = strconv.FormatBool(*c.ServiceSettings.EnableLatex)
 	props["ExtendSessionLengthWithActivity"] = strconv.FormatBool(*c.ServiceSettings.ExtendSessionLengthWithActivity)
+	props["ManagedResourcePaths"] = *c.ServiceSettings.ManagedResourcePaths
 
 	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
 	props["ExperimentalEnablePostMetadata"] = "true"
@@ -64,8 +65,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
-
-	props["ExperimentalDataPrefetch"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalDataPrefetch)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(*c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
@@ -289,6 +288,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["SamlLoginButtonTextColor"] = ""
 	props["EnableSignUpWithGoogle"] = "false"
 	props["EnableSignUpWithOffice365"] = "false"
+	props["EnableSignUpWithOpenId"] = "false"
+	props["OpenIdButtonText"] = ""
+	props["OpenIdButtonColor"] = ""
 	props["CWSUrl"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
@@ -323,6 +325,12 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
 		}
 
+		if *license.Features.OpenId {
+			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
+			props["OpenIdButtonColor"] = *c.OpenIdSettings.ButtonColor
+			props["OpenIdButtonText"] = *c.OpenIdSettings.ButtonText
+		}
+
 		if *license.Features.CustomTermsOfService {
 			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
 			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
@@ -331,6 +339,10 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		if *license.Features.MFA {
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
+	}
+
+	for key, value := range featureFlagsToMap(c.FeatureFlags) {
+		props["FeatureFlag"+key] = value
 	}
 
 	return props

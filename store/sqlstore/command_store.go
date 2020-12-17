@@ -14,12 +14,12 @@ import (
 )
 
 type SqlCommandStore struct {
-	SqlStore
+	*SqlStore
 
 	commandsQuery sq.SelectBuilder
 }
 
-func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
+func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().

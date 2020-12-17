@@ -217,8 +217,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	a.SetSession(session)
 
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
+		userVal := *user
+		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(*user, session)
+			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
 		})
 	}
 

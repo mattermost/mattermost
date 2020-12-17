@@ -4,8 +4,8 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -45,17 +45,8 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	const FILE_PATH = "export/%s/%s"
-	fileInfo := map[string]map[string]string{
-		"csv": {
-			"fileName": "csv_export.zip",
-			"fileMime": "application/zip",
-		},
-		"actiance": {
-			"fileName": "actiance_export.zip",
-			"fileMime": "application/zip",
-		},
-	}
+	const FILE_PATH = "export"
+	const FILE_MIME = "application/zip"
 
 	c.RequireJobId()
 	if c.Err != nil {
@@ -85,7 +76,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf(FILE_PATH, job.Id, fileInfo[job.Data["export_type"]]["fileName"])
+	fileName := job.Id + ".zip"
+	filePath := filepath.Join(FILE_PATH, fileName)
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -97,7 +89,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	err = writeFileResponse(fileInfo[job.Data["export_type"]]["fileName"], fileInfo[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	err = writeFileResponse(fileName, FILE_MIME, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 	if err != nil {
 		mlog.Error(err.Error())
 		c.Err = err

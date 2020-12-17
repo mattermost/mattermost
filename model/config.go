@@ -45,6 +45,7 @@ const (
 	SERVICE_GITLAB    = "gitlab"
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
+	SERVICE_OPENID    = "openid"
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
@@ -83,6 +84,10 @@ const (
 	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
 	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
 
+	COLLAPSED_THREADS_DISABLED    = "disabled"
+	COLLAPSED_THREADS_DEFAULT_ON  = "default_on"
+	COLLAPSED_THREADS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -112,6 +117,9 @@ const (
 	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
+
+	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
+	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -223,6 +231,7 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
 	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -329,7 +338,6 @@ type ServiceSettings struct {
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
 	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
-	ExperimentalDataPrefetch                          *bool    `access:"experimental"`
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -347,7 +355,12 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableAWSMetering                                 *bool
-	ThreadAutoFollow                                  *bool `access:"experimental"`
+	SplitKey                                          *string `access:"environment,write_restrictable"`
+	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
+	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	CollapsedThreads                                  *string `access:"experimental"`
+	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -690,10 +703,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
-	if s.ExperimentalDataPrefetch == nil {
-		s.ExperimentalDataPrefetch = NewBool(true)
-	}
-
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -766,10 +775,29 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAWSMetering = NewBool(false)
 	}
 
+	if s.SplitKey == nil {
+		s.SplitKey = NewString("")
+	}
+
+	if s.FeatureFlagSyncIntervalSeconds == nil {
+		s.FeatureFlagSyncIntervalSeconds = NewInt(30)
+	}
+
+	if s.DebugSplit == nil {
+		s.DebugSplit = NewBool(false)
+	}
+
 	if s.ThreadAutoFollow == nil {
 		s.ThreadAutoFollow = NewBool(true)
 	}
 
+	if s.CollapsedThreads == nil {
+		s.CollapsedThreads = NewString(COLLAPSED_THREADS_DISABLED)
+	}
+
+	if s.ManagedResourcePaths == nil {
+		s.ManagedResourcePaths = NewString("")
+	}
 }
 
 type ClusterSettings struct {
@@ -879,8 +907,8 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
@@ -934,16 +962,19 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	ButtonText        *string `access:"authentication"`
+	ButtonColor       *string `access:"authentication"`
 }
 
-func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -960,6 +991,10 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.Scope = NewString(scope)
 	}
 
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
+	}
+
 	if s.AuthEndpoint == nil {
 		s.AuthEndpoint = NewString(authEndpoint)
 	}
@@ -971,17 +1006,26 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
+
+	if s.ButtonText == nil {
+		s.ButtonText = NewString("")
+	}
+
+	if s.ButtonColor == nil {
+		s.ButtonColor = NewString(buttonColor)
+	}
 }
 
 type Office365Settings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
-	DirectoryId     *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	DirectoryId       *string `access:"authentication"`
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -999,6 +1043,10 @@ func (s *Office365Settings) setDefaults() {
 
 	if s.Scope == nil {
 		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
 	}
 
 	if s.AuthEndpoint == nil {
@@ -1024,6 +1072,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.Secret = s.Secret
 	ssoSettings.Id = s.Id
 	ssoSettings.Scope = s.Scope
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
@@ -2650,9 +2699,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
-		// Enable the incident response plugin by default
-		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
+	if s.PluginStates["com.mattermost.plugin-incident-management"] == nil && BuildEnterpriseReady == "true" {
+		// Enable the incident management plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
+		// Enable the channel export plugin by default
+		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -2715,7 +2769,7 @@ type MessageExportSettings struct {
 	DownloadExportResults *bool   `access:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelaySettings *GlobalRelayMessageExportSettings
+	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {
@@ -2831,6 +2885,37 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	}
 }
 
+// ImportSettings defines configuration settings for file imports.
+type ImportSettings struct {
+	// The directory where to store the imported files.
+	Directory *string
+	// The number of days to retain the imported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ImportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ImportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(IMPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -2886,6 +2971,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
+	OpenIdSettings            SSOSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -2906,6 +2992,7 @@ type Config struct {
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings
 	FeatureFlags              *FeatureFlags `json:",omitempty"`
+	ImportSettings            ImportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2941,6 +3028,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
 		return o.Office365Settings.SSOSettings()
+	case SERVICE_OPENID:
+		return &o.OpenIdSettings
 	}
 
 	return nil
@@ -2976,8 +3065,10 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults("", "", "", "")
-	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
+	o.GitLabSettings.setDefaults("", "", "", "", "")
+	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT, "")
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "", "#145DBF")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
@@ -3009,6 +3100,7 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags = &FeatureFlags{}
 		o.FeatureFlags.SetDefaults()
 	}
+	o.ImportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3085,6 +3177,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ImageProxySettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ImportSettings.isValid(); err != nil {
 		return err
 	}
 	return nil
@@ -3418,6 +3514,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_ON &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -3617,6 +3719,10 @@ func (o *Config) Sanitize() {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
+	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+		*o.OpenIdSettings.Secret = FAKE_SETTING
+	}
+
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
@@ -3637,6 +3743,8 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
+
+	*o.ServiceSettings.SplitKey = FAKE_SETTING
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

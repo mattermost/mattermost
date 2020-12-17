@@ -14,10 +14,10 @@ import (
 )
 
 type SqlLinkMetadataStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
+func newSqlLinkMetadataStore(sqlStore *SqlStore) store.LinkMetadataStore {
 	s := &SqlLinkMetadataStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

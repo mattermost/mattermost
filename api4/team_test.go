@@ -2709,6 +2709,20 @@ func TestImportTeam(t *testing.T) {
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
 	})
 
+	t.Run("Cloud Forbidden", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
+
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		// Import the channels/users/posts
+		_, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+		th.App.Srv().SetLicense(nil)
+	})
+
 	t.Run("MissingFile", func(t *testing.T) {
 		_, resp := th.SystemAdminClient.ImportTeam(nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		CheckBadRequestStatus(t, resp)

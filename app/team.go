@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -1011,7 +1012,7 @@ func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(userId)
+	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(context.Background(), userId)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUser", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

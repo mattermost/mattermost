@@ -257,6 +257,19 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"PasswordRequireSymbol":    "false",
 			},
 		},
+		{
+			"Feature Flags",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{
+					TestFeature: "myvalue",
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"FeatureFlagTestFeature": "myvalue",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

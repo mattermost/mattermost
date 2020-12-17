@@ -101,6 +101,14 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 	return backend.FileExists(path)
 }
 
+func (a *App) FileSize(path string) (int64, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return 0, err
+	}
+	return backend.FileSize(path)
+}
+
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {

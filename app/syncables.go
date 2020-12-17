@@ -195,7 +195,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(channelID *string) error 
 func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError {
 	permittedAdmins, err := a.Srv().Store.Group().PermittedSyncableAdmins(syncableID, syncableType)
 	if err != nil {
-		return err
+		return model.NewAppError("SyncSyncableRoles", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	a.Log().Info(
@@ -208,14 +208,13 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 	case model.GroupSyncableTypeTeam:
 		nErr := a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			// TODO: Should we change the key "store.update_error" to "app.update_error"? It is very general and changing it now will modify lots of files
-			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 		return nil
 	case model.GroupSyncableTypeChannel:
 		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "app.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 		return nil
 	default:
