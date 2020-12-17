@@ -5871,8 +5871,12 @@
     "translation": "Failed to delete channel posts"
   },
   {
-    "id": "bleveengine.delete_files_batch.error",
+    "id": "bleveengine.delete_file.error",
     "translation": "Failed to delete the file."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Failed to delete the files."
   },
   {
     "id": "bleveengine.delete_post.error",
@@ -5899,6 +5903,10 @@
     "translation": "Failed to index the channel."
   },
   {
+    "id": "bleveengine.index_file.error",
+    "translation": "Failed to index the file."
+  },
+  {
     "id": "bleveengine.index_post.error",
     "translation": "Failed to index the post."
   },
@@ -5909,6 +5917,10 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
     "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Failed to index file batch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
@@ -5977,6 +5989,10 @@
   {
     "id": "bleveengine.stop_channel_index.error",
     "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Failed to close file index."
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -6223,8 +6239,16 @@
     "translation": "Failed to delete the post"
   },
   {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Failed to delete post files"
+  },
+  {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Failed to delete user files"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
