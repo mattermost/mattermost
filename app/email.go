@@ -781,6 +781,8 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
 	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
@@ -802,6 +804,8 @@ func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string
 	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
 	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
