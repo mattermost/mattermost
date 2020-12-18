@@ -811,6 +811,9 @@ type SharedChannelStore interface {
 	UpdateRemoteLastSyncAt(id string, syncTime int64) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
+
+	UpsertPost(post *model.Post) error
+	UpsertReaction(reaction *model.Reaction) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

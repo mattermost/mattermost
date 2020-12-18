@@ -78,6 +78,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
+		DisableCompression:    false,
 	}
 
 	client := &http.Client{

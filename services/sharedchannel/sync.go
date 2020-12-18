@@ -192,6 +192,9 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 			return
 		}
 
+		// TODO: any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[PostErrors]
+		//       write ephemeral message to post author notifying for each post that failed.
+
 		// update SharedChannelRemote's LastSyncAt if send was successful
 		ls := syncResponse[LastUpdateAt]
 		lastSync, ok := ls.(int64)
