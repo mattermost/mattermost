@@ -63,6 +63,14 @@ func (b *LocalFileBackend) FileExists(path string) (bool, error) {
 	return true, nil
 }
 
+func (b *LocalFileBackend) FileSize(path string) (int64, error) {
+	info, err := os.Stat(filepath.Join(b.directory, path))
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
+	}
+	return info.Size(), nil
+}
+
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
 	if err := utils.CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)

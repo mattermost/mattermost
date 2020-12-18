@@ -17,7 +17,7 @@ import (
 )
 
 type SqlRoleStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
 type Role struct {
@@ -82,10 +82,10 @@ func (role Role) ToModel() *model.Role {
 	}
 }
 
-func newSqlRoleStore(sqlSupplier *SqlSupplier) store.RoleStore {
-	s := &SqlRoleStore{sqlSupplier}
+func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
+	s := &SqlRoleStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(Role{}, "Roles").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)

@@ -21,11 +21,11 @@ func init() {
 	app.RegisterCommandProvider(&HeaderProvider{})
 }
 
-func (me *HeaderProvider) GetTrigger() string {
+func (*HeaderProvider) GetTrigger() string {
 	return CMD_HEADER
 }
 
-func (me *HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_HEADER,
 		AutoComplete:     true,
@@ -35,7 +35,7 @@ func (me *HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

@@ -194,6 +194,17 @@ func (b *S3FileBackend) FileExists(path string) (bool, error) {
 	return false, errors.Wrapf(err, "unable to know if file %s exists", path)
 }
 
+func (b *S3FileBackend) FileSize(path string) (int64, error) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
+	}
+
+	return info.Size, nil
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)

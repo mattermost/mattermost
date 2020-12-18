@@ -108,6 +108,12 @@ func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInte
 	jobsExpiryNotifyInterface = f
 }
 
+var jobsImportProcessInterface func(*App) tjobs.ImportProcessInterface
+
+func RegisterJobsImportProcessInterface(f func(*App) tjobs.ImportProcessInterface) {
+	jobsImportProcessInterface = f
+}
+
 var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
@@ -136,12 +142,6 @@ var metricsInterface func(*Server) einterfaces.MetricsInterface
 
 func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
-}
-
-var samlInterface func(*App) einterfaces.SamlInterface
-
-func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
-	samlInterface = f
 }
 
 var samlInterfaceNew func(*App) einterfaces.SamlInterface
@@ -187,17 +187,9 @@ func (a *App) initEnterprise() {
 	if notificationInterface != nil {
 		a.srv.Notification = notificationInterface(a)
 	}
-	if samlInterface != nil {
-		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
-			mlog.Debug("Loading new SAML2 library")
-			a.srv.Saml = samlInterfaceNew(a)
-		} else if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew == nil {
-			mlog.Debug("Ignoring configuration setting to use the Experimental SAML library")
-			a.srv.Saml = samlInterface(a)
-		} else {
-			mlog.Debug("Loading original SAML library")
-			a.srv.Saml = samlInterface(a)
-		}
+	if samlInterfaceNew != nil {
+		mlog.Debug("Loading SAML2 library")
+		a.srv.Saml = samlInterfaceNew(a)
 		if err := a.srv.Saml.ConfigureSP(); err != nil {
 			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 		}
