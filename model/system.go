@@ -14,6 +14,7 @@ const (
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
+	SYSTEM_LICENSE_RENEWAL_TOKEN                  = "LicenseRenewalToken"
 	SYSTEM_LAST_COMPLIANCE_TIME                   = "LastComplianceTime"
 	SYSTEM_ASYMMETRIC_SIGNING_KEY                 = "AsymmetricSigningKey"
 	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
