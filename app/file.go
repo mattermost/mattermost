@@ -151,7 +151,11 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	if err != nil {
 		return 0, err
 	}
-	return backend.FileSize(path)
+	size, nErr := backend.FileSize(path)
+	if nErr != nil {
+		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return size, nil
 }
 
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {

@@ -1333,11 +1333,7 @@
     "translation": "Unable to get a file reader."
   },
   {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Unable to get the file size."
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
+    "id": "api.file.file_size.app_error",
     "translation": "Unable to get the file size."
   },
   {
