@@ -80,11 +80,11 @@ func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
 
 func (b *LocalFileBackend) MoveFile(oldPath, newPath string) error {
 	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0750); err != nil {
-		return errors.Wrapf(err, "unable to create the new destiantion directory %s", filepath.Dir(newPath))
+		return errors.Wrapf(err, "unable to create the new destination directory %s", filepath.Dir(newPath))
 	}
 
 	if err := os.Rename(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
-		return errors.Wrapf(err, "unable to move the file to %s to the destiantion directory", newPath)
+		return errors.Wrapf(err, "unable to move the file to %s to the destination directory", newPath)
 	}
 
 	return nil
