@@ -1573,6 +1573,10 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error getting the license renewal link"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -1953,10 +1957,6 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
-  },
-  {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "System Admin role cannot be edited or changed"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2612,7 +2612,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -3148,7 +3148,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
@@ -3175,10 +3175,6 @@
     "translation": "Could not parse auth data out of {{.Service}} user object."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -3189,10 +3185,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Could not create user out of {{.Service}} user object."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -3271,8 +3263,8 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Unsupported OAuth service provider."
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4725,6 +4717,18 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Failed to generate a new renewal token."
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "This type of license doesn't support renewal token generation"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "No license present"
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -7788,7 +7792,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

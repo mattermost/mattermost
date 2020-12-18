@@ -42,6 +42,10 @@ func desanitize(actual, target *model.Config) {
 		target.Office365Settings.Secret = actual.Office365Settings.Secret
 	}
 
+	if target.OpenIdSettings.Secret != nil && *target.OpenIdSettings.Secret == model.FAKE_SETTING {
+		target.OpenIdSettings.Secret = actual.OpenIdSettings.Secret
+	}
+
 	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
@@ -167,6 +171,10 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 
 	retCfg := ret.(model.Config)
 	return &retCfg, nil
+}
+
+func IsDatabaseDSN(dsn string) bool {
+	return strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://")
 }
 
 // stripPassword remove the password from a given DSN
