@@ -756,109 +756,107 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 
-	// offset := options.Page * options.PerPage
-	// var posts, parents []*model.Post
+	offset := options.Page * options.PerPage
+	var posts, parents []*model.Post
 
-	// TODO: THIS IS A TEMPORAL HACK TO RUN THE LOAD TESTS AVOIDING THIS QUERY THAT IS GENERATING PROBLEMS
-	// var direction string
-	// var sort string
-	// if before {
-	// 	direction = "<"
-	// 	sort = "DESC"
-	// } else {
-	// 	direction = ">"
-	// 	sort = "ASC"
-	// }
-	// table := "Posts p"
-	// // We force MySQL to use the right index to prevent it from accidentally
-	// // using the index_merge_intersection optimization.
-	// // See MM-27575.
-	// if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-	// 	table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
-	// }
+	var direction string
+	var sort string
+	if before {
+		direction = "<"
+		sort = "DESC"
+	} else {
+		direction = ">"
+		sort = "ASC"
+	}
+	table := "Posts p"
+	// We force MySQL to use the right index to prevent it from accidentally
+	// using the index_merge_intersection optimization.
+	// See MM-27575.
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
+	}
 
-	// query := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
-	// query = query.From(table).
-	// 	LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
-	// 	Where(sq.And{
-	// 		sq.Expr(`p.CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
-	// 		sq.Eq{"p.ChannelId": options.ChannelId},
-	// 		sq.Eq{"t.ChannelId": options.ChannelId},
-	// 		sq.Eq{"p.DeleteAt": int(0)},
-	// 	}).
-	// 	// Adding ChannelId and DeleteAt order columns
-	// 	// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
-	// 	// See MM-24170.
-	// 	OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
-	// 	Limit(uint64(options.PerPage)).
-	// 	Offset(uint64(offset))
+	query := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
+	query = query.From(table).
+		LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
+		Where(sq.And{
+			sq.Expr(`p.CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
+			sq.Eq{"p.ChannelId": options.ChannelId},
+			sq.Eq{"t.ChannelId": options.ChannelId},
+			sq.Eq{"p.DeleteAt": int(0)},
+		}).
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-24170.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
+		Limit(uint64(options.PerPage)).
+		Offset(uint64(offset))
 
-	// queryString, args, err := query.ToSql()
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "post_tosql")
-	// }
-	// _, err = s.GetMaster().Select(&posts, queryString, args...)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
-	// }
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "post_tosql")
+	}
+	_, err = s.GetMaster().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	}
 
-	// 	if len(posts) > 0 {
-	// 		rootIds := []string{}
-	// 		for _, post := range posts {
-	// 			rootIds = append(rootIds, post.Id)
-	// 			if post.RootId != "" {
-	// 				rootIds = append(rootIds, post.RootId)
-	// 			}
-	// 		}
-	// 		rootQuery := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
-	// 		idQuery := sq.Or{
-	// 			sq.Eq{"Id": rootIds},
-	// 		}
-	// 		if !options.SkipFetchThreads {
-	// 			idQuery = append(idQuery, sq.Eq{"p.RootId": rootIds}) // preserve original behaviour
-	// 		}
+	if len(posts) > 0 {
+		rootIds := []string{}
+		for _, post := range posts {
+			rootIds = append(rootIds, post.Id)
+			if post.RootId != "" {
+				rootIds = append(rootIds, post.RootId)
+			}
+		}
+		rootQuery := s.getQueryBuilder().Select("p.*, COALESCE(t.ReplyCount, 0) AS ReplyCount")
+		idQuery := sq.Or{
+			sq.Eq{"Id": rootIds},
+		}
+		if !options.SkipFetchThreads {
+			idQuery = append(idQuery, sq.Eq{"p.RootId": rootIds}) // preserve original behaviour
+		}
 
-	// 		rootQuery = rootQuery.From("Posts p").
-	// 			LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
-	// 			Where(sq.And{
-	// 				idQuery,
-	// 				sq.Eq{"p.ChannelId": options.ChannelId},
-	// 				sq.Eq{"t.ChannelId": options.ChannelId},
-	// 				sq.Eq{"p.DeleteAt": 0},
-	// 			}).
-	// 			OrderBy("p.CreateAt DESC")
+		rootQuery = rootQuery.From("Posts p").
+			LeftJoin("Threads as t ON t.postid = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)").
+			Where(sq.And{
+				idQuery,
+				sq.Eq{"p.ChannelId": options.ChannelId},
+				sq.Eq{"t.ChannelId": options.ChannelId},
+				sq.Eq{"p.DeleteAt": 0},
+			}).
+			OrderBy("p.CreateAt DESC")
 
-	// 		rootQueryString, rootArgs, err := rootQuery.ToSql()
+		rootQueryString, rootArgs, err := rootQuery.ToSql()
 
-	// 		if err != nil {
-	// 			return nil, errors.Wrap(err, "post_tosql")
-	// 		}
-	// 		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
-	// 		if err != nil {
-	// 			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
-	// 		}
-	// 	}
+		if err != nil {
+			return nil, errors.Wrap(err, "post_tosql")
+		}
+		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+		}
+	}
 
 	list := model.NewPostList()
 
 	// We need to flip the order if we selected backwards
-	// if before {
-	// 	for _, p := range posts {
-	// 		list.AddPost(p)
-	// 		list.AddOrder(p.Id)
-	// 	}
-	// } else {
-	// 	l := len(posts)
-	// 	for i := range posts {
-	// 		list.AddPost(posts[l-i-1])
-	// 		list.AddOrder(posts[l-i-1].Id)
-	// 	}
-	// }
+	if before {
+		for _, p := range posts {
+			list.AddPost(p)
+			list.AddOrder(p.Id)
+		}
+	} else {
+		l := len(posts)
+		for i := range posts {
+			list.AddPost(posts[l-i-1])
+			list.AddOrder(posts[l-i-1].Id)
+		}
+	}
 
-	// TODO: THIS IS A TEMPORAL HACK TO RUN THE LOAD TESTS AVOIDING THIS QUERY THAT IS GENERATING PROBLEMS
-	// for _, p := range parents {
-	// 	list.AddPost(p)
-	// }
+	for _, p := range parents {
+		list.AddPost(p)
+	}
 
 	return list, nil
 }
