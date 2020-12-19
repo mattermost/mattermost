@@ -1529,6 +1529,10 @@
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error getting the license renewal link"
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -4669,6 +4673,18 @@
   {
     "id": "app.job.update.app_error",
     "translation": "Unable to update the job."
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Failed to generate a new renewal token."
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "This type of license doesn't support renewal token generation"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "No license present"
   },
   {
     "id": "app.notification.body.intro.direct.full",
