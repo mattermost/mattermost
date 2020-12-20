@@ -700,25 +700,22 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 		}
 		return nil
 	}
-	// We need to flip the order if we selected backwards
-	if !reversed {
-		for _, p := range posts {
-			if err := processPost(p); err != nil {
-				return nil, err
-			}
-			list.AddPost(&p.Post)
-			list.AddOrder(p.Id)
+
+	l := len(posts)
+	for i := range posts {
+		idx := i
+		// We need to flip the order if we selected backwards
+
+		if reversed {
+			idx = l - i - 1
 		}
-	} else {
-		l := len(posts)
-		for i := range posts {
-			if err := processPost(posts[l-i-1]); err != nil {
-				return nil, err
-			}
-			list.AddPost(&posts[l-i-1].Post)
-			list.AddOrder(posts[l-i-1].Id)
+		if err := processPost(posts[idx]); err != nil {
+			return nil, err
 		}
+		list.AddPost(&posts[idx].Post)
+		list.AddOrder(posts[idx].Id)
 	}
+
 	return list, nil
 }
 
