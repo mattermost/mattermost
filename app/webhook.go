@@ -746,9 +746,8 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			default:
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result2.NErr.Error(), http.StatusInternalServerError)
 			}
-		} else {
-			channel = result2.Data.(*model.Channel)
 		}
+		channel = result2.Data.(*model.Channel)
 	}
 
 	if hook.ChannelLocked && hook.ChannelId != channel.Id {
