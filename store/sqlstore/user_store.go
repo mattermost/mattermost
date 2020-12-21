@@ -518,9 +518,8 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 
 	if len(sqOr) > 0 {
 		return query.Where(sqOr)
-	} else {
-		return query
 	}
+	return query
 }
 
 func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {

@@ -629,31 +629,27 @@ func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
 }
 
 func (th *TestHelper) SetupTeamScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupChannelScheme() *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }
 
 func (th *TestHelper) SetupPluginAPI() *PluginAPI {

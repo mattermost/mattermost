@@ -184,9 +184,8 @@ func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
 	var o WarnMetricStatus
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
 		return nil
-	} else {
-		return &o
 	}
+	return &o
 }
 
 func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {
