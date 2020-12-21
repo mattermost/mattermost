@@ -113,9 +113,8 @@ func (er *AppError) Translate(T goi18n.TranslateFunc) {
 func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
 	if er.params == nil {
 		return T(er.Id)
-	} else {
-		return T(er.Id, er.params)
 	}
+	return T(er.Id, er.params)
 }
 
 func (er *AppError) ToJson() string {
@@ -136,11 +135,10 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
 	err := decoder.Decode(&er)
-	if err == nil {
-		return &er
-	} else {
+	if err != nil {
 		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
 	}
+	return &er
 }
 
 func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
@@ -499,9 +497,8 @@ func GetImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
 	if len(IMAGE_MIME_TYPES[ext]) == 0 {
 		return "image"
-	} else {
-		return IMAGE_MIME_TYPES[ext]
 	}
+	return IMAGE_MIME_TYPES[ext]
 }
 
 func ClearMentionTags(post string) string {

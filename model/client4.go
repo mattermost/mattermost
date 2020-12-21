@@ -94,9 +94,8 @@ func (c *Client4) boolString(value bool) string {
 
 	if value {
 		return "true"
-	} else {
-		return "false"
 	}
+	return "false"
 }
 
 func closeBody(r *http.Response) {

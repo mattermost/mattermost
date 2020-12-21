@@ -336,9 +336,8 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1
-	} else {
-		return userId1 + "__" + userId2
 	}
+	return userId1 + "__" + userId2
 }
 
 func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
