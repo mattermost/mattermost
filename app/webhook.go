@@ -468,17 +468,16 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if allHooks, err := a.Srv().Store.Webhook().GetOutgoingByTeam(hook.TeamId, -1, -1); err != nil {
+	allHooks, err := a.Srv().Store.Webhook().GetOutgoingByTeam(hook.TeamId, -1, -1)
+	if err != nil {
 		return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.get_outgoing_by_team.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
+	}
+	for _, existingOutHook := range allHooks {
+		urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, hook.CallbackURLs)
+		triggerIntersect := utils.StringArrayIntersection(existingOutHook.TriggerWords, hook.TriggerWords)
 
-		for _, existingOutHook := range allHooks {
-			urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, hook.CallbackURLs)
-			triggerIntersect := utils.StringArrayIntersection(existingOutHook.TriggerWords, hook.TriggerWords)
-
-			if existingOutHook.ChannelId == hook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 {
-				return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.intersect.app_error", nil, "", http.StatusInternalServerError)
-			}
+		if existingOutHook.ChannelId == hook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 {
+			return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.intersect.app_error", nil, "", http.StatusInternalServerError)
 		}
 	}
 
@@ -667,11 +666,11 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	webhookType := req.Type
 
 	var hook *model.IncomingWebhook
-	if result := <-hchan; result.NErr != nil {
+	result := <-hchan
+	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, result.NErr.Error(), http.StatusBadRequest)
-	} else {
-		hook = result.Data.(*model.IncomingWebhook)
 	}
+	hook = result.Data.(*model.IncomingWebhook)
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
@@ -699,15 +698,15 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	if len(channelName) != 0 {
 		if channelName[0] == '@' {
-			if result, err := a.Srv().Store.User().GetByUsername(channelName[1:]); err != nil {
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, err.Error(), http.StatusBadRequest)
-			} else {
-				if ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Id); err != nil {
-					return err
-				} else {
-					channel = ch
-				}
+			result, nErr := a.Srv().Store.User().GetByUsername(channelName[1:])
+			if nErr != nil {
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			}
+			ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Id)
+			if err != nil {
+				return err
+			}
+			channel = ch
 		} else if channelName[0] == '#' {
 			cchan = make(chan store.StoreResult, 1)
 			go func() {
@@ -738,18 +737,17 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	if channel == nil {
-		result := <-cchan
-		if result.NErr != nil {
+		result2 := <-cchan
+		if result2.NErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
-			case errors.As(result.NErr, &nfErr):
+			case errors.As(result2.NErr, &nfErr):
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result2.NErr.Error(), http.StatusInternalServerError)
 			}
-		} else {
-			channel = result.Data.(*model.Channel)
 		}
+		channel = result2.Data.(*model.Channel)
 	}
 
 	if hook.ChannelLocked && hook.ChannelId != channel.Id {
@@ -757,11 +755,11 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	var user *model.User
-	if result := <-uchan; result.NErr != nil {
+	result = <-uchan
+	if result.NErr != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, result.NErr.Error(), http.StatusForbidden)
-	} else {
-		user = result.Data.(*model.User)
 	}
+	user = result.Data.(*model.User)
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL && !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {

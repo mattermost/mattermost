@@ -534,9 +534,8 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		// one of these required fields exists before returning the OpenGraph data
 		if og.Title != "" || og.Type != "" || og.URL != "" {
 			return og, nil, nil
-		} else {
-			return nil, nil, nil
 		}
+		return nil, nil, nil
 	} else {
 		// Not an image or web page with OpenGraph information
 		return nil, nil, nil

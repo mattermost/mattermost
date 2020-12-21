@@ -1141,15 +1141,13 @@ func (th *TestHelper) SetupChannelScheme() *model.Scheme {
 }
 
 func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       scope,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }

@@ -102,9 +102,9 @@ func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job, s
 		JOB_DATA_KEY_MIGRATION_LAST_DONE: lastDone,
 	}
 
-	if job, err := scheduler.srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data); err != nil {
+	job, err := scheduler.srv.Jobs.CreateJob(model.JOB_TYPE_MIGRATIONS, data)
+	if err != nil {
 		return nil, err
-	} else {
-		return job, nil
 	}
+	return job, nil
 }
