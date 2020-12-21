@@ -53,7 +53,6 @@ func New(store store.Store, config *model.Config) *AwsMeter {
 
 	service, err := newAWSMarketplaceMeteringService()
 	if err != nil {
-		mlog.Error("newAWSMeterService", mlog.String("error", err.Error()))
 		return nil
 	}
 
