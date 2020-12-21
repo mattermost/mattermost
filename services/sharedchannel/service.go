@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -13,13 +14,15 @@ import (
 )
 
 const (
-	Topic                = "shared_channels"
-	MaxConcurrentUpdates = 5
-	MaxRetries           = 3
-	MaxPostsPerSync      = 50
-	StatusDescription    = "status_description"
-	LastUpdateAt         = "last_update_at"
-	PostErrors           = "post_errors"
+	TopicSync                    = "sharedchannel_sync"
+	TopicChannelInvite           = "sharedchannel_invite"
+	MaxConcurrentUpdates         = 5
+	MaxRetries                   = 3
+	MaxPostsPerSync              = 50
+	NotifyRemoteOfflineThreshold = time.Second * 10
+	StatusDescription            = "status_description"
+	LastUpdateAt                 = "last_update_at"
+	PostErrors                   = "post_errors"
 )
 
 type ServerIface interface {
@@ -32,9 +35,14 @@ type ServerIface interface {
 	GetRemoteClusterService() *remotecluster.Service
 }
 
+type AppIface interface {
+	SendEphemeralPost(userId string, post *model.Post) *model.Post
+}
+
 // Service provides shared channel synchronization.
 type Service struct {
 	server       ServerIface
+	app          AppIface
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
@@ -46,9 +54,10 @@ type Service struct {
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
-func NewSharedChannelService(server ServerIface) (*Service, error) {
+func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error) {
 	service := &Service{
 		server:       server,
+		app:          app,
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
 	}
@@ -95,7 +104,7 @@ func (scs *Service) resume() {
 		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
 		return
 	}
-	rcs.AddTopicListener(Topic, scs)
+	rcs.AddTopicListener(TopicSync, scs)
 
 	scs.active = true
 	scs.done = make(chan struct{})
@@ -117,7 +126,7 @@ func (scs *Service) pause() {
 	if rcs == nil {
 		scs.server.GetLogger().Error("Shared Channel Service activitate: requires Remote Cluster Service")
 	}
-	rcs.RemoveTopicListener(Topic, scs)
+	rcs.RemoveTopicListener(TopicSync, scs)
 
 	scs.active = false
 	close(scs.done)

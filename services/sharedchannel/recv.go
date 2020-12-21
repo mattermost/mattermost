@@ -12,7 +12,7 @@ import (
 )
 
 func (scs *Service) OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
-	if msg.Topic != Topic {
+	if msg.Topic != TopicSync {
 		return nil
 	}
 

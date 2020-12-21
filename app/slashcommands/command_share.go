@@ -142,6 +142,10 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		return responsef("Shared Channels Service is disabled.")
 	}
 
+	if a.Srv().GetRemoteClusterService() == nil {
+		return responsef("Remote Cluster Service is disabled.")
+	}
+
 	margs := parseNamedArgs(args.Command)
 	action, ok := margs[ActionKey]
 	if !ok {
@@ -237,7 +241,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
-	remote, err := a.GetRemoteCluster(remoteId)
+	rc, err := a.GetRemoteCluster(remoteId)
 	if err != nil {
 		return responsef("Remote cluster id is invalid: %v", err)
 	}
@@ -251,10 +255,16 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 	}
 
 	if _, err := a.SaveSharedChannelRemote(scr); err != nil {
-		return responsef("Could not invite `%s` to this channel: %v", remote.DisplayName, err)
+		return responsef("Could not invite `%s` to this channel: %v", rc.DisplayName, err)
 	}
 
-	return responsef("##### `%s (%s)` has been invited to this shared channel.", remote.DisplayName, remote.SiteURL)
+	// send channel invite to remote cluster
+	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(args.ChannelId, args.UserId, rc); err != nil {
+		a.DeleteSharedChannelRemote(scr.Id)
+		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
+	}
+
+	return responsef("##### `%s (%s)` has been invited to this shared channel.", rc.DisplayName, rc.SiteURL)
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {

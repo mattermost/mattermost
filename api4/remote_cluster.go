@@ -13,7 +13,7 @@ import (
 
 func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(remoteClusterAcceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiHandler(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
 }
 

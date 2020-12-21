@@ -8223,6 +8223,10 @@
     "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
+  },
+  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },

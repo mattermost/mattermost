@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/wiggin77/merror"
 )
 
@@ -168,6 +170,11 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		repeat = true
 	}
 
+	if !rc.IsOnline() {
+		scs.notifyRemoteOffline(pSlice, rc)
+		return nil
+	}
+
 	msg, err := scs.postsToMsg(pSlice[:max], cache)
 	if err != nil {
 		return err
@@ -213,4 +220,46 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		scs.addTask(contTask)
 	}
 	return err
+}
+
+// notifyRemoteOffline creates an ephemeral post to the author for any posts create recently.
+func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteCluster) {
+	// only send one ephemeral post per author.
+	notified := make(map[string]struct{})
+
+	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
+	// get added where it is mostly likely to be seen.
+	for i := len(posts) - 1; i >= 0; i-- {
+		post := posts[i]
+		if _, ok := notified[post.UserId]; ok {
+			continue
+		}
+
+		postCreateAt := model.GetTimeForMillis(post.CreateAt)
+
+		if post.DeleteAt == 0 && post.UserId != "" && time.Since(postCreateAt) < NotifyRemoteOfflineThreshold {
+			T := scs.getUserTranslations(post.UserId)
+			ephemeral := &model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("sharedchannel.cannot_deliver_post", map[string]interface{}{"Remote": rc.DisplayName}),
+				CreateAt:  post.CreateAt + 1,
+			}
+			scs.app.SendEphemeralPost(post.UserId, ephemeral)
+
+			notified[post.UserId] = struct{}{}
+		}
+	}
+}
+
+func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
+	var locale string
+	user, err := scs.server.GetStore().User().Get(userId)
+	if err == nil {
+		locale = user.Locale
+	}
+
+	if locale == "" {
+		locale = model.DEFAULT_LOCALE
+	}
+	return utils.GetUserTranslations(locale)
 }

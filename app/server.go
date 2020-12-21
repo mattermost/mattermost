@@ -715,7 +715,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License) {
+func (s *Server) startInterClusterServices(license *model.License, app *App) {
 	// TODO:  remove this when the TODO's below are completed.
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Remote Cluster Service disabled via config")
@@ -745,7 +745,7 @@ func (s *Server) startInterClusterServices(license *model.License) {
 		return
 	}
 
-	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s)
+	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
 		mlog.Error("Error initializing Shared Channel Sync Service", mlog.Err(err))
 		return
@@ -1188,7 +1188,7 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.startInterClusterServices(s.License())
+	s.startInterClusterServices(s.License(), s.WebSocketRouter.app)
 
 	return nil
 }
