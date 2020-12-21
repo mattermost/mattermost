@@ -116,9 +116,8 @@ func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		configDir, _ := fileutils.FindDir("config")
 		return filepath.Join(configDir, "mattermost.mattermost-license")
-	} else {
-		return fileLocation
 	}
+	return fileLocation
 }
 
 func GetClientLicense(l *model.License) map[string]string {
