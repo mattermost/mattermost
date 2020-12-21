@@ -1848,27 +1848,27 @@
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "Niet in staat om het schema aan het team te koppelen omdat het opgegeven schema geen teamschema is."
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}."
+    "translation": "Je schakelde je account uit op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "Je account is uitgeschakeld op  {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Als deze verandering niet werd aangevraagd door jou of je wil je account heractiveren, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] Je account op {{ .ServerURL }} is uitgeschakeld"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "Je e-mailadres voor {{.TeamDisplayName}} is gewijzigd naar {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1876,7 +1876,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Your email address has changed"
+    "translation": "[{{ .SiteName }}] Je e-mail adres is gewijzigd"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1892,7 +1892,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Verify new email address"
+    "translation": "[{{ .SiteName }}] Verifieer je nieuw e-mailadres"
   },
   {
     "id": "api.templates.email_footer",
@@ -1900,15 +1900,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "Bij vragen, mail ons: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "Met vriendelijke groeten,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "Het {{.SiteName}} team"
   },
   {
     "id": "api.templates.email_organization",
@@ -1916,7 +1916,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "Maakte je deze wijziging niet, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -8437,5 +8437,73 @@
   {
     "id": "api.templates.payment_failed_no_card.info1",
     "translation": "Jouw Mattermost Cloud factuur voor de meest recente factuurperiode is verwerkt. Wij hebben jouw betalingsgegevens echter niet in ons bestand."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Geen licentie aanwezig"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Dit type van licentie ondersteunt niet het aanmaken van een vernieuwingstoken"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Fout bij het aanmaken van een nieuw vernieuwingstoken."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Fout bij het ophalen van de link om de licentie te vernieuwen"
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Kan het csv-bestand niet schrijven."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Kan het exportbestand niet schrijven."
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Kan het bestand niet schrijven."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Geen toegang tot de bestandsopslag."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Kan het bestand niet verwijderen."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Kan de directory niet verwijderen."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Kan het bestand niet lezen."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Kan het bestand niet verplaatsen."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Kan de mappen niet oplijsten."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "De bestandsinformatie kan niet worden opgehaald."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Niet in staat om een bestandslezer te krijgen."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Kon niet nagaan of het bestand bestaat."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Kan geen gegevens aan het bestand toevoegen."
   }
 ]
