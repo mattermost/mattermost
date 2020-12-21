@@ -6197,7 +6197,7 @@
   },
   {
     "id": "api.bot.get_bot_icon_image.read.app_error",
-    "translation": "Unable to read icon image file."
+    "translation": "Не вдається прочитати файл зображення піктограми."
   },
   {
     "id": "api.bot.delete_bot_icon_image.app_error",
@@ -6205,15 +6205,15 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "Створення ботів вимкнено."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-    "translation": "Missing content type."
+    "translation": "Відсутній тип вмісту."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-    "translation": "Invalid content type."
+    "translation": "Недійсний тип вмісту."
   },
   {
     "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -7246,5 +7246,117 @@
   {
     "id": "api.slackimport.slack_import.zip.file_too_large",
     "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Загальна кількість активних користувачів: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "Якщо у вас є додаткові питання, будь ласка, зв'яжіться з support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Електронна адреса: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Діагностичний ідентифікатор: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Контакт: {{.Contact}}"
+  },
+  {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Не вдалося проаналізувати тіло запиту."
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Неможливо перенести SAML."
+  },
+  {
+    "id": "api.license.request-trial.bad-request",
+    "translation": "Кількість запитаних користувачів невірна."
+  },
+  {
+    "id": "api.file.new_backend.s3.app_error",
+    "translation": "Виникла помилка під час підключення до S3."
+  },
+  {
+    "id": "api.file.file_size.s3.app_error",
+    "translation": "Не вдається отримати розмір файлу."
+  },
+  {
+    "id": "api.file.file_size.local.app_error",
+    "translation": "Не вдається отримати розмір файлу."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Виникла помилка додавання до файлу в S3."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Виникла помилка відкриття файлу."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Оновити"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
+    "translation": "Масштабування за допомогою Mattermost"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Не вдалося надіслати електронний лист із підтвердженням адміністратору"
+  },
+  {
+    "id": "api.context.get_user.app_error",
+    "translation": "Не вдається отримати користувача із сеансу UserID."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "URL-адресу веб-сайту не можна очистити."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Не вдалося об’єднати дану конфігурацію."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Не вдалося перенести сховище конфігурацій."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Не вдалося об’єднати дану конфігурацію."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Помилка обробки запиту до CWS."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Ваша ліцензія не підтримує хмарні запити."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Внутрішня помилка під час запиту хмарного API."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP недоступний."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Помилка синтаксісу багато-форматного запиту"
   }
 ]
