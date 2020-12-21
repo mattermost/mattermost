@@ -1085,14 +1085,6 @@
     "translation": "Bu sunucuda ek dosyalarının kullanımı devre dışı bırakılmış."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Dosyanın var olup olmadığı denetlenemedi."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Dosyanın var olup olmadığı denetlenemedi."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Herkese açık bağlantı geçersiz görünüyor."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Dosyanın herkese açık bağlantısı alınamadı. Geçerli kullanıcı tarafından okunabilmesi için dosya bir iletiye eklenmiş olmalıdır."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Dosya S3 üzerine kopyalanamadı."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Dosya S3 üzerinden silinemedi."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Dosya yerel olarak taşınamadı."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Herhangi bir dosya sürücüsü seçilmemiş."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Yerel sunucu depolaması okunurken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "S3 sunucu depolaması okunurken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Yerel sunucu depolamasından bir okuyucu açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "S3 sunucu depolamasından bir okuyucu açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Belirtilen yola yazma izni yok ya da başka bir sorun var."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "{{.Filename}} dosyası yüklenemedi. {{.Length}} bayt izin verilen {{.Limit}} bayt değerini aşıyor."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "S3 üzerine yazılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Yeni dosya için klasör eklenirken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Yerel sunucu depolamasına yazılırken bir sorun çıktı."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4947,30 +4895,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Klasör yerel sunucu depolaması üzerinde görüntülenirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Klasör S3 üzerinden görüntülenirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Klasör yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Klasör S3 üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Dosya yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Dosya S3 üzerinden silinirken bir sorun çıktı."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "HELO ayarlanamadı."
   },
@@ -7247,18 +7171,6 @@
     "translation": "Eski ürün bildirimleri temizlenemedi"
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Bir dosya S3 üzerine eklenirken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Dosya açılırken bir sorun çıktı."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Dosya bulunamadı."
-  },
-  {
     "id": "api.admin.ldap.not_available.app_error",
     "translation": "LDAP kullanılamıyor."
   },
@@ -7293,10 +7205,6 @@
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
     "translation": "Kanallar alınamadı."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "S3 üzerine yazılırken bir sorun çıktı."
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -7389,10 +7297,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Kanal üyeleri alınamadı."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Klasör eklenemedi."
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7729,14 +7633,6 @@
   {
     "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
     "translation": "Salt Okunur Duyuru Kanalları"
-  },
-  {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Nesneler listelenirken sorun çıktı."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "S3 bağlantısı kurulurken bir sorun çıktı."
   },
   {
     "id": "api.cloud.request_error",
@@ -8309,14 +8205,6 @@
   {
     "id": "api.roles.patch_roles.not_allowed_permission.error",
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "Dosya boyutu alınamadı."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Dosya boyutu alınamadı."
   },
   {
     "id": "app.select_error",

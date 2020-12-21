@@ -1085,14 +1085,6 @@
     "translation": "Bijlagen zijn uitgeschakeld op deze server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Fout bij het controleren of het bestand bestaat."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Fout bij het nagaan of het bestand bestaat."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "De publieke link lijkt niet geldig."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Fout bij het kopiëren van het bestand binnen S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Kan bestand niet verwijderen van S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Kan lokaal bestand niet verplaatsen."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Geen file-driver geselecteerd."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale server opslag."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Je hebt geen rechten om te schrijven naar het opgegeven lokale pad of een andere fout."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Fout bij het controleren of de bucket bestaat."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Fout bij het opladen van bestand {{.Filename}}. {{.Length}} bytes overschrijdt het maximum aantal {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het aanmaken van een map voor het nieuwe bestand."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar lokale serveropslag."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4947,30 +4895,6 @@
     "translation": "Systeem"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Failed to set HELO"
   },
@@ -7143,18 +7067,6 @@
     "translation": "Je hebt reeds geüpgraded naar de Mattermost Enterprise Editie. Gelieve de server te herstarten om de upgrade te beëindigen."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Fout bij het openen van het bestand."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bestand bestaat niet."
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Fout bij het migreren van de configuratie-opslag."
   },
@@ -7539,10 +7451,6 @@
     "translation": "Kan geen proeflicentie verkrijgen, probeer opnieuw of neem contact op met support@mattermost.com. Kan het aantal geregistreerde gebruikers niet verkrijgen."
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Er trad een fout op bij een bestand in S3."
-  },
-  {
     "id": "ent.message_export.csv_export.get_attachment_error",
     "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
   },
@@ -7891,10 +7799,6 @@
     "translation": "Ophalen van kanaalleden is mislukt."
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Kan S3 bucket niet aanmaken."
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
@@ -7971,16 +7875,8 @@
     "translation": "Authenticatie tegenover CWS mislukt"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Fout bij het oplijsten van de objecten."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Fout bij het verwerken van het verzoek naar CWS."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Er trad een fout op bij het openen van een verbinding met S3."
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8353,14 +8249,6 @@
   {
     "id": "api.system.update_viewed_notices.failed",
     "translation": "Het bijwerken van bekeken berichten is mislukt"
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "De bestandsgrootte kan niet worden opgehaald."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "De bestandsgrootte kan niet worden opgehaald."
   },
   {
     "id": "api.config.patch_config.restricted_merge.app_error",

@@ -1082,14 +1082,6 @@
     "translation": "文件附件已在此服务器禁用。"
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "无法检查文件是否存在。"
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "无法检查文件是否存在。"
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "公共链接不是有效的。"
   },
@@ -1110,44 +1102,12 @@
     "translation": "无法获取文件公开链接。文件必须附在当前用户可读的信息上。"
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "无法在 S3 内复制文件。"
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "不能从S3上删除文件。"
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "无法移动本地文件。"
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "未选择文件驱动。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "读取本地存储时遇到错误。"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "读取 S3 存储时遇到错误。"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "打开本地存储列读取器时遇到错误。"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "打开 S3 存储列读取器时遇到错误。"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "没有本地路径写入权限或其他错误。"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "检查储存桶是否存储错误。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1184,18 +1144,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "无法上传文件 {{.Filename}}。{{.Length}} 字节超过最大允许的 {{.Limit}} 字节。"
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "写入到 S3 时遇到错误。"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "创建新文件的目录时遇到错误。"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "写入本地存储时遇到错误。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4942,30 +4890,6 @@
     "translation": "系统"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "从本地存储列出目录时遇到错误。"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "从 S3 列出目录时遇到错误。"
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "从本地存储移除目录时遇到错误。"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "从 S3 移除目录时遇到错误。"
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "从本地存储移除文件时遇到错误。"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "从 S3 移除文件时遇到错误。"
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "设置 HELO 失败。"
   },
@@ -7018,22 +6942,6 @@
     "translation": "无法下载此工作"
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "附加到 S3 文件时遇到错误。"
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "写入到 S3 时遇到错误。"
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "打开文件时遇到错误。"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "文件不存在。"
-  },
-  {
     "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
     "translation": "未找到警告指标。"
   },
@@ -7566,14 +7474,6 @@
     "translation": "无法更新侧栏以匹配删除的偏好设定"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "尝试列出对象时出错。"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "无法创建储存桶。"
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "处理对 CWS 的请求时出错。"
   },
@@ -7978,10 +7878,6 @@
     "translation": "更新提及用户的串成员失败"
   },
   {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "创建连接至 S3 遇到错误。"
-  },
-  {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "/{{.Command}} 命令导致 {{.PluginId}} 插件崩溃。请联系系统管理员"
   },
@@ -8292,14 +8188,6 @@
   {
     "id": "api.templates.upgrade_mattermost_cloud",
     "translation": "升级"
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "无法获取文件大小。"
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "无法获取文件大小。"
   },
   {
     "id": "api.config.patch_config.restricted_merge.app_error",

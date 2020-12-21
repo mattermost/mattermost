@@ -1088,14 +1088,6 @@
     "translation": "Вкладення файлів на цьому сервері вимкнено."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Не вдається перевірити, чи існує файл."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Не вдається перевірити, чи існує файл."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Загальнодоступний зв'язок не вважається дійсним"
   },
@@ -1116,44 +1108,12 @@
     "translation": "Не вдається отримати інформацію для файлу. Файл повинен бути прикріплений до публікації, який може бути прочитаний поточним користувачем. "
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Не вдається скопіювати файл у S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Неможливо видалити файл із S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Не вдається перемістити файл локально."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Не вибрано файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Виникла помилка з локального сховища серверів S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Не маєте прав на запис на зазначену локальну конфігурацію чи іншу помилку."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Помилка перевірки існування бакета."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1190,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Виникла помилка запису в S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Виникла помилка при створенні каталогу для нового файлу"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Виникла помилка запису на локальний сервер зберігання"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4952,30 +4900,6 @@
     "translation": "Система"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Виявлено каталог  помилок із сховища файлів локального сервера."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Знайдено каталог помилок зі списку S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Виникла помилка з локального сховища серверів "
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Виникла помилка при видаленні каталогу з S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Сталася помилка під час читання з локального серверного сховища."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Виникла помилка видалення файлу з S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Не вдалося встановити HELO"
   },
@@ -6904,10 +6828,6 @@
     "translation": "Не вдалося оновити заголовок прямого каналу"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Неможливо створити бакет."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7050,14 +6970,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Неможливо розмістити публікацію на видаленому каналі."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Виникла помилка запису в S3"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot does not exist."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7278,26 +7190,6 @@
   {
     "id": "api.license.request-trial.bad-request",
     "translation": "Кількість запитаних користувачів невірна."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Виникла помилка під час підключення до S3."
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "Не вдається отримати розмір файлу."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Не вдається отримати розмір файлу."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Виникла помилка додавання до файлу в S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Виникла помилка відкриття файлу."
   },
   {
     "id": "api.templates.upgrade_mattermost_cloud",
