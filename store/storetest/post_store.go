@@ -1046,7 +1046,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
 			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: post4.Id, PerPage: 2})
-			assert.Nil(t, err)
+			require.Nil(t, err)
 
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
@@ -1402,7 +1402,7 @@ func testPostStoreGetPosts(t *testing.T, ss store.Store) {
 
 	t.Run("should return the last posts created in a channel without the threads and the reply count must be correct", func(t *testing.T) {
 		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: 0, PerPage: 2, SkipFetchThreads: true}, false)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		assert.Equal(t, []string{
 			post6.Id,
