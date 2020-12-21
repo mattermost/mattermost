@@ -169,7 +169,7 @@ func (h *MainHelper) PreloadMigrations() {
 	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		mlog.Error("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
+		mlog.Critical("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
 		panic(err)
 	}
 }

@@ -187,7 +187,7 @@ func (th *TestHelper) createTeam() *model.Team {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(team); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -219,14 +219,14 @@ func (th *TestHelper) createUserOrGuest(guest bool) *model.User {
 	var err *model.AppError
 	if guest {
 		if user, err = th.App.CreateGuest(user); err != nil {
-			mlog.Error(err.Error())
+			mlog.Critical(err.Error())
 
 			time.Sleep(time.Second)
 			panic(err)
 		}
 	} else {
 		if user, err = th.App.CreateUser(user); err != nil {
-			mlog.Error(err.Error())
+			mlog.Critical(err.Error())
 
 			time.Sleep(time.Second)
 			panic(err)
@@ -258,7 +258,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -281,7 +281,7 @@ func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -295,7 +295,7 @@ func (th *TestHelper) createDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -309,7 +309,7 @@ func (th *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.CreateGroupChannel([]string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -331,7 +331,7 @@ func (th *TestHelper) createPost(channel *model.Channel) *model.Post {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -345,7 +345,7 @@ func (th *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 
 	err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
@@ -359,7 +359,7 @@ func (th *TestHelper) addUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := th.App.AddUserToChannel(user, channel)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Critical(err.Error())
 
 		time.Sleep(time.Second)
 		panic(err)
