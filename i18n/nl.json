@@ -8171,10 +8171,6 @@
     "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "De rol Systeembeheerder kan niet worden bijgewerkt of gewijzigd"
-  },
-  {
     "id": "api.templates.over_limit_suspended_contact_support",
     "translation": "Neem contact met de helpdesk"
   },

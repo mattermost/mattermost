@@ -7756,10 +7756,6 @@
     "translation": "Una sau mai multe dintre următoarele permisiuni pe care încercați să le adăugați sau să le eliminați nu sunt permise"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "Rolul administratorului sistemului nu poate fi editat sau modificat"
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },

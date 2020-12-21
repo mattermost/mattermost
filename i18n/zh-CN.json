@@ -8042,10 +8042,6 @@
     "translation": "不允许您尝试添加或移除以下一项或多项权限"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "系统管理员角色无法编辑或更改"
-  },
-  {
     "id": "app.user.get_unread_count.app_error",
     "translation": "无法获得该用户的未读消息数。"
   },

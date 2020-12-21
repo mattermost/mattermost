@@ -8311,10 +8311,6 @@
     "translation": "Eklemek ya da silmek istediğiniz bir ya da bir kaç yetkiye izin verilmiyor"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "Sistem Yöneticisi rolü düzenlenemez ya da değiştirilemez"
-  },
-  {
     "id": "api.file.file_size.s3.app_error",
     "translation": "Dosya boyutu alınamadı."
   },

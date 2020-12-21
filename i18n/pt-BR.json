@@ -8203,10 +8203,6 @@
     "translation": "Uma ou mais das seguintes permissões que você está tentando adicionar ou remover não são permitidas"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "A função de Administrador do Sistema não pode ser editada ou alterada"
-  },
-  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "A configuração de CollapsedThreads deve ser desativada, default_on ou default_off"
   },
