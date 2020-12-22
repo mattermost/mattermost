@@ -159,6 +159,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	rc.RemoteTeamId = confirm.RemoteTeamId
 	rc.SiteURL = confirm.SiteURL
 	rc.RemoteToken = confirm.Token
 

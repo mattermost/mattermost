@@ -24,6 +24,7 @@ func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId")
 		table.ColMap("RemoteId").SetMaxSize(26)
+		table.ColMap("RemoteTeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("SiteURL").SetMaxSize(512)
 		table.ColMap("Token").SetMaxSize(26)

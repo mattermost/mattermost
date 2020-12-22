@@ -19,23 +19,21 @@ const (
 )
 
 type RemoteCluster struct {
-	RemoteId    string `json:"remote_id"`
-	DisplayName string `json:"display_name"`
-	SiteURL     string `json:"site_url"`
-	CreateAt    int64  `json:"create_at"`
-	LastPingAt  int64  `json:"last_ping_at"`
-	Token       string `json:"token"`
-	RemoteToken string `json:"remote_token"`
-	Topics      string `json:"topics"`
+	RemoteId     string `json:"remote_id"`
+	RemoteTeamId string `json:"remote_team_id"`
+	DisplayName  string `json:"display_name"`
+	SiteURL      string `json:"site_url"`
+	CreateAt     int64  `json:"create_at"`
+	LastPingAt   int64  `json:"last_ping_at"`
+	Token        string `json:"token"`
+	RemoteToken  string `json:"remote_token"`
+	Topics       string `json:"topics"`
+	CreatorId    string `json:"creator_id"`
 }
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
 		rc.RemoteId = NewId()
-	}
-
-	if rc.Token == "" {
-		rc.Token = NewId()
 	}
 
 	if rc.Token == "" {
@@ -59,6 +57,10 @@ func (rc *RemoteCluster) IsValid() *AppError {
 
 	if rc.CreateAt == 0 {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "create_at=0", http.StatusBadRequest)
+	}
+
+	if !IsValidId(rc.CreatorId) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
 }
@@ -203,9 +205,10 @@ func RemoteClusterPingFromRawJSON(raw json.RawMessage) (RemoteClusterPing, *AppE
 
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
-	RemoteId string `json:"remote_id"`
-	SiteURL  string `json:"site_url"`
-	Token    string `json:"token"`
+	RemoteId     string `json:"remote_id"`
+	RemoteTeamId string `json:"remote_team_id"`
+	SiteURL      string `json:"site_url"`
+	Token        string `json:"token"`
 }
 
 func RemoteClusterInviteFromRawJSON(raw json.RawMessage) (*RemoteClusterInvite, *AppError) {

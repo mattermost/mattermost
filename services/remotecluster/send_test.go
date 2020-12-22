@@ -208,6 +208,7 @@ func makeRemoteCluster(name string, siteURL string, topics string) *model.Remote
 		Topics:      topics,
 		CreateAt:    model.GetMillis(),
 		LastPingAt:  model.GetMillis(),
+		CreatorId:   model.NewId(),
 	}
 }
 
