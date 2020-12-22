@@ -116,7 +116,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
-	if len(fi.PostId) != 0 && !IsValidId(fi.PostId) {
+	if fi.PostId != "" && !IsValidId(fi.PostId) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 

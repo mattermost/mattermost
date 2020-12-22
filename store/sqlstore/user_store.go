@@ -286,7 +286,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 			     AuthService = :AuthService,
 			     AuthData = :AuthData`
 
-	if len(email) != 0 {
+	if email != "" {
 		query += ", Email = lower(:Email)"
 	}
 

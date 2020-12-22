@@ -780,10 +780,10 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret = append(ret, post.Message)
 	for _, attachment := range post.Attachments() {
 
-		if len(attachment.Pretext) != 0 {
+		if attachment.Pretext != "" {
 			ret = append(ret, attachment.Pretext)
 		}
-		if len(attachment.Text) != 0 {
+		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
 		}
 	}

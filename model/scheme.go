@@ -160,15 +160,15 @@ func (scheme *Scheme) IsValidForCreate() bool {
 	}
 
 	if scheme.Scope == SCHEME_SCOPE_CHANNEL {
-		if len(scheme.DefaultTeamAdminRole) != 0 {
+		if scheme.DefaultTeamAdminRole != "" {
 			return false
 		}
 
-		if len(scheme.DefaultTeamUserRole) != 0 {
+		if scheme.DefaultTeamUserRole != "" {
 			return false
 		}
 
-		if len(scheme.DefaultTeamGuestRole) != 0 {
+		if scheme.DefaultTeamGuestRole != "" {
 			return false
 		}
 	}

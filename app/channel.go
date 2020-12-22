@@ -629,7 +629,7 @@ func (a *App) CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model
 
 // DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
 func (a *App) DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError) {
-	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
 		if _, err := a.DeleteScheme(*channel.SchemeId); err != nil {
 			return nil, err
 		}
@@ -784,7 +784,7 @@ func (a *App) GetSchemeRolesForChannel(channelId string) (guestRoleName, userRol
 		return
 	}
 
-	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
+	if channel.SchemeId != nil && *channel.SchemeId != "" {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
@@ -808,7 +808,7 @@ func (a *App) GetTeamSchemeChannelRoles(teamId string) (guestRoleName, userRoleN
 		return
 	}
 
-	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+	if team.SchemeId != nil && *team.SchemeId != "" {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*team.SchemeId)
 		if err != nil {
