@@ -38,7 +38,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayProps := map[string]string{}
 	relayState := ""
 
-	if len(action) != 0 {
+	if action != "" {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
@@ -46,7 +46,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(redirectTo) != 0 {
+	if redirectTo != "" {
 		relayProps["redirect_to"] = redirectTo
 	}
 
