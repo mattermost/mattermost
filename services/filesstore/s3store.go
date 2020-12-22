@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -203,6 +204,17 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	}
 
 	return info.Size, nil
+}
+
+func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+	}
+
+	return info.LastModified, nil
 }
 
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {

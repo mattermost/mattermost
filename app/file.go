@@ -158,6 +158,18 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	return size, nil
 }
 
+func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return time.Time{}, err
+	}
+	modTime, nErr := backend.FileModTime(path)
+	if nErr != nil {
+		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return modTime, nil
+}
+
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
