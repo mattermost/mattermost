@@ -30,6 +30,7 @@ func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
 		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("RemoteToken").SetMaxSize(26)
 		table.ColMap("Topics").SetMaxSize(512)
+		table.ColMap("CreatorId").SetMaxSize(26)
 	}
 	return s
 }
