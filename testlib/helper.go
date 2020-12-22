@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/pkg/errors"
 )
 
 type MainHelper struct {
@@ -169,8 +170,7 @@ func (h *MainHelper) PreloadMigrations() {
 	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		mlog.Critical("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
-		panic(err)
+		panic(errors.Wrap(err, "error preloading migrations. check if you have &multiStatements=true in your DSN if you are using MySQL. or perhaps the schema changed? if yes, then update the warmup files accordingly"))
 	}
 }
 
