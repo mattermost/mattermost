@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_31_0
+	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
@@ -995,3 +996,11 @@ func hasMissingMigrationsVersion530(sqlSupplier *SqlSupplier) bool {
 	}
 	return false
 }
+	upgradeDatabaseToVersion531(sqlStore)
+// BEGIN 531
+func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_31_0)
+	}
+}
+// END 531
