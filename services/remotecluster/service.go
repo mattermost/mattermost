@@ -43,10 +43,16 @@ type ServerIface interface {
 	GetLogger() mlog.LoggerIFace
 }
 
-type TopicListener interface {
-	OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
+// TopicListener is a callback signature used to listen for incoming messages for
+// a specific topic.
+type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
+
+type topicListenerEntry struct {
+	id       string
+	listener TopicListener
 }
 
+// Response is a map containing the response when sending a message to a remote cluster.
 type Response map[string]interface{}
 
 // Service provides inter-cluster communication via topic based messages.
@@ -59,7 +65,7 @@ type Service struct {
 	mux              sync.RWMutex
 	active           bool
 	leaderListenerId string
-	topicListeners   map[string][]TopicListener
+	topicListeners   map[string]map[string]topicListenerEntry
 	done             chan struct{}
 }
 
@@ -90,7 +96,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		server:         server,
 		send:           make(chan sendTask, SendChanBuffer),
 		httpClient:     client,
-		topicListeners: make(map[string][]TopicListener),
+		topicListeners: make(map[string]map[string]topicListenerEntry),
 	}
 	return service, nil
 }
@@ -113,54 +119,53 @@ func (rcs *Service) Shutdown() error {
 	return nil
 }
 
-func (rcs *Service) AddTopicListener(topic string, listener TopicListener) {
+// AddTopicListener registers a callback
+func (rcs *Service) AddTopicListener(topic string, listener TopicListener) string {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	listeners, ok := rcs.topicListeners[topic]
-	if !ok {
-		rcs.topicListeners[topic] = []TopicListener{listener}
-		return
+	entry := topicListenerEntry{
+		id:       model.NewId(),
+		listener: listener,
 	}
 
-	for _, l := range listeners { // avoid duplicates
-		if l == listener {
-			return
-		}
+	entries, ok := rcs.topicListeners[topic]
+	if !ok || entries == nil {
+		rcs.topicListeners[topic] = make(map[string]topicListenerEntry)
 	}
-	rcs.topicListeners[topic] = append(listeners, listener)
+	rcs.topicListeners[topic][entry.id] = entry
+	return entry.id
 }
 
-func (rcs *Service) RemoveTopicListener(topic string, listener TopicListener) {
+func (rcs *Service) RemoveTopicListener(listenerId string) {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	listeners, ok := rcs.topicListeners[topic]
-	if !ok {
-		return
-	}
-
-	newList := make([]TopicListener, 0, len(listeners))
-	for _, l := range listeners {
-		if l != listener {
-			newList = append(newList, l)
+	for topic, entries := range rcs.topicListeners {
+		if _, ok := entries[listenerId]; ok {
+			delete(entries, listenerId)
+			if len(entries) == 0 {
+				delete(rcs.topicListeners, topic)
+			}
+			break
 		}
 	}
-	rcs.topicListeners[topic] = newList
 }
 
 func (rcs *Service) getTopicListeners(topic string) []TopicListener {
 	rcs.mux.RLock()
 	defer rcs.mux.RUnlock()
 
-	listeners, ok := rcs.topicListeners[topic]
+	entries, ok := rcs.topicListeners[topic]
 	if !ok {
 		return nil
 	}
 
-	cpListeners := make([]TopicListener, len(listeners))
-	copy(cpListeners, listeners)
-	return cpListeners
+	listeners := make([]TopicListener, 0, len(entries))
+	for _, v := range entries {
+		listeners = append(listeners, v.listener)
+	}
+	return listeners
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.

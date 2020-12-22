@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
-func (scs *Service) OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) OnReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
 	if msg.Topic != TopicSync {
 		return nil
 	}

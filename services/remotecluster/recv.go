@@ -40,6 +40,6 @@ func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.Remo
 			err = fmt.Errorf("%v", r)
 		}
 	}()
-	err = listener.OnReceiveMessage(msg, rc, resp)
+	err = listener(msg, rc, resp)
 	return
 }
