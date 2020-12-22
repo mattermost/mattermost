@@ -721,19 +721,26 @@ func (s *Server) startInterClusterServices(license *model.License) {
 		return
 	}
 
-	var err error
-
-	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
-	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
-	if err != nil {
-		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
+	if !*s.License().Features.SharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
 		return
 	}
 
-	if err = s.remoteClusterService.Start(); err != nil {
-		mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
-		s.remoteClusterService = nil
-		return
+	var err error
+
+	// TODO: check remote cluster service license (MM-30838)
+	if *s.Config().ExperimentalSettings.EnableRemoteClusterService {
+		s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+		if err != nil {
+			mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
+			return
+		}
+
+		if err = s.remoteClusterService.Start(); err != nil {
+			mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
+			s.remoteClusterService = nil
+			return
+		}
 	}
 
 	// TODO: init and start shared channels service here. (MM-28519)
