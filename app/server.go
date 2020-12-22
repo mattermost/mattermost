@@ -470,11 +470,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	backend, appErr := s.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+		}
 	}
 
 	s.timezones = timezones.New()
@@ -716,16 +718,22 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License, app *App) {
-	// TODO:  remove this when the TODO's below are completed.
-	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+	// Remote Cluster service
+
+	// License check
+	if !*s.License().Features.RemoteClusterService {
+		mlog.Debug("License does not have Remote Cluster services enabled")
+		return
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
 		mlog.Debug("Remote Cluster Service disabled via config")
 		return
 	}
 
 	var err error
 
-	// Remote Cluster Service
-	// TODO: check remote cluster service feature flag and license (MM-30836 & MM-30838)
 	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
 	if err != nil {
 		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
@@ -739,7 +747,14 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) {
 	}
 
 	// Shared Channels Sync service
-	// TODO:  check license features (MM-29027 & MM-30838)
+
+	// License check
+	if !*s.License().Features.SharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
+		return
+	}
+
+	// Config check
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channel Sync Service disabled via config")
 		return
@@ -1587,7 +1602,11 @@ func (s *Server) stopSearchEngine() {
 
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
-	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return backend, nil
 }
 
 func (s *Server) TotalWebsocketConnections() int {
