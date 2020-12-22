@@ -94,9 +94,8 @@ func (c *Client4) boolString(value bool) string {
 
 	if value {
 		return "true"
-	} else {
-		return "false"
 	}
+	return "false"
 }
 
 func closeBody(r *http.Response) {
@@ -3001,12 +3000,12 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
 func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int) (*PostList, *Response) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, ""); err != nil {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, "")
+	if err != nil {
 		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
 	}
+	defer closeBody(r)
+	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
 // SearchPosts returns any posts with matching terms string.

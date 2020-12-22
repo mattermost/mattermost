@@ -96,9 +96,8 @@ func JobFromJson(data io.Reader) *Job {
 	var job Job
 	if err := json.NewDecoder(data).Decode(&job); err == nil {
 		return &job
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func JobsToJson(jobs []*Job) string {
@@ -110,9 +109,8 @@ func JobsFromJson(data io.Reader) []*Job {
 	var jobs []*Job
 	if err := json.NewDecoder(data).Decode(&jobs); err == nil {
 		return jobs
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (j *Job) DataToJson() string {

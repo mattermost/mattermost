@@ -392,17 +392,17 @@ func (s *LocalCacheStore) doStandardAddToCache(cache cache.Cache, key string, va
 }
 
 func (s *LocalCacheStore) doStandardReadCache(cache cache.Cache, key string, value interface{}) error {
-	if err := cache.Get(key, value); err == nil {
+	err := cache.Get(key, value)
+	if err == nil {
 		if s.metrics != nil {
 			s.metrics.IncrementMemCacheHitCounter(cache.Name())
 		}
 		return nil
-	} else {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter(cache.Name())
-		}
-		return err
 	}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter(cache.Name())
+	}
+	return err
 }
 
 func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {

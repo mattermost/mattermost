@@ -31,11 +31,10 @@ func UserAutocompleteFromJson(data io.Reader) *UserAutocomplete {
 	decoder := json.NewDecoder(data)
 	autocomplete := new(UserAutocomplete)
 	err := decoder.Decode(&autocomplete)
-	if err == nil {
-		return autocomplete
-	} else {
+	if err != nil {
 		return nil
 	}
+	return autocomplete
 }
 
 func (o *UserAutocompleteInChannel) ToJson() string {
