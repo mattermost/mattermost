@@ -1329,6 +1329,10 @@
     "translation": "Unable to check if the file exists."
   },
   {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Unable to get the file modification time."
+  },
+  {
     "id": "api.file.file_reader.app_error",
     "translation": "Unable to get a file reader."
   },
