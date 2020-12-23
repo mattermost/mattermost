@@ -1085,14 +1085,6 @@
     "translation": "Bijlagen zijn uitgeschakeld op deze server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Fout bij het controleren of het bestand bestaat."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Fout bij het nagaan of het bestand bestaat."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "De publieke link lijkt niet geldig."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Fout bij het kopiëren van het bestand binnen S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Kan bestand niet verwijderen van S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Kan lokaal bestand niet verplaatsen."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Geen file-driver geselecteerd."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale server opslag."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Je hebt geen rechten om te schrijven naar het opgegeven lokale pad of een andere fout."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Fout bij het controleren of de bucket bestaat."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Fout bij het opladen van bestand {{.Filename}}. {{.Length}} bytes overschrijdt het maximum aantal {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het aanmaken van een map voor het nieuwe bestand."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar lokale serveropslag."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1848,27 +1796,27 @@
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "Niet in staat om het schema aan het team te koppelen omdat het opgegeven schema geen teamschema is."
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}."
+    "translation": "Je schakelde je account uit op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "Je account is uitgeschakeld op  {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Als deze verandering niet werd aangevraagd door jou of je wil je account heractiveren, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] Je account op {{ .ServerURL }} is uitgeschakeld"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "Je e-mailadres voor {{.TeamDisplayName}} is gewijzigd naar {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1876,7 +1824,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Your email address has changed"
+    "translation": "[{{ .SiteName }}] Je e-mail adres is gewijzigd"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1892,7 +1840,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Verify new email address"
+    "translation": "[{{ .SiteName }}] Verifieer je nieuw e-mailadres"
   },
   {
     "id": "api.templates.email_footer",
@@ -1900,15 +1848,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "Bij vragen, mail ons: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "Met vriendelijke groeten,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "Het {{.SiteName}} team"
   },
   {
     "id": "api.templates.email_organization",
@@ -1916,7 +1864,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "Maakte je deze wijziging niet, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -4947,30 +4895,6 @@
     "translation": "Systeem"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Failed to set HELO"
   },
@@ -7143,18 +7067,6 @@
     "translation": "Je hebt reeds geüpgraded naar de Mattermost Enterprise Editie. Gelieve de server te herstarten om de upgrade te beëindigen."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Fout bij het openen van het bestand."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bestand bestaat niet."
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Fout bij het migreren van de configuratie-opslag."
   },
@@ -7539,10 +7451,6 @@
     "translation": "Kan geen proeflicentie verkrijgen, probeer opnieuw of neem contact op met support@mattermost.com. Kan het aantal geregistreerde gebruikers niet verkrijgen."
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Er trad een fout op bij een bestand in S3."
-  },
-  {
     "id": "ent.message_export.csv_export.get_attachment_error",
     "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
   },
@@ -7891,10 +7799,6 @@
     "translation": "Ophalen van kanaalleden is mislukt."
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Kan S3 bucket niet aanmaken."
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
@@ -7971,16 +7875,8 @@
     "translation": "Authenticatie tegenover CWS mislukt"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Fout bij het oplijsten van de objecten."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Fout bij het verwerken van het verzoek naar CWS."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Er trad een fout op bij het openen van een verbinding met S3."
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8171,10 +8067,6 @@
     "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "De rol Systeembeheerder kan niet worden bijgewerkt of gewijzigd"
-  },
-  {
     "id": "api.templates.over_limit_suspended_contact_support",
     "translation": "Neem contact met de helpdesk"
   },
@@ -8359,14 +8251,6 @@
     "translation": "Het bijwerken van bekeken berichten is mislukt"
   },
   {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "De bestandsgrootte kan niet worden opgehaald."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "De bestandsgrootte kan niet worden opgehaald."
-  },
-  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
   },
@@ -8437,5 +8321,73 @@
   {
     "id": "api.templates.payment_failed_no_card.info1",
     "translation": "Jouw Mattermost Cloud factuur voor de meest recente factuurperiode is verwerkt. Wij hebben jouw betalingsgegevens echter niet in ons bestand."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Geen licentie aanwezig"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Dit type van licentie ondersteunt niet het aanmaken van een vernieuwingstoken"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Fout bij het aanmaken van een nieuw vernieuwingstoken."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Fout bij het ophalen van de link om de licentie te vernieuwen"
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Kan het csv-bestand niet schrijven."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Kan het exportbestand niet schrijven."
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Kan het bestand niet schrijven."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Geen toegang tot de bestandsopslag."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Kan het bestand niet verwijderen."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Kan de directory niet verwijderen."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Kan het bestand niet lezen."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Kan het bestand niet verplaatsen."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Kan de mappen niet oplijsten."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "De bestandsinformatie kan niet worden opgehaald."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Niet in staat om een bestandslezer te krijgen."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Kon niet nagaan of het bestand bestaat."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Kan geen gegevens aan het bestand toevoegen."
   }
 ]
