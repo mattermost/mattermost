@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -423,7 +422,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
 		thread, err := a.Srv().Store.Thread().Get(post.RootId)
 		if err != nil {
-			return nil, fmt.Errorf("cannot get thread %q, %w", post.RootId, err)
+			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
 		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
