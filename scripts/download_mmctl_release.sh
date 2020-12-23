@@ -8,7 +8,7 @@ else
   PLATFORM=$(uname)
 fi
 
-if [[ ! -z "$1" ]];
+if [[ -n "$1" ]];
 then
   OVERRIDE_OS=$1
 fi
