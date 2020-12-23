@@ -988,7 +988,7 @@ func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
 	}
 }
 
-func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
+func upgradeDatabaseToVersion531(sqlStore *SqlSupplier) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_31_0)
 	}
