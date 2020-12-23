@@ -410,15 +410,15 @@ workflows:
       - check-store-layers:
           requires:
             - setup
-      - build-api-spec:
-          requires:
-            - setup
+#      - build-api-spec:
+#          requires:
+#            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
-            - build-api-spec
+#            - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
