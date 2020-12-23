@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
 )
 
 func TestLoggingBeforeInitialized(t *testing.T) {

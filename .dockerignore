@@ -1,0 +1,12 @@
+.*
+.circleci
+.github
+.gitlab-ci
+.idea
+client
+data
+doc
+bin
+plugins
+vendor
+volumes

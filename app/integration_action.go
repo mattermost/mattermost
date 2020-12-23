@@ -31,10 +31,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/store"
+	"github.com/adacta-ru/mattermost-server/v5/utils"
 )
 
 func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {

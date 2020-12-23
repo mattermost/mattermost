@@ -6,7 +6,7 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/model"
 )
 
 func (api *API) InitStatus() {

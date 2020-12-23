@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/model"
 )
 
 const (

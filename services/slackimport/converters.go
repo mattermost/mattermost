@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
 )
 
 func slackConvertTimeStamp(ts string) int64 {

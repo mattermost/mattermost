@@ -11,9 +11,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/app"
+	"github.com/adacta-ru/mattermost-server/v5/audit"
+	"github.com/adacta-ru/mattermost-server/v5/model"
 )
 
 func (api *API) InitLicense() {

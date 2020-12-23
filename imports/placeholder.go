@@ -5,23 +5,23 @@ package imports
 
 import (
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/migrations"
+	_ "github.com/adacta-ru/mattermost-server/v5/migrations"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/plugin/scheduler"
+	_ "github.com/adacta-ru/mattermost-server/v5/plugin/scheduler"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine/indexer"
+	_ "github.com/adacta-ru/mattermost-server/v5/services/searchengine/bleveengine/indexer"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/jobs/expirynotify"
+	_ "github.com/adacta-ru/mattermost-server/v5/jobs/expirynotify"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/jobs/active_users"
+	_ "github.com/adacta-ru/mattermost-server/v5/jobs/active_users"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/jobs/product_notices"
+	_ "github.com/adacta-ru/mattermost-server/v5/jobs/product_notices"
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
-	_ "github.com/mattermost/mattermost-server/v5/jobs/import_process"
+	_ "github.com/adacta-ru/mattermost-server/v5/jobs/import_process"
 )

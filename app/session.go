@@ -10,10 +10,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/adacta-ru/mattermost-server/v5/audit"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {

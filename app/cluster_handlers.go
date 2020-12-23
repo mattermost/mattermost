@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/model"
 )
 
 // RegisterAllClusterMessageHandlers registers the cluster message handlers that are handled by the App layer.

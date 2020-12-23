@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
 )
 
 func slackParseChannels(data io.Reader, channelType string) ([]slackChannel, error) {

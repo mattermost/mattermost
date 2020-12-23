@@ -56,11 +56,11 @@ GOFLAGS ?= $(GOFLAGS:)
 export GOBIN ?= $(PWD)/bin
 GO=go
 DELVE=dlv
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/adacta-ru/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)"
+LDFLAGS += -X "github.com/adacta-ru/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)"
+LDFLAGS += -X "github.com/adacta-ru/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/adacta-ru/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
+LDFLAGS += -X "github.com/adacta-ru/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
@@ -408,20 +408,20 @@ run-server: prepackaged-binaries validate-go-version start-docker ## Starts the 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/adacta-ru/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(DELVE) debug --headless --listen=:2345 --api-version=2 --accept-multiclient $(PLATFORM_FILES) --build-flags="-ldflags '\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
-		-X \"github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildNumber=$(BUILD_NUMBER)\
+		-X \"github.com/adacta-ru/mattermost-server/v5/model.BuildDate=$(BUILD_DATE)\"\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
+		-X github.com/adacta-ru/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development

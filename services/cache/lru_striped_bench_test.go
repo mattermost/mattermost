@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/adacta-ru/mattermost-server/v5/services/cache"
 
 	"github.com/cespare/xxhash/v2"
 )

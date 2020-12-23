@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
 )
 
 func ParseLogMessage(msg string) LogEntry {

@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/mlog/human"
+	"github.com/adacta-ru/mattermost-server/v5/mlog/human"
 	"github.com/spf13/cobra"
 )
 

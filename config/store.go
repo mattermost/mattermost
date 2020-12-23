@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
+	"github.com/adacta-ru/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/utils/jsonutils"
 	"github.com/pkg/errors"
 )
 

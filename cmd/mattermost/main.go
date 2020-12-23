@@ -6,16 +6,16 @@ package main
 import (
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/cmd/mattermost/commands"
+	"github.com/adacta-ru/mattermost-server/v5/cmd/mattermost/commands"
 
 	// Import and register app layer slash commands
-	_ "github.com/mattermost/mattermost-server/v5/app/slashcommands"
+	_ "github.com/adacta-ru/mattermost-server/v5/app/slashcommands"
 
 	// Plugins
-	_ "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	_ "github.com/adacta-ru/mattermost-server/v5/model/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/mattermost-server/v5/imports"
+	_ "github.com/adacta-ru/mattermost-server/v5/imports"
 
 	// Enterprise Deps
 	_ "github.com/gorilla/handlers"

@@ -16,8 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/adacta-ru/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/testlib"
 
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
@@ -41,7 +41,7 @@ import (
 // 1. go get -u github.com/dvyukov/go-fuzz/go-fuzz github.com/dvyukov/go-fuzz/go-fuzz-build
 // 2. mv app/helper_test.go app/helper.go
 // (Also reduce the number of push notification workers to 1 to debug stack traces easily.)
-// 3. go-fuzz-build github.com/mattermost/mattermost-server/v5/app
+// 3. go-fuzz-build github.com/adacta-ru/mattermost-server/v5/app
 // 4. Generate a corpus dir. It's just a directory with files containing random data
 // for go-fuzz to use as an initial seed. Use the generateInitialCorpus function for that.
 // 5. go-fuzz -bin=app-fuzz.zip -workdir=./workdir

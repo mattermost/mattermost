@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-server/v5
+module github.com/adacta-ru/mattermost-server/v5
 
 go 1.14
 
@@ -16,10 +16,12 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v1.0.12
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
@@ -141,3 +143,4 @@ require (
 replace github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
 
 replace github.com/dyatlov/go-opengraph => github.com/hmhealey/go-opengraph v0.0.0-20201209151214-f2d823730dba
+

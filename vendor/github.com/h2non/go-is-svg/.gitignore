@@ -1,7 +1,0 @@
-/bimg
-/bundle
-bin
-/*.jpg
-/*.png
-/*.webp
-/fixtures/*_out.*

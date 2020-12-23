@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/adacta-ru/mattermost-server/v5/store/searchtest"
+	"github.com/adacta-ru/mattermost-server/v5/store/storetest"
 )
 
 func TestPostStore(t *testing.T) {

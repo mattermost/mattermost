@@ -6,8 +6,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/audit"
+	"github.com/adacta-ru/mattermost-server/v5/model"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

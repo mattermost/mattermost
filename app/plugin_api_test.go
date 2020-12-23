@@ -21,11 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
+	"github.com/adacta-ru/mattermost-server/v5/einterfaces/mocks"
+	"github.com/adacta-ru/mattermost-server/v5/model"
+	"github.com/adacta-ru/mattermost-server/v5/plugin"
+	"github.com/adacta-ru/mattermost-server/v5/utils"
+	"github.com/adacta-ru/mattermost-server/v5/utils/fileutils"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -129,7 +129,7 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/adacta-ru/mattermost-server/v5/plugin"
 		)
 
 		type MyPlugin struct {
@@ -741,7 +741,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
     package main
 
     import (
-      "github.com/mattermost/mattermost-server/v5/plugin"
+      "github.com/adacta-ru/mattermost-server/v5/plugin"
     )
 
     type MyPlugin struct {
@@ -889,7 +889,7 @@ func TestInstallPlugin(t *testing.T) {
 
 			"github.com/pkg/errors"
 
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/adacta-ru/mattermost-server/v5/plugin"
 		)
 
 		type configuration struct {
@@ -1385,7 +1385,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
+			"github.com/adacta-ru/mattermost-server/v5/plugin"
 			"bytes"
 			"net/http"
 		)
@@ -1418,8 +1418,8 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/v5/plugin"
-			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/adacta-ru/mattermost-server/v5/plugin"
+			"github.com/adacta-ru/mattermost-server/v5/model"
 			"bytes"
 			"net/http"
 			"io/ioutil"
@@ -1502,8 +1502,8 @@ func TestApiMetrics(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/v5/model"
-		"github.com/mattermost/mattermost-server/v5/plugin"
+		"github.com/adacta-ru/mattermost-server/v5/model"
+		"github.com/adacta-ru/mattermost-server/v5/plugin"
 	)
 
 	type MyPlugin struct {

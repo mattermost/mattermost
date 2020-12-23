@@ -6,8 +6,8 @@ package app
 import (
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/adacta-ru/mattermost-server/v5/config"
+	"github.com/adacta-ru/mattermost-server/v5/mlog"
 )
 
 // setupFeatureFlags called on startup and when the cluster leader changes.
