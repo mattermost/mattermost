@@ -330,7 +330,7 @@ func NewServer(options ...Option) (*Server, error) {
 					return nil, errors.Wrap(err2, "cannot parse DB version")
 				}
 				if intVer < sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION {
-					return nil, fmt.Errorf("minimum required postgres version is 10.0; found %s", ver)
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION), sqlstore.VersionString(intVer))
 				}
 			}
 

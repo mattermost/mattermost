@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1358,4 +1359,14 @@ func IsDuplicate(err error) bool {
 	}
 
 	return false
+}
+
+// VersionString converts an integer representation of a DB version
+// to a pretty-printed string.
+// Postgres doesn't follow three-part version numbers from 10.0 onwards:
+// https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
+func VersionString(v int) string {
+	minor := v % 10000
+	major := v / 10000
+	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
 }

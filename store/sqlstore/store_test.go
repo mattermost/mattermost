@@ -471,6 +471,31 @@ func TestIsDuplicate(t *testing.T) {
 	}
 }
 
+func TestVersionString(t *testing.T) {
+	versions := []struct {
+		input  int
+		output string
+	}{
+		{
+			input:  100000,
+			output: "10.0",
+		},
+		{
+			input:  90603,
+			output: "9.603",
+		},
+		{
+			input:  120005,
+			output: "12.5",
+		},
+	}
+
+	for _, v := range versions {
+		out := VersionString(v.input)
+		assert.Equal(t, v.output, out)
+	}
+}
+
 func makeSqlSettings(driver string) *model.SqlSettings {
 	switch driver {
 	case model.DATABASE_DRIVER_POSTGRES:
