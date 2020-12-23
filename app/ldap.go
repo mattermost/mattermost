@@ -52,7 +52,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]interface{}{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
 		return nil, ae
 	}
 
