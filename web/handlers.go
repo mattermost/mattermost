@@ -268,11 +268,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if c.Err.Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
 		} else {
-			if code := c.Err.StatusCode; code >= http.StatusBadRequest && code < http.StatusInternalServerError {
+			code := c.Err.StatusCode
+			switch {
+			case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
 				c.LogDebug(c.Err)
-			} else if code == http.StatusNotImplemented {
+			case code == http.StatusNotImplemented:
 				c.LogInfo(c.Err)
-			} else {
+			default:
 				c.LogError(c.Err)
 			}
 		}
