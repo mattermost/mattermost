@@ -40,8 +40,9 @@ const (
 	DB_PING_ATTEMPTS           = 18
 	DB_PING_TIMEOUT_SECS       = 10
 	// This is a numerical version string by postgres. The format is
-	// 2 characters for major, minor, and patch version.
-	// 10.0.0 would be 100000.
+	// 2 characters for major, minor, and patch version prior to 10.
+	// After 10, it's major and minor only.
+	// 10.1 would be 100001.
 	// 9.6.3 would be 90603.
 	MINIMUM_REQUIRED_POSTGRES_VERSION = 100000
 )
