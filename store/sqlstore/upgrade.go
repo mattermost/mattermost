@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_31_0
 	VERSION_5_32_0           = "5.32.0"
 	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
