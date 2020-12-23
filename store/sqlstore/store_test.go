@@ -369,7 +369,7 @@ func TestGetDbVersion(t *testing.T) {
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
-			version, err := store.GetDbVersion()
+			version, err := store.GetDbVersion(false)
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})

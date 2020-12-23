@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -319,6 +320,19 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				ver, err := s.sqlStore.GetDbVersion(true)
+				if err != nil {
+					return nil, errors.Wrap(err, "cannot get DB version")
+				}
+				intVer, err := strconv.Atoi(ver)
+				if err != nil {
+					return nil, errors.Wrap(err, "cannot parse DB version")
+				}
+				if intVer < sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION {
+					return nil, fmt.Errorf("minimum required postgres version is 10.0; found %s", ver)
+				}
+			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),

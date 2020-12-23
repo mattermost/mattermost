@@ -38,6 +38,11 @@ const (
 	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
 	DB_PING_ATTEMPTS           = 18
 	DB_PING_TIMEOUT_SECS       = 10
+	// This is a numerical version string by postgres. The format is
+	// 2 characters for major, minor, and patch version.
+	// 10.0.0 would be 100000.
+	// 9.6.3 would be 90603.
+	MINIMUM_REQUIRED_POSTGRES_VERSION = 100000
 )
 
 const (
@@ -321,10 +326,17 @@ func (ss *SqlStore) GetCurrentSchemaVersion() string {
 	return version
 }
 
-func (ss *SqlStore) GetDbVersion() (string, error) {
+// GetDbVersion returns the version of the database being used.
+// If numerical is set to true, it attempts to return a numerical version string
+// that can be parsed by callers.
+func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	var sqlVersion string
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sqlVersion = `SHOW server_version`
+		if numerical {
+			sqlVersion = `SHOW server_version_num`
+		} else {
+			sqlVersion = `SHOW server_version`
+		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		sqlVersion = `SELECT version()`
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
