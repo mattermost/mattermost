@@ -8,7 +8,7 @@ else
   PLATFORM=$(uname)
 fi
 
-if [[ ! -z "$1" ]];
+if [[ -n "$1" ]];
 then
   OVERRIDE_OS=$1
 fi
@@ -17,7 +17,7 @@ BIN_PATH=${2:-bin}
 
 # strip whitespace
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ "$THIS_BRANCH" =~ 'release-'[0-9] ]];
+if [[ "$THIS_BRANCH" =~ '^release-'[0-9] ]];
 then
   RELEASE_TO_DOWNLOAD="$THIS_BRANCH"
 else
@@ -28,7 +28,7 @@ echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$REL
 
 # When packaging we need to download different platforms
 # Values need to match the case statement below
-if [[ ! -z "$OVERRIDE_OS" ]];
+if [[ -n "$OVERRIDE_OS" ]];
 then
   PLATFORM="$OVERRIDE_OS"
 fi

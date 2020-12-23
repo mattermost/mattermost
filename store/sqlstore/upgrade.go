@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_31_0
+	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
 	VERSION_5_29_0           = "5.29.0"
 	VERSION_5_28_1           = "5.28.1"
@@ -194,6 +195,7 @@ func upgradeDatabase(sqlSupplier *SqlSupplier, currentModelVersionString string)
 	upgradeDatabaseToVersion5281(sqlSupplier)
 	upgradeDatabaseToVersion529(sqlSupplier)
 	upgradeDatabaseToVersion530(sqlSupplier)
+	upgradeDatabaseToVersion531(sqlSupplier)
 
 	return nil
 }
@@ -983,6 +985,12 @@ func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
 	}
 	if shouldPerformUpgrade(sqlSupplier, VERSION_5_29_0, VERSION_5_30_0) {
 		saveSchemaVersion(sqlSupplier, VERSION_5_30_0)
+	}
+}
+
+func upgradeDatabaseToVersion531(sqlStore *SqlSupplier) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_31_0)
 	}
 }
 

@@ -23,7 +23,7 @@ jobs:
           cd ../
           git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
-          git checkout $CIRCLE_BRANCH || git checkout master
+          git checkout $CIRCLE_BRANCH || git checkout release-5.31
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
@@ -129,24 +129,25 @@ jobs:
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
 
-  build-api-spec:
-    docker:
-      - image: circleci/node:lts
-    working_directory: ~/mattermost
-    steps:
-      - attach_workspace:
-          at: ~/mattermost/
-      - run:
-          command: |
-            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
-            cd mattermost-api-reference
-            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
-            git checkout ${CIRCLE_BRANCH} || true
-            make build
-      - persist_to_workspace:
-          root: ~/mattermost
-          paths:
-            - mattermost-api-reference
+# todo
+#  build-api-spec:
+#    docker:
+#      - image: circleci/node:lts
+#    working_directory: ~/mattermost
+#    steps:
+#      - attach_workspace:
+#          at: ~/mattermost/
+#      - run:
+#          command: |
+#            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
+#            cd mattermost-api-reference
+#            echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
+#            git checkout ${CIRCLE_BRANCH} || true
+#            make build
+#      - persist_to_workspace:
+#          root: ~/mattermost
+#          paths:
+#            - mattermost-api-reference
 
   build:
     docker:
@@ -156,6 +157,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/mattermost/
+      # todo make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
       - run:
           command: |
             echo "Installing golangci-lint"
@@ -166,7 +168,7 @@ jobs:
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
@@ -408,15 +410,15 @@ workflows:
       - check-store-layers:
           requires:
             - setup
-      - build-api-spec:
-          requires:
-            - setup
+#      - build-api-spec:
+#          requires:
+#            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
-            - build-api-spec
+#            - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
