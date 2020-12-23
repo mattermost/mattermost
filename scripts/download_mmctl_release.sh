@@ -28,7 +28,7 @@ echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$REL
 
 # When packaging we need to download different platforms
 # Values need to match the case statement below
-if [[ ! -z "$OVERRIDE_OS" ]];
+if [[ -n "$OVERRIDE_OS" ]];
 then
   PLATFORM="$OVERRIDE_OS"
 fi
