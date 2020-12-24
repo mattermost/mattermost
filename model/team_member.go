@@ -98,11 +98,11 @@ func EmailInviteWithErrorToEmails(o []*EmailInviteWithError) []string {
 }
 
 func EmailInviteWithErrorToJson(o []*EmailInviteWithError) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func EmailInviteWithErrorToString(o *EmailInviteWithError) string {
@@ -120,11 +120,11 @@ func TeamMembersWithErrorToTeamMembers(o []*TeamMemberWithError) []*TeamMember {
 }
 
 func TeamMembersWithErrorToJson(o []*TeamMemberWithError) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func TeamMemberWithErrorToString(o *TeamMemberWithError) string {
@@ -138,11 +138,11 @@ func TeamMembersWithErrorFromJson(data io.Reader) []*TeamMemberWithError {
 }
 
 func TeamMembersToJson(o []*TeamMember) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func TeamMembersFromJson(data io.Reader) []*TeamMember {
@@ -152,11 +152,11 @@ func TeamMembersFromJson(data io.Reader) []*TeamMember {
 }
 
 func TeamsUnreadToJson(o []*TeamUnread) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
