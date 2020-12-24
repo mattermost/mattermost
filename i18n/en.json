@@ -1330,7 +1330,7 @@
   },
   {
     "id": "api.file.file_mod_time.app_error",
-    "translation": "Unable to get the file modification time."
+    "translation": "Unable to get last modification time for file."
   },
   {
     "id": "api.file.file_reader.app_error",

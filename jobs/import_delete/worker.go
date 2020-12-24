@@ -95,11 +95,14 @@ func (w *ImportDeleteWorker) doJob(job *model.Job) {
 		return
 	}
 
+	var hasErrs bool
 	for i := range imports {
 		filename := filepath.Base(imports[i])
 		modTime, appErr := w.app.FileModTime(filepath.Join(importPath, filename))
 		if appErr != nil {
-			mlog.Error("Worker: Failed to get file modification time", mlog.Err(appErr))
+			mlog.Debug("Worker: Failed to get file modification time",
+				mlog.Err(appErr), mlog.String("import", imports[i]))
+			hasErrs = true
 			continue
 		}
 
@@ -112,7 +115,9 @@ func (w *ImportDeleteWorker) doJob(job *model.Job) {
 			if len(filename) > minLen && filepath.Ext(filename) == app.IncompleteUploadSuffix {
 				uploadID := filename[:26]
 				if storeErr := w.app.Srv().Store.UploadSession().Delete(uploadID); storeErr != nil {
-					mlog.Error("Worker: Failed to delete UploadSession", mlog.Err(storeErr))
+					mlog.Debug("Worker: Failed to delete UploadSession",
+						mlog.Err(storeErr), mlog.String("upload_id", uploadID))
+					hasErrs = true
 				}
 			} else {
 				// check if fileinfo exists and if so delete it.
@@ -120,20 +125,30 @@ func (w *ImportDeleteWorker) doJob(job *model.Job) {
 				info, storeErr := w.app.Srv().Store.FileInfo().GetByPath(filePath)
 				var nfErr *store.ErrNotFound
 				if storeErr != nil && !errors.As(storeErr, &nfErr) {
-					mlog.Error("Worker: Failed to get FileInfo", mlog.Err(storeErr))
+					mlog.Debug("Worker: Failed to get FileInfo",
+						mlog.Err(storeErr), mlog.String("path", filePath))
+					hasErrs = true
 				} else if storeErr == nil {
 					if storeErr = w.app.Srv().Store.FileInfo().PermanentDelete(info.Id); storeErr != nil {
-						mlog.Error("Worker: Failed to delete FileInfo", mlog.Err(storeErr))
+						mlog.Debug("Worker: Failed to delete FileInfo",
+							mlog.Err(storeErr), mlog.String("file_id", info.Id))
+						hasErrs = true
 					}
 				}
 			}
 
 			// remove file data from storage.
 			if appErr := w.app.RemoveFile(imports[i]); appErr != nil {
-				mlog.Error("Worker: Failed to remove file", mlog.Err(appErr))
+				mlog.Debug("Worker: Failed to remove file",
+					mlog.Err(appErr), mlog.String("import", imports[i]))
+				hasErrs = true
 				continue
 			}
 		}
+	}
+
+	if hasErrs {
+		mlog.Warn("Worker: errors occurred")
 	}
 
 	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))

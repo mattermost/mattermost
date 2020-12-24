@@ -167,6 +167,7 @@ func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
 	if nErr != nil {
 		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+
 	return modTime, nil
 }
 
