@@ -149,10 +149,6 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "Id="+m.Id, http.StatusBadRequest)
 	}
 
-	if m.Topic == "" {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
-	}
-
 	if !IsValidId(m.Token) {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}

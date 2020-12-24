@@ -52,6 +52,7 @@ func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClu
 	msg := model.RemoteClusterMsg{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
+		Token:    rc.RemoteToken,
 		Payload:  confirmRaw,
 	}
 

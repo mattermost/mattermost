@@ -1658,3 +1658,9 @@ func (s *Server) GetStore() store.Store {
 func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 	return s.remoteClusterService
 }
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
+}

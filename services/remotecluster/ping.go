@@ -97,6 +97,12 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 		return err
 	}
 
+	if metrics := rcs.server.GetMetrics(); metrics != nil {
+		sentAt := time.Unix(0, ping.SentAt*int64(time.Millisecond))
+		elapsed := time.Since(sentAt).Seconds()
+		metrics.ObserveRemoteClusterPingDuration(rc.RemoteId, elapsed)
+	}
+
 	// TODO: the ping response contains a timestamp when the ping was sent and the recv time when it was received by the
 	//       remote cluster. This can be added to Prometheus/Grafana to track latencies.
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
@@ -118,6 +124,7 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 	msg := model.RemoteClusterMsg{
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
+		Token:    rc.RemoteToken,
 		Payload:  pingRaw,
 	}
 
