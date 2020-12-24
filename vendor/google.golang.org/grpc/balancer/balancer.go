@@ -174,6 +174,10 @@ type BuildOptions struct {
 	Dialer func(context.Context, string) (net.Conn, error)
 	// ChannelzParentID is the entity parent's channelz unique identification number.
 	ChannelzParentID int64
+	// CustomUserAgent is the custom user agent set on the parent ClientConn.
+	// The balancer should set the same custom user agent if it creates a
+	// ClientConn.
+	CustomUserAgent string
 	// Target contains the parsed address info of the dial target. It is the same resolver.Target as
 	// passed to the resolver.
 	// See the documentation for the resolver.Target type for details about what it contains.
