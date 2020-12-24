@@ -1174,8 +1174,6 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser)
-
 	return updatedUser, nil
 }
 
@@ -1191,8 +1189,6 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 	if err != nil {
 		return nil, err
 	}
-
-	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -1314,6 +1310,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	}
 
 	a.InvalidateCacheForUser(user.Id)
+	a.sendUpdatedUserEvent(*userUpdate.New)
 
 	return userUpdate.New, nil
 }
