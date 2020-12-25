@@ -1884,15 +1884,15 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om lid te worden van  {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "Multi-factor authenticatie is toegevoegd aan uw account op {{.SiteURL }."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "Multi-factor authenticatie werd toegevoegd"
   },
   {
     "id": "api.templates.mfa_change_subject",
@@ -1900,11 +1900,11 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "Multi-factor authenticatie werd verwijderd van je account op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "Multi-factor authenticatie werd verwijderd"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -8389,5 +8389,9 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "Kan geen gegevens aan het bestand toevoegen."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Kan het bestand voor globalrelay niet schrijven."
   }
 ]
