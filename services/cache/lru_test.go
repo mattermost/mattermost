@@ -122,10 +122,7 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	var value2 map[string]interface{}
 	err = l.Get("test", &value2)
 	require.Nil(t, err)
-
-	v1, ok := value2["key1"].(int64)
-	require.True(t, ok, "unable to cast value")
-	assert.Equal(t, int64(1), v1)
+	assert.EqualValues(t, 1, value2["key1"])
 
 	v2, ok := value2["key2"].(string)
 	require.True(t, ok, "unable to cast value")
