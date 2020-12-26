@@ -27,11 +27,11 @@ func SecurityBulletinFromJson(data io.Reader) *SecurityBulletin {
 }
 
 func (sb SecurityBulletins) ToJson() string {
-	if b, err := json.Marshal(sb); err != nil {
+	b, err := json.Marshal(sb)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func SecurityBulletinsFromJson(data io.Reader) SecurityBulletins {

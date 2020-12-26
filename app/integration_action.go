@@ -238,13 +238,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", appErr
 		}
 		return "", nil
-	} else {
-		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-		if appErr != nil {
-			return "", appErr
-		}
-		defer resp.Body.Close()
 	}
+	resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
+	}
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -554,7 +553,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	mailToLinkContent := &MailToLinkContent{
 		MetricId:      warnMetricId,
-		MailRecipient: "support@mattermost.com",
+		MailRecipient: model.MM_SUPPORT_ADVISOR_ADDRESS,
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
 		MailBody:      mailBody,
