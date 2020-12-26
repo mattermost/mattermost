@@ -533,23 +533,19 @@ func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {
 	return o
 }
 
-func (r *OpenDialogRequest) isValid() error {
-
-	if len(r.URL) == 0 || !IsValidHttpUrl(r.URL) {
+func (r *OpenDialogRequest) IsValid() error {
+	if r.URL == "" || !IsValidHttpUrl(r.URL) {
 		return errors.New("Invalid URL")
 	}
 
-	if len(r.TriggerId) == 0 {
+	if r.TriggerId == "" {
 		return errors.New("Empty trigger id")
 	}
 
-	err := r.Dialog.isValid()
-
-	return err
+	return r.Dialog.isValid()
 }
 
 func (d *Dialog) isValid() error {
-
 	if d.Title == "" || len(d.Title) > 24 {
 		return errors.New("invalid dialog title")
 	}
@@ -558,29 +554,22 @@ func (d *Dialog) isValid() error {
 		return errors.New("invalid icon url")
 	}
 
-	if d.IntroductionText == "" {
-		return errors.New("invalid introduction text")
-	}
-
 	if len(d.Elements) > 5 {
-		return errors.New("invalid number of dialog elements")
-	}
-
-	if reflect.TypeOf(d.NotifyOnCancel).Kind() != reflect.Bool {
-		return errors.New("invalid type notify_on_cancel")
+		return errors.New("The maximum number of dialog elements is 5")
 	}
 
 	if len(d.Elements) != 0 {
 		elementMap := make(map[string]bool)
 
 		for i := 0; i < len(d.Elements); i++ {
-			if elementMap[d.Elements[i].DisplayName] == true {
+			if elementMap[d.Elements[i].DisplayName] {
 				return errors.New("duplicate dialog element name")
 			}
 			elementMap[d.Elements[i].DisplayName] = true
-			dialogElementErr := d.Elements[i].isValid()
-			if dialogElementErr != nil {
-				return dialogElementErr
+
+			err := d.Elements[i].isValid()
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -588,17 +577,17 @@ func (d *Dialog) isValid() error {
 }
 
 func (d *DialogElement) isValid() error {
-	typeMap := map[string]bool{
-		"text":   true,
-		"email":  true,
-		"number": true,
-		"tel":    true,
-		"url":    true,
+	textSubTypeMap := map[string]bool{
+		"text":     true,
+		"email":    true,
+		"number":   true,
+		"tel":      true,
+		"url":      true,
+		"password": true,
 	}
 
 	switch d.Type {
-
-	case "email":
+	case "text":
 		if d.MaxLength > 150 {
 			return errors.New("invalid maxlength")
 		}
@@ -625,19 +614,13 @@ func (d *DialogElement) isValid() error {
 		if d.Default != "" && len(d.Placeholder) > 3000 {
 			return errors.New("invalid default string")
 		}
-		if d.HelpText != "" && len(d.HelpText) > 3000 {
-			return errors.New("invalid help text")
-		}
-		if _, ok := typeMap[d.Type]; !ok {
+		if _, ok := textSubTypeMap[d.Type]; !ok {
 			return errors.New("invalid subtype")
 		}
 
 	case "checkbox":
 		if len(d.DataSource) == 0 {
 			return errors.New("invalid data source")
-		}
-		if len(d.HelpText) > 150 {
-			return errors.New("invalid help text")
 		}
 		if len(d.Default) > 3000 {
 			return errors.New("invalid default string")
@@ -665,8 +648,8 @@ func (d *DialogElement) isValid() error {
 		return errors.New("invalid dialog element name")
 	}
 
-	if !(d.Optional == true || d.Optional == false) {
-		return errors.New("invalid optional value")
+	if len(d.HelpText) > 150 {
+		return errors.New("invalid help text")
 	}
 
 	return nil
