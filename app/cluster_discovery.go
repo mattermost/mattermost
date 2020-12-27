@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DISCOVERY_SERVICE_WRITE_PING = 60 * time.Second
+	DiscoveryServiceWritePing = 60 * time.Second
 )
 
 type ClusterDiscoveryService struct {
@@ -58,7 +58,7 @@ func (cds *ClusterDiscoveryService) Start() {
 
 	go func() {
 		mlog.Debug("ClusterDiscoveryService ping writer started", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()))
-		ticker := time.NewTicker(DISCOVERY_SERVICE_WRITE_PING)
+		ticker := time.NewTicker(DiscoveryServiceWritePing)
 		defer func() {
 			ticker.Stop()
 			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {

@@ -72,7 +72,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return model.NewAppError("JoinDefaultChannels", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				return model.NewAppError("JoinDefaultChannels", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 			default:
 				return model.NewAppError("JoinDefaultChannels", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
@@ -266,7 +266,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return nil, model.NewAppError("CreateChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				return nil, model.NewAppError("CreateChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 			default:
 				return nil, model.NewAppError("CreateChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
@@ -718,7 +718,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("RestoreChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("RestoreChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("RestoreChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1169,7 +1169,7 @@ func (a *App) updateChannelMember(member *model.ChannelMember) (*model.ChannelMe
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("updateChannelMember", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("updateChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("updateChannelMember", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1209,7 +1209,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				return model.NewAppError("DeleteChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+				return model.NewAppError("DeleteChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 			default:
 				return model.NewAppError("DeleteChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
@@ -1747,7 +1747,7 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelMember", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelMember", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -1890,7 +1890,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(uresult.NErr, &nfErr):
-			return model.NewAppError("CreateChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("CreateChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -2011,7 +2011,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(uresult.NErr, &nfErr):
-			return model.NewAppError("LeaveChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("LeaveChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("LeaveChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -2151,7 +2151,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("removeUserFromChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("removeUserFromChannel", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("removeUserFromChannel", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -2792,7 +2792,7 @@ func (a *App) ToggleMuteChannel(channelId, userId string) (*model.ChannelMember,
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("ToggleMuteChannel", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("ToggleMuteChannel", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("ToggleMuteChannel", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -2846,7 +2846,7 @@ func (a *App) setChannelsMuted(channelIds []string, userId string, muted bool) (
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("setChannelsMuted", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("setChannelsMuted", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("setChannelsMuted", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

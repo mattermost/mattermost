@@ -33,12 +33,12 @@ import (
 )
 
 const (
-	INDEX_TYPE_FULL_TEXT       = "full_text"
-	INDEX_TYPE_DEFAULT         = "default"
-	PG_DUP_TABLE_ERROR_CODE    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
-	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
-	DB_PING_ATTEMPTS           = 18
-	DB_PING_TIMEOUT_SECS       = 10
+	IndexTypeFullText      = "full_text"
+	IndexTypeDefault       = "default"
+	PGDupTableErrorCode    = "42P07"      // see https://github.com/lib/pq/blob/master/error.go#L268
+	MySQLDupTableErrorCode = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
+	DBPingAttempts         = 18
+	DBPingTimeoutSecs      = 10
 	// This is a numerical version string by postgres. The format is
 	// 2 characters for major, minor, and patch version prior to 10.
 	// After 10, it's major and minor only.
@@ -247,21 +247,21 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 		os.Exit(EXIT_DB_OPEN)
 	}
 
-	for i := 0; i < DB_PING_ATTEMPTS; i++ {
+	for i := 0; i < DBPingAttempts; i++ {
 		mlog.Info("Pinging SQL", mlog.String("database", con_type))
-		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), DBPingTimeoutSecs*time.Second)
 		defer cancel()
 		err = db.PingContext(ctx)
 		if err == nil {
 			break
 		} else {
-			if i == DB_PING_ATTEMPTS-1 {
+			if i == DBPingAttempts-1 {
 				mlog.Critical("Failed to ping DB, server will exit.", mlog.Err(err))
 				time.Sleep(time.Second)
 				os.Exit(EXIT_PING)
 			} else {
-				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DB_PING_TIMEOUT_SECS))
-				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+				mlog.Error("Failed to ping DB", mlog.Err(err), mlog.Int("retrying in seconds", DBPingTimeoutSecs))
+				time.Sleep(DBPingTimeoutSecs * time.Second)
 			}
 		}
 	}
@@ -881,23 +881,23 @@ func (ss *SqlStore) AlterPrimaryKey(tableName string, columnNames []string) bool
 }
 
 func (ss *SqlStore) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_DEFAULT, true)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeDefault, true)
 }
 
 func (ss *SqlStore) CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_DEFAULT, false)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeDefault, false)
 }
 
 func (ss *SqlStore) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, IndexTypeDefault, false)
 }
 
 func (ss *SqlStore) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, IndexTypeDefault, true)
 }
 
 func (ss *SqlStore) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_FULL_TEXT, false)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, IndexTypeFullText, false)
 }
 
 func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
@@ -915,7 +915,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		}
 
 		query := ""
-		if indexType == INDEX_TYPE_FULL_TEXT {
+		if indexType == IndexTypeFullText {
 			if len(columnNames) != 1 {
 				mlog.Critical("Unable to create multi column full text index")
 				os.Exit(EXIT_CREATE_INDEX_POSTGRES)
@@ -947,7 +947,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 		}
 
 		fullTextIndex := ""
-		if indexType == INDEX_TYPE_FULL_TEXT {
+		if indexType == IndexTypeFullText {
 			fullTextIndex = " FULLTEXT "
 		}
 
@@ -1350,11 +1350,11 @@ func IsDuplicate(err error) bool {
 	var mysqlErr *mysql.MySQLError
 	switch {
 	case errors.As(errors.Cause(err), &pqErr):
-		if pqErr.Code == PG_DUP_TABLE_ERROR_CODE {
+		if pqErr.Code == PGDupTableErrorCode {
 			return true
 		}
 	case errors.As(errors.Cause(err), &mysqlErr):
-		if mysqlErr.Number == MYSQL_DUP_TABLE_ERROR_CODE {
+		if mysqlErr.Number == MySQLDupTableErrorCode {
 			return true
 		}
 	}

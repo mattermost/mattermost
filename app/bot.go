@@ -161,7 +161,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -238,7 +238,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

@@ -67,9 +67,9 @@ const (
 	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
 
 	// Deprecated
-	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
-	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
+	ImageThumbnailPixelWidth  = 120
+	ImageThumbnailPixelHeight = 100
+	ImagePreviewPixelWidth    = 1920
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {

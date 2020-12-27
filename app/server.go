@@ -297,7 +297,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
+		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
@@ -738,11 +738,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -1277,11 +1277,11 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
 func doCheckWarnMetricStatus(a *App) {

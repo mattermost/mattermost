@@ -137,7 +137,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
+		if token.Type == app.TokenTypeGuestInvitation {
 			if c.App.Srv().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return

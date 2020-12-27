@@ -1481,7 +1481,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isNewMembership := false
 	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		if err.Id == app.MISSING_CHANNEL_MEMBER_ERROR {
+		if err.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {
 			c.Err = err

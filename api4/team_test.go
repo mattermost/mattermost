@@ -1855,7 +1855,7 @@ func TestAddTeamMember(t *testing.T) {
 	Client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -1878,7 +1878,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token = model.NewToken(app.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
@@ -1889,7 +1889,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestId()
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -1931,7 +1931,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
