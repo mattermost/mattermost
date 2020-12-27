@@ -1804,7 +1804,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Je account is uitgeschakeld op  {{ .ServerURL }}"
+    "translation": "Je account is uitgeschakeld op {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -1884,7 +1884,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om lid te worden van  {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -1896,7 +1896,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Your MFA has been updated"
+    "translation": "[{{ .SiteName }}] Jouw MFA is geüpdatet"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
