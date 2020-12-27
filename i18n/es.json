@@ -7897,5 +7897,105 @@
   {
     "id": "api.templates.over_limit_suspended_contact_support",
     "translation": "Contactar a Soporte"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "No se ha recibido el pago"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "El pago de su suscripción a Mattermost Cloud está atrasado"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "Sólo un recordatorio de que no hemos recibido el pago de su suscripción de Mattermost facturado el {{ .OverLimitDate }}.  Pronto comenzaremos un proceso para suspender su servicio si no se recibe el pago."
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Envíenos un correo electrónico en cualquier momento a "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "Has alcanzado el límite de usuarios del nivel gratuito "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Se alcanzó el límite de usuarios de Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Alternativamente, puede desactivar los usuarios en la consola de administración para abrir plazas para más usuarios o mantenerse por debajo del límite de usuarios libres."
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "Parece que ahora tienes 10 o más usuarios en tu espacio de trabajo — ¡eso es genial! Si quieres invitar a más miembros del equipo, considera actualizar a Mattermost Cloud Professional ahora."
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Falló la actualización de los avisos vistos"
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Uno o más de los siguientes permisos que está intentando añadir o eliminar no está permitido"
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error al obtener el enlace de renovación de la licencia"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "No se puede escribir el archivo."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "No se puede acceder al almacenamiento de archivos."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "No se puede eliminar el archivo."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "No se puede eliminar el directorio."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "No se pudo leer el archivo."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "No se puede mover el archivo."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "No se puede listar el directorio."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "No se puede obtener el tamaño del archivo."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "no se pudo obtener un lector de archivos."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "No se puede comprobar si el archivo existe."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "No se pueden añadir datos al archivo."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "No se fusionó con la configuración dada."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "No se fusionó con la configuración dada."
   }
 ]
