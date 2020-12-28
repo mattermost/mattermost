@@ -632,9 +632,13 @@ func TestPatchConfig(t *testing.T) {
 				EnableUploads: model.NewBool(true),
 			}}
 
-			updatedConfig, _ := client.PatchConfig(&config)
-
-			assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+			updatedConfig, resp := client.PatchConfig(&config)
+			if client == th.SystemAdminClient {
+				CheckForbiddenStatus(t, resp)
+			} else if client == th.LocalClient {
+				CheckOKStatus(t, resp)
+				assert.Equal(t, true, *updatedConfig.PluginSettings.EnableUploads)
+			}
 		})
 	})
 

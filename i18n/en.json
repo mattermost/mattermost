@@ -1139,6 +1139,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed.app_error",
+    "translation": "Changing {{.Name}} is not allowed."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
