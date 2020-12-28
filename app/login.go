@@ -122,7 +122,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
 	// If we are given a userID then fail if we can't find a user with that ID
-	if len(id) != 0 {
+	if id != "" {
 		user, err := a.GetUser(id)
 		if err != nil {
 			if err.Id != MISSING_ACCOUNT_ERROR {

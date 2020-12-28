@@ -70,9 +70,8 @@ func (glu *GitLabUser) ToJson() string {
 	b, err := json.Marshal(glu)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (glu *GitLabUser) IsValid() error {

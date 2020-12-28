@@ -188,7 +188,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 && tokenLocation != app.TokenLocationCloudHeader {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
@@ -210,7 +210,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
-	} else if len(token) != 0 && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
@@ -268,7 +268,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if c.Err.Id == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
 		} else {
-			c.LogError(c.Err)
+			code := c.Err.StatusCode
+			switch {
+			case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
+				c.LogDebug(c.Err)
+			case code == http.StatusNotImplemented:
+				c.LogInfo(c.Err)
+			default:
+				c.LogError(c.Err)
+			}
 		}
 
 		c.Err.Where = r.URL.Path

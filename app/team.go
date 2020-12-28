@@ -342,7 +342,7 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *mod
 		return "", "", "", err
 	}
 
-	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+	if team.SchemeId != nil && *team.SchemeId != "" {
 		scheme, err := a.GetScheme(*team.SchemeId)
 		if err != nil {
 			return "", "", "", err

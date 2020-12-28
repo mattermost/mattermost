@@ -73,10 +73,8 @@ func CompliancePostHeader() []string {
 func cleanComplianceStrings(in string) string {
 	if matched, _ := regexp.MatchString("^\\s*(=|\\+|\\-)", in); matched {
 		return "'" + in
-
-	} else {
-		return in
 	}
+	return in
 }
 
 func (cp *CompliancePost) Row() []string {
