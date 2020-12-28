@@ -245,6 +245,11 @@ func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveRemoteClusterClockSkew provides a mock function with given fields: remoteID, skew
+func (_m *MetricsInterface) ObserveRemoteClusterClockSkew(remoteID string, skew float64) {
+	_m.Called(remoteID, skew)
+}
+
 // ObserveRemoteClusterPingDuration provides a mock function with given fields: remoteID, elapsed
 func (_m *MetricsInterface) ObserveRemoteClusterPingDuration(remoteID string, elapsed float64) {
 	_m.Called(remoteID, elapsed)

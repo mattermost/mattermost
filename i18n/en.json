@@ -1955,6 +1955,10 @@
     "translation": "Invalid token."
   },
   {
+    "id": "api.remote_cluster.invalid_topic.app_error",
+    "translation": "Invalid topic."
+  },
+  {
     "id": "api.remote_cluster.save.app_error",
     "translation": "We encountered an error saving the remote cluster."
   },

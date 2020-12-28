@@ -1177,7 +1177,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.startInterClusterServices(s.License())
+	if license := s.License(); license != nil {
+		s.startInterClusterServices(license)
+	}
 
 	return nil
 }
