@@ -1496,7 +1496,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, nil
 	}
 
-	if user.AuthData != nil && len(*user.AuthData) != 0 {
+	if user.AuthData != nil && *user.AuthData != "" {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 

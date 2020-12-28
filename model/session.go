@@ -217,11 +217,11 @@ func (s *Session) GetCSRF() string {
 }
 
 func SessionsToJson(o []*Session) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func SessionsFromJson(data io.Reader) []*Session {

@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_30_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_31_0
 	VERSION_5_32_0           = "5.32.0"
 	VERSION_5_31_0           = "5.31.0"
 	VERSION_5_30_0           = "5.30.0"
@@ -847,7 +847,7 @@ func upgradeDatabaseToVersion527(sqlStore *SqlStore) {
 func upgradeDatabaseToVersion528(sqlStore *SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
 		if err := precheckMigrationToVersion528(sqlStore); err != nil {
-			mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
+			mlog.Critical("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 			os.Exit(EXIT_GENERIC_FAILURE)
 		}
 
@@ -955,9 +955,9 @@ func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
-	// saveSchemaVersion(sqlStore, VERSION_5_31_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_31_0)
+	}
 }
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {

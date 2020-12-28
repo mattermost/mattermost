@@ -288,12 +288,11 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 		if err != nil {
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
-
-				// Wait a bit before trying again.
-				time.Sleep(15 * time.Second)
 			}
+			mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
+
+			// Wait a bit before trying again.
+			time.Sleep(15 * time.Second)
 		}
 
 		tries++
@@ -443,12 +442,11 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 		if usersBatch, err := worker.jobServer.Store.User().GetUsersBatchForIndexing(progress.LastEntityTime, endTime, BATCH_SIZE); err != nil {
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
-
-				// Wait a bit before trying again.
-				time.Sleep(15 * time.Second)
 			}
+			mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
+
+			// Wait a bit before trying again.
+			time.Sleep(15 * time.Second)
 		} else {
 			users = usersBatch
 		}

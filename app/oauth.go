@@ -412,11 +412,11 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamId, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = action
-	if len(teamId) != 0 {
+	if teamId != "" {
 		stateProps["team_id"] = teamId
 	}
 
-	if len(redirectTo) != 0 {
+	if redirectTo != "" {
 		stateProps["redirect_to"] = redirectTo
 	}
 
@@ -433,7 +433,7 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamId string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_SIGNUP
-	if len(teamId) != 0 {
+	if teamId != "" {
 		stateProps["team_id"] = teamId
 	}
 
