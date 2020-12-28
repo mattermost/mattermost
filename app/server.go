@@ -223,7 +223,7 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error(err.Error())
 	}
 
-	mlog.Info("Go Version Detected: " +  runtime.Version())
+	mlog.Info("Go Version Detected: " + runtime.Version())
 
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...")
