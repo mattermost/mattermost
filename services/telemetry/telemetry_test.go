@@ -70,7 +70,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	serverIfaceMock.On("HttpService").Return(httpservice.MakeHTTPService(configService))
 
 	storeMock := &storeMocks.Store{}
-	storeMock.On("GetDbVersion").Return("5.24.0", nil)
+	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
 
 	systemStore := storeMocks.SystemStore{}
 	props := model.StringMap{}
