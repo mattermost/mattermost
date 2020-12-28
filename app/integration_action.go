@@ -238,13 +238,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", appErr
 		}
 		return "", nil
-	} else {
-		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-		if appErr != nil {
-			return "", appErr
-		}
-		defer resp.Body.Close()
 	}
+	resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
+	}
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {

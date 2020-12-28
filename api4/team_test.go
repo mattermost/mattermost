@@ -631,10 +631,9 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 				if test.errChecker != nil {
 					test.errChecker(t, resp)
 					return
-				} else {
-					CheckNoError(t, resp)
-					CheckOKStatus(t, resp)
 				}
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
 				require.Equal(t, test.wantType, team.Type)
 				require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
 				if test.wantInviteIdChanged {

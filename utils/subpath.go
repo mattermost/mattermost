@@ -120,13 +120,13 @@ func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	// Rewrite the manifest.json and *.css references to `/static/*` (or a previously rewritten subpath).
 	err = filepath.Walk(staticDir, func(walkPath string, info os.FileInfo, err error) error {
 		if filepath.Base(walkPath) == "manifest.json" || filepath.Ext(walkPath) == ".css" {
-			if old, err := ioutil.ReadFile(walkPath); err != nil {
+			old, err := ioutil.ReadFile(walkPath)
+			if err != nil {
 				return errors.Wrapf(err, "failed to open %s", walkPath)
-			} else {
-				new := strings.Replace(string(old), pathToReplace, newPath, -1)
-				if err = ioutil.WriteFile(walkPath, []byte(new), 0); err != nil {
-					return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
-				}
+			}
+			new := strings.Replace(string(old), pathToReplace, newPath, -1)
+			if err = ioutil.WriteFile(walkPath, []byte(new), 0); err != nil {
+				return errors.Wrapf(err, "failed to update %s with subpath %s", walkPath, subpath)
 			}
 		}
 

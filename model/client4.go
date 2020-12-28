@@ -94,9 +94,8 @@ func (c *Client4) boolString(value bool) string {
 
 	if value {
 		return "true"
-	} else {
-		return "false"
 	}
+	return "false"
 }
 
 func closeBody(r *http.Response) {
@@ -3020,12 +3019,12 @@ func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore
 	if collapsedThreads {
 		query += "&collapsedThreads=true"
 	}
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, ""); err != nil {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, "")
+	if err != nil {
 		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
 	}
+	defer closeBody(r)
+	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
 // SearchPosts returns any posts with matching terms string.
