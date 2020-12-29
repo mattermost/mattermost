@@ -6340,71 +6340,11 @@ func (s *RetryLayerRemoteClusterStore) Get(remoteClusterId string) (*model.Remot
 
 }
 
-func (s *RetryLayerRemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
+func (s *RetryLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
-		result, err := s.RemoteClusterStore.GetAll(inclOffline)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerRemoteClusterStore) GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
-
-	tries := 0
-	for {
-		result, err := s.RemoteClusterStore.GetAllInChannel(channelId, inclOffline)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
-
-	tries := 0
-	for {
-		result, err := s.RemoteClusterStore.GetAllNotInChannel(channelId, inclOffline)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerRemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
-
-	tries := 0
-	for {
-		result, err := s.RemoteClusterStore.GetByTopic(topic)
+		result, err := s.RemoteClusterStore.GetAll(filter)
 		if err == nil {
 			return result, nil
 		}
@@ -7391,6 +7331,26 @@ func (s *RetryLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 	tries := 0
 	for {
 		result, err := s.SharedChannelStore.Update(sc)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.UpdateRemote(remote)
 		if err == nil {
 			return result, nil
 		}

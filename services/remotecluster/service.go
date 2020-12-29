@@ -4,6 +4,7 @@
 package remotecluster
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
@@ -28,6 +29,11 @@ const (
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 	InvitationTopic               = "invitation"
 	PingTopic                     = "ping"
+	ResponseStatusKey             = "status"
+	ResponseErrorKey              = "err"
+	ResponseStatusOK              = "OK"
+	ResponseStatusFail            = "FAIL"
+	InviteExpiresAfter            = time.Hour * 48
 )
 
 var (
@@ -54,6 +60,20 @@ type topicListenerEntry struct {
 
 // Response is a map containing the response when sending a message to a remote cluster.
 type Response map[string]interface{}
+
+func (r Response) IsSuccess() bool {
+	return fmt.Sprintf("%v", r[ResponseStatusKey]) == ResponseStatusOK
+}
+
+func (r Response) Error() string {
+	if err, ok := r[ResponseStatusKey]; ok {
+		return fmt.Sprintf("%v", err)
+	}
+	if errMsg, ok := r["Message"]; ok {
+		return fmt.Sprintf("%v", errMsg)
+	}
+	return ""
+}
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {

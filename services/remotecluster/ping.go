@@ -31,7 +31,7 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		start := time.Now()
 
 		// get all remotes, including any previously offline.
-		remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(true)
+		remotes, err := rcs.server.GetStore().RemoteCluster().GetAll(model.RemoteClusterQueryFilter{})
 		if err != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Ping remote cluster failed (could not get list of remotes)", mlog.Err(err))
 			select {

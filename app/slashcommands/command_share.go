@@ -264,7 +264,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
 	}
 
-	return responsef("##### `%s (%s)` has been invited to this shared channel.", rc.DisplayName, rc.SiteURL)
+	return responsef("##### Channel invitation has been sent to `%s (%s)`.", rc.DisplayName, rc.SiteURL)
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {

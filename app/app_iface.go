@@ -519,9 +519,7 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
-	GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
-	GetAllRemoteClustersInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
-	GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
@@ -661,7 +659,6 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)
 	GetRemoteClusterService() (*remotecluster.Service, *model.AppError)
-	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)

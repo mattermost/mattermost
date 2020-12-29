@@ -4230,7 +4230,7 @@ func (a *OpenTracingAppLayer) GetAllPublicTeamsPageWithCount(offset int, limit i
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
+func (a *OpenTracingAppLayer) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClusters")
 
@@ -4242,51 +4242,7 @@ func (a *OpenTracingAppLayer) GetAllRemoteClusters(includeOffline bool) ([]*mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(includeOffline)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllRemoteClustersInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClustersInChannel")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRemoteClustersInChannel(channelId, includeOffline)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllRemoteClustersNotInChannel")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllRemoteClustersNotInChannel(channelId, includeOffline)
+	resultVar0, resultVar1 := a.app.GetAllRemoteClusters(filter)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7720,28 +7676,6 @@ func (a *OpenTracingAppLayer) GetRemoteClusterService() (*remotecluster.Service,
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetRemoteClusterService()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClustersByTopic")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRemoteClustersByTopic(topic)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

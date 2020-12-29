@@ -20,6 +20,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
 
 	t.Run("SaveSharedChannelRemote", func(t *testing.T) { testSaveSharedChannelRemote(t, ss) })
+	t.Run("UpdateSharedChannelRemote", func(t *testing.T) { testUpdateSharedChannelRemote(t, ss) })
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, ss) })
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
@@ -412,6 +413,61 @@ func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
 		}
 
 		_, err := ss.SharedChannel().SaveRemote(remote)
+		require.Error(t, err, "expected error for invalid channel id")
+	})
+}
+
+func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
+	t.Run("Update shared channel remote", func(t *testing.T) {
+		channel, err := createTestChannel(ss, "test_update_remote")
+		require.Nil(t, err)
+
+		remote := &model.SharedChannelRemote{
+			ChannelId:       channel.Id,
+			Token:           model.NewId(),
+			Description:     "test_remote_update",
+			CreatorId:       model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
+		require.Nil(t, err, "couldn't save shared channel remote", err)
+
+		remoteSaved.IsInviteAccepted = true
+		remoteSaved.IsInviteConfirmed = true
+		remoteSaved.Description = "new_desc"
+
+		remoteUpdated, err := ss.SharedChannel().UpdateRemote(remoteSaved)
+		require.Nil(t, err, "couldn't update shared channel remote", err)
+
+		require.Equal(t, true, remoteUpdated.IsInviteAccepted)
+		require.Equal(t, true, remoteUpdated.IsInviteConfirmed)
+		require.Equal(t, "new_desc", remoteUpdated.Description)
+	})
+
+	t.Run("Update invalid shared channel remote", func(t *testing.T) {
+		remote := &model.SharedChannelRemote{
+			ChannelId:       "",
+			Token:           model.NewId(),
+			Description:     "test_remote",
+			CreatorId:       model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		_, err := ss.SharedChannel().UpdateRemote(remote)
+		require.NotNil(t, err, "should error updating invalid remote", err)
+	})
+
+	t.Run("Update shared channel remote with invalid channel id", func(t *testing.T) {
+		remote := &model.SharedChannelRemote{
+			ChannelId:       model.NewId(),
+			Token:           model.NewId(),
+			Description:     "test_remote",
+			CreatorId:       model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		_, err := ss.SharedChannel().UpdateRemote(remote)
 		require.Error(t, err, "expected error for invalid channel id")
 	})
 }

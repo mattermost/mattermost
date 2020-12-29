@@ -273,3 +273,13 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	// try to unmarshall the decrypted JSON to this invite struct.
 	return json.Unmarshal(plain, &rci)
 }
+
+// RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
+type RemoteClusterQueryFilter struct {
+	ExcludeOffline bool
+	InChannel      string
+	NotInChannel   string
+	Topic          string
+	CreatorId      string
+	OnlyConfirmed  bool
+}

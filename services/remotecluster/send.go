@@ -17,7 +17,7 @@ import (
 	"github.com/wiggin77/merror"
 )
 
-type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error)
+type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response, err error)
 
 type sendTask struct {
 	rc  *model.RemoteCluster
@@ -34,7 +34,10 @@ type sendTask struct {
 // Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
 func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg, f SendResultFunc) error {
 	// get list of interested remotes.
-	list, err := rcs.server.GetStore().RemoteCluster().GetByTopic(msg.Topic)
+	filter := model.RemoteClusterQueryFilter{
+		Topic: msg.Topic,
+	}
+	list, err := rcs.server.GetStore().RemoteCluster().GetAll(filter)
 	if err != nil {
 		return err
 	}
@@ -109,18 +112,26 @@ func (rcs *Service) sendMsg(task sendTask) {
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
 	resp, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
+	response := make(Response)
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
+
+		response[ResponseErrorKey] = err.Error()
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
+
+		if errDecode := json.Unmarshal(resp, &response); errDecode != nil {
+			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster", mlog.String("remote", task.rc.DisplayName), mlog.Err(errDecode))
+			response[ResponseErrorKey] = errDecode.Error()
+		}
 	}
 
 	// If callback provided then call it with the results.
 	if task.f != nil {
-		task.f(task.msg, task.rc, resp, err)
+		task.f(task.msg, task.rc, response, err)
 	}
 }
 

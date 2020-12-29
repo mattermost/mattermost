@@ -315,6 +315,23 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	return remote, nil
 }
 
+// Update updates the shared channel remote.
+func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+	if err := remote.IsValid(); err != nil {
+		return nil, err
+	}
+
+	count, err := s.GetMaster().Update(remote)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to update shared channel remote with remoteId=%s", remote.Id)
+	}
+
+	if count != 1 {
+		return nil, fmt.Errorf("expected number of shared channel remotes to be updated is 1 but was %d", count)
+	}
+	return remote, nil
+}
+
 // GetRemote fetches a shared channel remote by id.
 func (s SqlSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	var remote model.SharedChannelRemote

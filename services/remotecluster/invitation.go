@@ -5,6 +5,7 @@ package remotecluster
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -35,8 +36,22 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
 
-	if _, err := rcs.sendFrameToRemote(PingTimeout, frame, url); err != nil {
+	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
+	if err != nil {
+		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
 		return nil, err
+	}
+
+	response := make(Response)
+	err = json.Unmarshal(resp, &response)
+	if err != nil {
+		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
+		return nil, fmt.Errorf("invalid response from remote server: %w", err)
+	}
+
+	if !response.IsSuccess() {
+		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
+		return nil, errors.New(response.Error())
 	}
 	return rcSaved, nil
 }

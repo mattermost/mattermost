@@ -42,34 +42,10 @@ func (a *App) GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *m
 	return rc, nil
 }
 
-func (a *App) GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store.RemoteCluster().GetAll(includeOffline)
+func (a *App) GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError) {
+	list, err := a.Srv().Store.RemoteCluster().GetAll(filter)
 	if err != nil {
 		return nil, model.NewAppError("GetAllRemoteClusters", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return list, nil
-}
-
-func (a *App) GetAllRemoteClustersInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store.RemoteCluster().GetAllInChannel(channelId, includeOffline)
-	if err != nil {
-		return nil, model.NewAppError("GetAllRemoteClustersInChannel", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return list, nil
-}
-
-func (a *App) GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store.RemoteCluster().GetAllNotInChannel(channelId, includeOffline)
-	if err != nil {
-		return nil, model.NewAppError("GetAllRemoteClustersNotInChannel", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return list, nil
-}
-
-func (a *App) GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError) {
-	list, err := a.Srv().Store.RemoteCluster().GetByTopic(topic)
-	if err != nil {
-		return nil, model.NewAppError("GetRemoteClustersByTopic", "api.remote_cluster.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return list, nil
 }

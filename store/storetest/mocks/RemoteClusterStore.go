@@ -58,13 +58,13 @@ func (_m *RemoteClusterStore) Get(remoteClusterId string) (*model.RemoteCluster,
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields: inclOffline
-func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, error) {
-	ret := _m.Called(inclOffline)
+// GetAll provides a mock function with given fields: filter
+func (_m *RemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
+	ret := _m.Called(filter)
 
 	var r0 []*model.RemoteCluster
-	if rf, ok := ret.Get(0).(func(bool) []*model.RemoteCluster); ok {
-		r0 = rf(inclOffline)
+	if rf, ok := ret.Get(0).(func(model.RemoteClusterQueryFilter) []*model.RemoteCluster); ok {
+		r0 = rf(filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RemoteCluster)
@@ -72,77 +72,8 @@ func (_m *RemoteClusterStore) GetAll(inclOffline bool) ([]*model.RemoteCluster, 
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(bool) error); ok {
-		r1 = rf(inclOffline)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllInChannel provides a mock function with given fields: channelId, inclOffline
-func (_m *RemoteClusterStore) GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
-	ret := _m.Called(channelId, inclOffline)
-
-	var r0 []*model.RemoteCluster
-	if rf, ok := ret.Get(0).(func(string, bool) []*model.RemoteCluster); ok {
-		r0 = rf(channelId, inclOffline)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.RemoteCluster)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(channelId, inclOffline)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetAllNotInChannel provides a mock function with given fields: channelId, inclOffline
-func (_m *RemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
-	ret := _m.Called(channelId, inclOffline)
-
-	var r0 []*model.RemoteCluster
-	if rf, ok := ret.Get(0).(func(string, bool) []*model.RemoteCluster); ok {
-		r0 = rf(channelId, inclOffline)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.RemoteCluster)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(channelId, inclOffline)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetByTopic provides a mock function with given fields: topic
-func (_m *RemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
-	ret := _m.Called(topic)
-
-	var r0 []*model.RemoteCluster
-	if rf, ok := ret.Get(0).(func(string) []*model.RemoteCluster); ok {
-		r0 = rf(topic)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.RemoteCluster)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(topic)
+	if rf, ok := ret.Get(1).(func(model.RemoteClusterQueryFilter) error); ok {
+		r1 = rf(filter)
 	} else {
 		r1 = ret.Error(1)
 	}

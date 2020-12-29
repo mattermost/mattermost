@@ -285,6 +285,29 @@ func (_m *SharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChan
 	return r0, r1
 }
 
+// UpdateRemote provides a mock function with given fields: remote
+func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
+	ret := _m.Called(remote)
+
+	var r0 *model.SharedChannelRemote
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelRemote) *model.SharedChannelRemote); ok {
+		r0 = rf(remote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelRemote)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelRemote) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateRemoteLastSyncAt provides a mock function with given fields: id, syncTime
 func (_m *SharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
 	ret := _m.Called(id, syncTime)

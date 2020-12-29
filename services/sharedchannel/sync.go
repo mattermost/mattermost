@@ -5,7 +5,6 @@ package sharedchannel
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -111,7 +110,11 @@ func (scs *Service) processTask(task syncTask) error {
 	var remotes []*model.RemoteCluster
 
 	if task.remoteId == "" {
-		remotes, err = scs.server.GetStore().RemoteCluster().GetAllInChannel(task.channelId, true)
+		filter := model.RemoteClusterQueryFilter{
+			InChannel:     task.channelId,
+			OnlyConfirmed: true,
+		}
+		remotes, err = scs.server.GetStore().RemoteCluster().GetAll(filter)
 		if err != nil {
 			return err
 		}
@@ -188,22 +191,16 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp []byte, err error) {
+	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
 		if err != nil {
-			return
-		}
-		var syncResponse remotecluster.Response
-		err = json.Unmarshal(resp, &syncResponse)
-		if err != nil {
-			scs.server.GetLogger().Error("invalid response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 			return
 		}
 
-		// TODO: any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[PostErrors]
-		//       write ephemeral message to post author notifying for each post that failed.
+		// TODO: Any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[ResponsePostErrors].
+		//       Write ephemeral message to post author notifying for each post that failed.
 
 		// update SharedChannelRemote's LastSyncAt if send was successful
-		ls := syncResponse[LastUpdateAt]
+		ls := resp[ResponseLastUpdateAt]
 		lastSync, ok := ls.(int64)
 		if !ok || lastSync == 0 {
 			scs.server.GetLogger().Error("invalid last sync response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
@@ -222,7 +219,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 	return err
 }
 
-// notifyRemoteOffline creates an ephemeral post to the author for any posts create recently.
+// notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.
 func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteCluster) {
 	// only send one ephemeral post per author.
 	notified := make(map[string]struct{})

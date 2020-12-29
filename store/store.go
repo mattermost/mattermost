@@ -432,10 +432,7 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
-	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
-	GetAllInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
-	GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
-	GetByTopic(topic string) ([]*model.RemoteCluster, error)
+	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
@@ -805,6 +802,7 @@ type SharedChannelStore interface {
 	Delete(channelId string) (bool, error)
 
 	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	GetRemote(id string) (*model.SharedChannelRemote, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)

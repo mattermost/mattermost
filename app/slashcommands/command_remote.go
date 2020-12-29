@@ -219,7 +219,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 // doStatus displays connection status for all remote clusters.
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	list, err := a.GetAllRemoteClusters(true)
+	list, err := a.GetAllRemoteClusters(model.RemoteClusterQueryFilter{})
 	if err != nil {
 		responsef("Could not fetch remote clusters: %v", err)
 	}
@@ -255,7 +255,10 @@ func isOnline(lastPing int64) bool {
 }
 
 func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]model.AutocompleteListItem, error) {
-	clusters, err := a.GetAllRemoteClusters(includeOffline)
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: !includeOffline,
+	}
+	clusters, err := a.GetAllRemoteClusters(filter)
 	if err != nil || len(clusters) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}
@@ -272,7 +275,11 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 }
 
 func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, includeOffline bool) ([]model.AutocompleteListItem, error) {
-	all, err := a.GetAllRemoteClustersNotInChannel(channelId, includeOffline)
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: !includeOffline,
+		NotInChannel:   channelId,
+	}
+	all, err := a.GetAllRemoteClusters(filter)
 	if err != nil || len(all) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}

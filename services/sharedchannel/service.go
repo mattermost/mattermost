@@ -21,8 +21,8 @@ const (
 	MaxPostsPerSync              = 50
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	StatusDescription            = "status_description"
-	LastUpdateAt                 = "last_update_at"
-	PostErrors                   = "post_errors"
+	ResponseLastUpdateAt         = "last_update_at"
+	ResponsePostErrors           = "post_errors"
 )
 
 type ServerIface interface {
@@ -37,6 +37,8 @@ type ServerIface interface {
 
 type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
+	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 }
 
 // Service provides shared channel synchronization.

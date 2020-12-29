@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"go.uber.org/zap/zapcore"
@@ -35,9 +36,13 @@ func (ms *mockServer) GetLogger() mlog.LoggerIFace {
 	return ms.logger
 }
 func (ms *mockServer) GetStore() store.Store {
+	anyFilter := mock.MatchedBy(func(filter model.RemoteClusterQueryFilter) bool {
+		return true
+	})
+
 	remoteClusterStoreMock := &mocks.RemoteClusterStore{}
 	remoteClusterStoreMock.On("GetByTopic", "share").Return(ms.remotes, nil)
-	remoteClusterStoreMock.On("GetAll", true).Return(ms.remotes, nil)
+	remoteClusterStoreMock.On("GetAll", anyFilter).Return(ms.remotes, nil)
 
 	storeMock := &mocks.Store{}
 	storeMock.On("RemoteCluster").Return(remoteClusterStoreMock)

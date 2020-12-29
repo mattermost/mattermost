@@ -6,9 +6,11 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
 func (api *API) InitRemoteCluster() {
@@ -147,6 +149,11 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
+
+	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	if rc.Token != frame.Token {
 		c.SetInvalidRemoteClusterTokenError()

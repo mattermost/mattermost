@@ -1190,6 +1190,11 @@
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
+  
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Invitation is expired."
+  },
   {
     "id": "api.context.local_origin_required.app_error",
     "translation": "This endpoint requires a local request origin."

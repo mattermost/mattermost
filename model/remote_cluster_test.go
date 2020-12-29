@@ -29,6 +29,7 @@ func TestRemoteClusterJson(t *testing.T) {
 
 func TestRemoteClusterIsValid(t *testing.T) {
 	id := NewId()
+	creator := NewId()
 	now := GetMillis()
 	data := []struct {
 		name  string
@@ -39,10 +40,11 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster"}, valid: false},
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com"}, valid: false},
-		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now}, valid: true},
-		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: true},
-		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com", CreateAt: now, LastPingAt: now}, valid: true},
-		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com:8065", CreateAt: now, LastPingAt: now}, valid: true},
+		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
+		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
+		{name: "RemoteCluster valid", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
+		{name: "Include protocol", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
+		{name: "Include protocol & port", rc: &RemoteCluster{RemoteId: id, DisplayName: "test cluster", SiteURL: "http://example.com:8065", CreateAt: now, LastPingAt: now, CreatorId: creator}, valid: true},
 	}
 
 	for _, item := range data {

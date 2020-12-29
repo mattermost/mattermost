@@ -23,8 +23,8 @@ func (scs *Service) OnReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	var syncMessages []syncMsg
 
 	if err := json.Unmarshal(msg.Payload, &syncMessages); err != nil {
-		response[model.STATUS] = model.STATUS_FAIL
-		response[StatusDescription] = fmt.Sprintf("Invalid sync message: %v", err)
+		response[remotecluster.ResponseStatusKey] = remotecluster.ResponseStatusFail
+		response[remotecluster.ResponseErrorKey] = fmt.Sprintf("Invalid sync message: %v", err)
 		return err
 	}
 
@@ -67,9 +67,9 @@ func (scs *Service) OnReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	}
 
 	if len(postErrors) > 0 {
-		response[PostErrors] = postErrors
+		response[ResponsePostErrors] = postErrors
 	}
-	response[LastUpdateAt] = lastUpdate
+	response[ResponseLastUpdateAt] = lastUpdate
 
 	return nil
 }
