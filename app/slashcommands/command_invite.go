@@ -113,14 +113,13 @@ func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 					}),
 					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 				}
-			} else {
-				// User doing the inviting is *not* a member of the channel.
-				return &model.CommandResponse{
-					Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
-						"Channel": channelToJoin.Name,
-					}),
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-				}
+			}
+			// User doing the inviting is *not* a member of the channel.
+			return &model.CommandResponse{
+				Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
+					"Channel": channelToJoin.Name,
+				}),
+				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	default:

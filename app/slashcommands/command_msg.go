@@ -85,9 +85,8 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 			if directChannel, err = a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-			} else {
-				targetChannelId = directChannel.Id
 			}
+			targetChannelId = directChannel.Id
 		} else {
 			mlog.Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

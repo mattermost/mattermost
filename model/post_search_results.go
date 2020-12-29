@@ -28,9 +28,8 @@ func (o *PostSearchResults) ToJson() string {
 	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func PostSearchResultsFromJson(data io.Reader) *PostSearchResults {

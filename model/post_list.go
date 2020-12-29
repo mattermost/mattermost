@@ -58,9 +58,8 @@ func (o *PostList) ToJson() string {
 	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *PostList) MakeNonNil() {
