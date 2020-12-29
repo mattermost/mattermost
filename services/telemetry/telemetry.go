@@ -897,7 +897,7 @@ func (ts *TelemetryService) trackServer() {
 		data["system_admins"] = scr
 	}
 
-	if scr, err := ts.dbStore.GetDbVersion(); err == nil {
+	if scr, err := ts.dbStore.GetDbVersion(false); err == nil {
 		data["database_version"] = scr
 	}
 
