@@ -273,12 +273,12 @@ func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, m
 		return responsef("Must specify a valid remote cluster to uninvite.")
 	}
 
-	scr, err := a.GetSharedChannelRemote(remoteId)
+	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteId)
 	if err != nil || scr.ChannelId != args.ChannelId {
 		return responsef("Shared channel remote id `%s` does not exist for this channel.", remoteId)
 	}
 
-	deleted, err := a.DeleteSharedChannelRemote(remoteId)
+	deleted, err := a.DeleteSharedChannelRemote(scr.Id)
 	if err != nil || !deleted {
 		return responsef("Could not uninvite `%s`: %v", remoteId, err)
 	}

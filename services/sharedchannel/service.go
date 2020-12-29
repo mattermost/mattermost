@@ -48,12 +48,13 @@ type Service struct {
 	changeSignal chan struct{}
 
 	// everything below guarded by `mux`
-	mux               sync.RWMutex
-	active            bool
-	leaderListenerId  string
-	done              chan struct{}
-	tasks             map[string]syncTask
-	syncMsgListenerId string
+	mux                   sync.RWMutex
+	active                bool
+	leaderListenerId      string
+	done                  chan struct{}
+	tasks                 map[string]syncTask
+	syncTopicListenerId   string
+	inviteTopicListenerId string
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
@@ -107,7 +108,8 @@ func (scs *Service) resume() {
 		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
 		return
 	}
-	scs.syncMsgListenerId = rcs.AddTopicListener(TopicSync, scs.OnReceiveSyncMessage)
+	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.OnReceiveSyncMessage)
+	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.OnReceiveChannelInvite)
 
 	scs.active = true
 	scs.done = make(chan struct{})
@@ -129,8 +131,10 @@ func (scs *Service) pause() {
 	if rcs == nil {
 		scs.server.GetLogger().Error("Shared Channel Service activitate: requires Remote Cluster Service")
 	}
-	rcs.RemoveTopicListener(scs.syncMsgListenerId)
-	scs.syncMsgListenerId = ""
+	rcs.RemoveTopicListener(scs.syncTopicListenerId)
+	scs.syncTopicListenerId = ""
+	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
+	scs.inviteTopicListenerId = ""
 
 	scs.active = false
 	close(scs.done)
