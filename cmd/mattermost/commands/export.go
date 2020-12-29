@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -207,19 +208,12 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	}
 	defer fileWriter.Close()
 
-	// Path to directory of custom emoji
-	pathToEmojiDir := "data/emoji/"
-
-	customDataDir := a.Config().FileSettings.Directory
-	if customDataDir != nil && *customDataDir != "" {
-		pathToEmojiDir = *customDataDir + "emoji/"
+	outPath, err := filepath.Abs(args[0])
+	if err != nil {
+		return err
 	}
 
-	// Name of the directory to export custom emoji
-	dirNameToExportEmoji := "exported_emoji"
-
-	// args[0] points to the filename/filepath passed with export bulk command
-	if err := a.BulkExport(fileWriter, args[0], pathToEmojiDir, dirNameToExportEmoji); err != nil {
+	if err := a.BulkExport(fileWriter, outPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}

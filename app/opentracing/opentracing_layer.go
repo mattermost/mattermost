@@ -878,7 +878,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -890,7 +890,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEm
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(writer, file, pathToEmojiDir, dirNameToExportEmoji)
+	resultVar0 := a.app.BulkExport(writer, outPath)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

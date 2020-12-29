@@ -53,7 +53,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, outPath string) *model.AppError {
 	mlog.Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
@@ -80,7 +80,7 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	}
 
 	mlog.Info("Bulk export: exporting emoji")
-	if err := a.exportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
+	if err := a.exportCustomEmoji(writer, outPath, "exported_emoji"); err != nil {
 		return err
 	}
 
@@ -455,7 +455,7 @@ func (a *App) buildPostAttachments(postId string) (*[]AttachmentImportData, *mod
 	return &attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string) *model.AppError {
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
@@ -470,16 +470,17 @@ func (a *App) exportCustomEmoji(writer io.Writer, file string, pathToEmojiDir st
 
 		pageNumber++
 
-		pathToDir := a.createDirForEmoji(file, dirNameToExportEmoji)
+		emojiPath := filepath.Join(*a.Config().FileSettings.Directory, "emoji")
+		pathToDir := a.createDirForEmoji(outPath, exportDir)
 
 		for _, emoji := range customEmojiList {
-			emojiImagePath := pathToEmojiDir + emoji.Id + "/image"
+			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
 			err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
 			if err != nil {
 				return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
 			}
 
-			filePath := dirNameToExportEmoji + "/" + emoji.Id + "/image"
+			filePath := filepath.Join(exportDir, emoji.Id, "image")
 
 			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
 
@@ -494,9 +495,8 @@ func (a *App) exportCustomEmoji(writer io.Writer, file string, pathToEmojiDir st
 
 // Creates directory named 'exported_emoji' to copy the emoji files
 // Directory and the file specified by admin share the same path
-func (a *App) createDirForEmoji(file string, dirName string) string {
-	pathToFile, _ := filepath.Abs(file)
-	pathSlice := strings.Split(pathToFile, "/")
+func (a *App) createDirForEmoji(outPath, dirName string) string {
+	pathSlice := strings.Split(outPath, "/")
 	if len(pathSlice) > 0 {
 		pathSlice = pathSlice[:len(pathSlice)-1]
 	}
