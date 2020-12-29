@@ -47,7 +47,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(redirectTo) > 0 {
+	if redirectTo != "" {
 		if isActionMobileAuth && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
 			err := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
 			utils.RenderMobileError(c.App.Config(), w, err)
@@ -184,7 +184,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if hasRedirectURL {
 		if isActionMobileAuth {
-			redirectURL = utils.BuildUrlQueryStringWithTokenInfo(redirectURL, c.App.Session().Token, c.App.Session().GetCSRF())
+			// Mobile clients with redirect url support
+			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
+				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
+			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
 			redirectURL = c.GetSiteURLHeader() + redirectURL
@@ -194,6 +198,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch action {
+	// Mobile clients with web view implementation
 	case model.OAUTH_ACTION_MOBILE:
 		ReturnStatusOK(w)
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:

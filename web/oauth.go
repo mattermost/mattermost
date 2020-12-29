@@ -281,7 +281,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		isActionMobileAuth = action == model.OAUTH_ACTION_MOBILE
 		if val, ok := props["redirect_to"]; ok {
 			redirectURL = val
-			hasRedirectURL = len(redirectURL) > 0
+			hasRedirectURL = redirectURL != ""
 		}
 	}
 
@@ -345,7 +345,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// Mobile clients with redirect url support
-			redirectURL = utils.BuildUrlQueryStringWithTokenInfo(redirectURL, c.App.Session().Token, c.App.Session().GetCSRF())
+			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
+				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
+			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
 		}
@@ -364,7 +367,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectTo := r.URL.Query().Get("redirect_to")
 
-	if len(redirectTo) > 0 && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectTo) {
+	if redirectTo != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectTo) {
 		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -392,7 +395,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectTo := r.URL.Query().Get("redirect_to")
 
-	if len(redirectTo) > 0 && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
+	if redirectTo != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
 		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
 		utils.RenderMobileError(c.App.Config(), w, err)
 		return

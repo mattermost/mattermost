@@ -194,7 +194,7 @@ func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
 }
 
 // Append tokens to passed baseUrl as query params
-func BuildUrlQueryStringWithTokenInfo(baseUrl string, token string, csrf string) string {
+func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
 	u, err := url.Parse(baseUrl)
 	if err != nil {
 		return ""
@@ -203,8 +203,9 @@ func BuildUrlQueryStringWithTokenInfo(baseUrl string, token string, csrf string)
 	if err != nil {
 		return ""
 	}
-	q.Add(model.SESSION_COOKIE_TOKEN, token)
-	q.Add(model.SESSION_COOKIE_CSRF, csrf)
+	for key, value := range params {
+		q.Add(key, value)
+	}
 	u.RawQuery = q.Encode()
 	return u.String()
 }
