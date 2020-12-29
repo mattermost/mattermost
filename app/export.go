@@ -18,6 +18,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type BulkExportOpts struct {
+	IncludeAttachments bool
+	CreateArchive      bool
+}
+
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
@@ -53,7 +58,7 @@ var exportablePreferences = map[ComparablePreference]string{{
 }: "EmailInterval",
 }
 
-func (a *App) BulkExport(writer io.Writer, outPath string) *model.AppError {
+func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError {
 	mlog.Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
@@ -75,23 +80,70 @@ func (a *App) BulkExport(writer io.Writer, outPath string) *model.AppError {
 	}
 
 	mlog.Info("Bulk export: exporting posts")
-	if err := a.exportAllPosts(writer); err != nil {
+	err, attachments := a.exportAllPosts(writer, opts.IncludeAttachments)
+	if err != nil {
 		return err
 	}
 
 	mlog.Info("Bulk export: exporting emoji")
-	if err := a.exportCustomEmoji(writer, outPath, "exported_emoji"); err != nil {
+	if err = a.exportCustomEmoji(writer, outPath, "exported_emoji"); err != nil {
 		return err
 	}
 
 	mlog.Info("Bulk export: exporting direct channels")
-	if err := a.exportAllDirectChannels(writer); err != nil {
+	if err = a.exportAllDirectChannels(writer); err != nil {
 		return err
 	}
 
 	mlog.Info("Bulk export: exporting direct posts")
-	if err := a.exportAllDirectPosts(writer); err != nil {
+	directAttachments, err := a.exportAllDirectPosts(writer, opts.IncludeAttachments)
+	if err != nil {
 		return err
+	}
+
+	if opts.IncludeAttachments {
+		mlog.Info("Bulk export: exporting file attachments")
+		// add files to archive
+		exportFile := func(filePath string) *model.AppError {
+			rd, err := a.FileReader(filePath)
+			if err != nil {
+				return err
+			}
+			defer rd.Close()
+
+			if opts.CreateArchive {
+			} else {
+				filePath = filepath.Join(outPath, "data", filePath)
+				if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+					return model.NewAppError("BulkExport", "app.export.export_attachment.mkdirall.error",
+						nil, "err="+err.Error(), http.StatusInternalServerError)
+				}
+
+				file, err := os.Create(filePath)
+				if err != nil {
+					return model.NewAppError("BulkExport", "app.export.export_attachment.create_file.error",
+						nil, "err="+err.Error(), http.StatusInternalServerError)
+				}
+				defer file.Close()
+
+				if _, err := io.Copy(file, rd); err != nil {
+					return model.NewAppError("BulkExport", "app.export.export_attachment.copy_file.error",
+						nil, "err="+err.Error(), http.StatusInternalServerError)
+				}
+			}
+
+			return nil
+		}
+		for _, attachment := range attachments {
+			if err := exportFile(*attachment.Path); err != nil {
+				return err
+			}
+		}
+		for _, attachment := range directAttachments {
+			if err := exportFile(*attachment.Path); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -334,17 +386,18 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
+func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) (*model.AppError, []AttachmentImportData) {
+	var attachments []AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 
 	for {
 		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
 		if nErr != nil {
-			return model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError), nil
 		}
 
 		if len(posts) == 0 {
-			return nil
+			return nil, attachments
 		}
 
 		for _, post := range posts {
@@ -358,39 +411,49 @@ func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
 			postLine := ImportLineForPost(post)
 
 			var err *model.AppError
-			postLine.Post.Replies, err = a.buildPostReplies(post.Id)
+			var replyAttachments []AttachmentImportData
+			postLine.Post.Replies, replyAttachments, err = a.buildPostReplies(post.Id, withAttachments)
 			if err != nil {
-				return err
+				return err, nil
+			}
+			if withAttachments && len(replyAttachments) > 0 {
+				attachments = append(attachments, replyAttachments...)
 			}
 
 			postLine.Post.Reactions = &[]ReactionImportData{}
 			if post.HasReactions {
 				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
 				if err != nil {
-					return err
+					return err, nil
 				}
 			}
 
 			if len(post.FileIds) > 0 {
-				postLine.Post.Attachments, err = a.buildPostAttachments(post.Id)
+				postAttachments, err := a.buildPostAttachments(post.Id)
 				if err != nil {
-					return err
+					return err, nil
+				}
+				postLine.Post.Attachments = &postAttachments
+
+				if withAttachments && len(postAttachments) > 0 {
+					attachments = append(attachments, postAttachments...)
 				}
 			}
 
 			if err := a.exportWriteLine(writer, postLine); err != nil {
-				return err
+				return err, nil
 			}
 		}
 	}
 }
 
-func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
+func (a *App) buildPostReplies(postId string, withAttachments bool) (*[]ReplyImportData, []AttachmentImportData, *model.AppError) {
 	var replies []ReplyImportData
+	var attachments []AttachmentImportData
 
 	replyPosts, nErr := a.Srv().Store.Post().GetRepliesForExport(postId)
 	if nErr != nil {
-		return nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, nil, model.NewAppError("buildPostReplies", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reply := range replyPosts {
@@ -399,21 +462,24 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 			var appErr *model.AppError
 			replyImportObject.Reactions, appErr = a.BuildPostReactions(reply.Id)
 			if appErr != nil {
-				return nil, appErr
+				return nil, nil, appErr
 			}
 		}
 		if len(reply.FileIds) > 0 {
-			var appErr *model.AppError
-			replyImportObject.Attachments, appErr = a.buildPostAttachments(reply.Id)
+			postAttachments, appErr := a.buildPostAttachments(reply.Id)
 			if appErr != nil {
-				return nil, appErr
+				return nil, nil, appErr
+			}
+			replyImportObject.Attachments = &attachments
+			if withAttachments && len(postAttachments) > 0 {
+				attachments = append(attachments, postAttachments...)
 			}
 		}
 
 		replies = append(replies, *replyImportObject)
 	}
 
-	return &replies, nil
+	return &replies, attachments, nil
 }
 
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
@@ -441,7 +507,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 
 }
 
-func (a *App) buildPostAttachments(postId string) (*[]AttachmentImportData, *model.AppError) {
+func (a *App) buildPostAttachments(postId string) ([]AttachmentImportData, *model.AppError) {
 	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postId, false, false, false)
 	if nErr != nil {
 		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -452,7 +518,7 @@ func (a *App) buildPostAttachments(postId string) (*[]AttachmentImportData, *mod
 		attachments = append(attachments, AttachmentImportData{Path: &info.Path})
 	}
 
-	return &attachments, nil
+	return attachments, nil
 }
 
 func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string) *model.AppError {
@@ -496,11 +562,7 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string) *mo
 // Creates directory named 'exported_emoji' to copy the emoji files
 // Directory and the file specified by admin share the same path
 func (a *App) createDirForEmoji(outPath, dirName string) string {
-	pathSlice := strings.Split(outPath, "/")
-	if len(pathSlice) > 0 {
-		pathSlice = pathSlice[:len(pathSlice)-1]
-	}
-	pathToDir := strings.Join(pathSlice, "/") + "/" + dirName
+	pathToDir := filepath.Join(outPath, dirName)
 
 	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
 		os.Mkdir(pathToDir, os.ModePerm)
@@ -572,12 +634,13 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) exportAllDirectPosts(writer io.Writer) *model.AppError {
+func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
+	var attachments []AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	for {
 		posts, err := a.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
 		if err != nil {
-			return model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(posts) == 0 {
@@ -593,17 +656,21 @@ func (a *App) exportAllDirectPosts(writer io.Writer) *model.AppError {
 			}
 
 			// Do the Replies.
-			replies, err := a.buildPostReplies(post.Id)
+			replies, replyAttachments, err := a.buildPostReplies(post.Id, withAttachments)
 			if err != nil {
-				return err
+				return nil, err
+			}
+
+			if withAttachments && len(replyAttachments) > 0 {
+				attachments = append(attachments, replyAttachments...)
 			}
 
 			postLine := ImportLineForDirectPost(post)
 			postLine.DirectPost.Replies = replies
 			if err := a.exportWriteLine(writer, postLine); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
-	return nil
+	return attachments, nil
 }
