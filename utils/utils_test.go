@@ -5,7 +5,6 @@ package utils
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -162,19 +161,12 @@ func TestRemoveStringFromSlice(t *testing.T) {
 	assert.Equal(t, RemoveStringFromSlice("four", a), expected)
 }
 
-func TestBuildUrlQueryStringFromCookies(t *testing.T) {
+func TestAppendQueryParamsToURL(t *testing.T) {
 	url := "mattermost://callback"
-	recorder := httptest.NewRecorder()
-	http.SetCookie(recorder, &http.Cookie{
-		Name:  "usertoken",
-		Value: "token123",
+	redirectUrl := AppendQueryParamsToURL(url, map[string]string{
+		"key1": "value1",
+		"key2": "value2",
 	})
-	request := &http.Request{
-		Header: http.Header{
-			"Cookie": recorder.HeaderMap["Set-Cookie"],
-		},
-	}
-	redirectUrl := BuildUrlQueryStringFromCookies(url, request)
-	expected := url + "?usertoken=token123"
+	expected := url + "?key1=value1&key2=value2"
 	assert.Equal(t, redirectUrl, expected)
 }
