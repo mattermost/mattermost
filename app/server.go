@@ -729,7 +729,7 @@ func (s *Server) startInterClusterServices(license *model.License) {
 	var err error
 
 	// TODO: check remote cluster service license (MM-30838)
-	if *s.Config().ExperimentalSettings.EnableRemoteClusterService {
+	if *s.Config().ExperimentalSettings.EnableRemoteClusterService && s.Config().FeatureFlags.EnableRemoteClusterService {
 		s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
 		if err != nil {
 			mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
