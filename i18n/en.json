@@ -1497,8 +1497,12 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
-    "id": "api.invalid_custom_scheme_url",
-    "translation": "Invalid custom scheme url provided"
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
   },
   {
     "id": "api.io_error",

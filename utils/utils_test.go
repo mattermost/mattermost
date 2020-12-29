@@ -178,8 +178,3 @@ func TestBuildUrlQueryStringFromCookies(t *testing.T) {
 	expected := url + "?usertoken=token123"
 	assert.Equal(t, redirectUrl, expected)
 }
-
-func TestIsValidCustomSchemeUrl(t *testing.T) {
-	assert.Equal(t, IsValidCustomSchemeUrl("https://mattermost"), false)
-	assert.Equal(t, IsValidCustomSchemeUrl("mattermost://callback"), true)
-}

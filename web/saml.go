@@ -48,9 +48,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(redirectTo) > 0 {
-		if isActionMobileAuth && !utils.IsValidCustomSchemeUrl(redirectTo) {
-			err := model.NewAppError("loginWithSaml", "api.invalid_custom_scheme_url", nil, "", http.StatusBadRequest)
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		if isActionMobileAuth && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
+			err := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+			utils.RenderMobileError(c.App.Config(), w, err)
 			return
 		}
 		relayProps["redirect_to"] = redirectTo
@@ -103,18 +103,18 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("action", action)
 
 	isActionMobileAuth := action == model.OAUTH_ACTION_MOBILE
-	redirectUrl := ""
-	hasRedirectUrl := false
+	redirectURL := ""
+	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
-		redirectUrl = val
-		hasRedirectUrl = len(val) > 0
+		redirectURL = val
+		hasRedirectURL = len(val) > 0
 	}
 
 	handleError := func(err *model.AppError) {
 		if isActionMobileAuth {
 			err.Translate(c.App.T)
-			if hasRedirectUrl {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectUrl)
+			if hasRedirectURL {
+				utils.RenderMobileError(c.App.Config(), w, err)
 			} else {
 				w.Write([]byte(err.ToJson()))
 			}
@@ -182,13 +182,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.AttachSessionCookies(w, r)
 
-	if hasRedirectUrl {
+	if hasRedirectURL {
 		if isActionMobileAuth {
-			redirectUrl = utils.BuildUrlQueryStringFromCookies(redirectUrl, r)
-			utils.RenderMobileAuthComplete(w, redirectUrl)
+			redirectURL = utils.BuildUrlQueryStringWithTokenInfo(redirectURL, c.App.Session().Token, c.App.Session().GetCSRF())
+			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
-			redirectUrl = c.GetSiteURLHeader() + redirectUrl
-			http.Redirect(w, r, redirectUrl, http.StatusFound)
+			redirectURL = c.GetSiteURLHeader() + redirectURL
+			http.Redirect(w, r, redirectURL, http.StatusFound)
 		}
 		return
 	}

@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -191,14 +193,36 @@ func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
 	return u.String()
 }
 
-var DefaultUrlSchemes = []string{"http", "https", "ftp", "mailto", "tel"}
-
-// Validate .. if passed redirectUrl is a valid mobile app custom scheme url
-// Scheme should not match any default schemes
-func IsValidCustomSchemeUrl(customSchemeUrl string) bool {
-	u, err := url.Parse(customSchemeUrl)
+// Append tokens to passed baseUrl as query params
+func BuildUrlQueryStringWithTokenInfo(baseUrl string, token string, csrf string) string {
+	u, err := url.Parse(baseUrl)
 	if err != nil {
-		return false
+		return ""
 	}
-	return !StringInSlice(u.Scheme, DefaultUrlSchemes)
+	q, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return ""
+	}
+	q.Add(model.SESSION_COOKIE_TOKEN, token)
+	q.Add(model.SESSION_COOKIE_CSRF, csrf)
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+// Validates RedirectURL passed during OAuth or SAML
+func IsValidWebAuthRedirectURL(config *model.Config, redirectUrl string) bool {
+	if config.ServiceSettings.SiteURL != nil {
+		siteUrl := *config.ServiceSettings.SiteURL
+		return strings.Index(strings.ToLower(redirectUrl), strings.ToLower(siteUrl)) == 0
+	}
+	return false
+}
+
+// Validates Mobile Custom URL Scheme passed during OAuth or SAML
+func IsValidMobileAuthRedirectURL(config *model.Config, redirectUrl string) bool {
+	if config.NativeAppSettings.AppCustomUrlScheme != nil {
+		urlScheme := *config.NativeAppSettings.AppCustomUrlScheme
+		return strings.Index(strings.ToLower(redirectUrl), strings.ToLower(urlScheme)) == 0
+	}
+	return false
 }

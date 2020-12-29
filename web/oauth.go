@@ -273,22 +273,22 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
 
 	action := ""
-	hasRedirectUrl := false
+	hasRedirectURL := false
 	isActionMobileAuth := false
-	redirectUrl := ""
+	redirectURL := ""
 	if props != nil {
 		action = props["action"]
 		isActionMobileAuth = action == model.OAUTH_ACTION_MOBILE
 		if val, ok := props["redirect_to"]; ok {
-			redirectUrl = val
-			hasRedirectUrl = len(redirectUrl) > 0
+			redirectURL = val
+			hasRedirectURL = len(redirectURL) > 0
 		}
 	}
 
 	renderError := func(err *model.AppError) {
 		if isActionMobileAuth {
-			if hasRedirectUrl {
-				utils.RenderMobileError(c.App.Config(), w, err, redirectUrl)
+			if hasRedirectURL {
+				utils.RenderMobileError(c.App.Config(), w, err)
 			} else {
 				w.Write([]byte(err.ToJson()))
 			}
@@ -313,9 +313,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
-		redirectUrl = c.GetSiteURLHeader() + "/login?extra=signin_change"
+		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
-		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
+		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
 		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
 		if parseErr != nil {
@@ -329,26 +329,30 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.AttachSessionCookies(w, r)
+		// Attach cookies only for: WEB & Mobile clients with webview support
+		if (isActionMobileAuth && !hasRedirectURL) || !isActionMobileAuth {
+			c.App.AttachSessionCookies(w, r)
+		}
 
 		if !isActionMobileAuth {
-			redirectUrl = c.GetSiteURLHeader()
-		}
-	}
-
-	if isActionMobileAuth {
-		// Mobile clients with webview support
-		if !hasRedirectUrl {
+			// If no redirect url is passed, get the default one
+			if !hasRedirectURL {
+				redirectURL = c.GetSiteURLHeader()
+			}
+		} else {
+			// Mobile clients with webview support
+			if !hasRedirectURL {
+				return
+			}
+			// Mobile clients with redirect url support
+			redirectURL = utils.BuildUrlQueryStringWithTokenInfo(redirectURL, c.App.Session().Token, c.App.Session().GetCSRF())
+			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
 		}
-		// Mobile clients with redirect url support
-		redirectUrl = utils.BuildUrlQueryStringFromCookies(redirectUrl, r)
-		utils.RenderMobileAuthComplete(w, redirectUrl)
-		return
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
 func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -358,6 +362,12 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginHint := r.URL.Query().Get("login_hint")
+	redirectTo := r.URL.Query().Get("redirect_to")
+
+	if len(redirectTo) > 0 && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectTo) {
+		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
@@ -365,7 +375,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, "", loginHint, false)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -382,9 +392,9 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectTo := r.URL.Query().Get("redirect_to")
 
-	if len(redirectTo) > 0 && !utils.IsValidCustomSchemeUrl(redirectTo) {
-		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_scheme_url", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+	if len(redirectTo) > 0 && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
+		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+		utils.RenderMobileError(c.App.Config(), w, err)
 		return
 	}
 
