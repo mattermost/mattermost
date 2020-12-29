@@ -144,6 +144,7 @@ github.com/blevesearch/zap/v15
 # github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 ## explicit
 # github.com/cespare/xxhash/v2 v2.1.1
+## explicit
 github.com/cespare/xxhash/v2
 # github.com/corpix/uarand v0.1.1
 ## explicit
