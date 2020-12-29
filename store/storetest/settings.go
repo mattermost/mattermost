@@ -29,9 +29,8 @@ const (
 func getEnv(name, defaultValue string) string {
 	if value := os.Getenv(name); value != "" {
 		return value
-	} else {
-		return defaultValue
 	}
+	return defaultValue
 }
 
 func log(message string) {
