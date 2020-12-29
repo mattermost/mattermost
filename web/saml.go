@@ -49,8 +49,8 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if redirectTo != "" {
 		if isActionMobileAuth && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
-			err := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
-			utils.RenderMobileError(c.App.Config(), w, err)
+			invalidSchemeErr := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr)
 			return
 		}
 		relayProps["redirect_to"] = redirectTo
