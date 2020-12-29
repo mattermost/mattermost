@@ -371,6 +371,13 @@ func (a *App) exportAllPosts(writer io.Writer) *model.AppError {
 				}
 			}
 
+			if len(post.FileIds) > 0 {
+				postLine.Post.Attachments, err = a.buildPostAttachments(post.Id)
+				if err != nil {
+					return err
+				}
+			}
+
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return err
 			}
@@ -395,6 +402,14 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 				return nil, appErr
 			}
 		}
+		if len(reply.FileIds) > 0 {
+			var appErr *model.AppError
+			replyImportObject.Attachments, appErr = a.buildPostAttachments(reply.Id)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+
 		replies = append(replies, *replyImportObject)
 	}
 
@@ -424,6 +439,20 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 
 	return &reactionsOfPost, nil
 
+}
+
+func (a *App) buildPostAttachments(postId string) (*[]AttachmentImportData, *model.AppError) {
+	infos, nErr := a.Srv().Store.FileInfo().GetForPost(postId, false, false, false)
+	if nErr != nil {
+		return nil, model.NewAppError("buildPostAttachments", "app.file_info.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	attachments := make([]AttachmentImportData, 0, len(infos))
+	for _, info := range infos {
+		attachments = append(attachments, AttachmentImportData{Path: &info.Path})
+	}
+
+	return &attachments, nil
 }
 
 func (a *App) exportCustomEmoji(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
