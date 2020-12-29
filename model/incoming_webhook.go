@@ -182,9 +182,8 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o, nil
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *AppError) {
@@ -211,7 +210,6 @@ func (o *IncomingWebhookRequest) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
 		return ""
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
