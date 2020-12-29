@@ -28,7 +28,7 @@ func prettyPrintStruct(t interface{}) string {
 func structToMap(t interface{}) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 

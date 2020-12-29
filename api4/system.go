@@ -361,7 +361,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(supportedTimezones)
 	if err != nil {
-		c.Log.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
+		c.Logger.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

@@ -56,7 +56,7 @@ func (job *PluginHealthCheckJob) CheckPlugin(id string) {
 		return
 	}
 
-	mlog.Error("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
+	mlog.Warn("Health check failed for plugin", mlog.String("id", id), mlog.Err(err))
 	timestamps := job.getStoredTimestamps(id)
 	timestamps = append(timestamps, time.Now())
 
