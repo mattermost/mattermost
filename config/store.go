@@ -6,7 +6,6 @@ package config
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -83,7 +82,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 }
 
 func getBackingStore(dsn string, watch bool) (BackingStore, error) {
-	if strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://") {
+	if IsDatabaseDSN(dsn) {
 		return NewDatabaseStore(dsn)
 	}
 

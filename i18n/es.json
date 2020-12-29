@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Proveedor de servicios de OAuth no es compatible."
+    "translation": "{{.Service}} SSO a través de OAuth 2.0 no está disponible en este servidor."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2139,10 +2139,6 @@
     "translation": "No se pudo obtener los datos de autorización del objeto de {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "No se pudo crear el token de datos para la verificación de correo electrónico"
   },
@@ -2153,10 +2149,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "No se pudo crear el usuario basándose en el objeto de {{.Service}}."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2201,10 +2193,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "La transferencia de autenticación no está configurado o disponible en este servidor."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Proveedor de servicios de OAuth no es compatible."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4616,7 +4604,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identificadores de archivo son inválidos. Toma en cuenta que la carga de archivos está limitado a un máximo de 5 archivos. Por favor utiliza mensajes adicionales para agregar más archivos."
+    "translation": "Identificadores de archivo son inválidos. Toma en cuenta que la carga de archivos está limitado a un máximo de 10 archivos. Por favor utiliza mensajes adicionales para agregar más archivos."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8005,5 +7993,13 @@
   {
     "id": "api.file.new_backend.s3.app_error",
     "translation": "Se encontró un error al abrir una conexión a S3."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Actualizar"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Contactar a Soporte"
   }
 ]

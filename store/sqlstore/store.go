@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -38,6 +39,12 @@ const (
 	MYSQL_DUP_TABLE_ERROR_CODE = uint16(1050) // see https://dev.mysql.com/doc/mysql-errors/5.7/en/server-error-reference.html#error_er_table_exists_error
 	DB_PING_ATTEMPTS           = 18
 	DB_PING_TIMEOUT_SECS       = 10
+	// This is a numerical version string by postgres. The format is
+	// 2 characters for major, minor, and patch version prior to 10.
+	// After 10, it's major and minor only.
+	// 10.1 would be 100001.
+	// 9.6.3 would be 90603.
+	MINIMUM_REQUIRED_POSTGRES_VERSION = 100000
 )
 
 const (
@@ -321,10 +328,17 @@ func (ss *SqlStore) GetCurrentSchemaVersion() string {
 	return version
 }
 
-func (ss *SqlStore) GetDbVersion() (string, error) {
+// GetDbVersion returns the version of the database being used.
+// If numerical is set to true, it attempts to return a numerical version string
+// that can be parsed by callers.
+func (ss *SqlStore) GetDbVersion(numerical bool) (string, error) {
 	var sqlVersion string
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sqlVersion = `SHOW server_version`
+		if numerical {
+			sqlVersion = `SHOW server_version_num`
+		} else {
+			sqlVersion = `SHOW server_version`
+		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		sqlVersion = `SELECT version()`
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
@@ -1346,4 +1360,14 @@ func IsDuplicate(err error) bool {
 	}
 
 	return false
+}
+
+// VersionString converts an integer representation of a DB version
+// to a pretty-printed string.
+// Postgres doesn't follow three-part version numbers from 10.0 onwards:
+// https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
+func VersionString(v int) string {
+	minor := v % 10000
+	major := v / 10000
+	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
 }

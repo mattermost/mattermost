@@ -1321,39 +1321,23 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "File does not exist."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Encountered an error opening the file."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Encountered an error appending to a file in S3."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Encountered an error writing to S3."
+    "id": "api.file.append_file.app_error",
+    "translation": "Unable to append data to the file."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
+    "id": "api.file.file_exists.app_error",
     "translation": "Unable to check if the file exists."
   },
   {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to check if the file exists."
+    "id": "api.file.file_reader.app_error",
+    "translation": "Unable to get a file reader."
   },
   {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Unable to get the file size."
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
+    "id": "api.file.file_size.app_error",
     "translation": "Unable to get the file size."
   },
   {
@@ -1377,56 +1361,36 @@
     "translation": "Unable to get public link for file. File must be attached to a post that can be read by the current user."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Unable to copy file within S3."
+    "id": "api.file.list_directory.app_error",
+    "translation": "Unable to list directory."
   },
   {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Unable to delete file from S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Unable to move file locally."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Encountered an error opening a connection to S3."
+    "id": "api.file.move_file.app_error",
+    "translation": "Unable to move file."
   },
   {
     "id": "api.file.no_driver.app_error",
     "translation": "No file driver selected."
   },
   {
+    "id": "api.file.read_file.app_error",
+    "translation": "Unable to read the file."
+  },
+  {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server file storage."
   },
   {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Encountered an error reading from S3 storage."
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Unable to remove the directory."
   },
   {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Encountered an error opening a reader from local server file storage."
+    "id": "api.file.remove_file.app_error",
+    "translation": "Unable to remove the file."
   },
   {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Encountered an error opening a reader from S3 storage."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Don't have permissions to write to local path specified or other error."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Unable to create bucket."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Error checking if bucket exists."
-  },
-  {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Error trying to list objects."
+    "id": "api.file.test_connection.app_error",
+    "translation": "Unable to access the file storage."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -1469,16 +1433,8 @@
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Encountered an error writing to S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Encountered an error writing to local server storage."
+    "id": "api.file.write_file.app_error",
+    "translation": "Unable to write the file."
   },
   {
     "id": "api.image.get.app_error",
@@ -1583,6 +1539,10 @@
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
     "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Error getting the license renewal link"
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -1977,10 +1937,6 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
-  },
-  {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "System Admin role cannot be edited or changed"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2636,7 +2592,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.deactivate_body.info",
@@ -4743,6 +4699,18 @@
     "translation": "Unable to update the job."
   },
   {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Failed to generate a new renewal token."
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "This type of license doesn't support renewal token generation"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "No license present"
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -6039,6 +6007,10 @@
     "translation": "Unable to convert export to XML."
   },
   {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Unable to write the export file."
+  },
+  {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
   },
@@ -6119,6 +6091,10 @@
     "translation": "Unable to create the warning file."
   },
   {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Unable to write the csv file."
+  },
+  {
     "id": "ent.compliance.csv.zip.creation.appError",
     "translation": "Unable to create the zip export file."
   },
@@ -6133,6 +6109,10 @@
   {
     "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
     "translation": "Unable to re-read the Global Relay temporary export file."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Unable to write the global relay file."
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
@@ -7808,7 +7788,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8261,30 +8241,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Encountered an error removing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Encountered an error removing file from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",

@@ -46,6 +46,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	authRequest := model.AuthorizeRequestFromJson(r.Body)
 	if authRequest == nil {
 		c.SetInvalidParam("authorize_request")
+		return
 	}
 
 	if err := authRequest.IsValid(); err != nil {

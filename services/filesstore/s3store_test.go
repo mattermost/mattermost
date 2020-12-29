@@ -15,7 +15,7 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 
 	err := CheckMandatoryS3Fields(&cfg)
 	require.NotNil(t, err)
-	require.Equal(t, err.Message, "api.admin.test_s3.missing_s3_bucket", "should've failed with missing s3 bucket")
+	require.Equal(t, err.Error(), "missing s3 bucket settings", "should've failed with missing s3 bucket")
 
 	cfg.AmazonS3Bucket = model.NewString("test-mm")
 	err = CheckMandatoryS3Fields(&cfg)
