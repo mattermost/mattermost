@@ -732,8 +732,9 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License, app *App) {
-	allowRemoteClusterService := license != nil && *license.Features.RemoteClusterService
-	allowSharedChannels := license != nil && *license.Features.SharedChannels
+	// 	TODO: use license once one can be genenerated
+	allowRemoteClusterService := true // license != nil && *license.Features.RemoteClusterService
+	allowSharedChannels := true       //license != nil && *license.Features.SharedChannels
 
 	// Remote Cluster service
 
