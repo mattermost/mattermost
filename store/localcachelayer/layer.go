@@ -29,8 +29,8 @@ const (
 	ChannelGuestCountCacheSize = model.CHANNEL_CACHE_SIZE
 	ChannelGuestCountCacheSec  = 30 * 60
 
-	WEBHOOK_CACHE_SIZE = 25000
-	WebhookCacheSec    = 15 * 60
+	WebhookCacheSize = 25000
+	WebhookCacheSec  = 15 * 60
 
 	EmojiCacheSize = 5000
 	EmojiCacheSec  = 30 * 60
@@ -171,7 +171,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Webhooks
 	if localCacheStore.webhookCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   WEBHOOK_CACHE_SIZE,
+		Size:                   WebhookCacheSize,
 		Name:                   "Webhook",
 		DefaultExpiry:          WebhookCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS,
