@@ -112,7 +112,7 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	}
 
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
-		mlog.Error("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
+		mlog.Warn("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
 		return err
 	}
 
