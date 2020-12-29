@@ -163,6 +163,7 @@ const (
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
 	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
 
+	NATIVEAPP_SETTINGS_DEFAULT_APP_CUSTOM_URL_SCHEME     = "mattermost://"
 	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
@@ -2426,6 +2427,7 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
+	AppCustomUrlScheme     *string `access:"site,write_restrictable,cloud_restrictable"`
 	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
@@ -2442,6 +2444,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.IosAppDownloadLink == nil {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
+	}
+
+	if s.AppCustomUrlScheme == nil {
+		s.AppCustomUrlScheme = NewString(NATIVEAPP_SETTINGS_DEFAULT_APP_CUSTOM_URL_SCHEME)
 	}
 }
 
