@@ -33,7 +33,7 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.
 }
 
 func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
-	if len(role.Name) != 0 {
+	if role.Name != "" {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
 		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	}

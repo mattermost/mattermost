@@ -5,7 +5,8 @@ package filesstore
 
 import (
 	"io"
-	"net/http"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -16,28 +17,28 @@ type ReadCloseSeeker interface {
 }
 
 type FileBackend interface {
-	TestConnection() *model.AppError
+	TestConnection() error
 
-	Reader(path string) (ReadCloseSeeker, *model.AppError)
-	ReadFile(path string) ([]byte, *model.AppError)
-	FileExists(path string) (bool, *model.AppError)
-	FileSize(path string) (int64, *model.AppError)
-	CopyFile(oldPath, newPath string) *model.AppError
-	MoveFile(oldPath, newPath string) *model.AppError
-	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
-	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
-	RemoveFile(path string) *model.AppError
+	Reader(path string) (ReadCloseSeeker, error)
+	ReadFile(path string) ([]byte, error)
+	FileExists(path string) (bool, error)
+	FileSize(path string) (int64, error)
+	CopyFile(oldPath, newPath string) error
+	MoveFile(oldPath, newPath string) error
+	WriteFile(fr io.Reader, path string) (int64, error)
+	AppendFile(fr io.Reader, path string) (int64, error)
+	RemoveFile(path string) error
 
-	ListDirectory(path string) (*[]string, *model.AppError)
-	RemoveDirectory(path string) *model.AppError
+	ListDirectory(path string) (*[]string, error)
+	RemoveDirectory(path string) error
 }
 
-func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, *model.AppError) {
+func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, error) {
 	switch *settings.DriverName {
 	case model.IMAGE_DRIVER_S3:
 		backend, err := NewS3FileBackend(settings, enableComplianceFeatures)
 		if err != nil {
-			return nil, model.NewAppError("NewFileBackend", "api.file.new_backend.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
 		}
 		return backend, nil
 	case model.IMAGE_DRIVER_LOCAL:
@@ -45,5 +46,5 @@ func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool)
 			directory: *settings.Directory,
 		}, nil
 	}
-	return nil, model.NewAppError("NewFileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError)
+	return nil, errors.New("no valid filestorage driver found")
 }

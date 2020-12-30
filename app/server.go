@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -319,6 +320,19 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				ver, err2 := s.sqlStore.GetDbVersion(true)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot get DB version")
+				}
+				intVer, err2 := strconv.Atoi(ver)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot parse DB version")
+				}
+				if intVer < sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION), sqlstore.VersionString(intVer))
+				}
+			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -465,11 +479,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	backend, appErr := s.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+		}
 	}
 
 	s.timezones = timezones.New()
@@ -1531,7 +1547,11 @@ func (s *Server) stopSearchEngine() {
 
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
-	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return backend, nil
 }
 
 func (s *Server) TotalWebsocketConnections() int {

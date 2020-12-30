@@ -520,7 +520,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
-	if len(args.Command) != 0 {
+	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
 		trigger = parts[0][1:]
 		trigger = strings.ToLower(trigger)
@@ -530,7 +530,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Error("error occurred in handling command response post", mlog.Err(err))
+		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -539,7 +539,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Error("error occurred in handling command response post", mlog.Err(err))
+				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
@@ -561,7 +561,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.Type = response.Type
 	post.SetProps(response.Props)
 
-	if len(response.ChannelId) != 0 {
+	if response.ChannelId != "" {
 		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
@@ -573,20 +573,20 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	isBotPost := !builtIn
 
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
-		if len(command.Username) != 0 {
+		if command.Username != "" {
 			post.AddProp("override_username", command.Username)
 			isBotPost = true
-		} else if len(response.Username) != 0 {
+		} else if response.Username != "" {
 			post.AddProp("override_username", response.Username)
 			isBotPost = true
 		}
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if len(command.IconURL) != 0 {
+		if command.IconURL != "" {
 			post.AddProp("override_icon_url", command.IconURL)
 			isBotPost = true
-		} else if len(response.IconURL) != 0 {
+		} else if response.IconURL != "" {
 			post.AddProp("override_icon_url", response.IconURL)
 			isBotPost = true
 		} else {

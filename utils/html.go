@@ -43,11 +43,11 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 		return nil, err
 	}
 
-	if htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html")); err != nil {
+	htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html"))
+	if err != nil {
 		return nil, err
-	} else {
-		ret.templates.Store(htmlTemplates)
 	}
+	ret.templates.Store(htmlTemplates)
 
 	go func() {
 		defer close(ret.stopped)
@@ -112,7 +112,7 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	}
 
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
-		mlog.Error("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
+		mlog.Warn("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
 		return err
 	}
 

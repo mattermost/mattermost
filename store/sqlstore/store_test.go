@@ -369,7 +369,7 @@ func TestGetDbVersion(t *testing.T) {
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
-			version, err := store.GetDbVersion()
+			version, err := store.GetDbVersion(false)
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
@@ -468,6 +468,31 @@ func TestIsDuplicate(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, expected, IsDuplicate(err))
 		})
+	}
+}
+
+func TestVersionString(t *testing.T) {
+	versions := []struct {
+		input  int
+		output string
+	}{
+		{
+			input:  100000,
+			output: "10.0",
+		},
+		{
+			input:  90603,
+			output: "9.603",
+		},
+		{
+			input:  120005,
+			output: "12.5",
+		},
+	}
+
+	for _, v := range versions {
+		out := VersionString(v.input)
+		assert.Equal(t, v.output, out)
 	}
 }
 

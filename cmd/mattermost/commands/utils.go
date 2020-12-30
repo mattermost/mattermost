@@ -5,14 +5,19 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
+
+const CUSTOM_DEFAULTS_ENV_VAR = "MM_CUSTOM_DEFAULTS_PATH"
 
 // prettyPrintStruct will return a prettyPrint version of a given struct
 func prettyPrintStruct(t interface{}) string {
@@ -115,4 +120,25 @@ func getConfigDSN(command *cobra.Command, env map[string]string) string {
 	}
 
 	return configDSN
+}
+
+func loadCustomDefaults() (*model.Config, error) {
+	customDefaultsPath := os.Getenv(CUSTOM_DEFAULTS_ENV_VAR)
+	if customDefaultsPath == "" {
+		return nil, nil
+	}
+
+	file, err := os.Open(customDefaultsPath)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open custom defaults file at %q: %w", customDefaultsPath, err)
+	}
+	defer file.Close()
+
+	var customDefaults *model.Config
+	err = json.NewDecoder(file).Decode(&customDefaults)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode custom defaults configuration: %w", err)
+	}
+
+	return customDefaults, nil
 }
