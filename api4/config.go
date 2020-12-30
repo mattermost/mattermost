@@ -229,7 +229,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Do not allow plugin uploads to be toggled through the API
 	if cfg.PluginSettings.EnableUploads != nil && *cfg.PluginSettings.EnableUploads != *appCfg.PluginSettings.EnableUploads {
-		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]interface{}{"Name": "PluginSettings.EnableUploads"}, "", http.StatusForbidden)
 		return
 	}
 
