@@ -4,6 +4,7 @@
 package app
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -59,6 +60,18 @@ var exportablePreferences = map[ComparablePreference]string{{
 }
 
 func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) *model.AppError {
+	var zipWr *zip.Writer
+	if opts.CreateArchive {
+		var err error
+		zipWr = zip.NewWriter(writer)
+		defer zipWr.Close()
+		writer, err = zipWr.Create("import.jsonl")
+		if err != nil {
+			return model.NewAppError("BulkExport", "app.export.zip_create.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 	mlog.Info("Bulk export: exporting version")
 	if err := a.exportVersion(writer); err != nil {
 		return err
@@ -86,7 +99,8 @@ func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) 
 	}
 
 	mlog.Info("Bulk export: exporting emoji")
-	if err = a.exportCustomEmoji(writer, outPath, "exported_emoji"); err != nil {
+	emojiPaths, err := a.exportCustomEmoji(writer, outPath, "exported_emoji", !opts.CreateArchive)
+	if err != nil {
 		return err
 	}
 
@@ -103,44 +117,18 @@ func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) 
 
 	if opts.IncludeAttachments {
 		mlog.Info("Bulk export: exporting file attachments")
-		// add files to archive
-		exportFile := func(filePath string) *model.AppError {
-			rd, err := a.FileReader(filePath)
-			if err != nil {
-				return err
-			}
-			defer rd.Close()
-
-			if opts.CreateArchive {
-			} else {
-				filePath = filepath.Join(outPath, "data", filePath)
-				if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
-					return model.NewAppError("BulkExport", "app.export.export_attachment.mkdirall.error",
-						nil, "err="+err.Error(), http.StatusInternalServerError)
-				}
-
-				file, err := os.Create(filePath)
-				if err != nil {
-					return model.NewAppError("BulkExport", "app.export.export_attachment.create_file.error",
-						nil, "err="+err.Error(), http.StatusInternalServerError)
-				}
-				defer file.Close()
-
-				if _, err := io.Copy(file, rd); err != nil {
-					return model.NewAppError("BulkExport", "app.export.export_attachment.copy_file.error",
-						nil, "err="+err.Error(), http.StatusInternalServerError)
-				}
-			}
-
-			return nil
-		}
 		for _, attachment := range attachments {
-			if err := exportFile(*attachment.Path); err != nil {
+			if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
 				return err
 			}
 		}
 		for _, attachment := range directAttachments {
-			if err := exportFile(*attachment.Path); err != nil {
+			if err := a.exportFile(outPath, *attachment.Path, zipWr); err != nil {
+				return err
+			}
+		}
+		for _, emojiPath := range emojiPaths {
+			if err := a.exportFile(outPath, emojiPath, zipWr); err != nil {
 				return err
 			}
 		}
@@ -521,13 +509,14 @@ func (a *App) buildPostAttachments(postId string) ([]AttachmentImportData, *mode
 	return attachments, nil
 }
 
-func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string) *model.AppError {
+func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string, exportFiles bool) ([]string, *model.AppError) {
+	var emojiPaths []string
 	pageNumber := 0
 	for {
 		customEmojiList, err := a.GetEmojiList(pageNumber, 100, model.EMOJI_SORT_BY_NAME)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if len(customEmojiList) == 0 {
@@ -537,37 +526,34 @@ func (a *App) exportCustomEmoji(writer io.Writer, outPath, exportDir string) *mo
 		pageNumber++
 
 		emojiPath := filepath.Join(*a.Config().FileSettings.Directory, "emoji")
-		pathToDir := a.createDirForEmoji(outPath, exportDir)
+		pathToDir := filepath.Join(outPath, exportDir)
+		if exportFiles {
+			if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
+				os.Mkdir(pathToDir, os.ModePerm)
+			}
+		}
 
 		for _, emoji := range customEmojiList {
 			emojiImagePath := filepath.Join(emojiPath, emoji.Id, "image")
-			err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
-			if err != nil {
-				return model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+			filePath := filepath.Join(exportDir, emoji.Id, "image")
+			if exportFiles {
+				err := a.copyEmojiImages(emoji.Id, emojiImagePath, pathToDir)
+				if err != nil {
+					return nil, model.NewAppError("BulkExport", "app.export.export_custom_emoji.copy_emoji_images.error", nil, "err="+err.Error(), http.StatusBadRequest)
+				}
+			} else {
+				filePath = filepath.Join("emoji", emoji.Id, "image")
+				emojiPaths = append(emojiPaths, filePath)
 			}
 
-			filePath := filepath.Join(exportDir, emoji.Id, "image")
-
 			emojiImportObject := ImportLineFromEmoji(emoji, filePath)
-
 			if err := a.exportWriteLine(writer, emojiImportObject); err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return nil
-}
-
-// Creates directory named 'exported_emoji' to copy the emoji files
-// Directory and the file specified by admin share the same path
-func (a *App) createDirForEmoji(outPath, dirName string) string {
-	pathToDir := filepath.Join(outPath, dirName)
-
-	if _, err := os.Stat(pathToDir); os.IsNotExist(err) {
-		os.Mkdir(pathToDir, os.ModePerm)
-	}
-	return pathToDir
+	return emojiPaths, nil
 }
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
@@ -673,4 +659,45 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 		}
 	}
 	return attachments, nil
+}
+
+func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.AppError {
+	var wr io.Writer
+	var err error
+	rd, appErr := a.FileReader(filePath)
+	if appErr != nil {
+		return appErr
+	}
+	defer rd.Close()
+
+	if zipWr != nil {
+		wr, err = zipWr.CreateHeader(&zip.FileHeader{
+			Name:   filepath.Join("data", filePath),
+			Method: zip.Store,
+		})
+		if err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.zip_create_header.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		filePath = filepath.Join(outPath, "data", filePath)
+		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+
+		wr, err = os.Create(filePath)
+		if err != nil {
+			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.create_file.error",
+				nil, "err="+err.Error(), http.StatusInternalServerError)
+		}
+		defer wr.(*os.File).Close()
+	}
+
+	if _, err := io.Copy(wr, rd); err != nil {
+		return model.NewAppError("exportFileAttachment", "app.export.export_attachment.copy_file.error",
+			nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }

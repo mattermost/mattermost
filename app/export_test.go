@@ -112,16 +112,6 @@ func TestExportUserChannels(t *testing.T) {
 	}
 }
 
-func TestDirCreationForEmoji(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
-	defer os.Remove(pathToDir)
-	_, err := os.Stat(pathToDir)
-	require.False(t, os.IsNotExist(err), "Directory exported_emoji_test should exist")
-}
-
 func TestCopyEmojiImages(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -171,7 +161,7 @@ func TestExportCustomEmoji(t *testing.T) {
 	outPath, err := filepath.Abs(filePath)
 	require.Nil(t, err)
 
-	err = th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji)
+	_, err = th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji, false)
 	require.Nil(t, err, "should not have failed")
 }
 
