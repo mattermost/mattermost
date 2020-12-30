@@ -62,7 +62,7 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlStore
@@ -232,11 +232,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -952,7 +952,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})

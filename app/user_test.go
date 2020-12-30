@@ -730,7 +730,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)

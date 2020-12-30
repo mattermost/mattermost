@@ -368,10 +368,10 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigExperimental,
 			TrackConfigAnalytics,
 			TrackConfigPlugin,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
+			TrackActivity,
+			TrackServer,
 			TrackConfigMessageExport,
-			TRACK_PLUGINS,
+			TrackPlugins,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -410,10 +410,10 @@ func TestRudderTelemetry(t *testing.T) {
 			TrackConfigExperimental,
 			TrackConfigAnalytics,
 			TrackConfigPlugin,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
+			TrackActivity,
+			TrackServer,
 			TrackConfigMessageExport,
-			TRACK_PLUGINS,
+			TrackPlugins,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -495,7 +495,7 @@ func TestRudderTelemetry(t *testing.T) {
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_SERVER {
+			if b.Event == TrackServer {
 				assert.Equal(t, b.Properties["installation_type"], "")
 			}
 		}
@@ -507,7 +507,7 @@ func TestRudderTelemetry(t *testing.T) {
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_SERVER {
+			if b.Event == TrackServer {
 				assert.Equal(t, b.Properties["installation_type"], "docker")
 			}
 		}

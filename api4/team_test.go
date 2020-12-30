@@ -2359,42 +2359,42 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
-	const TEAM_MEMBER = "team_user"
-	const TEAM_ADMIN = "team_user team_admin"
+	const TeamMember = "team_user"
+	const TeamAdmin = "team_user team_admin"
 
 	// user 1 tries to promote user 2
-	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 	require.False(t, ok, "should have returned false")
 
 	// user 1 tries to promote himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 tries to demote someone
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckForbiddenStatus(t, resp)
 
 	// system admin promotes user 1
-	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckNoError(t, resp)
 	require.True(t, ok, "should have returned true")
 
 	// user 1 (team admin) promotes user 2
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) demotes user 2 (team admin)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNoError(t, resp)
 	// Note from API v3
 	// Note to anyone who thinks this (above) test is wrong:
@@ -2403,19 +2403,19 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// System admins should be able to manipulate permission no matter what their team level permissions are.
 	// system admin promotes user 2
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// system admin demotes user 2 (team admin)
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to promote himself to a random team
-	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 (team admin) tries to promote a random user
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TeamAdmin)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
@@ -2423,7 +2423,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// user 1 (team admin) demotes himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamMember)
 	CheckNoError(t, resp)
 }
 

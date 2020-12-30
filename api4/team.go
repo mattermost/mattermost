@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH    = 256
-	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
-	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
+	MaxAddMembersBatch    = 256
+	MaximumBulkImportSize = 10 * 1024 * 1024
+	groupIDsParamPattern  = "[^a-zA-Z0-9,]*"
 )
 
 var groupIDsQueryParamRegex *regexp.Regexp
@@ -695,7 +695,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	members := model.TeamMembersFromJson(r.Body)
 
-	if len(members) > MAX_ADD_MEMBERS_BATCH {
+	if len(members) > MaxAddMembersBatch {
 		c.SetInvalidParam("too many members in batch")
 		return
 	}
@@ -1094,7 +1094,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(MAXIMUM_BULK_IMPORT_SIZE); err != nil {
+	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
