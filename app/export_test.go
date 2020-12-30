@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -14,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -549,4 +552,58 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
 	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])
+}
+
+func TestBulkExport(t *testing.T) {
+	th := Setup(t)
+	testsDir, _ := fileutils.FindDir("tests")
+
+	dir, err := ioutil.TempDir("", "import_test")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	extractImportFile := func(filePath string) *os.File {
+		importFile, err2 := os.Open(filePath)
+		require.Nil(t, err2)
+		defer importFile.Close()
+
+		info, err2 := importFile.Stat()
+		require.Nil(t, err2)
+
+		paths, err2 := utils.UnzipToPath(importFile, info.Size(), dir)
+		require.Nil(t, err2)
+		require.NotEmpty(t, paths)
+
+		jsonFile, err2 := os.Open(filepath.Join(dir, "import.jsonl"))
+		require.Nil(t, err2)
+
+		return jsonFile
+	}
+
+	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
+	defer jsonFile.Close()
+
+	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, dir)
+	require.Nil(t, err)
+
+	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
+	require.Nil(t, err)
+	defer exportFile.Close()
+
+	opts := BulkExportOpts{
+		IncludeAttachments: true,
+		CreateArchive:      true,
+	}
+	err = th.App.BulkExport(exportFile, dir, opts)
+	require.Nil(t, err)
+
+	th.TearDown()
+	th = Setup(t)
+	defer th.TearDown()
+
+	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
+	defer jsonFile.Close()
+
+	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, filepath.Join(dir, "data"))
+	require.Nil(t, err)
 }
