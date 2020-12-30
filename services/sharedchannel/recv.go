@@ -4,6 +4,7 @@ package sharedchannel
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -13,19 +14,17 @@ import (
 
 func (scs *Service) OnReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
 	if msg.Topic != TopicSync {
-		return nil
+		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
 	}
 
 	if len(msg.Payload) == 0 {
-		return nil
+		return errors.New("empty sync message")
 	}
 
 	var syncMessages []syncMsg
 
 	if err := json.Unmarshal(msg.Payload, &syncMessages); err != nil {
-		response[remotecluster.ResponseStatusKey] = remotecluster.ResponseStatusFail
-		response[remotecluster.ResponseErrorKey] = fmt.Sprintf("Invalid sync message: %v", err)
-		return err
+		return fmt.Errorf("invalid sync message: %w", err)
 	}
 
 	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync message received",
@@ -38,7 +37,7 @@ func (scs *Service) OnReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 
 	for _, sm := range syncMessages {
 
-		// TODO: modify perma-links
+		// TODO: modify perma-links (MM-31596)
 
 		if err := scs.server.GetStore().SharedChannel().UpsertPost(sm.Post); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error saving sync Post",
