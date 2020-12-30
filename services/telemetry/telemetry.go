@@ -31,52 +31,52 @@ const (
 
 	EnvVarInstallType = "MM_INSTALL_TYPE"
 
-	TrackConfigService             = "config_service"
-	TrackConfigTeam                = "config_team"
-	TrackConfigClientReq           = "config_client_requirements"
-	TrackConfigSQL                 = "config_sql"
-	TrackConfigLog                 = "config_log"
-	TrackConfigAudit               = "config_audit"
-	TrackConfigNotificationLog     = "config_notifications_log"
-	TrackConfigFile                = "config_file"
-	TrackConfigRate                = "config_rate"
-	TrackConfigEmail               = "config_email"
-	TrackConfigPrivacy             = "config_privacy"
-	TrackConfigTheme               = "config_theme"
-	TrackConfigOauth               = "config_oauth"
-	TrackConfigLDAP                = "config_ldap"
-	TrackConfigCompliance          = "config_compliance"
-	TrackConfigLocalization        = "config_localization"
-	TrackConfigSAML                = "config_saml"
-	TrackConfigPassword            = "config_password"
-	TrackConfigCluster             = "config_cluster"
-	TrackConfigMetrics             = "config_metrics"
-	TrackConfigSupport             = "config_support"
-	TrackConfigNativeApp           = "config_nativeapp"
-	TrackConfigExperimental        = "config_experimental"
-	TrackConfigAnalytics           = "config_analytics"
-	TrackConfigAnnouncement        = "config_announcement"
-	TrackConfigElasticsearch       = "config_elasticsearch"
-	TrackConfigPlugin              = "config_plugin"
-	TrackConfigDataRetention       = "config_data_retention"
-	TrackConfigMessageExport       = "config_message_export"
-	TrackConfigDisplay             = "config_display"
-	TrackConfigGuestAccounts       = "config_guest_accounts"
-	TrackConfigImageProxy          = "config_image_proxy"
-	TrackConfigBleve               = "config_bleve"
-	TrackPermissionsGeneral        = "permissions_general"
-	TrackPermissionsSystemScheme   = "permissions_system_scheme"
-	TRACK_PERMISSIONS_TEAM_SCHEMES = "permissions_team_schemes"
-	TrackPermissionsSystemRoles    = "permissions_system_roles"
-	TrackElasticsearch             = "elasticsearch"
-	TrackGroups                    = "groups"
-	TrackChannelModeration         = "channel_moderation"
-	TRACK_WARN_METRICS             = "warn_metrics"
+	TrackConfigService           = "config_service"
+	TrackConfigTeam              = "config_team"
+	TrackConfigClientReq         = "config_client_requirements"
+	TrackConfigSQL               = "config_sql"
+	TrackConfigLog               = "config_log"
+	TrackConfigAudit             = "config_audit"
+	TrackConfigNotificationLog   = "config_notifications_log"
+	TrackConfigFile              = "config_file"
+	TrackConfigRate              = "config_rate"
+	TrackConfigEmail             = "config_email"
+	TrackConfigPrivacy           = "config_privacy"
+	TrackConfigTheme             = "config_theme"
+	TrackConfigOauth             = "config_oauth"
+	TrackConfigLDAP              = "config_ldap"
+	TrackConfigCompliance        = "config_compliance"
+	TrackConfigLocalization      = "config_localization"
+	TrackConfigSAML              = "config_saml"
+	TrackConfigPassword          = "config_password"
+	TrackConfigCluster           = "config_cluster"
+	TrackConfigMetrics           = "config_metrics"
+	TrackConfigSupport           = "config_support"
+	TrackConfigNativeApp         = "config_nativeapp"
+	TrackConfigExperimental      = "config_experimental"
+	TrackConfigAnalytics         = "config_analytics"
+	TrackConfigAnnouncement      = "config_announcement"
+	TrackConfigElasticsearch     = "config_elasticsearch"
+	TrackConfigPlugin            = "config_plugin"
+	TrackConfigDataRetention     = "config_data_retention"
+	TrackConfigMessageExport     = "config_message_export"
+	TrackConfigDisplay           = "config_display"
+	TrackConfigGuestAccounts     = "config_guest_accounts"
+	TrackConfigImageProxy        = "config_image_proxy"
+	TrackConfigBleve             = "config_bleve"
+	TrackPermissionsGeneral      = "permissions_general"
+	TrackPermissionsSystemScheme = "permissions_system_scheme"
+	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
+	TrackPermissionsSystemRoles  = "permissions_system_roles"
+	TrackElasticsearch           = "elasticsearch"
+	TrackGroups                  = "groups"
+	TrackChannelModeration       = "channel_moderation"
+	TrackWarnMetrics             = "warn_metrics"
 
-	TRACK_ACTIVITY = "activity"
-	TRACK_LICENSE  = "license"
-	TRACK_SERVER   = "server"
-	TRACK_PLUGINS  = "plugins"
+	TrackActivity = "activity"
+	TrackLicense  = "license"
+	TrackServer   = "server"
+	TrackPlugins  = "plugins"
 )
 
 type ServerIface interface {
@@ -320,7 +320,7 @@ func (ts *TelemetryService) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	ts.sendTelemetry(TRACK_ACTIVITY, map[string]interface{}{
+	ts.sendTelemetry(TrackActivity, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -816,7 +816,7 @@ func (ts *TelemetryService) trackLicense() {
 			data["feature_"+featureName] = featureValue
 		}
 
-		ts.sendTelemetry(TRACK_LICENSE, data)
+		ts.sendTelemetry(TrackLicense, data)
 	}
 }
 
@@ -871,7 +871,7 @@ func (ts *TelemetryService) trackPlugins() {
 		totalDisabledCount = -1 // -1 to indicate disabled or error
 	}
 
-	ts.sendTelemetry(TRACK_PLUGINS, map[string]interface{}{
+	ts.sendTelemetry(TrackPlugins, map[string]interface{}{
 		"enabled_plugins":               totalEnabledCount,
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
@@ -900,7 +900,7 @@ func (ts *TelemetryService) trackServer() {
 		data["database_version"] = scr
 	}
 
-	ts.sendTelemetry(TRACK_SERVER, data)
+	ts.sendTelemetry(TrackServer, data)
 }
 
 func (ts *TelemetryService) trackPermissions() {
@@ -1046,7 +1046,7 @@ func (ts *TelemetryService) trackPermissions() {
 
 			count, _ := ts.dbStore.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
-			ts.sendTelemetry(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
+			ts.sendTelemetry(TrackPermissionsTeamSchemes, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
@@ -1252,7 +1252,7 @@ func (ts *TelemetryService) trackWarnMetrics() {
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
-				ts.sendTelemetry(TRACK_WARN_METRICS, map[string]interface{}{
+				ts.sendTelemetry(TrackWarnMetrics, map[string]interface{}{
 					key: value != "false",
 				})
 			}

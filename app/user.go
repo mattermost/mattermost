@@ -38,14 +38,14 @@ import (
 )
 
 const (
-	TokenTypePasswordRecovery     = "password_recovery"
-	TokenTypeVerifyEmail          = "verify_email"
-	TokenTypeTeamInvitation       = "team_invitation"
-	TokenTypeGuestInvitation      = "guest_invitation"
-	TokenTypeCWSAccess            = "cws_access_token"
-	PasswordRecoverExpiryTime     = 1000 * 60 * 60      // 1 hour
-	INVITATION_EXPIRY_TIME        = 1000 * 60 * 60 * 48 // 48 hours
-	IMAGE_PROFILE_PIXEL_DIMENSION = 128
+	TokenTypePasswordRecovery  = "password_recovery"
+	TokenTypeVerifyEmail       = "verify_email"
+	TokenTypeTeamInvitation    = "team_invitation"
+	TokenTypeGuestInvitation   = "guest_invitation"
+	TokenTypeCWSAccess         = "cws_access_token"
+	PasswordRecoverExpiryTime  = 1000 * 60 * 60      // 1 hour
+	InvitationExpiryTime       = 1000 * 60 * 60 * 48 // 48 hours
+	ImageProfilePixelDimension = 128
 )
 
 func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -57,7 +57,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -831,10 +831,10 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	}
 
 	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, IMAGE_PROFILE_PIXEL_DIMENSION, IMAGE_PROFILE_PIXEL_DIMENSION))
+	dstImg := image.NewRGBA(image.Rect(0, 0, ImageProfilePixelDimension, ImageProfilePixelDimension))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
-	size := float64(IMAGE_PROFILE_PIXEL_DIMENSION / 2)
+	size := float64(ImageProfilePixelDimension / 2)
 
 	c := freetype.NewContext()
 	c.SetFont(font)
@@ -843,7 +843,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/5, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
+	pt := freetype.Pt(ImageProfilePixelDimension/5, ImageProfilePixelDimension*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
