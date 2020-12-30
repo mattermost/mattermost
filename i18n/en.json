@@ -4027,6 +4027,22 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Failed to copy file during export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Failed to created file during export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Failed to create directory during export."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Failed to create zip header during export."
+  },
+  {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
   },
@@ -4037,6 +4053,10 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Failed to add file to zip archive during export."
   },
   {
     "id": "app.file_info.get.app_error",
@@ -4085,6 +4105,10 @@
   {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Failed to read file attachment during import."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
