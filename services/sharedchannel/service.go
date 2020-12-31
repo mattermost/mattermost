@@ -86,6 +86,15 @@ func (scs *Service) Shutdown() error {
 	return nil
 }
 
+func (scs *Service) sendEphemeralPost(channelId string, userId string, text string) {
+	ephemeral := &model.Post{
+		ChannelId: channelId,
+		Message:   text,
+		CreateAt:  model.GetMillis(),
+	}
+	scs.app.SendEphemeralPost(userId, ephemeral)
+}
+
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
 	if scs.server.IsLeader() {

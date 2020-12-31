@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -27,7 +28,7 @@ type channelInviteMsg struct {
 // SendChannelInvite asynchronously sends a channel invite to a remote cluster. The remote cluster is
 // expected to create a new channel with the same channel id, and respond with status OK.
 // If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
-func (scs *Service) SendChannelInvite(channelId string, userId string, rc *model.RemoteCluster) error {
+func (scs *Service) SendChannelInvite(channelId string, userId string, description string, rc *model.RemoteCluster) error {
 
 	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
 	if err != nil {
@@ -61,31 +62,39 @@ func (scs *Service) SendChannelInvite(channelId string, userId string, rc *model
 
 	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
 		if err != nil || !resp.IsSuccess() {
-			ephemeral := &model.Post{
-				ChannelId: channelId,
-				Message:   fmt.Sprintf("Error sending channel invite for %s: %v, %v", rc.DisplayName, err, resp.Error()),
-				CreateAt:  model.GetMillis(),
-			}
-			scs.app.SendEphemeralPost(userId, ephemeral)
+			scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Error())))
 			return
 		}
 
-		scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelId, rc.RemoteId)
-		if err != nil {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         sc.ChannelId,
+			Token:             model.NewId(),
+			Description:       description,
+			CreatorId:         userId,
+			RemoteClusterId:   rc.RemoteId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+		}
+		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 			return
 		}
-		scr.IsInviteAccepted = true
-		scr.IsInviteConfirmed = true
-
-		if _, err = scs.server.GetStore().SharedChannel().UpdateRemote(scr); err != nil {
-			ephemeral := &model.Post{
-				ChannelId: channelId,
-				Message:   fmt.Sprintf("Error confirming channel invite for %s: %v, %v", rc.DisplayName, err, resp.Error()),
-				CreateAt:  model.GetMillis(),
-			}
-			scs.app.SendEphemeralPost(userId, ephemeral)
-		}
+		scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 	})
+}
+
+func combineErrors(err error, serror string) string {
+	var sb strings.Builder
+	if err != nil {
+		sb.WriteString(err.Error())
+	}
+	if serror != "" {
+		if sb.Len() > 0 {
+			sb.WriteString("; ")
+		}
+		sb.WriteString(serror)
+	}
+	return sb.String()
 }
 
 func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
@@ -100,9 +109,7 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	var invite channelInviteMsg
 
 	if err := json.Unmarshal(msg.Payload, &invite); err != nil {
-		response[remotecluster.ResponseStatusKey] = remotecluster.ResponseStatusFail
-		response[remotecluster.ResponseErrorKey] = fmt.Sprintf("Invalid channel invite: %v", err)
-		return err
+		return fmt.Errorf("invalid channel invite: %v", err)
 	}
 
 	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Channel invite received",
@@ -111,54 +118,57 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		mlog.String("channel_name", invite.Name),
 	)
 
-	channel := &model.Channel{
-		Id:          invite.ChannelId,
-		TeamId:      invite.TeamId,
-		Type:        model.CHANNEL_PRIVATE,
-		DisplayName: invite.DisplayName,
-		Name:        invite.Name,
-		Header:      invite.Header,
-		Purpose:     invite.Purpose,
-		CreatorId:   rc.CreatorId,
-		Shared:      model.NewBool(true),
-	}
-
-	// check user perms?
-
-	savedChannel, err := scs.app.CreateChannelWithUser(channel, rc.CreatorId)
+	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
+	channel, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
 	if err != nil {
-		return err
+		channelNew := &model.Channel{
+			Id:          invite.ChannelId,
+			TeamId:      invite.TeamId,
+			Type:        model.CHANNEL_PRIVATE,
+			DisplayName: invite.DisplayName,
+			Name:        invite.Name,
+			Header:      invite.Header,
+			Purpose:     invite.Purpose,
+			CreatorId:   rc.CreatorId,
+			Shared:      model.NewBool(true),
+		}
+
+		// check user perms?
+		var appErr *model.AppError
+		if channel, appErr = scs.app.CreateChannelWithUser(channelNew, rc.CreatorId); appErr != nil {
+			return err
+		}
 	}
 
 	sharedChannel := &model.SharedChannel{
-		ChannelId:        savedChannel.Id,
-		TeamId:           savedChannel.TeamId,
+		ChannelId:        channel.Id,
+		TeamId:           channel.TeamId,
 		Home:             false,
 		ReadOnly:         invite.ReadOnly,
-		ShareName:        savedChannel.Name,
-		ShareDisplayName: savedChannel.DisplayName,
-		SharePurpose:     savedChannel.Purpose,
-		ShareHeader:      savedChannel.Header,
+		ShareName:        channel.Name,
+		ShareDisplayName: channel.DisplayName,
+		SharePurpose:     channel.Purpose,
+		ShareHeader:      channel.Header,
 		CreatorId:        rc.CreatorId,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
-		scs.app.DeleteChannel(savedChannel, savedChannel.CreatorId)
+		scs.app.DeleteChannel(channel, channel.CreatorId)
 		return err
 	}
 
 	sharedChannelRemote := &model.SharedChannelRemote{
 		Id:                model.NewId(),
-		ChannelId:         savedChannel.Id,
+		ChannelId:         channel.Id,
 		Description:       invite.DisplayName,
-		CreatorId:         savedChannel.CreatorId,
+		CreatorId:         channel.CreatorId,
 		IsInviteAccepted:  true,
 		IsInviteConfirmed: true,
 		RemoteClusterId:   rc.RemoteId,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {
-		scs.app.DeleteChannel(savedChannel, savedChannel.CreatorId)
+		scs.app.DeleteChannel(channel, channel.CreatorId)
 		scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
 		return err
 	}

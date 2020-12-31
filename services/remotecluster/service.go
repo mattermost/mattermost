@@ -61,16 +61,20 @@ type topicListenerEntry struct {
 // Response is a map containing the response when sending a message to a remote cluster.
 type Response map[string]interface{}
 
+func (r Response) String(key string) string {
+	if val, ok := r[key]; ok {
+		return fmt.Sprintf("%v", val)
+	}
+	return ""
+}
+
 func (r Response) IsSuccess() bool {
-	return fmt.Sprintf("%v", r[ResponseStatusKey]) == ResponseStatusOK
+	return r.String(ResponseStatusKey) == ResponseStatusOK
 }
 
 func (r Response) Error() string {
-	if err, ok := r[ResponseStatusKey]; ok {
-		return fmt.Sprintf("%v", err)
-	}
-	if errMsg, ok := r["Message"]; ok {
-		return fmt.Sprintf("%v", errMsg)
+	if status := r.String(ResponseStatusKey); status == ResponseStatusFail {
+		return fmt.Sprintf("%s: %s", status, r.String(ResponseErrorKey))
 	}
 	return ""
 }
