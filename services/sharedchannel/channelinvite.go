@@ -68,7 +68,6 @@ func (scs *Service) SendChannelInvite(channelId string, userId string, descripti
 
 		scr := &model.SharedChannelRemote{
 			ChannelId:         sc.ChannelId,
-			Token:             model.NewId(),
 			Description:       description,
 			CreatorId:         userId,
 			RemoteClusterId:   rc.RemoteId,
@@ -97,7 +96,7 @@ func combineErrors(err error, serror string) string {
 	return sb.String()
 }
 
-func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
 	if msg.Topic != TopicChannelInvite {
 		return nil
 	}
@@ -109,13 +108,14 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	var invite channelInviteMsg
 
 	if err := json.Unmarshal(msg.Payload, &invite); err != nil {
-		return fmt.Errorf("invalid channel invite: %v", err)
+		return fmt.Errorf("invalid channel invite: %w", err)
 	}
 
 	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Channel invite received",
 		mlog.String("remote", rc.DisplayName),
 		mlog.String("channel_id", invite.ChannelId),
 		mlog.String("channel_name", invite.Name),
+		mlog.String("team_id", invite.TeamId),
 	)
 
 	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
@@ -124,7 +124,7 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		channelNew := &model.Channel{
 			Id:          invite.ChannelId,
 			TeamId:      invite.TeamId,
-			Type:        model.CHANNEL_PRIVATE,
+			Type:        model.CHANNEL_OPEN,
 			DisplayName: invite.DisplayName,
 			Name:        invite.Name,
 			Header:      invite.Header,
@@ -136,7 +136,7 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		// check user perms?
 		var appErr *model.AppError
 		if channel, appErr = scs.app.CreateChannelWithUser(channelNew, rc.CreatorId); appErr != nil {
-			return err
+			return fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
 		}
 	}
 
@@ -150,11 +150,12 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		SharePurpose:     channel.Purpose,
 		ShareHeader:      channel.Header,
 		CreatorId:        rc.CreatorId,
+		RemoteClusterId:  rc.RemoteId,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
 		scs.app.DeleteChannel(channel, channel.CreatorId)
-		return err
+		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
 	sharedChannelRemote := &model.SharedChannelRemote{
@@ -170,7 +171,7 @@ func (scs *Service) OnReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {
 		scs.app.DeleteChannel(channel, channel.CreatorId)
 		scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
-		return err
+		return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 	}
 	return nil
 }

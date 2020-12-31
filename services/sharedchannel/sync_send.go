@@ -203,7 +203,8 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		ls := resp[ResponseLastUpdateAt]
 		lastSync, ok := ls.(int64)
 		if !ok || lastSync == 0 {
-			scs.server.GetLogger().Error("invalid last sync response after update shared channel", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+			scs.server.GetLogger().Error("invalid last sync response after update shared channel",
+				mlog.String("remote", rc.DisplayName), mlog.Err(err), mlog.Any("last_update_at", ls))
 			return
 		}
 

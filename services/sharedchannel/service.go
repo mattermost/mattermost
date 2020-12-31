@@ -117,8 +117,8 @@ func (scs *Service) resume() {
 		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
 		return
 	}
-	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.OnReceiveSyncMessage)
-	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.OnReceiveChannelInvite)
+	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
+	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
 
 	scs.active = true
 	scs.done = make(chan struct{})

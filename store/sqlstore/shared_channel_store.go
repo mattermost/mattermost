@@ -33,13 +33,11 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
 		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
 		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
-		tableSharedChannels.ColMap("Token").SetMaxSize(26)
 		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
 
 		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
@@ -208,10 +206,6 @@ func (s SqlSharedChannelStore) getSharedChannelsQuery(opts store.SharedChannelFi
 
 	if opts.CreatorId != "" {
 		query = query.Where(sq.Eq{"sc.CreatorId": opts.CreatorId})
-	}
-
-	if opts.Token != "" {
-		query = query.Where(sq.Eq{"sc.Token": opts.Token})
 	}
 
 	if opts.ExcludeHome {

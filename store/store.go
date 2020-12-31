@@ -857,5 +857,4 @@ type SharedChannelFilterOpts struct {
 	CreatorId     string
 	ExcludeHome   bool
 	ExcludeRemote bool
-	Token         string
 }
