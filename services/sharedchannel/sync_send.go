@@ -200,15 +200,14 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		//       Write ephemeral message to post author notifying for each post that failed.
 
 		// update SharedChannelRemote's LastSyncAt if send was successful
-		ls := resp[ResponseLastUpdateAt]
-		lastSync, ok := ls.(int64)
-		if !ok || lastSync == 0 {
+		lastSync, err := resp.Int64(ResponseLastUpdateAt)
+		if err != nil || lastSync == 0 {
 			scs.server.GetLogger().Error("invalid last sync response after update shared channel",
-				mlog.String("remote", rc.DisplayName), mlog.Err(err), mlog.Any("last_update_at", ls))
+				mlog.String("remote", rc.DisplayName), mlog.Err(err), mlog.Any("last_update_at", resp[ResponseLastUpdateAt]))
 			return
 		}
 
-		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(rc.RemoteId, lastSync); err != nil {
+		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); err != nil {
 			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		}
 	})

@@ -39,6 +39,11 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 
 		// TODO: modify perma-links (MM-31596)
 
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync post recv'd",
+			mlog.String("post_id", sm.Post.Id),
+			mlog.String("channel_id", sm.Post.ChannelId),
+			mlog.Int("reaction_count", len(sm.Reactions)))
+
 		if err := scs.server.GetStore().SharedChannel().UpsertPost(sm.Post); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error saving sync Post",
 				mlog.String("remote", rc.DisplayName),
