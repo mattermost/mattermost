@@ -96,13 +96,14 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func bulkImportCmdF(command *cobra.Command, args []string) error {
+func bulkImportCmdF(command *cobra.Command, args []string, dryRun bool) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
-		return err
+		if dryRun == true {
+			return errors.New("Import error")
+		}
 	}
-	defer a.Srv().Shutdown()
-
+	
 	apply, err := command.Flags().GetBool("apply")
 	if err != nil {
 		return errors.New("Apply flag error")
@@ -121,6 +122,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Incorrect number of arguments.")
 	}
+	defer a.Srv().Shutdown()
 
 	fileReader, err := os.Open(args[0])
 	if err != nil {
