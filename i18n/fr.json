@@ -7201,5 +7201,9 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "L'URL du site ne peut pas être réinitialisée."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP n'est pas disponible"
   }
 ]
