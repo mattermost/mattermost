@@ -223,10 +223,8 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error(err.Error())
 	}
 
-	mlog.Info("Go Version Detected: " + runtime.Version())
-
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing with Go version " + runtime.Version())
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
