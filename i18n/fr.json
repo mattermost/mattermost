@@ -7204,6 +7204,6 @@
   },
   {
     "id": "api.admin.ldap.not_available.app_error",
-    "translation": "LDAP n'est pas disponible"
+    "translation": "LDAP n'est pas disponible."
   }
 ]
