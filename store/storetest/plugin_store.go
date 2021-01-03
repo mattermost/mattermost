@@ -728,9 +728,8 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlStore) {
 			ok, err := ss.Plugin().SetWithOptions(kv.PluginId, kv.Key, kv.Value, options)
 			if !ok {
 				return nil, err
-			} else {
-				return kv, err
 			}
+			return kv, err
 		})
 	})
 }

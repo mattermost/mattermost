@@ -213,7 +213,7 @@ func (s *Server) IsFirstUserAccount() bool {
 	if cachedSessions == 0 {
 		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
-			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
+			mlog.Debug("There was an error fetching if first user account", mlog.Err(err))
 			return false
 		}
 		if count <= 0 {
@@ -299,7 +299,6 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 	ruser, nErr := a.Srv().Store.User().Save(user)
 	if nErr != nil {
-		mlog.Error("Couldn't save the user", mlog.Err(nErr))
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1497,7 +1496,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, nil
 	}
 
-	if user.AuthData != nil && len(*user.AuthData) != 0 {
+	if user.AuthData != nil && *user.AuthData != "" {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
