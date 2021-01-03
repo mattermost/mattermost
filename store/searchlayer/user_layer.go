@@ -131,14 +131,14 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 
 	result := <-uchan
 	if result.NErr != nil {
-		return nil, errors.Wrapf(result.NErr, "Failed to get user profiles by ids")
+		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
 	inUsers := result.Data.([]*model.User)
 	autocomplete.InChannel = inUsers
 
 	result = <-nuchan
 	if result.NErr != nil {
-		return nil, errors.Wrapf(result.NErr, "Failed to get user profiles by ids")
+		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
 	outUsers := result.Data.([]*model.User)
 	autocomplete.OutOfChannel = outUsers
@@ -167,7 +167,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if teamId != "" && (viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId)) {
 		channels, err := s.rootStore.Channel().GetTeamChannels(teamId)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to get team channels")
 		}
 		for _, channel := range *channels {
 			listOfAllowedChannels = append(listOfAllowedChannels, channel.Id)
@@ -178,7 +178,7 @@ func (s *SearchUserStore) getListOfAllowedChannelsForTeam(teamId string, viewRes
 	if len(viewRestrictions.Channels) > 0 {
 		channels, err := s.rootStore.Channel().GetChannelsByIds(viewRestrictions.Channels, false)
 		if err != nil {
-			return nil, errors.Wrapf(err, "Failed to get channels by ids")
+			return nil, errors.Wrap(err, "failed to get channels by ids")
 		}
 		for _, c := range channels {
 			if teamId == "" || (teamId != "" && c.TeamId == teamId) {
