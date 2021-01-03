@@ -130,6 +130,12 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
+		defer func() {
+			if session != nil {
+				session.Id = ""
+				UserSessionPool.Put(session)
+			}
+		}()
 		csrfCheckPassed := false
 
 		if err == nil && cookieAuth && r.Method != "GET" {
