@@ -20,7 +20,7 @@ type EchoProvider struct {
 }
 
 const (
-	CMD_ECHO = "echo"
+	CmdEcho = "echo"
 )
 
 func init() {
@@ -28,12 +28,12 @@ func init() {
 }
 
 func (*EchoProvider) GetTrigger() string {
-	return CMD_ECHO
+	return CmdEcho
 }
 
 func (*EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ECHO,
+		Trigger:          CmdEcho,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_echo.desc"),
 		AutoCompleteHint: T("api.command_echo.hint"),

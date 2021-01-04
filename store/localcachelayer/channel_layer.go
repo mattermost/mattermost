@@ -14,7 +14,7 @@ type LocalCacheChannelStore struct {
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelMemberCountsCache.Purge()
 	} else {
 		s.rootStore.channelMemberCountsCache.Remove(msg.Data)
@@ -22,7 +22,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMemberCounts(msg 
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelPinnedPostCountsCache.Purge()
 	} else {
 		s.rootStore.channelPinnedPostCountsCache.Remove(msg.Data)
@@ -30,7 +30,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelPinnedPostCount(m
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelGuestCountCache.Purge()
 	} else {
 		s.rootStore.channelGuestCountCache.Remove(msg.Data)
@@ -38,7 +38,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelGuestCounts(msg *
 }
 
 func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.channelByIdCache.Purge()
 	} else {
 		s.rootStore.channelByIdCache.Remove(msg.Data)
