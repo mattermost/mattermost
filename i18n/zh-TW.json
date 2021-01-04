@@ -1082,14 +1082,6 @@
     "translation": "此伺服器已停用檔案附件功能。"
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "無法確認檔案是否存在。"
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "無法確認檔案是否存在。"
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "此公開連結不是有效連結"
   },
@@ -1110,44 +1102,12 @@
     "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "無法在 S3 內複製檔案。"
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "無法從 S3 刪除檔案。"
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "無法移動本地端的檔案。"
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "沒有選取任何檔案驅動。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "從本地儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "從 S3 儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "從本地伺服器儲存空間開啟讀取器時遇到錯誤"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "從 S3 儲存開啟讀取器時遇到錯誤"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "沒有寫入指定本地路徑的權限或是其他錯誤。"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "檢查儲存貯體是否存在時發生錯誤。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1184,18 +1144,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "無法上傳檔案 {{.Filename}}。{{.Length}} 位元組超過最大限制 {{.Limit}} 位元組。"
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "寫入 S3 時遇到錯誤"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "建立新檔案的目錄時遇到錯誤"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "寫入本地儲存時遇到錯誤"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4942,30 +4890,6 @@
     "translation": "系統"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "從本地伺服器儲存空間表列目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "從 S3 表列目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "從 S3 刪除目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "從本地儲存刪除檔案時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "從 S3 刪除檔案時遇到錯誤"
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "設定 HELO 時失敗"
   },
@@ -7578,22 +7502,6 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "寫入 S3 時遇到錯誤"
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "在 S3 附加檔案時發生錯誤。"
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "開啟檔案時發生錯誤。"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "檔案不存在。"
-  },
-  {
     "id": "api.context.get_user.app_error",
     "translation": "無法從工作階段 UserID 取得使用者。"
   },
@@ -7680,10 +7588,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "取得頻道成員時失敗"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "無法建立儲存貯體。"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
