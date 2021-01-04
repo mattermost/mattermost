@@ -37,7 +37,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
 	}
-	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
+	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	if srv.DataRetentionJob != nil {
 		workers.DataRetention = srv.DataRetentionJob.MakeWorker()

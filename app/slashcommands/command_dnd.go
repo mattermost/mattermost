@@ -13,7 +13,7 @@ type DndProvider struct {
 }
 
 const (
-	CMD_DND = "dnd"
+	CmdDND = "dnd"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (*DndProvider) GetTrigger() string {
-	return CMD_DND
+	return CmdDND
 }
 
 func (*DndProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_DND,
+		Trigger:          CmdDND,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_dnd.desc"),
 		DisplayName:      T("api.command_dnd.name"),

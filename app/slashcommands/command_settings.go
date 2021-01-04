@@ -13,7 +13,7 @@ type SettingsProvider struct {
 }
 
 const (
-	CMD_SETTINGS = "settings"
+	CmdSettings = "settings"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (settings *SettingsProvider) GetTrigger() string {
-	return CMD_SETTINGS
+	return CmdSettings
 }
 
 func (settings *SettingsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SETTINGS,
+		Trigger:          CmdSettings,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_settings.desc"),
 		AutoCompleteHint: "",

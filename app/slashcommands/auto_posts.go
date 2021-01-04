@@ -37,7 +37,7 @@ func NewAutoPostCreator(a *app.App, channelid, userid string) *AutoPostCreator {
 		Fuzzy:          false,
 		TextLength:     utils.Range{Begin: 100, End: 200},
 		HasImage:       false,
-		ImageFilenames: TEST_IMAGE_FILENAMES,
+		ImageFilenames: TestImageFileNames,
 		Users:          []string{},
 		Mentions:       utils.Range{Begin: 0, End: 5},
 		Tags:           utils.Range{Begin: 0, End: 7},

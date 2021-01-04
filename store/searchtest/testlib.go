@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	ENGINE_ALL           = "all"
-	ENGINE_MYSQL         = "mysql"
-	ENGINE_POSTGRES      = "postgres"
-	ENGINE_ELASTICSEARCH = "elasticsearch"
-	ENGINE_BLEVE         = "bleve"
+	EngineAll           = "all"
+	EngineMySql         = "mysql"
+	EnginePostgres      = "postgres"
+	EngineElasticSearch = "elasticsearch"
+	EngineBleve         = "bleve"
 )
 
 type SearchTestEngine struct {
@@ -35,7 +35,7 @@ type searchTest struct {
 func filterTestsByTag(tests []searchTest, tags ...string) []searchTest {
 	filteredTests := []searchTest{}
 	for _, test := range tests {
-		if utils.StringInSlice(ENGINE_ALL, test.Tags) {
+		if utils.StringInSlice(EngineAll, test.Tags) {
 			filteredTests = append(filteredTests, test)
 			continue
 		}

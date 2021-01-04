@@ -422,8 +422,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
 		thread, err := a.Srv().Store.Thread().Get(post.RootId)
 		if err != nil {
-			mlog.Error("Cannot get thread", mlog.String("id", post.RootId))
-			return nil, err
+			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
 		}
 		payload := thread.ToJson()
 		for _, uid := range thread.Participants {
