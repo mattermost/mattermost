@@ -9,8 +9,9 @@ import (
 
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
 )
 
 var ImportCmd = &cobra.Command{
