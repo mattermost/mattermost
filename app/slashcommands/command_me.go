@@ -13,7 +13,7 @@ type MeProvider struct {
 }
 
 const (
-	CMD_ME = "me"
+	CmdMe = "me"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (*MeProvider) GetTrigger() string {
-	return CMD_ME
+	return CmdMe
 }
 
 func (*MeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ME,
+		Trigger:          CmdMe,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_me.desc"),
 		AutoCompleteHint: T("api.command_me.hint"),

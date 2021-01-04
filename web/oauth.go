@@ -280,7 +280,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err.Translate(c.App.T)
-		mlog.Error(err.Error())
+		c.LogErrorByCode(err)
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
@@ -292,7 +292,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.CompleteOAuth(service, body, teamId, props, tokenUser)
 	if err != nil {
 		err.Translate(c.App.T)
-		mlog.Error(err.Error())
+		c.LogErrorByCode(err)
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
@@ -309,7 +309,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
 		if parseErr != nil {
-			mlog.Error("Error parsing boolean property from props", mlog.Err(parseErr))
+			mlog.Debug("Error parsing boolean property from props", mlog.Err(parseErr))
 		}
 		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
