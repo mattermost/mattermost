@@ -2139,10 +2139,6 @@
     "translation": "Konnte Authentifizierungsdaten aus {{.Service}} Benutzerobjekt nicht verarbeiten"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO mit OAuth 2.0 nicht auf diesem Server verfügbar"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Token-Daten für die E-Mail-Bestätigung konnten nicht erstellt werden."
   },
@@ -2153,10 +2149,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Konnte keinen Benutzer aus {{.Service}} Benutzerobjekt erstellen"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO mit OAuth 2.0 nicht auf diesem Server verfügbar"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2201,10 +2193,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Authentifizierungs-Transfer auf diesem Server nicht konfiguriert oder verfügbar."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Nicht unterstützter OAuth-Service-Provider"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4616,7 +4604,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal fünf Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
+    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal zehn Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

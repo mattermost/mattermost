@@ -58,7 +58,6 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	ownerUser, err := a.Srv().Store.User().Get(bot.OwnerId)
 	var nfErr *store.ErrNotFound
 	if err != nil && !errors.As(err, &nfErr) {
-		mlog.Error(err.Error())
 		return nil, model.NewAppError("CreateBot", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
@@ -88,14 +87,12 @@ func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
-			mlog.Error(appErr.Error())
 			return nil, appErr
 		}
 
 		// cannot find this bot user, save the user
 		user, nErr := a.Srv().Store.User().Save(model.UserFromBot(botDef))
 		if nErr != nil {
-			mlog.Error(nErr.Error())
 			var appError *model.AppError
 			var invErr *store.ErrInvalidInput
 			switch {
@@ -161,7 +158,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -238,7 +235,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("PatchBot", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("PatchBot", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("PatchBot", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

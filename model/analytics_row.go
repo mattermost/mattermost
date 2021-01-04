@@ -27,11 +27,11 @@ func AnalyticsRowFromJson(data io.Reader) *AnalyticsRow {
 }
 
 func (ar AnalyticsRows) ToJson() string {
-	if b, err := json.Marshal(ar); err != nil {
+	b, err := json.Marshal(ar)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func AnalyticsRowsFromJson(data io.Reader) AnalyticsRows {

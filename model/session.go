@@ -162,7 +162,7 @@ func (s *Session) IsMobile() bool {
 	}
 	isMobile, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isMobile
@@ -175,7 +175,7 @@ func (s *Session) IsSaml() bool {
 	}
 	isSaml, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isSaml
@@ -188,7 +188,7 @@ func (s *Session) IsOAuthUser() bool {
 	}
 	isOAuthUser, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		mlog.Debug("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isOAuthUser
@@ -217,11 +217,11 @@ func (s *Session) GetCSRF() string {
 }
 
 func SessionsToJson(o []*Session) string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func SessionsFromJson(data io.Reader) []*Session {
