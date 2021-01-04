@@ -72,6 +72,7 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	newConfig := memoryStore.Get().Clone()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	memoryStore.Set(newConfig)
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
