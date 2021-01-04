@@ -61,7 +61,7 @@ type Store interface {
 	DropAllTables()
 	RecycleDBConnections(d time.Duration)
 	GetCurrentSchemaVersion() string
-	GetDbVersion() (string, error)
+	GetDbVersion(numerical bool) (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
