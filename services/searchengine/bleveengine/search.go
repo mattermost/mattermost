@@ -14,7 +14,7 @@ import (
 	"github.com/blevesearch/bleve/search/query"
 )
 
-const DELETE_POSTS_BATCH_SIZE = 500
+const DeletePostsBatchSize = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -261,7 +261,7 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 	query := bleve.NewTermQuery(channelID)
 	query.SetField("ChannelId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DeletePostsBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteChannelPosts",
 			"bleveengine.delete_channel_posts.error", nil,
@@ -280,7 +280,7 @@ func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
 	query := bleve.NewTermQuery(userID)
 	query.SetField("UserId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DeletePostsBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteUserPosts",
 			"bleveengine.delete_user_posts.error", nil,

@@ -14,7 +14,7 @@ type LocalCacheUserStore struct {
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.userProfileByIdsCache.Purge()
 	} else {
 		s.rootStore.userProfileByIdsCache.Remove(msg.Data)
@@ -22,7 +22,7 @@ func (s *LocalCacheUserStore) handleClusterInvalidateScheme(msg *model.ClusterMe
 }
 
 func (s *LocalCacheUserStore) handleClusterInvalidateProfilesInChannel(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.profilesInChannelCache.Purge()
 	} else {
 		s.rootStore.profilesInChannelCache.Remove(msg.Data)

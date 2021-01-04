@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	REDIRECT_LOCATION_CACHE_SIZE = 10000
-	DEFAULT_SERVER_BUSY_SECONDS  = 3600
-	MAX_SERVER_BUSY_SECONDS      = 86400
+	RedirectLocationCacheSize = 10000
+	DefaultServerBusySeconds  = 3600
+	MaxServerBusySeconds      = 86400
 )
 
 var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
-	Size: REDIRECT_LOCATION_CACHE_SIZE,
+	Size: RedirectLocationCacheSize,
 })
 
 func (api *API) InitSystem() {
@@ -512,12 +512,12 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	// number of seconds to keep server marked busy
 	secs := r.URL.Query().Get("seconds")
 	if secs == "" {
-		secs = strconv.FormatInt(DEFAULT_SERVER_BUSY_SECONDS, 10)
+		secs = strconv.FormatInt(DefaultServerBusySeconds, 10)
 	}
 
 	i, err := strconv.ParseInt(secs, 10, 64)
-	if err != nil || i <= 0 || i > MAX_SERVER_BUSY_SECONDS {
-		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MAX_SERVER_BUSY_SECONDS))
+	if err != nil || i <= 0 || i > MaxServerBusySeconds {
+		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MaxServerBusySeconds))
 		return
 	}
 

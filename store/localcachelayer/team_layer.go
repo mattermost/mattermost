@@ -14,7 +14,7 @@ type LocalCacheTeamStore struct {
 }
 
 func (s *LocalCacheTeamStore) handleClusterInvalidateTeam(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.teamAllTeamIdsForUserCache.Purge()
 	} else {
 		s.rootStore.teamAllTeamIdsForUserCache.Remove(msg.Data)
