@@ -686,16 +686,16 @@ func (si *SlackImporter) oldImportUser(team *model.Team, user *model.User) *mode
 
 	ruser, nErr := si.store.User().Save(user)
 	if nErr != nil {
-		mlog.Error("Error saving user.", mlog.Err(nErr))
+		mlog.Debug("Error saving user.", mlog.Err(nErr))
 		return nil
 	}
 
 	if _, err := si.store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
-		mlog.Error("Failed to set email verified.", mlog.Err(err))
+		mlog.Warn("Failed to set email verified.", mlog.Err(err))
 	}
 
 	if err := si.actions.JoinUserToTeam(team, user, ""); err != nil {
-		mlog.Error("Failed to join team when importing.", mlog.Err(err))
+		mlog.Warn("Failed to join team when importing.", mlog.Err(err))
 	}
 
 	return ruser
