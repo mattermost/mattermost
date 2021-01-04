@@ -57,19 +57,17 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
-		c.SetPermissionError(model.PERMISSION_READ_JOBS)
-		return
-	}
-
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
+	// Currently this endpoint is only being used to download the compliance export in system console
+	// Therefore, if you are trying to download a job which isn't export compliance or you don't have the necessary permission, you will get an error
+	// If you are looking to implement other job types to download, you will need to modify this if statement and add the required permission for it
+	if job.Type != model.JOB_TYPE_MESSAGE_EXPORT || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
+		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
 		return
 	}
 
@@ -114,11 +112,6 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE)
-		return
-	}
-
 	job, err := c.App.CreateJob(job)
 	if err != nil {
 		c.Err = err
@@ -159,11 +152,6 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
 		c.SetPermissionError(model.PERMISSION_READ_JOBS)
-		return
-	}
-
-	if c.Params.JobType == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE)
 		return
 	}
 
