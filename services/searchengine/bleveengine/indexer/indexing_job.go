@@ -318,7 +318,7 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 		progress.DonePosts = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else if progress.LastEntityTime == newLastMessageTime && len(posts) == BatchSize {
-		mlog.Error("More posts with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastMessageTime), mlog.Int("Batch Size", BatchSize))
+		mlog.Warn("More posts with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastMessageTime), mlog.Int("Batch Size", BatchSize))
 		progress.DonePosts = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
@@ -396,7 +396,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 		progress.DoneChannels = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else if progress.LastEntityTime == newLastChannelTime && len(channels) == BatchSize {
-		mlog.Error("More channels with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastChannelTime), mlog.Int("Batch Size", BatchSize))
+		mlog.Warn("More channels with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastChannelTime), mlog.Int("Batch Size", BatchSize))
 		progress.DoneChannels = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
@@ -474,7 +474,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 		progress.DoneUsers = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else if progress.LastEntityTime == newLastUserTime && len(users) == BatchSize {
-		mlog.Error("More users with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastUserTime), mlog.Int("Batch Size", BatchSize))
+		mlog.Warn("More users with the same CreateAt time were detected than the permitted batch size. Aborting indexing job.", mlog.Int64("CreateAt", newLastUserTime), mlog.Int("Batch Size", BatchSize))
 		progress.DoneUsers = true
 		progress.LastEntityTime = progress.StartAtTime
 	} else {
