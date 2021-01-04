@@ -24,6 +24,10 @@ type BulkExportOpts struct {
 	CreateArchive      bool
 }
 
+// ExportDataDir is the name of the directory were to store additional data
+// included with the export (e.g. file attachments).
+const ExportDataDir = "data"
+
 // We use this map to identify the exportable preferences.
 // Here we link the preference category and name, to the name of the relevant field in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
@@ -689,7 +693,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 
 	if zipWr != nil {
 		wr, err = zipWr.CreateHeader(&zip.FileHeader{
-			Name:   filepath.Join("data", filePath),
+			Name:   filepath.Join(ExportDataDir, filePath),
 			Method: zip.Store,
 		})
 		if err != nil {
@@ -697,7 +701,7 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 				nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		filePath = filepath.Join(outPath, "data", filePath)
+		filePath = filepath.Join(outPath, ExportDataDir, filePath)
 		if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			return model.NewAppError("exportFileAttachment", "app.export.export_attachment.mkdirall.error",
 				nil, "err="+err.Error(), http.StatusInternalServerError)

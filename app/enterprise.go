@@ -114,6 +114,12 @@ func RegisterJobsImportProcessInterface(f func(*App) tjobs.ImportProcessInterfac
 	jobsImportProcessInterface = f
 }
 
+var jobsExportProcessInterface func(*App) tjobs.ExportProcessInterface
+
+func RegisterJobsExportProcessInterface(f func(*App) tjobs.ExportProcessInterface) {
+	jobsExportProcessInterface = f
+}
+
 var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
 
 func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
