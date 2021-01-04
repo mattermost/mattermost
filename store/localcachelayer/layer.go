@@ -14,53 +14,53 @@ import (
 )
 
 const (
-	REACTION_CACHE_SIZE = 20000
-	REACTION_CACHE_SEC  = 30 * 60
+	ReactionCacheSize = 20000
+	ReactionCacheSec  = 30 * 60
 
-	ROLE_CACHE_SIZE = 20000
-	ROLE_CACHE_SEC  = 30 * 60
+	RoleCacheSize = 20000
+	RoleCacheSec  = 30 * 60
 
-	SCHEME_CACHE_SIZE = 20000
-	SCHEME_CACHE_SEC  = 30 * 60
+	SchemeCacheSize = 20000
+	SchemeCacheSec  = 30 * 60
 
-	FILE_INFO_CACHE_SIZE = 25000
-	FILE_INFO_CACHE_SEC  = 30 * 60
+	FileInfoCacheSize = 25000
+	FileInfoCacheSec  = 30 * 60
 
-	CHANNEL_GUEST_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_GUEST_COUNT_CACHE_SEC  = 30 * 60
+	ChannelGuestCountCacheSize = model.CHANNEL_CACHE_SIZE
+	ChannelGuestCountCacheSec  = 30 * 60
 
-	WEBHOOK_CACHE_SIZE = 25000
-	WEBHOOK_CACHE_SEC  = 15 * 60
+	WebhookCacheSize = 25000
+	WebhookCacheSec  = 15 * 60
 
-	EMOJI_CACHE_SIZE = 5000
-	EMOJI_CACHE_SEC  = 30 * 60
+	EmojiCacheSize = 5000
+	EmojiCacheSec  = 30 * 60
 
-	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC  = 30 * 60
+	ChannelPinnedPostsCounsCacheSize = model.CHANNEL_CACHE_SIZE
+	ChannelPinnedPostsCountsCacheSec = 30 * 60
 
-	CHANNEL_MEMBERS_COUNTS_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 30 * 60
+	ChannelMembersCountsCacheSize = model.CHANNEL_CACHE_SIZE
+	ChannelMembersCountsCacheSec  = 30 * 60
 
-	LAST_POSTS_CACHE_SIZE = 20000
-	LAST_POSTS_CACHE_SEC  = 30 * 60
+	LastPostsCacheSize = 20000
+	LastPostsCacheSec  = 30 * 60
 
-	TERMS_OF_SERVICE_CACHE_SIZE = 20000
-	TERMS_OF_SERVICE_CACHE_SEC  = 30 * 60
-	LAST_POST_TIME_CACHE_SIZE   = 25000
-	LAST_POST_TIME_CACHE_SEC    = 15 * 60
+	TermsOfServiceCacheSize = 20000
+	TermsOfServiceCacheSec  = 30 * 60
+	LastPostTimeCacheSize   = 25000
+	LastPostTimeCacheSec    = 15 * 60
 
-	USER_PROFILE_BY_ID_CACHE_SIZE = 20000
-	USER_PROFILE_BY_ID_SEC        = 30 * 60
+	UserProfileByIDCacheSize = 20000
+	UserProfileByIDSec       = 30 * 60
 
-	PROFILES_IN_CHANNEL_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	PROFILES_IN_CHANNEL_CACHE_SEC  = 15 * 60
+	ProfilesInChannelCacheSize  = model.CHANNEL_CACHE_SIZE
+	PROFILES_IN_ChannelCacheSec = 15 * 60
 
-	TEAM_CACHE_SIZE = 20000
-	TEAM_CACHE_SEC  = 30 * 60
+	TeamCacheSize = 20000
+	TeamCacheSec  = 30 * 60
 
-	CLEAR_CACHE_MESSAGE_DATA = ""
+	ClearCacheMessageData = ""
 
-	CHANNEL_CACHE_SEC = 15 * 60 // 15 mins
+	ChannelCacheSec = 15 * 60 // 15 mins
 )
 
 type LocalCacheStore struct {
@@ -117,9 +117,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	// Reactions
 	if localCacheStore.reactionCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   REACTION_CACHE_SIZE,
+		Size:                   ReactionCacheSize,
 		Name:                   "Reaction",
-		DefaultExpiry:          REACTION_CACHE_SEC * time.Second,
+		DefaultExpiry:          ReactionCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS,
 	}); err != nil {
 		return
@@ -128,9 +128,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Roles
 	if localCacheStore.roleCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   ROLE_CACHE_SIZE,
+		Size:                   RoleCacheSize,
 		Name:                   "Role",
-		DefaultExpiry:          ROLE_CACHE_SEC * time.Second,
+		DefaultExpiry:          RoleCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
 		Striped:                true,
 		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
@@ -138,9 +138,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		return
 	}
 	if localCacheStore.rolePermissionsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   ROLE_CACHE_SIZE,
+		Size:                   RoleCacheSize,
 		Name:                   "RolePermission",
-		DefaultExpiry:          ROLE_CACHE_SEC * time.Second,
+		DefaultExpiry:          RoleCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLE_PERMISSIONS,
 	}); err != nil {
 		return
@@ -149,9 +149,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Schemes
 	if localCacheStore.schemeCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   SCHEME_CACHE_SIZE,
+		Size:                   SchemeCacheSize,
 		Name:                   "Scheme",
-		DefaultExpiry:          SCHEME_CACHE_SEC * time.Second,
+		DefaultExpiry:          SchemeCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES,
 	}); err != nil {
 		return
@@ -160,9 +160,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// FileInfo
 	if localCacheStore.fileInfoCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   FILE_INFO_CACHE_SIZE,
+		Size:                   FileInfoCacheSize,
 		Name:                   "FileInfo",
-		DefaultExpiry:          FILE_INFO_CACHE_SEC * time.Second,
+		DefaultExpiry:          FileInfoCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_FILE_INFOS,
 	}); err != nil {
 		return
@@ -171,9 +171,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Webhooks
 	if localCacheStore.webhookCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   WEBHOOK_CACHE_SIZE,
+		Size:                   WebhookCacheSize,
 		Name:                   "Webhook",
-		DefaultExpiry:          WEBHOOK_CACHE_SEC * time.Second,
+		DefaultExpiry:          WebhookCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS,
 	}); err != nil {
 		return
@@ -182,17 +182,17 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Emojis
 	if localCacheStore.emojiCacheById, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   EMOJI_CACHE_SIZE,
+		Size:                   EmojiCacheSize,
 		Name:                   "EmojiById",
-		DefaultExpiry:          EMOJI_CACHE_SEC * time.Second,
+		DefaultExpiry:          EmojiCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID,
 	}); err != nil {
 		return
 	}
 	if localCacheStore.emojiIdCacheByName, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   EMOJI_CACHE_SIZE,
+		Size:                   EmojiCacheSize,
 		Name:                   "EmojiByName",
-		DefaultExpiry:          EMOJI_CACHE_SEC * time.Second,
+		DefaultExpiry:          EmojiCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_ID_BY_NAME,
 	}); err != nil {
 		return
@@ -201,25 +201,25 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Channels
 	if localCacheStore.channelPinnedPostCountsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SIZE,
+		Size:                   ChannelPinnedPostsCounsCacheSize,
 		Name:                   "ChannelPinnedPostsCounts",
-		DefaultExpiry:          CHANNEL_PINNEDPOSTS_COUNTS_CACHE_SEC * time.Second,
+		DefaultExpiry:          ChannelPinnedPostsCountsCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_PINNEDPOSTS_COUNTS,
 	}); err != nil {
 		return
 	}
 	if localCacheStore.channelMemberCountsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   CHANNEL_MEMBERS_COUNTS_CACHE_SIZE,
+		Size:                   ChannelMembersCountsCacheSize,
 		Name:                   "ChannelMemberCounts",
-		DefaultExpiry:          CHANNEL_MEMBERS_COUNTS_CACHE_SEC * time.Second,
+		DefaultExpiry:          ChannelMembersCountsCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBER_COUNTS,
 	}); err != nil {
 		return
 	}
 	if localCacheStore.channelGuestCountCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   CHANNEL_GUEST_COUNT_CACHE_SIZE,
+		Size:                   ChannelGuestCountCacheSize,
 		Name:                   "ChannelGuestsCount",
-		DefaultExpiry:          CHANNEL_GUEST_COUNT_CACHE_SEC * time.Second,
+		DefaultExpiry:          ChannelGuestCountCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_GUEST_COUNT,
 	}); err != nil {
 		return
@@ -227,7 +227,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	if localCacheStore.channelByIdCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   model.CHANNEL_CACHE_SIZE,
 		Name:                   "channelById",
-		DefaultExpiry:          CHANNEL_CACHE_SEC * time.Second,
+		DefaultExpiry:          ChannelCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL,
 	}); err != nil {
 		return
@@ -236,17 +236,17 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Posts
 	if localCacheStore.postLastPostsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   LAST_POSTS_CACHE_SIZE,
+		Size:                   LastPostsCacheSize,
 		Name:                   "LastPost",
-		DefaultExpiry:          LAST_POSTS_CACHE_SEC * time.Second,
+		DefaultExpiry:          LastPostsCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POSTS,
 	}); err != nil {
 		return
 	}
 	if localCacheStore.lastPostTimeCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   LAST_POST_TIME_CACHE_SIZE,
+		Size:                   LastPostTimeCacheSize,
 		Name:                   "LastPostTime",
-		DefaultExpiry:          LAST_POST_TIME_CACHE_SEC * time.Second,
+		DefaultExpiry:          LastPostTimeCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME,
 	}); err != nil {
 		return
@@ -255,9 +255,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// TOS
 	if localCacheStore.termsOfServiceCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   TERMS_OF_SERVICE_CACHE_SIZE,
+		Size:                   TermsOfServiceCacheSize,
 		Name:                   "TermsOfService",
-		DefaultExpiry:          TERMS_OF_SERVICE_CACHE_SEC * time.Second,
+		DefaultExpiry:          TermsOfServiceCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE,
 	}); err != nil {
 		return
@@ -266,9 +266,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Users
 	if localCacheStore.userProfileByIdsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   USER_PROFILE_BY_ID_CACHE_SIZE,
+		Size:                   UserProfileByIDCacheSize,
 		Name:                   "UserProfileByIds",
-		DefaultExpiry:          USER_PROFILE_BY_ID_SEC * time.Second,
+		DefaultExpiry:          UserProfileByIDSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_BY_IDS,
 		Striped:                true,
 		StripedBuckets:         maxInt(runtime.NumCPU()-1, 1),
@@ -276,9 +276,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		return
 	}
 	if localCacheStore.profilesInChannelCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   PROFILES_IN_CHANNEL_CACHE_SIZE,
+		Size:                   ProfilesInChannelCacheSize,
 		Name:                   "ProfilesInChannel",
-		DefaultExpiry:          PROFILES_IN_CHANNEL_CACHE_SEC * time.Second,
+		DefaultExpiry:          PROFILES_IN_ChannelCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_PROFILE_IN_CHANNEL,
 	}); err != nil {
 		return
@@ -287,9 +287,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Teams
 	if localCacheStore.teamAllTeamIdsForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   TEAM_CACHE_SIZE,
+		Size:                   TeamCacheSize,
 		Name:                   "Team",
-		DefaultExpiry:          TEAM_CACHE_SEC * time.Second,
+		DefaultExpiry:          TeamCacheSec * time.Second,
 		InvalidateClusterEvent: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TEAMS,
 	}); err != nil {
 		return
@@ -411,7 +411,7 @@ func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     CLEAR_CACHE_MESSAGE_DATA,
+			Data:     ClearCacheMessageData,
 		}
 		s.cluster.SendClusterMessage(msg)
 	}

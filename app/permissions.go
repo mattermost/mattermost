@@ -59,12 +59,12 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Remove the "System" table entry that marks the emoji permissions migration as done.
-	if _, err := a.Srv().Store.System().PermanentDeleteByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err != nil {
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(EmojisPermissionsMigrationKey); err != nil {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Remove the "System" table entry that marks the guest roles permissions migration as done.
-	if _, err := a.Srv().Store.System().PermanentDeleteByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err != nil {
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(GuestRolesCreationMigrationKey); err != nil {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
