@@ -39,6 +39,8 @@ type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
+	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 }
 
 // Service provides shared channel synchronization.
