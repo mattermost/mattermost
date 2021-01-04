@@ -58,6 +58,11 @@ func (c *Compliance) PreSave() {
 	c.CreateAt = GetMillis()
 }
 
+func (c *Compliance) DeepCopy() *Compliance {
+	copy := *c
+	return &copy
+}
+
 func (c *Compliance) JobName() string {
 	jobName := c.Type
 	if c.Type == COMPLIANCE_TYPE_DAILY {
@@ -105,11 +110,11 @@ func ComplianceFromJson(data io.Reader) *Compliance {
 }
 
 func (c Compliances) ToJson() string {
-	if b, err := json.Marshal(c); err != nil {
+	b, err := json.Marshal(c)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func CompliancesFromJson(data io.Reader) Compliances {

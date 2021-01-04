@@ -17,20 +17,20 @@ type InviteProvider struct {
 }
 
 const (
-	CMD_INVITE = "invite"
+	CmdInvite = "invite"
 )
 
 func init() {
 	app.RegisterCommandProvider(&InviteProvider{})
 }
 
-func (me *InviteProvider) GetTrigger() string {
-	return CMD_INVITE
+func (*InviteProvider) GetTrigger() string {
+	return CmdInvite
 }
 
-func (me *InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_INVITE,
+		Trigger:          CmdInvite,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_invite.desc"),
 		AutoCompleteHint: T("api.command_invite.hint"),
@@ -38,7 +38,7 @@ func (me *InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_invite.missing_message.app_error"),
@@ -113,14 +113,13 @@ func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 					}),
 					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 				}
-			} else {
-				// User doing the inviting is *not* a member of the channel.
-				return &model.CommandResponse{
-					Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
-						"Channel": channelToJoin.Name,
-					}),
-					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-				}
+			}
+			// User doing the inviting is *not* a member of the channel.
+			return &model.CommandResponse{
+				Text: args.T("api.command_invite.private_channel.app_error", map[string]interface{}{
+					"Channel": channelToJoin.Name,
+				}),
+				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	default:

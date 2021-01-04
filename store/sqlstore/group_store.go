@@ -48,10 +48,10 @@ type groupChannelJoin struct {
 }
 
 type SqlGroupStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlGroupStore(sqlStore SqlStore) store.GroupStore {
+func newSqlGroupStore(sqlStore *SqlStore) store.GroupStore {
 	s := &SqlGroupStore{SqlStore: sqlStore}
 	for _, db := range sqlStore.GetAllConns() {
 		groups := db.AddTableWithName(model.Group{}, "UserGroups").SetKeys(false, "Id")
@@ -91,7 +91,7 @@ func (s *SqlGroupStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
-	if len(group.Id) != 0 {
+	if group.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", group.Id)
 	}
 

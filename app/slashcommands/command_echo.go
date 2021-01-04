@@ -20,20 +20,20 @@ type EchoProvider struct {
 }
 
 const (
-	CMD_ECHO = "echo"
+	CmdEcho = "echo"
 )
 
 func init() {
 	app.RegisterCommandProvider(&EchoProvider{})
 }
 
-func (me *EchoProvider) GetTrigger() string {
-	return CMD_ECHO
+func (*EchoProvider) GetTrigger() string {
+	return CmdEcho
 }
 
-func (me *EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ECHO,
+		Trigger:          CmdEcho,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_echo.desc"),
 		AutoCompleteHint: T("api.command_echo.hint"),
@@ -41,7 +41,7 @@ func (me *EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*EchoProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

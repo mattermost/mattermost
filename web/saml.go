@@ -38,7 +38,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayProps := map[string]string{}
 	relayState := ""
 
-	if len(action) != 0 {
+	if action != "" {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
@@ -46,7 +46,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(redirectTo) != 0 {
+	if redirectTo != "" {
 		relayProps["redirect_to"] = redirectTo
 	}
 
@@ -56,13 +56,13 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
 	}
 
-	if data, err := samlInterface.BuildRequest(relayState); err != nil {
+	data, err := samlInterface.BuildRequest(relayState)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-		http.Redirect(w, r, data.URL, http.StatusFound)
 	}
+	w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+	http.Redirect(w, r, data.URL, http.StatusFound)
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -80,12 +80,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayProps := make(map[string]string)
 	if len(relayState) > 0 {
 		stateStr := ""
-		if b, err := b64.StdEncoding.DecodeString(relayState); err != nil {
+		b, err := b64.StdEncoding.DecodeString(relayState)
+		if err != nil {
 			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
 			return
-		} else {
-			stateStr = string(b)
 		}
+		stateStr = string(b)
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
@@ -117,15 +117,12 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		teamId := relayProps["team_id"]
-		if len(teamId) > 0 {
-			c.App.Srv().Go(func() {
-				if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
-					mlog.Error(err.Error())
-				} else {
-					c.App.AddDirectChannels(teamId, user)
-				}
-			})
+		if teamId := relayProps["team_id"]; teamId != "" {
+			if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
+				mlog.Error(err.Error())
+				break
+			}
+			c.App.AddDirectChannels(teamId, user)
 		}
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
 		if err = c.App.RevokeAllSessions(user.Id); err != nil {

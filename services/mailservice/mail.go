@@ -184,7 +184,6 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 	if hostname != "" {
 		err := c.Hello(hostname)
 		if err != nil {
-			mlog.Error("Failed to to set the HELO to SMTP server", mlog.Err(err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -298,9 +297,9 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, err := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
-	if err != nil {
-		return err
+	fileBackend, nErr := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
+	if nErr != nil {
+		return model.NewAppError("sendMailUsingConfigAdvanced", "api.file.no_driver.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return SendMail(c, mail, fileBackend, time.Now())
@@ -349,14 +348,14 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 	}
 
 	for _, fileInfo := range mail.attachments {
-		bytes, err := fileBackend.ReadFile(fileInfo.Path)
-		if err != nil {
-			return err
+		bytes, nErr := fileBackend.ReadFile(fileInfo.Path)
+		if nErr != nil {
+			return model.NewAppError("SendMail", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			if _, err := writer.Write(bytes); err != nil {
-				return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
+			if _, nErr = writer.Write(bytes); nErr != nil {
+				return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 			return nil
 		}))

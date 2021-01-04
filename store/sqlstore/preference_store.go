@@ -15,10 +15,10 @@ import (
 )
 
 type SqlPreferenceStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
+func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -46,7 +46,7 @@ func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	WHERE
 	Category = :Category
 	AND Value = :Value
-	AND Name LIKE '` + store.FEATURE_TOGGLE_PREFIX + `%'`
+	AND Name LIKE '` + store.FeatureTogglePrefix + `%'`
 
 	queryParams := map[string]string{
 		"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,

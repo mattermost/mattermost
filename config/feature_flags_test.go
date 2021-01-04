@@ -67,6 +67,41 @@ func TestFeatureFlagsFromMap(t *testing.T) {
 			Base:              model.FeatureFlags{},
 			ExpectedTestValue: "",
 		},
+		"bool on": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "on"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool true": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "true"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool True": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "True"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool 1": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "1"},
+			Base:              model.FeatureFlags{TestBoolFeature: true},
+			ExpectedTestValue: "",
+		},
+		"bool off": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "off"},
+			Base:              model.FeatureFlags{},
+			ExpectedTestValue: "",
+		},
+		"bool false": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "false"},
+			Base:              model.FeatureFlags{},
+			ExpectedTestValue: "",
+		},
+		"bool other value": {
+			FeatureMap:        map[string]string{"TestBoolFeature": "someotherbadvalue"},
+			Base:              model.FeatureFlags{},
+			ExpectedTestValue: "",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tc.ExpectedTestValue, featureFlagsFromMap(tc.FeatureMap, tc.Base).TestFeature)
@@ -94,6 +129,26 @@ func TestFeatureFlagsToMap(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestFeature"])
+		})
+	}
+}
+
+func TestFeatureFlagsToMapBool(t *testing.T) {
+	for name, tc := range map[string]struct {
+		Flags            model.FeatureFlags
+		TestFeatureValue string
+	}{
+		"false": {
+			TestFeatureValue: "false",
+			Flags:            model.FeatureFlags{},
+		},
+		"true": {
+			TestFeatureValue: "true",
+			Flags:            model.FeatureFlags{TestBoolFeature: true},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, tc.TestFeatureValue, featureFlagsToMap(&tc.Flags)["TestBoolFeature"])
 		})
 	}
 }

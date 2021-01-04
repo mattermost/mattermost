@@ -359,7 +359,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
 			token := model.NewToken(
-				TOKEN_TYPE_TEAM_INVITATION,
+				TokenTypeTeamInvitation,
 				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
 			)
 
@@ -429,7 +429,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			}
 
 			token := model.NewToken(
-				TOKEN_TYPE_GUEST_INVITATION,
+				TokenTypeGuestInvitation,
 				model.MapToJson(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIds, " "),
@@ -576,7 +576,7 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 		return nil, model.NewAppError("CreateVerifyEmailToken", "api.user.create_email_token.error", nil, "", http.StatusInternalServerError)
 	}
 
-	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
+	token := model.NewToken(TokenTypeVerifyEmail, string(jsonData))
 
 	if err = es.srv.Store.Token().Save(token); err != nil {
 		var appErr *model.AppError
@@ -765,4 +765,51 @@ func (es *EmailService) SendSuspensionEmailToSupport(email string, installationI
 	}
 
 	return true, nil
+}
+
+func (es *EmailService) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]interface{}{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	bodyPage.Props["Info2"] = T("api.templates.payment_failed.info2")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed.info3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed_no_card.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_no_card_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed_no_card.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
+	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return nil
 }

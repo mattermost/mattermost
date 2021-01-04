@@ -13,27 +13,27 @@ type OfflineProvider struct {
 }
 
 const (
-	CMD_OFFLINE = "offline"
+	CmdOffline = "offline"
 )
 
 func init() {
 	app.RegisterCommandProvider(&OfflineProvider{})
 }
 
-func (me *OfflineProvider) GetTrigger() string {
-	return CMD_OFFLINE
+func (*OfflineProvider) GetTrigger() string {
+	return CmdOffline
 }
 
-func (me *OfflineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*OfflineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_OFFLINE,
+		Trigger:          CmdOffline,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_offline.desc"),
 		DisplayName:      T("api.command_offline.name"),
 	}
 }
 
-func (me *OfflineProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*OfflineProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusOffline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_offline.success")}

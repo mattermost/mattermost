@@ -13,27 +13,27 @@ type AwayProvider struct {
 }
 
 const (
-	CMD_AWAY = "away"
+	CmdAway = "away"
 )
 
 func init() {
 	app.RegisterCommandProvider(&AwayProvider{})
 }
 
-func (me *AwayProvider) GetTrigger() string {
-	return CMD_AWAY
+func (*AwayProvider) GetTrigger() string {
+	return CmdAway
 }
 
-func (me *AwayProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*AwayProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_AWAY,
+		Trigger:          CmdAway,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_away.desc"),
 		DisplayName:      T("api.command_away.name"),
 	}
 }
 
-func (me *AwayProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*AwayProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	a.SetStatusAwayIfNeeded(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_away.success")}

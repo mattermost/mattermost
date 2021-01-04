@@ -16,10 +16,12 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v1.0.12
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
+	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 	github.com/disintegration/imaging v1.6.2
 	github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
@@ -67,7 +69,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.0
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 	github.com/mattermost/gosaml2 v0.3.2
-	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/logr v1.0.13
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattn/go-colorable v0.1.8 // indirect
@@ -139,3 +141,5 @@ require (
 )
 
 replace github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
+
+replace github.com/dyatlov/go-opengraph => github.com/agnivade/go-opengraph v0.0.0-20201221052033-34e69ee2a627

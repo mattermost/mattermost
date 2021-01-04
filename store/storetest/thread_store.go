@@ -4,15 +4,16 @@
 package storetest
 
 import (
+	"testing"
+	"time"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
-func TestThreadStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 }
 
@@ -120,7 +121,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(1), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId}, thread.Participants)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 	})
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
@@ -197,7 +198,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread2, err := ss.Thread().Get(rootPost.RootId)
 		require.Nil(t, err)
 		require.EqualValues(t, thread2.ReplyCount, 1)
-		require.Len(t, thread2.Participants, 1)
+		require.Len(t, thread2.Participants, 2)
 	})
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
@@ -221,7 +222,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts1[0].Id)
 		require.Nil(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 1)
-		require.Len(t, thread1.Participants, 1)
+		require.Len(t, thread1.Participants, 2)
 
 		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
 		require.Nil(t, err)
@@ -233,7 +234,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true))
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err1)
 		m.LastUpdated -= 1000
@@ -253,7 +254,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true))
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err1)
 		m.LastUpdated -= 1000
@@ -273,7 +274,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true))
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err1)
 		m.LastUpdated -= 1000
@@ -293,7 +294,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true))
+		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
 		require.Nil(t, err1)
 		m.LastUpdated += 1000

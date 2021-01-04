@@ -69,7 +69,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		}
 		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Error("error retrieving the cws token from the store", mlog.Err(err))
+			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -83,11 +83,11 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 			token = &model.Token{
 				Token:    cwsToken,
 				CreateAt: model.GetMillis(),
-				Type:     TOKEN_TYPE_CWS_ACCESS,
+				Type:     TokenTypeCWSAccess,
 			}
 			err := a.Srv().Store.Token().Save(token)
 			if err != nil {
-				mlog.Error("error storing the cws token in the store", mlog.Err(err))
+				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -122,10 +122,10 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
 	// If we are given a userID then fail if we can't find a user with that ID
-	if len(id) != 0 {
+	if id != "" {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != MISSING_ACCOUNT_ERROR {
+			if err.Id != MissingAccountError {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
 			}
@@ -217,8 +217,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	a.SetSession(session)
 
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
+		userVal := *user
+		sessionVal := *session
 		a.Srv().Go(func() {
-			a.Ldap().UpdateProfilePictureIfNecessary(*user, session)
+			a.Ldap().UpdateProfilePictureIfNecessary(userVal, sessionVal)
 		})
 	}
 

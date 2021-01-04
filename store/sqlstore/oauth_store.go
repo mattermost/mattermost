@@ -15,10 +15,10 @@ import (
 )
 
 type SqlOAuthStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
+func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	as := &SqlOAuthStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	TIMESTAMP_FORMAT = "Mon Jan 2 15:04:05 -0700 MST 2006"
+	TimestampFormat = "Mon Jan 2 15:04:05 -0700 MST 2006"
 )
 
 // Busy represents the busy state of the server. A server marked busy
@@ -55,7 +55,7 @@ func (b *Busy) Set(dur time.Duration) {
 	b.setWithoutNotify(dur)
 
 	if b.cluster != nil {
-		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), Expires_ts: b.expires.UTC().Format(TIMESTAMP_FORMAT)}
+		sbs := &model.ServerBusyState{Busy: true, Expires: b.expires.Unix(), Expires_ts: b.expires.UTC().Format(TimestampFormat)}
 		b.notifyServerBusyChange(sbs)
 	}
 }
@@ -65,7 +65,11 @@ func (b *Busy) setWithoutNotify(dur time.Duration) {
 	b.clearWithoutNotify()
 	atomic.StoreInt32(&b.busy, 1)
 	b.expires = time.Now().Add(dur)
-	b.timer = time.AfterFunc(dur, b.clearWithoutNotify)
+	b.timer = time.AfterFunc(dur, func() {
+		b.mux.Lock()
+		b.clearWithoutNotify()
+		b.mux.Unlock()
+	})
 }
 
 // ClearBusy marks the server as not busy and notifies cluster nodes.
@@ -137,7 +141,7 @@ func (b *Busy) ToJson() string {
 	sbs := &model.ServerBusyState{
 		Busy:       atomic.LoadInt32(&b.busy) != 0,
 		Expires:    b.expires.Unix(),
-		Expires_ts: b.expires.UTC().Format(TIMESTAMP_FORMAT),
+		Expires_ts: b.expires.UTC().Format(TimestampFormat),
 	}
 	return sbs.ToJson()
 }

@@ -24,7 +24,7 @@ import (
 )
 
 type SqlPostStore struct {
-	SqlStore
+	*SqlStore
 	metrics           einterfaces.MetricsInterface
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
@@ -60,7 +60,7 @@ func postToSlice(post *model.Post) []interface{} {
 	}
 }
 
-func newSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
+func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
 	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
@@ -80,7 +80,7 @@ func newSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(150)
+		table.ColMap("FileIds").SetMaxSize(300)
 	}
 
 	return s
@@ -1378,8 +1378,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 }
 
 func removeMysqlStopWordsFromTerms(terms string) (string, error) {
-	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
-	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
+	stopWords := make([]string, len(searchlayer.MySQLStopWords))
+	copy(stopWords, searchlayer.MySQLStopWords)
 	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
 	if err != nil {
 		return "", err
@@ -1937,7 +1937,6 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent b
 		}
 		if thread != nil {
 			thread.ReplyCount -= 1
-			thread.Participants = thread.Participants.Remove(userId)
 			if _, err = s.Thread().Update(thread); err != nil {
 				return errors.Wrap(err, "failed to update thread")
 			}
@@ -1976,11 +1975,11 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 		if thread, found := threadByRoot[rootId]; !found {
 			// calculate participants
 			var participants model.StringArray
-			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
+			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId OR Id=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
 				return err
 			}
 			// calculate reply count
-			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId})
+			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId And DeleteAt=0", map[string]interface{}{"RootId": rootId})
 			if err != nil {
 				return err
 			}

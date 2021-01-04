@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	PENDING_POST_IDS_CACHE_SIZE = 25000
-	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
-	PAGE_DEFAULT                = 0
+	PendingPostIDsCacheSize = 25000
+	PendingPostIDsCacheTTL  = 30 * time.Second
+	PageDefault             = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
@@ -58,7 +58,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 				var nfErr *store.ErrNotFound
 				switch {
 				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 				default:
 					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
@@ -128,7 +128,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	var postId string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
 	if nErr == cache.ErrKeyNotFound {
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL)
 		return nil, nil
 	}
 
@@ -176,7 +176,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return
 		}
 
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
 	post.SanitizeProps()
@@ -196,7 +196,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreatePost", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("CreatePost", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -318,7 +318,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PENDING_POST_IDS_CACHE_TTL)
+	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
@@ -458,7 +458,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true); err != nil {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
 			return err
 		}
 	}
@@ -999,13 +999,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	// channel organically, those replies will be added below.
 	postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads}); err != nil {
 		return nil, err
 	} else if postListBefore != nil {
 		postList.Extend(postListBefore)
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1340,6 +1340,64 @@ func (a *App) MaxPostSize() int {
 	return a.Srv().MaxPostSize()
 }
 
+// countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
+func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId string, timestamp int64) (int64, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return 0, err
+	}
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		map[string]string{},
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true, // Assume channel mentions are always allowed for simplicity
+	)
+
+	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	count := 0
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		// In a DM channel, every post made by the other user is a mention
+		otherId := channel.GetOtherUserIdForDM(user.Id)
+		for _, p := range posts {
+			if p.UserId == otherId {
+				count++
+			}
+		}
+
+		return int64(count), nil
+	}
+
+	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	mentions := getExplicitMentions(post, keywords, groups)
+	if _, ok := mentions.Mentions[user.Id]; ok {
+		count += 1
+	}
+
+	for _, p := range posts {
+		mentions = getExplicitMentions(p, keywords, groups)
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
+	}
+
+	return int64(count), nil
+}
+
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
@@ -1480,6 +1538,6 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	return false
 }
 
-func (a *App) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
-	return a.Srv().Store.Thread().GetMembershipsForUser(userId)
+func (a *App) GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId, teamId)
 }

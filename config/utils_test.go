@@ -25,6 +25,7 @@ func TestDesanitize(t *testing.T) {
 	actual.FileSettings.AmazonS3SecretAccessKey = sToP("amazon_s3_secret_access_key")
 	actual.EmailSettings.SMTPPassword = sToP("smtp_password")
 	actual.GitLabSettings.Secret = sToP("secret")
+	actual.OpenIdSettings.Secret = sToP("secret")
 	actual.SqlSettings.DataSource = sToP("data_source")
 	actual.SqlSettings.AtRestEncryptKey = sToP("at_rest_encrypt_key")
 	actual.ElasticsearchSettings.Password = sToP("password")
@@ -46,6 +47,7 @@ func TestDesanitize(t *testing.T) {
 	target.FileSettings.AmazonS3SecretAccessKey = sToP(model.FAKE_SETTING)
 	target.EmailSettings.SMTPPassword = sToP(model.FAKE_SETTING)
 	target.GitLabSettings.Secret = sToP(model.FAKE_SETTING)
+	target.OpenIdSettings.Secret = sToP(model.FAKE_SETTING)
 	target.SqlSettings.DataSource = sToP(model.FAKE_SETTING)
 	target.SqlSettings.AtRestEncryptKey = sToP(model.FAKE_SETTING)
 	target.ElasticsearchSettings.Password = sToP(model.FAKE_SETTING)
@@ -66,6 +68,7 @@ func TestDesanitize(t *testing.T) {
 	assert.Equal(t, *actual.FileSettings.AmazonS3SecretAccessKey, *target.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, *actual.EmailSettings.SMTPPassword, *target.EmailSettings.SMTPPassword)
 	assert.Equal(t, *actual.GitLabSettings.Secret, *target.GitLabSettings.Secret)
+	assert.Equal(t, *actual.OpenIdSettings.Secret, *target.OpenIdSettings.Secret)
 	assert.Equal(t, *actual.SqlSettings.DataSource, *target.SqlSettings.DataSource)
 	assert.Equal(t, *actual.SqlSettings.AtRestEncryptKey, *target.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, *actual.ElasticsearchSettings.Password, *target.ElasticsearchSettings.Password)
@@ -140,6 +143,51 @@ func TestFixInvalidLocales(t *testing.T) {
 	assert.True(t, changed)
 	assert.NotContains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale, "DefaultServerLocale should not be added to AvailableLocales")
 	assert.Contains(t, *cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale, "DefaultClientLocale should have been added to AvailableLocales")
+}
+
+func TestIsDatabaseDSN(t *testing.T) {
+	testCases := []struct {
+		Name     string
+		DSN      string
+		Expected bool
+	}{
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Mysql DSN",
+			DSN:      "mysql://localhost",
+			Expected: true,
+		},
+		{
+			Name:     "Empty DSN",
+			DSN:      "",
+			Expected: false,
+		},
+		{
+			Name:     "Default file DSN",
+			DSN:      "config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Relative path DSN",
+			DSN:      "configuration/config.json",
+			Expected: false,
+		},
+		{
+			Name:     "Absolute path DSN",
+			DSN:      "/opt/mattermost/configuration/config.json",
+			Expected: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, IsDatabaseDSN(tc.DSN))
+		})
+	}
 }
 
 func TestStripPassword(t *testing.T) {
