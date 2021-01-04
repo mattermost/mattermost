@@ -280,7 +280,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err.Translate(c.App.T)
-		c.LogByCode(err)
+		c.LogErrorByCode(err)
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
@@ -292,7 +292,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.CompleteOAuth(service, body, teamId, props, tokenUser)
 	if err != nil {
 		err.Translate(c.App.T)
-		c.LogByCode(err)
+		c.LogErrorByCode(err)
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {

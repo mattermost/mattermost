@@ -254,6 +254,8 @@ func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
 		mlog.Warn("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
 		return def
 	}
+	defer file.Close()
+
 	fileStats, err := file.Stat()
 	if err != nil {
 		mlog.Warn("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
