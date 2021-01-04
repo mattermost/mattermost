@@ -22,7 +22,7 @@ empty:
     - echo "empty"
 
 #lint:
-#  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.31.0-1
+#  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.33.2-1
 #  stage: .pre
 #  script:
 #    - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
