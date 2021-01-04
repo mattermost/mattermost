@@ -1088,14 +1088,6 @@
     "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Link wydaje się być niepoprawny."
   },
@@ -1116,44 +1108,12 @@
     "translation": "Nie można uzyskać publicznego łącza do pliku. Plik musi być załączony do wiadomości, którą możesz odczytać."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Nie można skopiować pliku w S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Nie można skasować pliku z usługi S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Nie można przenieść pliku lokalnie."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Nie wybrano sterownika pliku."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Wystąpił błąd podczas odczytu z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Napotkano błąd podczas odczytu z zasobnika S3"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Wystąpił błąd podczas otwierania czytnika z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Napotkano błąd przy odczycie z magazynu S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Nie ma uprawnień do zapisu na podaną lokalną ścieżkę lub innego błędu."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Błąd podczas sprawdzania czy wiadro istnieje."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1190,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Nie można przesłać pliku {{.Filename}}. {{.Length}} bajtów przekracza maksymalną dozwoloną liczbę {{.Limit}} bajtów."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Napotkano błąd podczas tworzenia katalogu dla nowych plików"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do lokalnego magazynu"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4952,30 +4900,6 @@
     "translation": "System"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Nie udało się ustawić HELO"
   },
@@ -6920,10 +6844,6 @@
     "translation": "Nie udało się pobrać członków kanału"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Nie udało się stworzyć wiadra."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7066,14 +6986,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nie można utworzyć wiadomości na usuniętym kanale."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot nie istnieje"
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
