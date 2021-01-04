@@ -641,6 +641,20 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 				continue
 			}
 
+			// Handle attachments.
+			var postAttachments []AttachmentImportData
+			var err *model.AppError
+			if len(post.FileIds) > 0 {
+				postAttachments, err = a.buildPostAttachments(post.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				if withAttachments && len(postAttachments) > 0 {
+					attachments = append(attachments, postAttachments...)
+				}
+			}
+
 			// Do the Replies.
 			replies, replyAttachments, err := a.buildPostReplies(post.Id, withAttachments)
 			if err != nil {
@@ -653,6 +667,9 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 
 			postLine := ImportLineForDirectPost(post)
 			postLine.DirectPost.Replies = replies
+			if len(postAttachments) > 0 {
+				postLine.DirectPost.Attachments = &postAttachments
+			}
 			if err := a.exportWriteLine(writer, postLine); err != nil {
 				return nil, err
 			}
