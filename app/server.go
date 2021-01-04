@@ -220,7 +220,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	// This is called after initLogging() to avoid a race condition.
@@ -694,7 +694,7 @@ func (s *Server) initLogging() error {
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
-				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
+				mlog.Warn("Error re-configuring advanced logging", mlog.Err(err))
 			} else {
 				mlog.Info("Re-configured advanced logging")
 			}
@@ -762,7 +762,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() error {
+func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -775,13 +775,13 @@ func (s *Server) Shutdown() error {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -831,14 +831,14 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Error("Error flushing logs", mlog.Err(err))
+		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
@@ -847,8 +847,6 @@ func (s *Server) Shutdown() error {
 	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer timeoutCancel2()
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
 }
 
 func (s *Server) Restart() error {
@@ -1327,17 +1325,17 @@ func doCheckWarnMetricStatus(a *App) {
 
 	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err0 != nil {
-		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
 	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err1 != nil {
-		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
 	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
-		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
 	// If an account is created with a different email domain
@@ -1346,7 +1344,7 @@ func doCheckWarnMetricStatus(a *App) {
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err3 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1380,7 +1378,7 @@ func doCheckWarnMetricStatus(a *App) {
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 			if err4 != nil {
-				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {

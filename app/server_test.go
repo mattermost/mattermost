@@ -329,9 +329,6 @@ func TestPanicLog(t *testing.T) {
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 
-	err = s.Shutdown()
-	require.NoError(t, err)
-
 	// Checking whether panic was logged
 	var panicLogged = false
 	var infoLogged = false

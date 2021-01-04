@@ -762,7 +762,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.teeInput)
 		if err != nil {
-			mlog.Error("Failed to parse SVG", mlog.Err(err))
+			mlog.Warn("Failed to parse SVG", mlog.Err(err))
 		}
 		if svgInfo.Width > 0 && svgInfo.Height > 0 {
 			t.fileinfo.Width = svgInfo.Width

@@ -84,7 +84,7 @@ func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	for _, pk := range publicKeys {
 		pkBytes, appErr := a.GetPublicKey(pk)
 		if appErr != nil {
-			mlog.Error("Unable to get public key for ", mlog.String("filename", pk))
+			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)
