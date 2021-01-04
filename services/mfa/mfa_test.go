@@ -93,7 +93,7 @@ func TestGetIssuerFromUrl(t *testing.T) {
 
 func TestActivate(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-	user.MfaSecret = model.NewRandomBase32String(MFA_SECRET_SIZE)
+	user.MfaSecret = model.NewRandomBase32String(MFASecretSize)
 
 	token := dgoogauth.ComputeCode(user.MfaSecret, time.Now().UTC().Unix()/30)
 
@@ -226,7 +226,7 @@ func TestDeactivate(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	secret := model.NewRandomBase32String(MFA_SECRET_SIZE)
+	secret := model.NewRandomBase32String(MFASecretSize)
 	token := dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30)
 
 	config := model.Config{}

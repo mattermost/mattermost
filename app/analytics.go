@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
-	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+	DayMilliseconds   = 24 * 60 * 60 * 1000
+	MonthMilliseconds = 31 * DayMilliseconds
 )
 
 func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
@@ -93,14 +93,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			dailyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			dailyActiveChan <- store.StoreResult{Data: dailyActive, NErr: err2}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			monthlyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, NErr: err2}
 			close(monthlyActiveChan)
 		}()

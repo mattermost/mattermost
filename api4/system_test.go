@@ -588,7 +588,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
 			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)

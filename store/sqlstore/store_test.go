@@ -456,11 +456,11 @@ func TestGetAllConns(t *testing.T) {
 
 func TestIsDuplicate(t *testing.T) {
 	testErrors := map[error]bool{
-		&pq.Error{Code: "42P06"}:                              false,
-		&pq.Error{Code: PG_DUP_TABLE_ERROR_CODE}:              true,
-		&mysql.MySQLError{Number: uint16(1000)}:               false,
-		&mysql.MySQLError{Number: MYSQL_DUP_TABLE_ERROR_CODE}: true,
-		errors.New("Random error"):                            false,
+		&pq.Error{Code: "42P06"}:                          false,
+		&pq.Error{Code: PGDupTableErrorCode}:              true,
+		&mysql.MySQLError{Number: uint16(1000)}:           false,
+		&mysql.MySQLError{Number: MySQLDupTableErrorCode}: true,
+		errors.New("Random error"):                        false,
 	}
 
 	for err, expected := range testErrors {
