@@ -29,6 +29,14 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		return
 	}
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
+
+	defer func() {
+		if session != nil {
+			session.Id = ""
+			app.UserSessionPool.Put(session)
+		}
+	}()
+
 	if sessionErr != nil {
 		mlog.Error(
 			"websocket session error",
