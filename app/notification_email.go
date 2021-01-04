@@ -314,7 +314,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 }
 
 func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
+	if strings.TrimSpace(post.Message) != "" || len(post.FileIds) == 0 {
 		return post.Message
 	}
 

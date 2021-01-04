@@ -45,11 +45,12 @@ const (
 	SERVICE_GITLAB    = "gitlab"
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
+	SERVICE_OPENID    = "openid"
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
-	MM_SUPPORT_ADDRESS              = "support@mattermost.com"
+	MM_SUPPORT_ADVISOR_ADDRESS      = "support-advisor@mattermost.com"
 	FULL_NOTIFICATION               = "full"
 	ID_LOADED_NOTIFICATION          = "id_loaded"
 
@@ -230,6 +231,7 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
 	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -960,16 +962,19 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	ButtonText        *string `access:"authentication"`
+	ButtonColor       *string `access:"authentication"`
 }
 
-func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -986,6 +991,10 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.Scope = NewString(scope)
 	}
 
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
+	}
+
 	if s.AuthEndpoint == nil {
 		s.AuthEndpoint = NewString(authEndpoint)
 	}
@@ -997,17 +1006,26 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
+
+	if s.ButtonText == nil {
+		s.ButtonText = NewString("")
+	}
+
+	if s.ButtonColor == nil {
+		s.ButtonColor = NewString(buttonColor)
+	}
 }
 
 type Office365Settings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
-	DirectoryId     *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	DirectoryId       *string `access:"authentication"`
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1025,6 +1043,10 @@ func (s *Office365Settings) setDefaults() {
 
 	if s.Scope == nil {
 		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
 	}
 
 	if s.AuthEndpoint == nil {
@@ -1050,6 +1072,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.Secret = s.Secret
 	ssoSettings.Id = s.Id
 	ssoSettings.Scope = s.Scope
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
@@ -2948,6 +2971,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
+	OpenIdSettings            SSOSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -3004,6 +3028,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
 		return o.Office365Settings.SSOSettings()
+	case SERVICE_OPENID:
+		return &o.OpenIdSettings
 	}
 
 	return nil
@@ -3039,8 +3065,10 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults("", "", "", "")
-	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
+	o.GitLabSettings.setDefaults("", "", "", "", "")
+	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT, "")
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "", "#145DBF")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
@@ -3456,13 +3484,13 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.SiteURL) != 0 {
+	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if len(*s.WebsocketURL) != 0 {
+	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3691,6 +3719,10 @@ func (o *Config) Sanitize() {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
+	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+		*o.OpenIdSettings.Secret = FAKE_SETTING
+	}
+
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
@@ -3720,7 +3752,7 @@ func (o *Config) Sanitize() {
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 

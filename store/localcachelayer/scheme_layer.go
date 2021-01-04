@@ -14,7 +14,7 @@ type LocalCacheSchemeStore struct {
 }
 
 func (s *LocalCacheSchemeStore) handleClusterInvalidateScheme(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.schemeCache.Purge()
 	} else {
 		s.rootStore.schemeCache.Remove(msg.Data)
@@ -22,7 +22,7 @@ func (s *LocalCacheSchemeStore) handleClusterInvalidateScheme(msg *model.Cluster
 }
 
 func (s LocalCacheSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
-	if len(scheme.Id) != 0 {
+	if scheme.Id != "" {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.schemeCache, scheme.Id)
 	}
 	return s.SchemeStore.Save(scheme)

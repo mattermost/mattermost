@@ -129,6 +129,16 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.Login(ApiClient, th.SystemAdminUser)
+	defer th.TearDown()
+
+	_, resp := ApiClient.AuthorizeOAuthApp(nil)
+	require.NotNil(t, resp.Error)
+	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
+}
+
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	th := Setup(t).InitBasic()
 	th.Login(ApiClient, th.SystemAdminUser)
@@ -549,10 +559,18 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
 	return user, nil
+}
+
+func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+	return nil, nil
 }
 
 func GenerateTestAppName() string {

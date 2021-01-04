@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	EMAIL_BATCHING_TASK_NAME = "Email Batching"
+	EmailBatchingTaskName = "Email Batching"
 )
 
 func (es *EmailService) InitEmailBatching() {
@@ -72,7 +72,7 @@ func NewEmailBatchingJob(es *EmailService, bufferSize int) *EmailBatchingJob {
 
 func (job *EmailBatchingJob) Start() {
 	mlog.Debug("Email batching job starting. Checking for pending emails periodically.", mlog.Int("interval_in_seconds", *job.server.Config().EmailSettings.EmailBatchingInterval))
-	newTask := model.CreateRecurringTask(EMAIL_BATCHING_TASK_NAME, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
+	newTask := model.CreateRecurringTask(EmailBatchingTaskName, job.CheckPendingEmails, time.Duration(*job.server.Config().EmailSettings.EmailBatchingInterval)*time.Second)
 
 	job.taskMutex.Lock()
 	oldTask := job.task

@@ -15,20 +15,20 @@ type CodeProvider struct {
 }
 
 const (
-	CMD_CODE = "code"
+	CmdCode = "code"
 )
 
 func init() {
 	app.RegisterCommandProvider(&CodeProvider{})
 }
 
-func (me *CodeProvider) GetTrigger() string {
-	return CMD_CODE
+func (*CodeProvider) GetTrigger() string {
+	return CmdCode
 }
 
-func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_CODE,
+		Trigger:          CmdCode,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_code.desc"),
 		AutoCompleteHint: T("api.command_code.hint"),
@@ -36,7 +36,7 @@ func (me *CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

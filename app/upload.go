@@ -87,7 +87,6 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	if written > 0 {
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
-			mlog.Error("Failed to move file", mlog.Err(fileErr))
 			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
 				nil, fileErr.Error(), http.StatusInternalServerError)
 		}
