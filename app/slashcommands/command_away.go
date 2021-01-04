@@ -13,7 +13,7 @@ type AwayProvider struct {
 }
 
 const (
-	CMD_AWAY = "away"
+	CmdAway = "away"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (*AwayProvider) GetTrigger() string {
-	return CMD_AWAY
+	return CmdAway
 }
 
 func (*AwayProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_AWAY,
+		Trigger:          CmdAway,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_away.desc"),
 		DisplayName:      T("api.command_away.name"),
