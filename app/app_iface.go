@@ -463,6 +463,7 @@ type AppIface interface {
 	DeleteCommand(commandId string) *model.AppError
 	DeleteEmoji(emoji *model.Emoji) *model.AppError
 	DeleteEphemeralPost(userId, postId string)
+	DeleteExport(name string) *model.AppError
 	DeleteFlaggedPosts(postId string)
 	DeleteGroup(groupID string) (*model.Group, *model.AppError)
 	DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
@@ -775,6 +776,7 @@ type AppIface interface {
 	LimitedClientConfig() map[string]string
 	ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
 	ListDirectory(path string) ([]string, *model.AppError)
+	ListExports() ([]string, *model.AppError)
 	ListImports() ([]string, *model.AppError)
 	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamId string) ([]*model.Command, *model.AppError)
