@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5320
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
@@ -925,7 +925,8 @@ func precheckMigrationToVersion528(sqlStore *SqlStore) error {
 }
 
 func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
+	if hasMissingMigrationsVersion529(sqlStore) {
+		mlog.Info("Applying migrations for version 5.29")
 		sqlStore.AlterColumnTypeIfExists("SidebarCategories", "Id", "VARCHAR(128)", "VARCHAR(128)")
 		sqlStore.AlterColumnDefaultIfExists("SidebarCategories", "Id", model.NewString(""), nil)
 		sqlStore.AlterColumnTypeIfExists("SidebarChannels", "CategoryId", "VARCHAR(128)", "VARCHAR(128)")
@@ -940,18 +941,63 @@ func upgradeDatabaseToVersion529(sqlStore *SqlStore) {
 		if _, err := sqlStore.GetMaster().Exec(updateThreadChannelsQuery); err != nil {
 			mlog.Error("Error updating ChannelId in Threads table", mlog.Err(err))
 		}
+	}
 
+	if shouldPerformUpgrade(sqlStore, Version5281, Version5290) {
 		saveSchemaVersion(sqlStore, Version5290)
 	}
 }
 
-func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
-	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
+func hasMissingMigrationsVersion529(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("SidebarCategories", "Id")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "SidebarCategories"),
+			mlog.String("column", "Id"),
+			mlog.Err(err),
+		)
+		return true
+	}
+	if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 128 {
+		return true
+	}
+	scCategoryIdInfo, err := sqlStore.GetColumnInfo("SidebarChannels", "CategoryId")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "SidebarChannels"),
+			mlog.String("column", "CategoryId"),
+			mlog.Err(err),
+		)
+		return true
+	}
+	if !sqlStore.IsVarchar(scCategoryIdInfo.DataType) || scCategoryIdInfo.CharMaximumLength != 128 {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("Threads", "ChannelId") {
+		return true
+	}
+	return false
+}
 
+func upgradeDatabaseToVersion530(sqlStore *SqlStore) {
+	if hasMissingMigrationsVersion530(sqlStore) {
+		mlog.Info("Applying migrations for version 5.30")
+		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+	}
+	if shouldPerformUpgrade(sqlStore, Version5290, Version5300) {
 		saveSchemaVersion(sqlStore, Version5300)
 	}
+}
+
+func hasMissingMigrationsVersion530(sqlStore *SqlStore) bool {
+	if !sqlStore.DoesColumnExist("FileInfo", "Content") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("SidebarCategories", "Muted") {
+		return true
+	}
+	return false
 }
 
 func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
@@ -961,10 +1007,41 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 }
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	// saveSchemaVersion(sqlStore, Version5320)
-	// }
+	if hasMissingMigrationsVersion532(sqlStore) {
+		// allow 10 files per post
+		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+	}
+
+	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
+		saveSchemaVersion(sqlStore, Version5320)
+	}
+}
+
+func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
+	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
+	if err != nil {
+		mlog.Error("Error getting column info for migration check",
+			mlog.String("table", "Posts"),
+			mlog.String("column", "FileIds"),
+			mlog.Err(err),
+		)
+		return true
+	}
+
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
+			return true
+		}
+	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if scIdInfo.DataType != "text" {
+			return true
+		}
+	}
+
+	if !sqlStore.DoesColumnExist("Channels", "Shared") {
+		return true
+	}
+
+	return false
 }
