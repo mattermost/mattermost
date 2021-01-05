@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
-
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 

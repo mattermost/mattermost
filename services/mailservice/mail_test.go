@@ -10,13 +10,12 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"net/mail"
+	"net/smtp"
 	"os"
 	"strings"
 	"testing"
 	"time"
-
-	"net/mail"
-	"net/smtp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

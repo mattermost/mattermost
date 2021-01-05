@@ -4,14 +4,13 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
-
-	"bytes"
-	"io/ioutil"
 
 	"github.com/gorilla/mux"
 

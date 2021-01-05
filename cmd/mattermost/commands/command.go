@@ -5,9 +5,8 @@ package commands
 
 import (
 	"errors"
-	"strings"
-
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 

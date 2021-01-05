@@ -8,12 +8,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"time"
-
-	"runtime/debug"
-
 	"net/http"
+	"os"
+	"runtime/debug"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"

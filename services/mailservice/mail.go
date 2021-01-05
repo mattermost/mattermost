@@ -10,15 +10,13 @@ import (
 	"io"
 	"mime"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/smtp"
 	"time"
 
-	gomail "gopkg.in/mail.v2"
-
-	"net/http"
-
 	"github.com/jaytaylor/html2text"
+	gomail "gopkg.in/mail.v2"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"

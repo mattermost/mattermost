@@ -6,13 +6,12 @@ package sqlstore
 import (
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 )
 
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {

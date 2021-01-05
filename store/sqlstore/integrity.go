@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-
-	sq "github.com/Masterminds/squirrel"
 )
 
 type relationalCheckConfig struct {
