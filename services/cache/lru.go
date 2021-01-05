@@ -159,9 +159,6 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
-	l.lock.Lock()
-	defer l.lock.Unlock()
-
 	// Check for existing item, ignoring expiry since we'd update anyway.
 	if ent, ok := l.items[key]; ok {
 		l.evictList.MoveToFront(ent)
