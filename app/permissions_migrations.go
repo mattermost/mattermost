@@ -535,12 +535,31 @@ func (a *App) getAddManageRemoteClustersPermissionsMigration() (permissionsMap, 
 }
 
 func (a *App) getAddDownloadComplianceExportResult() (permissionsMap, error) {
-	return permissionsMap{
+	transformations := []permissionTransformation{}
+
+	permissionsToAddComplianceRead := []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id, model.PERMISSION_READ_JOBS.Id}
+	permissionsToAddComplianceWrite := []string{model.PERMISSION_MANAGE_JOBS.Id}
+
+	// add the new permissions to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: []string{model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT.Id},
-		},
-	}, nil
+		})
+
+	// add Download Compliance Export Result and Read Jobs to all roles with sysconsole_read_compliance
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id),
+		Add: permissionsToAddComplianceRead,
+	})
+
+	// add manage_jobs to all roles with sysconsole_write_compliance
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id),
+		Add: permissionsToAddComplianceWrite,
+	})
+
+	return transformations, nil
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
