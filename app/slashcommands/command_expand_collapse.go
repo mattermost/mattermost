@@ -18,8 +18,8 @@ type CollapseProvider struct {
 }
 
 const (
-	CMD_EXPAND   = "expand"
-	CMD_COLLAPSE = "collapse"
+	CmdExpand   = "expand"
+	CmdCollapse = "collapse"
 )
 
 func init() {
@@ -28,16 +28,16 @@ func init() {
 }
 
 func (*ExpandProvider) GetTrigger() string {
-	return CMD_EXPAND
+	return CmdExpand
 }
 
 func (*CollapseProvider) GetTrigger() string {
-	return CMD_COLLAPSE
+	return CmdCollapse
 }
 
 func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_EXPAND,
+		Trigger:          CmdExpand,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_expand.desc"),
 		DisplayName:      T("api.command_expand.name"),
@@ -46,7 +46,7 @@ func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 
 func (*CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_COLLAPSE,
+		Trigger:          CmdCollapse,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_collapse.desc"),
 		DisplayName:      T("api.command_collapse.name"),

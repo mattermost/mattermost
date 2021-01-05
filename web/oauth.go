@@ -274,11 +274,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	action := ""
 	hasRedirectURL := false
-	isActionMobileAuth := false
+	isMobile := false
 	redirectURL := ""
 	if props != nil {
 		action = props["action"]
-		isActionMobileAuth = action == model.OAUTH_ACTION_MOBILE
+		isMobile = action == model.OAUTH_ACTION_MOBILE
 		if val, ok := props["redirect_to"]; ok {
 			redirectURL = val
 			hasRedirectURL = redirectURL != ""
@@ -286,7 +286,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderError := func(err *model.AppError) {
-		if isActionMobileAuth {
+		if isMobile {
 			if hasRedirectURL {
 				utils.RenderMobileError(c.App.Config(), w, err)
 			} else {
@@ -299,7 +299,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err.Translate(c.App.T)
-		mlog.Error(err.Error())
+    c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}
@@ -307,7 +307,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.CompleteOAuth(service, body, teamId, props, tokenUser)
 	if err != nil {
 		err.Translate(c.App.T)
-		mlog.Error(err.Error())
+    c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}
@@ -317,7 +317,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		err = c.App.DoLogin(w, r, user, "", isActionMobileAuth, false, false)
+		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
 			mlog.Error(err.Error())
@@ -326,12 +326,12 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Old mobile version
-		if isActionMobileAuth == true && hasRedirectURL == false {
+		if isMobile == true && hasRedirectURL == false {
 			c.App.AttachSessionCookies(w, r)
 			return
 		} else
 		// New mobile version
-		if isActionMobileAuth == true && hasRedirectURL == true {
+		if isMobile == true && hasRedirectURL == true {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
 				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
