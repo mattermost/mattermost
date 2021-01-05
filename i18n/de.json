@@ -1085,14 +1085,6 @@
     "translation": "Dateianhänge wurden auf diesem Server deaktiviert."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Der öffentliche Link scheint nicht gültig zu sein."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Benutzer gelesen werden kann."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Kopieren der Datei innerhalb von S3 fehlgeschlagen."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Die Datei von S3 kann nicht gelöscht werden."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Die Datei kann lokal nicht verschoben werden."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Kein Datei-Treiber ausgewählt."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Ein Fehler ist während des Lesens vom lokalen Server-Speicher ist aufgetreten."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Ein Fehler ist während des Lesens vom S3-Speicher aufgetreten."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Keine Berechtigungen zum Schreiben in lokalen Pfad oder anderer Fehler."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Fehler bei der Überprüfung, ob Bucket existiert."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Konnte Datei {{.Filename}} nicht hochladen. {{.Length}} Bytes überschreiten die maximal erlaubten {{.Limit}} Bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Ein Fehler ist beim Erstellen des Verzeichnisses für die neue Datei aufgetreten."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Ein Fehler ist beim Schreiben auf den lokalen Server aufgetreten."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4947,30 +4895,6 @@
     "translation": "System"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server ist aufgetreten."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Ein Fehler ist beim Auflisten des Verzeichnisses von S3 aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens des Verzeichnisses vom lokalen Server aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Ein Fehler ist beim Entfernen des Verzeichnisses von S3 aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Ein Fehler ist während des Löschens der Datei vom lokalen Server aufgetreten."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Ein Fehler ist beim Entfernen der Datei von S3 aufgetreten."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Fehler beim Setzen von HELO"
   },
@@ -6871,10 +6795,6 @@
     "translation": "Konnte die Dateiinformationen nicht abrufen."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Ein Fehler ist beim Schreiben zu S3 Fehler aufgetreten."
-  },
-  {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
   },
@@ -6929,10 +6849,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Fehler beim Abrufen der Kanalmitglieder."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Konnte Bucket nicht erstellen."
   },
   {
     "id": "api.server.warn_metric.start_trial",
@@ -7077,10 +6993,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Kann nicht in gelöschten Kanal senden."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot existiert nicht."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
