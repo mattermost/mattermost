@@ -6,12 +6,12 @@ package web
 import (
 	"bytes"
 	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -260,6 +260,53 @@ func TestIncomingWebhook(t *testing.T) {
 		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusNotImplemented)
+	})
+
+	t.Run("IncomingWebhooksTriggerOutgoingWebhooks", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+		})
+
+		called := make(chan bool)
+
+		go func(called chan bool) {
+			called <- false
+			http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+				called <- true
+				close(called)
+			})
+			err := http.ListenAndServe(":9123", nil)
+			require.Nil(t, err)
+		}(called)
+
+		_, appErr := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+			ChannelId:    th.BasicChannel.Id,
+			CreatorId:    th.BasicUser.Id,
+			TeamId:       th.BasicTeam.Id,
+			CallbackURLs: []string{"http://localhost:9123/"},
+		})
+		require.Nil(t, appErr)
+
+		text := `this is a \"test\"`
+		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
+		require.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		timeout := time.After(2 * time.Second)
+		wait := true
+
+		for wait {
+			select {
+			case atLeastCalled := <-called:
+				if atLeastCalled {
+					wait = false
+				}
+			case <-timeout:
+				require.Fail(t, "Webhook has not been called")
+				wait = false
+			}
+		}
 	})
 }
 

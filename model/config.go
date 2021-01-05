@@ -286,6 +286,7 @@ type ServiceSettings struct {
 	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
 	EnableIncomingWebhooks                            *bool    `access:"integrations"`
 	EnableOutgoingWebhooks                            *bool    `access:"integrations"`
+	IncomingWebhooksTriggerOutgoingWebhooks           *bool    `access:"integrations"`
 	EnableCommands                                    *bool    `access:"integrations"`
 	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
@@ -451,6 +452,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
+	}
+
+	if s.IncomingWebhooksTriggerOutgoingWebhooks == nil {
+		s.IncomingWebhooksTriggerOutgoingWebhooks = NewBool(true)
 	}
 
 	if s.ConnectionSecurity == nil {

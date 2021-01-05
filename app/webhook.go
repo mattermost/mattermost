@@ -297,8 +297,10 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		return nil, err
 	}
 
+	triggerWebhooks := *a.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks
+
 	for _, split := range splits {
-		if _, err := a.CreatePostMissingChannel(split, false); err != nil {
+		if _, err := a.CreatePostMissingChannel(split, triggerWebhooks); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 	}
