@@ -176,23 +176,6 @@ func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error)
 	return cache.Data, err
 }
 
-// Append cookies to passed baseUrl into query params
-func BuildUrlQueryStringFromCookies(baseUrl string, r *http.Request) string {
-	u, err := url.Parse(baseUrl)
-	if err != nil {
-		return ""
-	}
-	q, err := url.ParseQuery(u.RawQuery)
-	if err != nil {
-		return ""
-	}
-	for _, cookie := range r.Cookies() {
-		q.Add(cookie.Name, cookie.Value)
-	}
-	u.RawQuery = q.Encode()
-	return u.String()
-}
-
 // Append tokens to passed baseUrl as query params
 func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
 	u, err := url.Parse(baseUrl)

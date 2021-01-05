@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -318,11 +317,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
-		if parseErr != nil {
-			mlog.Error("Error parsing boolean property from props", mlog.Err(parseErr))
-		}
-		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
+		err = c.App.DoLogin(w, r, user, "", isActionMobileAuth, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
 			mlog.Error(err.Error())
@@ -330,28 +325,26 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Attach cookies only for: WEB & Mobile clients with webview support
-		if (isActionMobileAuth && !hasRedirectURL) || !isActionMobileAuth {
+		// Old mobile version
+		if isActionMobileAuth == true && hasRedirectURL == false {
 			c.App.AttachSessionCookies(w, r)
-		}
-
-		if !isActionMobileAuth {
-			// If no redirect url is passed, get the default one
-			if !hasRedirectURL {
-				redirectURL = c.GetSiteURLHeader()
-			}
-		} else {
-			// Mobile clients with webview support
-			if !hasRedirectURL {
-				return
-			}
-			// Mobile clients with redirect url support
+			return
+		} else
+		// New mobile version
+		if isActionMobileAuth == true && hasRedirectURL == true {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
 				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 			return
+		} else { // For web
+			c.App.AttachSessionCookies(w, r)
+
+			// If no redirect url is passed, get the default one
+			if !hasRedirectURL {
+				redirectURL = c.GetSiteURLHeader()
+			}
 		}
 	}
 
