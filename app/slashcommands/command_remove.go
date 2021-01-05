@@ -20,8 +20,8 @@ type KickProvider struct {
 }
 
 const (
-	CMD_REMOVE = "remove"
-	CMD_KICK   = "kick"
+	CmdRemove = "remove"
+	CmdKick   = "kick"
 )
 
 func init() {
@@ -30,16 +30,16 @@ func init() {
 }
 
 func (*RemoveProvider) GetTrigger() string {
-	return CMD_REMOVE
+	return CmdRemove
 }
 
 func (*KickProvider) GetTrigger() string {
-	return CMD_KICK
+	return CmdKick
 }
 
 func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_REMOVE,
+		Trigger:          CmdRemove,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_remove.desc"),
 		AutoCompleteHint: T("api.command_remove.hint"),
@@ -49,7 +49,7 @@ func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 
 func (*KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_KICK,
+		Trigger:          CmdKick,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_remove.desc"),
 		AutoCompleteHint: T("api.command_remove.hint"),

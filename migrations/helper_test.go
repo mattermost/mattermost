@@ -251,7 +251,7 @@ func (th *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrati
 	}
 
 	for _, job := range jobs {
-		if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok && key == migrationKey {
+		if key, ok := job.Data[JobDataKeyMigration]; ok && key == migrationKey {
 			if _, err = th.App.Srv().Store.Job().Delete(job.Id); err != nil {
 				panic(err)
 			}

@@ -635,7 +635,7 @@ func TestUploadFiles(t *testing.T) {
 					_, fname := filepath.Split(dbInfo.Path)
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
-					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FILE_TEAM_ID, channel.Id, ri.CreatorId, ri.Id)
+					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))

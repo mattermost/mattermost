@@ -19,7 +19,7 @@ type LocalCachePostStore struct {
 }
 
 func (s *LocalCachePostStore) handleClusterInvalidateLastPostTime(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.lastPostTimeCache.Purge()
 	} else {
 		s.rootStore.lastPostTimeCache.Remove(msg.Data)
@@ -27,7 +27,7 @@ func (s *LocalCachePostStore) handleClusterInvalidateLastPostTime(msg *model.Clu
 }
 
 func (s *LocalCachePostStore) handleClusterInvalidateLastPosts(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.postLastPostsCache.Purge()
 	} else {
 		s.rootStore.postLastPostsCache.Remove(msg.Data)
