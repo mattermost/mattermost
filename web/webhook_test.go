@@ -265,7 +265,7 @@ func TestIncomingWebhook(t *testing.T) {
 	t.Run("IncomingWebhooksTriggerOutgoingWebhooks", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = true
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
 		called := make(chan bool)
@@ -284,7 +284,7 @@ func TestIncomingWebhook(t *testing.T) {
 			ChannelId:    th.BasicChannel.Id,
 			CreatorId:    th.BasicUser.Id,
 			TeamId:       th.BasicTeam.Id,
-			CallbackURLs: []string{"http://localhost:9123/"},
+			CallbackURLs: []string{"http://127.0.0.1:9123/"},
 		})
 		require.Nil(t, appErr)
 
