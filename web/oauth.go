@@ -326,12 +326,12 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Old mobile version
-		if isMobile == true && hasRedirectURL == false {
+		if isMobile && hasRedirectURL == false {
 			c.App.AttachSessionCookies(w, r)
 			return
 		} else
 		// New mobile version
-		if isMobile == true && hasRedirectURL == true {
+		if isMobile && hasRedirectURL {
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
 				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
