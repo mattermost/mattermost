@@ -435,28 +435,28 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 	auditRec.AddMeta("team", team)
 	a.LogAuditRec(auditRec, nil)
 
-	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000)
+	if err != nil {
 		return err
-	} else {
-		for _, webhook := range incomingWebhooks {
-			if webhook.ChannelId == channel.Id {
-				webhook.TeamId = team.Id
-				if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
-					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
-				}
+	}
+	for _, webhook := range incomingWebhooks {
+		if webhook.ChannelId == channel.Id {
+			webhook.TeamId = team.Id
+			if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
+				CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
 			}
 		}
 	}
 
-	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000)
+	if err != nil {
 		return err
-	} else {
-		for _, webhook := range outgoingWebhooks {
-			if webhook.ChannelId == channel.Id {
-				webhook.TeamId = team.Id
-				if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
-					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
-				}
+	}
+	for _, webhook := range outgoingWebhooks {
+		if webhook.ChannelId == channel.Id {
+			webhook.TeamId = team.Id
+			if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
+				CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 			}
 		}
 	}

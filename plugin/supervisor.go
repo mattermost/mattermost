@@ -114,7 +114,7 @@ func (sup *supervisor) Hooks() Hooks {
 func (sup *supervisor) PerformHealthCheck() error {
 	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {
-		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
+		for pingFails := 1; pingFails < HealthCheckPingFailLimit; pingFails++ {
 			pingErr = sup.Ping()
 			if pingErr == nil {
 				break

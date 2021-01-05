@@ -17,7 +17,7 @@ type LocalCacheRoleStore struct {
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.roleCache.Purge()
 	} else {
 		s.rootStore.roleCache.Remove(msg.Data)
@@ -25,7 +25,7 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRole(msg *model.ClusterMess
 }
 
 func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.rolePermissionsCache.Purge()
 	} else {
 		s.rootStore.rolePermissionsCache.Remove(msg.Data)
@@ -33,7 +33,7 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.
 }
 
 func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
-	if len(role.Name) != 0 {
+	if role.Name != "" {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
 		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	}

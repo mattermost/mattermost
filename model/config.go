@@ -3484,13 +3484,13 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.SiteURL) != 0 {
+	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if len(*s.WebsocketURL) != 0 {
+	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3752,7 +3752,7 @@ func (o *Config) Sanitize() {
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 
