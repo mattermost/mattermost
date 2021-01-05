@@ -510,7 +510,7 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -545,11 +545,11 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
+	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -591,17 +591,17 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeamByToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeamByToken", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	user := result.Data.(*model.User)
 
-	if user.IsGuest() && token.Type == TOKEN_TYPE_TEAM_INVITATION {
+	if user.IsGuest() && token.Type == TokenTypeTeamInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
-	if !user.IsGuest() && token.Type == TOKEN_TYPE_GUEST_INVITATION {
+	if !user.IsGuest() && token.Type == TokenTypeGuestInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -609,7 +609,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		return nil, err
 	}
 
-	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
+	if token.Type == TokenTypeGuestInvitation {
 		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, model.NewAppError("AddUserToTeamByToken", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -662,7 +662,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeamByInviteId", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeamByInviteId", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeamByInviteId", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1184,7 +1184,7 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return model.NewAppError("RemoveUserFromTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("RemoveUserFromTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("RemoveUserFromTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1210,7 +1210,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("RemoveTeamMemberFromTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("RemoveTeamMemberFromTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("RemoveTeamMemberFromTeam", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1389,7 +1389,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User,
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1514,7 +1514,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1845,11 +1845,11 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
+		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
+		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 			a.DeleteToken(token)
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -2005,10 +2005,10 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 }
 
 func (a *App) InvalidateAllEmailInvites() *model.AppError {
-	if err := a.Srv().Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); err != nil {
+	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if err := a.Srv().Store.Token().RemoveAllTokensByType(TOKEN_TYPE_GUEST_INVITATION); err != nil {
+	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

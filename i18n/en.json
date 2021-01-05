@@ -3220,7 +3220,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": ""
+    "translation": "Failed to get authorization code."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",

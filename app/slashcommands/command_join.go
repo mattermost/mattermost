@@ -15,7 +15,7 @@ type JoinProvider struct {
 }
 
 const (
-	CMD_JOIN = "join"
+	CmdJoin = "join"
 )
 
 func init() {
@@ -23,12 +23,12 @@ func init() {
 }
 
 func (*JoinProvider) GetTrigger() string {
-	return CMD_JOIN
+	return CmdJoin
 }
 
 func (*JoinProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_JOIN,
+		Trigger:          CmdJoin,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_join.desc"),
 		AutoCompleteHint: T("api.command_join.hint"),

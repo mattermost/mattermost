@@ -14,7 +14,7 @@ type LocalCacheEmojiStore struct {
 }
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiById(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		es.rootStore.emojiCacheById.Purge()
 	} else {
 		es.rootStore.emojiCacheById.Remove(msg.Data)
@@ -22,7 +22,7 @@ func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiById(msg *model.Clus
 }
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiIdByName(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		es.rootStore.emojiIdCacheByName.Purge()
 	} else {
 		es.rootStore.emojiIdCacheByName.Remove(msg.Data)
