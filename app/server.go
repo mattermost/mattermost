@@ -64,7 +64,7 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlStore
@@ -229,7 +229,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -237,11 +237,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -302,7 +302,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
+		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
@@ -334,8 +334,8 @@ func NewServer(options ...Option) (*Server, error) {
 				if err2 != nil {
 					return nil, errors.Wrap(err2, "cannot parse DB version")
 				}
-				if intVer < sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION), sqlstore.VersionString(intVer))
+				if intVer < sqlstore.MinimumRequiredPostgresVersion {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
 				}
 			}
 
@@ -803,11 +803,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -1023,7 +1023,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
@@ -1350,11 +1350,11 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
 func doCheckWarnMetricStatus(a *App) {

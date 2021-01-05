@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	SESSIONS_CLEANUP_DELAY_MILLISECONDS = 100
+	SessionsCleanupDelayMilliseconds = 100
 )
 
 type SqlSessionStore struct {
@@ -304,6 +304,6 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 			return
 		}
 
-		time.Sleep(SESSIONS_CLEANUP_DELAY_MILLISECONDS * time.Millisecond)
+		time.Sleep(SessionsCleanupDelayMilliseconds * time.Millisecond)
 	}
 }

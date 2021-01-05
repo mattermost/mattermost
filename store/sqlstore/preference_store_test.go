@@ -29,25 +29,25 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 			{
 				UserId:   userId1,
 				Category: category,
-				Name:     store.FEATURE_TOGGLE_PREFIX + feature1,
+				Name:     store.FeatureTogglePrefix + feature1,
 				Value:    "true",
 			},
 			{
 				UserId:   userId2,
 				Category: category,
-				Name:     store.FEATURE_TOGGLE_PREFIX + feature1,
+				Name:     store.FeatureTogglePrefix + feature1,
 				Value:    "false",
 			},
 			{
 				UserId:   userId1,
 				Category: category,
-				Name:     store.FEATURE_TOGGLE_PREFIX + feature2,
+				Name:     store.FeatureTogglePrefix + feature2,
 				Value:    "false",
 			},
 			{
 				UserId:   userId2,
 				Category: category,
-				Name:     store.FEATURE_TOGGLE_PREFIX + feature2,
+				Name:     store.FeatureTogglePrefix + feature2,
 				Value:    "true",
 			},
 		}
@@ -62,7 +62,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                             FROM Preferences
                     WHERE Category = :Category
                     AND Value = :Val
-                    AND Name LIKE '`+store.FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
 			require.Nil(t, err)
 		} else if val != 0 {
 			require.Fail(t, "Found %d features with value 'false', expected all to be deleted", val)
@@ -73,7 +73,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                             FROM Preferences
                     WHERE Category = :Category
                     AND Value = :Val
-                    AND Name LIKE '`+store.FEATURE_TOGGLE_PREFIX+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
+                    AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
 			require.Nil(t, err)
 		} else if val == 0 {
 			require.Fail(t, "Found %d features with value 'true', expected to find at least %d features", val, 2)

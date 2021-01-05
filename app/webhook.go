@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	TRIGGERWORDS_EXACT_MATCH = 0
-	TRIGGERWORDS_STARTS_WITH = 1
+	TriggerwordsExactMatch = 0
+	TriggerwordsStartsWith = 1
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
@@ -55,10 +55,10 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
-			} else if hook.TriggerWhen == TRIGGERWORDS_EXACT_MATCH && hook.TriggerWordExactMatch(firstWord) {
+			} else if hook.TriggerWhen == TriggerwordsExactMatch && hook.TriggerWordExactMatch(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = hook.GetTriggerWord(firstWord, true)
-			} else if hook.TriggerWhen == TRIGGERWORDS_STARTS_WITH && hook.TriggerWordStartsWith(firstWord) {
+			} else if hook.TriggerWhen == TriggerwordsStartsWith && hook.TriggerWordStartsWith(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = hook.GetTriggerWord(firstWord, false)
 			}
