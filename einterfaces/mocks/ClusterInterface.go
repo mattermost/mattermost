@@ -5,9 +5,9 @@
 package mocks
 
 import (
+	einterfaces "github.com/mattermost/mattermost-server/v5/einterfaces"
 	mock "github.com/stretchr/testify/mock"
 
-	einterfaces "github.com/mattermost/mattermost-server/v5/einterfaces"
 	model "github.com/mattermost/mattermost-server/v5/model"
 )
 
