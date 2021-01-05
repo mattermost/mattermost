@@ -264,6 +264,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 	t.Run("IncomingWebhooksTriggerOutgoingWebhooks", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableIncomingWebhooks = true
 			*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = true
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
@@ -288,7 +289,8 @@ func TestIncomingWebhook(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		text := `this is a \"test\"`
+		text := `this is a \"test\"
+	that contains a newline and a tab`
 		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\""+text+"\"}"))
 		require.Nil(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
