@@ -138,6 +138,8 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 }
 
 func testGetSharedChannels(t *testing.T, ss store.Store) {
+	clearSharedChannels(ss)
+
 	creator := model.NewId()
 	team1 := model.NewId()
 	team2 := model.NewId()
@@ -614,4 +616,19 @@ func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
 		CreatorId:   model.NewId(),
 	}
 	return ss.Channel().Save(channel, 10000)
+}
+
+func clearSharedChannels(ss store.Store) error {
+	opts := store.SharedChannelFilterOpts{}
+	all, err := ss.SharedChannel().GetAll(0, 1000, opts)
+	if err != nil {
+		return err
+	}
+
+	for _, sc := range all {
+		if _, err := ss.SharedChannel().Delete(sc.ChannelId); err != nil {
+			return err
+		}
+	}
+	return nil
 }
