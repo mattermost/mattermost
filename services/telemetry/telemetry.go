@@ -263,7 +263,7 @@ func (ts *TelemetryService) trackActivity() {
 
 	teamCount, err := ts.dbStore.Team().AnalyticsTeamCount(false)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Info("Could not get team count", mlog.Err(err))
 	}
 
 	if ucc, err := ts.dbStore.Channel().AnalyticsTypeCount("", "O"); err == nil {
@@ -1075,42 +1075,42 @@ func (ts *TelemetryService) trackElasticsearch() {
 func (ts *TelemetryService) trackGroups() {
 	groupCount, err := ts.dbStore.Group().GroupCount()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get group_count", mlog.Err(err))
 	}
 
 	groupTeamCount, err := ts.dbStore.Group().GroupTeamCount()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get group_team_count", mlog.Err(err))
 	}
 
 	groupChannelCount, err := ts.dbStore.Group().GroupChannelCount()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get group_channel_count", mlog.Err(err))
 	}
 
 	groupSyncedTeamCount, nErr := ts.dbStore.Team().GroupSyncedTeamCount()
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		mlog.Debug("Could not get group_synced_team_count", mlog.Err(nErr))
 	}
 
 	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		mlog.Debug("Could not get group_synced_channel_count", mlog.Err(nErr))
 	}
 
 	groupMemberCount, err := ts.dbStore.Group().GroupMemberCount()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get group_member_count", mlog.Err(err))
 	}
 
 	distinctGroupMemberCount, err := ts.dbStore.Group().DistinctGroupMemberCount()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get distinct_group_member_count", mlog.Err(err))
 	}
 
 	groupCountWithAllowReference, err := ts.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get group_count_with_allow_reference", mlog.Err(err))
 	}
 
 	ts.sendTelemetry(TrackGroups, map[string]interface{}{
@@ -1128,44 +1128,44 @@ func (ts *TelemetryService) trackGroups() {
 func (ts *TelemetryService) trackChannelModeration() {
 	channelSchemeCount, err := ts.dbStore.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get channel_scheme_count", mlog.Err(err))
 	}
 
 	createPostUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get create_post_user_disabled_count", mlog.Err(err))
 	}
 
 	createPostGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get create_post_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
 	postReactionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get post_reactions_user_disabled_count", mlog.Err(err))
 	}
 
 	postReactionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get post_reactions_guest_disabled_count", mlog.Err(err))
 	}
 
 	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
 	manageMembersUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get manage_members_user_disabled_count", mlog.Err(err))
 	}
 
 	useChannelMentionsUser, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get use_channel_mentions_user_disabled_count", mlog.Err(err))
 	}
 
 	useChannelMentionsGuest, err := ts.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
-		mlog.Error(err.Error())
+		mlog.Debug("Could not get use_channel_mentions_guest_disabled_count", mlog.Err(err))
 	}
 
 	ts.sendTelemetry(TrackChannelModeration, map[string]interface{}{
@@ -1319,7 +1319,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-			mlog.Error("Unable to add plugin versions to telemetry", mlog.Err(appErr))
+			mlog.Warn("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
