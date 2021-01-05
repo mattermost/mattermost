@@ -1888,7 +1888,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authenticatie is toegevoegd aan uw account op {{.SiteURL }."
+    "translation": "Multi-factor authenticatie is toegevoegd aan uw account op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
