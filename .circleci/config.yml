@@ -421,7 +421,7 @@ workflows:
             - setup
       - check-mocks:
           requires:
-            - setup
+            - setup            
       - build-api-spec:
           requires:
             - setup
