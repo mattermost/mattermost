@@ -25,7 +25,7 @@ func TestCreateJob(t *testing.T) {
 	}
 
 	_, resp := th.SystemManagerClient.CreateJob(job)
-	CheckForbiddenStatus(t, resp)
+	require.Nil(t, resp.Error)
 
 	received, resp := th.SystemAdminClient.CreateJob(job)
 	require.Nil(t, resp.Error)
@@ -177,7 +177,7 @@ func TestGetJobsByType(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemManagerClient.GetJobsByType(model.JOB_TYPE_MESSAGE_EXPORT, 0, 60)
-	CheckForbiddenStatus(t, resp)
+	require.Nil(t, resp.Error)
 }
 
 func TestDownloadJob(t *testing.T) {
@@ -201,9 +201,9 @@ func TestDownloadJob(t *testing.T) {
 		*cfg.MessageExportSettings.DownloadExportResults = true
 	})
 
-	// Normal user cannot download the results of these job (Doesn't have permission)
+	// Normal user cannot download the results of these job (non-existent job)
 	_, resp = th.Client.DownloadJob(job.Id)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	// System admin trying to download the results of a non-existent job
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
@@ -219,6 +219,10 @@ func TestDownloadJob(t *testing.T) {
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.Nil(t, mkdirAllErr)
 	os.Create(filePath)
+
+	// Normal user cannot download the results of these job (not the right permission)
+	_, resp = th.Client.DownloadJob(job.Id)
+	CheckForbiddenStatus(t, resp)
 
 	// System manager with default permissions cannot download the results of these job (Doesn't have correct permissions)
 	_, resp = th.SystemManagerClient.DownloadJob(job.Id)
@@ -244,6 +248,24 @@ func TestDownloadJob(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	require.Nil(t, resp.Error)
+
+	// Here we are creating a new job which doesn't have type of message export
+	jobName = model.NewId()
+	job = &model.Job{
+		Id:   jobName,
+		Type: model.JOB_TYPE_CLOUD,
+		Data: map[string]string{
+			"export_type": "csv",
+		},
+		Status: model.JOB_STATUS_SUCCESS,
+	}
+	_, err = th.App.Srv().Store.Job().Save(job)
+	require.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(job.Id)
+
+	// System admin shouldn't be able to download since the job type is not message export
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestCancelJob(t *testing.T) {
