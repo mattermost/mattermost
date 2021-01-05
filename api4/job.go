@@ -64,7 +64,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Currently, this endpoint only supports downloading the compliance report.
-	// If you need to download another job type, you will need to alter this section of the code to accomodate it.
+	// If you need to download another job type, you will need to alter this section of the code to accommodate it.
 	if job.Type == model.JOB_TYPE_MESSAGE_EXPORT && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT) {
 		c.SetPermissionError(model.PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT)
 		return
