@@ -299,7 +299,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		err.Translate(c.App.T)
-    c.LogErrorByCode(err)
+		c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}
@@ -307,7 +307,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.CompleteOAuth(service, body, teamId, props, tokenUser)
 	if err != nil {
 		err.Translate(c.App.T)
-    c.LogErrorByCode(err)
+		c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}

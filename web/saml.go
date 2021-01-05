@@ -34,7 +34,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isActionMobileAuth := action == model.OAUTH_ACTION_MOBILE
+	isMobile := action == model.OAUTH_ACTION_MOBILE
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
@@ -48,7 +48,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if redirectTo != "" {
-		if isActionMobileAuth && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
+		if isMobile && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
 			invalidSchemeErr := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
 			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr)
 			return
@@ -56,7 +56,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectTo
 	}
 
-	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isActionMobileAuth)
+	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
@@ -102,7 +102,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	auditRec.AddMeta("action", action)
 
-	isActionMobileAuth := action == model.OAUTH_ACTION_MOBILE
+	isMobile := action == model.OAUTH_ACTION_MOBILE
 	redirectURL := ""
 	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
@@ -111,7 +111,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	handleError := func(err *model.AppError) {
-		if isActionMobileAuth {
+		if isMobile {
 			err.Translate(c.App.T)
 			if hasRedirectURL {
 				utils.RenderMobileError(c.App.Config(), w, err)
@@ -166,10 +166,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	isMobile, parseErr := strconv.ParseBool(relayProps[model.USER_AUTH_SERVICE_IS_MOBILE])
-	if parseErr != nil {
-		mlog.Warn("Error parsing boolean property from relay props", mlog.Err(parseErr))
-	}
 	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -183,7 +179,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.AttachSessionCookies(w, r)
 
 	if hasRedirectURL {
-		if isActionMobileAuth {
+		if isMobile {
 			// Mobile clients with redirect url support
 			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
 				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
