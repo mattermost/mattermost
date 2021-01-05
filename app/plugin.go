@@ -930,7 +930,7 @@ func (a *App) installFeatureFlagPlugins() {
 				}
 
 				if parsedVersion.LTE(parsedExistingVersion) {
-					a.Log().Debug("Skip installation because given version was a downgrade and this isn't cloud.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					a.Log().Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
 					return
 				}
 			}
