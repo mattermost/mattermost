@@ -326,7 +326,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Old mobile version
-		if isMobile && hasRedirectURL == false {
+		if isMobile && !hasRedirectURL {
 			c.App.AttachSessionCookies(w, r)
 			return
 		} else
