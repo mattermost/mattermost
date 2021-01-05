@@ -5,6 +5,6 @@ package api4
 
 func (api *API) InitExportLocal() {
 	api.BaseRoutes.Exports.Handle("", api.ApiLocal(listExports)).Methods("GET")
-	api.BaseRoutes.Exports.Handle("/{export_name:.+\\.zip}", api.ApiLocal(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Exports.Handle("/{export_name:.+\\.zip}", api.ApiLocal(downloadExport)).Methods("GET")
+	api.BaseRoutes.Export.Handle("", api.ApiLocal(deleteExport)).Methods("DELETE")
+	api.BaseRoutes.Export.Handle("", api.ApiLocal(downloadExport)).Methods("GET")
 }

@@ -15,8 +15,8 @@ import (
 
 func (api *API) InitExport() {
 	api.BaseRoutes.Exports.Handle("", api.ApiSessionRequired(listExports)).Methods("GET")
-	api.BaseRoutes.Exports.Handle("/{export_name:.+\\.zip}", api.ApiSessionRequired(deleteExport)).Methods("DELETE")
-	api.BaseRoutes.Exports.Handle("/{export_name:.+\\.zip}", api.ApiSessionRequired(downloadExport)).Methods("GET")
+	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(deleteExport)).Methods("DELETE")
+	api.BaseRoutes.Export.Handle("", api.ApiSessionRequired(downloadExport)).Methods("GET")
 }
 
 func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
