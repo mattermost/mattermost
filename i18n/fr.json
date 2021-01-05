@@ -1085,14 +1085,6 @@
     "translation": "Les fichiers de pièces jointes sont désactivés sur ce serveur."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Impossible de vérifier si le fichier existe."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Impossible de vérifier si le fichier existe."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Le lien public ne semble pas être valide"
   },
@@ -1113,44 +1105,12 @@
     "translation": "Impossible de récupérer le lien du fichier. Le fichier doit être lié à un message qui peut être lu par l'utilisateur actuel."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Impossible de copier le fichier dans S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Impossible de supprimer le fichier de S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Impossible de déplacer le fichier en local."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Aucun fichier de driver sélectionné."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Une erreur s'est produite lors de la lecture à partir du stockage local du serveur"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la lecture à partir du stockage S3"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Une erreur s'est produite lors de l'ouverture du processus de lecture du stockage local du serveur."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'ouverture du processus de lecture du stockage S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Vous n'avez pas les permissions requises pour écrire dans le dossier local spécifié ou une autre erreur s'est produite."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Une erreur s'est produite lors de la vérification de l'existence du bucket."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Impossible d'envoyer le fichier {{.Filename}}. {{.Length}} bytes dépassent le nombre de bytes maximum autorisé de {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture vers S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Une erreur s'est produite lors de la création du dossier pour le nouveau fichier"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture sur le stockage du serveur local"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4947,30 +4895,6 @@
     "translation": "Système"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Une erreur s'est produite lors de l'affichage du dossier à partir du système de stockage local du serveur."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'affichage du dossier à partir de S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du dossier à partir du système de stockage local du serveur."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du dossier à partir de S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du fichier du stockage local du serveur."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du fichier de S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Impossible de définir le HELO"
   },
@@ -6907,10 +6831,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Impossible de créer le bucket."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7053,14 +6973,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Impossible d'envoyer un message dans un canal supprimé."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture vers S3."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Le bot n'existe pas."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7289,5 +7201,9 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "L'URL du site ne peut pas être réinitialisée."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP n'est pas disponible."
   }
 ]

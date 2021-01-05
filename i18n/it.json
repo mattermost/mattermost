@@ -1085,14 +1085,6 @@
     "translation": "Gli allegati sono stati disabilitati su questo server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Impossibile controllare se il file esiste."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Impossibile controllare se il file esiste."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Il collegamento pubblico sembra non essere valido."
   },
@@ -1113,44 +1105,12 @@
     "translation": "Impossibile trovare un collegamento pubblico per il file. Il file deve essere allegato ad una pubblicazione che l'utente attuale può leggere."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Impossibile copiare il file in S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Impossibile eliminare file da S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Impossibile muovere il file localmente."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Nessun dispositivo selezionato."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Si è verificato un errore leggendo dall'archivio locale del server."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Si è verificato un errore leggendo dall'archivio S3."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Si è verificato un errore nell'apertura della cartella nell'archivio locale del server."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Si è verificato un errore nell'apertura dell'archivio S3."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Permessi insufficienti per scrivere nel percorso specificato, oppure si è verificato un errore nel controllo."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Errore durante il controllo dell'esistenza del bucket."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1187,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Impossibile caricare il file {{.Filename}}. Il numero di bytes {{.Length}} supera la lunghezza massima consentita di {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Si è incontrato un errore scrivendo su S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Si è incontrato un errore creando la cartella per il nuovo file."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Si è verificato un errore scrivendo sulllo storage locale del server."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -4947,30 +4895,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Si è verificato un errore elencando la cartella dal server locale."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Si è verificato un errore elencando la cartella da S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Si è verificato un errore cancellando la cartella dal server locale."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Si è verificato un errore cancellando la cartella da S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Si è verificato un errore cancellando il file dal server locale."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Si è verificato un errore cancellando il file da S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Impossibile impostare HELO."
   },
@@ -7291,14 +7215,6 @@
     "translation": "Impossibile inviare ad un canale eliminato."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Si è verificato un errore scrivendo su S3."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Il bot non esiste"
-  },
-  {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Impossibile segnare il canale come non letto"
   },
@@ -7549,9 +7465,5 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Impossibile recuperare i membri del canale"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Impossibile creare il bucket."
   }
 ]
