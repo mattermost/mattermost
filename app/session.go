@@ -36,6 +36,13 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
+func AddSessionToPool(session *model.Session) {
+	if session != nil {
+		session.Id = ""
+		UserSessionPool.Put(session)
+	}
+}
+
 var UserSessionPool = sync.Pool{
 	New: func() interface{} {
 		return &model.Session{}

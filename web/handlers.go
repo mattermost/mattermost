@@ -190,13 +190,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
-
-		defer func() {
-			if session != nil {
-				session.Id = ""
-				app.UserSessionPool.Put(session)
-			}
-		}()
+		defer app.AddSessionToPool(session)
 
 		if err != nil {
 			c.Log.Info("Invalid session", mlog.Err(err))
