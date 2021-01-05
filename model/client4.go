@@ -94,9 +94,8 @@ func (c *Client4) boolString(value bool) string {
 
 	if value {
 		return "true"
-	} else {
-		return "false"
 	}
+	return "false"
 }
 
 func closeBody(r *http.Response) {
@@ -190,12 +189,12 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
-func (c *Client4) GetUserThreadsRoute(userId string) string {
-	return fmt.Sprintf(c.GetUsersRoute()+"/%v/threads", userId)
+func (c *Client4) GetUserThreadsRoute(userID, teamID string) string {
+	return c.GetUserRoute(userID) + c.GetTeamRoute(teamID) + "/threads"
 }
 
-func (c *Client4) GetUserThreadRoute(userId, threadId string) string {
-	return fmt.Sprintf(c.GetUserThreadsRoute(userId)+"/%v", threadId)
+func (c *Client4) GetUserThreadRoute(userId, teamId, threadId string) string {
+	return c.GetUserThreadsRoute(userId, teamId) + "/" + threadId
 }
 
 func (c *Client4) GetUserCategoryRoute(userID, teamID string) string {
@@ -541,6 +540,10 @@ func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType
 
 func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
 	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
+func (c *Client4) GetImportsRoute() string {
+	return "/imports"
 }
 
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
@@ -2997,12 +3000,12 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
 func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int) (*PostList, *Response) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
-	if r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, ""); err != nil {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, "")
+	if err != nil {
 		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return PostListFromJson(r.Body), BuildResponse(r)
 	}
+	defer closeBody(r)
+	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
 // SearchPosts returns any posts with matching terms string.
@@ -5754,7 +5757,16 @@ func (c *Client4) UpdateCloudCustomerAddress(address *Address) (*CloudCustomer, 
 	return customer, BuildResponse(r)
 }
 
-func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Threads, *Response) {
+func (c *Client4) ListImports() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetImportsRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
 	v := url.Values{}
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
@@ -5772,7 +5784,7 @@ func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Th
 		v.Set("deleted", "true")
 	}
 
-	url := c.GetUserThreadsRoute(userId)
+	url := c.GetUserThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
 	}
@@ -5789,8 +5801,8 @@ func (c *Client4) GetUserThreads(userId string, options GetUserThreadsOpts) (*Th
 	return &threads, BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadsReadForUser(userId string, timestamp int64) *Response {
-	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadsRoute(userId), timestamp), "")
+func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}
@@ -5799,8 +5811,8 @@ func (c *Client4) UpdateThreadsReadForUser(userId string, timestamp int64) *Resp
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *Response {
-	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, threadId), timestamp), "")
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}
@@ -5809,13 +5821,13 @@ func (c *Client4) UpdateThreadReadForUser(userId, threadId string, timestamp int
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadFollowForUser(userId, threadId string, state bool) *Response {
+func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
 	var appErr *AppError
 	var r *http.Response
 	if state {
-		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, threadId)+"/following", "")
+		r, appErr = c.DoApiPut(c.GetUserThreadRoute(userId, teamId, threadId)+"/following", "")
 	} else {
-		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, threadId) + "/following")
+		r, appErr = c.DoApiDelete(c.GetUserThreadRoute(userId, teamId, threadId) + "/following")
 	}
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)

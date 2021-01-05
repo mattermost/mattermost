@@ -18,7 +18,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	Log           *mlog.Logger
+	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
@@ -68,7 +68,7 @@ func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
@@ -81,42 +81,23 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
-func (c *Context) LogError(err *model.AppError) {
-	// Filter out 404s, endless reconnects and browser compatibility errors
-	if err.StatusCode == http.StatusNotFound ||
-		(c.App.Path() == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
-		err.Id == "web.check_browser_compatibility.app_error" {
-		c.LogDebug(err)
-	} else {
-		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
+func (c *Context) LogErrorByCode(err *model.AppError) {
+	code := err.StatusCode
+	var level mlog.LogLevel
+	switch {
+	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
+		err.Id == "web.check_browser_compatibility.app_error":
+		level = mlog.LvlDebug
+	case code == http.StatusNotImplemented:
+		level = mlog.LvlInfo
+	default:
+		level = mlog.LvlError
 	}
-}
-
-func (c *Context) LogInfo(err *model.AppError) {
-	// Filter out 401s
-	if err.StatusCode == http.StatusUnauthorized {
-		c.LogDebug(err)
-	} else {
-		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogDebug(err *model.AppError) {
-	c.Log.Debug(
+	c.Logger.Log(level,
 		err.SystemMessage(utils.TDefault),
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),

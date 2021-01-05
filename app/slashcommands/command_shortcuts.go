@@ -13,20 +13,20 @@ type ShortcutsProvider struct {
 }
 
 const (
-	CMD_SHORTCUTS = "shortcuts"
+	CmdShortcuts = "shortcuts"
 )
 
 func init() {
 	app.RegisterCommandProvider(&ShortcutsProvider{})
 }
 
-func (me *ShortcutsProvider) GetTrigger() string {
-	return CMD_SHORTCUTS
+func (*ShortcutsProvider) GetTrigger() string {
+	return CmdShortcuts
 }
 
-func (me *ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SHORTCUTS,
+		Trigger:          CmdShortcuts,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_shortcuts.desc"),
 		AutoCompleteHint: "",
@@ -34,7 +34,7 @@ func (me *ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mod
 	}
 }
 
-func (me *ShortcutsProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ShortcutsProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_shortcuts.unsupported.app_error"),

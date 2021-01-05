@@ -16,13 +16,13 @@ import (
 )
 
 type SqlSchemeStore struct {
-	*SqlSupplier
+	*SqlStore
 }
 
-func newSqlSchemeStore(sqlSupplier *SqlSupplier) store.SchemeStore {
-	s := &SqlSchemeStore{sqlSupplier}
+func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
+	s := &SqlSchemeStore{sqlStore}
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Scheme{}, "Schemes").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Name").SetMaxSize(model.SCHEME_NAME_MAX_LENGTH).SetUnique(true)
@@ -85,7 +85,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
-	roles, appErr := s.SqlSupplier.Role().GetByNames(defaultRoleNames)
+	roles, appErr := s.SqlStore.Role().GetByNames(defaultRoleNames)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -121,7 +121,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err := s.SqlSupplier.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction)
+		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(teamAdminRole, transaction)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.SqlSupplier.Role().(*SqlRoleStore).createRole(teamUserRole, transaction)
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamUserRole, transaction)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +149,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			SchemeManaged: true,
 		}
 
-		savedRole, err = s.SqlSupplier.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction)
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(teamGuestRole, transaction)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +169,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			channelAdminRole.Permissions = []string{}
 		}
 
-		savedRole, err := s.SqlSupplier.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction)
+		savedRole, err := s.SqlStore.Role().(*SqlRoleStore).createRole(channelAdminRole, transaction)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +187,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			channelUserRole.Permissions = filterModerated(channelUserRole.Permissions)
 		}
 
-		savedRole, err = s.SqlSupplier.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelUserRole, transaction)
 		if err != nil {
 			return nil, err
 		}
@@ -205,7 +205,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 			channelGuestRole.Permissions = filterModerated(channelGuestRole.Permissions)
 		}
 
-		savedRole, err = s.SqlSupplier.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
+		savedRole, err = s.SqlStore.Role().(*SqlRoleStore).createRole(channelGuestRole, transaction)
 		if err != nil {
 			return nil, err
 		}

@@ -65,11 +65,11 @@ type ChannelMemberForExport struct {
 }
 
 func (o *ChannelMembers) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelUnread) ToJson() string {

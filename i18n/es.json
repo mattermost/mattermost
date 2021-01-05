@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identificadores de archivo son inválidos. Toma en cuenta que la carga de archivos está limitado a un máximo de 5 archivos. Por favor utiliza mensajes adicionales para agregar más archivos."
+    "translation": "Identificadores de archivo son inválidos. Toma en cuenta que la carga de archivos está limitado a un máximo de 10 archivos. Por favor utiliza mensajes adicionales para agregar más archivos."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

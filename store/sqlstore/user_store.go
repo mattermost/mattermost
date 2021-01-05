@@ -20,18 +20,18 @@ import (
 )
 
 const (
-	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
+	MaxGroupChannelsForProfiles = 50
 )
 
 var (
-	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME = []string{"Username", "Nickname"}
-	USER_SEARCH_TYPE_NAMES              = []string{"Username", "FirstName", "LastName", "Nickname"}
-	USER_SEARCH_TYPE_ALL_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
-	USER_SEARCH_TYPE_ALL                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
+	UserSearchTypeNames_NO_FULL_NAME = []string{"Username", "Nickname"}
+	UserSearchTypeNames              = []string{"Username", "FirstName", "LastName", "Nickname"}
+	UserSearchTypeAll_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
+	UserSearchTypeAll                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
-	*SqlSupplier
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 
 	// usersQuery is a starting point for all queries that return one or more Users.
@@ -42,10 +42,10 @@ func (us SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
-func newSqlUserStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterface) store.UserStore {
+func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
-		SqlSupplier: sqlSupplier,
-		metrics:     metrics,
+		SqlStore: sqlStore,
+		metrics:  metrics,
 	}
 
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
@@ -55,7 +55,7 @@ func newSqlUserStore(sqlSupplier *SqlSupplier, metrics einterfaces.MetricsInterf
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Username").SetMaxSize(64).SetUnique(true)
@@ -92,10 +92,10 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
 	}
 
-	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL_NO_FULL_NAME, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(UserSearchTypeAll, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAll_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(UserSearchTypeNames, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNames_NO_FULL_NAME, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
@@ -286,7 +286,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 			     AuthService = :AuthService,
 			     AuthData = :AuthData`
 
-	if len(email) != 0 {
+	if email != "" {
 		query += ", Email = lower(:Email)"
 	}
 
@@ -518,9 +518,8 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 
 	if len(sqOr) > 0 {
 		return query.Where(sqOr)
-	} else {
-		return query
 	}
+	return query
 }
 
 func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {
@@ -937,8 +936,8 @@ type UserWithChannel struct {
 }
 
 func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, error) {
-	if len(channelIds) > MAX_GROUP_CHANNELS_FOR_PROFILES {
-		channelIds = channelIds[0:MAX_GROUP_CHANNELS_FOR_PROFILES]
+	if len(channelIds) > MaxGroupChannelsForProfiles {
+		channelIds = channelIds[0:MaxGroupChannelsForProfiles]
 	}
 
 	isMemberQuery := fmt.Sprintf(`
@@ -1403,15 +1402,15 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	var searchType []string
 	if options.AllowEmails {
 		if options.AllowFullNames {
-			searchType = USER_SEARCH_TYPE_ALL
+			searchType = UserSearchTypeAll
 		} else {
-			searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+			searchType = UserSearchTypeAll_NO_FULL_NAME
 		}
 	} else {
 		if options.AllowFullNames {
-			searchType = USER_SEARCH_TYPE_NAMES
+			searchType = UserSearchTypeNames
 		} else {
-			searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+			searchType = UserSearchTypeNames_NO_FULL_NAME
 		}
 	}
 

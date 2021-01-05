@@ -148,9 +148,8 @@ func IsCurrentVersion(versionToCheck string) bool {
 
 	if toCheckMajor == currentMajor && toCheckMinor == currentMinor {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func IsPreviousVersionsSupported(versionToCheck string) bool {
