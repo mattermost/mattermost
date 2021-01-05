@@ -914,6 +914,27 @@ func (a *App) installFeatureFlagPlugins() {
 		}
 
 		if version != "" && version != "control" {
+			// If we are on-prem skip installation if this is a downgrade
+			license := a.Srv().License()
+			inCloud := license != nil && *license.Features.Cloud
+			if !inCloud {
+				parsedVersion, err := semver.Parse(version)
+				if err != nil {
+					a.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
+					return
+				}
+				parsedExistingVersion, err := semver.Parse(pluginStatus.Version)
+				if err != nil {
+					a.Log().Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					return
+				}
+
+				if parsedVersion.LTE(parsedExistingVersion) {
+					a.Log().Debug("Skip installation because given version was a downgrade and this isn't cloud.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					return
+				}
+			}
+
 			_, err := a.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
 				Id:      pluginId,
 				Version: version,
