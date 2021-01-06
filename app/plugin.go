@@ -909,7 +909,8 @@ func (a *App) installFeatureFlagPlugins() {
 
 		// Check if we already installed this version as InstallMarketplacePlugin can't handle re-installs well.
 		pluginStatus, err := a.Srv().GetPluginStatus(pluginId)
-		if err == nil && pluginStatus.Version == version {
+		pluginExists := err == nil
+		if pluginExists && pluginStatus.Version == version {
 			continue
 		}
 
@@ -917,7 +918,7 @@ func (a *App) installFeatureFlagPlugins() {
 			// If we are on-prem skip installation if this is a downgrade
 			license := a.Srv().License()
 			inCloud := license != nil && *license.Features.Cloud
-			if !inCloud {
+			if !inCloud && pluginExists {
 				parsedVersion, err := semver.Parse(version)
 				if err != nil {
 					a.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
