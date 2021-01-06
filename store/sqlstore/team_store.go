@@ -19,11 +19,11 @@ import (
 )
 
 const (
-	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
+	TeamMemberExistsError = "store.sql_team.save_member.exists.app_error"
 )
 
 type SqlTeamStore struct {
-	*SqlSupplier
+	*SqlStore
 
 	teamsQuery sq.SelectBuilder
 }
@@ -202,16 +202,16 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func newSqlTeamStore(sqlSupplier *SqlSupplier) store.TeamStore {
+func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 	s := &SqlTeamStore{
-		SqlSupplier: sqlSupplier,
+		SqlStore: sqlStore,
 	}
 
 	s.teamsQuery = s.getQueryBuilder().
 		Select("Teams.*").
 		From("Teams")
 
-	for _, db := range sqlSupplier.GetAllConns() {
+	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)

@@ -72,7 +72,7 @@ var usage = `Mattermost testing commands to help configure the system
 `
 
 const (
-	CMD_TEST = "test"
+	CmdTest = "test"
 )
 
 var (
@@ -91,7 +91,7 @@ func init() {
 }
 
 func (*LoadTestProvider) GetTrigger() string {
-	return CMD_TEST
+	return CmdTest
 }
 
 func (*LoadTestProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
@@ -99,7 +99,7 @@ func (*LoadTestProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 		return nil
 	}
 	return &model.Command{
-		Trigger:          CMD_TEST,
+		Trigger:          CmdTest,
 		AutoComplete:     false,
 		AutoCompleteDesc: "Debug Load Testing",
 		AutoCompleteHint: "help",
@@ -110,7 +110,7 @@ func (*LoadTestProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 func (lt *LoadTestProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	commandResponse, err := lt.doCommand(a, args, message)
 	if err != nil {
-		mlog.Error("failed command /"+CMD_TEST, mlog.Err(err))
+		mlog.Error("failed command /"+CmdTest, mlog.Err(err))
 	}
 
 	return commandResponse
@@ -213,7 +213,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, messa
 		if err := CreateBasicUser(a, client); err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 		}
-		_, resp := client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
+		_, resp := client.Login(BTestUserEmail, BTestUserPassword)
 		if resp.Error != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, resp.Error
 		}
@@ -232,7 +232,7 @@ func (*LoadTestProvider) SetupCommand(a *app.App, args *model.CommandArgs, messa
 		mlog.Info("Testing environment created")
 		for i := 0; i < len(environment.Teams); i++ {
 			mlog.Info("Team Created: " + environment.Teams[i].Name)
-			mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + USER_PASSWORD)
+			mlog.Info("\t User to login: " + environment.Environments[i].Users[0].Email + ", " + UserPassword)
 		}
 	} else {
 		team, err := a.Srv().Store.Team().Get(args.TeamId)

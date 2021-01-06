@@ -1322,6 +1322,7 @@ func TestConfigSanitize(t *testing.T) {
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
+	*c.OpenIdSettings.Secret = "secret"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 
@@ -1332,6 +1333,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
 	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
 	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
@@ -1433,4 +1435,32 @@ func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	require.NotNil(t, cfg.FeatureFlags)
 	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
 
+}
+
+func TestConfigImportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./import", *cfg.ImportSettings.Directory)
+	require.Equal(t, 30, *cfg.ImportSettings.RetentionDays)
+}
+
+func TestConfigImportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ImportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ImportSettings.Directory = ""
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ImportSettings.RetentionDays = 0
+	err = cfg.ImportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
 }

@@ -17,16 +17,16 @@ import (
 )
 
 const (
-	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
-	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+	DayMilliseconds   = 24 * 60 * 60 * 1000
+	MonthMilliseconds = 31 * DayMilliseconds
 )
 
-func cleanupStatusStore(t *testing.T, s SqlSupplier) {
+func cleanupStatusStore(t *testing.T, s SqlStore) {
 	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
 	require.Nil(t, execerr)
 }
 
-func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
+func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	users, err := ss.User().GetAll()
 	require.Nil(t, err, "failed cleaning up test users")
 
@@ -957,7 +957,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -2317,7 +2317,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 }
 
-func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -3823,7 +3823,7 @@ func testCount(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -3870,8 +3870,8 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	require.Nil(t, nErr)
 
 	millis := model.GetMillis()
-	millisTwoDaysAgo := model.GetMillis() - (2 * DAY_MILLISECONDS)
-	millisTwoMonthsAgo := model.GetMillis() - (2 * MONTH_MILLISECONDS)
+	millisTwoDaysAgo := model.GetMillis() - (2 * DayMilliseconds)
+	millisTwoMonthsAgo := model.GetMillis() - (2 * MonthMilliseconds)
 
 	// u0 last activity status is two months ago.
 	// u1 last activity status is two days ago.
@@ -3883,32 +3883,32 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlSuppli
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 
 	// Daily counts (without bots)
-	count, err := ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
+	count, err := ss.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(2), count)
 
 	// Daily counts (with bots)
-	count, err = ss.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
+	count, err = ss.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts (without bots)
-	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
+	count, err = ss.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(3), count)
 
 	// Monthly counts - (with bots)
-	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
+	count, err = ss.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
 
 	// Monthly counts - (with bots, excluding deleted)
-	count, err = ss.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
+	count, err = ss.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
 	require.Nil(t, err)
 	assert.Equal(t, int64(4), count)
 }
 
-func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlSupplier) {
+func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
 
 	cleanupStatusStore(t, s)
 
@@ -3955,8 +3955,8 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 	require.Nil(t, nErr)
 
 	millis := model.GetMillis()
-	millisTwoDaysAgo := model.GetMillis() - (2 * DAY_MILLISECONDS)
-	millisTwoMonthsAgo := model.GetMillis() - (2 * MONTH_MILLISECONDS)
+	millisTwoDaysAgo := model.GetMillis() - (2 * DayMilliseconds)
+	millisTwoMonthsAgo := model.GetMillis() - (2 * MonthMilliseconds)
 
 	// u0 last activity status is two months ago.
 	// u1 last activity status is one month ago
@@ -3965,9 +3965,9 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 	// u3 last activity is within last day
 	// u4 last activity is within last day
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MONTH_MILLISECONDS}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MonthMilliseconds}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DAY_MILLISECONDS}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DayMilliseconds}))
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 
 	// Two months to two days (without bots)
