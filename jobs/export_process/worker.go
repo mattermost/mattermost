@@ -120,8 +120,6 @@ func (w *ExportProcessWorker) doJob(job *model.Job) {
 		return
 	}
 
-	job.Data["export_name"] = exportFilename
-
 	mlog.Info("Worker: Job is complete", mlog.String("worker", w.name), mlog.String("job_id", job.Id))
 	w.setJobSuccess(job)
 }
