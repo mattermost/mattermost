@@ -8890,5 +8890,9 @@
   {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Функцията изисква надграждане до версия Enterprise Edition."
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.title",
+    "translation": ""
   }
 ]
