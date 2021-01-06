@@ -163,7 +163,6 @@ const (
 	SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11  = "Canonical1.1"
 	SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM = SAML_SETTINGS_CANONICAL_ALGORITHM_C14N
 
-	NATIVEAPP_SETTINGS_DEFAULT_APP_CUSTOM_URL_SCHEME     = "mattermost://"
 	NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK         = "https://mattermost.com/download/#mattermostApps"
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
@@ -236,6 +235,10 @@ const (
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
+
+func GetDefaultAppCustomURLSchemes() []string {
+	return []string{"mmauth://", "mmauthbeta://"}
+}
 
 var ServerTLSSupportedCiphers = map[string]uint16{
 	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
@@ -2427,10 +2430,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomUrlScheme     *string `access:"site,write_restrictable,cloud_restrictable"`
-	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"`
+	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2446,8 +2449,8 @@ func (s *NativeAppSettings) SetDefaults() {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
 	}
 
-	if s.AppCustomUrlScheme == nil {
-		s.AppCustomUrlScheme = NewString(NATIVEAPP_SETTINGS_DEFAULT_APP_CUSTOM_URL_SCHEME)
+	if s.AppCustomURLSchemes == nil {
+		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
 	}
 }
 

@@ -96,14 +96,14 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
 	`)
 }
 
-func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError) {
+func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
 	RenderMobileMessage(w, `
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
 		<h2> `+T("error")+` </h2>
 		<p> `+err.Message+` </p>
-		<a href="`+*config.NativeAppSettings.AppCustomUrlScheme+`">
+		<a href="`+redirectURL+`">
 			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)

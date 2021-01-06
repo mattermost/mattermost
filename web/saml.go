@@ -35,7 +35,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectTo := r.URL.Query().Get("redirect_to")
+	redirectURL := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -47,13 +47,13 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if redirectTo != "" {
-		if isMobile && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectTo) {
+	if redirectURL != "" {
+		if isMobile && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
 			invalidSchemeErr := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
-			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr)
+			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr, redirectURL)
 			return
 		}
-		relayProps["redirect_to"] = redirectTo
+		relayProps["redirect_to"] = redirectURL
 	}
 
 	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
@@ -114,7 +114,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if isMobile {
 			err.Translate(c.App.T)
 			if hasRedirectURL {
-				utils.RenderMobileError(c.App.Config(), w, err)
+				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
 			} else {
 				w.Write([]byte(err.ToJson()))
 			}

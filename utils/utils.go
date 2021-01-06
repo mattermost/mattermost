@@ -194,19 +194,20 @@ func AppendQueryParamsToURL(baseUrl string, params map[string]string) string {
 }
 
 // Validates RedirectURL passed during OAuth or SAML
-func IsValidWebAuthRedirectURL(config *model.Config, redirectUrl string) bool {
+func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) bool {
 	if config.ServiceSettings.SiteURL != nil {
 		siteUrl := *config.ServiceSettings.SiteURL
-		return strings.Index(strings.ToLower(redirectUrl), strings.ToLower(siteUrl)) == 0
+		return strings.Index(strings.ToLower(redirectURL), strings.ToLower(siteUrl)) == 0
 	}
 	return false
 }
 
 // Validates Mobile Custom URL Scheme passed during OAuth or SAML
-func IsValidMobileAuthRedirectURL(config *model.Config, redirectUrl string) bool {
-	if config.NativeAppSettings.AppCustomUrlScheme != nil {
-		urlScheme := *config.NativeAppSettings.AppCustomUrlScheme
-		return strings.Index(strings.ToLower(redirectUrl), strings.ToLower(urlScheme)) == 0
+func IsValidMobileAuthRedirectURL(config *model.Config, redirectURL string) bool {
+	for _, URLScheme := range config.NativeAppSettings.AppCustomURLSchemes {
+		if strings.Index(strings.ToLower(redirectURL), strings.ToLower(URLScheme)) == 0 {
+			return true
+		}
 	}
 	return false
 }
