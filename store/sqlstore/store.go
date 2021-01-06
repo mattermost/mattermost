@@ -599,7 +599,15 @@ func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, er
 // IsVarchar returns true if the column type matches one of the varchar types
 // either in Mysql or Postgres
 func (ss *SqlStore) IsVarchar(columnType string) bool {
-	return columnType == "character varying" || columnType == "varchar"
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES && columnType == "character varying" {
+		return true
+	}
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL && columnType == "varchar" {
+		return true
+	}
+
+	return false
 }
 
 func (ss *SqlStore) DoesTriggerExist(triggerName string) bool {
