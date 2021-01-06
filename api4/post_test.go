@@ -256,15 +256,22 @@ func testCreatePostWithOutgoingHook(
 	channel := th.BasicChannel
 
 	enableOutgoingWebhooks := *th.App.Config().ServiceSettings.EnableOutgoingWebhooks
+	incomingWebhooksTriggerOutgoingWebhooks := *th.App.Config().ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks
 	allowedUntrustedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingWebhooks })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingWebhooks
+			*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = incomingWebhooksTriggerOutgoingWebhooks
+		})
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = allowedUntrustedInternalConnections
 		})
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
+		*cfg.ServiceSettings.IncomingWebhooksTriggerOutgoingWebhooks = false
+	})
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 	})
