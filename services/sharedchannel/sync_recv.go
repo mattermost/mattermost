@@ -102,6 +102,7 @@ func (scs *Service) processSyncMessagesViaStore(syncMessages []syncMsg, rc *mode
 // Strategy 2:  use app api to create/update posts and reactions.
 //
 
+/*
 func (scs *Service) processSyncMessagesViaApp(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) (postErrors []string, lastUpdate int64, err error) {
 	var channel *model.Channel
 	postErrors = make([]string, 0)
@@ -163,6 +164,7 @@ func (scs *Service) processSyncMessagesViaApp(syncMessages []syncMsg, rc *model.
 	}
 	return postErrors, lastUpdate, nil
 }
+*/
 
 //
 // Strategy 3:  use app api to create/update posts and reactions. Add users that have posted in channel.
