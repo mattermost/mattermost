@@ -17,7 +17,7 @@ type InviteProvider struct {
 }
 
 const (
-	CMD_INVITE = "invite"
+	CmdInvite = "invite"
 )
 
 func init() {
@@ -25,12 +25,12 @@ func init() {
 }
 
 func (*InviteProvider) GetTrigger() string {
-	return CMD_INVITE
+	return CmdInvite
 }
 
 func (*InviteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_INVITE,
+		Trigger:          CmdInvite,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_invite.desc"),
 		AutoCompleteHint: T("api.command_invite.hint"),

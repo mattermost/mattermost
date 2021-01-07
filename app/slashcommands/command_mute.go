@@ -15,7 +15,7 @@ type MuteProvider struct {
 }
 
 const (
-	CMD_MUTE = "mute"
+	CmdMute = "mute"
 )
 
 func init() {
@@ -23,12 +23,12 @@ func init() {
 }
 
 func (*MuteProvider) GetTrigger() string {
-	return CMD_MUTE
+	return CmdMute
 }
 
 func (*MuteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_MUTE,
+		Trigger:          CmdMute,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_mute.desc"),
 		AutoCompleteHint: T("api.command_mute.hint"),

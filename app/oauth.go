@@ -24,9 +24,9 @@ import (
 )
 
 const (
-	OAUTH_COOKIE_MAX_AGE_SECONDS = 30 * 60 // 30 minutes
-	COOKIE_OAUTH                 = "MMOAUTH"
-	OPENID_SCOPE                 = "openid"
+	OauthCookieMaxAgeSeconds = 30 * 60 // 30 minutes
+	CookieOauth              = "MMOAUTH"
+	OpenIDScope              = "openid"
 )
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
@@ -567,7 +567,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.
 		return nil, model.NewAppError("getSSOProvider", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
 	}
 	providerType := service
-	if strings.Contains(*sso.Scope, OPENID_SCOPE) {
+	if strings.Contains(*sso.Scope, OpenIDScope) {
 		providerType = model.SERVICE_OPENID
 	}
 	provider := einterfaces.GetOauthProvider(providerType)
@@ -603,7 +603,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
-		if err.Id == MISSING_AUTH_ACCOUNT_ERROR {
+		if err.Id == MissingAuthAccountError {
 			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId, tokenUser)
 		} else {
 			return nil, err
@@ -654,7 +654,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 
 	user, nErr := a.Srv().Store.User().GetByEmail(email)
 	if nErr != nil {
-		return nil, model.NewAppError("CompleteSwitchWithOAuth", MISSING_ACCOUNT_ERROR, nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", MissingAccountError, nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.RevokeAllSessions(user.Id); err != nil {
@@ -728,12 +728,12 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	cookieValue := model.NewId()
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
-	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAUTH_COOKIE_MAX_AGE_SECONDS), 0)
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(OauthCookieMaxAgeSeconds), 0)
 	oauthCookie := &http.Cookie{
-		Name:     COOKIE_OAUTH,
+		Name:     CookieOauth,
 		Value:    cookieValue,
 		Path:     subpath,
-		MaxAge:   OAUTH_COOKIE_MAX_AGE_SECONDS,
+		MaxAge:   OauthCookieMaxAgeSeconds,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Secure:   secure,
@@ -804,7 +804,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cookie, cookieErr := r.Cookie(COOKIE_OAUTH)
+	cookie, cookieErr := r.Cookie(CookieOauth)
 	if cookieErr != nil {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -822,7 +822,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	httpCookie := &http.Cookie{
-		Name:     COOKIE_OAUTH,
+		Name:     CookieOauth,
 		Value:    "",
 		Path:     subpath,
 		MaxAge:   -1,

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	TEST_FILE_PATH = "/testfile"
+	TestFilePath = "/testfile"
 )
 
 type LocalFileBackend struct {
@@ -26,10 +26,10 @@ type LocalFileBackend struct {
 
 func (b *LocalFileBackend) TestConnection() error {
 	f := bytes.NewReader([]byte("testingwrite"))
-	if _, err := writeFileLocally(f, filepath.Join(b.directory, TEST_FILE_PATH)); err != nil {
+	if _, err := writeFileLocally(f, filepath.Join(b.directory, TestFilePath)); err != nil {
 		return errors.Wrap(err, "unable to write to the local filesystem storage")
 	}
-	os.Remove(filepath.Join(b.directory, TEST_FILE_PATH))
+	os.Remove(filepath.Join(b.directory, TestFilePath))
 	mlog.Debug("Able to write files to local storage.")
 	return nil
 }
@@ -135,19 +135,19 @@ func (b *LocalFileBackend) RemoveFile(path string) error {
 	return nil
 }
 
-func (b *LocalFileBackend) ListDirectory(path string) (*[]string, error) {
+func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
 	var paths []string
 	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &paths, nil
+			return paths, nil
 		}
 		return nil, errors.Wrapf(err, "unable to list the directory %s", path)
 	}
 	for _, fileInfo := range fileInfos {
 		paths = append(paths, filepath.Join(path, fileInfo.Name()))
 	}
-	return &paths, nil
+	return paths, nil
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {
