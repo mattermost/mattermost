@@ -18,7 +18,7 @@ type msgProvider struct {
 }
 
 const (
-	CMD_MSG = "msg"
+	CmdMsg = "msg"
 )
 
 func init() {
@@ -26,12 +26,12 @@ func init() {
 }
 
 func (*msgProvider) GetTrigger() string {
-	return CMD_MSG
+	return CmdMsg
 }
 
 func (*msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_MSG,
+		Trigger:          CmdMsg,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_msg.desc"),
 		AutoCompleteHint: T("api.command_msg.hint"),
@@ -85,9 +85,8 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 			if directChannel, err = a.GetOrCreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				mlog.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-			} else {
-				targetChannelId = directChannel.Id
 			}
+			targetChannelId = directChannel.Id
 		} else {
 			mlog.Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

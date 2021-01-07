@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vmihailenco/msgpack/v5/codes"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 type queryResult struct {
@@ -57,9 +57,9 @@ func (d *Decoder) query(q *queryResult) error {
 	}
 
 	switch {
-	case code == codes.Map16 || code == codes.Map32 || codes.IsFixedMap(code):
+	case code == msgpcode.Map16 || code == msgpcode.Map32 || msgpcode.IsFixedMap(code):
 		err = d.queryMapKey(q)
-	case code == codes.Array16 || code == codes.Array32 || codes.IsFixedArray(code):
+	case code == msgpcode.Array16 || code == msgpcode.Array32 || msgpcode.IsFixedArray(code):
 		err = d.queryArrayIndex(q)
 	default:
 		err = fmt.Errorf("msgpack: unsupported code=%x decoding key=%q", code, q.key)

@@ -14,7 +14,7 @@ type OpenProvider struct {
 }
 
 const (
-	CMD_OPEN = "open"
+	CmdOpen = "open"
 )
 
 func init() {
@@ -22,12 +22,12 @@ func init() {
 }
 
 func (open *OpenProvider) GetTrigger() string {
-	return CMD_OPEN
+	return CmdOpen
 }
 
 func (open *OpenProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	cmd := open.JoinProvider.GetCommand(a, T)
-	cmd.Trigger = CMD_OPEN
+	cmd.Trigger = CmdOpen
 	cmd.DisplayName = T("api.command_open.name")
 	return cmd
 }

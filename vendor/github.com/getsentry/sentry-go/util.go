@@ -5,13 +5,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
+	"time"
 )
 
 func uuid() string {
 	id := make([]byte, 16)
-	_, _ = io.ReadFull(rand.Reader, id)
+	// Prefer rand.Read over rand.Reader, see https://go-review.googlesource.com/c/go/+/272326/.
+	_, _ = rand.Read(id)
 	id[6] &= 0x0F // clear version
 	id[6] |= 0x40 // set version to 4 (random uuid)
 	id[8] &= 0x3F // clear variant
@@ -20,11 +21,15 @@ func uuid() string {
 }
 
 func fileExists(fileName string) bool {
-	if _, err := os.Stat(fileName); err != nil {
-		return false
-	}
+	_, err := os.Stat(fileName)
+	return err == nil
+}
 
-	return true
+// monotonicTimeSince replaces uses of time.Now() to take into account the
+// monotonic clock reading stored in start, such that duration = end - start is
+// unaffected by changes in the system wall clock.
+func monotonicTimeSince(start time.Time) (end time.Time) {
+	return start.Add(time.Since(start))
 }
 
 //nolint: deadcode, unused

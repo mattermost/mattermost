@@ -281,16 +281,16 @@ func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
 		return path.Join(subPath, "/static/emoji", id+".png"), nil
 	}
 
-	if emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true); err == nil {
+	emoji, err := a.Srv().Store.Emoji().GetByName(emojiName, true)
+	if err == nil {
 		return path.Join(subPath, "/api/v4/emoji", emoji.Id, "image"), nil
-	} else {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
-		default:
-			return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	}
+	var nfErr *store.ErrNotFound
+	switch {
+	case errors.As(err, &nfErr):
+		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.no_result", nil, err.Error(), http.StatusNotFound)
+	default:
+		return "", model.NewAppError("GetEmojiStaticUrl", "app.emoji.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 }
 
