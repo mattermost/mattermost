@@ -455,7 +455,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.IncomingWebhooksTriggerOutgoingWebhooks == nil {
-		s.IncomingWebhooksTriggerOutgoingWebhooks = NewBool(true)
+		s.IncomingWebhooksTriggerOutgoingWebhooks = NewBool(false)
 	}
 
 	if s.ConnectionSecurity == nil {

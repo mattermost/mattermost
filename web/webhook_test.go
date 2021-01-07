@@ -296,18 +296,11 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		timeout := time.After(2 * time.Second)
-		wait := true
 
-		for wait {
-			select {
-			case atLeastCalled := <-called:
-				if atLeastCalled {
-					wait = false
-				}
-			case <-timeout:
-				require.Fail(t, "Webhook has not been called")
-				wait = false
-			}
+		select {
+		case <-called:
+		case <-timeout:
+			require.Fail(t, "Webhook has not been called")
 		}
 	})
 }
