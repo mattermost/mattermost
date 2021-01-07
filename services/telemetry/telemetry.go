@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	rudder "github.com/rudderlabs/analytics-go"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -18,8 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	rudder "github.com/rudderlabs/analytics-go"
 )
 
 const (

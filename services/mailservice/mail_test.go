@@ -10,20 +10,20 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"net/mail"
+	"net/smtp"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"net/mail"
-	"net/smtp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
