@@ -464,8 +464,18 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("filename", imageArray[0].Filename)
 	}
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
-		auditRec.AddMeta("user", user)
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.SetInvalidParam("user_id")
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	// TODO: which error message to return?
+	if user.AuthService == "ldap" && *c.App.Config().LdapSettings.PictureAttribute != "" {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.Err.DetailedError += " field must be set through your login provider,"
+		return
 	}
 
 	imageData := imageArray[0]
@@ -1179,6 +1189,21 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
 			c.Err = err
+			return
+		}
+	}
+
+	if ouser.AuthService == "ldap" {
+		// TODO: which error to return?
+		ldapSettings := &c.App.Config().LdapSettings
+		if (patch.FirstName != nil && ouser.FirstName != *patch.FirstName && *ldapSettings.FirstNameAttribute != "") ||
+			(patch.LastName != nil && ouser.LastName != *patch.LastName && *ldapSettings.LastNameAttribute != "") ||
+			(patch.Nickname != nil && ouser.Nickname != *patch.Nickname && *ldapSettings.NicknameAttribute != "") ||
+			(patch.Position != nil && ouser.Position != *patch.Position && *ldapSettings.PositionAttribute != "") ||
+			(patch.Email != nil && ouser.Email != *patch.Email && *ldapSettings.EmailAttribute != "") ||
+			(patch.Username != nil && ouser.Username != *patch.Username && *ldapSettings.UsernameAttribute != "") {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.Err.DetailedError += " field must be set through your login provider,"
 			return
 		}
 	}
