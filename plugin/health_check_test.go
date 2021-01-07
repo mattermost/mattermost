@@ -129,8 +129,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are recent enough to restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -138,8 +138,8 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Failures are too spaced out to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*2))
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*1))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*2))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow*1))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)
@@ -147,7 +147,7 @@ func TestShouldDeactivatePlugin(t *testing.T) {
 
 	// Not enough failures are present to warrant a restart
 	ftime = []time.Time{}
-	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now.Add(-HealthCheckDeactivationWindow/10))
 	ftime = append(ftime, now)
 
 	result = shouldDeactivatePlugin(ftime)

@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.9.0
+
+- feat: Initial tracing and performance monitoring support (#285)
+- doc: Revamp sentryhttp documentation (#304)
+- fix: Hub.PopScope never empties the scope stack (#300)
+- ref: Report Event.Timestamp in local time (#299)
+- ref: Report Breadcrumb.Timestamp in local time (#299)
+
+_NOTE:_
+This version introduces support for [Sentry's Performance Monitoring](https://docs.sentry.io/platforms/go/performance/).
+The new tracing capabilities are beta, and we plan to expand them on future versions. Feedback is welcome, please open new issues on GitHub.
+The `sentryhttp` package got better API docs, an [updated usage example](https://github.com/getsentry/sentry-go/tree/master/example/http) and support for creating automatic transactions as part of Performance Monitoring.
+
+## v0.8.0
+
+- build: Bump required version of Iris (#296)
+- fix: avoid unnecessary allocation in Client.processEvent (#293)
+- doc: Remove deprecation of sentryhttp.HandleFunc (#284)
+- ref: Update sentryhttp example (#283)
+- doc: Improve documentation of sentryhttp package (#282)
+- doc: Clarify SampleRate documentation (#279)
+- fix: Remove RawStacktrace (#278)
+- docs: Add example of custom HTTP transport
+- ci: Test against go1.15, drop go1.12 support (#271)
+
+_NOTE:_
+This version comes with a few updates. Some examples and documentation have been
+improved. We've bumped the supported version of the Iris framework to avoid
+LGPL-licensed modules in the module dependency graph.
+The `Exception.RawStacktrace` and `Thread.RawStacktrace` fields have been
+removed to conform to Sentry's ingestion protocol, only `Exception.Stacktrace`
+and `Thread.Stacktrace` should appear in user code.
+
 ## v0.7.0
 
 - feat: Include original error when event cannot be encoded as JSON (#258)
@@ -131,7 +164,7 @@ Please verify the usage of `sentry.Flush` in your code base.
 
 ## v0.3.0
 
-- feat: Retry event marshalling without contextual data if the first pass fails
+- feat: Retry event marshaling without contextual data if the first pass fails
 - fix: Include `url.Parse` error in `DsnParseError`
 - fix: Make more `Scope` methods safe for concurrency
 - fix: Synchronize concurrent access to `Hub.client`

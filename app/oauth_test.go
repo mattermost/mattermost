@@ -179,7 +179,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		if cookie != "" {
 			request.AddCookie(&http.Cookie{
-				Name:  COOKIE_OAUTH,
+				Name:  CookieOauth,
 				Value: cookie,
 			})
 		}
