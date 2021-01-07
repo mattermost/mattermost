@@ -81,11 +81,24 @@ const (
 	// when calling RegisterUsage.
 	ErrCodeInvalidRegionException = "InvalidRegionException"
 
+	// ErrCodeInvalidTagException for service response error code
+	// "InvalidTagException".
+	//
+	// The tag is invalid, or the number of tags is greater than 5.
+	ErrCodeInvalidTagException = "InvalidTagException"
+
 	// ErrCodeInvalidTokenException for service response error code
 	// "InvalidTokenException".
 	//
 	// Registration token is invalid.
 	ErrCodeInvalidTokenException = "InvalidTokenException"
+
+	// ErrCodeInvalidUsageAllocationsException for service response error code
+	// "InvalidUsageAllocationsException".
+	//
+	// The usage allocation objects are invalid, or the number of allocations is
+	// greater than 500 for a single usage record.
+	ErrCodeInvalidUsageAllocationsException = "InvalidUsageAllocationsException"
 
 	// ErrCodeInvalidUsageDimensionException for service response error code
 	// "InvalidUsageDimensionException".
@@ -125,7 +138,9 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidProductCodeException":        newErrorInvalidProductCodeException,
 	"InvalidPublicKeyVersionException":   newErrorInvalidPublicKeyVersionException,
 	"InvalidRegionException":             newErrorInvalidRegionException,
+	"InvalidTagException":                newErrorInvalidTagException,
 	"InvalidTokenException":              newErrorInvalidTokenException,
+	"InvalidUsageAllocationsException":   newErrorInvalidUsageAllocationsException,
 	"InvalidUsageDimensionException":     newErrorInvalidUsageDimensionException,
 	"PlatformNotSupportedException":      newErrorPlatformNotSupportedException,
 	"ThrottlingException":                newErrorThrottlingException,

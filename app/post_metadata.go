@@ -27,12 +27,12 @@ type linkMetadataCache struct {
 	PostImage *model.PostImage
 }
 
-const LINK_CACHE_SIZE = 10000
-const LINK_CACHE_DURATION = 1 * time.Hour
+const LinkCacheSize = 10000
+const LinkCacheDuration = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
 var linkCache = cache.NewLRU(cache.LRUOptions{
-	Size: LINK_CACHE_SIZE,
+	Size: LinkCacheSize,
 })
 
 func (a *App) InitPostMetadata() {
@@ -514,7 +514,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		PostImage: image,
 	}
 
-	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LINK_CACHE_DURATION)
+	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {

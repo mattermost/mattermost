@@ -382,7 +382,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SENTRY_DSN = dsn.String()
+		SentryDSN = dsn.String()
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
@@ -433,7 +433,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SENTRY_DSN = dsn.String()
+		SentryDSN = dsn.String()
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
