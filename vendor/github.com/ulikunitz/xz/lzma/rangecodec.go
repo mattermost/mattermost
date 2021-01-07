@@ -131,32 +131,6 @@ type rangeDecoder struct {
 	code   uint32
 }
 
-// init initializes the range decoder, by reading from the byte reader.
-func (d *rangeDecoder) init() error {
-	d.nrange = 0xffffffff
-	d.code = 0
-
-	b, err := d.br.ReadByte()
-	if err != nil {
-		return err
-	}
-	if b != 0 {
-		return errors.New("newRangeDecoder: first byte not zero")
-	}
-
-	for i := 0; i < 4; i++ {
-		if err = d.updateCode(); err != nil {
-			return err
-		}
-	}
-
-	if d.code >= d.nrange {
-		return errors.New("newRangeDecoder: d.code >= d.nrange")
-	}
-
-	return nil
-}
-
 // newRangeDecoder initializes a range decoder. It reads five bytes from the
 // reader and therefore may return an error.
 func newRangeDecoder(br io.ByteReader) (d *rangeDecoder, err error) {

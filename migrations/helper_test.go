@@ -5,11 +5,9 @@ package migrations
 
 import (
 	"os"
-	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -43,7 +41,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 	// Adds the cache layer to the test store
-	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	s.Store, err = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	if err != nil {
+		panic(err)
+	}
 
 	th := &TestHelper{
 		App:    app.New(app.ServerConnector(s)),
@@ -117,9 +118,6 @@ func (th *TestHelper) CreateTeam() *model.Team {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if team, err = th.App.CreateTeam(team); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -140,9 +138,6 @@ func (th *TestHelper) CreateUser() *model.User {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if user, err = th.App.CreateUser(user); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -167,9 +162,6 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -181,9 +173,6 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -203,9 +192,6 @@ func (th *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	if post, err = th.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -217,9 +203,6 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -231,9 +214,6 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := th.App.AddUserToChannel(user, channel)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -271,7 +251,7 @@ func (th *TestHelper) DeleteAllJobsByTypeAndMigrationKey(jobType string, migrati
 	}
 
 	for _, job := range jobs {
-		if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok && key == migrationKey {
+		if key, ok := job.Data[JobDataKeyMigration]; ok && key == migrationKey {
 			if _, err = th.App.Srv().Store.Job().Delete(job.Id); err != nil {
 				panic(err)
 			}

@@ -936,7 +936,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		case errors.As(nErr, &appErr):
 			return appErr
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("importUserChannels", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("importUserChannels", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("importUserChannels", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1208,20 +1208,24 @@ func (a *App) getChannelsByNames(names []string, teamId string) (map[string]*mod
 	return channels, nil
 }
 
-func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]*model.Channel, *model.AppError) {
-	channels := make(map[string]*model.Channel)
+// getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
+	teamChannels := make(map[string]map[string]*model.Channel)
 	for _, postData := range data {
-		team := teams[*postData.Team]
-		if channel, ok := channels[*postData.Channel]; !ok || channel == nil {
+		teamName := *postData.Team
+		if _, ok := teamChannels[teamName]; !ok {
+			teamChannels[teamName] = make(map[string]*model.Channel)
+		}
+		if channel, ok := teamChannels[teamName][*postData.Channel]; !ok || channel == nil {
 			var err error
-			channel, err = a.Srv().Store.Channel().GetByName(team.Id, *postData.Channel, true)
+			channel, err = a.Srv().Store.Channel().GetByName(teams[teamName].Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
 			}
-			channels[*postData.Channel] = channel
+			teamChannels[teamName][*postData.Channel] = channel
 		}
 	}
-	return channels, nil
+	return teamChannels, nil
 }
 
 // getPostStrID returns a string ID composed of several post fields to
@@ -1282,7 +1286,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 
 	for _, line := range lines {
 		team := teams[*line.Post.Team]
-		channel := channels[*line.Post.Channel]
+		channel := channels[*line.Post.Team][*line.Post.Channel]
 		user := users[*line.Post.User]
 
 		// Check if this post already exists.
@@ -1462,13 +1466,13 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 	if len(userIds) == 2 {
 		ch, err := a.createDirectChannel(userIds[0], userIds[1])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	} else {
 		ch, err := a.createGroupChannel(userIds, userIds[0])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
@@ -1567,13 +1571,13 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		var ch *model.Channel
 		if len(userIds) == 2 {
 			ch, err = a.GetOrCreateDirectChannel(userIds[0], userIds[1])
-			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch
 		} else {
 			ch, err = a.createGroupChannel(userIds, userIds[0])
-			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch

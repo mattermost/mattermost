@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	PENDING_POST_IDS_CACHE_SIZE = 25000
-	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
-	PAGE_DEFAULT                = 0
+	PendingPostIDsCacheSize = 25000
+	PendingPostIDsCacheTTL  = 30 * time.Second
+	PageDefault             = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
@@ -58,7 +58,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 				var nfErr *store.ErrNotFound
 				switch {
 				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 				default:
 					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				}
@@ -128,7 +128,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	var postId string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
 	if nErr == cache.ErrKeyNotFound {
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL)
 		return nil, nil
 	}
 
@@ -176,7 +176,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return
 		}
 
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
 	post.SanitizeProps()
@@ -196,7 +196,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("CreatePost", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("CreatePost", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -318,7 +318,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PENDING_POST_IDS_CACHE_TTL)
+	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
@@ -999,13 +999,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	// channel organically, those replies will be added below.
 	postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads}); err != nil {
 		return nil, err
 	} else if postListBefore != nil {
 		postList.Extend(postListBefore)
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1538,6 +1538,6 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	return false
 }
 
-func (a *App) GetThreadMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
-	return a.Srv().Store.Thread().GetMembershipsForUser(userId)
+func (a *App) GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId, teamId)
 }

@@ -504,7 +504,7 @@ func newRegisteredPlugin(bundle *model.BundleInfo) registeredPlugin {
 func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
 	if enable && env.pluginHealthCheckJob == nil {
-		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HEALTH_CHECK_INTERVAL))
+		mlog.Debug("Enabling plugin health check job", mlog.Duration("interval_s", HealthCheckInterval))
 
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job

@@ -15,6 +15,8 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -60,7 +62,7 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlStore
@@ -114,7 +116,7 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
-	newStore func() store.Store
+	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            cache.Cache
@@ -222,7 +224,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -230,11 +232,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -286,34 +288,64 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.SESSION_CACHE_SIZE,
-	})
-	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
-	})
-	s.statusCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.STATUS_CACHE_SIZE,
-	})
+	var err error
+	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.SESSION_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create session cache")
+	}
+	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size: PendingPostIDsCacheSize,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
+	}
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.STATUS_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
 
 	s.createPushNotificationsHub()
 
-	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	if err2 := utils.InitTranslations(s.Config().LocalizationSettings); err2 != nil {
+		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
 	s.initEnterprise()
 
 	if s.newStore == nil {
-		s.newStore = func() store.Store {
+		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				ver, err2 := s.sqlStore.GetDbVersion(true)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot get DB version")
+				}
+				intVer, err2 := strconv.Atoi(ver)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot parse DB version")
+				}
+				if intVer < sqlstore.MinimumRequiredPostgresVersion {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
+				}
+			}
+
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(
+				retrylayer.New(s.sqlStore),
+				s.Metrics,
+				s.Cluster,
+				s.CacheProvider,
+			)
+			if err2 != nil {
+				return nil, errors.Wrap(err2, "cannot create local cache layer")
+			}
+
 			searchStore := searchlayer.NewSearchLayer(
-				localcachelayer.NewLocalCacheLayer(
-					retrylayer.New(s.sqlStore),
-					s.Metrics,
-					s.Cluster,
-					s.CacheProvider,
-				),
+				lcl,
 				s.SearchEngine,
 				s.Config(),
 			)
@@ -330,17 +362,20 @@ func NewServer(options ...Option) (*Server, error) {
 			return timerlayer.New(
 				searchStore,
 				s.Metrics,
-			)
+			), nil
 		}
 	}
 
-	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error("Failed to parse server templates", mlog.Err(err))
+	if htmlTemplateWatcher, err2 := utils.NewHTMLTemplateWatcher("templates"); err2 != nil {
+		mlog.Error("Failed to parse server templates", mlog.Err(err2))
 	} else {
 		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	s.Store = s.newStore()
+	s.Store, err = s.newStore()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create store")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()
@@ -444,11 +479,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	backend, appErr := s.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
+	} else {
+		nErr := backend.TestConnection()
+		if nErr != nil {
+			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
+		}
 	}
 
 	s.timezones = timezones.New()
@@ -463,7 +500,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -543,6 +582,13 @@ func NewServer(options ...Option) (*Server, error) {
 	return s, nil
 }
 
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func (s *Server) RunJobs() {
 	if s.runjobs {
 		s.Go(func() {
@@ -597,17 +643,19 @@ func (s *Server) initLogging() error {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
 	}
 
+	// Use this app logger as the global logger (eventually remove all instances of global logging).
+	// This is deferred because a copy is made of the logger and it must be fully configured before
+	// the copy is made.
+	defer mlog.InitGlobalLogger(s.Log)
+
+	// Redirect default Go logger to this logger.
+	defer mlog.RedirectStdLog(s.Log)
+
 	if s.NotificationsLog == nil {
 		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
 		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
 			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(s.Log)
 
 	if s.logListenerId != "" {
 		s.RemoveConfigListener(s.logListenerId)
@@ -638,7 +686,7 @@ func (s *Server) initLogging() error {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
 
-		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
+		if err := s.Log.ConfigAdvancedLogging(cfg.Get()); err != nil {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
 
@@ -647,7 +695,7 @@ func (s *Server) initLogging() error {
 		}
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
-			if err := mlog.ConfigAdvancedLogging(newCfg); err != nil {
+			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
 				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
 			} else {
 				mlog.Info("Re-configured advanced logging")
@@ -692,11 +740,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -906,7 +954,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
@@ -1231,11 +1279,11 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
 func doCheckWarnMetricStatus(a *App) {
@@ -1501,7 +1549,11 @@ func (s *Server) stopSearchEngine() {
 
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
-	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	backend, err := filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return nil, model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return backend, nil
 }
 
 func (s *Server) TotalWebsocketConnections() int {
