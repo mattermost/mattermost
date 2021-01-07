@@ -694,7 +694,7 @@ func (s *Server) initLogging() error {
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := s.Log.ConfigAdvancedLogging(newCfg); err != nil {
-				mlog.Warn("Error re-configuring advanced logging", mlog.Err(err))
+				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
 			} else {
 				mlog.Info("Re-configured advanced logging")
 			}
