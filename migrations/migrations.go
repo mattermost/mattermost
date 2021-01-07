@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	MIGRATION_STATE_UNSCHEDULED = "unscheduled"
-	MIGRATION_STATE_IN_PROGRESS = "in_progress"
-	MIGRATION_STATE_COMPLETED   = "completed"
+	MigrationStateUnscheduled = "unscheduled"
+	MigrationStateInProgress  = "in_progress"
+	MigrationStateCompleted   = "completed"
 
-	JOB_DATA_KEY_MIGRATION           = "migration_key"
-	JOB_DATA_KEY_MIGRATION_LAST_DONE = "last_done"
+	JobDataKeyMigration           = "migration_key"
+	JobDataKeyMigration_LAST_DONE = "last_done"
 )
 
 type MigrationsJobInterfaceImpl struct {
@@ -39,7 +39,7 @@ func MakeMigrationsList() []string {
 
 func GetMigrationState(migration string, store store.Store) (string, *model.Job, *model.AppError) {
 	if _, err := store.System().GetByName(migration); err == nil {
-		return MIGRATION_STATE_COMPLETED, nil, nil
+		return MigrationStateCompleted, nil, nil
 	}
 
 	jobs, err := store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
@@ -48,19 +48,19 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 	}
 
 	for _, job := range jobs {
-		if key, ok := job.Data[JOB_DATA_KEY_MIGRATION]; ok {
+		if key, ok := job.Data[JobDataKeyMigration]; ok {
 			if key != migration {
 				continue
 			}
 
 			switch job.Status {
 			case model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_PENDING:
-				return MIGRATION_STATE_IN_PROGRESS, job, nil
+				return MigrationStateInProgress, job, nil
 			default:
-				return MIGRATION_STATE_UNSCHEDULED, job, nil
+				return MigrationStateUnscheduled, job, nil
 			}
 		}
 	}
 
-	return MIGRATION_STATE_UNSCHEDULED, nil, nil
+	return MigrationStateUnscheduled, nil, nil
 }

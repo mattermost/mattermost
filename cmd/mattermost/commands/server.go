@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"net"
 	"os"
 	"os/signal"
@@ -16,15 +15,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/manualtesting"
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
-
-const CUSTOM_DEFAULTS_ENV_VAR = "MM_CUSTOM_DEFAULTS_PATH"
 
 var serverCmd = &cobra.Command{
 	Use:          "server",
@@ -36,27 +32,6 @@ var serverCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(serverCmd)
 	RootCmd.RunE = serverCmdF
-}
-
-func loadCustomDefaults() (*model.Config, error) {
-	customDefaultsPath := os.Getenv(CUSTOM_DEFAULTS_ENV_VAR)
-	if customDefaultsPath == "" {
-		return nil, nil
-	}
-
-	file, err := os.Open(customDefaultsPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to open custom defaults file at %q", customDefaultsPath)
-	}
-	defer file.Close()
-
-	var customDefaults *model.Config
-	err = json.NewDecoder(file).Decode(&customDefaults)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to decode custom defaults configuration")
-	}
-
-	return customDefaults, nil
 }
 
 func serverCmdF(command *cobra.Command, args []string) error {
@@ -71,13 +46,14 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 	customDefaults, err := loadCustomDefaults()
 	if err != nil {
-		mlog.Error("Error loading custom configuration defaults: " + err.Error())
+		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
 	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
+	defer configStore.Close()
 
 	return runServer(configStore, usedPlatform, interruptChan)
 }
@@ -103,7 +79,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	defer server.Shutdown()
 
 	if usedPlatform {
-		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
+		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
 	api := api4.Init(server, server.AppOptions, server.Router)

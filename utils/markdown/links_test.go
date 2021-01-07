@@ -136,6 +136,27 @@ func TestParseImageDimensions(t *testing.T) {
 			ExpectedNext:  0,
 			ExpectedOk:    false,
 		},
+		"garbage 5": {
+			Input:         `![alt](https://example.com =100x200`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
+		"garbage 6": {
+			Input:         `![alt](https://example.com =100x`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
+		"garbage 7": {
+			Input:         `![alt](https://example.com =x200`,
+			Position:      27,
+			ExpectedRange: Range{0, 0},
+			ExpectedNext:  0,
+			ExpectedOk:    false,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			raw, next, ok := parseImageDimensions(tc.Input, tc.Position)

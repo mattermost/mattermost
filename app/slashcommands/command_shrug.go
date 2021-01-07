@@ -13,20 +13,20 @@ type ShrugProvider struct {
 }
 
 const (
-	CMD_SHRUG = "shrug"
+	CmdShrug = "shrug"
 )
 
 func init() {
 	app.RegisterCommandProvider(&ShrugProvider{})
 }
 
-func (me *ShrugProvider) GetTrigger() string {
-	return CMD_SHRUG
+func (*ShrugProvider) GetTrigger() string {
+	return CmdShrug
 }
 
-func (me *ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SHRUG,
+		Trigger:          CmdShrug,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_shrug.desc"),
 		AutoCompleteHint: T("api.command_shrug.hint"),
@@ -34,7 +34,7 @@ func (me *ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 	}
 }
 
-func (me *ShrugProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*ShrugProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg

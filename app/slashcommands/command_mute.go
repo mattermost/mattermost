@@ -15,20 +15,20 @@ type MuteProvider struct {
 }
 
 const (
-	CMD_MUTE = "mute"
+	CmdMute = "mute"
 )
 
 func init() {
 	app.RegisterCommandProvider(&MuteProvider{})
 }
 
-func (me *MuteProvider) GetTrigger() string {
-	return CMD_MUTE
+func (*MuteProvider) GetTrigger() string {
+	return CmdMute
 }
 
-func (me *MuteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*MuteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_MUTE,
+		Trigger:          CmdMute,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_mute.desc"),
 		AutoCompleteHint: T("api.command_mute.hint"),
@@ -36,7 +36,7 @@ func (me *MuteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Co
 	}
 }
 
-func (me *MuteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*MuteProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
 
@@ -70,14 +70,12 @@ func (me *MuteProvider) DoCommand(a *app.App, args *model.CommandArgs, message s
 	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		} else {
-			return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
+		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
+	return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }

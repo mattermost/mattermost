@@ -219,7 +219,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	returnedChannel, nErr := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
 	require.NotNil(t, nErr, "should've failed to save a duplicate direct channel")
 	var cErr *store.ErrConflict
-	require.Truef(t, errors.As(nErr, &cErr), "should've returned CHANNEL_EXISTS_ERROR")
+	require.Truef(t, errors.As(nErr, &cErr), "should've returned ChannelExistsError")
 	require.Equal(t, o1.Id, returnedChannel.Id, "should've failed to save a duplicate direct channel")
 
 	// Attempt to save a non-direct channel

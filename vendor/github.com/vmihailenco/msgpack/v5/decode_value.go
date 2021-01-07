@@ -7,8 +7,10 @@ import (
 	"reflect"
 )
 
-var interfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
-var stringType = reflect.TypeOf((*string)(nil)).Elem()
+var (
+	interfaceType = reflect.TypeOf((*interface{})(nil)).Elem()
+	stringType    = reflect.TypeOf((*string)(nil)).Elem()
+)
 
 var valueDecoders []decoderFunc
 
@@ -70,6 +72,9 @@ func _getDecoder(typ reflect.Type) decoderFunc {
 	if typ.Implements(binaryUnmarshalerType) {
 		return unmarshalBinaryValue
 	}
+	if typ.Implements(textUnmarshalerType) {
+		return unmarshalTextValue
+	}
 
 	// Addressable struct field value.
 	if kind != reflect.Ptr {
@@ -82,6 +87,9 @@ func _getDecoder(typ reflect.Type) decoderFunc {
 		}
 		if ptr.Implements(binaryUnmarshalerType) {
 			return unmarshalBinaryValueAddr
+		}
+		if ptr.Implements(textUnmarshalerType) {
+			return unmarshalTextValueAddr
 		}
 	}
 
@@ -158,10 +166,8 @@ func unmarshalValueAddr(d *Decoder, v reflect.Value) error {
 }
 
 func unmarshalValue(d *Decoder, v reflect.Value) error {
-	if d.extLen == 0 || d.extLen == 1 {
-		if d.hasNilCode() {
-			return d.decodeNilValue(v)
-		}
+	if d.hasNilCode() {
+		return d.decodeNilValue(v)
 	}
 
 	if v.IsNil() {
@@ -170,20 +176,12 @@ func unmarshalValue(d *Decoder, v reflect.Value) error {
 
 	var b []byte
 
-	if d.extLen != 0 {
-		var err error
-		b, err = d.readN(d.extLen)
-		if err != nil {
-			return err
-		}
-	} else {
-		d.rec = make([]byte, 0, 64)
-		if err := d.Skip(); err != nil {
-			return err
-		}
-		b = d.rec
-		d.rec = nil
+	d.rec = make([]byte, 0, 64)
+	if err := d.Skip(); err != nil {
+		return err
 	}
+	b = d.rec
+	d.rec = nil
 
 	unmarshaler := v.Interface().(Unmarshaler)
 	return unmarshaler.UnmarshalMsgpack(b)
@@ -202,13 +200,7 @@ func decodeInterfaceValue(d *Decoder, v reflect.Value) error {
 	if v.IsNil() {
 		return d.interfaceValue(v)
 	}
-
-	elem := v.Elem()
-	if !elem.CanSet() {
-		return d.interfaceValue(v)
-	}
-
-	return d.DecodeValue(elem)
+	return d.DecodeValue(v.Elem())
 }
 
 func (d *Decoder) interfaceValue(v reflect.Value) error {
@@ -260,4 +252,31 @@ func unmarshalBinaryValue(d *Decoder, v reflect.Value) error {
 
 	unmarshaler := v.Interface().(encoding.BinaryUnmarshaler)
 	return unmarshaler.UnmarshalBinary(data)
+}
+
+//------------------------------------------------------------------------------
+
+func unmarshalTextValueAddr(d *Decoder, v reflect.Value) error {
+	if !v.CanAddr() {
+		return fmt.Errorf("msgpack: Decode(nonaddressable %T)", v.Interface())
+	}
+	return unmarshalTextValue(d, v.Addr())
+}
+
+func unmarshalTextValue(d *Decoder, v reflect.Value) error {
+	if d.hasNilCode() {
+		return d.decodeNilValue(v)
+	}
+
+	if v.IsNil() {
+		v.Set(reflect.New(v.Type().Elem()))
+	}
+
+	data, err := d.DecodeBytes()
+	if err != nil {
+		return err
+	}
+
+	unmarshaler := v.Interface().(encoding.TextUnmarshaler)
+	return unmarshaler.UnmarshalText(data)
 }
