@@ -87,6 +87,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -609,9 +610,6 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	var err *model.AppError
 	var channel *model.Channel
 	if channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, user.Id); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 	utils.EnableDebugLogForTest()
@@ -675,9 +673,6 @@ func (th *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 
 	_, err := th.App.UpdateActive(user, active)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -689,9 +684,6 @@ func (th *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 	err := th.App.JoinUserToTeam(team, user, "")
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -703,9 +695,6 @@ func (th *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 	member, err := th.App.AddUserToChannel(user, channel)
 	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -992,9 +981,6 @@ func (th *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -1012,9 +998,6 @@ func (th *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
 		panic(err)
 	}
 
@@ -1141,15 +1124,13 @@ func (th *TestHelper) SetupChannelScheme() *model.Scheme {
 }
 
 func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
-	scheme := model.Scheme{
+	scheme, err := th.App.CreateScheme(&model.Scheme{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Scope:       scope,
-	}
-
-	if scheme, err := th.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
+	})
+	if err != nil {
 		panic(err)
 	}
+	return scheme
 }

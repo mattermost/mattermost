@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package label
+package label // import "go.opentelemetry.io/otel/label"
 
 import (
 	"encoding/json"
@@ -137,7 +137,7 @@ func Any(k string, value interface{}) KeyValue {
 	case reflect.String:
 		return String(k, rv.String())
 	}
-	if b, err := json.Marshal(value); value != nil && err == nil {
+	if b, err := json.Marshal(value); b != nil && err == nil {
 		return String(k, string(b))
 	}
 	return String(k, fmt.Sprint(value))

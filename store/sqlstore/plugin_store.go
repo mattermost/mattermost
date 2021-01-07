@@ -120,9 +120,8 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			// need to return it.
 			if IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey", "pkey"}) {
 				return false, nil
-			} else {
-				return false, errors.Wrap(err, "failed to insert PluginKeyValue")
 			}
+			return false, errors.Wrap(err, "failed to insert PluginKeyValue")
 		}
 	} else {
 		currentTime := model.GetMillis()

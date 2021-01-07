@@ -50,7 +50,7 @@ func TestGetMigrationState(t *testing.T) {
 		Id:       model.NewId(),
 		CreateAt: model.GetMillis(),
 		Data: map[string]string{
-			JOB_DATA_KEY_MIGRATION: migrationKey,
+			JobDataKeyMigration: migrationKey,
 		},
 		Status: model.JOB_STATUS_PENDING,
 		Type:   model.JOB_TYPE_MIGRATIONS,
@@ -69,7 +69,7 @@ func TestGetMigrationState(t *testing.T) {
 		Id:       model.NewId(),
 		CreateAt: j1.CreateAt + 1,
 		Data: map[string]string{
-			JOB_DATA_KEY_MIGRATION: migrationKey,
+			JobDataKeyMigration: migrationKey,
 		},
 		Status: model.JOB_STATUS_IN_PROGRESS,
 		Type:   model.JOB_TYPE_MIGRATIONS,
@@ -88,7 +88,7 @@ func TestGetMigrationState(t *testing.T) {
 		Id:       model.NewId(),
 		CreateAt: j2.CreateAt + 1,
 		Data: map[string]string{
-			JOB_DATA_KEY_MIGRATION: migrationKey,
+			JobDataKeyMigration: migrationKey,
 		},
 		Status: model.JOB_STATUS_ERROR,
 		Type:   model.JOB_TYPE_MIGRATIONS,

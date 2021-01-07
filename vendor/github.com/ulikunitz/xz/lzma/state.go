@@ -53,12 +53,6 @@ func (s *state) Reset() {
 	s.distCodec.init()
 }
 
-// initState initializes the state.
-func initState(s *state, p Properties) {
-	*s = state{Properties: p}
-	s.Reset()
-}
-
 // newState creates a new state from the give Properties.
 func newState(p Properties) *state {
 	s := &state{Properties: p}

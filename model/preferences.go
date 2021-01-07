@@ -19,9 +19,8 @@ func PreferencesFromJson(data io.Reader) (Preferences, error) {
 	decoder := json.NewDecoder(data)
 	var o Preferences
 	err := decoder.Decode(&o)
-	if err == nil {
-		return o, nil
-	} else {
+	if err != nil {
 		return nil, err
 	}
+	return o, nil
 }

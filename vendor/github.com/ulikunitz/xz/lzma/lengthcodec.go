@@ -56,19 +56,6 @@ func (lc *lengthCodec) init() {
 	lc.high = makeTreeCodec(8)
 }
 
-// lBits gives the number of bits used for the encoding of the l value
-// provided to the range encoder.
-func lBits(l uint32) int {
-	switch {
-	case l < 8:
-		return 4
-	case l < 16:
-		return 5
-	default:
-		return 10
-	}
-}
-
 // Encode encodes the length offset. The length offset l can be compute by
 // subtracting minMatchLen (2) from the actual length.
 //

@@ -19,7 +19,7 @@ type matcher interface {
 }
 
 // encoderDict provides the dictionary of the encoder. It includes an
-// addtional buffer atop of the actual dictionary.
+// additional buffer atop of the actual dictionary.
 type encoderDict struct {
 	buf      buffer
 	m        matcher

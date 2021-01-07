@@ -87,12 +87,12 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
-	if success, licenseStr := ValidateLicense(licenseBytes); !success {
+	success, licenseStr := ValidateLicense(licenseBytes)
+	if !success {
 		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
-	} else {
-		return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
 	}
+	return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
 }
 
 func GetLicenseFileFromDisk(fileName string) []byte {
@@ -116,9 +116,8 @@ func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		configDir, _ := fileutils.FindDir("config")
 		return filepath.Join(configDir, "mattermost.mattermost-license")
-	} else {
-		return fileLocation
 	}
+	return fileLocation
 }
 
 func GetClientLicense(l *model.License) map[string]string {

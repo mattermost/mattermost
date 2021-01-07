@@ -1088,14 +1088,6 @@
     "translation": "Fișierele atașate au fost dezactivate pe acest server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Imposibil de verificat dacă fișierul există."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Imposibil de verificat dacă fișierul există."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Linkul public nu pare să fie valabil."
   },
@@ -1116,44 +1108,12 @@
     "translation": "Nu se poate obține linkul public pentru fișier. Fișierul trebuie atașat la un mesaj care poate fi citit de utilizatorul curent."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Nu se poate copia fișierul în S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Nu se poate șterge fișierul din S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Imposibil de mutat fișierul local."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Niciun driver de fișier selectat."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "A apărut o eroare la citirea din stocarea locală a fișierelor de pe server."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "A apărut o eroare la citirea din spațiul de stocare S3."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "A apărut o eroare la deschiderea unui cititor din stocarea fișierelor locale de pe server."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "A apărut o eroare la deschiderea unui cititor din spațiul de stocare S3."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Nu aveți permisiuni de scriere pe calea locală specificată sau altă eroare."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Eroare la verificarea existenței unei găleți."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1190,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Imposibil de încărcat fișierul {{.Filename}}. {{.Length}} octeții depășesc maximul permis {{.Limit}} octeți."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "A apărut o eroare la scrierea lui S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Sa întâlnit o eroare la crearea directorului pentru fişierul nou."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "A apărut o eroare la scrierea pe serverul local de stocare."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2121,7 +2069,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "{{.Service}} SSO prin OAuth 2.0 nu este disponibil pe acest server"
+    "translation": "{{.Service}} SSO prin OAuth 2.0 nu este disponibil pe acest server."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -4952,30 +4900,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "A apărut o eroare de afișare a directorului din stocarea locală a fișierelor de pe server."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "A întâlnit o eroare listare Director la S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "A întâlnit o eroare eliminarea director la serverul local dosar magazin."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "A întâlnit o eroare scoate Director de la S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "A întâlnit o eroare eliminarea fişiere la serverul local dosar magazin."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "A întâlnit o eroare eliminarea fişierului din S3."
-  },
-  {
     "id": "utils.mail.connect_smtp.helo.app_error",
     "translation": "Setarea HELO nu a reușit."
   },
@@ -7452,10 +7376,6 @@
     "translation": "Ați trecut deja la Mattermost Enterprise Edition. Reporniți serverul pentru a finaliza actualizarea."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "A apărut o eroare la scrierea în S3."
-  },
-  {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Nu se poate obține lotul de canale pentru indexare."
   },
@@ -7510,10 +7430,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Eșuarea la preluarea membrilor canalului."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Nu este posibilă crearea unei găleți."
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7614,10 +7530,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nu pot posta şterse canal."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Fisierul nu exista."
   },
   {
     "id": "app.team.get_all_private_team_page_listing.app_error",
@@ -7756,10 +7668,6 @@
     "translation": "Una sau mai multe dintre următoarele permisiuni pe care încercați să le adăugați sau să le eliminați nu sunt permise"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "Rolul administratorului sistemului nu poate fi editat sau modificat"
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Imposibil de analizat corpul solicitării."
   },
@@ -7770,22 +7678,6 @@
   {
     "id": "api.license.request_trial_license.fail_get_user_count.app_error",
     "translation": "Imposibil de obținut o licență de încercare, vă rugăm să încercați din nou sau să contactați support@mattermost.com. Nu se poate obține numărul de utilizatori înregistrați."
-  },
-  {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Eroare la încercarea listării obiectelor."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "A apărut o eroare la deschiderea unei conexiuni la S3."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "A apărut o eroare de atașare la un fișier în S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "A apărut o eroare la deschiderea fișierului."
   },
   {
     "id": "api.config.migrate_config.app_error",
@@ -7893,7 +7785,7 @@
   },
   {
     "id": "api.templates.copyright",
-    "translation": "© 2017 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -8368,14 +8260,6 @@
     "translation": "Alternativ, puteți dezactiva utilizatorii din Consola de administrare pentru a deschide locuri pentru mai mulți utilizatori sau pentru a rămâne sub limita gratuită a utilizatorilor."
   },
   {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "Nu se poate obține dimensiunea fișierului."
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "Nu se poate obține dimensiunea fișierului."
-  },
-  {
     "id": "model.upload_session.is_valid.filename.app_error",
     "translation": "Valoare nevalidă pentru numele fișierului"
   },
@@ -8442,5 +8326,77 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Nu a reușit să fuzioneze configuratia primita."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Imposibil de scris fișierul global de releu."
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Imposibil de scris fișierul CSV."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Imposibil de scris fișierul de export."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Fără licență prezentă"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Acest tip de licență nu acceptă generarea de jetoane de reînnoire"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Nu s-a putut genera un nou jeton de reînnoire."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Eroare la obținerea linkului de reînnoire a licenței"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Imposibil de scris fișierul."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Imposibil de accesat stocarea fișierului."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Imposibil de eliminat fișierul."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Imposibil de eliminat directorul."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Imposibil de citit fișierul."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Imposibil de mutat fișierul."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Imposibil de listat director."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Nu se poate obține dimensiunea fișierului."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Imposibil de obținut un cititor de fișiere."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Nu se poate verifica dacă fișierul există."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Nu se pot adăuga date la fișier."
   }
 ]

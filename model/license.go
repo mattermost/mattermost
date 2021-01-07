@@ -236,7 +236,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.SharedChannels == nil {
-		f.SharedChannels = NewBool(false)
+		f.SharedChannels = NewBool(*f.FutureFeatures)
 	}
 
 	if f.RemoteClusterService == nil {

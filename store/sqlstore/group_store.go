@@ -91,7 +91,7 @@ func (s *SqlGroupStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlGroupStore) Create(group *model.Group) (*model.Group, error) {
-	if len(group.Id) != 0 {
+	if group.Id != "" {
 		return nil, store.NewErrInvalidInput("Group", "id", group.Id)
 	}
 

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	INBUCKET_API = "/api/v1/mailbox/"
+	InbucketAPI = "/api/v1/mailbox/"
 )
 
 // OutputJSONHeader holds the received Header to test sending emails (inbucket)
@@ -57,7 +57,7 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -93,7 +93,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 
 	var record JSONMessageInbucket
 
-	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), INBUCKET_API, parsedEmail, id)
+	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), InbucketAPI, parsedEmail, id)
 	emailResponse, err := http.Get(url)
 	if err != nil {
 		return record, err
@@ -139,7 +139,7 @@ func DeleteMailBox(email string) (err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), InbucketAPI, parsedEmail)
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err

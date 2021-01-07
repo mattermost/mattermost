@@ -884,10 +884,9 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 
 	t.Parallel()
 
-	path, tearDown := setupConfigFile(t, emptyConfig)
-	defer tearDown()
-
 	t.Run("disabled", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
 		fsInner, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		fs, err := config.NewStoreFromBacking(fsInner, nil)
@@ -912,6 +911,8 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	})
 
 	t.Run("enabled", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, emptyConfig)
+		defer tearDown()
 		fsInner, err := config.NewFileStore(path, true)
 		require.NoError(t, err)
 		fs, err := config.NewStoreFromBacking(fsInner, nil)
