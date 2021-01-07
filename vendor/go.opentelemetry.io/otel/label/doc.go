@@ -13,4 +13,8 @@
 // limitations under the License.
 
 // Package label provides key and value labels.
+//
+// This package is currently in a pre-GA phase. Backwards incompatible changes
+// may be introduced in subsequent minor version releases as we work to track
+// the evolving OpenTelemetry specification and user feedback.
 package label // import "go.opentelemetry.io/otel/label"

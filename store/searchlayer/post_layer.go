@@ -27,7 +27,7 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 					return
 				}
 				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
-					mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 				}
 				mlog.Debug("Indexed post in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -40,7 +40,7 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeletePost(post); err != nil {
-					mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 				}
 				mlog.Debug("Removed post from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -53,7 +53,7 @@ func (s SearchPostStore) deleteChannelPostsIndex(channelID string) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
-					mlog.Error("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 				}
 				mlog.Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -66,7 +66,7 @@ func (s SearchPostStore) deleteUserPostsIndex(userID string) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUserPosts(userID); err != nil {
-					mlog.Error("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 				}
 				mlog.Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -169,7 +169,7 @@ func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchPara
 		if engine.IsSearchEnabled() {
 			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
-				mlog.Error("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
