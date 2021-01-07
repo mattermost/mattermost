@@ -13,7 +13,7 @@ type SearchProvider struct {
 }
 
 const (
-	CMD_SEARCH = "search"
+	CmdSearch = "search"
 )
 
 func init() {
@@ -21,12 +21,12 @@ func init() {
 }
 
 func (search *SearchProvider) GetTrigger() string {
-	return CMD_SEARCH
+	return CmdSearch
 }
 
 func (search *SearchProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SEARCH,
+		Trigger:          CmdSearch,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_search.desc"),
 		AutoCompleteHint: T("api.command_search.hint"),

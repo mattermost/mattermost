@@ -74,7 +74,7 @@ func InitTranslationsWithDir(dir string) error {
 func GetTranslationsBySystemLocale() (i18n.TranslateFunc, error) {
 	locale := *settings.DefaultServerLocale
 	if _, ok := locales[locale]; !ok {
-		mlog.Error("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", model.DEFAULT_LOCALE))
+		mlog.Warn("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", model.DEFAULT_LOCALE))
 		locale = model.DEFAULT_LOCALE
 	}
 

@@ -14,7 +14,7 @@ type LocalCacheReactionStore struct {
 }
 
 func (s *LocalCacheReactionStore) handleClusterInvalidateReaction(msg *model.ClusterMessage) {
-	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+	if msg.Data == ClearCacheMessageData {
 		s.rootStore.reactionCache.Purge()
 	} else {
 		s.rootStore.reactionCache.Remove(msg.Data)

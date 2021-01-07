@@ -46,7 +46,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 	customDefaults, err := loadCustomDefaults()
 	if err != nil {
-		mlog.Error("Error loading custom configuration defaults: " + err.Error())
+		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
 	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
@@ -79,7 +79,7 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	defer server.Shutdown()
 
 	if usedPlatform {
-		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
+		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
 	api := api4.Init(server, server.AppOptions, server.Router)

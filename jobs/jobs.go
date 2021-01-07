@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	CANCEL_WATCHER_POLLING_INTERVAL = 5000
+	CancelWatcherPollingInterval = 5000
 )
 
 func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
@@ -166,7 +166,7 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 		case <-ctx.Done():
 			mlog.Debug("CancellationWatcher for Job Aborting as job has finished.", mlog.String("job_id", jobId))
 			return
-		case <-time.After(CANCEL_WATCHER_POLLING_INTERVAL * time.Millisecond):
+		case <-time.After(CancelWatcherPollingInterval * time.Millisecond):
 			mlog.Debug("CancellationWatcher for Job started polling.", mlog.String("job_id", jobId))
 			if jobStatus, err := srv.Store.Job().Get(jobId); err == nil {
 				if jobStatus.Status == model.JOB_STATUS_CANCEL_REQUESTED {

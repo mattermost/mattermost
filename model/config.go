@@ -848,7 +848,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -3752,7 +3752,7 @@ func (o *Config) Sanitize() {
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 

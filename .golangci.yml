@@ -49,7 +49,11 @@ issues:
 
     - linters:
       - golint
-      text: "should have|should be|should replace|stutters|underscore|ALL_CAPS|annoying|error strings should not be capitalized"
+      text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
+
+    - linters:
+      - golint      
+      path: "model/"
 
     - linters:
       - misspell
