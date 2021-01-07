@@ -1526,7 +1526,7 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	}
 
 	if mustHaveHashtag {
-		query = query.Where("p.Hashtags != ''")
+		query = query.Where(sq.NotEq{"p.Hashtags": ""})
 	}
 
 	queryString, args, err := query.ToSql()
