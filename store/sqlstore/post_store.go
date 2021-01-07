@@ -1522,7 +1522,7 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	}
 
 	if mustHaveFile {
-		query = query.Where("p.FileIds != '[]' OR p.Filenames != '[]'")
+		query = query.Where(sq.Or{sq.NotEq{"p.FileIds": "[]"}, sq.NotEq{"p.Filenames": "[]"}})
 	}
 
 	if mustHaveHashtag {
