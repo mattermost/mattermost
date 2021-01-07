@@ -848,7 +848,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
