@@ -1454,7 +1454,7 @@
   },
   {
     "id": "api.invalid_custom_url_scheme",
-    "translation": "Invalid custom url scheme provided"
+    "translation": "Invalid custom url scheme has been provided"
   },
   {
     "id": "api.invalid_redirect_url",
@@ -1582,7 +1582,7 @@
   },
   {
     "id": "api.oauth.close_browser",
-    "translation": "You can close this tab now."
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
