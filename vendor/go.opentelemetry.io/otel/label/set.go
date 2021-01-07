@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package label
+package label // import "go.opentelemetry.io/otel/label"
 
 import (
 	"encoding/json"
@@ -78,6 +78,9 @@ var (
 
 const maxConcurrentEncoders = 3
 
+// EmptySet returns a reference to a Set with no elements.
+//
+// This is a convenience provided for optimized calling utility.
 func EmptySet() *Set {
 	return emptySet
 }
