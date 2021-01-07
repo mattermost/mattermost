@@ -53,7 +53,7 @@ func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.A
 
 	if index == -1 { // no space in input
 		for _, command := range commands {
-			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || command.RoleID == "") {
+			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID) {
 				s := model.AutocompleteSuggestion{
 					Complete:    inputParsed + command.Trigger,
 					Suggestion:  command.Trigger,
