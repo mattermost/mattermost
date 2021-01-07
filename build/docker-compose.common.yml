@@ -86,3 +86,17 @@ services:
       - mm-test
     volumes:
      - "./docker/keycloak:/setup"
+  prometheus:
+    image: "prom/prometheus"
+    volumes:
+      - "./docker/prometheus.yml:/etc/prometheus/prometheus${IS_LINUX}.yml"
+    networks:
+      - mm-test
+  grafana:
+    image: "grafana/grafana"
+    volumes:
+     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test

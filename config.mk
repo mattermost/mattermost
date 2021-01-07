@@ -5,12 +5,16 @@
 # Enable services to be run in docker.
 #
 # Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
-# keycloak and elasticsearch
+# keycloak, elasticsearch, prometheus, and grafana.
 #
 # Must be space separated names.
 #
 # Example: mysql postgres elasticsearch
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket prometheus grafana
+else
 ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
+endif
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
