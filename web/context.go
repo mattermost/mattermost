@@ -87,22 +87,30 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogErrorByCode(err *model.AppError) {
 	code := err.StatusCode
-	var level mlog.LogLevel
 	switch {
 	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
 		err.Id == "web.check_browser_compatibility.app_error":
-		level = mlog.LvlDebug
+		c.Logger.Debug(
+			err.SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.Where),
+			mlog.Int("http_code", err.StatusCode),
+			mlog.String("err_details", err.DetailedError),
+		)
 	case code == http.StatusNotImplemented:
-		level = mlog.LvlInfo
+		c.Logger.Info(
+			err.SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.Where),
+			mlog.Int("http_code", err.StatusCode),
+			mlog.String("err_details", err.DetailedError),
+		)
 	default:
-		level = mlog.LvlError
+		c.Logger.Error(
+			err.SystemMessage(utils.TDefault),
+			mlog.String("err_where", err.Where),
+			mlog.Int("http_code", err.StatusCode),
+			mlog.String("err_details", err.DetailedError),
+		)
 	}
-	c.Logger.Log(level,
-		err.SystemMessage(utils.TDefault),
-		mlog.String("err_where", err.Where),
-		mlog.Int("http_code", err.StatusCode),
-		mlog.String("err_details", err.DetailedError),
-	)
 }
 
 func (c *Context) IsSystemAdmin() bool {
