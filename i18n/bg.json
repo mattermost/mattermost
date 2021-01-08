@@ -3573,7 +3573,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Неуспешно добавяне предпочитания за директни канали на потребител user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{.Error}}"
+    "translation": "Неуспешно добавяне предпочитания за директни канали на потребител user_id = {{.UserId}}, team_id = {{.TeamId}}, err = {{.Error}}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
