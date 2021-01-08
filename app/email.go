@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
-
-	"net/http"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
