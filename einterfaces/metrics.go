@@ -63,4 +63,7 @@ type MetricsInterface interface {
 
 	ObserveEnabledUsers(users int64)
 	GetLoggerMetricsCollector() logr.MetricsCollector
+
+	IncrementJobActive(jobType string)
+	DecrementJobActive(jobType string)
 }

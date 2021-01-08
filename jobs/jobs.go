@@ -59,6 +59,10 @@ func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
 		return false, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if updated {
+		srv.metrics.IncrementJobActive(job.Type)
+	}
+
 	return updated, nil
 }
 
@@ -83,6 +87,9 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS); err != nil {
 		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	srv.metrics.DecrementJobActive(job.Type)
+
 	return nil
 }
 
