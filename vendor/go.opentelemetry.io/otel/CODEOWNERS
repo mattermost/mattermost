@@ -6,12 +6,12 @@
 #
 # Learn about membership in OpenTelemetry community:
 #  https://github.com/open-telemetry/community/blob/master/community-membership.md
-# 
 #
-# Learn about CODEOWNERS file format: 
+#
+# Learn about CODEOWNERS file format:
 #  https://help.github.com/en/articles/about-code-owners
 #
 
-* @jmacd @lizthegrey @MrAlias @Aneurysm9 @evantorrie
+* @jmacd @lizthegrey @MrAlias @Aneurysm9 @evantorrie @XSAM
 
 CODEOWNERS @MrAlias @Aneurysm9

@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package label
+package label // import "go.opentelemetry.io/otel/label"
 
 import (
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"unsafe"
 
 	"go.opentelemetry.io/otel/internal"
@@ -41,16 +40,28 @@ type Value struct {
 }
 
 const (
-	INVALID Type = iota // No value.
-	BOOL                // Boolean value, use AsBool() to get it.
-	INT32               // 32 bit signed integral value, use AsInt32() to get it.
-	INT64               // 64 bit signed integral value, use AsInt64() to get it.
-	UINT32              // 32 bit unsigned integral value, use AsUint32() to get it.
-	UINT64              // 64 bit unsigned integral value, use AsUint64() to get it.
-	FLOAT32             // 32 bit floating point value, use AsFloat32() to get it.
-	FLOAT64             // 64 bit floating point value, use AsFloat64() to get it.
-	STRING              // String value, use AsString() to get it.
-	ARRAY               // Array value of arbitrary type, use AsArray() to get it.
+	// INVALID is used for a Value with no value set.
+	INVALID Type = iota
+	// BOOL is a boolean Type Value.
+	BOOL
+	// INT32 is a 32-bit signed integral Type Value.
+	INT32
+	// INT64 is a 64-bit signed integral Type Value.
+	INT64
+	// UINT32 is a 32-bit unsigned integral Type Value.
+	UINT32
+	// UINT64 is a 64-bit unsigned integral Type Value.
+	UINT64
+	// FLOAT32 is a 32-bit floating point Type Value.
+	FLOAT32
+	// FLOAT64 is a 64-bit floating point Type Value.
+	FLOAT64
+	// STRING is a string Type Value.
+	STRING
+	// ARRAY is an array Type Value used to store 1-dimensional slices or
+	// arrays of bool, int, int32, int64, uint, uint32, uint64, float,
+	// float32, float64, or string types.
+	ARRAY
 )
 
 // BoolValue creates a BOOL Value.
@@ -93,7 +104,7 @@ func Int32Value(v int32) Value {
 	}
 }
 
-// Uint32 creates a UINT32 Value.
+// Uint32Value creates a UINT32 Value.
 func Uint32Value(v uint32) Value {
 	return Value{
 		vtype:   UINT32,
@@ -101,7 +112,7 @@ func Uint32Value(v uint32) Value {
 	}
 }
 
-// Float32 creates a FLOAT32 Value.
+// Float32Value creates a FLOAT32 Value.
 func Float32Value(v float32) Value {
 	return Value{
 		vtype:   FLOAT32,
@@ -109,7 +120,7 @@ func Float32Value(v float32) Value {
 	}
 }
 
-// String creates a STRING Value.
+// StringValue creates a STRING Value.
 func StringValue(v string) Value {
 	return Value{
 		vtype:    STRING,
@@ -117,7 +128,7 @@ func StringValue(v string) Value {
 	}
 }
 
-// Int creates either an INT32 or an INT64 Value, depending on whether
+// IntValue creates either an INT32 or an INT64 Value, depending on whether
 // the int type is 32 or 64 bits wide.
 func IntValue(v int) Value {
 	if unsafe.Sizeof(v) == 4 {
@@ -126,8 +137,8 @@ func IntValue(v int) Value {
 	return Int64Value(int64(v))
 }
 
-// Uint creates either a UINT32 or a UINT64 Value, depending on
-// whether the uint type is 32 or 64 bits wide.
+// UintValue creates either a UINT32 or a UINT64 Value, depending on whether
+// the uint type is 32 or 64 bits wide.
 func UintValue(v uint) Value {
 	if unsafe.Sizeof(v) == 4 {
 		return Uint32Value(uint32(v))
@@ -135,27 +146,32 @@ func UintValue(v uint) Value {
 	return Uint64Value(uint64(v))
 }
 
-// Array creates an ARRAY value.
-func ArrayValue(array interface{}) Value {
-	switch reflect.TypeOf(array).Kind() {
+// ArrayValue creates an ARRAY value from an array or slice.
+// Only arrays or slices of bool, int, int32, int64, uint, uint32, uint64,
+// float, float32, float64, or string types are allowed. Specifically, arrays
+// and slices can not contain other arrays, slices, structs, or non-standard
+// types. If the passed value is not an array or slice of these types an
+// INVALID value is returned.
+func ArrayValue(v interface{}) Value {
+	switch reflect.TypeOf(v).Kind() {
 	case reflect.Array, reflect.Slice:
-		isValidType := func() bool {
-			// get array type regardless of dimensions
-			typeName := reflect.TypeOf(array).String()
-			typeName = typeName[strings.LastIndex(typeName, "]")+1:]
-			switch typeName {
-			case "bool", "int", "int32", "int64",
-				"float32", "float64", "string",
-				"uint", "uint32", "uint64":
-				return true
-			}
-			return false
-		}()
-		if isValidType {
+		// get array type regardless of dimensions
+		typ := reflect.TypeOf(v).Elem()
+		kind := typ.Kind()
+		switch kind {
+		case reflect.Bool, reflect.Int, reflect.Int32, reflect.Int64,
+			reflect.Float32, reflect.Float64, reflect.String,
+			reflect.Uint, reflect.Uint32, reflect.Uint64:
+			val := reflect.ValueOf(v)
+			length := val.Len()
+			frozen := reflect.Indirect(reflect.New(reflect.ArrayOf(length, typ)))
+			reflect.Copy(frozen, val)
 			return Value{
 				vtype: ARRAY,
-				array: array,
+				array: frozen.Interface(),
 			}
+		default:
+			return Value{vtype: INVALID}
 		}
 	}
 	return Value{vtype: INVALID}

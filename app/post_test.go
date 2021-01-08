@@ -177,7 +177,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		time.Sleep(PENDING_POST_IDS_CACHE_TTL)
+		time.Sleep(PendingPostIDsCacheTTL)
 
 		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
 			UserId:        th.BasicUser.Id,

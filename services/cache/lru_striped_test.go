@@ -8,11 +8,11 @@ import (
 	"hash/maphash"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/cespare/xxhash/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func makeLRUPredictibleTestData(num int) [][2]string {

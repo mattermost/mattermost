@@ -7,259 +7,260 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/require"
 )
 
 var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search posts including results from DMs",
 		Fn:   testSearchPostsIncludingDMs,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search posts using pagination",
 		Fn:   testSearchPostsWithPagination,
-		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+		Tags: []string{EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should return pinned and unpinned posts",
 		Fn:   testSearchReturnPinnedAndUnpinned,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search for exact phrases in quotes",
 		Fn:   testSearchExactPhraseInQuotes,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
 		Fn:   testSearchMarkdownUnderscores,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for non-latin words",
 		Fn:   testSearchNonLatinWords,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for alternative spellings of words",
 		Fn:   testSearchAlternativeSpellings,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for alternative spellings of words with and without accents",
 		Fn:   testSearchAlternativeSpellingsAccents,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search or exclude messages written by a specific user",
 		Fn:   testSearchOrExcludePostsBySpecificUser,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search or exclude messages written in a specific channel",
 		Fn:   testSearchOrExcludePostsInChannel,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search or exclude messages written in a DM or GM",
 		Fn:   testSearchOrExcludePostsInDMGM,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to filter messages written after a specific date",
 		Fn:   testFilterMessagesAfterSpecificDate,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to filter messages written before a specific date",
 		Fn:   testFilterMessagesBeforeSpecificDate,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to filter messages written on a specific date",
 		Fn:   testFilterMessagesInSpecificDate,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to exclude messages that contain a serch term",
 		Fn:   testFilterMessagesWithATerm,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
+		Tags: []string{EngineMySql, EnginePostgres},
 	},
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testSearchUsingBooleanOperators,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search with combined filters",
 		Fn:   testSearchUsingCombinedFilters,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should support search stemming",
 		Fn:   testSupportStemming,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should support search with wildcards",
 		Fn:   testSupportWildcards,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should not support search with preceding wildcards",
 		Fn:   testNotSupportPrecedingWildcards,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should support terms with dash",
 		Fn:   testSupportTermsWithDash,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 		Skip: true,
 	},
 	{
 		Name: "Should support terms with underscore",
 		Fn:   testSupportTermsWithUnderscore,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should search or exclude post using hashtags",
 		Fn:   testSearchOrExcludePostsWithHashtags,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should support searching for hashtags surrounded by markdown",
 		Fn:   testSearchHashtagWithMarkdown,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should support searching for multiple hashtags",
 		Fn:   testSearcWithMultipleHashtags,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should support searching hashtags with dots",
 		Fn:   testSearchPostsWithDotsInHashtags,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search or exclude messages with hashtags in a case insensitive manner",
 		Fn:   testSearchHashtagCaseInsensitive,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search by hashtags with dashes",
 		Fn:   testSearchHashtagWithDash,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search by hashtags with numbers",
 		Fn:   testSearchHashtagWithNumbers,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search by hashtags with dots",
 		Fn:   testSearchHashtagWithDots,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search by hashtags with underscores",
 		Fn:   testSearchHashtagWithUnderscores,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should not return system messages",
 		Fn:   testSearchShouldExcludeSytemMessages,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testSearchInDeletedOrArchivedChannels,
-		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES},
+		Tags: []string{EngineMySql, EnginePostgres},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
 		Fn:          testSearchTermsWithDashes,
-		Tags:        []string{ENGINE_ALL},
+		Tags:        []string{EngineAll},
 		Skip:        true,
 		SkipMessage: "Not working",
 	},
 	{
 		Name: "Should be able to search terms with dots",
 		Fn:   testSearchTermsWithDots,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
 		Fn:   testSearchBotAccountsPosts,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to combine stemming and wildcards",
 		Fn:   testSupportStemmingAndWildcards,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should support wildcard outside quotes",
 		Fn:   testSupportWildcardOutsideQuotes,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should support hashtags with 3 or more characters",
 		Fn:   testHashtagSearchShouldSupportThreeOrMoreCharacters,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should not support slash as character separator",
 		Fn:   testSlashShouldNotBeCharSeparator,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search emails without quoting them",
 		Fn:   testSearchEmailsWithoutQuotes,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search in comments",
 		Fn:   testSupportSearchInComments,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search terms within links",
 		Fn:   testSupportSearchTermsWithinLinks,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should not return links that are embedded in markdown",
 		Fn:   testShouldNotReturnLinksEmbeddedInMarkdown,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
+		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 }
 

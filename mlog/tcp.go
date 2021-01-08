@@ -9,13 +9,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	_ "net/http/pprof"
 	"sync"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/logr"
-
-	_ "net/http/pprof"
 )
 
 const (

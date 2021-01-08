@@ -171,7 +171,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
-		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
+		mlog.Warn("Error updating posts, thread update failed", mlog.Err(err))
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -181,13 +181,13 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	for channelId, count := range channelNewPosts {
 		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
-			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
+			mlog.Warn("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	for rootId := range rootIds {
 		if _, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
-			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
+			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
 
@@ -205,7 +205,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	if len(unknownRepliesPosts) > 0 {
 		if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
-			mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
+			mlog.Warn("Unable to populate the reply count in some posts.", mlog.Err(err))
 		}
 	}
 
@@ -1378,8 +1378,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 }
 
 func removeMysqlStopWordsFromTerms(terms string) (string, error) {
-	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
-	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
+	stopWords := make([]string, len(searchlayer.MySQLStopWords))
+	copy(stopWords, searchlayer.MySQLStopWords)
 	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
 	if err != nil {
 		return "", err
@@ -1668,7 +1668,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'Message'
 			LIMIT 0, 1
 		`); err != nil {
-			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
+			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported post size")

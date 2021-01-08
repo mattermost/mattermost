@@ -3,7 +3,9 @@
 
 package cache
 
-import "time"
+import (
+	"time"
+)
 
 // CacheOptions contains options for initializaing a cache
 type CacheOptions struct {
