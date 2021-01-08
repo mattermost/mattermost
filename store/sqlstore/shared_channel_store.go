@@ -75,7 +75,7 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 	}
 
 	// set `Shared` flag in Channels table if needed
-	if channel.Shared == nil || *channel.Shared == false {
+	if channel.Shared == nil || !*channel.Shared {
 		if err := s.stores.channel.SetShared(channel.Id, true); err != nil {
 			return nil, err
 		}
