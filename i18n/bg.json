@@ -4441,7 +4441,7 @@
   },
   {
     "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към екипа [[{{.TeamDisplayName}}] като гост."
+    "translation": "[[{{.SenderName}}]], ви покани да се присъедините към екипа [[{{.TeamDisplayName}}]] като гост."
   },
   {
     "id": "api.templates.invite_body.title",
