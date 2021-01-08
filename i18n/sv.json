@@ -7139,7 +7139,7 @@
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Kunde inte tysta kanalen [[.Channel}} eftersom du inte är medlem."
+    "translation": "Kunde inte tysta kanalen {{.Channel}} eftersom du inte är medlem."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -7450,7 +7450,7 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Kanalens namn får inte vara längre än {{.Lenght}} tecken."
+    "translation": "Kanalens namn får inte vara längre än {{.Length}} tecken."
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
