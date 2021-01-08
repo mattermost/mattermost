@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
-
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"

@@ -15,6 +15,10 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -22,9 +26,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -115,7 +116,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
-	c.Log = c.App.Log()
+	c.Logger = c.App.Log()
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
@@ -191,7 +192,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
 		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
+			c.Logger.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
@@ -214,14 +215,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Log.Warn("Invalid CWS token", mlog.Err(err))
+			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
 			c.App.SetSession(session)
 		}
 	}
 
-	c.Log = c.App.Log().With(
+	c.Logger = c.App.Log().With(
 		mlog.String("path", c.App.Path()),
 		mlog.String("request_id", c.App.RequestId()),
 		mlog.String("ip_addr", c.App.IpAddress()),
@@ -264,20 +265,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		c.Err.Translate(c.App.T)
 		c.Err.RequestId = c.App.RequestId()
-
-		if c.Err.Id == "api.context.session_expired.app_error" {
-			c.LogInfo(c.Err)
-		} else {
-			code := c.Err.StatusCode
-			switch {
-			case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
-				c.LogDebug(c.Err)
-			case code == http.StatusNotImplemented:
-				c.LogInfo(c.Err)
-			default:
-				c.LogError(c.Err)
-			}
-		}
+		c.LogErrorByCode(c.Err)
 
 		c.Err.Where = r.URL.Path
 
@@ -350,9 +338,9 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-				c.Log.Warn(csrfErrorMessage, fields...)
+				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
-				c.Log.Debug(csrfErrorMessage, fields...)
+				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
 		}

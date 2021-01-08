@@ -105,7 +105,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
-			Password: slashcommands.USER_PASSWORD}
+			Password: slashcommands.UserPassword}
 
 		user, resp := client.CreateUser(user)
 		if resp.Error != nil {
@@ -119,7 +119,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, slashcommands.USER_PASSWORD)
+		_, resp = client.LoginById(user.Id, slashcommands.UserPassword)
 		if resp.Error != nil {
 			c.Err = resp.Error
 			return

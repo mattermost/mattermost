@@ -4,12 +4,13 @@
 package utils
 
 import (
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func StringInSlice(a string, slice []string) bool {

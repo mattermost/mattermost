@@ -48,7 +48,6 @@ type Reader2 struct {
 	chunkReader io.Reader
 
 	cstate chunkState
-	ctype  chunkType
 }
 
 // NewReader2 creates a reader for an LZMA2 chunk sequence.

@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const CHANNEL_ARG_SEPARATOR = ":"
+const ChannelArgSeparator = ":"
 
 func getChannelsFromChannelArgs(a *app.App, channelArgs []string) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(channelArgs))
@@ -23,7 +23,7 @@ func getChannelsFromChannelArgs(a *app.App, channelArgs []string) []*model.Chann
 }
 
 func parseChannelArg(channelArg string) (string, string) {
-	result := strings.SplitN(channelArg, CHANNEL_ARG_SEPARATOR, 2)
+	result := strings.SplitN(channelArg, ChannelArgSeparator, 2)
 	if len(result) == 1 {
 		return "", channelArg
 	}

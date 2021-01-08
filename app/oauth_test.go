@@ -11,9 +11,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
@@ -179,7 +180,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		if cookie != "" {
 			request.AddCookie(&http.Cookie{
-				Name:  COOKIE_OAUTH,
+				Name:  CookieOauth,
 				Value: cookie,
 			})
 		}

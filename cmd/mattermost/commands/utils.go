@@ -12,12 +12,13 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/spf13/cobra"
 )
 
-const CUSTOM_DEFAULTS_ENV_VAR = "MM_CUSTOM_DEFAULTS_PATH"
+const CustomDefaultsEnvVar = "MM_CUSTOM_DEFAULTS_PATH"
 
 // prettyPrintStruct will return a prettyPrint version of a given struct
 func prettyPrintStruct(t interface{}) string {
@@ -28,7 +29,7 @@ func prettyPrintStruct(t interface{}) string {
 func structToMap(t interface{}) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 
@@ -123,7 +124,7 @@ func getConfigDSN(command *cobra.Command, env map[string]string) string {
 }
 
 func loadCustomDefaults() (*model.Config, error) {
-	customDefaultsPath := os.Getenv(CUSTOM_DEFAULTS_ENV_VAR)
+	customDefaultsPath := os.Getenv(CustomDefaultsEnvVar)
 	if customDefaultsPath == "" {
 		return nil, nil
 	}

@@ -5,12 +5,12 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
-	"fmt"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/spf13/cobra"
 )
 
 var ImportCmd = &cobra.Command{

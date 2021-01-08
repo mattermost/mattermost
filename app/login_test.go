@@ -8,8 +8,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCheckForClientSideCert(t *testing.T) {
@@ -47,7 +48,7 @@ func TestCWSLogin(t *testing.T) {
 	th.App.Srv().SetLicense(license)
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_CWS_ACCESS, "")
+		token := model.NewToken(TokenTypeCWSAccess, "")
 		defer th.App.DeleteToken(token)
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Username, "", "", token.Token, false)
@@ -60,7 +61,7 @@ func TestCWSLogin(t *testing.T) {
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
-		token := model.NewToken(TOKEN_TYPE_CWS_ACCESS, "")
+		token := model.NewToken(TokenTypeCWSAccess, "")
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
