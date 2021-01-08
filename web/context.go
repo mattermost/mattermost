@@ -87,29 +87,20 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 func (c *Context) LogErrorByCode(err *model.AppError) {
 	code := err.StatusCode
+	msg := err.SystemMessage(utils.TDefault)
+	fields := []mlog.Field{
+		mlog.String("err_where", err.Where),
+		mlog.Int("http_code", err.StatusCode),
+		mlog.String("err_details", err.DetailedError),
+	}
 	switch {
 	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
 		err.Id == "web.check_browser_compatibility.app_error":
-		c.Logger.Debug(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
+		c.Logger.Debug(msg, fields...)
 	case code == http.StatusNotImplemented:
-		c.Logger.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
+		c.Logger.Info(msg, fields...)
 	default:
-		c.Logger.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
+		c.Logger.Error(msg, fields...)
 	}
 }
 
