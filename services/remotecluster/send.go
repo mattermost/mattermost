@@ -80,18 +80,13 @@ func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc 
 }
 
 func (rcs *Service) sendLoop(done chan struct{}) {
-	// create thread pool for concurrent message sending.
-	for i := 0; i < MaxConcurrentSends; i++ {
-		go func() {
-			for {
-				select {
-				case task := <-rcs.send:
-					rcs.sendMsg(task)
-				case <-done:
-					return
-				}
-			}
-		}()
+	for {
+		select {
+		case task := <-rcs.send:
+			rcs.sendMsg(task)
+		case <-done:
+			return
+		}
 	}
 }
 
@@ -150,7 +145,7 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.Remote
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req.WithContext(ctx))
+	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}

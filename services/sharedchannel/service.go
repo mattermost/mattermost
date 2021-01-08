@@ -83,7 +83,13 @@ func (scs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
-	scs.server.RemoveClusterLeaderChangedListener(scs.leaderListenerId)
+	var id string
+
+	scs.mux.RLock()
+	id = scs.leaderListenerId
+	scs.mux.RUnlock()
+
+	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()
 	return nil
 }
@@ -125,7 +131,7 @@ func (scs *Service) resume() {
 	scs.active = true
 	scs.done = make(chan struct{})
 
-	scs.syncLoop(scs.done)
+	go scs.syncLoop(scs.done)
 
 	scs.server.GetLogger().Debug("Shared Channel Service active")
 }

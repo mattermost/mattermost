@@ -59,26 +59,24 @@ func (scs *Service) addTask(task syncTask) {
 // updates each remote based on those changes.
 func (scs *Service) syncLoop(done chan struct{}) {
 	// wait for channel changed signal and update for oldest channel id.
-	go func() {
-		for {
-			select {
-			case <-scs.changeSignal:
-				for {
-					task, ok := scs.removeOldestTask()
-					if !ok {
-						break
-					}
-					if err := scs.processTask(task); err != nil {
-						scs.server.GetLogger().Error("Failed to update shared channel", mlog.String("channelId", task.channelId), mlog.String("remoteId", task.remoteId), mlog.Err(err))
-						// put task back into map so it will update again
-						scs.addTask(task)
-					}
+	for {
+		select {
+		case <-scs.changeSignal:
+			for {
+				task, ok := scs.removeOldestTask()
+				if !ok {
+					break
 				}
-			case <-done:
-				return
+				if err := scs.processTask(task); err != nil {
+					scs.server.GetLogger().Error("Failed to update shared channel", mlog.String("channelId", task.channelId), mlog.String("remoteId", task.remoteId), mlog.Err(err))
+					// put task back into map so it will update again
+					scs.addTask(task)
+				}
 			}
+		case <-done:
+			return
 		}
-	}()
+	}
 }
 
 // removeOldestTask removes and returns the oldest task in the task map.
@@ -222,13 +220,13 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 // notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.
 func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteCluster) {
 	// only send one ephemeral post per author.
-	notified := make(map[string]struct{})
+	notified := make(map[string]bool)
 
 	// range the slice in reverse so the newest posts are visited first; this ensures an ephemeral
 	// get added where it is mostly likely to be seen.
 	for i := len(posts) - 1; i >= 0; i-- {
 		post := posts[i]
-		if _, ok := notified[post.UserId]; ok {
+		if didNotify := notified[post.UserId]; didNotify {
 			continue
 		}
 
@@ -243,7 +241,7 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 			}
 			scs.app.SendEphemeralPost(post.UserId, ephemeral)
 
-			notified[post.UserId] = struct{}{}
+			notified[post.UserId] = true
 		}
 	}
 }

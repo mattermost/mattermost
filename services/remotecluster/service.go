@@ -192,7 +192,11 @@ func (rcs *Service) resume() {
 	if !disablePing {
 		rcs.pingLoop(rcs.done)
 	}
-	rcs.sendLoop(rcs.done)
+
+	// create thread pool for concurrent message sending.
+	for i := 0; i < MaxConcurrentSends; i++ {
+		go rcs.sendLoop(rcs.done)
+	}
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")
 }
