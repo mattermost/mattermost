@@ -6733,7 +6733,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
-    "translation": "Kunde inte ladda upp filen. Felaktigt kanal-id: {{channelId}}"
+    "translation": "Kunde inte ladda upp filen. Felaktigt kanal-id: {{.channelId}}"
   },
   {
     "id": "api.file.test_connection.app_error",
