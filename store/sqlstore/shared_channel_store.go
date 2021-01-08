@@ -42,13 +42,20 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
 		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteClusterId")
+
+		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
+		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
+		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
+		tableSharedChannelUsers.ColMap("RemoteClusterId").SetMaxSize(64)
+		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteClusterId")
 	}
 
 	return s
 }
 
 func (s SqlSharedChannelStore) createIndexesIfNotExists() {
-	// none for now.
+	s.CreateIndexIfNotExists("idx_sharedchannelusers_user_id", "SharedChannelUsers", "UserId")
+	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_cluster_id", "SharedChannelUsers", "RemoteClusterId")
 }
 
 // Save inserts a new shared channel record.
@@ -105,7 +112,7 @@ func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, erro
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannel", channelId)
 		}
-		return nil, errors.Wrapf(err, "failed to find channel with ChannelId=%s", channelId)
+		return nil, errors.Wrapf(err, "failed to find shared channel with ChannelId=%s", channelId)
 	}
 	return &sc, nil
 }
@@ -449,6 +456,73 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	}
 	return status, nil
 }
+
+// SaveUser inserts a new shared channel user record to the SharedChannelUsers table.
+func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+	scUser.PreSave()
+	if err := scUser.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(scUser); err != nil {
+		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteClusterId)
+	}
+	return scUser, nil
+}
+
+// GetUser fetches a shared channel user based on user_id and remoteId.
+func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+	var scu model.SharedChannelUser
+
+	squery, args, err := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelUsers").
+		Where(sq.Eq{"SharedChannelUsers.UserId": userId}).
+		Where(sq.Eq{"SharedChannelUsers.RemoteClusterId": remoteId}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchanneluser_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&scu, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelUser", userId)
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, RemoteClusterId=%s", userId, remoteId)
+	}
+	return &scu, nil
+}
+
+// UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
+func (s SqlSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("SharedChannelUsers").
+		Set("LastSyncAt", syncTime).
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "update_shared_channel_user_last_sync_at_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelUser")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", id)
+	}
+	return nil
+}
+
+//
+// TODO: Remove below methods if "app api sync strategy 3" wins the sync wars
+//
 
 // UpsertPost saves a Post exactly as is. This should only be used when synchronizing Posts between databases since
 // all PreSave and other functionality is bypassed.

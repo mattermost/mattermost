@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -60,8 +61,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 	return msg, nil
 }
 
-// usersForPost provides a list of Users associated with the post, including the post author
-// and any local @mentioned users.
+// usersForPost provides a list of Users associated with the post that need to be sync'ed.
 func (scs *Service) usersForPost(post *model.Post) ([]*model.User, error) {
 	users := make([]*model.User, 0)
 	creator, err := scs.server.GetStore().User().Get(post.UserId)
@@ -69,7 +69,13 @@ func (scs *Service) usersForPost(post *model.Post) ([]*model.User, error) {
 		users = append(users, creator)
 	}
 
-	// extract @mentions
+	// extract @mentions?
 
 	return users, nil
+}
+
+// usersForPost provides a list of Users associated with the post that need to be sync'ed.
+func (scs *Service) shouldUserSync(user *model.User) (bool, error) {
+	return false, fmt.Errorf("not implemented yet")
+
 }

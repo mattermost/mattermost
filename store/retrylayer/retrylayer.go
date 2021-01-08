@@ -7326,6 +7326,26 @@ func (s *RetryLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 
 	tries := 0
@@ -7351,6 +7371,26 @@ func (s *RetryLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRem
 	tries := 0
 	for {
 		result, err := s.SharedChannelStore.SaveRemote(remote)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.SaveUser(remote)
 		if err == nil {
 			return result, nil
 		}
@@ -7411,6 +7451,26 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 	tries := 0
 	for {
 		err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
 		if err == nil {
 			return nil
 		}

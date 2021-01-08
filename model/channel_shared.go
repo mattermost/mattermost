@@ -128,27 +128,27 @@ func SharedChannelRemoteFromJson(data io.Reader) (*SharedChannelRemote, error) {
 
 func (sc *SharedChannelRemote) IsValid() *AppError {
 	if !IsValidId(sc.Id) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "Id="+sc.Id, http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.id.app_error", nil, "Id="+sc.Id, http.StatusBadRequest)
 	}
 
 	if !IsValidId(sc.ChannelId) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if len(sc.Description) > 64 {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.description.app_error", nil, "description="+sc.Description, http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.description.app_error", nil, "description="+sc.Description, http.StatusBadRequest)
 	}
 
 	if sc.CreateAt == 0 {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.create_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.create_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if sc.UpdateAt == 0 {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.update_at.app_error", nil, "id="+sc.ChannelId, http.StatusBadRequest)
 	}
 
 	if !IsValidId(sc.CreatorId) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId", http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -175,4 +175,38 @@ type SharedChannelRemoteStatus struct {
 	ReadOnly         bool   `json:"readonly"`
 	IsInviteAccepted bool   `json:"is_invite_accepted"`
 	Token            string `json:"token"`
+}
+
+// SharedChannelUser stores a lastSyncAt timestamp on behalf of a remote cluster for
+// each user that has been synchronized.
+type SharedChannelUser struct {
+	Id              string `json:"id"`
+	UserId          string `json:"user_id"`
+	RemoteClusterId string `json:"remote_cluster_id"`
+	CreateAt        int64  `json:"create_at"`
+	LastSyncAt      int64  `json:"last_sync_at"`
+}
+
+func (scu *SharedChannelUser) PreSave() {
+	scu.Id = NewId()
+	scu.CreateAt = GetMillis()
+}
+
+func (scu *SharedChannelUser) IsValid() *AppError {
+	if !IsValidId(scu.Id) {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "Id="+scu.Id, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scu.UserId) {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "UserId="+scu.UserId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scu.RemoteClusterId) {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.id.app_error", nil, "RemoteClusterId="+scu.RemoteClusterId, http.StatusBadRequest)
+	}
+
+	if scu.CreateAt == 0 {
+		return NewAppError("SharedChannelUser.IsValid", "model.channel.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }

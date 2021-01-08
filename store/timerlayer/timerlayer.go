@@ -6110,6 +6110,22 @@ func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	start := timemodule.Now()
 
@@ -6138,6 +6154,22 @@ func (s *TimerLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRem
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveRemote", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.SaveUser(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveUser", success, elapsed)
 	}
 	return result, err
 }
@@ -6186,6 +6218,22 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateRemoteLastSyncAt", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+	start := timemodule.Now()
+
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
 	}
 	return err
 }
