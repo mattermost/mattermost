@@ -10,10 +10,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/pkg/errors"
 )
 
 const (
