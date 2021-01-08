@@ -12,7 +12,9 @@ import (
 type SearchEngineInterface interface {
 	Start() *model.AppError
 	Stop() *model.AppError
+	GetFullVersion() string
 	GetVersion() int
+	GetPlugins() []string
 	UpdateConfig(cfg *model.Config)
 	GetName() string
 	IsActive() bool

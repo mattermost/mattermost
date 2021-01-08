@@ -4,22 +4,26 @@
 package api4
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -64,6 +68,123 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
+
+	api.BaseRoutes.System.Handle("/generate_support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
+}
+
+func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
+	const FileMime = "application/zip"
+
+	// CHeck if is admin or not (has any admin role)
+
+	// Check if licensed or not (has e20 or e10)
+
+	var elasticServerVersion string
+	var elasticServerPlugins []string
+	if c.App.SearchEngine().ElasticsearchEngine != nil {
+		elasticServerVersion = c.App.SearchEngine().ElasticsearchEngine.GetFullVersion()
+		elasticServerPlugins = c.App.SearchEngine().ElasticsearchEngine.GetPlugins()
+	}
+
+	driverName, driverVersion := c.App.Srv().DatabaseTypeAndVersion()
+	// Creating the struct for support packet yaml file
+	supportPacket := model.SupportPacket{
+		ServerOS:             runtime.GOOS,
+		ServerArchitecture:   runtime.GOARCH,
+		DatabaseType:         driverName,
+		DatabaseVersion:      driverVersion,
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+	}
+
+	fmt.Printf("\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", supportPacket)
+
+	// Marshal to a Yaml File
+	supportPacketYaml, _ := yaml.Marshal(&supportPacket)
+
+	now := time.Now()
+	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
+	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
+
+	fileDatas := []model.FileData{
+		{
+			Filename: "support_packet.yaml",
+			Body:     supportPacketYaml,
+		},
+	}
+
+	// Getting mattermost.log and notifications.log
+	if *c.App.Srv().Config().LogSettings.EnableFile {
+		// mattermost.log
+		mattermostLog := utils.GetLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
+
+		mattermostLogFileData, err := ioutil.ReadFile(mattermostLog)
+
+		if err == nil {
+			fileDatas = append(fileDatas, model.FileData{
+				Filename: "mattermost.log",
+				Body:     mattermostLogFileData,
+			})
+		}
+
+		// notifications.log
+		notificationsLog := utils.GetNotificationsLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
+
+		notificationsLogFileData, err := ioutil.ReadFile(notificationsLog)
+
+		if err == nil {
+			fileDatas = append(fileDatas, model.FileData{
+				Filename: "notifications.log",
+				Body:     notificationsLogFileData,
+			})
+		}
+	}
+
+	// Create Zip File
+	conglomerateZipFile, err := os.Create(outputZipFilename)
+	if err != nil {
+		c.Err = model.NewAppError("generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	// We don't want to keep the zip file so defer the deletion until after this function is ran
+	defer os.Remove(outputZipFilename)
+
+	// Create a zip writer that will write to our zip file
+	zipFileWriter := zip.NewWriter(conglomerateZipFile)
+
+	// Populate Zip file with File Datas
+	err = populateZipfile(zipFileWriter, fileDatas)
+	if err != nil {
+		c.Err = model.NewAppError("generateSupportPacket", "api.unable_to_populate_zip_file", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+	// already sets that for us
+	// writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, conglomerateZipFile, true, w, r)
+	// if err != nil {
+	// 	c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
+	// 	return
+	// }
+}
+
+// This is a implementation of Go's example of writing files to zip (with slight modification)
+// https://golang.org/src/archive/zip/example_test.go
+func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
+	for _, fd := range fileDatas {
+		f, err := w.Create(fd.Filename)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Write(fd.Body)
+		if err != nil {
+			return err
+		}
+	}
+	defer w.Close()
+	return nil
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
