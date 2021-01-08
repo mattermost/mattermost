@@ -4281,7 +4281,7 @@
   },
   {
     "id": "api.templates.payment_failed.info1",
-    "translation": "Вашата финансова институция отказа плащане от вашата {{.CardBrand}} **** {{. LastFour}}, свързана с вашето работно пространство в Mattermost Cloud."
+    "translation": "Вашата финансова институция отказа плащане от вашата {{.CardBrand}} **** {{.LastFour}}, свързана с вашето работно пространство в Mattermost Cloud."
   },
   {
     "id": "api.templates.password_change_subject",
