@@ -67,9 +67,9 @@ const (
 	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
 
 	// Deprecated
-	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
-	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
+	ImageThumbnailPixelWidth  = 120
+	ImageThumbnailPixelHeight = 100
+	ImagePreviewPixelWidth    = 1920
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
@@ -218,7 +218,7 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return *paths, nil
+	return paths, nil
 }
 
 func (a *App) RemoveDirectory(path string) *model.AppError {

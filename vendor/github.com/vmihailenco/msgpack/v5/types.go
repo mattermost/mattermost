@@ -27,6 +27,11 @@ var (
 	binaryUnmarshalerType = reflect.TypeOf((*encoding.BinaryUnmarshaler)(nil)).Elem()
 )
 
+var (
+	textMarshalerType   = reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()
+	textUnmarshalerType = reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+)
+
 type (
 	encoderFunc func(*Encoder, reflect.Value) error
 	decoderFunc func(*Decoder, reflect.Value) error
@@ -39,7 +44,7 @@ var (
 
 // Register registers encoder and decoder functions for a value.
 // This is low level API and in most cases you should prefer implementing
-// Marshaler/CustomEncoder and Unmarshaler/CustomDecoder interfaces.
+// CustomEncoder/CustomDecoder or Marshaler/Unmarshaler interfaces.
 func Register(value interface{}, enc encoderFunc, dec decoderFunc) {
 	typ := reflect.TypeOf(value)
 	if enc != nil {
@@ -66,7 +71,7 @@ type structCacheKey struct {
 }
 
 func newStructCache() *structCache {
-	return &structCache{}
+	return new(structCache)
 }
 
 func (m *structCache) Fields(typ reflect.Type, tag string) *fields {
@@ -181,9 +186,7 @@ func getFields(typ reflect.Type, fallbackTag string) *fields {
 		}
 
 		if f.Name == "_msgpack" {
-			if tag.HasOption("asArray") {
-				fs.AsArray = true
-			}
+			fs.AsArray = tag.HasOption("as_array") || tag.HasOption("asArray")
 			if tag.HasOption("omitempty") {
 				omitEmpty = true
 			}
@@ -202,11 +205,11 @@ func getFields(typ reflect.Type, fallbackTag string) *fields {
 		if tag.HasOption("intern") {
 			switch f.Type.Kind() {
 			case reflect.Interface:
-				field.encoder = encodeInternInterfaceValue
-				field.decoder = decodeInternInterfaceValue
+				field.encoder = encodeInternedInterfaceValue
+				field.decoder = decodeInternedInterfaceValue
 			case reflect.String:
-				field.encoder = encodeInternStringValue
-				field.decoder = decodeInternStringValue
+				field.encoder = encodeInternedStringValue
+				field.decoder = decodeInternedStringValue
 			default:
 				err := fmt.Errorf("msgpack: intern strings are not supported on %s", f.Type)
 				panic(err)

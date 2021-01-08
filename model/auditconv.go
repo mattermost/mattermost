@@ -3,7 +3,9 @@
 
 package model
 
-import "github.com/francoispqt/gojay"
+import (
+	"github.com/francoispqt/gojay"
+)
 
 // AuditModelTypeConv converts key model types to something better suited for audit output.
 func AuditModelTypeConv(val interface{}) (newVal interface{}, converted bool) {

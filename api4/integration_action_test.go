@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 )
 
 type testHandler struct {

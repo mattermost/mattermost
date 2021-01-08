@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestListImports(t *testing.T) {

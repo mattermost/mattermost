@@ -137,7 +137,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
+		if token.Type == app.TokenTypeGuestInvitation {
 			if c.App.Srv().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -167,7 +167,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if ruser != nil {
 		err = c.App.CheckAndSendUserLimitWarningEmails()
 		if err != nil {
-			mlog.Error(err.Error())
+			c.LogErrorByCode(err)
 		}
 	}
 
@@ -1358,7 +1358,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
 			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
-				mlog.Error(err.Error())
+				c.LogErrorByCode(err)
 			}
 		})
 	}
@@ -1823,7 +1823,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
 	if err != nil {
 		c.LogAuditWithUserId("", "failure - login_id="+loginID)
-		mlog.Error("CWS authentication error", mlog.Err(err))
+		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 		return
 	}
@@ -1831,7 +1831,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "authenticated")
 	err = c.App.DoLogin(w, r, user, "", false, false, false)
 	if err != nil {
-		mlog.Error("CWS login error", mlog.Err(err))
+		c.LogErrorByCode(err)
 		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 		return
 	}
@@ -2110,7 +2110,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err = c.App.SendEmailVerification(user, user.Email, redirect); err != nil {
 		// Don't want to leak whether the email is valid or not
-		mlog.Error(err.Error())
+		c.LogErrorByCode(err)
 		ReturnStatusOK(w)
 		return
 	}

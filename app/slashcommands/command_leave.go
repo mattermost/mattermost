@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -13,7 +14,7 @@ type LeaveProvider struct {
 }
 
 const (
-	CMD_LEAVE = "leave"
+	CmdLeave = "leave"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (*LeaveProvider) GetTrigger() string {
-	return CMD_LEAVE
+	return CmdLeave
 }
 
 func (*LeaveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_LEAVE,
+		Trigger:          CmdLeave,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_leave.desc"),
 		DisplayName:      T("api.command_leave.name"),

@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -20,7 +22,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
 )
 
 type MainHelper struct {

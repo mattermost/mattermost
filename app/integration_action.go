@@ -192,7 +192,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
 		}
