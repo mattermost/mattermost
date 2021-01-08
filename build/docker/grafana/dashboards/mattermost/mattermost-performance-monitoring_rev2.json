@@ -9,6 +9,38 @@
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
         "type": "dashboard"
+      },
+      {
+        "datasource": "Prometheus",
+        "enable": false,
+        "expr": "mattermost_system_server_start_time*1000",
+        "hide": false,
+        "iconColor": "#C8F2C2",
+        "limit": 100,
+        "name": "Server Start",
+        "showIn": 0,
+        "step": "5s",
+        "tagKeys": "",
+        "tags": [],
+        "titleFormat": "Server Started",
+        "type": "tags",
+        "useValueForTime": true
+      },
+      {
+        "datasource": "Prometheus",
+        "enable": false,
+        "expr": "mattermost_jobs_active",
+        "hide": false,
+        "iconColor": "#FFF899",
+        "limit": 100,
+        "name": "Active Jobs",
+        "showIn": 0,
+        "step": "5s",
+        "tagKeys": "type",
+        "tags": [],
+        "titleFormat": "Active Job",
+        "type": "tags",
+        "useValueForTime": false
       }
     ]
   },
