@@ -93,7 +93,7 @@ func (a *App) BulkExport(writer io.Writer, outPath string, opts BulkExportOpts) 
 	}
 
 	mlog.Info("Bulk export: exporting posts")
-	err, attachments := a.exportAllPosts(writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(writer, opts.IncludeAttachments)
 	if err != nil {
 		return err
 	}
@@ -374,18 +374,18 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 	}
 }
 
-func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) (*model.AppError, []AttachmentImportData) {
+func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) ([]AttachmentImportData, *model.AppError) {
 	var attachments []AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 
 	for {
 		posts, nErr := a.Srv().Store.Post().GetParentsForExportAfter(1000, afterId)
 		if nErr != nil {
-			return model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError), nil
+			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		if len(posts) == 0 {
-			return nil, attachments
+			return attachments, nil
 		}
 
 		for _, post := range posts {
@@ -398,28 +398,28 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) (*model.App
 
 			postLine := ImportLineForPost(post)
 
-			var err *model.AppError
-			var replyAttachments []AttachmentImportData
-			postLine.Post.Replies, replyAttachments, err = a.buildPostReplies(post.Id, withAttachments)
+			replies, replyAttachments, err := a.buildPostReplies(post.Id, withAttachments)
 			if err != nil {
-				return err, nil
+				return nil, err
 			}
+
 			if withAttachments && len(replyAttachments) > 0 {
 				attachments = append(attachments, replyAttachments...)
 			}
 
+			postLine.Post.Replies = &replies
 			postLine.Post.Reactions = &[]ReactionImportData{}
 			if post.HasReactions {
 				postLine.Post.Reactions, err = a.BuildPostReactions(post.Id)
 				if err != nil {
-					return err, nil
+					return nil, err
 				}
 			}
 
 			if len(post.FileIds) > 0 {
 				postAttachments, err := a.buildPostAttachments(post.Id)
 				if err != nil {
-					return err, nil
+					return nil, err
 				}
 				postLine.Post.Attachments = &postAttachments
 
@@ -429,13 +429,13 @@ func (a *App) exportAllPosts(writer io.Writer, withAttachments bool) (*model.App
 			}
 
 			if err := a.exportWriteLine(writer, postLine); err != nil {
-				return err, nil
+				return nil, err
 			}
 		}
 	}
 }
 
-func (a *App) buildPostReplies(postId string, withAttachments bool) (*[]ReplyImportData, []AttachmentImportData, *model.AppError) {
+func (a *App) buildPostReplies(postId string, withAttachments bool) ([]ReplyImportData, []AttachmentImportData, *model.AppError) {
 	var replies []ReplyImportData
 	var attachments []AttachmentImportData
 
@@ -467,7 +467,7 @@ func (a *App) buildPostReplies(postId string, withAttachments bool) (*[]ReplyImp
 		replies = append(replies, *replyImportObject)
 	}
 
-	return &replies, attachments, nil
+	return replies, attachments, nil
 }
 
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
@@ -666,7 +666,7 @@ func (a *App) exportAllDirectPosts(writer io.Writer, withAttachments bool) ([]At
 			}
 
 			postLine := ImportLineForDirectPost(post)
-			postLine.DirectPost.Replies = replies
+			postLine.DirectPost.Replies = &replies
 			if len(postAttachments) > 0 {
 				postLine.DirectPost.Attachments = &postAttachments
 			}
