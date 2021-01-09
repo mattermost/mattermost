@@ -75,7 +75,7 @@ func (es *EmailService) setupInviteEmailRateLimiting() error {
 	return nil
 }
 
-func (es *EmailService) sendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
+func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",

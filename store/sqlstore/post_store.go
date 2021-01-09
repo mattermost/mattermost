@@ -481,10 +481,12 @@ type etagPosts struct {
 	UpdateAt int64
 }
 
-func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
+// `channelId` is replaced with _ to pass unused param lint
+func (s *SqlPostStore) InvalidateLastPostTimeCache(_ string) {
 }
 
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
+// `allowFromCache` is replaced with _ to pass unused param lint
+func (s *SqlPostStore) GetEtag(channelId string, _ bool) string {
 	var et etagPosts
 	err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
 	var result string
@@ -515,7 +517,7 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.cleanupThreads(post.Id, post.RootId, post.UserId, false)
+	return s.cleanupThreads(post.Id, post.RootId, false)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -524,7 +526,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 	}
-	if err = s.cleanupThreads(post.Id, post.RootId, post.UserId, true); err != nil {
+	if err = s.cleanupThreads(post.Id, post.RootId, true); err != nil {
 		return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 	}
 
@@ -549,7 +551,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, userId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
 			return err
 		}
 	}
@@ -605,7 +607,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId, true); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, true); err != nil {
 			return err
 		}
 	}
@@ -664,7 +666,8 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
+// `allowFromCache` is replaced with _ to pass unused param lint
+func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, _ bool) (*model.PostList, error) {
 	var posts []*model.Post
 
 	replyCountQuery1 := ""
@@ -1851,7 +1854,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	return posts, nil
 }
 
-func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+// `perPage` is replaced with _ to pass unused param lint
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, _ int) (*model.PostSearchResults, error) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
@@ -1918,7 +1922,7 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 	return oldest, nil
 }
 
-func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent bool) error {
+func (s *SqlPostStore) cleanupThreads(postId, rootId string, permanent bool) error {
 	if permanent {
 		if _, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId}); err != nil {
 			return errors.Wrap(err, "failed to delete Threads")
