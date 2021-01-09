@@ -20,7 +20,7 @@ func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName", "DeleteAt")
+		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
