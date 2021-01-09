@@ -4,12 +4,12 @@
 package sqlstore
 
 import (
-	"github.com/mattermost/gorp"
-	"github.com/pkg/errors"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 )
 
 type SqlReactionStore struct {
@@ -20,7 +20,7 @@ func newSqlReactionStore(sqlStore *SqlStore) store.ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName")
+		table := db.AddTableWithName(model.Reaction{}, "Reactions").SetKeys(false, "PostId", "UserId", "EmojiName", "DeleteAt")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("EmojiName").SetMaxSize(64)
@@ -40,7 +40,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
-	err = saveReactionAndUpdatePost(transaction, reaction)
+	err = s.saveReactionAndUpdatePost(transaction, reaction)
 	if err != nil {
 		// We don't consider duplicated save calls as an error
 		if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
@@ -56,6 +56,8 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 }
 
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
+	reaction.PreUpdate()
+
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -82,7 +84,7 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 			FROM
 				Reactions
 			WHERE
-				PostId = :PostId
+				PostId = :PostId AND DeleteAt = 0
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
@@ -100,7 +102,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 			FROM
 				Reactions
 			WHERE
-				PostId IN `+keys+`
+				PostId IN `+keys+` AND DeleteAt = 0
 			ORDER BY
 				CreateAt`, params); err != nil {
 		return nil, errors.Wrap(err, "failed to get Reactions")
@@ -110,6 +112,13 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 
 func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	var reactions []*model.Reaction
+	now := model.GetMillis()
+
+	params := map[string]interface{}{
+		"EmojiName": emojiName,
+		"UpdateAt":  now,
+		"DeleteAt":  now,
+	}
 
 	if _, err := s.GetReplica().Select(&reactions,
 		`SELECT
@@ -117,15 +126,17 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 			FROM
 				Reactions
 			WHERE
-				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
+				EmojiName = :EmojiName AND DeleteAt = 0`, params); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
 	_, err := s.GetMaster().Exec(
-		`DELETE FROM
+		`UPDATE
 			Reactions
+		SET
+			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
 		WHERE
-			EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName})
+			EmojiName = :EmojiName`, params)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
@@ -167,23 +178,80 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
-func saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
-	if err := transaction.Insert(reaction); err != nil {
-		return err
+func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
+	params := map[string]interface{}{
+		"UserId":    reaction.UserId,
+		"PostId":    reaction.PostId,
+		"EmojiName": reaction.EmojiName,
+		"CreateAt":  reaction.CreateAt,
+		"UpdateAt":  reaction.UpdateAt,
 	}
 
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if _, err := transaction.Exec(
+			`INSERT INTO
+				Reactions
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt)
+			VALUES
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0)
+			ON DUPLICATE KEY UPDATE
+				UpdateAt = :UpdateAt, DeleteAt = 0`, params); err != nil {
+			return err
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
+		count, err := transaction.SelectInt(
+			`SELECT
+				count(0)
+			FROM
+				Reactions
+			WHERE
+				UserId = :UserId
+				AND PostId = :PostId
+				AND EmojiName = :EmojiName`, params)
+		if err != nil {
+			return err
+		}
+
+		if count == 1 {
+			// re-saving a previously soft deleted reaction; just clear the DeletAt field.
+			if _, err := transaction.Exec(
+				`UPDATE
+					Reactions
+				SET 
+					UpdateAt = :UpdateAt, DeleteAt = 0
+				WHERE
+					PostId = :PostId AND
+					UserId = :UserId AND
+					EmojiName = :EmojiName`, params); err != nil {
+				return err
+			}
+		} else if err := transaction.Insert(reaction); err != nil {
+			return err
+		}
+	}
 	return updatePostForReactionsOnInsert(transaction, reaction.PostId)
 }
 
 func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
+	params := map[string]interface{}{
+		"UserId":    reaction.UserId,
+		"PostId":    reaction.PostId,
+		"EmojiName": reaction.EmojiName,
+		"CreateAt":  reaction.CreateAt,
+		"UpdateAt":  reaction.UpdateAt,
+		"DeleteAt":  reaction.UpdateAt, // DeleteAt = UpdateAt
+	}
+
 	if _, err := transaction.Exec(
-		`DELETE FROM
+		`UPDATE
 			Reactions
+		SET 
+			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
 		WHERE
 			PostId = :PostId AND
 			UserId = :UserId AND
-			EmojiName = :EmojiName`,
-		map[string]interface{}{"PostId": reaction.PostId, "UserId": reaction.UserId, "EmojiName": reaction.EmojiName}); err != nil {
+			EmojiName = :EmojiName`, params); err != nil {
 		return err
 	}
 
@@ -195,7 +263,7 @@ const (
 			Posts
 		SET
 			UpdateAt = :UpdateAt,
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId AND DeleteAt = 0)
 		WHERE
 			Id = :PostId`
 )
