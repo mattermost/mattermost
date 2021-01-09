@@ -297,7 +297,7 @@ func createStatus(ss store.Store, userId string) *model.Status {
 	return &m
 }
 
-func createTeam(ss store.Store, userId string) *model.Team {
+func createTeam(ss store.Store) *model.Team {
 	m := model.Team{}
 	m.DisplayName = "DisplayName"
 	m.Type = model.TEAM_OPEN
@@ -972,7 +972,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			team := createTeam(ss, model.NewId())
+			team := createTeam(ss)
 			member := createTeamMember(ss, team.Id, model.NewId())
 			dbmap.Delete(team)
 			result := checkTeamsTeamMembersIntegrity(store)
@@ -1569,7 +1569,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(ss)
-			team := createTeam(ss, user.Id)
+			team := createTeam(ss)
 			member := createTeamMember(ss, team.Id, user.Id)
 			dbmap.Delete(user)
 			result := checkUsersTeamMembersIntegrity(store)

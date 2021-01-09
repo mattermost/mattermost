@@ -130,13 +130,13 @@ func blockStart(markdown string, indentation int, r Range, matchedBlocks, unmatc
 		return nil
 	}
 
-	if start := blockQuoteStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+	if start := blockQuoteStart(markdown, indentation, r); start != nil {
 		return start
 	} else if start := listStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
 		return start
 	} else if start := indentedCodeStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
 		return start
-	} else if start := fencedCodeStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+	} else if start := fencedCodeStart(markdown, indentation, r); start != nil {
 		return start
 	}
 
