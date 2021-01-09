@@ -30,6 +30,7 @@ linters:
     - varcheck
     - misspell
     - goimports
+    - unparam
     # TODO: enable this later
     # - errcheck
 
