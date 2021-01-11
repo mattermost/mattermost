@@ -47,9 +47,9 @@ const HeaderLen = 12
 // Constants for the checksum methods supported by xz.
 const (
 	None   byte = 0x0
-	CRC32       = 0x1
-	CRC64       = 0x4
-	SHA256      = 0xa
+	CRC32  byte = 0x1
+	CRC64  byte = 0x4
+	SHA256 byte = 0xa
 )
 
 // errInvalidFlags indicates that flags are invalid.
@@ -567,22 +567,6 @@ func readFilters(r io.Reader, count int) (filters []filter, err error) {
 		return nil, err
 	}
 	return []filter{f}, err
-}
-
-// writeFilters writes the filters.
-func writeFilters(w io.Writer, filters []filter) (n int, err error) {
-	for _, f := range filters {
-		p, err := f.MarshalBinary()
-		if err != nil {
-			return n, err
-		}
-		k, err := w.Write(p)
-		n += k
-		if err != nil {
-			return n, err
-		}
-	}
-	return n, nil
 }
 
 /*** Index ***/

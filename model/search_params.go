@@ -216,7 +216,7 @@ func parseSearchFlags(input []string) ([]searchWord, []flag) {
 			// and remove extra pound #s
 			word = hashtagStart.ReplaceAllString(word, "#")
 
-			if len(word) != 0 {
+			if word != "" {
 				words = append(words, searchWord{
 					word,
 					exclude,
@@ -359,10 +359,10 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 		len(excludedPlainTerms) == 0 && len(excludedHashtagTerms) == 0 &&
 		(len(inChannels) != 0 || len(fromUsers) != 0 ||
 			len(excludedChannels) != 0 || len(excludedUsers) != 0 ||
-			len(afterDate) != 0 || len(excludedAfterDate) != 0 ||
-			len(beforeDate) != 0 || len(excludedBeforeDate) != 0 ||
 			len(extensions) != 0 || len(excludedExtensions) != 0 ||
-			len(onDate) != 0 || len(excludedDate) != 0) {
+			afterDate != "" || excludedAfterDate != "" ||
+			beforeDate != "" || excludedBeforeDate != "" ||
+			onDate != "" || excludedDate != "") {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              "",
 			ExcludedTerms:      "",

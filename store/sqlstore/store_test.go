@@ -13,15 +13,15 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 type storeType struct {
@@ -369,7 +369,7 @@ func TestGetDbVersion(t *testing.T) {
 			settings := makeSqlSettings(driver)
 			store := New(*settings, nil)
 
-			version, err := store.GetDbVersion()
+			version, err := store.GetDbVersion(false)
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
@@ -456,11 +456,11 @@ func TestGetAllConns(t *testing.T) {
 
 func TestIsDuplicate(t *testing.T) {
 	testErrors := map[error]bool{
-		&pq.Error{Code: "42P06"}:                              false,
-		&pq.Error{Code: PG_DUP_TABLE_ERROR_CODE}:              true,
-		&mysql.MySQLError{Number: uint16(1000)}:               false,
-		&mysql.MySQLError{Number: MYSQL_DUP_TABLE_ERROR_CODE}: true,
-		errors.New("Random error"):                            false,
+		&pq.Error{Code: "42P06"}:                          false,
+		&pq.Error{Code: PGDupTableErrorCode}:              true,
+		&mysql.MySQLError{Number: uint16(1000)}:           false,
+		&mysql.MySQLError{Number: MySQLDupTableErrorCode}: true,
+		errors.New("Random error"):                        false,
 	}
 
 	for err, expected := range testErrors {
@@ -468,6 +468,31 @@ func TestIsDuplicate(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, expected, IsDuplicate(err))
 		})
+	}
+}
+
+func TestVersionString(t *testing.T) {
+	versions := []struct {
+		input  int
+		output string
+	}{
+		{
+			input:  100000,
+			output: "10.0",
+		},
+		{
+			input:  90603,
+			output: "9.603",
+		},
+		{
+			input:  120005,
+			output: "12.5",
+		},
+	}
+
+	for _, v := range versions {
+		out := VersionString(v.input)
+		assert.Equal(t, v.output, out)
 	}
 }
 

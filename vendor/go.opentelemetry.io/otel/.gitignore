@@ -17,6 +17,7 @@ gen/
 /example/http/server/server
 /example/jaeger/jaeger
 /example/namedtracer/namedtracer
+/example/opencensus/opencensus
 /example/prometheus/prometheus
 /example/zipkin/zipkin
 /example/otel-collector/otel-collector

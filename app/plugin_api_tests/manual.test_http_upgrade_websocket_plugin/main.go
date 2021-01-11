@@ -7,10 +7,10 @@ import (
 	"bytes"
 	"net/http"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-
-	"github.com/gorilla/websocket"
 )
 
 type Plugin struct {

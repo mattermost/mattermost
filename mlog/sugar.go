@@ -3,7 +3,9 @@
 
 package mlog
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+)
 
 // Made for the plugin interface, use the regular logger for other uses
 type SugarLogger struct {
