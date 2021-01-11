@@ -167,6 +167,11 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 	}
 	if updated {
 		if srv.metrics != nil {
+			job, err := srv.GetJob(jobId)
+			if err != nil {
+				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
 			srv.metrics.DecrementJobActive(job.Type)
 		}
 
