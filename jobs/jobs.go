@@ -100,6 +100,8 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
+		srv.metrics.DecrementJobActive(job.Type)
+
 		return nil
 	}
 
@@ -115,6 +117,9 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if updated {
+		srv.metrics.DecrementJobActive(job.Type)
 	}
 
 	if !updated {
@@ -134,6 +139,9 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_CANCELED); err != nil {
 		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	srv.metrics.DecrementJobActive(job.Type)
+
 	return nil
 }
 
@@ -152,6 +160,8 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if updated {
+		srv.metrics.DecrementJobActive(job.Type)
+
 		return nil
 	}
 
