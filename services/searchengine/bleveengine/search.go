@@ -15,6 +15,7 @@ import (
 )
 
 const DeletePostsBatchSize = 500
+const DeleteFilesBatchSize = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -772,7 +773,7 @@ func (b *BleveEngine) DeleteUserFiles(userID string) *model.AppError {
 	query := bleve.NewTermQuery(userID)
 	query.SetField("CreatorId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deleteFiles(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteUserFiles",
 			"bleveengine.delete_user_files.error", nil,
@@ -791,7 +792,7 @@ func (b *BleveEngine) DeletePostFiles(postID string) *model.AppError {
 	query := bleve.NewTermQuery(postID)
 	query.SetField("PostId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.deleteFiles(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeletePostFiles",
 			"bleveengine.delete_post_files.error", nil,
@@ -813,7 +814,7 @@ func (b *BleveEngine) DeleteFilesBatch(endTime, limit int64) *model.AppError {
 	search := bleve.NewSearchRequestOptions(query, int(limit), 0, false)
 	search.SortBy([]string{"-CreateAt"})
 
-	deleted, err := b.deleteFiles(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deleteFiles(search, DeleteFilesBatchSize)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteFilesBatch",
 			"bleveengine.delete_files_batch.error", nil,
