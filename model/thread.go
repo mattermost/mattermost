@@ -50,6 +50,11 @@ type GetUserThreadsOpts struct {
 	Since uint64
 }
 
+func (o *ThreadResponse) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
+}
+
 func (o *Threads) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
