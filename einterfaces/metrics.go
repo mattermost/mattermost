@@ -3,7 +3,9 @@
 
 package einterfaces
 
-import "github.com/mattermost/logr"
+import (
+	"github.com/mattermost/logr"
+)
 
 type MetricsInterface interface {
 	StartServer()

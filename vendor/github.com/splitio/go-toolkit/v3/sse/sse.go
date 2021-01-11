@@ -71,7 +71,7 @@ func (l *SSEClient) Shutdown() {
 	select {
 	case l.shutdown <- struct{}{}:
 	default:
-		l.logger.Error("Awaited unexpected event")
+		l.logger.Error("Shutdown already in progress")
 	}
 }
 
@@ -131,8 +131,8 @@ func (l *SSEClient) Do(params map[string]string, callback func(e map[string]inte
 	activeGoroutines := sync.WaitGroup{}
 	defer func() {
 		l.logger.Info("SSE streaming exiting")
-		cancel()
 		shouldRun.Store(false)
+		cancel()
 		activeGoroutines.Wait()
 	}()
 
@@ -173,7 +173,9 @@ func (l *SSEClient) Do(params map[string]string, callback func(e map[string]inte
 		for shouldRun.Load().(bool) {
 			event, err := l.readEvent(reader)
 			if err != nil {
-				l.logger.Error(err)
+				if shouldRun.Load().(bool) {
+					l.logger.Error(err)
+				}
 				close(eventChannel)
 				return
 			}

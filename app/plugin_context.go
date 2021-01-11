@@ -3,7 +3,9 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v5/plugin"
+import (
+	"github.com/mattermost/mattermost-server/v5/plugin"
+)
 
 func (a *App) PluginContext() *plugin.Context {
 	context := &plugin.Context{

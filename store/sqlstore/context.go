@@ -3,7 +3,9 @@
 
 package sqlstore
 
-import "context"
+import (
+	"context"
+)
 
 // storeContextKey is the base type for all context keys for the store.
 type storeContextKey string

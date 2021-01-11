@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package label
+package label // import "go.opentelemetry.io/otel/label"
 
 // Iterator allows iterating over the set of labels in order,
 // sorted by key.
@@ -24,7 +24,7 @@ type Iterator struct {
 // MergeIterator supports iterating over two sets of labels while
 // eliminating duplicate values from the combined set.  The first
 // iterator value takes precedence.
-type MergeItererator struct {
+type MergeIterator struct {
 	one     oneIterator
 	two     oneIterator
 	current KeyValue
@@ -84,8 +84,8 @@ func (i *Iterator) ToSlice() []KeyValue {
 
 // NewMergeIterator returns a MergeIterator for merging two label sets
 // Duplicates are resolved by taking the value from the first set.
-func NewMergeIterator(s1, s2 *Set) MergeItererator {
-	mi := MergeItererator{
+func NewMergeIterator(s1, s2 *Set) MergeIterator {
+	mi := MergeIterator{
 		one: makeOne(s1.Iter()),
 		two: makeOne(s2.Iter()),
 	}
@@ -107,7 +107,7 @@ func (oi *oneIterator) advance() {
 }
 
 // Next returns true if there is another label available.
-func (m *MergeItererator) Next() bool {
+func (m *MergeIterator) Next() bool {
 	if m.one.done && m.two.done {
 		return false
 	}
@@ -138,6 +138,6 @@ func (m *MergeItererator) Next() bool {
 }
 
 // Label returns the current value after Next() returns true.
-func (m *MergeItererator) Label() KeyValue {
+func (m *MergeIterator) Label() KeyValue {
 	return m.current
 }
