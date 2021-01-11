@@ -10,11 +10,7 @@
 # Must be space separated names.
 #
 # Example: mysql postgres elasticsearch
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket prometheus grafana
-else
 ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
-endif
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
