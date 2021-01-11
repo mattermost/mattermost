@@ -8393,5 +8393,21 @@
   {
     "id": "ent.compliance.global_relay.write_file.appError",
     "translation": "Kan het bestand voor globalrelay niet schrijven."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Fout bij het ophalen van de autorisatiecode."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Verwijderen van de bestanden is mislukt."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Verwijderen van het bestand is mislukt."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Fout bij het maken van de bleve-bestandenindex."
   }
 ]
