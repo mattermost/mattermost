@@ -268,13 +268,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, len(testCase.DataSourceReplicas))
 
 				for replica := range replicas {
-					assert.NotEqual(t, store.GetMaster(), replica)
+					assert.NotSame(t, store.GetMaster(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -283,20 +283,16 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, len(testCase.DataSourceSearchReplicas))
 
 				for searchReplica := range searchReplicas {
-					assert.NotEqual(t, store.GetMaster(), searchReplica)
+					assert.NotSame(t, store.GetMaster(), searchReplica)
 					for replica := range replicas {
-						assert.NotEqual(t, searchReplica, replica)
+						assert.NotSame(t, searchReplica, replica)
 					}
 				}
-
-			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
 
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -330,7 +326,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -342,14 +338,10 @@ func TestGetReplica(t *testing.T) {
 					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 
-			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
-
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
