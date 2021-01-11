@@ -1553,6 +1553,10 @@
     "translation": "Unable to migrate SAML."
   },
   {
+    "id": "api.no_license",
+    "translation": "Sorry, you must have either a E10 or E20 license to use this endpoint"
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -3009,6 +3013,18 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Sorry, there was an error creating your zip file"
+  },
+  {
+    "id": "api.unable_to_populate_zip_file",
+    "translation": "Sorry, there was an error populating your zip file with data"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "Sorry, there was an error downloading your file"
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -6281,6 +6297,10 @@
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Failed to create Elasticsearch bulk processor."
+  },
+  {
+    "id": "ent.elasticsearch.start.get_plugins.app_error",
+    "translation": "Sorry, there was an error retriving your elastic search plugins"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
