@@ -74,9 +74,11 @@ func (s SqlSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChann
 		return nil, errors.Wrapf(err, "save_shared_channel: ChannelId=%s", sc.ChannelId)
 	}
 
-	// set `Shared` flag in Channels table
-	if err := s.stores.channel.SetShared(channel.Id, true); err != nil {
-		return nil, err
+	// set `Shared` flag in Channels table if needed
+	if channel.Shared == nil || !*channel.Shared {
+		if err := s.stores.channel.SetShared(channel.Id, true); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := transaction.Commit(); err != nil {
@@ -428,7 +430,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	var status []*model.SharedChannelRemoteStatus
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted, scr.Token").
+		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteClusterId=rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").

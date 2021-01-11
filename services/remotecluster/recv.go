@@ -22,6 +22,7 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	rcSanitized.RemoteToken = ""
 
 	response := make(Response)
+	response[ResponseStatusKey] = ResponseStatusOK
 
 	listeners := rcs.getTopicListeners(msg.Topic)
 
@@ -32,8 +33,6 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 
 			response[ResponseStatusKey] = ResponseStatusFail
 			response[ResponseErrorKey] = err.Error()
-		} else {
-			response[ResponseStatusKey] = ResponseStatusOK
 		}
 	}
 	return response

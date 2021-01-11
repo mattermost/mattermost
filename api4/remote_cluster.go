@@ -110,9 +110,6 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
-	if _, ok := resp[model.STATUS]; !ok {
-		resp[model.STATUS] = model.STATUS_OK
-	}
 
 	b, errMarshall := json.Marshal(resp)
 	if errMarshall != nil {
