@@ -7,6 +7,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
@@ -165,4 +167,17 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
+
+	// Notify shared channel sync service about the change
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		mlog.Debug(
+			"Error fetching channel for shared channel sync notification",
+			mlog.String("error", err.Error()),
+			mlog.String("channel_id", post.ChannelId),
+			mlog.String("event", message.EventType()),
+		)
+	} else {
+		a.NotifySharedChannelSync(channel, message.EventType())
+	}
 }

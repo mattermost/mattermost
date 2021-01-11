@@ -147,7 +147,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 
 	remoteClusterService     *remotecluster.Service
-	sharedChannelSyncService *sharedchannel.Service
+	sharedChannelSyncService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
 
@@ -1705,6 +1705,6 @@ func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
-func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
+func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 	return s.sharedChannelSyncService
 }

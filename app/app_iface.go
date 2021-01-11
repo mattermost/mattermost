@@ -237,6 +237,8 @@ type AppIface interface {
 	NewWebHub() *Hub
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() *model.AppError
+	// NotifySharedChannelSync signals the syncService to start syncing shared channel updates
+	NotifySharedChannelSync(channel *model.Channel, event string)
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
