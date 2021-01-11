@@ -689,7 +689,7 @@ func TestUploadFiles(t *testing.T) {
 						}
 					}
 
-					th.cleanupTestFile(dbInfo)
+					th.CleanupTestFile(dbInfo)
 				}
 			})
 
@@ -892,7 +892,7 @@ func TestGetFileLink(t *testing.T) {
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
-	th.cleanupTestFile(fileInfo)
+	th.CleanupTestFile(fileInfo)
 }
 
 func TestGetFilePreview(t *testing.T) {
@@ -1039,9 +1039,9 @@ func TestGetPublicFile(t *testing.T) {
 
 	fileInfo, err := th.App.Srv().Store.FileInfo().Get(fileId)
 	require.Nil(t, err)
-	require.Nil(t, th.cleanupTestFile(fileInfo))
+	require.Nil(t, th.CleanupTestFile(fileInfo))
 
-	th.cleanupTestFile(info)
+	th.CleanupTestFile(info)
 	link = th.App.GeneratePublicLink(Client.Url, info)
 	resp, err = http.Get(link)
 	require.Nil(t, err)

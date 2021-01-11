@@ -471,10 +471,11 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	// TODO: which error message to return?
-	if user.AuthService == "ldap" && *c.App.Config().LdapSettings.PictureAttribute != "" {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		c.Err.DetailedError += " field must be set through your login provider,"
+	if (user.AuthService == model.USER_AUTH_SERVICE_LDAP || user.AuthService == model.USER_AUTH_SERVICE_SAML) &&
+		*c.App.Config().LdapSettings.PictureAttribute != "" {
+		c.Err = model.NewAppError(
+			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+			nil, "", http.StatusConflict)
 		return
 	}
 
@@ -1139,6 +1140,93 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
+func patchUserCheckLoginProviderAttributes(c *Context, ouser *model.User, patch *model.UserPatch) {
+	const (
+		firstNameField = "first_name"
+		lastNameField  = "last_name"
+		nicknameField  = "nickname"
+		positionField  = "position"
+		emailField     = "email"
+		usernameField  = "username"
+	)
+	// If LDAP or SAML is used, and any of the following attributes have been specified
+	// in the settings, then their corresponding fields may not be changed
+	LS := &c.App.Config().LdapSettings
+	SS := &c.App.Config().SamlSettings
+	for _, provider := range []struct {
+		AuthService        string
+		FirstNameAttribute *string
+		LastNameAttribute  *string
+		NicknameAttribute  *string
+		PositionAttribute  *string
+		EmailAttribute     *string
+	}{
+		{model.USER_AUTH_SERVICE_LDAP, LS.FirstNameAttribute, LS.LastNameAttribute, LS.NicknameAttribute,
+			LS.PositionAttribute, LS.EmailAttribute},
+		{model.USER_AUTH_SERVICE_SAML, SS.FirstNameAttribute, SS.LastNameAttribute, SS.NicknameAttribute,
+			SS.PositionAttribute, SS.EmailAttribute},
+	} {
+		if ouser.AuthService != provider.AuthService {
+			continue
+		}
+		for _, attr := range []struct {
+			name       string
+			patchValue *string
+			userValue  *string
+			selector   *string
+		}{
+			{firstNameField, patch.FirstName, &ouser.FirstName, provider.FirstNameAttribute},
+			{lastNameField, patch.LastName, &ouser.LastName, provider.LastNameAttribute},
+			{nicknameField, patch.Nickname, &ouser.Nickname, provider.NicknameAttribute},
+			{positionField, patch.Position, &ouser.Position, provider.PositionAttribute},
+			{emailField, patch.Email, &ouser.Email, provider.EmailAttribute},
+		} {
+			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+				c.Err = model.NewAppError(
+					"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+					map[string]interface{}{"Field": attr.name}, "", http.StatusConflict)
+				return
+			}
+		}
+	}
+	// If any login provider is used, then the username may not be changed
+	if ouser.AuthService != "" && patch.Username != nil && *patch.Username != ouser.Username {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": usernameField}, "",
+			http.StatusConflict)
+		return
+	}
+	// If an OAUTH provider is used then neither the first name nor the last
+	// name may be changed
+	for _, oauthService := range []string{
+		model.USER_AUTH_SERVICE_GITLAB,
+		"google",
+		"office365",
+		"openid",
+	} {
+		if ouser.AuthService != oauthService {
+			continue
+		}
+		for _, attr := range []struct {
+			name       string
+			patchValue *string
+			userValue  *string
+		}{
+			{firstNameField, patch.FirstName, &ouser.FirstName},
+			{lastNameField, patch.FirstName, &ouser.LastName},
+		} {
+			if attr.patchValue != nil && *attr.patchValue != *attr.userValue {
+				c.Err = model.NewAppError(
+					"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+					map[string]interface{}{"Field": attr.name}, "",
+					http.StatusConflict)
+				return
+			}
+		}
+	}
+}
+
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -1180,6 +1268,11 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	patchUserCheckLoginProviderAttributes(c, ouser, patch)
+	if c.Err != nil {
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if patch.Email != nil && ouser.Email != *patch.Email && c.App.Session().UserId == c.Params.UserId {
 		if patch.Password == nil {
@@ -1189,21 +1282,6 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
 			c.Err = err
-			return
-		}
-	}
-
-	if ouser.AuthService == "ldap" {
-		// TODO: which error to return?
-		ldapSettings := &c.App.Config().LdapSettings
-		if (patch.FirstName != nil && ouser.FirstName != *patch.FirstName && *ldapSettings.FirstNameAttribute != "") ||
-			(patch.LastName != nil && ouser.LastName != *patch.LastName && *ldapSettings.LastNameAttribute != "") ||
-			(patch.Nickname != nil && ouser.Nickname != *patch.Nickname && *ldapSettings.NicknameAttribute != "") ||
-			(patch.Position != nil && ouser.Position != *patch.Position && *ldapSettings.PositionAttribute != "") ||
-			(patch.Email != nil && ouser.Email != *patch.Email && *ldapSettings.EmailAttribute != "") ||
-			(patch.Username != nil && ouser.Username != *patch.Username && *ldapSettings.UsernameAttribute != "") {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-			c.Err.DetailedError += " field must be set through your login provider,"
 			return
 		}
 	}

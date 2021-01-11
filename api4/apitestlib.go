@@ -846,6 +846,11 @@ func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusNotFound, true)
 }
 
+func CheckConflictStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusConflict, true)
+}
+
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
@@ -903,7 +908,7 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	return s3.New(endpoint, &opts)
 }
 
-func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
+func (th *TestHelper) CleanupTestFile(info *model.FileInfo) error {
 	cfg := th.App.Config()
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := *cfg.FileSettings.AmazonS3Endpoint

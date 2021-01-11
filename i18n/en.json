@@ -3323,6 +3323,10 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Field '{{.Field}}' must be set through user's login provider"
+  },
+  {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
     "translation": "Unable to convert the guest to regular user because is not a guest."
   },
@@ -3473,6 +3477,10 @@
   {
     "id": "api.user.upload_profile_user.encode.app_error",
     "translation": "Could not encode profile image."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Profile picture must be set through user's login provider."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
