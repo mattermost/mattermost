@@ -1602,6 +1602,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.CreateAt = utils.MillisFromTime(utils.Yesterday())
 	o1.Message = "zz" + model.NewId() + "b"
+	o1.Hashtags = "hashtag"
 	o1, nErr = ss.Post().Save(o1)
 	require.Nil(t, nErr)
 
@@ -1610,6 +1611,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o1a.UserId = model.NewId()
 	o1a.CreateAt = o1.CreateAt
 	o1a.Message = "zz" + model.NewId() + "b"
+	o1a.FileIds = []string{"fileId1"}
 	_, nErr = ss.Post().Save(o1a)
 	require.Nil(t, nErr)
 
@@ -1618,6 +1620,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o2.UserId = model.NewId()
 	o2.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
 	o2.Message = "zz" + model.NewId() + "b"
+	o2.Filenames = []string{"filename1"}
 	o2, nErr = ss.Post().Save(o2)
 	require.Nil(t, nErr)
 
@@ -1626,6 +1629,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o2a.UserId = o2.UserId
 	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
 	o2a.Message = "zz" + model.NewId() + "b"
+	o2a.Hashtags = "hashtag"
+	o2a.FileIds = []string{"fileId2"}
 	_, nErr = ss.Post().Save(o2a)
 	require.Nil(t, nErr)
 
@@ -1690,6 +1695,26 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	r2, err := ss.Post().AnalyticsPostCount(t1.Id, false, false)
 	require.Nil(t, err)
 	assert.Equal(t, int64(6), r2)
+
+	// total across teams
+	r2, err = ss.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	assert.GreaterOrEqual(t, r2, int64(6))
+
+	// total across teams with files
+	r2, err = ss.Post().AnalyticsPostCount("", true, false)
+	require.Nil(t, err)
+	assert.GreaterOrEqual(t, r2, int64(3))
+
+	// total across teams with hastags
+	r2, err = ss.Post().AnalyticsPostCount("", false, true)
+	require.Nil(t, err)
+	assert.GreaterOrEqual(t, r2, int64(2))
+
+	// total across teams with hastags and files
+	r2, err = ss.Post().AnalyticsPostCount("", true, true)
+	require.Nil(t, err)
+	assert.GreaterOrEqual(t, r2, int64(1))
 }
 
 func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStore) {
