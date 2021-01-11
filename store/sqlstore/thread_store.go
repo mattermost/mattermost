@@ -180,6 +180,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		if opts.Since > 0 {
 			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
 		}
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Gt{"UnreadReplies": 0}}
+		}
 
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
