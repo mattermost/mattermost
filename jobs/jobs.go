@@ -59,7 +59,7 @@ func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
 		return false, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if updated {
+	if updated && srv.metrics != nil {
 		srv.metrics.IncrementJobActive(job.Type)
 	}
 
@@ -88,7 +88,9 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	srv.metrics.DecrementJobActive(job.Type)
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
 
 	return nil
 }
@@ -100,7 +102,9 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		srv.metrics.DecrementJobActive(job.Type)
+		if srv.metrics != nil {
+			srv.metrics.DecrementJobActive(job.Type)
+		}
 
 		return nil
 	}
@@ -118,7 +122,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if updated {
+	if updated && srv.metrics != nil {
 		srv.metrics.DecrementJobActive(job.Type)
 	}
 
@@ -140,7 +144,9 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	srv.metrics.DecrementJobActive(job.Type)
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
 
 	return nil
 }
@@ -160,7 +166,9 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if updated {
-		srv.metrics.DecrementJobActive(job.Type)
+		if srv.metrics != nil {
+			srv.metrics.DecrementJobActive(job.Type)
+		}
 
 		return nil
 	}
