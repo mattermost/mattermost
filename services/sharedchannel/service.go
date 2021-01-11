@@ -43,6 +43,12 @@ type AppIface interface {
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 }
 
+type ServiceIFace interface {
+	Shutdown() error
+	Start() error
+	NotifyChannelChanged(channelId string)
+}
+
 // Service provides shared channel synchronization.
 type Service struct {
 	server       ServerIface
@@ -60,7 +66,7 @@ type Service struct {
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
-func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error) {
+func NewSharedChannelService(server ServerIface, app AppIface) (ServiceIFace, error) {
 	service := &Service{
 		server:       server,
 		app:          app,

@@ -191,7 +191,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 	}
 
-	unknownRepliesPosts := []*model.Post{}
+	var unknownRepliesPosts []*model.Post
 	for _, post := range posts {
 		if len(post.RootId) == 0 {
 			count, ok := rootIds[post.Id]
