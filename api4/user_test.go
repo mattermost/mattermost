@@ -5578,9 +5578,11 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 
 		sum := int64(0)
 		for _, thr := range u.Threads {
-			sum += thr.UnreadReplies
+			if thr.UnreadReplies > 0 {
+				sum += 1
+			}
 		}
-		require.Equal(t, sum, u.TotalUnreadReplies)
+		require.Equal(t, sum, u.TotalUnreadThreads)
 
 		return u, r
 	}

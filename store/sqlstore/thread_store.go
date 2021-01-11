@@ -132,7 +132,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		pageSize = opts.PageSize
 	}
 
-	totalUnreadRepliesChan := make(chan store.StoreResult, 1)
+	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
 	totalCountChan := make(chan store.StoreResult, 1)
 	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
 	threadsChan := make(chan store.StoreResult, 1)
@@ -140,14 +140,14 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(Posts.Id)").
 			From("Posts").
-			LeftJoin("ThreadMemberships ON Posts.RootId = ThreadMemberships.PostId").
+			LeftJoin("ThreadMemberships ON Posts.Id = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			Where(fetchConditions).
 			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
 
-		totalUnreadReplies, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
-		totalUnreadRepliesChan <- store.StoreResult{Data: totalUnreadReplies, NErr: errors.Wrapf(err, "failed to get count replies on threads for user id=%s", userId)}
-		close(totalUnreadRepliesChan)
+		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
+		totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
+		close(totalUnreadThreadsChan)
 	}()
 	go func() {
 		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
@@ -216,11 +216,11 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 	totalCount := totalCountResult.Data.(int64)
 
-	totalUnreadRepliesResult := <-totalUnreadRepliesChan
-	if totalUnreadRepliesResult.NErr != nil {
-		return nil, totalUnreadRepliesResult.NErr
+	totalUnreadThreadsResult := <-totalUnreadThreadsChan
+	if totalUnreadThreadsResult.NErr != nil {
+		return nil, totalUnreadThreadsResult.NErr
 	}
-	totalUnreadReplies := totalUnreadRepliesResult.Data.(int64)
+	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -248,7 +248,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		Total:               totalCount,
 		Threads:             nil,
 		TotalUnreadMentions: totalUnreadMentions,
-		TotalUnreadReplies:  totalUnreadReplies,
+		TotalUnreadThreads:  totalUnreadThreads,
 	}
 
 	for _, thread := range threads {
