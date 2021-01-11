@@ -272,10 +272,8 @@ func TestIncomingWebhook(t *testing.T) {
 		called := make(chan bool)
 
 		go func(called chan bool) {
-			called <- false
 			http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 				called <- true
-				close(called)
 			})
 			err := http.ListenAndServe(":9123", nil)
 			require.Nil(t, err)
@@ -295,11 +293,9 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		timeout := time.After(2 * time.Second)
-
 		select {
 		case <-called:
-		case <-timeout:
+		case <-time.After(2 * time.Second):
 			require.Fail(t, "Webhook has not been called")
 		}
 	})
