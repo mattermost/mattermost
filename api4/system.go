@@ -162,9 +162,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		// mattermost.log
 		mattermostLog := utils.GetLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
 
-		mattermostLogFileData, err := ioutil.ReadFile(mattermostLog)
+		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 
-		if err == nil {
+		if mattermostLogFileDataErr == nil {
 			fileDatas = append(fileDatas, model.FileData{
 				Filename: "mattermost.log",
 				Body:     mattermostLogFileData,
@@ -174,9 +174,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		// notifications.log
 		notificationsLog := utils.GetNotificationsLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
 
-		notificationsLogFileData, err := ioutil.ReadFile(notificationsLog)
+		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
-		if err == nil {
+		if notificationsLogFileDataErr == nil {
 			fileDatas = append(fileDatas, model.FileData{
 				Filename: "notifications.log",
 				Body:     notificationsLogFileData,
@@ -208,7 +208,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
 	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, conglomerateZipFile, true, w, r)
-	if err != nil {
+	if writeFileResponseErr != nil {
 		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
 		return
 	}
