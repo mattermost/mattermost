@@ -5856,7 +5856,7 @@
   },
   {
     "id": "bleveengine.delete_post_files.error",
-    "translation": "Fiiled to delete the post files."
+    "translation": "Failed to delete the post files."
   },
   {
     "id": "bleveengine.delete_user.error",
