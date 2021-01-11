@@ -2477,7 +2477,7 @@
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
+    "translation": "Mattermost-råd"
   },
   {
     "id": "app.system.warn_metric.bot_description",
@@ -5861,7 +5861,7 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\nNoteringar:\n"
+    "translation": "\nAnteckningar:\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
@@ -6605,7 +6605,7 @@
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Contact Us request"
+    "translation": "Mattermost Kontakta oss-begäran"
   },
   {
     "id": "api.templates.warn_metric_ack.footer",
@@ -7151,7 +7151,7 @@
   },
   {
     "id": "api.command_mute.hint",
-    "translation": "~[channel]"
+    "translation": "~[kanal]"
   },
   {
     "id": "api.command_mute.error",
@@ -7239,7 +7239,7 @@
   },
   {
     "id": "api.command_join.hint",
-    "translation": "~[channel]"
+    "translation": "~[kanal]"
   },
   {
     "id": "api.command_join.fail.app_error",
@@ -7287,7 +7287,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[användarnamn] ~[kanal]"
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
@@ -7606,7 +7606,7 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Contact Us request"
+    "translation": "Mattermost Kontakta oss-begäran"
   },
   {
     "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
@@ -8397,5 +8397,73 @@
   {
     "id": "April",
     "translation": "April"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Kunde inte tolka sökresultatet"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Sökningen avslutades felaktigt"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Filsökning med Elasticsearch är avstängt på servern"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Misslyckades att indexera filen"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Misslyckades att radera användarfiler"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Misslyckades att radera meddelandefiler"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Misslyckades att radera fil"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Misslyckades att skapa Elasticsearch-mall för filer"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Misslyckades att stänga filindexeringen."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Misslyckades slutföra filsökningen."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Misslyckades att indexera batchen med filer."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Misslyckades att indexera filen."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Misslyckades att radera användarens filer."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Misslyckades att radera meddelandets filer."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Misslyckades att radera filen."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Misslyckades att radera filen."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Fel då Bleve-index skulle skapas."
   }
 ]
