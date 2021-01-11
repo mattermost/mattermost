@@ -4,13 +4,12 @@
 package storetest
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"net/url"
 	"os"
 	"path"
-
-	"database/sql"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"

@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -13,7 +14,7 @@ type OnlineProvider struct {
 }
 
 const (
-	CMD_ONLINE = "online"
+	CmdOnline = "online"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (*OnlineProvider) GetTrigger() string {
-	return CMD_ONLINE
+	return CmdOnline
 }
 
 func (*OnlineProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ONLINE,
+		Trigger:          CmdOnline,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_online.desc"),
 		DisplayName:      T("api.command_online.name"),

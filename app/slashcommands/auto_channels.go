@@ -27,11 +27,11 @@ func NewAutoChannelCreator(a *app.App, team *model.Team, userId string) *AutoCha
 		team:               team,
 		userId:             userId,
 		Fuzzy:              false,
-		DisplayNameLen:     CHANNEL_DISPLAY_NAME_LEN,
+		DisplayNameLen:     ChannelDisplayNameLen,
 		DisplayNameCharset: utils.ALPHANUMERIC,
-		NameLen:            CHANNEL_NAME_LEN,
+		NameLen:            ChannelNameLen,
 		NameCharset:        utils.LOWERCASE,
-		ChannelType:        CHANNEL_TYPE,
+		ChannelType:        ChannelType,
 	}
 }
 
