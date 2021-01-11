@@ -75,10 +75,20 @@ func (api *API) InitSystem() {
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 
-	// CHeck if is admin or not (has any admin role)
+	// Checking to see if the user is a admin of any sort or not
+	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
 
-	// Check if licensed or not (has e20 or e10)
+	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
+	if c.App.Srv().License() == nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusNotImplemented)
+		return
+	}
 
+	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
 	if c.App.SearchEngine().ElasticsearchEngine != nil {
@@ -86,31 +96,65 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		elasticServerPlugins = c.App.SearchEngine().ElasticsearchEngine.GetPlugins()
 	}
 
-	driverName, driverVersion := c.App.Srv().DatabaseTypeAndVersion()
+	// Here we are getting information regarding LDAP
+	ldapInterface := c.App.Ldap()
+	var vendorName, vendorVersion string
+	if ldapInterface != nil {
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	}
+
+	// Here we are getting information regarding the database (mysql/postgres + version)
+	databaseType, databaseVersion := c.App.Srv().DatabaseTypeAndVersion()
+
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
 		ServerOS:             runtime.GOOS,
 		ServerArchitecture:   runtime.GOARCH,
-		DatabaseType:         driverName,
-		DatabaseVersion:      driverVersion,
+		DatabaseType:         databaseType,
+		DatabaseVersion:      databaseVersion,
+		LdapVendorName:       vendorName,
+		LdapVendorVersion:    vendorVersion,
 		ElasticServerVersion: elasticServerVersion,
 		ElasticServerPlugins: elasticServerPlugins,
 	}
 
-	fmt.Printf("\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", supportPacket)
-
 	// Marshal to a Yaml File
 	supportPacketYaml, _ := yaml.Marshal(&supportPacket)
 
+	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
 	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
 
+	// Creating an array of files that we are going to be adding to our zip file
 	fileDatas := []model.FileData{
 		{
 			Filename: "support_packet.yaml",
 			Body:     supportPacketYaml,
 		},
+	}
+
+	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
+	pluginsResponse, appErr := c.App.GetPlugins()
+	if appErr == nil {
+		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+		if err == nil {
+			fileDatas = append(fileDatas,
+				model.FileData{
+					Filename: "plugins.json",
+					Body:     pluginsPrettyJSON,
+				})
+		}
+	}
+
+	// Getting sanitized config, prettifying it, and then adding it to our file data array
+	sanitizedConfigPrettyJson, err := json.MarshalIndent(c.App.GetSanitizedConfig(), "", "    ")
+	if err == nil {
+		fileDatas = append(fileDatas,
+			model.FileData{
+				Filename: "sanitized_config.json",
+				Body:     sanitizedConfigPrettyJson,
+			})
 	}
 
 	// Getting mattermost.log and notifications.log
@@ -140,51 +184,34 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Create Zip File
+	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(outputZipFilename)
 	if err != nil {
-		c.Err = model.NewAppError("generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	// We don't want to keep the zip file so defer the deletion until after this function is ran
+	// Since this is temporary zip, we don't want to keep the zip file so defer the deletion until after this function is ran
 	defer os.Remove(outputZipFilename)
 
 	// Create a zip writer that will write to our zip file
 	zipFileWriter := zip.NewWriter(conglomerateZipFile)
 
-	// Populate Zip file with File Datas
-	err = populateZipfile(zipFileWriter, fileDatas)
+	// Populate Zip file with File Datas array
+	err = model.PopulateZipfile(zipFileWriter, fileDatas)
 	if err != nil {
-		c.Err = model.NewAppError("generateSupportPacket", "api.unable_to_populate_zip_file", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_populate_zip_file", nil, err.Error(), http.StatusForbidden)
 		return
 	}
 
+	// Send the zip file back to client
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	// writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, conglomerateZipFile, true, w, r)
-	// if err != nil {
-	// 	c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
-	// 	return
-	// }
-}
-
-// This is a implementation of Go's example of writing files to zip (with slight modification)
-// https://golang.org/src/archive/zip/example_test.go
-func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
-	for _, fd := range fileDatas {
-		f, err := w.Create(fd.Filename)
-		if err != nil {
-			return err
-		}
-
-		_, err = f.Write(fd.Body)
-		if err != nil {
-			return err
-		}
+	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, conglomerateZipFile, true, w, r)
+	if err != nil {
+		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
+		return
 	}
-	defer w.Close()
-	return nil
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
