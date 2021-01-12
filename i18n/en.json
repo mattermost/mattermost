@@ -1787,6 +1787,10 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Unable to parse the request body."
   },
@@ -8261,6 +8265,10 @@
   {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "Command does not exist."
+  },
+  {
+    "id": "store.sql_file_info.search.disabled",
+    "translation": "Searching files has been disabled on this server. Please contact your System Administrator."
   },
   {
     "id": "store.sql_post.search.disabled",

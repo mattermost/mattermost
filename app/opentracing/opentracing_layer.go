@@ -12763,6 +12763,28 @@ func (a *OpenTracingAppLayer) SearchEngine() *searchengine.Broker {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SearchFilesInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page int, perPage int) (*model.FileInfoList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchFilesInTeamForUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SearchFilesInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SearchGroupChannels")

@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -298,4 +300,197 @@ func TestCopyFileInfos(t *testing.T) {
 
 	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
 	assert.Equal(t, info2.PostId, "", "should be empty string")
+}
+
+func TestSearchFilesInTeamForUser(t *testing.T) {
+	perPage := 5
+	searchTerm := "searchTerm"
+
+	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.FileInfo) {
+		th := Setup(t).InitBasic()
+
+		fileInfos := make([]*model.FileInfo, 7)
+		for i := 0; i < cap(fileInfos); i++ {
+			fileInfo, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
+				CreatorId: th.BasicUser.Id,
+				PostId:    th.BasicPost.Id,
+				Name:      searchTerm,
+				Path:      searchTerm,
+				Extension: "jpg",
+				MimeType:  "image/jpeg",
+			})
+			time.Sleep(1 * time.Millisecond)
+
+			require.Nil(t, err)
+
+			fileInfos[i] = fileInfo
+		}
+
+		if enableElasticsearch {
+			th.App.Srv().SetLicense(model.NewTestLicense("elastic_search"))
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableIndexing = true
+				*cfg.ElasticsearchSettings.EnableSearching = true
+			})
+		} else {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ElasticsearchSettings.EnableSearching = false
+			})
+		}
+
+		return th, fileInfos
+	}
+
+	t.Run("should return everything as first page of fileInfos from database", func(t *testing.T) {
+		th, fileInfos := setup(t, false)
+		defer th.TearDown()
+
+		page := 0
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		require.NotNil(t, results)
+		assert.Equal(t, []string{
+			fileInfos[6].Id,
+			fileInfos[5].Id,
+			fileInfos[4].Id,
+			fileInfos[3].Id,
+			fileInfos[2].Id,
+			fileInfos[1].Id,
+			fileInfos[0].Id,
+		}, results.Order)
+	})
+
+	t.Run("should not return later pages of fileInfos from database", func(t *testing.T) {
+		th, _ := setup(t, false)
+		defer th.TearDown()
+
+		page := 1
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		require.NotNil(t, results)
+		assert.Equal(t, []string{}, results.Order)
+	})
+
+	t.Run("should return first page of fileInfos from ElasticSearch", func(t *testing.T) {
+		th, fileInfos := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+		resultsPage := []string{
+			fileInfos[6].Id,
+			fileInfos[5].Id,
+			fileInfos[4].Id,
+			fileInfos[3].Id,
+			fileInfos[2].Id,
+		}
+
+		es := &mocks.SearchEngineInterface{}
+		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		require.NotNil(t, results)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return later pages of fileInfos from ElasticSearch", func(t *testing.T) {
+		th, fileInfos := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+		resultsPage := []string{
+			fileInfos[1].Id,
+			fileInfos[0].Id,
+		}
+
+		es := &mocks.SearchEngineInterface{}
+		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		require.NotNil(t, results)
+		assert.Equal(t, resultsPage, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
+		th, fileInfos := setup(t, true)
+		defer th.TearDown()
+
+		page := 0
+
+		es := &mocks.SearchEngineInterface{}
+		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(nil, &model.AppError{})
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		require.NotNil(t, results)
+		assert.Equal(t, []string{
+			fileInfos[6].Id,
+			fileInfos[5].Id,
+			fileInfos[4].Id,
+			fileInfos[3].Id,
+			fileInfos[2].Id,
+			fileInfos[1].Id,
+			fileInfos[0].Id,
+		}, results.Order)
+		es.AssertExpectations(t)
+	})
+
+	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
+		th, _ := setup(t, true)
+		defer th.TearDown()
+
+		page := 1
+
+		es := &mocks.SearchEngineInterface{}
+		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(nil, &model.AppError{})
+		es.On("GetName").Return("mock")
+		es.On("Start").Return(nil).Maybe()
+		es.On("IsActive").Return(true)
+		es.On("IsSearchEnabled").Return(true)
+		th.App.Srv().SearchEngine.ElasticsearchEngine = es
+		defer func() {
+			th.App.Srv().SearchEngine.ElasticsearchEngine = nil
+		}()
+
+		results, err := th.App.SearchFilesInTeamForUser(searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+
+		require.Nil(t, err)
+		assert.Equal(t, []string{}, results.Order)
+		es.AssertExpectations(t)
+	})
 }

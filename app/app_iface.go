@@ -880,6 +880,7 @@ type AppIface interface {
 	SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError)
 	SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 	SearchEngine() *searchengine.Broker
+	SearchFilesInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.FileInfoList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
 	SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError)
