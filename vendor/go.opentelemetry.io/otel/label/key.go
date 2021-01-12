@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package label
+package label // import "go.opentelemetry.io/otel/label"
 
 // Key represents the key part in key-value pairs. It's a string. The
 // allowed character set in the key depends on the use of the key.

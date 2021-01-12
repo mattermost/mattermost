@@ -6,11 +6,12 @@ package searchlayer
 import (
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/pkg/errors"
 )
 
 type SearchUserStore struct {
@@ -37,7 +38,7 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 		if engine.IsSearchEnabled() {
 			listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
 			if nErr != nil {
-				mlog.Error("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				mlog.Warn("Encountered error on Search.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
@@ -49,13 +50,13 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 
 			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
 			if err != nil {
-				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 
 			users, nErr := s.UserStore.GetProfileByIds(usersIds, nil, false)
 			if nErr != nil {
-				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				mlog.Warn("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 
@@ -90,7 +91,7 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 func (s *SearchUserStore) PermanentDelete(userId string) error {
 	user, userErr := s.UserStore.Get(userId)
 	if userErr != nil {
-		mlog.Error("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
+		mlog.Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}
 	err := s.UserStore.PermanentDelete(userId)
 	if err == nil && userErr == nil {
@@ -196,7 +197,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 		if engine.IsAutocompletionEnabled() {
 			listOfAllowedChannels, nErr := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
 			if nErr != nil {
-				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 			if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
@@ -205,7 +206,7 @@ func (s *SearchUserStore) AutocompleteUsersInChannel(teamId, channelId, term str
 			options.ListOfAllowedChannels = listOfAllowedChannels
 			autocomplete, nErr := s.autocompleteUsersInChannelByEngine(engine, teamId, channelId, term, options)
 			if nErr != nil {
-				mlog.Error("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
+				mlog.Warn("Encountered error on AutocompleteUsersInChannel.", mlog.String("search_engine", engine.GetName()), mlog.Err(nErr))
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))
