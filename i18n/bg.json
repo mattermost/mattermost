@@ -8393,5 +8393,9 @@
   {
     "id": "April",
     "translation": "Април"
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Неуспешно получаване на код за удостоверяване."
   }
 ]
