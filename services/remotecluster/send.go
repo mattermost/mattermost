@@ -106,7 +106,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 	}
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
-	resp, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
+	respJSON, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
 	response := make(Response)
 
 	if err != nil {
@@ -118,7 +118,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
 
-		if errDecode := json.Unmarshal(resp, &response); errDecode != nil {
+		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
 			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster", mlog.String("remote", task.rc.DisplayName), mlog.Err(errDecode))
 			response[ResponseErrorKey] = errDecode.Error()
 		}
