@@ -8,8 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 // Test race condition when shutting down advanced logging. This test must run with the -race flag in order to verify

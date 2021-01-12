@@ -6,13 +6,14 @@ package model
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	_ "image/gif"
 	_ "image/png"
 	"io/ioutil"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFileInfoIsValid(t *testing.T) {
