@@ -3264,7 +3264,6 @@ func (c *Client4) GenerateSupportPacket() ([]byte, *Response) {
 	defer closeBody(r)
 
 	data, err := ioutil.ReadAll(r.Body)
-	fmt.Printf("%+v", data)
 	if err != nil {
 		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
 	}

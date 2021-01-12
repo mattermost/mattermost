@@ -121,11 +121,6 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Marshal to a Yaml File
 	supportPacketYaml, _ := yaml.Marshal(&supportPacket)
 
-	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
-	now := time.Now()
-	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
-	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
-
 	// Creating an array of files that we are going to be adding to our zip file
 	fileDatas := []model.FileData{
 		{
@@ -183,6 +178,11 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
+
+	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
+	now := time.Now()
+	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
+	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
 
 	// Create Zip File (temporarily stored on disk)
 	conglomerateZipFile, err := os.Create(outputZipFilename)
