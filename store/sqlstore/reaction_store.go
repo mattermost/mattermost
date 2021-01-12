@@ -199,34 +199,14 @@ func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transacti
 			return err
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
-		count, err := transaction.SelectInt(
-			`SELECT
-				count(0)
-			FROM
+		if _, err := transaction.Exec(
+			`INSERT INTO
 				Reactions
-			WHERE
-				UserId = :UserId
-				AND PostId = :PostId
-				AND EmojiName = :EmojiName`, params)
-		if err != nil {
-			return err
-		}
-
-		if count == 1 {
-			// re-saving a previously soft deleted reaction; just clear the DeletAt field.
-			if _, err := transaction.Exec(
-				`UPDATE
-					Reactions
-				SET 
-					UpdateAt = :UpdateAt, DeleteAt = 0
-				WHERE
-					PostId = :PostId AND
-					UserId = :UserId AND
-					EmojiName = :EmojiName`, params); err != nil {
-				return err
-			}
-		} else if err := transaction.Insert(reaction); err != nil {
+				(UserId, PostId, EmojiName, CreateAt, UpdateAt, DeleteAt)
+			VALUES
+				(:UserId, :PostId, :EmojiName, :CreateAt, :UpdateAt, 0)
+			ON CONFLICT (UserId, PostId, EmojiName) 
+				DO UPDATE SET UpdateAt = :UpdateAt, DeleteAt = 0`, params); err != nil {
 			return err
 		}
 	}
