@@ -65,7 +65,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 			return nil, fmt.Sprintf("%v: invalid number of posts: %v != %v", testCase.description, testCase.expectedPostsLen, len(posts))
 		}
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {

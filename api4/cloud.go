@@ -311,7 +311,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := writeFileResponse(
+	writeFileResponse(
 		filename,
 		"application/pdf",
 		int64(binary.Size(pdfData)),
@@ -322,10 +322,6 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		w,
 		r,
 	)
-	if err != nil {
-		c.Err = err
-		return
-	}
 }
 
 func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -63,7 +63,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if img2.At(2, 3) != colorful {
 		return nil, fmt.Sprintf("color mismatch %v != %v", img2.At(2, 3), colorful)
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {
