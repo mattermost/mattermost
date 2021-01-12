@@ -288,7 +288,11 @@ func TestGetReplica(t *testing.T) {
 						assert.NotSame(t, searchReplica, replica)
 					}
 				}
-
+			} else if len(testCase.DataSourceReplicas) > 0 {
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
 			} else if len(testCase.DataSourceReplicas) == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
@@ -338,6 +342,11 @@ func TestGetReplica(t *testing.T) {
 					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 
+			} else if len(testCase.DataSourceReplicas) > 0 {
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
