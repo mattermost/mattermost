@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  aws-s3: circleci/aws-s3@1.0.11
+  aws-s3: circleci/aws-s3@2.0.0
   owasp: entur/owasp@0.0.10
 
 executors:
@@ -177,7 +177,7 @@ jobs:
             export PATH=$PATH:$GOBIN
             cd mattermost-server
             make config-reset
-            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+            make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
