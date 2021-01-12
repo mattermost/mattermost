@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -28,6 +29,7 @@ func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
 }
 
 func (ms *mockServer) Config() *model.Config                                  { return nil }
+func (ms *mockServer) GetMetrics() einterfaces.MetricsInterface               { return nil }
 func (ms *mockServer) IsLeader() bool                                         { return true }
 func (ms *mockServer) AddClusterLeaderChangedListener(listener func()) string { return model.NewId() }
 func (ms *mockServer) RemoveClusterLeaderChangedListener(id string)           {}

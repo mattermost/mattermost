@@ -1191,7 +1191,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.startInterClusterServices(s.License())
+	if license := s.License(); license != nil {
+		s.startInterClusterServices(license)
+	}
 
 	return nil
 }
@@ -1671,4 +1673,10 @@ func (s *Server) GetStore() store.Store {
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 	return s.remoteClusterService
+}
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
 }
