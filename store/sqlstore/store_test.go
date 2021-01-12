@@ -289,7 +289,7 @@ func TestGetReplica(t *testing.T) {
 					}
 				}
 
-			} else if assert.Len(t, searchReplicas, 1) {
+			} else if len(testCase.DataSourceReplicas) == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
 					assert.Same(t, store.GetMaster(), searchReplica)
