@@ -218,7 +218,7 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return *paths, nil
+	return paths, nil
 }
 
 func (a *App) RemoveDirectory(path string) *model.AppError {

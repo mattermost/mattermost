@@ -249,7 +249,7 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 
 	paths, err := s.backend.ListDirectory("19700101")
 	s.Nil(err)
-	s.Len(*paths, 0)
+	s.Len(paths, 0)
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -261,20 +261,20 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 
 	paths, err = s.backend.ListDirectory("19700101")
 	s.Nil(err)
-	s.Len(*paths, 1)
-	s.Equal(path1, (*paths)[0])
+	s.Len(paths, 1)
+	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("19700101/")
 	s.Nil(err)
-	s.Len(*paths, 1)
-	s.Equal(path1, (*paths)[0])
+	s.Len(paths, 1)
+	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
 
 	found1 := false
 	found2 := false
-	for _, path := range *paths {
+	for _, path := range paths {
 		if path == "19700101" {
 			found1 = true
 		} else if path == "19800101" {

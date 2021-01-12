@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hashicorp/go-immutable-radix"
+	iradix "github.com/hashicorp/go-immutable-radix"
 )
 
 // Config is used to configure metrics settings
@@ -46,6 +46,11 @@ var globalMetrics atomic.Value // *Metrics
 func init() {
 	// Initialize to a blackhole sink to avoid errors
 	globalMetrics.Store(&Metrics{sink: &BlackholeSink{}})
+}
+
+// Default returns the shared global metrics instance.
+func Default() *Metrics {
+	return globalMetrics.Load().(*Metrics)
 }
 
 // DefaultConfig provides a sane default configuration

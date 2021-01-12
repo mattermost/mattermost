@@ -3,7 +3,9 @@
 
 package searchlayer
 
-import "strings"
+import (
+	"strings"
+)
 
 func sanitizeSearchTerm(term string) string {
 	return strings.TrimLeft(term, "@")
