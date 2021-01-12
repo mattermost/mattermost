@@ -53,7 +53,6 @@ func TestNoticeValidation(t *testing.T) {
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
-		locale               string
 		sku                  string
 		postCount, userCount int64
 		cloud                bool
