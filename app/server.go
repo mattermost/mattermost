@@ -639,7 +639,7 @@ func (s *Server) AppOptions() []AppOption {
 // Return Database type (postgres or mysql) and current version
 func (s *Server) DatabaseTypeAndVersion() (string, string) {
 	driverVersion, _ := s.Store.System().GetByName("Version")
-	return s.sqlStore.DriverName(), driverVersion.Value
+	return *s.Config().SqlSettings.DriverName, driverVersion.Value
 }
 
 // initLogging initializes and configures the logger. This may be called more than once.
