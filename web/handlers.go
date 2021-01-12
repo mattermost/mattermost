@@ -154,7 +154,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// do not get cut off.
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
-	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := *c.App.Config().ServiceSettings.SiteURL
 	c.SetSiteURLHeader(siteURLHeader)
 
