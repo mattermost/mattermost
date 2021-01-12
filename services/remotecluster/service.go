@@ -123,8 +123,8 @@ func (rcs *Service) AddTopicListener(topic string, listener TopicListener) strin
 
 	id := model.NewId()
 
-	entries, ok := rcs.topicListeners[topic]
-	if !ok || entries == nil {
+	listeners, ok := rcs.topicListeners[topic]
+	if !ok || listeners == nil {
 		rcs.topicListeners[topic] = make(map[string]TopicListener)
 	}
 	rcs.topicListeners[topic][id] = listener
