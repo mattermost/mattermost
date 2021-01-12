@@ -1071,6 +1071,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte((autocomplete.ToJson())))
 }
 
+func convertToUserPatch(user *model.User) *model.UserPatch {
+	return &model.UserPatch{
+		FirstName: &user.FirstName, LastName: &user.LastName, Nickname: &user.Nickname,
+		Position: &user.Position, Email: &user.Email, Username: &user.Username,
+	}
+}
+
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -1118,6 +1125,12 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Check that the fields being updated are not set by the login provider
+	checkLoginProviderAttributes(c, ouser, convertToUserPatch(user), "updateUser")
+	if c.Err != nil {
+		return
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.App.Session().UserId == c.Params.UserId {
 		err = c.App.DoubleCheckPassword(ouser, user.Password)
@@ -1140,90 +1153,77 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-func patchUserCheckLoginProviderAttributes(c *Context, ouser *model.User, patch *model.UserPatch) {
+func isOauth(userService string) bool {
+	for _, service := range []string{
+		model.SERVICE_GOOGLE,
+		model.SERVICE_OFFICE365,
+		model.SERVICE_OPENID,
+		model.SERVICE_GITLAB,
+	} {
+		if service == userService {
+			return true
+		}
+	}
+	return false
+}
+
+func checkLoginProviderAttributes(
+	c *Context, ouser *model.User, patch *model.UserPatch, methodName string) {
+	errName := "api.user.patch_user.login_provider_attribute_set.app_error"
+	if methodName == "updateUser" {
+		errName = "api.user.update_user.login_provider_attribute_set.app_error"
+	}
 	const (
-		firstNameField = "first_name"
-		lastNameField  = "last_name"
-		nicknameField  = "nickname"
-		positionField  = "position"
-		emailField     = "email"
-		usernameField  = "username"
+		LDAP = model.USER_AUTH_SERVICE_LDAP
+		SAML = model.USER_AUTH_SERVICE_SAML
 	)
-	// If LDAP or SAML is used, and any of the following attributes have been specified
-	// in the settings, then their corresponding fields may not be changed
 	LS := &c.App.Config().LdapSettings
 	SS := &c.App.Config().SamlSettings
-	for _, provider := range []struct {
-		AuthService        string
-		FirstNameAttribute *string
-		LastNameAttribute  *string
-		NicknameAttribute  *string
-		PositionAttribute  *string
-		EmailAttribute     *string
+	// If LDAP or SAML is used, and either the first name or the last name are already set,
+	// or OAUTH is used, then neither the first name nor the last name may be modified
+	if ((patch.FirstName != nil && *patch.FirstName != ouser.FirstName) ||
+		(patch.LastName != nil && *patch.LastName != ouser.LastName)) &&
+		((ouser.AuthService == LDAP && (*LS.FirstNameAttribute != "" || *LS.LastNameAttribute != "")) ||
+			(ouser.AuthService == SAML && (*SS.FirstNameAttribute != "" || *SS.LastNameAttribute != "")) ||
+			isOauth(ouser.AuthService)) {
+		c.Err = model.NewAppError(
+			methodName, errName,
+			map[string]interface{}{"Field": "full name"}, "", http.StatusConflict)
+		return
+	}
+	// If LDAP or SAML is used, and any of the following attributes have been specified
+	// in the settings, then their corresponding fields may not be changed
+	for _, attr := range []struct {
+		authService string
+		name        string
+		patchValue  *string
+		userValue   *string
+		selector    *string
 	}{
-		{model.USER_AUTH_SERVICE_LDAP, LS.FirstNameAttribute, LS.LastNameAttribute, LS.NicknameAttribute,
-			LS.PositionAttribute, LS.EmailAttribute},
-		{model.USER_AUTH_SERVICE_SAML, SS.FirstNameAttribute, SS.LastNameAttribute, SS.NicknameAttribute,
-			SS.PositionAttribute, SS.EmailAttribute},
+		{LDAP, "nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
+		{LDAP, "position", patch.Position, &ouser.Position, LS.PositionAttribute},
+		{LDAP, "email", patch.Email, &ouser.Email, LS.EmailAttribute},
+		{SAML, "nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
+		{SAML, "position", patch.Position, &ouser.Position, SS.PositionAttribute},
+		{SAML, "email", patch.Email, &ouser.Email, SS.EmailAttribute},
 	} {
-		if ouser.AuthService != provider.AuthService {
+		if ouser.AuthService != attr.authService {
 			continue
 		}
-		for _, attr := range []struct {
-			name       string
-			patchValue *string
-			userValue  *string
-			selector   *string
-		}{
-			{firstNameField, patch.FirstName, &ouser.FirstName, provider.FirstNameAttribute},
-			{lastNameField, patch.LastName, &ouser.LastName, provider.LastNameAttribute},
-			{nicknameField, patch.Nickname, &ouser.Nickname, provider.NicknameAttribute},
-			{positionField, patch.Position, &ouser.Position, provider.PositionAttribute},
-			{emailField, patch.Email, &ouser.Email, provider.EmailAttribute},
-		} {
-			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
-				c.Err = model.NewAppError(
-					"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-					map[string]interface{}{"Field": attr.name}, "", http.StatusConflict)
-				return
-			}
+		if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+			c.Err = model.NewAppError(
+				methodName, errName,
+				map[string]interface{}{"Field": attr.name}, "", http.StatusConflict)
+			return
 		}
 	}
 	// If any login provider is used, then the username may not be changed
 	if ouser.AuthService != "" && patch.Username != nil && *patch.Username != ouser.Username {
 		c.Err = model.NewAppError(
-			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": usernameField}, "",
+			methodName, errName,
+			map[string]interface{}{"Field": "username"}, "",
 			http.StatusConflict)
 		return
-	}
-	// If an OAUTH provider is used then neither the first name nor the last
-	// name may be changed
-	for _, oauthService := range []string{
-		model.USER_AUTH_SERVICE_GITLAB,
-		"google",
-		"office365",
-		"openid",
-	} {
-		if ouser.AuthService != oauthService {
-			continue
-		}
-		for _, attr := range []struct {
-			name       string
-			patchValue *string
-			userValue  *string
-		}{
-			{firstNameField, patch.FirstName, &ouser.FirstName},
-			{lastNameField, patch.FirstName, &ouser.LastName},
-		} {
-			if attr.patchValue != nil && *attr.patchValue != *attr.userValue {
-				c.Err = model.NewAppError(
-					"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-					map[string]interface{}{"Field": attr.name}, "",
-					http.StatusConflict)
-				return
-			}
-		}
 	}
 }
 
@@ -1268,7 +1268,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	patchUserCheckLoginProviderAttributes(c, ouser, patch)
+	checkLoginProviderAttributes(c, ouser, patch, "patchUser")
 	if c.Err != nil {
 		return
 	}

@@ -3324,7 +3324,7 @@
   },
   {
     "id": "api.user.patch_user.login_provider_attribute_set.app_error",
-    "translation": "Field '{{.Field}}' must be set through user's login provider"
+    "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
   {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
