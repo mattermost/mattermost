@@ -2,6 +2,7 @@ package psd
 
 import (
 	"io"
+	"io/ioutil"
 	"math"
 	"unicode/utf16"
 )
@@ -122,7 +123,8 @@ func discard(r io.Reader, skip int) (read int, err error) {
 		}
 		return skip, nil
 	default:
-		return io.ReadFull(r, make([]byte, skip))
+		rd, err := io.CopyN(ioutil.Discard, r, int64(skip))
+		return int(rd), err
 	}
 }
 

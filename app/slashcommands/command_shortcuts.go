@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -13,7 +14,7 @@ type ShortcutsProvider struct {
 }
 
 const (
-	CMD_SHORTCUTS = "shortcuts"
+	CmdShortcuts = "shortcuts"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (*ShortcutsProvider) GetTrigger() string {
-	return CMD_SHORTCUTS
+	return CmdShortcuts
 }
 
 func (*ShortcutsProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_SHORTCUTS,
+		Trigger:          CmdShortcuts,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_shortcuts.desc"),
 		AutoCompleteHint: "",

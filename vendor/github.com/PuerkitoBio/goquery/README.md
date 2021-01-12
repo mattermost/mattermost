@@ -37,6 +37,7 @@ Please note that because of the net/html dependency, goquery requires Go1.1+.
 
 **Note that goquery's API is now stable, and will not break.**
 
+*    **2020-10-08 (v1.6.0)** : Parse html in context of the container node for all functions that deal with html strings (`AfterHtml`, `AppendHtml`, etc.). Thanks to [@thiemok][thiemok] and [@davidjwilkins][djw] for their work on this.
 *    **2020-02-04 (v1.5.1)** : Update module dependencies.
 *    **2018-11-15 (v1.5.0)** : Go module support (thanks @Zaba505).
 *    **2018-06-07 (v1.4.1)** : Add `NewDocumentFromReader` examples.
@@ -143,8 +144,9 @@ func main() {
 - [gnulnx/goperf](https://github.com/gnulnx/goperf), a website performance test tool that also fetches static assets.
 - [MontFerret/ferret](https://github.com/MontFerret/ferret), declarative web scraping.
 - [tacusci/berrycms](https://github.com/tacusci/berrycms), a modern simple to use CMS with easy to write plugins
-- [Dataflow kit](https://github.com/slotix/dataflowkit), Web Scraping framework for Gophers.  
+- [Dataflow kit](https://github.com/slotix/dataflowkit), Web Scraping framework for Gophers.
 - [Geziyor](https://github.com/geziyor/geziyor), a fast web crawling & scraping framework for Go. Supports JS rendering.
+- [Pagser](https://github.com/foolin/pagser), a simple, easy, extensible, configurable HTML parser to struct based on goquery and struct tags.
 
 ## Support
 
@@ -181,3 +183,5 @@ The [BSD 3-Clause license][bsd], the same as the [Go language][golic]. Cascadia'
 [thatguystone]: https://github.com/thatguystone
 [piotr]: https://github.com/piotrkowalczuk
 [goq]: https://github.com/andrewstuart/goq
+[thiemok]: https://github.com/thiemok
+[djw]: https://github.com/davidjwilkins

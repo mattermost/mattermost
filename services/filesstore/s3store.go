@@ -171,11 +171,11 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	}
 
 	defer minioObject.Close()
-	if f, err := ioutil.ReadAll(minioObject); err != nil {
+	f, err := ioutil.ReadAll(minioObject)
+	if err != nil {
 		return nil, errors.Wrapf(err, "unable to read file %s", path)
-	} else {
-		return f, nil
 	}
+	return f, nil
 }
 
 func (b *S3FileBackend) FileExists(path string) (bool, error) {
@@ -338,7 +338,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
+func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && len(path) > 0 {
 		// s3Clnt returns only the path itself when "/" is not present
@@ -363,7 +363,7 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
 		}
 	}
 
-	return &paths, nil
+	return paths, nil
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {

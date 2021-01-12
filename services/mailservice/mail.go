@@ -10,15 +10,14 @@ import (
 	"io"
 	"mime"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/smtp"
 	"time"
 
+	"github.com/jaytaylor/html2text"
 	gomail "gopkg.in/mail.v2"
 
-	"net/http"
-
-	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
@@ -184,7 +183,6 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 	if hostname != "" {
 		err := c.Hello(hostname)
 		if err != nil {
-			mlog.Error("Failed to to set the HELO to SMTP server", mlog.Err(err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
