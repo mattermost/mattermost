@@ -1069,28 +1069,34 @@ func TestSearchFiles(t *testing.T) {
 
 	filename := "search for fileInfo1"
 	fileInfo1, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	filename = "search for fileInfo2"
 	fileInfo2, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	filename = "tagged search for fileInfo3"
 	fileInfo3, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	filename = "tagged for fileInfo4"
 	fileInfo4, err := th.App.UploadFile(data, th.BasicChannel.Id, filename)
+	require.Nil(t, err)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
 	fileInfo5, err := th.App.UploadFile(data, archivedChannel.Id, "tagged for fileInfo3")
+	require.Nil(t, err)
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
+	CheckNoError(t, resp)
 	err = th.App.Srv().Store.FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	th.Client.DeleteChannel(archivedChannel.Id)
