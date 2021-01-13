@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestSanitizePath(t *testing.T) {

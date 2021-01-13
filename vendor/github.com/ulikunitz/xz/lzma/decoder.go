@@ -200,7 +200,7 @@ func (d *decoder) decompress() error {
 		op, err := d.readOp()
 		switch err {
 		case nil:
-			break
+			// break
 		case errEOS:
 			d.eos = true
 			if !d.rd.possiblyAtEnd() {
