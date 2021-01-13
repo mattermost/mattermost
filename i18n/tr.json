@@ -8324,7 +8324,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": " "
+    "translation": "Kimlik doğrulama kodu alınamadı."
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
