@@ -1,6 +1,6 @@
 module github.com/getsentry/sentry-go
 
-go 1.12
+go 1.13
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
@@ -13,7 +13,7 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/kataras/iris/v12 v12.0.1
+	github.com/kataras/iris/v12 v12.1.8
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
@@ -21,6 +21,7 @@ require (
 	github.com/pingcap/errors v0.11.4
 	github.com/pkg/errors v0.8.1
 	github.com/sergi/go-diff v1.0.0 // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/urfave/negroni v1.0.0

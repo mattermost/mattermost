@@ -16,6 +16,9 @@ type FeatureFlags struct {
 	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
 	CloudDelinquentEmailJobsEnabled bool
 
+	// Toggle on and off support for Collapsed Threads
+	CollapsedThreads bool
+
 	// Enable the remote cluster service for shared channels.
 	EnableRemoteClusterService bool
 
@@ -27,6 +30,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
+	f.CollapsedThreads = false
 	f.EnableRemoteClusterService = false
 	f.PluginIncidentManagement = "1.1.1"
 }

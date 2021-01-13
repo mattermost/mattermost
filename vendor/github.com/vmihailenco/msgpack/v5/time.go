@@ -6,16 +6,30 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/vmihailenco/msgpack/v5/codes"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 var timeExtID int8 = -1
 
-var timePtrType = reflect.TypeOf((*time.Time)(nil))
-
-//nolint:gochecknoinits
 func init() {
-	registerExt(timeExtID, timePtrType.Elem(), encodeTimeValue, decodeTimeValue)
+	RegisterExtEncoder(timeExtID, time.Time{}, timeEncoder)
+	RegisterExtDecoder(timeExtID, time.Time{}, timeDecoder)
+}
+
+func timeEncoder(e *Encoder, v reflect.Value) ([]byte, error) {
+	return e.encodeTime(v.Interface().(time.Time)), nil
+}
+
+func timeDecoder(d *Decoder, v reflect.Value, extLen int) error {
+	tm, err := d.decodeTime(extLen)
+	if err != nil {
+		return err
+	}
+
+	ptr := v.Addr().Interface().(*time.Time)
+	*ptr = tm
+
+	return nil
 }
 
 func (e *Encoder) EncodeTime(tm time.Time) error {
@@ -56,62 +70,56 @@ func (e *Encoder) encodeTime(tm time.Time) []byte {
 }
 
 func (d *Decoder) DecodeTime() (time.Time, error) {
-	tm, err := d.decodeTime()
+	c, err := d.readCode()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// Legacy format.
+	if c == msgpcode.FixedArrayLow|2 {
+		sec, err := d.DecodeInt64()
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		nsec, err := d.DecodeInt64()
+		if err != nil {
+			return time.Time{}, err
+		}
+
+		return time.Unix(sec, nsec), nil
+	}
+
+	if msgpcode.IsString(c) {
+		s, err := d.string(c)
+		if err != nil {
+			return time.Time{}, err
+		}
+		return time.Parse(time.RFC3339Nano, s)
+	}
+
+	extID, extLen, err := d.extHeader(c)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	if extID != timeExtID {
+		return time.Time{}, fmt.Errorf("msgpack: invalid time ext id=%d", extID)
+	}
+
+	tm, err := d.decodeTime(extLen)
 	if err != nil {
 		return tm, err
 	}
 
 	if tm.IsZero() {
-		// Assume that zero time does not have timezone information.
+		// Zero time does not have timezone information.
 		return tm.UTC(), nil
 	}
 	return tm, nil
 }
 
-func (d *Decoder) decodeTime() (time.Time, error) {
-	extLen := d.extLen
-	d.extLen = 0
-	if extLen == 0 {
-		c, err := d.readCode()
-		if err != nil {
-			return time.Time{}, err
-		}
-
-		// Legacy format.
-		if c == codes.FixedArrayLow|2 {
-			sec, err := d.DecodeInt64()
-			if err != nil {
-				return time.Time{}, err
-			}
-
-			nsec, err := d.DecodeInt64()
-			if err != nil {
-				return time.Time{}, err
-			}
-
-			return time.Unix(sec, nsec), nil
-		}
-
-		if codes.IsString(c) {
-			s, err := d.string(c)
-			if err != nil {
-				return time.Time{}, err
-			}
-			return time.Parse(time.RFC3339Nano, s)
-		}
-
-		extLen, err = d.parseExtLen(c)
-		if err != nil {
-			return time.Time{}, err
-		}
-
-		// Skip ext id.
-		_, err = d.s.ReadByte()
-		if err != nil {
-			return time.Time{}, nil
-		}
-	}
-
+func (d *Decoder) decodeTime(extLen int) (time.Time, error) {
 	b, err := d.readN(extLen)
 	if err != nil {
 		return time.Time{}, err
@@ -134,22 +142,4 @@ func (d *Decoder) decodeTime() (time.Time, error) {
 		err = fmt.Errorf("msgpack: invalid ext len=%d decoding time", extLen)
 		return time.Time{}, err
 	}
-}
-
-func encodeTimeValue(e *Encoder, v reflect.Value) error {
-	tm := v.Interface().(time.Time)
-	b := e.encodeTime(tm)
-	return e.write(b)
-}
-
-func decodeTimeValue(d *Decoder, v reflect.Value) error {
-	tm, err := d.DecodeTime()
-	if err != nil {
-		return err
-	}
-
-	ptr := v.Addr().Interface().(*time.Time)
-	*ptr = tm
-
-	return nil
 }

@@ -29,7 +29,7 @@ type FileBackend interface {
 	AppendFile(fr io.Reader, path string) (int64, error)
 	RemoveFile(path string) error
 
-	ListDirectory(path string) (*[]string, error)
+	ListDirectory(path string) ([]string, error)
 	RemoveDirectory(path string) error
 }
 

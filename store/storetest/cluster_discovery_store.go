@@ -5,13 +5,13 @@ package storetest
 
 import (
 	"testing"
-
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestClusterDiscoveryStore(t *testing.T, ss store.Store) {

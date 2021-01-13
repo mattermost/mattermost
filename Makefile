@@ -542,11 +542,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
-	# Tidy up
-	$(GO) mod tidy
-
 	# Copy everything to vendor directory
 	$(GO) mod vendor
+
+	# Tidy up
+	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
