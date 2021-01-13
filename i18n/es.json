@@ -7997,5 +7997,9 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "No se fusionó con la configuración dada."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "Todavía hay tiempo para mantener su espacio de trabajo activo en Mattermost Cloud resolviendo los problemas con su método de pago. Para evitar la suspensión, actualice su método de pago."
   }
 ]
