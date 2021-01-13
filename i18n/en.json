@@ -6368,7 +6368,7 @@
   },
   {
     "id": "ent.elasticsearch.start.get_plugins.app_error",
-    "translation": "Sorry, there was an error retriving your elastic search plugins"
+    "translation": "Error retrieving elasticsearch plugins"
   },
   {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
