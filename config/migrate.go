@@ -3,7 +3,9 @@
 
 package config
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 // Migrate migrates SAML keys, certificates, and other config files from one store to another given their data source names.
 func Migrate(from, to string) error {
