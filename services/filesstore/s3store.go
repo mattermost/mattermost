@@ -142,11 +142,8 @@ func (b *S3FileBackend) TestConnection() error {
 	if exists {
 		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	} else {
-		mlog.Warn("Bucket specified does not exist. Attempting to create...")
-		err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
-		if err != nil {
-			return errors.Wrap(err, "unable to create the s3 bucket")
-		}
+		mlog.Warn("Bucket specified does not exist.")
+		return errors.New("bucket specified does not exist")
 	}
 
 	return nil
