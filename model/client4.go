@@ -3257,7 +3257,7 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // GenerateSupportPacket downloads the generated support packet
 func (c *Client4) GenerateSupportPacket() ([]byte, *Response) {
-	r, appErr := c.DoApiGet(c.GetSystemRoute()+"/generate_support_packet", "")
+	r, appErr := c.DoApiGet(c.GetSystemRoute()+"/support_packet", "")
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
