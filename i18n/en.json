@@ -1554,7 +1554,7 @@
   },
   {
     "id": "api.no_license",
-    "translation": "Sorry, you must have either a E10 or E20 license to use this endpoint"
+    "translation": "E10 or E20 license required to use this endpoint."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
