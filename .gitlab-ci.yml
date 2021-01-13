@@ -45,35 +45,35 @@ layers:
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
-test-postgres:
+.test-postgres:
   extends: .test
   variables:
     MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
     MM_SQLSETTINGS_DRIVERNAME: postgres
-    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-postgres"
+    COMPOSE_PROJECT_NAME: "${CI_PIPELINE_IID}-postgres"
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
-test-mysql:
+.test-mysql:
   extends: .test
   variables:
     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
     MM_SQLSETTINGS_DRIVERNAME: mysql
-    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-mysql"
+    COMPOSE_PROJECT_NAME: "${CI_PIPELINE_IID}-mysql"
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
 test-schema-postgres:
   extends: .test-schema
   variables:
-    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-postgres-schema"
+    COMPOSE_PROJECT_NAME: "${CI_PIPELINE_IID}-postgres-schema"
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
     - echo "Importing postgres dump from version 5.0"
     - docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
     - >
-      docker run -d -it --name server-postgres --net build_mm-test \
+      docker run -d -it --name server-postgres --net ${COMPOSE_PROJECT_NAME}_mm-test \
         --env-file="dotenv/test-schema-validation.env" \
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/migrated?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DRIVERNAME=postgres \
@@ -92,10 +92,10 @@ test-schema-postgres:
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
-test-schema-mysql:
+.test-schema-mysql:
   extends: .test-schema
   variables:
-    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-mysql-schema"
+    COMPOSE_PROJECT_NAME: "${CI_PIPELINE_IID}-mysql-schema"
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
