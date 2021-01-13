@@ -12,13 +12,13 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	// Load the MySQL driver
 	_ "github.com/go-sql-driver/mysql"
 	// Load the Postgres driver
 	_ "github.com/lib/pq"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // MaxWriteLength defines the maximum length accepted for write to the Configurations or

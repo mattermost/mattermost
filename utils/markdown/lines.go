@@ -3,7 +3,9 @@
 
 package markdown
 
-import "strings"
+import (
+	"strings"
+)
 
 type Line struct {
 	Range

@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config/config_generator/generator"
-	"github.com/stretchr/testify/require"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestDefaultsGenerator(t *testing.T) {
