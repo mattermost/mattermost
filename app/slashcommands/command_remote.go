@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
@@ -243,7 +242,7 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 			online = ":skull_and_crossbones:"
 		}
 
-		lastPing := formatTimestamp(time.Unix(0, rc.LastPingAt*int64(time.Millisecond)))
+		lastPing := formatTimestamp(model.GetTimeForMillis(rc.LastPingAt))
 
 		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
 	}

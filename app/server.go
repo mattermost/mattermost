@@ -731,7 +731,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License, app *App) {
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
 	// 	TODO: use license once one can be genenerated
 	allowRemoteClusterService := true // license != nil && *license.Features.RemoteClusterService
 	allowSharedChannels := true       //license != nil && *license.Features.SharedChannels
@@ -741,27 +741,25 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) {
 	// License check
 	if !allowRemoteClusterService {
 		mlog.Debug("License does not have Remote Cluster services enabled")
-		return
+		return nil
 	}
 
 	// Config check
 	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
 		mlog.Debug("Remote Cluster Service disabled via config")
-		return
+		return nil
 	}
 
 	var err error
 
 	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
 	if err != nil {
-		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
-		return
+		return err
 	}
 
 	if err = s.remoteClusterService.Start(); err != nil {
-		mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
 		s.remoteClusterService = nil
-		return
+		return err
 	}
 
 	// Shared Channels Sync service
@@ -769,26 +767,25 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) {
 	// License check
 	if !allowSharedChannels {
 		mlog.Debug("License does not have shared channels enabled")
-		return
+		return nil
 	}
 
 	// Config check
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channel Sync Service disabled via config")
-		return
+		return nil
 	}
 
 	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
-		mlog.Error("Error initializing Shared Channel Sync Service", mlog.Err(err))
-		return
+		return err
 	}
 
 	if err = s.sharedChannelSyncService.Start(); err != nil {
-		mlog.Error("Error starting Shared Channel Sync Service", mlog.Err(err))
 		s.remoteClusterService = nil
-		return
+		return err
 	}
+	return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -1221,7 +1218,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.startInterClusterServices(s.License(), s.WebSocketRouter.app)
+	if err = s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
 
 	return nil
 }

@@ -83,10 +83,8 @@ func (scs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
-	var id string
-
 	scs.mux.RLock()
-	id = scs.leaderListenerId
+	id := scs.leaderListenerId
 	scs.mux.RUnlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
