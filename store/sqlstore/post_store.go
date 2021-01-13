@@ -1511,28 +1511,30 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
-	query :=
-		`SELECT
-			COUNT(Posts.Id) AS Value
-		FROM
-			Posts,
-			Channels
-		WHERE
-			Posts.ChannelId = Channels.Id`
+	query := s.getQueryBuilder().
+		Select("COUNT(p.Id) AS Value").
+		From("Posts p")
 
 	if len(teamId) > 0 {
-		query += " AND Channels.TeamId = :TeamId"
+		query = query.
+			Join("Channels c ON (c.Id = p.ChannelId)").
+			Where(sq.Eq{"c.TeamId": teamId})
 	}
 
 	if mustHaveFile {
-		query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
+		query = query.Where(sq.Or{sq.NotEq{"p.FileIds": "[]"}, sq.NotEq{"p.Filenames": "[]"}})
 	}
 
 	if mustHaveHashtag {
-		query += " AND Posts.Hashtags != ''"
+		query = query.Where(sq.NotEq{"p.Hashtags": ""})
 	}
 
-	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "post_tosql")
+	}
+
+	v, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Posts")
 	}

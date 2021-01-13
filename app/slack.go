@@ -5,10 +5,9 @@ package app
 
 import (
 	"bytes"
+	"fmt"
 	"mime/multipart"
 	"regexp"
-
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"

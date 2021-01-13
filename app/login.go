@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
