@@ -525,18 +525,6 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 
-	channel, err := a.GetChannel(post.ChannelId)
-	if err != nil {
-		mlog.Debug(
-			"Error fetching channel for shared channel sync notification",
-			mlog.String("error", err.Error()),
-			mlog.String("channel_id", post.ChannelId),
-			mlog.String("event", message.EventType()),
-		)
-	} else {
-		a.NotifySharedChannelSync(channel, message.EventType())
-	}
-
 	return post
 }
 
@@ -1072,7 +1060,6 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
-	a.NotifySharedChannelSync(channel, adminMessage.EventType())
 
 	a.Srv().Go(func() {
 		a.DeletePostFiles(post)

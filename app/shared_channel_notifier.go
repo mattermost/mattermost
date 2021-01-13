@@ -14,7 +14,7 @@ func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
 
 		// When the sync service is running on the node, trigger syncing
 		if syncService := a.srv.GetSharedChannelSyncService(); syncService != nil {
-			mlog.Debug(
+			a.Log().Debug(
 				"Notifying shared channel sync service",
 				mlog.String("channel_id", channel.Id),
 				mlog.String("event", event),
@@ -25,7 +25,7 @@ func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
 
 		// When the sync service is not running on the node and cluster is enabled, broadcast sync message
 		if a.Cluster() != nil {
-			mlog.Debug(
+			a.Log().Debug(
 				"Shared channel sync service is not running on this node. Broadcasting sync cluster event.",
 				mlog.String("channel_id", channel.Id),
 				mlog.String("event", event),
@@ -44,7 +44,7 @@ func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
 		}
 
 		// When clustering is not enabled, there is nothing we can do, just log an error for admins to react
-		mlog.Error(
+		a.Log().Warn(
 			"Shared channel sync service is not running on this node and clustering is not enabled. Enable clustering to resolve.",
 			mlog.String("channelId", channel.Id),
 			mlog.String("event", event),
@@ -54,7 +54,7 @@ func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
 
 func (a *App) ServerSyncSharedChannelHandler(props map[string]string) {
 	if syncService := a.srv.GetSharedChannelSyncService(); syncService != nil {
-		mlog.Debug(
+		a.Log().Debug(
 			"Notifying shared channel sync service",
 			mlog.String("channel_id", props["channelId"]),
 			mlog.String("event", props["event"]),
@@ -63,7 +63,7 @@ func (a *App) ServerSyncSharedChannelHandler(props map[string]string) {
 		return
 	}
 
-	mlog.Debug(
+	a.Log().Debug(
 		"Received cluster message for shared channel sync but sync service is not running on this node. Skipping...",
 		mlog.String("channel_id", props["channelId"]),
 		mlog.String("event", props["event"]),

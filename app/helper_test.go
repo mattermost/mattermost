@@ -297,15 +297,23 @@ func (th *TestHelper) CreateBot() *model.Bot {
 	return bot
 }
 
-func (th *TestHelper) CreateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_OPEN)
+type ChannelOption func(*model.Channel)
+
+func WithShared(v bool) ChannelOption {
+	return func(channel *model.Channel) {
+		channel.Shared = model.NewBool(v)
+	}
+}
+
+func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) *model.Channel {
+	return th.createChannel(team, model.CHANNEL_OPEN, options...)
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_PRIVATE)
+	return th.createChannel(team, model.CHANNEL_PRIVATE, nil)
 }
 
-func (th *TestHelper) createChannel(team *model.Team, channelType string) *model.Channel {
+func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -316,10 +324,14 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 		CreatorId:   th.BasicUser.Id,
 	}
 
+	for _, option := range options {
+		option(channel)
+	}
+
 	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = th.App.CreateChannel(channel, true); err != nil {
-		panic(err)
+	var appErr *model.AppError
+	if channel, appErr = th.App.CreateChannel(channel, true); appErr != nil {
+		panic(appErr)
 	}
 	utils.EnableDebugLogForTest()
 	return channel
