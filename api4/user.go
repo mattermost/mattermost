@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -471,7 +472,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if (user.AuthService == model.USER_AUTH_SERVICE_LDAP || user.AuthService == model.USER_AUTH_SERVICE_SAML) &&
+	if (user.IsLDAPUser() || (user.IsSAMLUser() && *c.App.Config().SamlSettings.EnableSyncWithLdap)) &&
 		*c.App.Config().LdapSettings.PictureAttribute != "" {
 		c.Err = model.NewAppError(
 			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",
@@ -1126,8 +1127,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	checkLoginProviderAttributes(c, ouser, convertToUserPatch(user), "updateUser")
-	if c.Err != nil {
+	if err := checkLoginProviderAttributes(c.App.Config(), ouser, convertToUserPatch(user)); err != nil {
+		c.Err = model.NewAppError(
+			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": err.Error()}, "", http.StatusConflict)
 		return
 	}
 
@@ -1153,78 +1156,59 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-func isOauth(userService string) bool {
-	for _, service := range []string{
-		model.SERVICE_GOOGLE,
-		model.SERVICE_OFFICE365,
-		model.SERVICE_OPENID,
-		model.SERVICE_GITLAB,
-	} {
-		if service == userService {
-			return true
-		}
-	}
-	return false
-}
-
-func checkLoginProviderAttributes(
-	c *Context, ouser *model.User, patch *model.UserPatch, methodName string) {
-	errName := "api.user.patch_user.login_provider_attribute_set.app_error"
-	if methodName == "updateUser" {
-		errName = "api.user.update_user.login_provider_attribute_set.app_error"
-	}
-	const (
-		LDAP = model.USER_AUTH_SERVICE_LDAP
-		SAML = model.USER_AUTH_SERVICE_SAML
-	)
-	LS := &c.App.Config().LdapSettings
-	SS := &c.App.Config().SamlSettings
+// checkLoginProviderAttributes returns nil if the patch can be applied without overriding
+// attributes set by the user's login provider; otherwise, an error is returned whose text
+// is the name of the offending field.
+func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *model.UserPatch) error {
+	LS := &cfg.LdapSettings
+	SS := &cfg.SamlSettings
 	// If LDAP or SAML is used, and either the first name or the last name are already set,
 	// or OAUTH is used, then neither the first name nor the last name may be modified
 	if ((patch.FirstName != nil && *patch.FirstName != ouser.FirstName) ||
 		(patch.LastName != nil && *patch.LastName != ouser.LastName)) &&
-		((ouser.AuthService == LDAP && (*LS.FirstNameAttribute != "" || *LS.LastNameAttribute != "")) ||
-			(ouser.AuthService == SAML && (*SS.FirstNameAttribute != "" || *SS.LastNameAttribute != "")) ||
-			isOauth(ouser.AuthService)) {
-		c.Err = model.NewAppError(
-			methodName, errName,
-			map[string]interface{}{"Field": "full name"}, "", http.StatusConflict)
-		return
+		((ouser.IsLDAPUser() && (*LS.FirstNameAttribute != "" || *LS.LastNameAttribute != "")) ||
+			(ouser.IsSAMLUser() && (*SS.FirstNameAttribute != "" || *SS.LastNameAttribute != "")) ||
+			ouser.IsOAuthUser()) {
+		return errors.New("full name")
 	}
 	// If LDAP or SAML is used, and any of the following attributes have been specified
 	// in the settings, then their corresponding fields may not be changed
-	for _, attr := range []struct {
-		authService string
-		name        string
-		patchValue  *string
-		userValue   *string
-		selector    *string
-	}{
-		{LDAP, "nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
-		{LDAP, "position", patch.Position, &ouser.Position, LS.PositionAttribute},
-		{LDAP, "email", patch.Email, &ouser.Email, LS.EmailAttribute},
-		{SAML, "nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
-		{SAML, "position", patch.Position, &ouser.Position, SS.PositionAttribute},
-		{SAML, "email", patch.Email, &ouser.Email, SS.EmailAttribute},
-	} {
-		if ouser.AuthService != attr.authService {
-			continue
+	if ouser.IsLDAPUser() {
+		for _, attr := range []struct {
+			name       string
+			patchValue *string
+			userValue  *string
+			selector   *string
+		}{
+			{"nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
+			{"position", patch.Position, &ouser.Position, LS.PositionAttribute},
+			{"email", patch.Email, &ouser.Email, LS.EmailAttribute},
+		} {
+			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+				return errors.New(attr.name)
+			}
 		}
-		if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
-			c.Err = model.NewAppError(
-				methodName, errName,
-				map[string]interface{}{"Field": attr.name}, "", http.StatusConflict)
-			return
+	} else if ouser.IsSAMLUser() {
+		for _, attr := range []struct {
+			name       string
+			patchValue *string
+			userValue  *string
+			selector   *string
+		}{
+			{"nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
+			{"position", patch.Position, &ouser.Position, SS.PositionAttribute},
+			{"email", patch.Email, &ouser.Email, SS.EmailAttribute},
+		} {
+			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+				return errors.New(attr.name)
+			}
 		}
 	}
 	// If any login provider is used, then the username may not be changed
 	if ouser.AuthService != "" && patch.Username != nil && *patch.Username != ouser.Username {
-		c.Err = model.NewAppError(
-			methodName, errName,
-			map[string]interface{}{"Field": "username"}, "",
-			http.StatusConflict)
-		return
+		return errors.New("username")
 	}
+	return nil
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1268,8 +1252,10 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	checkLoginProviderAttributes(c, ouser, patch, "patchUser")
-	if c.Err != nil {
+	if err := checkLoginProviderAttributes(c.App.Config(), ouser, patch); err != nil {
+		c.Err = model.NewAppError(
+			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
+			map[string]interface{}{"Field": err.Error()}, "", http.StatusConflict)
 		return
 	}
 
