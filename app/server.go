@@ -6,8 +6,10 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"hash/maphash"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -22,6 +24,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
@@ -1619,4 +1623,143 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (a *App) GenerateSupportPacket() []model.FileData {
+	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+	var warnings string
+
+	// Creating an array of files that we are going to be adding to our zip file
+	fileDatas := []model.FileData{}
+
+	a.generateSupportPacketYaml(&warnings, &fileDatas)
+	a.createPluginsFile(&warnings, &fileDatas)
+	a.createSanitizedConfigFile(&warnings, &fileDatas)
+	a.getMattermostLog(&warnings, &fileDatas)
+	a.getNotificationsLog(&warnings, &fileDatas)
+
+	// Adding a warning.txt file to the fileDatas if any warning
+	if warnings != "" {
+		fileDatas = append(fileDatas, model.FileData{
+			Filename: "warning.txt",
+			Body:     []byte(warnings),
+		})
+	}
+
+	return fileDatas
+}
+
+func (a *App) getNotificationsLog(warnings *string, fileDatas *[]model.FileData) {
+	// Getting notifications.log
+	if *a.Srv().Config().LogSettings.EnableFile {
+		// notifications.log
+		notificationsLog := utils.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
+
+		if notificationsLogFileDataErr == nil {
+			*fileDatas = append(*fileDatas, model.FileData{
+				Filename: "notifications.log",
+				Body:     notificationsLogFileData,
+			})
+		} else {
+			*warnings = *warnings + fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s\n\n", notificationsLogFileDataErr.Error())
+		}
+	}
+}
+
+func (a *App) getMattermostLog(warnings *string, fileDatas *[]model.FileData) {
+	// Getting mattermost.log
+	if *a.Srv().Config().LogSettings.EnableFile {
+		// mattermost.log
+		mattermostLog := utils.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
+
+		if mattermostLogFileDataErr == nil {
+			*fileDatas = append(*fileDatas, model.FileData{
+				Filename: "mattermost.log",
+				Body:     mattermostLogFileData,
+			})
+		} else {
+			*warnings = *warnings + fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s\n\n", mattermostLogFileDataErr.Error())
+		}
+	}
+}
+
+func (a *App) createSanitizedConfigFile(warnings *string, fileDatas *[]model.FileData) {
+	// Getting sanitized config, prettifying it, and then adding it to our file data array
+	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
+	if err == nil {
+		*fileDatas = append(*fileDatas,
+			model.FileData{
+				Filename: "sanitized_config.json",
+				Body:     sanitizedConfigPrettyJSON,
+			})
+	} else {
+		*warnings = *warnings + fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s\n\n", err.Error())
+	}
+}
+
+func (a *App) createPluginsFile(warnings *string, fileDatas *[]model.FileData) {
+	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
+	pluginsResponse, appErr := a.GetPlugins()
+	if appErr == nil {
+		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+		if err == nil {
+			*fileDatas = append(*fileDatas,
+				model.FileData{
+					Filename: "plugins.json",
+					Body:     pluginsPrettyJSON,
+				})
+		} else {
+			*warnings = *warnings + fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s\n\n", err.Error())
+		}
+	} else {
+		*warnings = *warnings + fmt.Sprintf("c.App.GetPlugins() Error: %s\n\n", appErr.Error())
+	}
+}
+
+func (a *App) generateSupportPacketYaml(warnings *string, fileDatas *[]model.FileData) {
+	// Here we are getting information regarding Elastic Search
+	var elasticServerVersion string
+	var elasticServerPlugins []string
+	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
+		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
+		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
+	}
+
+	// Here we are getting information regarding LDAP
+	ldapInterface := a.Srv().Ldap
+	var vendorName, vendorVersion string
+	if ldapInterface != nil {
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	}
+
+	// Here we are getting information regarding the database (mysql/postgres + version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndVersion()
+
+	// Creating the struct for support packet yaml file
+	supportPacket := model.SupportPacket{
+		ServerOS:             runtime.GOOS,
+		ServerArchitecture:   runtime.GOARCH,
+		DatabaseType:         databaseType,
+		DatabaseVersion:      databaseVersion,
+		LdapVendorName:       vendorName,
+		LdapVendorVersion:    vendorVersion,
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+	}
+
+	// Marshal to a Yaml File
+	supportPacketYaml, err := yaml.Marshal(&supportPacket)
+	if err != nil {
+		*warnings = *warnings + fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s\n\n", err.Error())
+	} else {
+		*fileDatas = append(*fileDatas,
+			model.FileData{
+				Filename: "support_packet.yaml",
+				Body:     supportPacketYaml,
+			})
+	}
 }

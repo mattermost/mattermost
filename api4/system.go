@@ -16,14 +16,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -69,7 +67,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 
-	api.BaseRoutes.System.Handle("/generate_support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,96 +86,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Here we are getting information regarding Elastic Search
-	var elasticServerVersion string
-	var elasticServerPlugins []string
-	if c.App.SearchEngine().ElasticsearchEngine != nil {
-		elasticServerVersion = c.App.SearchEngine().ElasticsearchEngine.GetFullVersion()
-		elasticServerPlugins = c.App.SearchEngine().ElasticsearchEngine.GetPlugins()
-	}
-
-	// Here we are getting information regarding LDAP
-	ldapInterface := c.App.Ldap()
-	var vendorName, vendorVersion string
-	if ldapInterface != nil {
-		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
-	}
-
-	// Here we are getting information regarding the database (mysql/postgres + version)
-	databaseType, databaseVersion := c.App.Srv().DatabaseTypeAndVersion()
-
-	// Creating the struct for support packet yaml file
-	supportPacket := model.SupportPacket{
-		ServerOS:             runtime.GOOS,
-		ServerArchitecture:   runtime.GOARCH,
-		DatabaseType:         databaseType,
-		DatabaseVersion:      databaseVersion,
-		LdapVendorName:       vendorName,
-		LdapVendorVersion:    vendorVersion,
-		ElasticServerVersion: elasticServerVersion,
-		ElasticServerPlugins: elasticServerPlugins,
-	}
-
-	// Marshal to a Yaml File
-	supportPacketYaml, _ := yaml.Marshal(&supportPacket)
-
-	// Creating an array of files that we are going to be adding to our zip file
-	fileDatas := []model.FileData{
-		{
-			Filename: "support_packet.yaml",
-			Body:     supportPacketYaml,
-		},
-	}
-
-	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
-	pluginsResponse, appErr := c.App.GetPlugins()
-	if appErr == nil {
-		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err == nil {
-			fileDatas = append(fileDatas,
-				model.FileData{
-					Filename: "plugins.json",
-					Body:     pluginsPrettyJSON,
-				})
-		}
-	}
-
-	// Getting sanitized config, prettifying it, and then adding it to our file data array
-	sanitizedConfigPrettyJson, err := json.MarshalIndent(c.App.GetSanitizedConfig(), "", "    ")
-	if err == nil {
-		fileDatas = append(fileDatas,
-			model.FileData{
-				Filename: "sanitized_config.json",
-				Body:     sanitizedConfigPrettyJson,
-			})
-	}
-
-	// Getting mattermost.log and notifications.log
-	if *c.App.Srv().Config().LogSettings.EnableFile {
-		// mattermost.log
-		mattermostLog := utils.GetLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
-
-		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
-
-		if mattermostLogFileDataErr == nil {
-			fileDatas = append(fileDatas, model.FileData{
-				Filename: "mattermost.log",
-				Body:     mattermostLogFileData,
-			})
-		}
-
-		// notifications.log
-		notificationsLog := utils.GetNotificationsLogFileLocation(*c.App.Srv().Config().LogSettings.FileLocation)
-
-		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
-
-		if notificationsLogFileDataErr == nil {
-			fileDatas = append(fileDatas, model.FileData{
-				Filename: "notifications.log",
-				Body:     notificationsLogFileData,
-			})
-		}
-	}
+	fileDatas := c.App.GenerateSupportPacket()
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
