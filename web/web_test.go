@@ -13,6 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -23,8 +26,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var ApiClient *model.Client4
@@ -72,6 +73,7 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	newConfig := memoryStore.Get().Clone()
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
+	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	memoryStore.Set(newConfig)
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))

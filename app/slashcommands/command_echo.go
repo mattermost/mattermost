@@ -9,6 +9,7 @@ import (
 	"time"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -20,7 +21,7 @@ type EchoProvider struct {
 }
 
 const (
-	CMD_ECHO = "echo"
+	CmdEcho = "echo"
 )
 
 func init() {
@@ -28,12 +29,12 @@ func init() {
 }
 
 func (*EchoProvider) GetTrigger() string {
-	return CMD_ECHO
+	return CmdEcho
 }
 
 func (*EchoProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_ECHO,
+		Trigger:          CmdEcho,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_echo.desc"),
 		AutoCompleteHint: T("api.command_echo.hint"),

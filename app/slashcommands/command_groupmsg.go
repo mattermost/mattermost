@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -17,7 +18,7 @@ type groupmsgProvider struct {
 }
 
 const (
-	CMD_GROUPMSG = "groupmsg"
+	CmdGroupMsg = "groupmsg"
 )
 
 func init() {
@@ -25,12 +26,12 @@ func init() {
 }
 
 func (*groupmsgProvider) GetTrigger() string {
-	return CMD_GROUPMSG
+	return CmdGroupMsg
 }
 
 func (*groupmsgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_GROUPMSG,
+		Trigger:          CmdGroupMsg,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_groupmsg.desc"),
 		AutoCompleteHint: T("api.command_groupmsg.hint"),

@@ -18,7 +18,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	Log           *mlog.Logger
+	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
@@ -68,7 +68,7 @@ func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
@@ -81,47 +81,27 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
-func (c *Context) LogError(err *model.AppError) {
-	// Filter out 404s, endless reconnects and browser compatibility errors
-	if err.StatusCode == http.StatusNotFound ||
-		(c.App.Path() == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
-		err.Id == "web.check_browser_compatibility.app_error" {
-		c.LogDebug(err)
-	} else {
-		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogInfo(err *model.AppError) {
-	// Filter out 401s
-	if err.StatusCode == http.StatusUnauthorized {
-		c.LogDebug(err)
-	} else {
-		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogDebug(err *model.AppError) {
-	c.Log.Debug(
-		err.SystemMessage(utils.TDefault),
+func (c *Context) LogErrorByCode(err *model.AppError) {
+	code := err.StatusCode
+	msg := err.SystemMessage(utils.TDefault)
+	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
 		mlog.String("err_details", err.DetailedError),
-	)
+	}
+	switch {
+	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
+		err.Id == "web.check_browser_compatibility.app_error":
+		c.Logger.Debug(msg, fields...)
+	case code == http.StatusNotImplemented:
+		c.Logger.Info(msg, fields...)
+	default:
+		c.Logger.Error(msg, fields...)
+	}
 }
 
 func (c *Context) IsSystemAdmin() bool {

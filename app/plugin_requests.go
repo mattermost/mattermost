@@ -4,16 +4,16 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"bytes"
-	"io/ioutil"
-
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"

@@ -14,10 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetPing(t *testing.T) {
@@ -588,7 +589,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
 			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)

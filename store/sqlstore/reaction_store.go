@@ -4,12 +4,12 @@
 package sqlstore
 
 import (
+	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/mattermost/gorp"
-	"github.com/pkg/errors"
 )
 
 type SqlReactionStore struct {
@@ -132,7 +132,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
+		_, err := s.GetMaster().Exec(UpdatePostHasReactionsOnDeleteQuery,
 			map[string]interface{}{
 				"PostId":   reaction.PostId,
 				"UpdateAt": model.GetMillis(),
@@ -191,7 +191,7 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 }
 
 const (
-	UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY = `UPDATE
+	UpdatePostHasReactionsOnDeleteQuery = `UPDATE
 			Posts
 		SET
 			UpdateAt = :UpdateAt,
@@ -202,7 +202,7 @@ const (
 
 func updatePostForReactionsOnDelete(transaction *gorp.Transaction, postId string) error {
 	updateAt := model.GetMillis()
-	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": updateAt})
+	_, err := transaction.Exec(UpdatePostHasReactionsOnDeleteQuery, map[string]interface{}{"PostId": postId, "UpdateAt": updateAt})
 	return err
 }
 

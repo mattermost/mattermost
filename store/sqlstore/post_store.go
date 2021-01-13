@@ -171,7 +171,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
-		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
+		mlog.Warn("Error updating posts, thread update failed", mlog.Err(err))
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -181,13 +181,13 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	for channelId, count := range channelNewPosts {
 		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
-			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
+			mlog.Warn("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	for rootId := range rootIds {
 		if _, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
-			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
+			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
 
@@ -205,7 +205,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	if len(unknownRepliesPosts) > 0 {
 		if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
-			mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
+			mlog.Warn("Unable to populate the reply count in some posts.", mlog.Err(err))
 		}
 	}
 
@@ -1378,8 +1378,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 }
 
 func removeMysqlStopWordsFromTerms(terms string) (string, error) {
-	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
-	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
+	stopWords := make([]string, len(searchlayer.MySQLStopWords))
+	copy(stopWords, searchlayer.MySQLStopWords)
 	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
 	if err != nil {
 		return "", err
@@ -1511,28 +1511,30 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
-	query :=
-		`SELECT
-			COUNT(Posts.Id) AS Value
-		FROM
-			Posts,
-			Channels
-		WHERE
-			Posts.ChannelId = Channels.Id`
+	query := s.getQueryBuilder().
+		Select("COUNT(p.Id) AS Value").
+		From("Posts p")
 
 	if len(teamId) > 0 {
-		query += " AND Channels.TeamId = :TeamId"
+		query = query.
+			Join("Channels c ON (c.Id = p.ChannelId)").
+			Where(sq.Eq{"c.TeamId": teamId})
 	}
 
 	if mustHaveFile {
-		query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
+		query = query.Where(sq.Or{sq.NotEq{"p.FileIds": "[]"}, sq.NotEq{"p.Filenames": "[]"}})
 	}
 
 	if mustHaveHashtag {
-		query += " AND Posts.Hashtags != ''"
+		query = query.Where(sq.NotEq{"p.Hashtags": ""})
 	}
 
-	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "post_tosql")
+	}
+
+	v, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Posts")
 	}
@@ -1668,7 +1670,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			AND	column_name = 'Message'
 			LIMIT 0, 1
 		`); err != nil {
-			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
+			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else {
 		mlog.Warn("No implementation found to determine the maximum supported post size")

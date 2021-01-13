@@ -3102,7 +3102,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Id,
 	}
 	channel, appErr := th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
+	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.
@@ -3403,7 +3403,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		user3.Id,
 	}
 	channel, appErr = th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
+	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
 	// Get the number of posts in the system.

@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-
 	"os/signal"
 	"syscall"
+
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
-	"github.com/spf13/cobra"
 )
 
 var TestCmd = &cobra.Command{

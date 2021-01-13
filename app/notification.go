@@ -11,12 +11,13 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
-	"github.com/pkg/errors"
 )
 
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -419,7 +420,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	a.Publish(message)
 	// If this is a reply in a thread, notify participants
-	if *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
+	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
 		thread, err := a.Srv().Store.Thread().Get(post.RootId)
 		if err != nil {
 			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)

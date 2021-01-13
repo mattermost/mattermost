@@ -14,6 +14,7 @@ import (
 	"unicode"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -394,7 +395,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
 		}
