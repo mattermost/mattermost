@@ -16,6 +16,7 @@
     - ulimit -n 8096
     - cd build
     - docker-compose --no-ansi run --rm start_dependencies
+    - docker network ls
     - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
     - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
     - sleep 5

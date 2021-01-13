@@ -19,6 +19,7 @@
     - mkdir -p build/logs
     - cd build
     - docker-compose --no-ansi run --rm start_dependencies
+    - docker network ls
     - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
     - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
     - sleep 5
@@ -27,7 +28,7 @@
     - ulimit -n 8096
     # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
     - >
-      time docker run -it  -d --name server --net build_mm-test \
+      time docker run -it -d --name server --net build_mm-test \
         --env-file=dotenv/test.env \
         --env MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE \
         --env MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME \
