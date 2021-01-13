@@ -692,7 +692,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error",
-			"", http.StatusNotImplemented)
+			"api.file.upload_file.storage.app_error", http.StatusNotImplemented)
 	}
 	if t.ContentLength > t.maxFileSize {
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
