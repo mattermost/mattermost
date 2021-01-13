@@ -6371,10 +6371,6 @@
     "translation": "Failed to create Elasticsearch bulk processor."
   },
   {
-    "id": "ent.elasticsearch.start.get_plugins.app_error",
-    "translation": "Error retrieving elasticsearch plugins"
-  },
-  {
     "id": "ent.elasticsearch.start.get_server_version.app_error",
     "translation": "Failed to get Elasticsearch server version."
   },
