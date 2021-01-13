@@ -988,9 +988,10 @@ func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
 	}
 }
 
-func upgradeDatabaseToVersion531(sqlStore *SqlSupplier) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
-		saveSchemaVersion(sqlStore, VERSION_5_31_0)
+func upgradeDatabaseToVersion531(sqlSupplier *SqlSupplier) {
+	if shouldPerformUpgrade(sqlSupplier, VERSION_5_30_0, VERSION_5_31_0) {
+		sqlSupplier.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		saveSchemaVersion(sqlSupplier, VERSION_5_31_0)
 	}
 }
 
