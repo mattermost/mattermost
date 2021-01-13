@@ -50,6 +50,7 @@ test-postgres:
   variables:
     MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
     MM_SQLSETTINGS_DRIVERNAME: postgres
+    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-postgres"
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
@@ -58,11 +59,14 @@ test-mysql:
   variables:
     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
     MM_SQLSETTINGS_DRIVERNAME: mysql
+    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-mysql"
   rules:
     - if: '$WITHOUT_TEST == "no"'
 
 test-schema-postgres:
   extends: .test-schema
+  variables:
+    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-postgres-schema"
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
@@ -90,6 +94,8 @@ test-schema-postgres:
 
 test-schema-mysql:
   extends: .test-schema
+  variables:
+    COMPOSE_PROJECT_NAME: "${CI_COMMIT_REF_NAME}-mysql-schema"
   script:
     - echo "Creating databases"
     - docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
