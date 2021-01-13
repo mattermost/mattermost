@@ -149,7 +149,7 @@ func readLayerAndMaskInfo(r io.Reader, cfg *Config, o *DecodeOptions) (psd *PSD,
 				reportReaderPosition("    file offset: 0x%08x", r)
 			}
 			// TODO(oov): implement
-			if l, err = io.ReadFull(r, make([]byte, globalLayerMaskInfoLen)); err != nil {
+			if l, err = discard(r, globalLayerMaskInfoLen); err != nil {
 				return nil, read, err
 			}
 			read += l
@@ -556,7 +556,7 @@ func readLayerExtraData(r io.Reader, layer *Layer, cfg *Config, o *DecodeOptions
 			Debug.Println("  layer blending ranges data skipped:", blendingRangesLen)
 		}
 		// TODO(oov): implement
-		if l, err = io.ReadFull(r, make([]byte, blendingRangesLen)); err != nil {
+		if l, err = discard(r, blendingRangesLen); err != nil {
 			return read, err
 		}
 		read += l
@@ -747,11 +747,13 @@ func readLayerMaskAndAdjustmentLayerData(r io.Reader, layer *Layer, cfg *Config,
 
 	if maskLen == 20 {
 		// Padding. Only present if size = 20.
-		if l, err = io.ReadFull(r, b[:2]); err != nil {
-			return read, err
+		if readMask < maskLen && maskLen-readMask <= 2 {
+			if l, err = io.ReadFull(r, b[:maskLen-readMask]); err != nil {
+				return read, err
+			}
+			read += l
+			readMask += l
 		}
-		read += l
-		readMask += l
 		return read, nil
 	}
 

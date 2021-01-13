@@ -4,13 +4,12 @@
 package storetest
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"net/url"
 	"os"
 	"path"
-
-	"database/sql"
 
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
@@ -29,9 +28,8 @@ const (
 func getEnv(name, defaultValue string) string {
 	if value := os.Getenv(name); value != "" {
 		return value
-	} else {
-		return defaultValue
 	}
+	return defaultValue
 }
 
 func log(message string) {

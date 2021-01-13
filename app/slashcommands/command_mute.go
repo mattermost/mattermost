@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -15,7 +16,7 @@ type MuteProvider struct {
 }
 
 const (
-	CMD_MUTE = "mute"
+	CmdMute = "mute"
 )
 
 func init() {
@@ -23,12 +24,12 @@ func init() {
 }
 
 func (*MuteProvider) GetTrigger() string {
-	return CMD_MUTE
+	return CmdMute
 }
 
 func (*MuteProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_MUTE,
+		Trigger:          CmdMute,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_mute.desc"),
 		AutoCompleteHint: T("api.command_mute.hint"),
@@ -70,14 +71,12 @@ func (*MuteProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		} else {
-			return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
+		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
+	return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }

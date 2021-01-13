@@ -91,7 +91,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.1.1
+PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -218,9 +218,10 @@ i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
-i18n-check: ## Exit on empty translation strings except in english base file
+i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
+	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -541,11 +542,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
-	# Tidy up
-	$(GO) mod tidy
-
 	# Copy everything to vendor directory
 	$(GO) mod vendor
+
+	# Tidy up
+	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \

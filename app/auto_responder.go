@@ -4,7 +4,6 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -57,7 +56,6 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, pos
 	}
 
 	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
-		mlog.Error(err.Error())
 		return false, err
 	}
 

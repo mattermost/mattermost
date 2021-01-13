@@ -11,19 +11,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
+	date_constraints "github.com/reflog/dateconstraints"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/Masterminds/semver/v3"
-	"github.com/pkg/errors"
-	date_constraints "github.com/reflog/dateconstraints"
 )
 
-const MAX_REPEAT_VIEWINGS = 3
-const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
+const MaxRepeatViewings = 3
+const MinSecondsBetweenRepeatViewings = 60 * 60
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -237,10 +237,10 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
 			if repeatable {
-				if view.Viewed > MAX_REPEAT_VIEWINGS {
+				if view.Viewed > MaxRepeatViewings {
 					continue
 				}
-				if (time.Now().UTC().Unix() - view.Timestamp) < MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS {
+				if (time.Now().UTC().Unix() - view.Timestamp) < MinSecondsBetweenRepeatViewings {
 					continue
 				}
 			} else if view.Viewed > 0 {

@@ -164,6 +164,12 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type FileForIndexing struct {
+	FileInfo
+	ChannelId string `json:"channel_id"`
+	Content   string `json:"content"`
+}
+
 // ShallowCopy is an utility function to shallow copy a Post to the given
 // destination without touching the internal RWMutex.
 func (o *Post) ShallowCopy(dst *Post) error {
@@ -557,6 +563,14 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					i := 0
+					for _, action := range decoded.Actions {
+						if action != nil {
+							decoded.Actions[i] = action
+							i++
+						}
+					}
+					decoded.Actions = decoded.Actions[:i]
 					ret = append(ret, &decoded)
 				}
 			}

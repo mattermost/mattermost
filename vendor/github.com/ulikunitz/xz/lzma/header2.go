@@ -264,7 +264,7 @@ type chunkState byte
 // state
 const (
 	start chunkState = 'S'
-	stop             = 'T'
+	stop  chunkState = 'T'
 )
 
 // errors for the chunk state handling

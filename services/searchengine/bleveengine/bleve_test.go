@@ -84,7 +84,7 @@ func (s *BleveEngineTestSuite) TearDownSuite() {
 
 func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 	searchTestEngine := &searchtest.SearchTestEngine{
-		Driver: searchtest.ENGINE_BLEVE,
+		Driver: searchtest.EngineBleve,
 	}
 
 	s.Run("TestSearchChannelStore", func() {
@@ -97,6 +97,10 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 
 	s.Run("TestSearchPostStore", func() {
 		searchtest.TestSearchPostStore(s.T(), s.Store, searchTestEngine)
+	})
+
+	s.Run("TestSearchFileInfoStore", func() {
+		searchtest.TestSearchFileInfoStore(s.T(), s.Store, searchTestEngine)
 	})
 }
 
