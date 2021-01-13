@@ -3016,7 +3016,7 @@
   },
   {
     "id": "api.unable_to_create_zip_file",
-    "translation": "Sorry, there was an error creating your zip file"
+    "translation": "Error creating zip file."
   },
   {
     "id": "api.unable_to_populate_zip_file",
