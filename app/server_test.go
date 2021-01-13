@@ -39,7 +39,7 @@ func TestStartServerSuccess(t *testing.T) {
 	serverErr := s.Start()
 
 	client := &http.Client{}
-	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -156,7 +156,7 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
@@ -362,7 +362,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if !strings.Contains(err.Error(), "remote error: tls: protocol version not supported") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -374,7 +374,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -412,7 +412,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: tr}
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 	require.Error(t, err, "Expected error due to Cipher mismatch")
 	if !strings.Contains(err.Error(), "remote error: tls: handshake failure") {
 		t.Errorf("Expected protocol version error, got %s", err)
@@ -429,7 +429,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		},
 	}
 
-	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
+	err = checkEndpoint(t, client, "https://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -439,7 +439,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
-func checkEndpoint(t *testing.T, client *http.Client, url string, expectedStatus int) error {
+func checkEndpoint(t *testing.T, client *http.Client, url string) error {
 	res, err := client.Get(url)
 
 	if err != nil {
@@ -448,8 +448,8 @@ func checkEndpoint(t *testing.T, client *http.Client, url string, expectedStatus
 
 	defer res.Body.Close()
 
-	if res.StatusCode != expectedStatus {
-		t.Errorf("Response code was %d; want %d", res.StatusCode, expectedStatus)
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("Response code was %d; want %d", res.StatusCode, http.StatusNotFound)
 	}
 
 	return nil
