@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
+	MaximumPluginFileSize = 50 * 1024 * 1024
 )
 
 func (api *API) InitPlugin() {
@@ -55,7 +55,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(MAXIMUM_PLUGIN_FILE_SIZE); err != nil {
+	if err := r.ParseMultipartForm(MaximumPluginFileSize); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

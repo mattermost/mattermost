@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
-
-	"net/http"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
@@ -359,7 +358,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
 			token := model.NewToken(
-				TOKEN_TYPE_TEAM_INVITATION,
+				TokenTypeTeamInvitation,
 				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
 			)
 
@@ -429,7 +428,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			}
 
 			token := model.NewToken(
-				TOKEN_TYPE_GUEST_INVITATION,
+				TokenTypeGuestInvitation,
 				model.MapToJson(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIds, " "),
@@ -576,7 +575,7 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 		return nil, model.NewAppError("CreateVerifyEmailToken", "api.user.create_email_token.error", nil, "", http.StatusInternalServerError)
 	}
 
-	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
+	token := model.NewToken(TokenTypeVerifyEmail, string(jsonData))
 
 	if err = es.srv.Store.Token().Save(token); err != nil {
 		var appErr *model.AppError
@@ -781,6 +780,8 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
 	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
@@ -802,6 +803,8 @@ func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string
 	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
 	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)

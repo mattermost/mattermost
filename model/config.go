@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
@@ -50,7 +51,7 @@ const (
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
-	MM_SUPPORT_ADDRESS              = "support@mattermost.com"
+	MM_SUPPORT_ADVISOR_ADDRESS      = "support-advisor@mattermost.com"
 	FULL_NOTIFICATION               = "full"
 	ID_LOADED_NOTIFICATION          = "id_loaded"
 
@@ -848,7 +849,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -3484,13 +3485,13 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.SiteURL) != 0 {
+	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if len(*s.WebsocketURL) != 0 {
+	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3752,7 +3753,7 @@ func (o *Config) Sanitize() {
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 

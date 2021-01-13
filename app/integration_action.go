@@ -192,7 +192,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -238,13 +238,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", appErr
 		}
 		return "", nil
-	} else {
-		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-		if appErr != nil {
-			return "", appErr
-		}
-		defer resp.Body.Close()
 	}
+	resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
+	}
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -554,7 +553,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	mailToLinkContent := &MailToLinkContent{
 		MetricId:      warnMetricId,
-		MailRecipient: "support@mattermost.com",
+		MailRecipient: model.MM_SUPPORT_ADVISOR_ADDRESS,
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
 		MailBody:      mailBody,

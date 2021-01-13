@@ -7,10 +7,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/stretchr/testify/mock"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/mock"
 )
 
 // Store can be used to provide mock stores for testing.
@@ -95,7 +96,7 @@ func (s *Store) Close()                                { /* do nothing */ }
 func (s *Store) LockToMaster()                         { /* do nothing */ }
 func (s *Store) UnlockFromMaster()                     { /* do nothing */ }
 func (s *Store) DropAllTables()                        { /* do nothing */ }
-func (s *Store) GetDbVersion() (string, error)         { return "", nil }
+func (s *Store) GetDbVersion(bool) (string, error)     { return "", nil }
 func (s *Store) RecycleDBConnections(time.Duration)    {}
 func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }

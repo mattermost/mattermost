@@ -5,14 +5,20 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+const CustomDefaultsEnvVar = "MM_CUSTOM_DEFAULTS_PATH"
 
 // prettyPrintStruct will return a prettyPrint version of a given struct
 func prettyPrintStruct(t interface{}) string {
@@ -23,7 +29,7 @@ func prettyPrintStruct(t interface{}) string {
 func structToMap(t interface{}) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMap. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 
@@ -115,4 +121,25 @@ func getConfigDSN(command *cobra.Command, env map[string]string) string {
 	}
 
 	return configDSN
+}
+
+func loadCustomDefaults() (*model.Config, error) {
+	customDefaultsPath := os.Getenv(CustomDefaultsEnvVar)
+	if customDefaultsPath == "" {
+		return nil, nil
+	}
+
+	file, err := os.Open(customDefaultsPath)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open custom defaults file at %q: %w", customDefaultsPath, err)
+	}
+	defer file.Close()
+
+	var customDefaults *model.Config
+	err = json.NewDecoder(file).Decode(&customDefaults)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode custom defaults configuration: %w", err)
+	}
+
+	return customDefaults, nil
 }
