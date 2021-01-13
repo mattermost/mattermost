@@ -19,6 +19,8 @@ You can view and edit the source code by cloning this repository:
 git clone https://github.com/open-telemetry/opentelemetry-go.git
 ```
 
+Run `make test` to run the tests instead of `go test`. 
+
 There are some generated files checked into the repo. To make sure
 that the generated files are up-to-date, run `make` (or `make
 precommit` - the `precommit` target is the default).
@@ -95,19 +97,20 @@ request ID to the entry you added to `CHANGELOG.md`.
 A PR is considered to be **ready to merge** when:
 
 * It has received two approvals from Collaborators/Maintainers (at
-  different companies).
+  different companies). This is not enforced through technical means
+  and a PR may be **ready to merge** with a single approval if the change
+  and its approach have been discussed and consensus reached.
 * Major feedbacks are resolved.
 * It has been open for review for at least one working day. This gives
   people reasonable time to review.
-* Trivial change (typo, cosmetic, doc, etc.) doesn't have to wait for
-  one day.
+* Trivial changes (typo, cosmetic, doc, etc.) do not have to wait for
+  one day and may be merged with a single Maintainer's approval.
 * `CHANGELOG.md` has been updated to reflect what has been
   added, changed, removed, or fixed.
 * Urgent fix can take exception as long as it has been actively
   communicated.
 
-Any Collaborator/Maintainer can merge the PR once it is **ready to
-merge**.
+Any Maintainer can merge the PR once it is **ready to merge**.
 
 ## Design Choices
 
@@ -184,13 +187,13 @@ how the user can extend the configuration.
 It is important that `config` are not shared across package boundaries.
 Meaning a `config` from one package should not be directly used by another.
 
-Optionally, it is common to include a `configure` function (with the same
+Optionally, it is common to include a `newConfig` function (with the same
 naming scheme). This function wraps any defaults setting and looping over
 all options to create a configured `config`.
 
 ```go
-// configure returns an appropriately configured config.
-func configure([]Option) config {
+// newConfig returns an appropriately configured config.
+func newConfig([]Option) config {
     // Set default values for config.
     config := config{/* […] */}
     for _, option := range options {
@@ -206,7 +209,7 @@ error as well that is expected to be handled by the instantiation function
 or propagated to the user.
 
 Given the design goal of not having the user need to work with the `config`,
-the `configure` function should also be unexported.
+the `newConfig` function should also be unexported.
 
 #### `Option`
 
@@ -215,7 +218,7 @@ To set the value of the options a `config` contains, a corresponding
 
 ```go
 type Option interface {
-  Apply(*Config)
+  Apply(*config)
 }
 ```
 
@@ -241,7 +244,7 @@ func With*(…) Option { … }
 ```go
 type defaultFalseOption bool
 
-func (o defaultFalseOption) Apply(c *Config) {
+func (o defaultFalseOption) Apply(c *config) {
     c.Bool = bool(o)
 }
 
@@ -254,7 +257,7 @@ func WithOption() Option {
 ```go
 type defaultTrueOption bool
 
-func (o defaultTrueOption) Apply(c *Config) {
+func (o defaultTrueOption) Apply(c *config) {
     c.Bool = bool(o)
 }
 
@@ -271,7 +274,7 @@ type myTypeOption struct {
     MyType MyType
 }
 
-func (o myTypeOption) Apply(c *Config) {
+func (o myTypeOption) Apply(c *config) {
     c.MyType = o.MyType
 }
 
@@ -342,6 +345,14 @@ func NewDog(name string, o ...DogOption) Dog    {…}
 func NewBird(name string, o ...BirdOption) Bird {…}
 ```
 
+### Interface Type
+
+To allow other developers to better comprehend the code, it is important
+to ensure it is sufficiently documented. One simple measure that contributes
+to this aim is self-documenting by naming method parameters. Therefore,
+where appropriate, methods of every exported interface type should have
+their parameters appropriately named.
+
 ## Approvers and Maintainers
 
 Approvers:
@@ -349,6 +360,7 @@ Approvers:
 - [Liz Fong-Jones](https://github.com/lizthegrey), Honeycomb
 - [Evan Torrie](https://github.com/evantorrie), Verizon Media
 - [Josh MacDonald](https://github.com/jmacd), LightStep
+- [Sam Xie](https://github.com/XSAM)
 
 Maintainers:
 

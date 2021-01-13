@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"testing"
 	"time"
 
-	"testing"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -23,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
