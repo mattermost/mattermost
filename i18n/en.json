@@ -3020,7 +3020,7 @@
   },
   {
     "id": "api.unable_to_populate_zip_file",
-    "translation": "Sorry, there was an error populating your zip file with data"
+    "translation": "Error populating zip file with data."
   },
   {
     "id": "api.unable_write_file_response",
