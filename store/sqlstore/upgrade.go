@@ -988,9 +988,10 @@ func upgradeDatabaseToVersion530(sqlSupplier *SqlSupplier) {
 	}
 }
 
-func upgradeDatabaseToVersion531(sqlStore *SqlSupplier) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_30_0, VERSION_5_31_0) {
-		saveSchemaVersion(sqlStore, VERSION_5_31_0)
+func upgradeDatabaseToVersion531(sqlSupplier *SqlSupplier) {
+	if shouldPerformUpgrade(sqlSupplier, VERSION_5_30_0, VERSION_5_31_0) {
+		sqlSupplier.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		saveSchemaVersion(sqlSupplier, VERSION_5_31_0)
 	}
 }
 
@@ -1002,14 +1003,4 @@ func hasMissingMigrationsVersion530(sqlSupplier *SqlSupplier) bool {
 		return true
 	}
 	return false
-}
-
-func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
-	// allow 10 files per post
-	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
-	// saveSchemaVersion(sqlStore, Version5320)
-	// }
 }
