@@ -79,7 +79,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.description.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.IconURL) > 0 {
+	if a.IconURL != "" {
 		if len(a.IconURL) > 512 || !IsValidHttpUrl(a.IconURL) {
 			return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.icon_url.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 		}

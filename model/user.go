@@ -292,11 +292,11 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data", u.Id)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
+	if u.AuthData != nil && *u.AuthData != "" && len(u.AuthService) == 0 {
 		return InvalidUserError("auth_data_type", u.Id)
 	}
 
-	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
+	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
@@ -375,7 +375,7 @@ func (u *User) PreSave() {
 		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
-	if len(u.Password) > 0 {
+	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
 }
@@ -408,7 +408,7 @@ func (u *User) PreUpdate() {
 		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
-			if len(key) > 0 {
+			if key != "" {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
@@ -591,11 +591,11 @@ func (u *User) AddNotifyProp(key string, value string) {
 }
 
 func (u *User) GetFullName() string {
-	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
+	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName
-	} else if len(u.FirstName) > 0 {
+	} else if u.FirstName != "" {
 		return u.FirstName
-	} else if len(u.LastName) > 0 {
+	} else if u.LastName != "" {
 		return u.LastName
 	} else {
 		return ""
@@ -606,13 +606,13 @@ func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if len(u.Nickname) > 0 {
+		if u.Nickname != "" {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); len(fullName) > 0 {
+		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); len(fullName) > 0 {
+		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	}

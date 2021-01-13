@@ -835,7 +835,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -852,7 +852,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -875,7 +875,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -932,7 +932,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -2550,11 +2550,11 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 
 	channelIds := []string{}
 
-	if len(view.ChannelId) > 0 {
+	if view.ChannelId != "" {
 		channelIds = append(channelIds, view.ChannelId)
 	}
 
-	if len(view.PrevChannelId) > 0 {
+	if view.PrevChannelId != "" {
 		channelIds = append(channelIds, view.PrevChannelId)
 	}
 

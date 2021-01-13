@@ -29,7 +29,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
 
-	if len(subject) > 0 {
+	if subject != "" {
 		for _, v := range strings.Split(subject, "/") {
 			kv := strings.Split(v, "=")
 			if len(kv) == 2 && kv[0] == "emailAddress" {
@@ -175,7 +175,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}}
 	session.GenerateCSRF()
 
-	if len(deviceId) > 0 {
+	if deviceId != "" {
 		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id

@@ -159,7 +159,7 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 				notTermQueries = append(notTermQueries, hashtagQ)
 			}
 		} else {
-			if len(params.Terms) > 0 {
+			if params.Terms != "" {
 				terms := []string{}
 				for _, term := range strings.Split(params.Terms, " ") {
 					if strings.HasSuffix(term, "*") {
@@ -179,7 +179,7 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 				}
 			}
 
-			if len(params.ExcludedTerms) > 0 {
+			if params.ExcludedTerms != "" {
 				messageQ := bleve.NewMatchQuery(params.ExcludedTerms)
 				messageQ.SetField("Message")
 				messageQ.SetOperator(termOperator)
@@ -654,7 +654,7 @@ func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*m
 			}
 		}
 
-		if len(params.Terms) > 0 {
+		if params.Terms != "" {
 			terms := []string{}
 			for _, term := range strings.Split(params.Terms, " ") {
 				if strings.HasSuffix(term, "*") {
@@ -679,7 +679,7 @@ func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*m
 			}
 		}
 
-		if len(params.ExcludedTerms) > 0 {
+		if params.ExcludedTerms != "" {
 			nameQ := bleve.NewMatchQuery(params.ExcludedTerms)
 			nameQ.SetField("Name")
 			nameQ.SetOperator(termOperator)

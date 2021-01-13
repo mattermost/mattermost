@@ -182,7 +182,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult
-	if len(post.RootId) > 0 {
+	if post.RootId != "" {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
 			r, pErr := a.Srv().Store.Post().Get(post.RootId, false)
@@ -242,7 +242,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 
 		rootPost := parentPostList.Posts[post.RootId]
-		if len(rootPost.RootId) > 0 {
+		if rootPost.RootId != "" {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -439,7 +439,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
-	if len(channel.TeamId) > 0 {
+	if channel.TeamId != "" {
 		t, err := a.Srv().Store.Team().Get(channel.TeamId)
 		if err != nil {
 			return err

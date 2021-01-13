@@ -136,13 +136,13 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	afterPost := r.URL.Query().Get("after")
-	if len(afterPost) > 0 && !model.IsValidId(afterPost) {
+	if afterPost != "" && !model.IsValidId(afterPost) {
 		c.SetInvalidParam("after")
 		return
 	}
 
 	beforePost := r.URL.Query().Get("before")
-	if len(beforePost) > 0 && !model.IsValidId(beforePost) {
+	if beforePost != "" && !model.IsValidId(beforePost) {
 		c.SetInvalidParam("before")
 		return
 	}
@@ -150,7 +150,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	sinceString := r.URL.Query().Get("since")
 	var since int64
 	var parseError error
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError = strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")
@@ -174,7 +174,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if since > 0 {
 		list, err = c.App.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads})
-	} else if len(afterPost) > 0 {
+	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
@@ -182,7 +182,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		list, err = c.App.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads})
-	} else if len(beforePost) > 0 {
+	} else if beforePost != "" {
 		etag = c.App.GetPostsEtag(channelId)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
@@ -205,7 +205,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(etag) > 0 {
+	if etag != "" {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 
@@ -265,7 +265,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	clientPostList := c.App.PreparePostListForClient(postList)
 
-	if len(etag) > 0 {
+	if etag != "" {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 	w.Write([]byte(clientPostList.ToJson()))
@@ -288,9 +288,9 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	var posts *model.PostList
 	var err *model.AppError
 
-	if len(channelId) > 0 {
+	if channelId != "" {
 		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
-	} else if len(teamId) > 0 {
+	} else if teamId != "" {
 		posts, err = c.App.GetFlaggedPostsForTeam(c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
 	} else {
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)

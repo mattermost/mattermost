@@ -526,7 +526,7 @@ func HttpGet(url string, httpClient *http.Client, authToken string, followRedire
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
-	if len(authToken) > 0 {
+	if authToken != "" {
 		rq.Header.Set(model.HEADER_AUTH, authToken)
 	}
 

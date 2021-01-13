@@ -49,7 +49,7 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
 	if len(o.Hostname) == 0 {
-		if len(ipAddress) > 0 {
+		if ipAddress != "" {
 			o.Hostname = ipAddress
 		} else {
 			o.Hostname = GetServerIpAddress(iface)

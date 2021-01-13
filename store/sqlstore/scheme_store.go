@@ -332,7 +332,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	var schemes []*model.Scheme
 
 	scopeClause := ""
-	if len(scope) > 0 {
+	if scope != "" {
 		scopeClause = " AND Scope=:Scope "
 	}
 

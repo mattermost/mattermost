@@ -619,7 +619,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}
-		if len(teamId) > 0 {
+		if teamId != "" {
 			err = a.AddUserToTeamByTeamId(teamId, user)
 		}
 	}
@@ -763,11 +763,11 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
-	if len(scope) > 0 {
+	if scope != "" {
 		authUrl += "&scope=" + utils.UrlEncode(scope)
 	}
 
-	if len(loginHint) > 0 {
+	if loginHint != "" {
 		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
 	}
 

@@ -393,7 +393,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 		return nil, err
 	}
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		err = a.AddUserToTeamByTeamId(teamId, user)
 		if err != nil {
 			return nil, err
@@ -762,7 +762,7 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		}
 	}
 
-	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != "" && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 

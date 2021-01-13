@@ -250,7 +250,7 @@ func (s SqlTeamStore) createIndexesIfNotExists() {
 // Save adds the team to the database if a team with the same name does not already
 // exist in the database. It returns the team added if the operation is successful.
 func (s SqlTeamStore) Save(team *model.Team) (*model.Team, error) {
-	if len(team.Id) > 0 {
+	if team.Id != "" {
 		return nil, store.NewErrInvalidInput("Team", "id", team.Id)
 	}
 
@@ -405,7 +405,7 @@ func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, count
 		}
 	}
 
-	if len(term) > 0 {
+	if term != "" {
 		term = sanitizeSearchTerm(term, "\\")
 		term = wildcardSearchTerm(term)
 

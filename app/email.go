@@ -341,7 +341,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -400,7 +400,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,

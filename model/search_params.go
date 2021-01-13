@@ -312,7 +312,7 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 
 	paramsList := []*SearchParams{}
 
-	if len(plainTerms) > 0 || len(excludedPlainTerms) > 0 {
+	if plainTerms != "" || excludedPlainTerms != "" {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              plainTerms,
 			ExcludedTerms:      excludedPlainTerms,
@@ -333,7 +333,7 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 		})
 	}
 
-	if len(hashtagTerms) > 0 || len(excludedHashtagTerms) > 0 {
+	if hashtagTerms != "" || excludedHashtagTerms != "" {
 		paramsList = append(paramsList, &SearchParams{
 			Terms:              hashtagTerms,
 			ExcludedTerms:      excludedHashtagTerms,

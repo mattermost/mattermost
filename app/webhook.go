@@ -503,7 +503,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(updatedHook.ChannelId) > 0 {
+	if updatedHook.ChannelId != "" {
 		channel, err := a.GetChannel(updatedHook.ChannelId)
 		if err != nil {
 			return nil, err

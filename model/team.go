@@ -152,7 +152,7 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.Email) > 0 && !IsValidEmail(o.Email) {
+	if o.Email != "" && !IsValidEmail(o.Email) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.email.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 

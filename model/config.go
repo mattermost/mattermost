@@ -3416,7 +3416,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.GuestAttribute) > 0 {
+		if *s.GuestAttribute != "" {
 			if !(strings.Contains(*s.GuestAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3425,7 +3425,7 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 		}
 
-		if len(*s.AdminAttribute) > 0 {
+		if *s.AdminAttribute != "" {
 			if !(strings.Contains(*s.AdminAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3599,7 +3599,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 }
 
 func (s *LocalizationSettings) isValid() *AppError {
-	if len(*s.AvailableLocales) > 0 {
+	if *s.AvailableLocales != "" {
 		if !strings.Contains(*s.AvailableLocales, *s.DefaultClientLocale) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3694,33 +3694,33 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if o.LdapSettings.BindPassword != nil && len(*o.LdapSettings.BindPassword) > 0 {
+	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 
-	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
-	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if len(*o.GitLabSettings.Secret) > 0 {
+	if *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
-	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+	if o.GoogleSettings.Secret != nil && *o.GoogleSettings.Secret != "" {
 		*o.GoogleSettings.Secret = FAKE_SETTING
 	}
 
-	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+	if o.Office365Settings.Secret != nil && *o.Office365Settings.Secret != "" {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
-	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
 		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
@@ -3737,11 +3737,11 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
-	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 

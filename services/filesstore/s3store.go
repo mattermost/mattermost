@@ -340,7 +340,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 
 func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
 		path = path + "/"

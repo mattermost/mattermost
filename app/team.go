@@ -1840,7 +1840,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, err := a.Srv().Store.Token().GetByToken(tokenId)
 		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
@@ -1859,7 +1859,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 
 		return tokenData["teamId"], nil
 	}
-	if len(inviteId) > 0 {
+	if inviteId != "" {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
 		if err == nil {
 			return team.Id, nil

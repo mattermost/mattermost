@@ -122,7 +122,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var ruser *model.User
 	var err *model.AppError
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
 		if nErr != nil {
 			var status int
@@ -148,7 +148,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
-	} else if len(inviteId) > 0 {
+	} else if inviteId != "" {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
 		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
@@ -633,7 +633,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
-	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
+	if notInChannelId != "" && len(inTeamId) == 0 {
 		c.SetInvalidUrlParam("team_id")
 		return
 	}
@@ -726,14 +726,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		profiles, err = c.App.GetUsersWithoutTeamPage(userGetOptions, c.IsSystemAdmin())
-	} else if len(notInChannelId) > 0 {
+	} else if notInChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
-	} else if len(notInTeamId) > 0 {
+	} else if notInTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
@@ -745,7 +745,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
-	} else if len(inTeamId) > 0 {
+	} else if inTeamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
@@ -762,7 +762,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
-	} else if len(inChannelId) > 0 {
+	} else if inChannelId != "" {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), inChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
@@ -772,7 +772,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
-	} else if len(inGroupId) > 0 {
+	} else if inGroupId != "" {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 			return
@@ -802,7 +802,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(etag) > 0 {
+	if etag != "" {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 	c.App.UpdateLastActivityAtIfNeeded(*c.App.Session())
@@ -823,7 +823,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsAdmin: c.IsSystemAdmin(),
 	}
 
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")
@@ -996,14 +996,14 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
-	if len(channelId) > 0 {
+	if channelId != "" {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 	}
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
@@ -1019,7 +1019,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(channelId) > 0 {
+	if channelId != "" {
 		// We're using the channelId to search for users inside that channel and the team
 		// to get the not in channel list. Also we want to include the DM and GM users for
 		// that team which could only be obtained having the team id.
@@ -1040,7 +1040,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
-	} else if len(teamId) > 0 {
+	} else if teamId != "" {
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -2835,7 +2835,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sinceString := r.URL.Query().Get("since")
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseUint(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")
@@ -2845,7 +2845,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageString := r.URL.Query().Get("page")
-	if len(pageString) > 0 {
+	if pageString != "" {
 		page, parseError := strconv.ParseUint(pageString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("page")
@@ -2855,7 +2855,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageSizeString := r.URL.Query().Get("pageSize")
-	if len(pageString) > 0 {
+	if pageString != "" {
 		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("pageSize")

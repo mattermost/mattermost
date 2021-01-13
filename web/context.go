@@ -74,7 +74,7 @@ func (c *Context) LogAudit(extraInfo string) {
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
-	if len(c.App.Session().UserId) > 0 {
+	if c.App.Session().UserId != "" {
 		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session().UserId)
 	}
 
@@ -214,7 +214,7 @@ func (c *Context) SetCommandNotFoundError() {
 
 func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
 	metrics := c.App.Metrics()
-	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
+	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); etag != "" {
 		if et == etag {
 			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 			w.WriteHeader(http.StatusNotModified)

@@ -324,11 +324,11 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 		"Precedence":                {"bulk"},
 	}
 
-	if len(mail.replyTo.Address) > 0 {
+	if mail.replyTo.Address != "" {
 		headers["Reply-To"] = []string{mail.replyTo.String()}
 	}
 
-	if len(mail.cc) > 0 {
+	if mail.cc != "" {
 		headers["CC"] = []string{mail.cc}
 	}
 

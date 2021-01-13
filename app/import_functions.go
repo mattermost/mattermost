@@ -497,7 +497,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 				return err
 			}
 		}
-		if len(password) > 0 {
+		if password != "" {
 			if err = a.UpdatePassword(user, password); err != nil {
 				return err
 			}
