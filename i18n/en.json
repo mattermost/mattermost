@@ -1212,10 +1212,6 @@
     "translation": "Unable to find remote id {{.RemoteId}}."
   },
   {
-    "id": "api.context.remote_token_invalid.app_error",
-    "translation": "Invalid remote token."
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },

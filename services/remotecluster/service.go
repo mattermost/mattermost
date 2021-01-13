@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -46,6 +47,7 @@ type ServerIface interface {
 	RemoveClusterLeaderChangedListener(id string)
 	GetStore() store.Store
 	GetLogger() mlog.LoggerIFace
+	GetMetrics() einterfaces.MetricsInterface
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for

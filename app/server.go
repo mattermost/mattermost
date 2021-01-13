@@ -1706,4 +1706,9 @@ func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
 	return s.sharedChannelSyncService
+
+  // GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
 }

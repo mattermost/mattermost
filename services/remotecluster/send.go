@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -146,6 +147,13 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.Remote
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
+	if metrics := rcs.server.GetMetrics(); metrics != nil {
+		if err != nil || resp.StatusCode != http.StatusOK {
+			metrics.IncrementRemoteClusterMsgErrorsCounter(frame.RemoteId, os.IsTimeout(err))
+		} else {
+			metrics.IncrementRemoteClusterMsgSentCounter(frame.RemoteId)
+		}
+	}
 	if err != nil {
 		return nil, err
 	}
