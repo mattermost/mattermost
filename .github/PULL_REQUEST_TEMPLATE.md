@@ -28,6 +28,9 @@ Add a release note for each of the following conditions:
 * Database changes (any)
 * Websocket additions or changes
 * Anything noteworthy to a Mattermost instance administrator (err on the side of over-communicating)
+* New features and improvements, including behavioural changes, UI changes and CLI changes
+* Bug fixes and fixes of previous known issues
+* Deprecation warnings, breaking changes, or compatibility notes
 
 If no release notes are required write NONE. Use past-tense. Newlines are stripped.
 
