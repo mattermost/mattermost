@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
+	"github.com/wiggin77/merror"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/wiggin77/merror"
 )
 
 type syncTask struct {
@@ -33,8 +34,8 @@ func newSyncTask(channelId string, remoteId string) syncTask {
 	}
 }
 
-// NotifyChannelChanged is called to indicate that a shared channel has been modified, thus
-// triggering an update to all remote clusters.
+// NotifyChannelChanged is called to indicate that a shared channel has been modified,
+// thus triggering an update to all remote clusters.
 func (scs *Service) NotifyChannelChanged(channelId string) {
 	task := newSyncTask(channelId, "")
 	scs.addTask(task)
