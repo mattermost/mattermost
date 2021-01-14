@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPostStore(t *testing.T) {
@@ -35,11 +36,11 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 
 		expectedResult := fmt.Sprintf("%v.%v", model.CurrentVersion, fakeLastTime)
 
-		etag := cachedStore.Post().GetEtag(channelId, true)
+		etag := cachedStore.Post().GetEtag(channelId, true, false)
 		assert.Equal(t, etag, expectedResult)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 1)
 
-		etag = cachedStore.Post().GetEtag(channelId, true)
+		etag = cachedStore.Post().GetEtag(channelId, true, false)
 		assert.Equal(t, etag, expectedResult)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 1)
 	})
@@ -50,9 +51,9 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		cachedStore.Post().GetEtag(channelId, true)
+		cachedStore.Post().GetEtag(channelId, true, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 1)
-		cachedStore.Post().GetEtag(channelId, false)
+		cachedStore.Post().GetEtag(channelId, false, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 2)
 	})
 
@@ -62,10 +63,10 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		cachedStore.Post().GetEtag(channelId, true)
+		cachedStore.Post().GetEtag(channelId, true, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 1)
 		cachedStore.Post().InvalidateLastPostTimeCache(channelId)
-		cachedStore.Post().GetEtag(channelId, true)
+		cachedStore.Post().GetEtag(channelId, true, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 2)
 	})
 
@@ -75,10 +76,10 @@ func TestPostStoreLastPostTimeCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		cachedStore.Post().GetEtag(channelId, true)
+		cachedStore.Post().GetEtag(channelId, true, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 1)
 		cachedStore.Post().ClearCaches()
-		cachedStore.Post().GetEtag(channelId, true)
+		cachedStore.Post().GetEtag(channelId, true, false)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "GetEtag", 2)
 	})
 

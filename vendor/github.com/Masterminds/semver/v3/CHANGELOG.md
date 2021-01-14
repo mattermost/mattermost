@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.1 (2020-11-23)
+
+### Fixed
+
+- #158: Fixed issue with generated regex operation order that could cause problem
+
 ## 3.1.0 (2020-04-15)
 
 ### Added

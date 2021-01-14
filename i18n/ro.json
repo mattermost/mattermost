@@ -8398,5 +8398,9 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "Nu se pot adăuga date la fișier."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Nu s-a obținut codul de autorizare."
   }
 ]
