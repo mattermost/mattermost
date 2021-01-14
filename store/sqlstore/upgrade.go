@@ -968,8 +968,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 
-	sqlStore.GetMaster().Exec("UPDATE Reactions SET UpdateAt=CreateAt, DeleteAt=0 WHERE DeleteAt IS NULL")
-
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }
 }

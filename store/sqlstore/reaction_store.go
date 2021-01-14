@@ -80,11 +80,16 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 
 	if _, err := s.GetReplica().Select(&reactions,
 		`SELECT
-				*
+				UserId,
+				PostId,
+				EmojiName,
+				CreateAt,
+				COALESCE(UpdateAt, CreateAt) As UpdateAt,
+				COALESCE(DeleteAt, 0) As DeleteAt
 			FROM
 				Reactions
 			WHERE
-				PostId = :PostId AND DeleteAt = 0
+				PostId = :PostId AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
@@ -97,12 +102,18 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
 
-	if _, err := s.GetReplica().Select(&reactions, `SELECT
-				*
+	if _, err := s.GetReplica().Select(&reactions,
+		`SELECT
+				UserId,
+				PostId,
+				EmojiName,
+				CreateAt,
+				COALESCE(UpdateAt, CreateAt) As UpdateAt,
+				COALESCE(DeleteAt, 0) As DeleteAt
 			FROM
 				Reactions
 			WHERE
-				PostId IN `+keys+` AND DeleteAt = 0
+				PostId IN `+keys+` AND COALESCE(DeleteAt, 0) = 0
 			ORDER BY
 				CreateAt`, params); err != nil {
 		return nil, errors.Wrap(err, "failed to get Reactions")
@@ -122,11 +133,16 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	if _, err := s.GetReplica().Select(&reactions,
 		`SELECT
-				*
+				UserId,
+				PostId,
+				EmojiName,
+				CreateAt,
+				COALESCE(UpdateAt, CreateAt) As UpdateAt,
+				COALESCE(DeleteAt, 0) As DeleteAt
 			FROM
 				Reactions
 			WHERE
-				EmojiName = :EmojiName AND DeleteAt = 0`, params); err != nil {
+				EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
@@ -243,7 +259,7 @@ const (
 			Posts
 		SET
 			UpdateAt = :UpdateAt,
-			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId AND DeleteAt = 0)
+			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId AND COALESCE(DeleteAt, 0) = 0)
 		WHERE
 			Id = :PostId`
 )
