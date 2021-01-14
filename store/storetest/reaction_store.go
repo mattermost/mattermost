@@ -126,8 +126,8 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		_, nErr := ss.Reaction().Save(reaction)
 		require.Nil(t, nErr)
 
-	result, err := ss.Post().Get(reaction.PostId, false, false, false)
-	require.Nil(t, err)
+		result, err := ss.Post().Get(reaction.PostId, false, false, false)
+		require.Nil(t, err)
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
 
@@ -139,10 +139,10 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
-    postList, err := ss.Post().Get(post.Id, false, false, false)
-    require.Nil(t, err)
+		postList, err := ss.Post().Get(post.Id, false, false, false)
+		require.Nil(t, err)
 
-    assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
+		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
 		assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
 	})
 
