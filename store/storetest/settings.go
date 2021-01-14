@@ -134,6 +134,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		DataSourceSearchReplicas:    []string{},
 		MaxIdleConns:                new(int),
 		ConnMaxLifetimeMilliseconds: new(int),
+		ConnMaxIdleTimeMilliseconds: new(int),
 		MaxOpenConns:                new(int),
 		Trace:                       model.NewBool(false),
 		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
@@ -141,6 +142,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
+	*settings.ConnMaxIdleTimeMilliseconds = 300000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
 
