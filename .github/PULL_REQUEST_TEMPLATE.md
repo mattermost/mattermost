@@ -23,7 +23,7 @@ Otherwise, link the JIRA ticket.
 <!--
 Add a release note for each of the following conditions:
 
-* Config change (additions, deletions, updates)
+* Config changes (additions, deletions, updates)
 * API additions—new endpoint, new response fields, or newly accepted request parameters
 * Database changes (any)
 * Websocket additions or changes
