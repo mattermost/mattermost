@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
@@ -294,7 +293,7 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map
 			online = ":skull_and_crossbones:"
 		}
 
-		lastSync := formatTimestamp(time.Unix(0, status.LastSyncAt*int64(time.Millisecond)))
+		lastSync := formatTimestamp(model.GetTimeForMillis(status.LastSyncAt))
 
 		fmt.Fprintf(&sb, "| %s | %s | %s | %t | %t | %s | %s |\n",
 			status.DisplayName, status.SiteURL, status.Description,

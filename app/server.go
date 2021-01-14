@@ -28,7 +28,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -505,7 +504,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -731,37 +732,34 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License, app *App) {
-	// 	TODO: use license once one can be genenerated
-	allowRemoteClusterService := true // license != nil && *license.Features.RemoteClusterService
-	allowSharedChannels := true       //license != nil && *license.Features.SharedChannels
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+	allowRemoteClusterService := license != nil && *license.Features.RemoteClusterService
+	allowSharedChannels := license != nil && *license.Features.SharedChannels
 
 	// Remote Cluster service
 
 	// License check
 	if !allowRemoteClusterService {
 		mlog.Debug("License does not have Remote Cluster services enabled")
-		return
+		return nil
 	}
 
 	// Config check
 	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
 		mlog.Debug("Remote Cluster Service disabled via config")
-		return
+		return nil
 	}
 
 	var err error
 
 	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
 	if err != nil {
-		mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
-		return
+		return err
 	}
 
 	if err = s.remoteClusterService.Start(); err != nil {
-		mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
 		s.remoteClusterService = nil
-		return
+		return err
 	}
 
 	// Shared Channels Sync service
@@ -769,26 +767,25 @@ func (s *Server) startInterClusterServices(license *model.License, app *App) {
 	// License check
 	if !allowSharedChannels {
 		mlog.Debug("License does not have shared channels enabled")
-		return
+		return nil
 	}
 
 	// Config check
 	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
 		mlog.Debug("Shared Channel Sync Service disabled via config")
-		return
+		return nil
 	}
 
 	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s, app)
 	if err != nil {
-		mlog.Error("Error initializing Shared Channel Sync Service", mlog.Err(err))
-		return
+		return err
 	}
 
 	if err = s.sharedChannelSyncService.Start(); err != nil {
-		mlog.Error("Error starting Shared Channel Sync Service", mlog.Err(err))
 		s.remoteClusterService = nil
-		return
+		return err
 	}
+	return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -1221,7 +1218,9 @@ func (s *Server) Start() error {
 		}
 	}
 
-	s.startInterClusterServices(s.License(), s.WebSocketRouter.app)
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -1707,4 +1706,10 @@ func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 	return s.sharedChannelSyncService
+}
+
+// GetMetrics returns the server's Metrics interface. Exposing via a method
+// allows interfaces to be created with subsets of server APIs.
+func (s *Server) GetMetrics() einterfaces.MetricsInterface {
+	return s.Metrics
 }

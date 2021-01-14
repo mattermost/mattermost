@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -91,7 +92,7 @@ func (rcs *Service) sendLoop(done chan struct{}) {
 }
 
 func (rcs *Service) sendMsg(task sendTask) {
-	// Ensure a panic from the callback doesn't exit the pool thread.
+	// Ensure a panic from the callback does not exit the pool thread.
 	defer func() {
 		if r := recover(); r != nil {
 			rcs.server.GetLogger().Log(mlog.LvlPanic, "Remote Cluster sendMsg panic",
@@ -106,7 +107,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 	}
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
-	resp, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
+	respJSON, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
 	response := make(Response)
 
 	if err != nil {
@@ -118,7 +119,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
 
-		if errDecode := json.Unmarshal(resp, &response); errDecode != nil {
+		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
 			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster", mlog.String("remote", task.rc.DisplayName), mlog.Err(errDecode))
 			response[ResponseErrorKey] = errDecode.Error()
 		}
@@ -146,6 +147,13 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.Remote
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
+	if metrics := rcs.server.GetMetrics(); metrics != nil {
+		if err != nil || resp.StatusCode != http.StatusOK {
+			metrics.IncrementRemoteClusterMsgErrorsCounter(frame.RemoteId, os.IsTimeout(err))
+		} else {
+			metrics.IncrementRemoteClusterMsgSentCounter(frame.RemoteId)
+		}
+	}
 	if err != nil {
 		return nil, err
 	}

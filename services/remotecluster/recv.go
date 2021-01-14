@@ -17,6 +17,10 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	rcs.mux.RLock()
 	defer rcs.mux.RUnlock()
 
+	if metrics := rcs.server.GetMetrics(); metrics != nil {
+		metrics.IncrementRemoteClusterMsgReceivedCounter(rc.RemoteId)
+	}
+
 	rcSanitized := *rc
 	rcSanitized.Token = ""
 	rcSanitized.RemoteToken = ""

@@ -97,10 +97,6 @@ func combineErrors(err error, serror string) string {
 }
 
 func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
-	if msg.Topic != TopicChannelInvite {
-		return nil
-	}
-
 	if len(msg.Payload) == 0 {
 		return nil
 	}

@@ -15,21 +15,20 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
 )
 
 const (

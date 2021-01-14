@@ -3,7 +3,9 @@
 
 package upgrader
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // InvalidArch indicates that the current operating system or cpu architecture doesn't support upgrades
 type InvalidArch struct{}

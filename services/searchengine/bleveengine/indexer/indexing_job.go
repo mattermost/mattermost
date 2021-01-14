@@ -354,6 +354,30 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 	return lastCreateAt, nil
 }
 
+func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing, progress IndexingProgress) (int64, *model.AppError) {
+	lastCreateAt := int64(0)
+	batch := worker.engine.FileIndex.NewBatch()
+
+	for _, file := range files {
+		if file.DeleteAt == 0 {
+			searchFile := bleveengine.BLVFileFromFileForIndexing(file)
+			batch.Index(searchFile.Id, searchFile)
+		} else {
+			batch.Delete(file.Id)
+		}
+
+		lastCreateAt = file.CreateAt
+	}
+
+	worker.engine.Mutex.RLock()
+	defer worker.engine.Mutex.RUnlock()
+
+	if err := worker.engine.FileIndex.Batch(batch); err != nil {
+		return 0, model.NewAppError("BleveIndexerWorker.BulkIndexPosts", "bleveengine.indexer.do_job.bulk_index_files.batch_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return lastCreateAt, nil
+}
+
 func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	endTime := progress.LastEntityTime + int64(*worker.jobServer.Config().BleveSettings.BulkIndexingTimeWindowSeconds*1000)
 

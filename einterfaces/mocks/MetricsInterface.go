@@ -75,6 +75,16 @@ func (_m *MetricsInterface) IncrementEtagMissCounter(route string) {
 	_m.Called(route)
 }
 
+// IncrementFileIndexCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementFileIndexCounter() {
+	_m.Called()
+}
+
+// IncrementFilesSearchCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementFilesSearchCounter() {
+	_m.Called()
+}
+
 // IncrementHttpError provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementHttpError() {
 	_m.Called()
@@ -160,6 +170,21 @@ func (_m *MetricsInterface) IncrementPostsSearchCounter() {
 	_m.Called()
 }
 
+// IncrementRemoteClusterMsgErrorsCounter provides a mock function with given fields: remoteID, timeout
+func (_m *MetricsInterface) IncrementRemoteClusterMsgErrorsCounter(remoteID string, timeout bool) {
+	_m.Called(remoteID, timeout)
+}
+
+// IncrementRemoteClusterMsgReceivedCounter provides a mock function with given fields: remoteID
+func (_m *MetricsInterface) IncrementRemoteClusterMsgReceivedCounter(remoteID string) {
+	_m.Called(remoteID)
+}
+
+// IncrementRemoteClusterMsgSentCounter provides a mock function with given fields: remoteID
+func (_m *MetricsInterface) IncrementRemoteClusterMsgSentCounter(remoteID string) {
+	_m.Called(remoteID)
+}
+
 // IncrementUserIndexCounter provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementUserIndexCounter() {
 	_m.Called()
@@ -205,6 +230,11 @@ func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 	_m.Called(users)
 }
 
+// ObserveFilesSearchDuration provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
+	_m.Called(elapsed)
+}
+
 // ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
 func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, success bool, elapsed float64) {
 	_m.Called(pluginID, apiName, success, elapsed)
@@ -228,6 +258,16 @@ func (_m *MetricsInterface) ObservePluginMultiHookIterationDuration(pluginID str
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveRemoteClusterClockSkew provides a mock function with given fields: remoteID, skew
+func (_m *MetricsInterface) ObserveRemoteClusterClockSkew(remoteID string, skew float64) {
+	_m.Called(remoteID, skew)
+}
+
+// ObserveRemoteClusterPingDuration provides a mock function with given fields: remoteID, elapsed
+func (_m *MetricsInterface) ObserveRemoteClusterPingDuration(remoteID string, elapsed float64) {
+	_m.Called(remoteID, elapsed)
 }
 
 // ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed

@@ -33,8 +33,8 @@ func newSyncTask(channelId string, remoteId string) syncTask {
 	}
 }
 
-// NotifyChannelChanged is called to indicate that a shared channel has been modified,
-// thus triggering an update to all remote clusters.
+// NotifyChannelChanged is called to indicate that a shared channel has been modified, thus
+// triggering an update to all remote clusters.
 func (scs *Service) NotifyChannelChanged(channelId string) {
 	task := newSyncTask(channelId, "")
 	scs.addTask(task)

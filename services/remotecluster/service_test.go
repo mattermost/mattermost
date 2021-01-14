@@ -66,5 +66,5 @@ func TestService_AddTopicListener(t *testing.T) {
 	assert.Equal(t, int32(5), atomic.LoadInt32(&count))
 
 	listeners = service.getTopicListeners("test")
-	assert.Len(t, listeners, 0)
+	assert.Empty(t, listeners)
 }
