@@ -108,7 +108,7 @@ webapp/coverage
 /tags
 .idea
 
-debug
+/debug
 /client
 __debug_bin
 report.xml

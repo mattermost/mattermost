@@ -135,19 +135,19 @@ func (b *LocalFileBackend) RemoveFile(path string) error {
 	return nil
 }
 
-func (b *LocalFileBackend) ListDirectory(path string) (*[]string, error) {
+func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
 	var paths []string
 	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &paths, nil
+			return paths, nil
 		}
 		return nil, errors.Wrapf(err, "unable to list the directory %s", path)
 	}
 	for _, fileInfo := range fileInfos {
 		paths = append(paths, filepath.Join(path, fileInfo.Name()))
 	}
-	return &paths, nil
+	return paths, nil
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {

@@ -28,7 +28,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -505,7 +504,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -732,9 +733,8 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 }
 
 func (s *Server) startInterClusterServices(license *model.License, app *App) error {
-	// 	TODO: use license once one can be genenerated
-	allowRemoteClusterService := true // license != nil && *license.Features.RemoteClusterService
-	allowSharedChannels := true       //license != nil && *license.Features.SharedChannels
+	allowRemoteClusterService := license != nil && *license.Features.RemoteClusterService
+	allowSharedChannels := license != nil && *license.Features.SharedChannels
 
 	// Remote Cluster service
 
@@ -1706,8 +1706,9 @@ func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 // May be nil if the service is not enabled via license.
 func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
 	return s.sharedChannelSyncService
+}
 
-  // GetMetrics returns the server's Metrics interface. Exposing via a method
+// GetMetrics returns the server's Metrics interface. Exposing via a method
 // allows interfaces to be created with subsets of server APIs.
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.Metrics

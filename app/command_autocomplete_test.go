@@ -8,8 +8,9 @@ import (
 	"testing"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestParseStaticListArgument(t *testing.T) {
