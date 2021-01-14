@@ -29,7 +29,7 @@ Add a release note for each of the following conditions:
 * Websocket additions or changes
 * Anything noteworthy to a Mattermost instance administrator (err on the side of over-communicating)
 
-If no release notes are required write NONE in the release-note block below. Use past-tense for consistency.
+If no release notes are required write NONE. Use past-tense for consistency.
 
 Examples:
 
