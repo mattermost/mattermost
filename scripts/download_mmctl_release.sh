@@ -24,6 +24,8 @@ else
   RELEASE_TO_DOWNLOAD=master
 fi
 
+RELEASE_TO_DOWNLOAD="release-5.31"
+
 echo "Downloading prepackaged binary: https://releases.mattermost.com/mmctl/$RELEASE_TO_DOWNLOAD";
 
 # When packaging we need to download different platforms
