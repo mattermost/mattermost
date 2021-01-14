@@ -410,7 +410,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 
 // CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
 func CheckEmailDomain(email string, domains string) bool {
-	if len(domains) == 0 {
+	if domains == "" {
 		return true
 	}
 
@@ -873,7 +873,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		img, appErr := a.GetDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr

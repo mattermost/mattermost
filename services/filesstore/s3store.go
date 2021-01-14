@@ -396,12 +396,12 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 }
 
 func CheckMandatoryS3Fields(settings *model.FileSettings) error {
-	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
+	if settings.AmazonS3Bucket == nil || *settings.AmazonS3Bucket == "" {
 		return errors.New("missing s3 bucket settings")
 	}
 
 	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
+	if settings.AmazonS3Endpoint == nil || *settings.AmazonS3Endpoint == "" {
 		settings.SetDefaults(true)
 	}
 

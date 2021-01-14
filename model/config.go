@@ -1113,7 +1113,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure an encryption key has been specified.
-		if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
+		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1379,7 +1379,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure link salt has been specified.
-		if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
+		if s.PublicLinkSalt == nil || *s.PublicLinkSalt == "" {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1412,7 +1412,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3Region = NewString("")
 	}
 
-	if s.AmazonS3Endpoint == nil || len(*s.AmazonS3Endpoint) == 0 {
+	if s.AmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		s.AmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
@@ -1525,11 +1525,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = NewString("")
 	}
 
-	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
+	if s.SMTPServer == nil || *s.SMTPServer == "" {
 		s.SMTPServer = NewString("localhost")
 	}
 
-	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
+	if s.SMTPPort == nil || *s.SMTPPort == "" {
 		s.SMTPPort = NewString("10025")
 	}
 
@@ -3105,7 +3105,7 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+	if *o.ServiceSettings.SiteURL == "" && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3113,7 +3113,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3236,7 +3236,7 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.DataSource) == 0 {
+	if *s.DataSource == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3365,47 +3365,47 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if len(*s.IdpUrl) == 0 || !IsValidHttpUrl(*s.IdpUrl) {
+		if *s.IdpUrl == "" || !IsValidHttpUrl(*s.IdpUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorUrl == "" || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpCertificateFile) == 0 {
+		if *s.IdpCertificateFile == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.UsernameAttribute) == 0 {
+		if *s.UsernameAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.ServiceProviderIdentifier) == 0 {
+		if *s.ServiceProviderIdentifier == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if *s.Verify {
-			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
 		if *s.Encrypt {
-			if len(*s.PrivateKeyFile) == 0 {
+			if *s.PrivateKeyFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if len(*s.PublicCertificateFile) == 0 {
+			if *s.PublicCertificateFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3526,7 +3526,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 func (s *ElasticsearchSettings) isValid() *AppError {
 	if *s.EnableIndexing {
-		if len(*s.ConnectionUrl) == 0 {
+		if *s.ConnectionUrl == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -3564,7 +3564,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 func (bs *BleveSettings) isValid() *AppError {
 	if *bs.EnableIndexing {
-		if len(*bs.IndexDir) == 0 {
+		if *bs.IndexDir == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	} else {

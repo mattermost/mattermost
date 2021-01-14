@@ -654,7 +654,7 @@ func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
 		return "", err
 	}
 
-	if len(info.PostId) == 0 {
+	if info.PostId == "" {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 	}
 

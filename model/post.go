@@ -269,19 +269,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || o.RootId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || o.ParentId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) == 26 && len(o.RootId) == 0 {
+	if len(o.ParentId) == 26 && o.RootId == "" {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_parent.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.OriginalId) == 26 || len(o.OriginalId) == 0) {
+	if !(len(o.OriginalId) == 26 || o.OriginalId == "") {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

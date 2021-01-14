@@ -171,7 +171,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(channel.TeamId) == 0 {
+	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -900,7 +900,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	var scheme *model.Scheme
 	// Channel has no scheme so create one
-	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
 		scheme, err = a.CreateChannelScheme(channel)
 		if err != nil {
 			return nil, err

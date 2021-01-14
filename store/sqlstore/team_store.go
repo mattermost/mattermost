@@ -335,7 +335,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
 
-	if len(inviteId) == 0 || team.InviteId != inviteId {
+	if inviteId == "" || team.InviteId != inviteId {
 		return nil, store.NewErrNotFound("Team", fmt.Sprintf("inviteId=%s", inviteId))
 	}
 	return &team, nil

@@ -470,7 +470,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if params.Terms == nil || len(*params.Terms) == 0 {
+	if params.Terms == nil || *params.Terms == "" {
 		c.SetInvalidParam("terms")
 		return
 	}

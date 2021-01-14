@@ -431,7 +431,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+	if *c.App.Config().FileSettings.DriverName == "" {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -491,7 +491,7 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+	if *c.App.Config().FileSettings.DriverName == "" {
 		c.Err = model.NewAppError("setDefaultProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -633,7 +633,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelRolesString := r.URL.Query().Get("channel_roles")
 	teamRolesString := r.URL.Query().Get("team_roles")
 
-	if notInChannelId != "" && len(inTeamId) == 0 {
+	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidUrlParam("team_id")
 		return
 	}
@@ -890,7 +890,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(props.Term) == 0 {
+	if props.Term == "" {
 		c.SetInvalidParam("term")
 		return
 	}
@@ -1023,7 +1023,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		// We're using the channelId to search for users inside that channel and the team
 		// to get the not in channel list. Also we want to include the DM and GM users for
 		// that team which could only be obtained having the team id.
-		if len(teamId) == 0 {
+		if teamId == "" {
 			c.Err = model.NewAppError("autocompleteUser",
 				"api.user.autocomplete_users.missing_team_id.app_error",
 				nil,
@@ -1427,7 +1427,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	loginId := props["login_id"]
-	if len(loginId) == 0 {
+	if loginId == "" {
 		c.SetInvalidParam("login_id")
 		return
 	}
@@ -1483,7 +1483,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	code := ""
 	if activate {
 		code, ok = props["code"].(string)
-		if !ok || len(code) == 0 {
+		if !ok || code == "" {
 			c.SetInvalidParam("code")
 			return
 		}
@@ -1571,7 +1571,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		if c.Params.UserId == c.App.Session().UserId {
 			currentPassword := props["current_password"]
-			if len(currentPassword) <= 0 {
+			if currentPassword == "" {
 				c.SetInvalidParam("current_password")
 				return
 			}
@@ -1629,7 +1629,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	email := props["email"]
 	email = strings.ToLower(email)
-	if len(email) == 0 {
+	if email == "" {
 		c.SetInvalidParam("email")
 		return
 	}
@@ -1730,7 +1730,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
 		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
-		if len(certPem) == 0 || len(certEmail) == 0 {
+		if certPem == "" || certEmail == "" {
 			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1979,7 +1979,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	deviceId := props["device_id"]
-	if len(deviceId) == 0 {
+	if deviceId == "" {
 		c.SetInvalidParam("device_id")
 		return
 	}
@@ -2090,7 +2090,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	email := props["email"]
 	email = strings.ToLower(email)
-	if len(email) == 0 {
+	if email == "" {
 		c.SetInvalidParam("email")
 		return
 	}
@@ -2233,7 +2233,7 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if len(props.Term) == 0 {
+	if props.Term == "" {
 		c.SetInvalidParam("term")
 		return
 	}
@@ -2704,7 +2704,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("from")
 		return
 	}
-	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
+	if from == "" || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
 		c.SetInvalidParam("from")
 		return
 	}
@@ -2763,7 +2763,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("from")
 		return
 	}
-	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
+	if from == "" || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
 		c.SetInvalidParam("from")
 		return
 	}

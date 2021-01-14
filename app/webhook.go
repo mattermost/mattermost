@@ -51,7 +51,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
-		if hook.ChannelId == post.ChannelId || len(hook.ChannelId) == 0 {
+		if hook.ChannelId == post.ChannelId || hook.ChannelId == "" {
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
@@ -658,7 +658,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	text := req.Text
-	if len(text) == 0 && req.Attachments == nil {
+	if text == "" && req.Attachments == nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 

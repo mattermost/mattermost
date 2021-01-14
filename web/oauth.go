@@ -134,7 +134,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// here we should check if the user is logged in
-	if len(c.App.Session().UserId) == 0 {
+	if c.App.Session().UserId == "" {
 		if loginHint == model.USER_AUTH_SERVICE_SAML {
 			http.Redirect(w, r, c.GetSiteURLHeader()+"/login/sso/saml?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
 		} else {
@@ -191,12 +191,12 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	grantType := r.FormValue("grant_type")
 	switch grantType {
 	case model.ACCESS_TOKEN_GRANT_TYPE:
-		if len(code) == 0 {
+		if code == "" {
 			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_code.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	case model.REFRESH_TOKEN_GRANT_TYPE:
-		if len(refreshToken) == 0 {
+		if refreshToken == "" {
 			c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.missing_refresh_token.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -212,7 +212,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	secret := r.FormValue("client_secret")
-	if len(secret) == 0 {
+	if secret == "" {
 		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_secret.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -259,7 +259,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := r.URL.Query().Get("code")
-	if len(code) == 0 {
+	if code == "" {
 		utils.RenderWebError(c.App.Config(), w, r, http.StatusTemporaryRedirect, url.Values{
 			"type":    []string{"oauth_missing_code"},
 			"service": []string{strings.Title(service)},

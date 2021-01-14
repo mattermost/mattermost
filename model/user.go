@@ -268,7 +268,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("username", u.Id)
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
 		return InvalidUserError("email", u.Id)
 	}
 
@@ -292,7 +292,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data", u.Id)
 	}
 
-	if u.AuthData != nil && *u.AuthData != "" && len(u.AuthService) == 0 {
+	if u.AuthData != nil && *u.AuthData != "" && u.AuthService == "" {
 		return InvalidUserError("auth_data_type", u.Id)
 	}
 
@@ -762,7 +762,7 @@ func HashPassword(password string) string {
 // ComparePassword compares the hash
 func ComparePassword(hash string, password string) bool {
 
-	if len(password) == 0 || len(hash) == 0 {
+	if password == "" || hash == "" {
 		return false
 	}
 
@@ -874,7 +874,7 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 		return nil
 	}
 	trimmed := strings.TrimSpace(*u.GroupIDs)
-	if len(trimmed) == 0 {
+	if trimmed == "" {
 		return nil
 	}
 	return strings.Split(trimmed, ",")

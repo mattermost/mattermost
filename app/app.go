@@ -451,7 +451,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 		}
 
 		if !forceAck {
-			if len(*a.Config().EmailSettings.SMTPServer) == 0 {
+			if *a.Config().EmailSettings.SMTPServer == "" {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
 			T := utils.GetUserTranslations(sender.Locale)

@@ -457,7 +457,7 @@ func (*LoadTestProvider) PostCommand(a *app.App, args *model.CommandArgs, messag
 
 func (*LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "url"))
-	if len(url) == 0 {
+	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
 	}
 
@@ -511,7 +511,7 @@ func (*LoadTestProvider) UrlCommand(a *app.App, args *model.CommandArgs, message
 
 func (*LoadTestProvider) JsonCommand(a *app.App, args *model.CommandArgs, message string) (*model.CommandResponse, error) {
 	url := strings.TrimSpace(strings.TrimPrefix(message, "json"))
-	if len(url) == 0 {
+	if url == "" {
 		return &model.CommandResponse{Text: "Command must contain a url", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
 	}
 

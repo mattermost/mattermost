@@ -134,7 +134,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			}
 		}
 
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			continue
 		}
 
@@ -193,7 +193,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	unknownRepliesPosts := []*model.Post{}
 	for _, post := range posts {
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			count, ok := rootIds[post.Id]
 			if ok {
 				post.ReplyCount += int64(count)
@@ -422,7 +422,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
-	if len(id) == 0 {
+	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
@@ -445,7 +445,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, e
 			rootId = post.Id
 		}
 
-		if len(rootId) == 0 {
+		if rootId == "" {
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
@@ -1223,7 +1223,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
 		len(params.FromUsers) == 0 && len(params.ExcludedUsers) == 0 &&
-		len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
+		params.OnDate == "" && params.AfterDate == "" && params.BeforeDate == "" {
 		return list, nil
 	}
 
@@ -1952,7 +1952,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			continue
 		}
 		rootIds = append(rootIds, post.RootId)

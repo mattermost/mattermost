@@ -54,7 +54,7 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
-	if notInChannelId != "" && len(inTeamId) == 0 {
+	if notInChannelId != "" && inTeamId == "" {
 		c.SetInvalidUrlParam("team_id")
 		return
 	}

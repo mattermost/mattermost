@@ -117,7 +117,7 @@ func (c *Context) SessionRequired() {
 		return
 	}
 
-	if len(c.App.Session().UserId) == 0 {
+	if c.App.Session().UserId == "" {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
@@ -299,7 +299,7 @@ func (c *Context) RequireInviteId() *Context {
 		return c
 	}
 
-	if len(c.Params.InviteId) == 0 {
+	if c.Params.InviteId == "" {
 		c.SetInvalidUrlParam("invite_id")
 	}
 	return c
@@ -412,7 +412,7 @@ func (c *Context) RequireFilename() *Context {
 		return c
 	}
 
-	if len(c.Params.Filename) == 0 {
+	if c.Params.Filename == "" {
 		c.SetInvalidUrlParam("filename")
 	}
 
@@ -424,7 +424,7 @@ func (c *Context) RequirePluginId() *Context {
 		return c
 	}
 
-	if len(c.Params.PluginId) == 0 {
+	if c.Params.PluginId == "" {
 		c.SetInvalidUrlParam("plugin_id")
 	}
 
@@ -506,7 +506,7 @@ func (c *Context) RequireService() *Context {
 		return c
 	}
 
-	if len(c.Params.Service) == 0 {
+	if c.Params.Service == "" {
 		c.SetInvalidUrlParam("service")
 	}
 
@@ -532,7 +532,7 @@ func (c *Context) RequireEmojiName() *Context {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
+	if c.Params.EmojiName == "" || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 
@@ -578,7 +578,7 @@ func (c *Context) RequireJobType() *Context {
 		return c
 	}
 
-	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
+	if c.Params.JobType == "" || len(c.Params.JobType) > 32 {
 		c.SetInvalidUrlParam("job_type")
 	}
 	return c
@@ -634,7 +634,7 @@ func (c *Context) RequireRemoteId() *Context {
 		return c
 	}
 
-	if len(c.Params.RemoteId) == 0 {
+	if c.Params.RemoteId == "" {
 		c.SetInvalidUrlParam("remote_id")
 	}
 	return c
