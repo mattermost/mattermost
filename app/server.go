@@ -1218,7 +1218,7 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if err = s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
 		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 

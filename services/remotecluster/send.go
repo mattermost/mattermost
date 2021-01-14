@@ -92,7 +92,7 @@ func (rcs *Service) sendLoop(done chan struct{}) {
 }
 
 func (rcs *Service) sendMsg(task sendTask) {
-	// Ensure a panic from the callback doesn't exit the pool thread.
+	// Ensure a panic from the callback does not exit the pool thread.
 	defer func() {
 		if r := recover(); r != nil {
 			rcs.server.GetLogger().Log(mlog.LvlPanic, "Remote Cluster sendMsg panic",
