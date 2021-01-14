@@ -52,7 +52,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(reaction1.PostId, false)
+	postList, err := ss.Post().Get(reaction1.PostId, false, false, false)
 	require.Nil(t, err)
 
 	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
@@ -76,7 +76,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction2)
 	require.Nil(t, nErr)
 
-	postList, err = ss.Post().Get(reaction2.PostId, false)
+	postList, err = ss.Post().Get(reaction2.PostId, false, false, false)
 	require.Nil(t, err)
 
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
@@ -126,8 +126,8 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		_, nErr := ss.Reaction().Save(reaction)
 		require.Nil(t, nErr)
 
-		result, err := ss.Post().Get(reaction.PostId, false)
-		require.Nil(t, err)
+	result, err := ss.Post().Get(reaction.PostId, false, false, false)
+	require.Nil(t, err)
 
 		firstUpdateAt := result.Posts[post.Id].UpdateAt
 
@@ -139,12 +139,11 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
-		postList, err := ss.Post().Get(post.Id, false)
-		require.Nil(t, err)
+    postList, err := ss.Post().Get(post.Id, false, false, false)
+    require.Nil(t, err)
 
-		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
+    assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
 		assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
-
 	})
 
 	t.Run("Undelete", func(t *testing.T) {
@@ -345,15 +344,15 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(post.Id, false)
+	postList, err := ss.Post().Get(post.Id, false, false, false)
 	require.Nil(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(post2.Id, false)
+	postList, err = ss.Post().Get(post2.Id, false, false, false)
 	require.Nil(t, err)
 	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(post3.Id, false)
+	postList, err = ss.Post().Get(post3.Id, false, false, false)
 	require.Nil(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
