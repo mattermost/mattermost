@@ -26,7 +26,12 @@ func NewPostList() *PostList {
 }
 
 func (o *PostList) ToSlice() []*Post {
-	posts := make([]*Post, 0, len(o.Order))
+	var posts []*Post
+
+	if l := len(o.Posts); l > 0 {
+		posts = make([]*Post, 0, l)
+	}
+
 	for _, id := range o.Order {
 		posts = append(posts, o.Posts[id])
 	}
