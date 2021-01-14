@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
