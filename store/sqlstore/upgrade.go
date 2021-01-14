@@ -980,6 +980,7 @@ func upgradeDatabaseToVersion530(sqlStore SqlStore) {
 		mlog.Info("Applying migrations for version 5.30")
 		sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "longtext", "text")
 		sqlStore.CreateColumnIfNotExists("SidebarCategories", "Muted", "tinyint(1)", "boolean", "0")
+		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 	}
 	if shouldPerformUpgrade(sqlStore, VERSION_5_29_0, VERSION_5_30_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_30_0)
@@ -991,6 +992,9 @@ func hasMissingMigrationsVersion530(sqlStore SqlStore) bool {
 		return true
 	}
 	if !sqlStore.DoesColumnExist("SidebarCategories", "Muted") {
+		return true
+	}
+	if !sqlStore.DoesColumnExist("ThreadMemberships", "UnreadMentions") {
 		return true
 	}
 	return false
