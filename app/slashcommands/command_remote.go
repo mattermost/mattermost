@@ -124,6 +124,7 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 	rc := &model.RemoteCluster{
 		DisplayName: name,
 		Token:       model.NewId(),
+		CreatorId:   args.UserId,
 	}
 
 	rcSaved, appErr := a.AddRemoteCluster(rc)
@@ -133,9 +134,10 @@ func (rp *RemoteProvider) doInvite(a *app.App, args *model.CommandArgs, margs ma
 
 	// Display the encrypted invitation
 	invite := &model.RemoteClusterInvite{
-		RemoteId: rcSaved.RemoteId,
-		SiteURL:  url,
-		Token:    rcSaved.Token,
+		RemoteId:     rcSaved.RemoteId,
+		RemoteTeamId: args.TeamId,
+		SiteURL:      url,
+		Token:        rcSaved.Token,
 	}
 	encrypted, err := invite.Encrypt(password)
 	if err != nil {
@@ -187,7 +189,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 		return responsef("SiteURL not set. Please set this via the system console.")
 	}
 
-	rc, err := rcs.AcceptInvitation(invite, name, url)
+	rc, err := rcs.AcceptInvitation(invite, name, args.UserId, args.TeamId, url)
 	if err != nil {
 		return responsef("Could not accept invitation: %v", err)
 	}
@@ -216,7 +218,7 @@ func (rp *RemoteProvider) doRemove(a *app.App, args *model.CommandArgs, margs ma
 
 // doStatus displays connection status for all remote clusters.
 func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	list, err := a.GetAllRemoteClusters(true)
+	list, err := a.GetAllRemoteClusters(model.RemoteClusterQueryFilter{})
 	if err != nil {
 		responsef("Could not fetch remote clusters: %v", err)
 	}
@@ -226,8 +228,8 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 	}
 
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "| Name | SiteURL  | RemoteId   | Invite Accepted | Online |\n")
-	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | \n")
+	fmt.Fprintf(&sb, "| Name | SiteURL  | RemoteId   | Invite Accepted | Online | Last Ping  | \n")
+	fmt.Fprintf(&sb, "| ---- | -------- | ---------- | :-------------: | :----: | ---------- |\n")
 
 	for _, rc := range list {
 		accepted := ":white_check_mark:"
@@ -240,7 +242,9 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, margs ma
 			online = ":skull_and_crossbones:"
 		}
 
-		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online)
+		lastPing := formatTimestamp(model.GetTimeForMillis(rc.LastPingAt))
+
+		fmt.Fprintf(&sb, "| %s | %s | %s | %s | %s | %s |\n", rc.DisplayName, rc.SiteURL, rc.RemoteId, accepted, online, lastPing)
 	}
 	return responsef(sb.String())
 }
@@ -250,7 +254,10 @@ func isOnline(lastPing int64) bool {
 }
 
 func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]model.AutocompleteListItem, error) {
-	clusters, err := a.GetAllRemoteClusters(includeOffline)
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: !includeOffline,
+	}
+	clusters, err := a.GetAllRemoteClusters(filter)
 	if err != nil || len(clusters) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}
@@ -267,7 +274,11 @@ func getRemoteClusterAutocompleteListItems(a *app.App, includeOffline bool) ([]m
 }
 
 func getRemoteClusterAutocompleteListItemsNotInChannel(a *app.App, channelId string, includeOffline bool) ([]model.AutocompleteListItem, error) {
-	all, err := a.GetAllRemoteClustersNotInChannel(channelId, includeOffline)
+	filter := model.RemoteClusterQueryFilter{
+		ExcludeOffline: !includeOffline,
+		NotInChannel:   channelId,
+	}
+	all, err := a.GetAllRemoteClusters(filter)
 	if err != nil || len(all) == 0 {
 		return []model.AutocompleteListItem{}, nil
 	}

@@ -1190,6 +1190,11 @@
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
+  
+  {
+    "id": "api.context.invitation_expired.error",
+    "translation": "Invitation is expired."
+  },
   {
     "id": "api.context.local_origin_required.app_error",
     "translation": "This endpoint requires a local request origin."
@@ -8269,6 +8274,10 @@
   {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Error purging Bleve indexes: engine is disabled"
+  },
+  {
+    "id": "sharedchannel.cannot_deliver_post",
+    "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
   },
   {
     "id": "store.sql.convert_string_array",

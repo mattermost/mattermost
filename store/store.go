@@ -14,7 +14,6 @@ import (
 
 type StoreResult struct {
 	Data interface{}
-	Err  *model.AppError
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
 	NErr error
@@ -56,6 +55,7 @@ type Store interface {
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
+	SharedChannel() SharedChannelStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -241,18 +241,7 @@ type ChannelStore interface {
 	// GroupSyncedChannelCount returns the count of non-deleted group-constrained channels.
 	GroupSyncedChannelCount() (int64, error)
 
-	SaveSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	GetSharedChannel(channelId string) (*model.SharedChannel, error)
-	GetSharedChannels(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
-	GetSharedChannelsCount(opts SharedChannelFilterOpts) (int64, error)
-	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
-	DeleteSharedChannel(channelId string) (bool, error)
-
-	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
-	GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error)
-	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
-	DeleteSharedChannelRemote(remoteId string) (bool, error)
-	GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
+	SetShared(channelId string, shared bool) error
 }
 
 type ChannelMemberHistoryStore interface {
@@ -443,10 +432,8 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
-	GetAll(inclOffline bool) ([]*model.RemoteCluster, error)
-	GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error)
-	GetByTopic(topic string) ([]*model.RemoteCluster, error)
-	UpdateTopics(remoteClusterid string, topics string) (*model.RemoteCluster, error)
+	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
+	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
 }
 
@@ -808,6 +795,27 @@ type LinkMetadataStore interface {
 	Get(url string, timestamp int64) (*model.LinkMetadata, error)
 }
 
+type SharedChannelStore interface {
+	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
+	Get(channelId string) (*model.SharedChannel, error)
+	GetAll(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
+	GetAllCount(opts SharedChannelFilterOpts) (int64, error)
+	Update(sc *model.SharedChannel) (*model.SharedChannel, error)
+	Delete(channelId string) (bool, error)
+
+	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
+	GetRemote(id string) (*model.SharedChannelRemote, error)
+	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
+	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
+	UpdateRemoteLastSyncAt(id string, syncTime int64) error
+	DeleteRemote(remoteId string) (bool, error)
+	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
+
+	UpsertPost(post *model.Post) error
+	UpsertReaction(reaction *model.Reaction) error
+}
+
 // ChannelSearchOpts contains options for searching channels.
 //
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
@@ -851,5 +859,4 @@ type SharedChannelFilterOpts struct {
 	CreatorId     string
 	ExcludeHome   bool
 	ExcludeRemote bool
-	Token         string
 }

@@ -34,6 +34,10 @@ var (
 	LvlRemoteClusterServiceDebug = LogLevel{ID: 130, Name: "RemoteClusterServiceDebug"}
 	LvlRemoteClusterServiceError = LogLevel{ID: 131, Name: "RemoteClusterServiceError"}
 
+	// used by Shared Channel Sync Service
+	LvlSharedChannelServiceDebug = LogLevel{ID: 200, Name: "SharedChannelServiceDebug"}
+	LvlSharedChannelServiceError = LogLevel{ID: 201, Name: "SharedChannelServiceError"}
+
 	// add more here ...
 )
 

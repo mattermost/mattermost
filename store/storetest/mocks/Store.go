@@ -501,6 +501,22 @@ func (_m *Store) SetContext(_a0 context.Context) {
 	_m.Called(_a0)
 }
 
+// SharedChannel provides a mock function with given fields:
+func (_m *Store) SharedChannel() store.SharedChannelStore {
+	ret := _m.Called()
+
+	var r0 store.SharedChannelStore
+	if rf, ok := ret.Get(0).(func() store.SharedChannelStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SharedChannelStore)
+		}
+	}
+
+	return r0
+}
+
 // Status provides a mock function with given fields:
 func (_m *Store) Status() store.StatusStore {
 	ret := _m.Called()

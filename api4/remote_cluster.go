@@ -6,14 +6,16 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
 func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiSessionRequired(remoteClusterAcceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiHandler(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
 }
 
@@ -110,10 +112,15 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// pass message to Remote Cluster Service
-	service.ReceiveIncomingMsg(rc, frame.Msg)
+	// pass message to Remote Cluster Service and write response
+	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
 
-	ReturnStatusOK(w)
+	b, errMarshall := json.Marshal(resp)
+	if errMarshall != nil {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.marshal_error", nil, errMarshall.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
 }
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -144,6 +151,11 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 	auditRec.AddMeta("remoteCluster", rc)
 
+	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
+		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if rc.Token != frame.Token {
 		c.SetInvalidRemoteClusterTokenError()
 		return
@@ -155,6 +167,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	rc.RemoteTeamId = confirm.RemoteTeamId
 	rc.SiteURL = confirm.SiteURL
 	rc.RemoteToken = confirm.Token
 

@@ -480,7 +480,7 @@ type AppIface interface {
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSharedChannel(channelId string) (bool, error)
-	DeleteSharedChannelRemote(remoteId string) (bool, error)
+	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
@@ -519,8 +519,7 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.TeamsWithCount, *model.AppError)
-	GetAllRemoteClusters(includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
-	GetAllRemoteClustersNotInChannel(channelId string, includeOffline bool) ([]*model.RemoteCluster, *model.AppError)
+	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
 	GetAllStatuses() map[string]*model.Status
 	GetAllTeams() ([]*model.Team, *model.AppError)
@@ -660,7 +659,6 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)
 	GetRemoteClusterService() (*remotecluster.Service, *model.AppError)
-	GetRemoteClustersByTopic(topic string) ([]*model.RemoteCluster, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -677,7 +675,8 @@ type AppIface interface {
 	GetSessionById(sessionId string) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSharedChannel(channelId string) (*model.SharedChannel, error)
-	GetSharedChannelRemote(remoteId string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemote(id string) (*model.SharedChannelRemote, error)
+	GetSharedChannelRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error)
 	GetSharedChannelRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 	GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error)
@@ -1020,6 +1019,7 @@ type AppIface interface {
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error
 	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)

@@ -6,6 +6,7 @@ package slashcommands
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -69,4 +70,19 @@ func parseBool(s string) (bool, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("cannot parse '%s' as a boolean", s)
+}
+
+func formatTimestamp(ts time.Time) string {
+	if !isToday(ts) {
+		return ts.Format("Jan 2 15:04:05 MST 2006")
+	}
+	date := ts.Format("15:04:05 MST 2006")
+	return fmt.Sprintf("today %s", date)
+}
+
+func isToday(ts time.Time) bool {
+	now := time.Now()
+	year, month, day := ts.Date()
+	nowYear, nowMonth, nowDay := now.Date()
+	return year == nowYear && month == nowMonth && day == nowDay
 }

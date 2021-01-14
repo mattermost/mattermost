@@ -52,11 +52,14 @@ func (sp *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 
 	status := model.NewAutocompleteData("status", "", "Displays status for this shared channel")
 
+	sync := model.NewAutocompleteData("sync", "", "Forces a sync with remote instances this shared channel")
+
 	share.AddCommand(shareChannel)
 	share.AddCommand(unshareChannel)
 	share.AddCommand(inviteRemote)
 	share.AddCommand(unInviteRemote)
 	share.AddCommand(status)
+	share.AddCommand(sync)
 
 	return &model.Command{
 		Trigger:          CommandTriggerShare,
@@ -134,6 +137,14 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		return responsef("You require `manage_shared_channels` permission to manage shared channels.")
 	}
 
+	if a.Srv().GetSharedChannelSyncService() == nil {
+		return responsef("Shared Channels Service is disabled.")
+	}
+
+	if a.Srv().GetRemoteClusterService() == nil {
+		return responsef("Remote Cluster Service is disabled.")
+	}
+
 	margs := parseNamedArgs(args.Command)
 	action, ok := margs[ActionKey]
 	if !ok {
@@ -151,6 +162,8 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		return sp.doUninviteRemote(a, args, margs)
 	case "status":
 		return sp.doStatus(a, args, margs)
+	case "sync":
+		return sp.doSync(a, args, margs)
 	}
 	return responsef("Unknown action `%s`. %s", action, AvailableRemoteActions)
 }
@@ -227,24 +240,17 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
-	remote, err := a.GetRemoteCluster(remoteId)
+	rc, err := a.GetRemoteCluster(remoteId)
 	if err != nil {
 		return responsef("Remote cluster id is invalid: %v", err)
 	}
 
-	scr := &model.SharedChannelRemote{
-		ChannelId:       args.ChannelId,
-		Token:           model.NewId(),
-		Description:     margs["description"],
-		CreatorId:       args.UserId,
-		RemoteClusterId: remoteId,
+	// send channel invite to remote cluster
+	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(args.ChannelId, args.UserId, margs["description"], rc); err != nil {
+		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
 	}
 
-	if _, err := a.SaveSharedChannelRemote(scr); err != nil {
-		return responsef("Could not invite `%s` to this channel: %v", remote.DisplayName, err)
-	}
-
-	return responsef("##### `%s (%s)` has been invited to this shared channel.", remote.DisplayName, remote.SiteURL)
+	return responsef("##### Channel invitation has been sent to `%s (%s)`.", rc.DisplayName, rc.SiteURL)
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
@@ -253,12 +259,12 @@ func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, m
 		return responsef("Must specify a valid remote cluster to uninvite.")
 	}
 
-	scr, err := a.GetSharedChannelRemote(remoteId)
+	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteId)
 	if err != nil || scr.ChannelId != args.ChannelId {
 		return responsef("Shared channel remote id `%s` does not exist for this channel.", remoteId)
 	}
 
-	deleted, err := a.DeleteSharedChannelRemote(remoteId)
+	deleted, err := a.DeleteSharedChannelRemote(scr.Id)
 	if err != nil || !deleted {
 		return responsef("Could not uninvite `%s`: %v", remoteId, err)
 	}
@@ -278,17 +284,29 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map
 
 	fmt.Fprintf(&sb, "Status for channel Id `%s`\n\n", statuses[0].ChannelId)
 
-	fmt.Fprintf(&sb, "| Remote | Host | Description | ReadOnly | InviteAccepted | Online | Token |\n")
-	fmt.Fprintf(&sb, "| ------ | ---- | ----------- | -------- | -------------- | ------ | ----- |\n")
+	fmt.Fprintf(&sb, "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Last Sync | \n")
+	fmt.Fprintf(&sb, "| ------ | ------- | ----------- | -------- | -------------- | ------ | --------- | \n")
 
 	for _, status := range statuses {
 		online := ":white_check_mark:"
 		if !isOnline(status.LastPingAt) {
 			online = ":skull_and_crossbones:"
 		}
-		fmt.Fprintf(&sb, "| %s | %s:%d | %s | %t | %t | %s | %s |\n",
-			status.ClusterName, status.Hostname, status.Port, status.Description,
-			status.ReadOnly, status.IsInviteAccepted, online, status.Token)
+
+		lastSync := formatTimestamp(model.GetTimeForMillis(status.LastSyncAt))
+
+		fmt.Fprintf(&sb, "| %s | %s | %s | %t | %t | %s | %s |\n",
+			status.DisplayName, status.SiteURL, status.Description,
+			status.ReadOnly, status.IsInviteAccepted, online, lastSync)
 	}
 	return responsef(sb.String())
+}
+
+func (sp *ShareProvider) doSync(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	// start sending updates to remote clusters.
+	a.Srv().GetSharedChannelSyncService().NotifyChannelChanged(args.ChannelId)
+
+	// TODO: send cluster message to each remote requesting a sync for this channel.
+
+	return responsef("##### Sync initiated.")
 }

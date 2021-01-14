@@ -27,6 +27,13 @@ const (
 	PingFreq                      = time.Minute
 	PingTimeout                   = time.Second * 15
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
+	InvitationTopic               = "invitation"
+	PingTopic                     = "ping"
+	ResponseStatusKey             = model.STATUS
+	ResponseErrorKey              = "err"
+	ResponseStatusOK              = model.STATUS_OK
+	ResponseStatusFail            = model.STATUS_FAIL
+	InviteExpiresAfter            = time.Hour * 48
 )
 
 var (
@@ -43,9 +50,9 @@ type ServerIface interface {
 	GetMetrics() einterfaces.MetricsInterface
 }
 
-type TopicListener interface {
-	OnReceiveMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster) error
-}
+// TopicListener is a callback signature used to listen for incoming messages for
+// a specific topic.
+type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {
@@ -57,7 +64,7 @@ type Service struct {
 	mux              sync.RWMutex
 	active           bool
 	leaderListenerId string
-	topicListeners   map[string][]TopicListener
+	topicListeners   map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	done             chan struct{}
 }
 
@@ -76,6 +83,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
+		DisableCompression:    false,
 	}
 
 	client := &http.Client{
@@ -84,9 +92,10 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	}
 
 	service := &Service{
-		server:     server,
-		send:       make(chan sendTask, SendChanBuffer),
-		httpClient: client,
+		server:         server,
+		send:           make(chan sendTask, SendChanBuffer),
+		httpClient:     client,
+		topicListeners: make(map[string]map[string]TopicListener),
 	}
 	return service, nil
 }
@@ -109,40 +118,34 @@ func (rcs *Service) Shutdown() error {
 	return nil
 }
 
-func (rcs *Service) AddTopicListener(topic string, listener TopicListener) {
+// AddTopicListener registers a callback
+func (rcs *Service) AddTopicListener(topic string, listener TopicListener) string {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	listeners, ok := rcs.topicListeners[topic]
-	if !ok {
-		rcs.topicListeners[topic] = []TopicListener{listener}
-		return
-	}
+	id := model.NewId()
 
-	for _, l := range listeners { // avoid duplicates
-		if l == listener {
-			return
-		}
+	listeners, ok := rcs.topicListeners[topic]
+	if !ok || listeners == nil {
+		rcs.topicListeners[topic] = make(map[string]TopicListener)
 	}
-	rcs.topicListeners[topic] = append(listeners, listener)
+	rcs.topicListeners[topic][id] = listener
+	return id
 }
 
-func (rcs *Service) RemoveTopicListener(topic string, listener TopicListener) {
+func (rcs *Service) RemoveTopicListener(listenerId string) {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 
-	listeners, ok := rcs.topicListeners[topic]
-	if !ok {
-		return
-	}
-
-	newList := make([]TopicListener, 0, len(listeners))
-	for _, l := range listeners {
-		if l != listener {
-			newList = append(newList, l)
+	for topic, listeners := range rcs.topicListeners {
+		if _, ok := listeners[listenerId]; ok {
+			delete(listeners, listenerId)
+			if len(listeners) == 0 {
+				delete(rcs.topicListeners, topic)
+			}
+			break
 		}
 	}
-	rcs.topicListeners[topic] = newList
 }
 
 func (rcs *Service) getTopicListeners(topic string) []TopicListener {
@@ -154,9 +157,11 @@ func (rcs *Service) getTopicListeners(topic string) []TopicListener {
 		return nil
 	}
 
-	cpListeners := make([]TopicListener, len(listeners))
-	copy(cpListeners, listeners)
-	return cpListeners
+	listenersCopy := make([]TopicListener, 0, len(listeners))
+	for _, l := range listeners {
+		listenersCopy = append(listenersCopy, l)
+	}
+	return listenersCopy
 }
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
@@ -181,7 +186,11 @@ func (rcs *Service) resume() {
 	if !disablePing {
 		rcs.pingLoop(rcs.done)
 	}
-	rcs.sendLoop(rcs.done)
+
+	// create thread pool for concurrent message sending.
+	for i := 0; i < MaxConcurrentSends; i++ {
+		go rcs.sendLoop(rcs.done)
+	}
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")
 }

@@ -19,14 +19,16 @@ const (
 )
 
 type RemoteCluster struct {
-	RemoteId    string `json:"remote_id"`
-	DisplayName string `json:"display_name"`
-	SiteURL     string `json:"site_url"`
-	CreateAt    int64  `json:"create_at"`
-	LastPingAt  int64  `json:"last_ping_at"`
-	Token       string `json:"token"`
-	RemoteToken string `json:"remote_token"`
-	Topics      string `json:"topics"`
+	RemoteId     string `json:"remote_id"`
+	RemoteTeamId string `json:"remote_team_id"`
+	DisplayName  string `json:"display_name"`
+	SiteURL      string `json:"site_url"`
+	CreateAt     int64  `json:"create_at"`
+	LastPingAt   int64  `json:"last_ping_at"`
+	Token        string `json:"token"`
+	RemoteToken  string `json:"remote_token"`
+	Topics       string `json:"topics"`
+	CreatorId    string `json:"creator_id"`
 }
 
 func (rc *RemoteCluster) PreSave() {
@@ -56,11 +58,19 @@ func (rc *RemoteCluster) IsValid() *AppError {
 	if rc.CreateAt == 0 {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.create_at.app_error", nil, "create_at=0", http.StatusBadRequest)
 	}
+
+	if !IsValidId(rc.CreatorId) {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
+	}
 	return nil
 }
 
 func (rc *RemoteCluster) PreUpdate() {
 	rc.fixTopics()
+}
+
+func (rc *RemoteCluster) IsOnline() bool {
+	return rc.LastPingAt > GetMillis()-RemoteOfflineAfterMillis
 }
 
 // fixTopics ensures all topics are separated by one, and only one, space.
@@ -140,21 +150,25 @@ type RemoteClusterMsg struct {
 	Id       string          `json:"id"`
 	Topic    string          `json:"topic"`
 	CreateAt int64           `json:"create_at"`
-	Token    string          `json:"token"`
 	Payload  json.RawMessage `json:"payload"`
 }
 
-func (m *RemoteClusterMsg) IsValid() *AppError {
+func NewRemoteClusterMsg(topic string, payload json.RawMessage) RemoteClusterMsg {
+	return RemoteClusterMsg{
+		Id:       NewId(),
+		Topic:    topic,
+		CreateAt: GetMillis(),
+		Payload:  payload,
+	}
+}
+
+func (m RemoteClusterMsg) IsValid() *AppError {
 	if !IsValidId(m.Id) {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_id.app_error", nil, "Id="+m.Id, http.StatusBadRequest)
 	}
 
 	if m.Topic == "" {
 		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_topic.app_error", nil, "Topic empty", http.StatusBadRequest)
-	}
-
-	if !IsValidId(m.Token) {
-		return NewAppError("RemoteClusterMsg.IsValid", "api.remote_cluster.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(m.Payload) == 0 {
@@ -164,13 +178,13 @@ func (m *RemoteClusterMsg) IsValid() *AppError {
 	return nil
 }
 
-func RemoteClusterMsgFromJSON(data io.Reader) (*RemoteClusterMsg, *AppError) {
+func RemoteClusterMsgFromJSON(data io.Reader) (RemoteClusterMsg, *AppError) {
 	var msg RemoteClusterMsg
 	err := json.NewDecoder(data).Decode(&msg)
 	if err != nil {
-		return nil, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
+		return RemoteClusterMsg{}, NewAppError("RemoteClusterMsgFromJSON", "model.utils.decode_json.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	return &msg, nil
+	return msg, nil
 }
 
 // RemoteClusterPing represents a ping that is sent and received between clusters
@@ -191,9 +205,10 @@ func RemoteClusterPingFromRawJSON(raw json.RawMessage) (RemoteClusterPing, *AppE
 
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
-	RemoteId string `json:"remote_id"`
-	SiteURL  string `json:"site_url"`
-	Token    string `json:"token"`
+	RemoteId     string `json:"remote_id"`
+	RemoteTeamId string `json:"remote_team_id"`
+	SiteURL      string `json:"site_url"`
+	Token        string `json:"token"`
 }
 
 func RemoteClusterInviteFromRawJSON(raw json.RawMessage) (*RemoteClusterInvite, *AppError) {
@@ -257,4 +272,14 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 
 	// try to unmarshall the decrypted JSON to this invite struct.
 	return json.Unmarshal(plain, &rci)
+}
+
+// RemoteClusterQueryFilter provides filter criteria for RemoteClusterStore.GetAll
+type RemoteClusterQueryFilter struct {
+	ExcludeOffline bool
+	InChannel      string
+	NotInChannel   string
+	Topic          string
+	CreatorId      string
+	OnlyConfirmed  bool
 }

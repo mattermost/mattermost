@@ -24,11 +24,13 @@ func newSqlRemoteClusterStore(sqlStore *SqlStore) store.RemoteClusterStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.RemoteCluster{}, "RemoteClusters").SetKeys(false, "RemoteId")
 		table.ColMap("RemoteId").SetMaxSize(26)
+		table.ColMap("RemoteTeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("SiteURL").SetMaxSize(512)
 		table.ColMap("Token").SetMaxSize(26)
 		table.ColMap("RemoteToken").SetMaxSize(26)
 		table.ColMap("Topics").SetMaxSize(512)
+		table.ColMap("CreatorId").SetMaxSize(26)
 	}
 	return s
 }
@@ -97,13 +99,38 @@ func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error
 	return &rc, nil
 }
 
-func (s sqlRemoteClusterStore) GetAll(includeOffline bool) ([]*model.RemoteCluster, error) {
+func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
-		Select("*").
-		From("RemoteClusters")
+		Select("rc.*").
+		From("RemoteClusters rc")
 
-	if !includeOffline {
-		query = query.Where(sq.Gt{"LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
+	if filter.InChannel != "" {
+		query = query.Where("rc.RemoteId IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.InChannel)
+	}
+
+	if filter.NotInChannel != "" {
+		query = query.Where("rc.RemoteId NOT IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.NotInChannel)
+	}
+
+	if filter.ExcludeOffline {
+		query = query.Where(sq.Gt{"rc.LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
+	}
+
+	if filter.CreatorId != "" {
+		query = query.Where(sq.Eq{"rc.CreatorId": filter.CreatorId})
+	}
+
+	if filter.OnlyConfirmed {
+		query = query.Where(sq.NotEq{"rc.SiteURL": ""})
+	}
+
+	if filter.Topic != "" {
+		trimmed := strings.TrimSpace(filter.Topic)
+		if trimmed == "" || trimmed == "*" {
+			return nil, errors.New("invalid topic")
+		}
+		queryTopic := fmt.Sprintf("%% %s %%", trimmed)
+		query = query.Where(sq.Or{sq.Like{"rc.Topics": queryTopic}, sq.Eq{"rc.Topics": "*"}})
 	}
 
 	queryString, args, err := query.ToSql()
@@ -113,53 +140,7 @@ func (s sqlRemoteClusterStore) GetAll(includeOffline bool) ([]*model.RemoteClust
 
 	var list []*model.RemoteCluster
 	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
-	}
-	return list, nil
-}
-
-func (s sqlRemoteClusterStore) GetAllNotInChannel(channelId string, inclOffline bool) ([]*model.RemoteCluster, error) {
-	query := s.getQueryBuilder().
-		Select("rc.*").
-		From("RemoteClusters rc").
-		Where("rc.RemoteId NOT IN (SELECT scr.RemoteClusterId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", channelId)
-
-	if !inclOffline {
-		query = query.Where(sq.Gt{"rc.LastPingAt": model.GetMillis() - model.RemoteOfflineAfterMillis})
-	}
-
-	queryString, args, err := query.OrderBy("rc.DisplayName ASC").ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "remote_cluster_getallnotinchannel_tosql")
-	}
-
-	var list []*model.RemoteCluster
-	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
-	}
-	return list, nil
-}
-
-func (s sqlRemoteClusterStore) GetByTopic(topic string) ([]*model.RemoteCluster, error) {
-	trimmed := strings.TrimSpace(topic)
-	if trimmed == "" || trimmed == "*" {
-		return nil, errors.New("invalid topic")
-	}
-
-	queryTopic := fmt.Sprintf("%% %s %%", trimmed)
-	query := s.getQueryBuilder().
-		Select("rc.*").
-		From("RemoteClusters rc").
-		Where(sq.Or{sq.Like{"rc.Topics": queryTopic}, sq.Eq{"rc.Topics": "*"}})
-
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "remote_cluster_getbytopic_tosql")
-	}
-
-	var list []*model.RemoteCluster
-	if _, err := s.GetReplica().Select(&list, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find RemoteCluster")
+		return nil, errors.Wrapf(err, "failed to find RemoteClusters")
 	}
 	return list, nil
 }

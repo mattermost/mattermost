@@ -14,10 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -31,7 +32,7 @@ type testPayload struct {
 	Note string `json:"note"`
 }
 
-func TestSendMsg(t *testing.T) {
+func TestBroadcastMsg(t *testing.T) {
 	msgId := model.NewId()
 	disablePing = true
 
@@ -86,8 +87,8 @@ func TestSendMsg(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		err = service.SendOutgoingMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
-			wg.Done()
+		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp Response, err error) {
+			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
 			if err != nil {
@@ -139,43 +140,8 @@ func TestSendMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
-			wg.Done()
-			atomic.AddInt32(&countCallbacks, 1)
-			if err != nil {
-				atomic.AddInt32(&countErrors, 1)
-			}
-		})
-		assert.NoError(t, err)
-
-		wg.Wait()
-
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countErrors))
-	})
-
-	t.Run("HTTP error", func(t *testing.T) {
-		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(500)
-		}))
-		defer ts.Close()
-
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
-		service, err := NewRemoteClusterService(mockServer)
-		require.NoError(t, err)
-
-		err = service.Start()
-		require.NoError(t, err)
-		defer service.Shutdown()
-
-		msg := makeRemoteClusterMsg(msgId, NoteContent)
-		var countCallbacks int32
-		var countErrors int32
-		wg := &sync.WaitGroup{}
-		wg.Add(NumRemotes)
-
-		err = service.SendOutgoingMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp []byte, err error) {
-			wg.Done()
+		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp Response, err error) {
+			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {
 				atomic.AddInt32(&countErrors, 1)
@@ -193,7 +159,7 @@ func TestSendMsg(t *testing.T) {
 func makeRemoteClusters(num int, siteURL string) []*model.RemoteCluster {
 	var remotes []*model.RemoteCluster
 	for i := 0; i < num; i++ {
-		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i), siteURL, TestTopics)
+		rc := makeRemoteCluster(fmt.Sprintf("test cluster %d", i+1), siteURL, TestTopics)
 		remotes = append(remotes, rc)
 	}
 	return remotes
@@ -208,6 +174,7 @@ func makeRemoteCluster(name string, siteURL string, topics string) *model.Remote
 		Topics:      topics,
 		CreateAt:    model.GetMillis(),
 		LastPingAt:  model.GetMillis(),
+		CreatorId:   model.NewId(),
 	}
 }
 
@@ -217,7 +184,6 @@ func makeRemoteClusterMsg(id string, note string) model.RemoteClusterMsg {
 
 	return model.RemoteClusterMsg{
 		Id:       id,
-		Token:    model.NewId(),
 		Topic:    TestTopic,
 		CreateAt: model.GetMillis(),
 		Payload:  raw}

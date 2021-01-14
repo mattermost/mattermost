@@ -390,26 +390,6 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		tablePublicChannels.ColMap("Header").SetMaxSize(1024)
 		tablePublicChannels.ColMap("Purpose").SetMaxSize(250)
 
-		tableSharedChannels := db.AddTableWithName(model.SharedChannel{}, "SharedChannels").SetKeys(false, "ChannelId")
-		tableSharedChannels.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannels.ColMap("TeamId").SetMaxSize(26)
-		tableSharedChannels.ColMap("CreatorId").SetMaxSize(26)
-		tableSharedChannels.ColMap("ShareName").SetMaxSize(64)
-		tableSharedChannels.SetUniqueTogether("ShareName", "TeamId")
-		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
-		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
-		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
-		tableSharedChannels.ColMap("Token").SetMaxSize(26)
-		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
-
-		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
-		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Token").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
-		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
-
 		tableSidebarCategories := db.AddTableWithName(model.SidebarCategory{}, "SidebarCategories").SetKeys(false, "Id")
 		tableSidebarCategories.ColMap("Id").SetMaxSize(128)
 		tableSidebarCategories.ColMap("UserId").SetMaxSize(26)
@@ -643,7 +623,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	if len(channel.Id) > 0 {
+	if len(channel.Id) > 0 && !channel.IsShared() {
 		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
 
@@ -3356,4 +3336,30 @@ func (s SqlChannelStore) GroupSyncedChannelCount() (int64, error) {
 	}
 
 	return count, nil
+}
+
+// SetShared sets the Shared flag true/false
+func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("Channels").
+		Set("Shared", shared).
+		Where(sq.Eq{"Id": channelId}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "channel_set_shared_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update `Shared` for Channels")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", channelId)
+	}
+	return nil
 }

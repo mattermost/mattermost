@@ -46,6 +46,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
@@ -144,7 +145,8 @@ type Server struct {
 
 	telemetryService *telemetry.TelemetryService
 
-	remoteClusterService *remotecluster.Service
+	remoteClusterService     *remotecluster.Service
+	sharedChannelSyncService *sharedchannel.Service
 
 	phase2PermissionsMigrationComplete bool
 
@@ -730,36 +732,60 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	})
 }
 
-func (s *Server) startInterClusterServices(license *model.License) {
-	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
-		mlog.Debug("Remote Cluster Service disabled via config")
-		return
+func (s *Server) startInterClusterServices(license *model.License, app *App) error {
+	allowRemoteClusterService := license != nil && *license.Features.RemoteClusterService
+	allowSharedChannels := license != nil && *license.Features.SharedChannels
+
+	// Remote Cluster service
+
+	// License check
+	if !allowRemoteClusterService {
+		mlog.Debug("License does not have Remote Cluster services enabled")
+		return nil
 	}
 
-	if !*s.License().Features.SharedChannels {
-		mlog.Debug("License does not have shared channels enabled")
-		return
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableRemoteClusterService {
+		mlog.Debug("Remote Cluster Service disabled via config")
+		return nil
 	}
 
 	var err error
 
-	// TODO: check remote cluster service license (MM-30838)
-	if *s.Config().ExperimentalSettings.EnableRemoteClusterService && s.Config().FeatureFlags.EnableRemoteClusterService {
-		s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
-		if err != nil {
-			mlog.Error("Error initializing Remote Cluster Service", mlog.Err(err))
-			return
-		}
-
-		if err = s.remoteClusterService.Start(); err != nil {
-			mlog.Error("Error starting Remote Cluster Service", mlog.Err(err))
-			s.remoteClusterService = nil
-			return
-		}
+	s.remoteClusterService, err = remotecluster.NewRemoteClusterService(s)
+	if err != nil {
+		return err
 	}
 
-	// TODO: init and start shared channels service here. (MM-28519)
+	if err = s.remoteClusterService.Start(); err != nil {
+		s.remoteClusterService = nil
+		return err
+	}
 
+	// Shared Channels Sync service
+
+	// License check
+	if !allowSharedChannels {
+		mlog.Debug("License does not have shared channels enabled")
+		return nil
+	}
+
+	// Config check
+	if !*s.Config().ExperimentalSettings.EnableSharedChannels {
+		mlog.Debug("Shared Channel Sync Service disabled via config")
+		return nil
+	}
+
+	s.sharedChannelSyncService, err = sharedchannel.NewSharedChannelService(s, app)
+	if err != nil {
+		return err
+	}
+
+	if err = s.sharedChannelSyncService.Start(); err != nil {
+		s.remoteClusterService = nil
+		return err
+	}
+	return nil
 }
 
 func (s *Server) enableLoggingMetrics() {
@@ -1192,8 +1218,8 @@ func (s *Server) Start() error {
 		}
 	}
 
-	if license := s.License(); license != nil {
-		s.startInterClusterServices(license)
+	if err := s.startInterClusterServices(s.License(), s.WebSocketRouter.app); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
 	return nil
@@ -1674,6 +1700,12 @@ func (s *Server) GetStore() store.Store {
 // May be nil if the service is not enabled via license.
 func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 	return s.remoteClusterService
+}
+
+// GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
+// May be nil if the service is not enabled via license.
+func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
+	return s.sharedChannelSyncService
 }
 
 // GetMetrics returns the server's Metrics interface. Exposing via a method

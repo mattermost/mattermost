@@ -11,10 +11,11 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wiggin77/merror"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (

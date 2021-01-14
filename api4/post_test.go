@@ -617,7 +617,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 				}
 			case <-timeout:
 				// We just skip the test instead of failing because waiting for more than 5 seconds
-				// to get a response does not make sense, and it will unncessarily slow down
+				// to get a response does not make sense, and it will unnecessarily slow down
 				// the tests further in an already congested CI environment.
 				t.Skip("timed out waiting for event")
 			}
@@ -2034,7 +2034,7 @@ func TestDeletePostMessage(t *testing.T) {
 					}
 				case <-timeout:
 					// We just skip the test instead of failing because waiting for more than 5 seconds
-					// to get a response does not make sense, and it will unncessarily slow down
+					// to get a response does not make sense, and it will unnecessarily slow down
 					// the tests further in an already congested CI environment.
 					t.Skip("timed out waiting for event")
 				}
