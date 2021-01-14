@@ -135,6 +135,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 	props["ExperimentalSharedChannels"] = "false"
+	props["CollapsedThreads"] = *c.ServiceSettings.CollapsedThreads
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
