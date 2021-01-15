@@ -15,6 +15,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -112,7 +113,7 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	}
 
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
-		mlog.Error("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
+		mlog.Warn("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
 		return err
 	}
 

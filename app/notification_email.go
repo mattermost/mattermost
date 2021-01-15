@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -170,7 +171,11 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
+		if err != nil {
+			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
+			normalizedPostMessage = postMessage
+		}
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
@@ -283,22 +288,20 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
-func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
-		mlog.Error("Encountered error while looking up team by name", mlog.String("team_name", teamName), mlog.Err(err))
-		return postMessage
+		return "", err
 	}
 
 	channelNames := model.ChannelMentions(postMessage)
 	if len(channelNames) == 0 {
-		return postMessage
+		return postMessage, nil
 	}
 
 	channels, err := a.GetChannelsByNames(channelNames, team.Id)
 	if err != nil {
-		mlog.Error("Encountered error while getting channels", mlog.Err(err))
-		return postMessage
+		return "", err
 	}
 
 	visited := make(map[string]bool)
@@ -310,11 +313,11 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 			visited[ch.Id] = true
 		}
 	}
-	return postMessage
+	return postMessage, nil
 }
 
 func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
+	if strings.TrimSpace(post.Message) != "" || len(post.FileIds) == 0 {
 		return post.Message
 	}
 

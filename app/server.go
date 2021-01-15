@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -27,7 +28,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -61,7 +61,7 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlStore
@@ -219,11 +219,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -231,11 +231,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -296,7 +296,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
+		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
@@ -319,6 +319,19 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
+			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				ver, err2 := s.sqlStore.GetDbVersion(true)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot get DB version")
+				}
+				intVer, err2 := strconv.Atoi(ver)
+				if err2 != nil {
+					return nil, errors.Wrap(err2, "cannot parse DB version")
+				}
+				if intVer < sqlstore.MinimumRequiredPostgresVersion {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
+				}
+			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -486,7 +499,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -724,11 +739,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -748,7 +763,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() error {
+func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -761,13 +776,13 @@ func (s *Server) Shutdown() error {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -817,14 +832,14 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Error("Error flushing logs", mlog.Err(err))
+		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
@@ -833,8 +848,6 @@ func (s *Server) Shutdown() error {
 	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer timeoutCancel2()
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
 }
 
 func (s *Server) Restart() error {
@@ -938,7 +951,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
@@ -1263,11 +1276,11 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
 func doCheckWarnMetricStatus(a *App) {
@@ -1313,17 +1326,17 @@ func doCheckWarnMetricStatus(a *App) {
 
 	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err0 != nil {
-		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
 	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err1 != nil {
-		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
 	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
-		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
 	// If an account is created with a different email domain
@@ -1332,7 +1345,7 @@ func doCheckWarnMetricStatus(a *App) {
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err3 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1366,7 +1379,7 @@ func doCheckWarnMetricStatus(a *App) {
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 			if err4 != nil {
-				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {

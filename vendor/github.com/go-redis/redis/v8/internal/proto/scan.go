@@ -4,10 +4,13 @@ import (
 	"encoding"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/go-redis/redis/v8/internal/util"
 )
 
+// Scan parses bytes `b` to `v` with appropriate type.
+// nolint: gocyclo
 func Scan(b []byte, v interface{}) error {
 	switch v := v.(type) {
 	case nil:
@@ -99,6 +102,10 @@ func Scan(b []byte, v interface{}) error {
 	case *bool:
 		*v = len(b) == 1 && b[0] == '1'
 		return nil
+	case *time.Time:
+		var err error
+		*v, err = time.Parse(time.RFC3339Nano, util.BytesToString(b))
+		return err
 	case encoding.BinaryUnmarshaler:
 		return v.UnmarshalBinary(b)
 	default:
@@ -124,7 +131,7 @@ func ScanSlice(data []string, slice interface{}) error {
 	for i, s := range data {
 		elem := next()
 		if err := Scan([]byte(s), elem.Addr().Interface()); err != nil {
-			err = fmt.Errorf("redis: ScanSlice index=%d value=%q failed: %s", i, s, err)
+			err = fmt.Errorf("redis: ScanSlice index=%d value=%q failed: %w", i, s, err)
 			return err
 		}
 	}

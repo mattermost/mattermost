@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -317,7 +318,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
 		default:
-			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
+			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
 		}
 
@@ -374,7 +375,6 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 
 		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
 		if appErr != nil {
-			mlog.Error("Cannot create channel for system bot notification!", mlog.String("Admin Id", sysAdmin.Id))
 			return appErr
 		}
 
@@ -467,7 +467,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
 			if cerr != nil {
-				mlog.Error("Error retrieving the number of registered users", mlog.Err(cerr))
+				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
 				bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
 				bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount
@@ -487,7 +487,6 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
 			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
-				mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADVISOR_ADDRESS), mlog.Err(err))
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
@@ -529,7 +528,6 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 		Name:  warnMetricId,
 		Value: status,
 	}); err != nil {
-		mlog.Error("Unable to write to database.", mlog.Err(err))
 		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -547,7 +545,6 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
 		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

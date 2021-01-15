@@ -52,8 +52,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 			return nil, err
 		}
 	} else {
-		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error("Unable to use ldap", mlog.String("ldap_group_id", ldapGroupID), mlog.Err(ae))
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", map[string]interface{}{"ldap_group_id": ldapGroupID}, "", http.StatusNotImplemented)
 		return nil, ae
 	}
 
@@ -74,7 +73,6 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSe
 		}
 	} else {
 		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
-		mlog.Error("Unable to use ldap", mlog.Err(ae))
 		return nil, 0, ae
 	}
 
@@ -110,7 +108,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
+			mlog.Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 
@@ -156,7 +154,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
+			mlog.Error("Could not send sign in method changed e-mail", mlog.Err(err))
 		}
 	})
 

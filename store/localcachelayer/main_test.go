@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/stretchr/testify/mock"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	cachemocks "github.com/mattermost/mattermost-server/v5/services/cache/mocks"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/stretchr/testify/mock"
 )
 
 var mainHelper *testlib.MainHelper
@@ -110,8 +110,8 @@ func getMockStore() *mocks.Store {
 	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
 	mockPostStore.On("ClearCaches")
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
-	mockPostStore.On("GetEtag", "channelId", true).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetEtag", "channelId", false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true).Return(model.NewPostList(), nil)
 	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)

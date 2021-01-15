@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/gorp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -219,7 +219,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	returnedChannel, nErr := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
 	require.NotNil(t, nErr, "should've failed to save a duplicate direct channel")
 	var cErr *store.ErrConflict
-	require.Truef(t, errors.As(nErr, &cErr), "should've returned CHANNEL_EXISTS_ERROR")
+	require.Truef(t, errors.As(nErr, &cErr), "should've returned ChannelExistsError")
 	require.Equal(t, o1.Id, returnedChannel.Id, "should've failed to save a duplicate direct channel")
 
 	// Attempt to save a non-direct channel

@@ -67,9 +67,9 @@ const (
 	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
 
 	// Deprecated
-	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
-	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
+	ImageThumbnailPixelWidth  = 120
+	ImageThumbnailPixelHeight = 100
+	ImagePreviewPixelWidth    = 1920
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
@@ -231,7 +231,7 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return *paths, nil
+	return paths, nil
 }
 
 func (a *App) RemoveDirectory(path string) *model.AppError {
@@ -401,7 +401,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(post.Id, false)
+	result, nErr := a.Srv().Store.Post().Get(post.Id, false, false, false)
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -775,7 +775,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.teeInput)
 		if err != nil {
-			mlog.Error("Failed to parse SVG", mlog.Err(err))
+			mlog.Warn("Failed to parse SVG", mlog.Err(err))
 		}
 		if svgInfo.Width > 0 && svgInfo.Height > 0 {
 			t.fileinfo.Width = svgInfo.Width

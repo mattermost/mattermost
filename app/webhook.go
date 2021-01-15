@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	TRIGGERWORDS_EXACT_MATCH = 0
-	TRIGGERWORDS_STARTS_WITH = 1
+	TriggerwordsExactMatch = 0
+	TriggerwordsStartsWith = 1
 
 	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
@@ -55,10 +55,10 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
-			} else if hook.TriggerWhen == TRIGGERWORDS_EXACT_MATCH && hook.TriggerWordExactMatch(firstWord) {
+			} else if hook.TriggerWhen == TriggerwordsExactMatch && hook.TriggerWordExactMatch(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = hook.GetTriggerWord(firstWord, true)
-			} else if hook.TriggerWhen == TRIGGERWORDS_STARTS_WITH && hook.TriggerWordStartsWith(firstWord) {
+			} else if hook.TriggerWhen == TriggerwordsStartsWith && hook.TriggerWordStartsWith(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = hook.GetTriggerWord(firstWord, false)
 			}
@@ -264,7 +264,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 	}
 
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
-		if len(overrideUsername) != 0 {
+		if overrideUsername != "" {
 			post.AddProp("override_username", overrideUsername)
 		} else {
 			post.AddProp("override_username", model.DEFAULT_WEBHOOK_USERNAME)
@@ -272,10 +272,10 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if len(overrideIconUrl) != 0 {
+		if overrideIconUrl != "" {
 			post.AddProp("override_icon_url", overrideIconUrl)
 		}
-		if len(overrideIconEmoji) != 0 {
+		if overrideIconEmoji != "" {
 			post.AddProp("override_icon_emoji", overrideIconEmoji)
 		}
 	}
@@ -445,7 +445,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(hook.ChannelId) != 0 {
+	if hook.ChannelId != "" {
 		channel, errCh := a.Srv().Store.Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
 			var nfErr *store.ErrNotFound
@@ -696,7 +696,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	var channel *model.Channel
 	var cchan chan store.StoreResult
 
-	if len(channelName) != 0 {
+	if channelName != "" {
 		if channelName[0] == '@' {
 			result, nErr := a.Srv().Store.User().GetByUsername(channelName[1:])
 			if nErr != nil {

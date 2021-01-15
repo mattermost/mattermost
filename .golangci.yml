@@ -10,6 +10,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
+  goimports:
+    local-prefixes: github.com/mattermost/mattermost-server/v5
 
 linters:
   disable-all: true
@@ -27,6 +29,7 @@ linters:
     - unused
     - varcheck
     - misspell
+    - goimports
     # TODO: enable this later
     # - errcheck
 
@@ -36,7 +39,7 @@ issues:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
-      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+      text: "SetupEnterprise"
 
     - linters:
       - scopelint
@@ -49,7 +52,11 @@ issues:
 
     - linters:
       - golint
-      text: "should have|should be|should replace|stutters|underscore|ALL_CAPS|annoying|error strings should not be capitalized"
+      text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
+
+    - linters:
+      - golint
+      path: "model/"
 
     - linters:
       - misspell

@@ -192,7 +192,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -537,7 +537,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"

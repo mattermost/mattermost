@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
@@ -114,7 +115,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
-	if len(fi.PostId) != 0 && !IsValidId(fi.PostId) {
+	if fi.PostId != "" && !IsValidId(fi.PostId) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
@@ -161,7 +162,7 @@ func GenerateMiniPreviewImage(img image.Image) *[]byte {
 	buf := new(bytes.Buffer)
 
 	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
-		mlog.Error("Unable to encode image as mini preview jpg", mlog.Err(err))
+		mlog.Info("Unable to encode image as mini preview jpg", mlog.Err(err))
 		return nil
 	}
 	data := buf.Bytes()
