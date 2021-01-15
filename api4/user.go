@@ -1160,53 +1160,61 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 // attributes set by the user's login provider; otherwise, an error is returned whose text
 // is the name of the offending field.
 func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *model.UserPatch) error {
-	LS := &cfg.LdapSettings
-	SS := &cfg.SamlSettings
-	// If LDAP or SAML is used, and either the first name or the last name are already set,
-	// or OAUTH is used, then neither the first name nor the last name may be modified
-	if ((patch.FirstName != nil && *patch.FirstName != ouser.FirstName) ||
-		(patch.LastName != nil && *patch.LastName != ouser.LastName)) &&
-		((ouser.IsLDAPUser() && (*LS.FirstNameAttribute != "" || *LS.LastNameAttribute != "")) ||
-			(ouser.IsSAMLUser() && (*SS.FirstNameAttribute != "" || *SS.LastNameAttribute != "")) ||
-			ouser.IsOAuthUser()) {
-		return errors.New("full name")
+	type attrParam struct {
+		name          string
+		patchValue    *string
+		userValue     *string
+		providerValue *string
 	}
-	// If LDAP or SAML is used, and any of the following attributes have been specified
-	// in the settings, then their corresponding fields may not be changed
+	tryingToChange := func(patchValue *string, userValue *string) bool {
+		return patchValue != nil && *patchValue != *userValue
+	}
+	isConflict := func(patchValue *string, userValue *string, providerValue *string) bool {
+		return tryingToChange(patchValue, userValue) && *providerValue != ""
+	}
+	// If either the first name or last name is already set, then neither of them
+	// may be modified (LDAP and SAML users only)
+	isNameConflict := func(firstNameAttr *string, lastNameAttr *string) bool {
+		nameIsChanging := tryingToChange(patch.FirstName, &ouser.FirstName) ||
+			tryingToChange(patch.LastName, &ouser.LastName)
+		nameIsAlreadySet := *firstNameAttr != "" || *lastNameAttr != ""
+		return nameIsChanging && nameIsAlreadySet
+	}
+
 	if ouser.IsLDAPUser() {
-		for _, attr := range []struct {
-			name       string
-			patchValue *string
-			userValue  *string
-			selector   *string
-		}{
+		LS := &cfg.LdapSettings
+		if isNameConflict(LS.FirstNameAttribute, LS.LastNameAttribute) {
+			return errors.New("full name")
+		}
+		for _, attr := range []attrParam{
 			{"nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
 			{"position", patch.Position, &ouser.Position, LS.PositionAttribute},
 			{"email", patch.Email, &ouser.Email, LS.EmailAttribute},
 		} {
-			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
 				return errors.New(attr.name)
 			}
 		}
 	} else if ouser.IsSAMLUser() {
-		for _, attr := range []struct {
-			name       string
-			patchValue *string
-			userValue  *string
-			selector   *string
-		}{
+		SS := &cfg.SamlSettings
+		if isNameConflict(SS.FirstNameAttribute, SS.LastNameAttribute) {
+			return errors.New("full name")
+		}
+		for _, attr := range []attrParam{
 			{"nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
 			{"position", patch.Position, &ouser.Position, SS.PositionAttribute},
 			{"email", patch.Email, &ouser.Email, SS.EmailAttribute},
 		} {
-			if attr.patchValue != nil && *attr.patchValue != *attr.userValue && *attr.selector != "" {
+			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
 				return errors.New(attr.name)
 			}
 		}
 	}
 	// If any login provider is used, then the username may not be changed
-	if ouser.AuthService != "" && patch.Username != nil && *patch.Username != ouser.Username {
-		return errors.New("username")
+	if ouser.AuthService != "" {
+		if tryingToChange(patch.Username, &ouser.Username) {
+			return errors.New("username")
+		}
 	}
 	return nil
 }
