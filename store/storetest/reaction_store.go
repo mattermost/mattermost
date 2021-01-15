@@ -48,9 +48,11 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	assert.Equal(t, saved.UserId, reaction1.UserId, "should've saved reaction user_id and returned it")
 	assert.Equal(t, saved.PostId, reaction1.PostId, "should've saved reaction post_id and returned it")
 	assert.Equal(t, saved.EmojiName, reaction1.EmojiName, "should've saved reaction emoji_name and returned it")
+	assert.NotZero(t, saved.UpdateAt, "should've saved reaction update_at and returned it")
+	assert.Zero(t, saved.DeleteAt, "should've saved reaction delete_at with zero value and returned it")
 
 	var secondUpdateAt int64
-	postList, err := ss.Post().Get(reaction1.PostId, false)
+	postList, err := ss.Post().Get(reaction1.PostId, false, false, false)
 	require.Nil(t, err)
 
 	assert.True(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = true on post")
@@ -74,7 +76,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	_, nErr = ss.Reaction().Save(reaction2)
 	require.Nil(t, nErr)
 
-	postList, err = ss.Post().Get(reaction2.PostId, false)
+	postList, err = ss.Post().Get(reaction2.PostId, false, false, false)
 	require.Nil(t, err)
 
 	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, secondUpdateAt, "should've marked post as updated even if HasReactions doesn't change")
@@ -108,39 +110,73 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	post, err := ss.Post().Save(&model.Post{
-		ChannelId: model.NewId(),
-		UserId:    model.NewId(),
+	t.Run("Delete", func(t *testing.T) {
+		post, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+		})
+		require.Nil(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: model.NewId(),
+		}
+
+		_, nErr := ss.Reaction().Save(reaction)
+		require.Nil(t, nErr)
+
+		result, err := ss.Post().Get(reaction.PostId, false, false, false)
+		require.Nil(t, err)
+
+		firstUpdateAt := result.Posts[post.Id].UpdateAt
+
+		_, nErr = ss.Reaction().Delete(reaction)
+		require.Nil(t, nErr)
+
+		reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, rErr)
+
+		assert.Empty(t, reactions, "should've deleted reaction")
+
+		postList, err := ss.Post().Get(post.Id, false, false, false)
+		require.Nil(t, err)
+
+		assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
+		assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
 	})
-	require.Nil(t, err)
 
-	reaction := &model.Reaction{
-		UserId:    model.NewId(),
-		PostId:    post.Id,
-		EmojiName: model.NewId(),
-	}
+	t.Run("Undelete", func(t *testing.T) {
+		post, err := ss.Post().Save(&model.Post{
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+		})
+		require.Nil(t, err)
 
-	_, nErr := ss.Reaction().Save(reaction)
-	require.Nil(t, nErr)
+		reaction := &model.Reaction{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: model.NewId(),
+		}
 
-	result, err := ss.Post().Get(reaction.PostId, false)
-	require.Nil(t, err)
+		savedReaction, nErr := ss.Reaction().Save(reaction)
+		require.Nil(t, nErr)
 
-	firstUpdateAt := result.Posts[post.Id].UpdateAt
+		updateAt := savedReaction.UpdateAt
 
-	_, nErr = ss.Reaction().Delete(reaction)
-	require.Nil(t, nErr)
+		_, nErr = ss.Reaction().Delete(savedReaction)
+		require.Nil(t, nErr)
 
-	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
-	require.Nil(t, rErr)
+		// add same reaction back and ensure update_at is set
+		_, nErr = ss.Reaction().Save(savedReaction)
+		require.Nil(t, nErr)
 
-	assert.Empty(t, reactions, "should've deleted reaction")
+		reactions, err := ss.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, err)
 
-	postList, err := ss.Post().Get(post.Id, false)
-	require.Nil(t, err)
-
-	assert.False(t, postList.Posts[post.Id].HasReactions, "should've set HasReactions = false on post")
-	assert.NotEqual(t, postList.Posts[post.Id].UpdateAt, firstUpdateAt, "should mark post as updated after deleting reactions")
+		assert.Len(t, reactions, 1)
+		assert.GreaterOrEqual(t, reactions[0].UpdateAt, updateAt)
+	})
 }
 
 func testReactionGetForPost(t *testing.T, ss store.Store) {
@@ -176,6 +212,17 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
+	// save and delete an additional reaction to test soft deletion
+	temp := &model.Reaction{
+		UserId:    userId,
+		PostId:    postId,
+		EmojiName: "grin",
+	}
+	savedTmp, err := ss.Reaction().Save(temp)
+	require.Nil(t, err)
+	_, err = ss.Reaction().Delete(savedTmp)
+	require.Nil(t, err)
+
 	returned, err := ss.Reaction().GetForPost(postId, false)
 	require.Nil(t, err)
 	require.Len(t, returned, 3, "should've returned 3 reactions")
@@ -185,7 +232,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 
 		for _, returnedReaction := range returned {
 			if returnedReaction.UserId == reaction.UserId && returnedReaction.PostId == reaction.PostId &&
-				returnedReaction.EmojiName == reaction.EmojiName {
+				returnedReaction.EmojiName == reaction.EmojiName && returnedReaction.UpdateAt > 0 {
 				found = true
 				break
 			}
@@ -297,15 +344,15 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	assert.Empty(t, returned, "should've only removed reactions with emoji name")
 
 	// check that the posts are updated
-	postList, err := ss.Post().Get(post.Id, false)
+	postList, err := ss.Post().Get(post.Id, false, false, false)
 	require.Nil(t, err)
 	assert.True(t, postList.Posts[post.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(post2.Id, false)
+	postList, err = ss.Post().Get(post2.Id, false, false, false)
 	require.Nil(t, err)
 	assert.True(t, postList.Posts[post2.Id].HasReactions, "post should still have reactions")
 
-	postList, err = ss.Post().Get(post3.Id, false)
+	postList, err = ss.Post().Get(post3.Id, false, false, false)
 	require.Nil(t, err)
 	assert.False(t, postList.Posts[post3.Id].HasReactions, "post shouldn't have reactions any more")
 
