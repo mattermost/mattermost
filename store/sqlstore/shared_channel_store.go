@@ -48,7 +48,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 }
 
 func (s SqlSharedChannelStore) createIndexesIfNotExists() {
-	// none for now
+	// none for now.
 }
 
 // Save inserts a new shared channel record.

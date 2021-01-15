@@ -13,9 +13,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/wiggin77/merror"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/wiggin77/merror"
 )
 
 type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response, err error)
