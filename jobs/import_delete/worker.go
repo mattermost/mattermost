@@ -118,6 +118,7 @@ func (w *ImportDeleteWorker) doJob(job *model.Job) {
 					mlog.Debug("Worker: Failed to delete UploadSession",
 						mlog.Err(storeErr), mlog.String("upload_id", uploadID))
 					hasErrs = true
+					continue
 				}
 			} else {
 				// check if fileinfo exists and if so delete it.
@@ -128,11 +129,13 @@ func (w *ImportDeleteWorker) doJob(job *model.Job) {
 					mlog.Debug("Worker: Failed to get FileInfo",
 						mlog.Err(storeErr), mlog.String("path", filePath))
 					hasErrs = true
+					continue
 				} else if storeErr == nil {
 					if storeErr = w.app.Srv().Store.FileInfo().PermanentDelete(info.Id); storeErr != nil {
 						mlog.Debug("Worker: Failed to delete FileInfo",
 							mlog.Err(storeErr), mlog.String("file_id", info.Id))
 						hasErrs = true
+						continue
 					}
 				}
 			}
