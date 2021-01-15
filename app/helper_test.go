@@ -310,7 +310,7 @@ func (th *TestHelper) CreateChannel(team *model.Team, options ...ChannelOption) 
 }
 
 func (th *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
-	return th.createChannel(team, model.CHANNEL_PRIVATE, nil)
+	return th.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
 func (th *TestHelper) createChannel(team *model.Team, channelType string, options ...ChannelOption) *model.Channel {
