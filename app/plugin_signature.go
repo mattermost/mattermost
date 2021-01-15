@@ -10,12 +10,13 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/armor"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // GetPluginPublicKeyFiles returns all public keys listed in the config.
@@ -84,7 +85,7 @@ func (a *App) VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError {
 	for _, pk := range publicKeys {
 		pkBytes, appErr := a.GetPublicKey(pk)
 		if appErr != nil {
-			mlog.Error("Unable to get public key for ", mlog.String("filename", pk))
+			mlog.Warn("Unable to get public key for ", mlog.String("filename", pk))
 			continue
 		}
 		publicKey := bytes.NewReader(pkBytes)

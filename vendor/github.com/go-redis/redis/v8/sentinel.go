@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
-	"math/rand"
 	"net"
 	"strings"
 	"sync"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8/internal"
 	"github.com/go-redis/redis/v8/internal/pool"
+	"github.com/go-redis/redis/v8/internal/rand"
 )
 
 //------------------------------------------------------------------------------
@@ -177,11 +177,14 @@ func NewFailoverClient(failoverOpt *FailoverOptions) *Client {
 	opt.init()
 
 	connPool := newConnPool(opt)
+
+	failover.mu.Lock()
 	failover.onFailover = func(ctx context.Context, addr string) {
 		_ = connPool.Filter(func(cn *pool.Conn) bool {
 			return cn.RemoteAddr().String() != addr
 		})
 	}
+	failover.mu.Unlock()
 
 	c := Client{
 		baseClient: newBaseClient(opt, connPool),
@@ -224,6 +227,7 @@ func masterSlaveDialer(
 // SentinelClient is a client for a Redis Sentinel.
 type SentinelClient struct {
 	*baseClient
+	hooks
 	ctx context.Context
 }
 
@@ -253,7 +257,7 @@ func (c *SentinelClient) WithContext(ctx context.Context) *SentinelClient {
 }
 
 func (c *SentinelClient) Process(ctx context.Context, cmd Cmder) error {
-	return c.baseClient.process(ctx, cmd)
+	return c.hooks.process(ctx, cmd, c.baseClient.process)
 }
 
 func (c *SentinelClient) pubSub() *PubSub {
@@ -481,7 +485,7 @@ func (c *sentinelFailover) MasterAddr(ctx context.Context) (string, error) {
 		return addr, nil
 	}
 
-	return "", errors.New("redis: all sentinels are unreachable")
+	return "", errors.New("redis: all sentinels specified in configuration are unreachable")
 }
 
 func (c *sentinelFailover) slaveAddrs(ctx context.Context) ([]string, error) {
@@ -526,7 +530,7 @@ func (c *sentinelFailover) slaveAddrs(ctx context.Context) ([]string, error) {
 		return addrs, nil
 	}
 
-	return []string{}, errors.New("redis: all sentinels are unreachable")
+	return []string{}, errors.New("redis: all sentinels specified in configuration are unreachable")
 }
 
 func (c *sentinelFailover) getMasterAddr(ctx context.Context, sentinel *SentinelClient) string {
@@ -645,6 +649,7 @@ func (c *sentinelFailover) discoverSentinels(ctx context.Context) {
 
 func (c *sentinelFailover) listen(pubsub *PubSub) {
 	ctx := context.TODO()
+
 	if c.onUpdate != nil {
 		c.onUpdate(ctx)
 	}
@@ -722,9 +727,12 @@ func NewFailoverClusterClient(failoverOpt *FailoverOptions) *ClusterClient {
 	}
 
 	c := NewClusterClient(opt)
+
+	failover.mu.Lock()
 	failover.onUpdate = func(ctx context.Context) {
 		c.ReloadState(ctx)
 	}
+	failover.mu.Unlock()
 
 	return c
 }

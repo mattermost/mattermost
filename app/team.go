@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -618,13 +619,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(user, channel)
 			if err != nil {
-				mlog.Error("error adding user to channel", mlog.Err(err))
+				mlog.Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		return nil, err
+		mlog.Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, nil
@@ -783,7 +784,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	}
 
 	if err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
-		mlog.Error(
+		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -796,7 +797,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Error(
+			mlog.Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),
@@ -1305,11 +1306,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err = a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -1864,7 +1865,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error("error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
+		mlog.Warn("Error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
 	}
 
 	return "", nil

@@ -49,6 +49,8 @@ func getTLSConfig(options ClientOptions) *tls.Config {
 }
 
 func retryAfter(now time.Time, r *http.Response) time.Duration {
+	// TODO(tracing): handle x-sentry-rate-limits, separate rate limiting
+	// per data type (error event, transaction, etc).
 	retryAfterHeader := r.Header["Retry-After"]
 
 	if retryAfterHeader == nil {
@@ -72,7 +74,7 @@ func getRequestBodyFromEvent(event *Event) []byte {
 		return body
 	}
 
-	partialMarshallMessage := fmt.Sprintf("Could not encode original event as JSON. "+
+	msg := fmt.Sprintf("Could not encode original event as JSON. "+
 		"Succeeded by removing Breadcrumbs, Contexts and Extra. "+
 		"Please verify the data you attach to the scope. "+
 		"Error: %s", err)
@@ -80,54 +82,76 @@ func getRequestBodyFromEvent(event *Event) []byte {
 	event.Breadcrumbs = nil
 	event.Contexts = nil
 	event.Extra = map[string]interface{}{
-		"info": partialMarshallMessage,
+		"info": msg,
 	}
 	body, err = json.Marshal(event)
 	if err == nil {
-		Logger.Println(partialMarshallMessage)
+		Logger.Println(msg)
 		return body
 	}
 
 	// This should _only_ happen when Event.Exception[0].Stacktrace.Frames[0].Vars is unserializable
 	// Which won't ever happen, as we don't use it now (although it's the part of public interface accepted by Sentry)
 	// Juuust in case something, somehow goes utterly wrong.
-	Logger.Println("Event couldn't be marshalled, even with stripped contextual data. Skipping delivery. " +
+	Logger.Println("Event couldn't be marshaled, even with stripped contextual data. Skipping delivery. " +
 		"Please notify the SDK owners with possibly broken payload.")
 	return nil
 }
 
-func getEnvelopeFromBody(body []byte, now time.Time) *bytes.Buffer {
+func transactionEnvelopeFromBody(eventID EventID, sentAt time.Time, body json.RawMessage) (*bytes.Buffer, error) {
 	var b bytes.Buffer
-	fmt.Fprintf(&b, `{"sent_at":"%s"}`, now.UTC().Format(time.RFC3339Nano))
-	fmt.Fprint(&b, "\n", `{"type":"transaction"}`, "\n")
-	b.Write(body)
-	return &b
+	enc := json.NewEncoder(&b)
+	// envelope header
+	err := enc.Encode(struct {
+		EventID EventID   `json:"event_id"`
+		SentAt  time.Time `json:"sent_at"`
+	}{
+		EventID: eventID,
+		SentAt:  sentAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+	// item header
+	err = enc.Encode(struct {
+		Type   string `json:"type"`
+		Length int    `json:"length"`
+	}{
+		Type:   transactionType,
+		Length: len(body),
+	})
+	if err != nil {
+		return nil, err
+	}
+	// payload
+	err = enc.Encode(body)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
 }
 
 func getRequestFromEvent(event *Event, dsn *Dsn) (*http.Request, error) {
 	body := getRequestBodyFromEvent(event)
 	if body == nil {
-		return nil, errors.New("event could not be marshalled")
+		return nil, errors.New("event could not be marshaled")
 	}
-
 	if event.Type == transactionType {
-		env := getEnvelopeFromBody(body, time.Now())
-		request, _ := http.NewRequest(
+		b, err := transactionEnvelopeFromBody(event.EventID, time.Now(), body)
+		if err != nil {
+			return nil, err
+		}
+		return http.NewRequest(
 			http.MethodPost,
 			dsn.EnvelopeAPIURL().String(),
-			env,
+			b,
 		)
-
-		return request, nil
 	}
-
-	request, _ := http.NewRequest(
+	return http.NewRequest(
 		http.MethodPost,
 		dsn.StoreAPIURL().String(),
-		bytes.NewBuffer(body),
+		bytes.NewReader(body),
 	)
-
-	return request, nil
 }
 
 // ================================
@@ -249,9 +273,15 @@ func (t *HTTPTransport) SendEvent(event *Event) {
 
 	select {
 	case b.items <- request:
+		var eventType string
+		if event.Type == transactionType {
+			eventType = "transaction"
+		} else {
+			eventType = fmt.Sprintf("%s event", event.Level)
+		}
 		Logger.Printf(
-			"Sending %s event [%s] to %s project: %d\n",
-			event.Level,
+			"Sending %s [%s] to %s project: %d",
+			eventType,
 			event.EventID,
 			t.dsn.host,
 			t.dsn.projectID,
@@ -427,9 +457,15 @@ func (t *HTTPSyncTransport) SendEvent(event *Event) {
 		request.Header.Set(headerKey, headerValue)
 	}
 
+	var eventType string
+	if event.Type == transactionType {
+		eventType = "transaction"
+	} else {
+		eventType = fmt.Sprintf("%s event", event.Level)
+	}
 	Logger.Printf(
-		"Sending %s event [%s] to %s project: %d\n",
-		event.Level,
+		"Sending %s [%s] to %s project: %d",
+		eventType,
 		event.EventID,
 		t.dsn.host,
 		t.dsn.projectID,

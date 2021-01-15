@@ -882,8 +882,6 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		t.Skip("skipping watcher test in short mode")
 	}
 
-	t.Parallel()
-
 	t.Run("disabled", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()

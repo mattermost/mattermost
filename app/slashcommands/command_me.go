@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -39,8 +40,5 @@ func (*MeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string
 		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
 		Type:         model.POST_ME,
 		Text:         "*" + message + "*",
-		Props: model.StringInterface{
-			"message": message,
-		},
 	}
 }
