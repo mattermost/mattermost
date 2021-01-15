@@ -577,8 +577,6 @@ type FileInfoStore interface {
 	PermanentDeleteByUser(userId string) (int64, error)
 	SetContent(fileId, content string) error
 	Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error)
-	CountAll() (int64, error)
-	GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error)
 	ClearCaches()
 }
 
