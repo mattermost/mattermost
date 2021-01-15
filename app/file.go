@@ -758,7 +758,12 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *t.fileinfo
 		a.Srv().Go(func() {
-			text, err := docextractor.Extract(infoCopy.Name, t.teeInput, docextractor.ExtractSettings{
+			file, aerr := a.FileReader(t.fileinfo.Path)
+			if aerr != nil {
+				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+			}
+			defer file.Close()
+			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
 				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 			})
 			if err != nil {
@@ -1022,7 +1027,12 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
 		a.Srv().Go(func() {
-			text, err := docextractor.Extract(infoCopy.Name, bytes.NewReader(data), docextractor.ExtractSettings{
+			file, aerr := a.FileReader(infoCopy.Path)
+			if aerr != nil {
+				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+			}
+			defer file.Close()
+			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
 				ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 			})
 			if err != nil {
