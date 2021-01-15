@@ -922,6 +922,7 @@ type AppIface interface {
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
+	ServerSyncSharedChannelHandler(props map[string]string)
 	Session() *model.Session
 	SessionCacheLength() int
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
