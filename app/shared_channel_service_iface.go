@@ -11,14 +11,16 @@ type SharedChannelServiceIFace interface {
 	Start() error
 	NotifyChannelChanged(channelId string)
 	SendChannelInvite(channelId string, userId string, description string, rc *model.RemoteCluster) error
+	Active() bool
 }
 
 func newMockRemoteClusterService(service SharedChannelServiceIFace) *mockRemoteClusterService {
-	return &mockRemoteClusterService{service, []string{}}
+	return &mockRemoteClusterService{service, true, []string{}}
 }
 
 type mockRemoteClusterService struct {
 	SharedChannelServiceIFace
+	active        bool
 	notifications []string
 }
 
@@ -32,4 +34,8 @@ func (mrcs *mockRemoteClusterService) Shutdown() error {
 
 func (mrcs *mockRemoteClusterService) Start() error {
 	return nil
+}
+
+func (mrcs *mockRemoteClusterService) Active() bool {
+	return mrcs.active
 }

@@ -4,10 +4,7 @@
 package app
 
 import (
-	"bytes"
 	"testing"
-
-	"github.com/mattermost/mattermost-server/v5/mlog"
 
 	"github.com/mattermost/mattermost-server/v5/testlib"
 
@@ -44,6 +41,29 @@ func TestNotifySharedChannelSync(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
+		mockService := newMockRemoteClusterService(nil)
+		mockService.active = false
+		th.App.srv.sharedChannelSyncService = mockService
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Cluster = testCluster
+
+		channel := &model.Channel{Id: model.NewId(), Shared: model.NewBool(true)}
+		th.App.NotifySharedChannelSync(channel, "")
+		assert.Len(t, testCluster.GetMessages(), 1)
+
+		message := *testCluster.GetMessages()[0]
+		assert.Equal(t, model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL, message.Event)
+		expectedProps := map[string]string{
+			"channelId": channel.Id,
+			"event":     "",
+		}
+		assert.Equal(t, expectedProps, message.Props)
+	})
+
+	t.Run("when channel is shared and sync service is not present, it does broadcast a cluster message", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
 		th.App.srv.sharedChannelSyncService = nil
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
@@ -74,21 +94,6 @@ func TestNotifySharedChannelSync(t *testing.T) {
 		assert.Len(t, mockService.notifications, 1)
 		assert.Equal(t, channel.Id, mockService.notifications[0])
 	})
-
-	t.Run("when channel is shared, sync service disabled, and clustering disabled, it does nothing", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		th.App.srv.sharedChannelSyncService = nil
-		th.Server.Cluster = nil
-		buf := &bytes.Buffer{}
-		mockLogger := mlog.NewTestingLogger(t, buf)
-		th.Server.SetLog(mockLogger)
-
-		channel := &model.Channel{Id: model.NewId(), Shared: model.NewBool(true)}
-		th.App.NotifySharedChannelSync(channel, "")
-		assert.Contains(t, buf.String(), "Shared channel sync service is not running on this node and clustering is not enabled. Enable clustering to resolve.")
-	})
 }
 
 func TestServerSyncSharedChannelHandler(t *testing.T) {
@@ -106,19 +111,5 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		})
 		assert.Len(t, mockService.notifications, 1)
 		assert.Equal(t, channel.Id, mockService.notifications[0])
-	})
-
-	t.Run("sync service disabled, it does nothing", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-		defer th.TearDown()
-
-		th.App.srv.sharedChannelSyncService = nil
-		th.Server.Cluster = nil
-		buf := &bytes.Buffer{}
-		mockLogger := mlog.NewTestingLogger(t, buf)
-		th.Server.SetLog(mockLogger)
-
-		th.App.ServerSyncSharedChannelHandler(make(map[string]string))
-		assert.Contains(t, buf.String(), "Received cluster message for shared channel sync but sync service is not running on this node. Skipping...")
 	})
 }
