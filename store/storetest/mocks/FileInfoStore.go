@@ -33,6 +33,27 @@ func (_m *FileInfoStore) ClearCaches() {
 	_m.Called()
 }
 
+// CountAll provides a mock function with given fields:
+func (_m *FileInfoStore) CountAll() (int64, error) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteForPost provides a mock function with given fields: postId
 func (_m *FileInfoStore) DeleteForPost(postId string) (string, error) {
 	ret := _m.Called(postId)
@@ -116,6 +137,29 @@ func (_m *FileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(path)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetFilesBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
+func (_m *FileInfoStore) GetFilesBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+	ret := _m.Called(startTime, endTime, limit)
+
+	var r0 []*model.FileForIndexing
+	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.FileForIndexing); ok {
+		r0 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.FileForIndexing)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64, int) error); ok {
+		r1 = rf(startTime, endTime, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

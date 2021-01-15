@@ -5015,6 +5015,10 @@
     "translation": "Unable to get direct posts."
   },
   {
+    "id": "app.post.get_files_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the files batch for indexing."
+  },
+  {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
@@ -6285,6 +6289,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
+    "translation": "Unable to get the files batch for indexing."
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
