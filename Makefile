@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check run-haserver
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -155,6 +155,11 @@ ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
 endif
+
+run-haserver: run-client
+	@echo Starting docker containers in HA formation
+
+	docker-compose -f docker-compose.yaml up haproxy
 
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)
@@ -414,6 +419,13 @@ debug-server: start-docker ## Compile and start server using delve.
 		-X github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)\
 		-X github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
 		-X github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+
+run-server-no-docker: prepackaged-binaries validate-go-version
+	@echo Running mattermost for development
+
+	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch
+
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
