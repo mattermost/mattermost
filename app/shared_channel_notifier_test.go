@@ -6,11 +6,10 @@ package app
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/testlib"
-
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 func TestNotifySharedChannelSync(t *testing.T) {
