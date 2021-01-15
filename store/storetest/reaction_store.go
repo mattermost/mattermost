@@ -16,11 +16,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 )
 
-func TestReactionStore(t *testing.T, ss store.Store) {
+func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ReactionSave", func(t *testing.T) { testReactionSave(t, ss) })
 	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, ss) })
 	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
-	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
+	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss, s) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
@@ -269,7 +269,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 	}
 }
 
-func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
+func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore) {
 	emojiToDelete := model.NewId()
 
 	post, err1 := ss.Post().Save(&model.Post{
@@ -323,7 +323,25 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 	}
 
-	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
+	// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
+	sqlResult, err := s.GetMaster().Exec(`
+		UPDATE 
+				Reactions 
+			SET 
+				UpdateAt=NULL, DeleteAt=NULL 
+			WHERE 
+				UserId = :UserId AND PostId = :PostId AND EmojiName = :EmojiName`,
+		map[string]interface{}{
+			"UserId":    userId,
+			"PostId":    post.Id,
+			"EmojiName": emojiToDelete,
+		})
+	require.Nil(t, err)
+	rowsAffected, err := sqlResult.RowsAffected()
+	require.Nil(t, err)
+	require.NotZero(t, rowsAffected)
+
+	err = ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
 	require.Nil(t, err)
 
 	// check that the reactions were deleted

@@ -133,16 +133,16 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 
 	if _, err := s.GetReplica().Select(&reactions,
 		`SELECT
-				UserId,
-				PostId,
-				EmojiName,
-				CreateAt,
-				COALESCE(UpdateAt, CreateAt) As UpdateAt,
-				COALESCE(DeleteAt, 0) As DeleteAt
-			FROM
-				Reactions
-			WHERE
-				EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
+					UserId,
+					PostId,
+					EmojiName,
+					CreateAt,
+					COALESCE(UpdateAt, CreateAt) As UpdateAt,
+					COALESCE(DeleteAt, 0) As DeleteAt
+				FROM
+					Reactions
+				WHERE
+					EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params); err != nil {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
@@ -152,7 +152,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		SET
 			UpdateAt = :UpdateAt, DeleteAt = :DeleteAt
 		WHERE
-			EmojiName = :EmojiName`, params)
+			EmojiName = :EmojiName AND COALESCE(DeleteAt, 0) = 0`, params)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
