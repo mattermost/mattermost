@@ -687,6 +687,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 

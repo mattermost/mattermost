@@ -810,6 +810,7 @@ type ClusterSettings struct {
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -854,6 +855,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(false)
 	}
 
 	if s.ReadOnlyConfig == nil {
