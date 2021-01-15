@@ -1457,6 +1457,10 @@
     "translation": "Unable to download this job"
   },
   {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3220,7 +3224,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Failed to get authorization code."
+    "translation": "Error retreiving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -5823,6 +5827,10 @@
     "translation": "Error creating the bleve channel index."
   },
   {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Error creating the bleve file index."
+  },
+  {
     "id": "bleveengine.create_post_index.error",
     "translation": "Error creating the bleve post index."
   },
@@ -5839,12 +5847,28 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Failed to delete the file."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Failed to delete the files."
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Failed to delete the post files."
+  },
+  {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Failed to delete the user files."
   },
   {
     "id": "bleveengine.delete_user_posts.error",
@@ -5853,6 +5877,10 @@
   {
     "id": "bleveengine.index_channel.error",
     "translation": "Failed to index the channel."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Failed to index the file."
   },
   {
     "id": "bleveengine.index_post.error",
@@ -5865,6 +5893,10 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
     "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Failed to index file batch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
@@ -5911,6 +5943,10 @@
     "translation": "Channel search failed to complete."
   },
   {
+    "id": "bleveengine.search_files.error",
+    "translation": "File search failed to complete."
+  },
+  {
     "id": "bleveengine.search_posts.error",
     "translation": "Post search failed to complete."
   },
@@ -5929,6 +5965,10 @@
   {
     "id": "bleveengine.stop_channel_index.error",
     "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Failed to close file index."
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -6151,6 +6191,10 @@
     "translation": "Failed to create Elasticsearch template for channels"
   },
   {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for files"
+  },
+  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
     "translation": "Failed to create Elasticsearch template for posts"
   },
@@ -6175,12 +6219,24 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Failed to delete file"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Failed to delete post files"
+  },
+  {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Failed to delete user files"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -6197,6 +6253,10 @@
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Unable to get the channels batch for indexing."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Failed to index the file"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -6248,6 +6308,18 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch files searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Failed to decode search results"
   },
   {
