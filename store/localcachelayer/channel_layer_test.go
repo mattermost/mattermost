@@ -15,7 +15,7 @@ import (
 )
 
 func TestChannelStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTestWithSqlStore(t, storetest.TestReactionStore)
 }
 
 func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
