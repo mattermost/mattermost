@@ -876,7 +876,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if ar.IdToken != "" {
 		userFromToken, err = provider.GetUserFromIdToken(ar.IdToken)
 		if err != nil {
-			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, e.Error(), http.StatusInternalServerError)
+			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
