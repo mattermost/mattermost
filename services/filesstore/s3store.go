@@ -41,6 +41,8 @@ const (
 	bucketNotFound = "NoSuchBucket"
 )
 
+var ErrNoS3Bucket = errors.New(bucketNotFound)
+
 // NewS3FileBackend returns an instance of an S3FileBackend.
 func NewS3FileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
@@ -143,9 +145,17 @@ func (b *S3FileBackend) TestConnection() error {
 		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	} else {
 		mlog.Warn("Bucket specified does not exist.")
-		return errors.New("bucket specified does not exist")
+		return ErrNoS3Bucket
 	}
 
+	return nil
+}
+
+func (b *S3FileBackend) MakeBucket() error {
+	err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
+	if err != nil {
+		return errors.Wrap(err, "unable to create the s3 bucket")
+	}
 	return nil
 }
 
