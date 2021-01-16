@@ -1443,7 +1443,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", createDateFilterClause, 1)
 
 	termMap := map[string]bool{}
-	terms := params.Terms
+	terms := strings.Trim(params.Terms, "\"")
 	excludedTerms := params.ExcludedTerms
 
 	searchType := "Message"
@@ -1453,6 +1453,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
+
+	//Trim quoted search terms
 
 	// these chars have special meaning and can be treated as spaces
 	for _, c := range specialSearchChar {
@@ -1470,6 +1472,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
+		//Strip quotes off terms with it
+		if quoted, err := regexp.Compile(`\""`); err == nil {
+			terms = quoted.ReplaceAllLiteralString(terms, "")
+		}
 		excludeClause := ""
 		if excludedTerms != "" {
 			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
@@ -1484,7 +1490,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		searchClause := ""
 
 		if !params.OrTerms && strings.Contains(terms, "_") {
-			searchClause = fmt.Sprintf("AND to_tsvector('english', replace(%s, '_', '/')) @@ plainto_tsquery('english', replace(:Terms, '_', '/'))", searchType)
+			//Strip quotes off terms with it
+			if quoted, err := regexp.Compile(`\"`); err == nil {
+				queryParams["Terms"] = quoted.ReplaceAllLiteralString(queryParams["Terms"].(string), "")
+			}
+			searchClause = fmt.Sprintf("AND %s::tsvector @@ :Terms::tsquery", searchType)
+
 		} else {
 			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		}
