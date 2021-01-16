@@ -1173,13 +1173,11 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 		return tryingToChange(patchValue, userValue) && *providerValue != ""
 	}
 	// If either the first name or last name is already set, then neither of them
-	// may be modified (LDAP and SAML users only). OAUTH users may not change
-	// their name either.
+	// may be modified (LDAP and SAML users only).
 	isNameConflict := func(firstNameAttr *string, lastNameAttr *string) bool {
 		nameIsChanging := tryingToChange(patch.FirstName, &ouser.FirstName) ||
 			tryingToChange(patch.LastName, &ouser.LastName)
-		nameIsAlreadySet := (firstNameAttr != nil && *firstNameAttr != "") ||
-			(lastNameAttr != nil && *lastNameAttr != "")
+		nameIsAlreadySet := *firstNameAttr != "" || *lastNameAttr != ""
 		return nameIsChanging && nameIsAlreadySet
 	}
 
@@ -1212,7 +1210,8 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 			}
 		}
 	} else if ouser.IsOAuthUser() {
-		if isNameConflict(nil, nil) {
+		if tryingToChange(patch.FirstName, &ouser.FirstName) ||
+			tryingToChange(patch.LastName, &ouser.LastName) {
 			return "full name"
 		}
 	}
