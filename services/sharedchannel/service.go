@@ -23,6 +23,7 @@ const (
 	StatusDescription            = "status_description"
 	ResponseLastUpdateAt         = "last_update_at"
 	ResponsePostErrors           = "post_errors"
+	ResponseUsersSynced          = "users_synced"
 )
 
 type ServerIface interface {

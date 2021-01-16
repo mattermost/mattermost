@@ -195,6 +195,8 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 			return
 		}
 
+		// TODO:  add updated users to response so SharedChannelUsers table can be upserted.  syncResponse[ResponseUsersSynced]
+
 		// TODO: Any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[ResponsePostErrors].
 		//       Write ephemeral message to post author notifying for each post that failed.
 

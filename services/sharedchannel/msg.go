@@ -13,17 +13,17 @@ import (
 // Maps Post id to syncMsg.
 type msgCache map[string]syncMsg
 
-// syncMsg represents a change in content (post add/edit/delete, reaction add/remove).
+// syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
 	Post      *model.Post       `json:"post"`
+	Users     []*model.User     `json:"users"`
 	Reactions []*model.Reaction `json:"reactions"`
 }
 
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster
 func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.RemoteClusterMsg, error) {
-
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	for _, p := range posts {
@@ -36,8 +36,15 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 		if err != nil {
 			return model.RemoteClusterMsg{}, err
 		}
+
+		users, err := scs.usersForPost(p)
+		if err != nil {
+			return model.RemoteClusterMsg{}, err
+		}
+
 		sm := syncMsg{
 			Post:      p,
+			Users:     users,
 			Reactions: reactions,
 		}
 		syncMessages = append(syncMessages, sm)
@@ -51,4 +58,18 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 
 	msg := model.NewRemoteClusterMsg(TopicSync, json)
 	return msg, nil
+}
+
+// usersForPost provides a list of Users associated with the post, including the post author
+// and any local @mentioned users.
+func (scs *Service) usersForPost(post *model.Post) ([]*model.User, error) {
+	users := make([]*model.User, 0)
+	creator, err := scs.server.GetStore().User().Get(post.UserId)
+	if err == nil {
+		users = append(users, creator)
+	}
+
+	// extract @mentions
+
+	return users, nil
 }
