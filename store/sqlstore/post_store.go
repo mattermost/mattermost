@@ -1443,7 +1443,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", createDateFilterClause, 1)
 
 	termMap := map[string]bool{}
-	terms := strings.Trim(params.Terms, "\"")
+	terms := params.Terms
 	excludedTerms := params.ExcludedTerms
 
 	searchType := "Message"
@@ -1453,8 +1453,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			termMap[strings.ToUpper(term)] = true
 		}
 	}
-
-	//Trim quoted search terms
 
 	// these chars have special meaning and can be treated as spaces
 	for _, c := range specialSearchChar {
@@ -1472,10 +1470,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
 		}
 
-		//Strip quotes off terms with it
-		if quoted, err := regexp.Compile(`\""`); err == nil {
-			terms = quoted.ReplaceAllLiteralString(terms, "")
-		}
 		excludeClause := ""
 		if excludedTerms != "" {
 			excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
