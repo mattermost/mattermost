@@ -383,7 +383,7 @@ func (c *Client4) GetComplianceReportsRoute() string {
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
-	return fmt.Sprintf("%s/%s", c.GetComplianceReportRoute(), reportId)
+	return fmt.Sprintf("%s/%s", c.GetComplianceReportsRoute(), reportId)
 }
 
 func (c *Client4) GetComplianceReportDownloadRoute(reportId string) string {
