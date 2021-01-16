@@ -5,7 +5,6 @@ package api4
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -1127,10 +1126,11 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	if err := checkLoginProviderAttributes(c.App.Config(), ouser, convertToUserPatch(user)); err != nil {
+	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, convertToUserPatch(user))
+	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": err.Error()}, "", http.StatusConflict)
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
@@ -1156,10 +1156,10 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-// checkLoginProviderAttributes returns nil if the patch can be applied without overriding
-// attributes set by the user's login provider; otherwise, an error is returned whose text
-// is the name of the offending field.
-func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *model.UserPatch) error {
+// checkLoginProviderAttributes returns the empty string if the patch can be applied without
+// overriding attributes set by the user's login provider; otherwise, the name of the offending
+// field is returned.
+func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *model.UserPatch) string {
 	type attrParam struct {
 		name          string
 		patchValue    *string
@@ -1173,18 +1173,20 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 		return tryingToChange(patchValue, userValue) && *providerValue != ""
 	}
 	// If either the first name or last name is already set, then neither of them
-	// may be modified (LDAP and SAML users only)
+	// may be modified (LDAP and SAML users only). OAUTH users may not change
+	// their name either.
 	isNameConflict := func(firstNameAttr *string, lastNameAttr *string) bool {
 		nameIsChanging := tryingToChange(patch.FirstName, &ouser.FirstName) ||
 			tryingToChange(patch.LastName, &ouser.LastName)
-		nameIsAlreadySet := *firstNameAttr != "" || *lastNameAttr != ""
+		nameIsAlreadySet := (firstNameAttr != nil && *firstNameAttr != "") ||
+			(lastNameAttr != nil && *lastNameAttr != "")
 		return nameIsChanging && nameIsAlreadySet
 	}
 
 	if ouser.IsLDAPUser() {
 		LS := &cfg.LdapSettings
 		if isNameConflict(LS.FirstNameAttribute, LS.LastNameAttribute) {
-			return errors.New("full name")
+			return "full name"
 		}
 		for _, attr := range []attrParam{
 			{"nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
@@ -1192,13 +1194,13 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 			{"email", patch.Email, &ouser.Email, LS.EmailAttribute},
 		} {
 			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
-				return errors.New(attr.name)
+				return attr.name
 			}
 		}
 	} else if ouser.IsSAMLUser() {
 		SS := &cfg.SamlSettings
 		if isNameConflict(SS.FirstNameAttribute, SS.LastNameAttribute) {
-			return errors.New("full name")
+			return "full name"
 		}
 		for _, attr := range []attrParam{
 			{"nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
@@ -1206,17 +1208,21 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 			{"email", patch.Email, &ouser.Email, SS.EmailAttribute},
 		} {
 			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
-				return errors.New(attr.name)
+				return attr.name
 			}
+		}
+	} else if ouser.IsOAuthUser() {
+		if isNameConflict(nil, nil) {
+			return "full name"
 		}
 	}
 	// If any login provider is used, then the username may not be changed
 	if ouser.AuthService != "" {
 		if tryingToChange(patch.Username, &ouser.Username) {
-			return errors.New("username")
+			return "username"
 		}
 	}
-	return nil
+	return ""
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1260,10 +1266,11 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := checkLoginProviderAttributes(c.App.Config(), ouser, patch); err != nil {
+	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, patch)
+	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
-			map[string]interface{}{"Field": err.Error()}, "", http.StatusConflict)
+			map[string]interface{}{"Field": conflictField}, "", http.StatusConflict)
 		return
 	}
 
