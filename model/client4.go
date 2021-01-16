@@ -383,11 +383,11 @@ func (c *Client4) GetComplianceReportsRoute() string {
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
-	return fmt.Sprintf("/compliance/reports/%v", reportId)
+	return fmt.Sprintf("%s/%s", c.GetComplianceReportRoute(), reportId)
 }
 
 func (c *Client4) GetComplianceReportDownloadRoute(reportId string) string {
-	return fmt.Sprintf("/compliance/reports/%v/download", reportId)
+	return fmt.Sprintf("%s/%s/download", c.GetComplianceReportsRoute(), reportId)
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
