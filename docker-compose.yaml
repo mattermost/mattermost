@@ -81,6 +81,8 @@ services:
     working_dir: '/home/mattermost-server'
     environment:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
     networks:
       - mm-test
     depends_on:
@@ -95,7 +97,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
-    command: ['make', 'run-server-no-docker']
+    command: ['make', 'run-server']
     expose:
       - "8065"
 
@@ -106,6 +108,8 @@ services:
     working_dir: '/home/mattermost-server'
     environment:
       - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
     networks:
       - mm-test
     depends_on:
@@ -119,7 +123,7 @@ services:
       interval: 5s
       timeout: 10s
       retries: 30
-    command: ['make', 'run-server-no-docker']
+    command: ['make', 'run-server']
     restart: on-failure
     expose:
       - "8065"
@@ -129,7 +133,7 @@ services:
     networks:
       - mm-test
     volumes:
-      - ./nginx.default.conf:/etc/nginx/conf.d/default.conf
+      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     restart: on-failure
     depends_on:
       - leader
