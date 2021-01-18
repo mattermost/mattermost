@@ -1181,7 +1181,7 @@ func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *m
 		return nameIsChanging && nameIsAlreadySet
 	}
 
-	if ouser.IsLDAPUser() {
+	if ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *cfg.SamlSettings.EnableSyncWithLdap) {
 		LS := &cfg.LdapSettings
 		if isNameConflict(LS.FirstNameAttribute, LS.LastNameAttribute) {
 			return "full name"
