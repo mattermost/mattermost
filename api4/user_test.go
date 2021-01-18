@@ -5268,129 +5268,129 @@ func TestGetThreadsForUser(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
-	// t.Run("empty", func(t *testing.T) {
-	// 	Client := th.Client
+	t.Run("empty", func(t *testing.T) {
+		Client := th.Client
 
-	// 	_, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	// 	CheckNoError(t, resp)
-	// 	CheckCreatedStatus(t, resp)
+		_, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
 
-	// 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-	// 	uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 0)
-	// })
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 0)
+	})
 
-	// t.Run("no params, 1 thread", func(t *testing.T) {
-	// 	Client := th.Client
+	t.Run("no params, 1 thread", func(t *testing.T) {
+		Client := th.Client
 
-	// 	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	// 	CheckNoError(t, resp)
-	// 	CheckCreatedStatus(t, resp)
-	// 	_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	// 	CheckNoError(t, resp2)
-	// 	CheckCreatedStatus(t, resp2)
+		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		CheckNoError(t, resp2)
+		CheckCreatedStatus(t, resp2)
 
-	// 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-	// 	uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 1)
-	// 	require.Equal(t, uss.Threads[0].PostId, rpost.Id)
-	// 	require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
-	// })
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 1)
+		require.Equal(t, uss.Threads[0].PostId, rpost.Id)
+		require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
+	})
 
-	// t.Run("extended, 1 thread", func(t *testing.T) {
-	// 	Client := th.Client
+	t.Run("extended, 1 thread", func(t *testing.T) {
+		Client := th.Client
 
-	// 	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	// 	CheckNoError(t, resp)
-	// 	CheckCreatedStatus(t, resp)
-	// 	_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	// 	CheckNoError(t, resp2)
-	// 	CheckCreatedStatus(t, resp2)
+		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		CheckNoError(t, resp2)
+		CheckCreatedStatus(t, resp2)
 
-	// 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-	// 	uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-	// 		Extended: true,
-	// 	})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 1)
-	// 	require.Equal(t, uss.Threads[0].PostId, rpost.Id)
-	// 	require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
-	// 	require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
-	// })
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Extended: true,
+		})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 1)
+		require.Equal(t, uss.Threads[0].PostId, rpost.Id)
+		require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
+		require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
+	})
 
-	// t.Run("deleted, 1 thread", func(t *testing.T) {
-	// 	Client := th.Client
+	t.Run("deleted, 1 thread", func(t *testing.T) {
+		Client := th.Client
 
-	// 	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	// 	CheckNoError(t, resp)
-	// 	CheckCreatedStatus(t, resp)
-	// 	_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	// 	CheckNoError(t, resp2)
-	// 	CheckCreatedStatus(t, resp2)
+		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+		CheckNoError(t, resp2)
+		CheckCreatedStatus(t, resp2)
 
-	// 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-	// 	uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-	// 		Deleted: false,
-	// 	})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 1)
-	// 	require.Equal(t, uss.Threads[0].PostId, rpost.Id)
-	// 	require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
-	// 	require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 1)
+		require.Equal(t, uss.Threads[0].PostId, rpost.Id)
+		require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
+		require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
 
-	// 	res, resp2 := th.Client.DeletePost(rpost.Id)
-	// 	require.True(t, res)
-	// 	require.Nil(t, resp2.Error)
+		res, resp2 := th.Client.DeletePost(rpost.Id)
+		require.True(t, res)
+		require.Nil(t, resp2.Error)
 
-	// 	uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-	// 		Deleted: false,
-	// 	})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 0)
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 0)
 
-	// 	uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-	// 		Deleted: true,
-	// 	})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 1)
-	// 	require.Greater(t, uss.Threads[0].Post.DeleteAt, int64(0))
+		uss, resp = th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: true,
+		})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 1)
+		require.Greater(t, uss.Threads[0].Post.DeleteAt, int64(0))
 
-	// })
+	})
 
-	// t.Run("paged, 30 threads", func(t *testing.T) {
-	// 	Client := th.Client
+	t.Run("paged, 30 threads", func(t *testing.T) {
+		Client := th.Client
 
-	// 	var rootIds []*model.Post
-	// 	for i := 0; i < 30; i++ {
-	// 		time.Sleep(1)
-	// 		rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	// 		CheckNoError(t, resp)
-	// 		CheckCreatedStatus(t, resp)
-	// 		rootIds = append(rootIds, rpost)
-	// 		time.Sleep(1)
-	// 		_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	// 		CheckNoError(t, resp2)
-	// 		CheckCreatedStatus(t, resp2)
-	// 	}
+		var rootIds []*model.Post
+		for i := 0; i < 30; i++ {
+			time.Sleep(1)
+			rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+			CheckNoError(t, resp)
+			CheckCreatedStatus(t, resp)
+			rootIds = append(rootIds, rpost)
+			time.Sleep(1)
+			_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+			CheckNoError(t, resp2)
+			CheckCreatedStatus(t, resp2)
+		}
 
-	// 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+		defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
 
-	// 	uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
-	// 		Deleted: false,
-	// 	})
-	// 	require.Nil(t, resp.Error)
-	// 	require.Len(t, uss.Threads, 30)
-	// 	require.Len(t, rootIds, 30)
-	// 	require.Equal(t, uss.Threads[0].PostId, rootIds[29].Id)
-	// 	require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
-	// 	require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
-	// })
+		uss, resp := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted: false,
+		})
+		require.Nil(t, resp.Error)
+		require.Len(t, uss.Threads, 30)
+		require.Len(t, rootIds, 30)
+		require.Equal(t, uss.Threads[0].PostId, rootIds[29].Id)
+		require.Equal(t, uss.Threads[0].ReplyCount, int64(1))
+		require.Equal(t, uss.Threads[0].Participants[0].Id, th.BasicUser.Id)
+	})
 
 	t.Run("paged, 10 threads before/after", func(t *testing.T) {
 		Client := th.Client
@@ -5398,16 +5398,11 @@ func TestGetThreadsForUser(t *testing.T) {
 		var rootIds []*model.Post
 		for i := 0; i < 30; i++ {
 			time.Sleep(1)
-			rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testMsg-%d", i)})
-			CheckNoError(t, resp)
-			CheckCreatedStatus(t, resp)
+			rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testMsg-%d", i)})
 			rootIds = append(rootIds, rpost)
 			time.Sleep(1)
-			_, resp2 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testReply-%d", i), RootId: rpost.Id})
-			CheckNoError(t, resp2)
-			CheckCreatedStatus(t, resp2)
+			postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testReply-%d", i), RootId: rpost.Id})
 		}
-		time.Sleep(5000)
 		rootId := rootIds[15].Id // middle point
 		rootIdBefore := rootIds[14].Id
 		rootIdAfter := rootIds[16].Id
@@ -5419,6 +5414,7 @@ func TestGetThreadsForUser(t *testing.T) {
 			PageSize: 10,
 			Before:   rootId,
 		})
+
 		require.Nil(t, resp.Error)
 		require.Len(t, uss.Threads, 10)
 		require.Equal(t, uss.Threads[0].PostId, rootIdBefore)
@@ -5431,11 +5427,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		require.Nil(t, resp2.Error)
 		require.Len(t, uss2.Threads, 10)
 
-		for i := 0; i < 10; i++ {
-			fmt.Printf("ret id %d = %s. want %s after %s\n", i, uss2.Threads[i].PostId, rootIdAfter, rootId)
-		}
-
-		require.Equal(t, uss2.Threads[9].PostId, rootIdAfter)
+		require.Equal(t, uss2.Threads[0].PostId, rootIdAfter)
 
 	})
 }

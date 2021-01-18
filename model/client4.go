@@ -5794,7 +5794,7 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 		v.Set("before", options.Before)
 	}
 	if options.After != "" {
-		v.Set("before", options.After)
+		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
 		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
