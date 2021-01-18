@@ -22,6 +22,7 @@ func TestChannelStoreCategories(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss, s) })
+	t.Run("ClearSidebarOnTeamLeave", func(t *testing.T) { testClearSidebarOnTeamLeave(t, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
 	t.Run("UpdateSidebarChannelsByPreferences", func(t *testing.T) { testUpdateSidebarChannelsByPreferences(t, ss) })
 }
@@ -1649,21 +1650,199 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
-	setupInitialSidebarCategories := func(t *testing.T, ss store.Store) (string, string) {
-		userId := model.NewId()
-		teamId := model.NewId()
+func setupInitialSidebarCategories(t *testing.T, ss store.Store) (string, string) {
+	userId := model.NewId()
+	teamId := model.NewId()
 
-		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+	nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+	require.Nil(t, nErr)
+
+	res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+	require.Nil(t, err)
+	require.Len(t, res.Categories, 3)
+
+	return userId, teamId
+}
+
+func testClearSidebarOnTeamLeave(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("should delete all sidebar categories and channels on the team", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+
+		user := &model.User{
+			Id: userId,
+		}
+
+		// Create some channels and assign them to a custom category
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+		}, 1000)
 		require.Nil(t, nErr)
 
-		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+			Id: model.NewId(),
+		})
+		require.Nil(t, nErr)
+
+		_, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			Channels: []string{channel1.Id, dmChannel1.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that we start with the right number of categories and SidebarChannels entries
+		count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(4), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(2), count)
+
+		// Leave the team
+		err = ss.Channel().ClearSidebarOnTeamLeave(userId, teamId)
+		assert.Nil(t, err)
+
+		// Confirm that all the categories and SidebarChannel entries have been deleted
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), count)
+	})
+
+	t.Run("should not delete sidebar categories and channels on another the team", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+
+		user := &model.User{
+			Id: userId,
+		}
+
+		// Create some channels and assign them to a custom category
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+		}, 1000)
+		require.Nil(t, nErr)
+
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+			Id: model.NewId(),
+		})
+		require.Nil(t, nErr)
+
+		_, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			Channels: []string{channel1.Id, dmChannel1.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that we start with the right number of categories and SidebarChannels entries
+		count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(4), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(2), count)
+
+		// Leave another team
+		err = ss.Channel().ClearSidebarOnTeamLeave(userId, model.NewId())
+		assert.Nil(t, err)
+
+		// Confirm that nothing has been deleted
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(4), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(2), count)
+	})
+
+	t.Run("MM-30314 should not delete channels on another team under specific circumstances", func(t *testing.T) {
+		userId, teamId := setupInitialSidebarCategories(t, ss)
+
+		user := &model.User{
+			Id: userId,
+		}
+		user2 := &model.User{
+			Id: model.NewId(),
+		}
+
+		// Create a second team and set up the sidebar categories for it
+		teamId2 := model.NewId()
+
+		err := ss.Channel().CreateInitialSidebarCategories(userId, teamId2)
+		require.Nil(t, err)
+
+		res, err := ss.Channel().GetSidebarCategories(userId, teamId2)
 		require.Nil(t, err)
 		require.Len(t, res.Categories, 3)
 
-		return userId, teamId
-	}
+		// On the first team, create some channels and assign them to a custom category
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+		}, 1000)
+		require.Nil(t, nErr)
 
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, user2)
+		require.Nil(t, nErr)
+
+		_, err = ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
+			Channels: []string{channel1.Id, dmChannel1.Id},
+		})
+		require.Nil(t, err)
+
+		// Do the same on the second team
+		channel2, nErr := ss.Channel().Save(&model.Channel{
+			Name:   model.NewId(),
+			TeamId: teamId2,
+			Type:   model.CHANNEL_OPEN,
+		}, 1000)
+		require.Nil(t, nErr)
+
+		_, err = ss.Channel().CreateSidebarCategory(userId, teamId2, &model.SidebarCategoryWithChannels{
+			Channels: []string{channel2.Id, dmChannel1.Id},
+		})
+		require.Nil(t, err)
+
+		// Confirm that we start with the right number of categories and SidebarChannels entries
+		count, err := s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(8), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		require.Equal(t, int64(4), count)
+
+		// Leave the first team
+		err = ss.Channel().ClearSidebarOnTeamLeave(userId, teamId)
+		assert.Nil(t, err)
+
+		// Confirm that we have the correct number of categories and SidebarChannels entries left over
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarCategories WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(4), count)
+
+		count, err = s.GetMaster().SelectInt("SELECT COUNT(*) FROM SidebarChannels WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+		require.Nil(t, err)
+		assert.Equal(t, int64(2), count)
+
+		// Confirm that the categories on the second team are unchanged
+		res, err = ss.Channel().GetSidebarCategories(userId, teamId2)
+		require.Nil(t, err)
+		assert.Len(t, res.Categories, 4)
+
+		assert.Equal(t, model.SidebarCategoryCustom, res.Categories[1].Type)
+		assert.Equal(t, []string{channel2.Id, dmChannel1.Id}, res.Categories[1].Channels)
+	})
+}
+
+func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("should correctly remove an empty category", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, ss)
 		defer ss.User().PermanentDelete(userId)

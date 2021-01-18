@@ -42,7 +42,7 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 
 func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
 	if err := options.IsValid(); err != nil {
-		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Debug("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return false, err
 	}
 
@@ -60,7 +60,7 @@ func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value []byte,
 
 	// Clean up a previous entry using the hashed key, if it exists.
 	if err := a.Srv().Store.Plugin().Delete(pluginId, getKeyHash(key)); err != nil {
-		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Warn("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 	}
 
 	return updated, nil
@@ -86,7 +86,7 @@ func (a *App) CompareAndDeletePluginKey(pluginId string, key string, oldValue []
 
 	// Clean up a previous entry using the hashed key, if it exists.
 	if err := a.Srv().Store.Plugin().Delete(pluginId, getKeyHash(key)); err != nil {
-		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Warn("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 	}
 
 	return deleted, nil
