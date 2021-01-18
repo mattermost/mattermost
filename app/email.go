@@ -521,6 +521,11 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 }
 
 func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+	renewalToken, e := es.srv.GenerateRenewalToken(JWTDefaultTokenExpiration)
+	if e != nil {
+		return e
+	}
+
 	T := utils.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -528,7 +533,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	bodyPage := es.newEmailTemplate("remove_expired_license", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["Link"] = fmt.Sprintf("%s?token=%s&id=%s", LicenseRenewalURL, renewalToken, licenseId)
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
