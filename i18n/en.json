@@ -1457,6 +1457,10 @@
     "translation": "Unable to download this job"
   },
   {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "The job type you are trying to download is not supported at the moment"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3224,7 +3228,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Failed to get authorization code."
+    "translation": "Error retreiving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -5860,7 +5864,7 @@
   },
   {
     "id": "bleveengine.delete_post_files.error",
-    "translation": "Fiiled to delete the post files."
+    "translation": "Failed to delete the post files."
   },
   {
     "id": "bleveengine.delete_user.error",

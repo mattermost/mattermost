@@ -537,7 +537,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"

@@ -13,8 +13,8 @@ include:
 #  - local: .gitlab-ci/test-schema.yml
 
 variables:
-  ONLY_BUILD: "yes"
-  ONLY_TEST: "no"
+  BUILD: "yes"
+  TEST: "no"
 
 empty:
   stage: create-vars
@@ -30,7 +30,7 @@ empty:
 #    - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
 #  timeout: 60 mins
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
 #
 #layers:
 #  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
@@ -43,7 +43,7 @@ empty:
 #    - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
 #    - git reset --hard
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
 #
 #test-postgres:
 #  extends: .test
@@ -53,7 +53,7 @@ empty:
 #    MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
 #    MM_SQLSETTINGS_DRIVERNAME: postgres
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
 #
 #test-mysql:
 #  extends: .test
@@ -63,7 +63,7 @@ empty:
 #    MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
 #    MM_SQLSETTINGS_DRIVERNAME: mysql
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
 #
 #test-schema-postgres:
 #  extends: .test-schema
@@ -92,7 +92,7 @@ empty:
 #    - echo "Generating diff"
 #    - diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
 #
 #test-schema-mysql:
 #  extends: .test-schema
@@ -123,4 +123,4 @@ empty:
 #    - docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 #    - echo "Generating diff"
 #  rules:
-#    - if: '$ONLY_BUILD != "yes"'
+#    - if: '$TEST == "yes"'
