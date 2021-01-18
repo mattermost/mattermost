@@ -5662,7 +5662,7 @@ func TestThreadCounts(t *testing.T) {
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 1, &model.GetUserThreadsOpts{
 		Deleted: false,
 	})
-	// with Deleted we should get the same as before deleting, minus the reply in the deleted thread
+	// with Deleted we should get the same as before deleting
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 2, &model.GetUserThreadsOpts{
 		Deleted: true,
 	})
