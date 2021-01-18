@@ -5555,7 +5555,6 @@ func checkThreadListReplies(t *testing.T, th *TestHelper, client *model.Client4,
 		opts = *options
 	}
 	u, r := client.GetUserThreads(userId, th.BasicTeam.Id, opts)
-	// fmt.Println(spew.Sdump(u))
 	CheckNoError(t, r)
 	require.Len(t, u.Threads, expectedThreads)
 
@@ -5664,7 +5663,7 @@ func TestThreadCounts(t *testing.T) {
 		Deleted: false,
 	})
 	// with Deleted we should get the same as before deleting, minus the reply in the deleted thread
-	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, &model.GetUserThreadsOpts{
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 2, &model.GetUserThreadsOpts{
 		Deleted: true,
 	})
 }
