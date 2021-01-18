@@ -684,7 +684,8 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage := th.App.generateHyperlinkForChannels(message+mention, teamName, teamURL)
+	outMessage, err := th.App.generateHyperlinkForChannels(message+mention, teamName, teamURL)
+	require.Nil(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	assert.Equal(t, message+"<a href='"+channelURL+"'>"+mention+"</a>", outMessage)
 }
@@ -733,7 +734,8 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name, ch2.Name, ch3.Name}, true).Return([]*model.Channel{ch, ch2, ch3}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	outMessage, err := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	require.Nil(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	channelURL2 := teamURL + "/channels/" + ch2.Name
 	channelURL3 := teamURL + "/channels/" + ch3.Name
@@ -766,7 +768,8 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
-	outMessage := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	outMessage, err := th.App.generateHyperlinkForChannels(message, teamName, teamURL)
+	require.Nil(t, err)
 	assert.Equal(t, message, outMessage)
 }
 
