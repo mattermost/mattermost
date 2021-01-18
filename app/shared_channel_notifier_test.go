@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -31,8 +33,8 @@ func TestNotifySharedChannelSync(t *testing.T) {
 		th.App.srv.sharedChannelSyncService = mockService
 
 		channel := &model.Channel{Id: model.NewId(), Shared: model.NewBool(true)}
-		th.App.NotifySharedChannelSync(channel, "")
-		assert.Len(t, mockService.notifications, 1)
+		th.App.NotifySharedChannelSync(channel, model.WEBSOCKET_EVENT_POSTED)
+		require.Len(t, mockService.notifications, 1)
 		assert.Equal(t, channel.Id, mockService.notifications[0])
 	})
 
@@ -66,7 +68,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has ineligible event, it does nothing", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		mockService := newMockRemoteClusterService(nil)
@@ -81,7 +83,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active and broadcast envelope has eligible event but channel does not exist, it does nothing", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		mockService := newMockRemoteClusterService(nil)
@@ -95,7 +97,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 	})
 
 	t.Run("sync service active when received eligible event, it triggers a shared channel content sync", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		mockService := newMockRemoteClusterService(nil)
