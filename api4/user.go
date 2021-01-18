@@ -2828,7 +2828,8 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options := model.GetUserThreadsOpts{
 		Since:    0,
-		Page:     0,
+		Before:   "",
+		After:    "",
 		PageSize: 30,
 		Extended: false,
 		Deleted:  false,
@@ -2844,18 +2845,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	pageString := r.URL.Query().Get("page")
-	if len(pageString) > 0 {
-		page, parseError := strconv.ParseUint(pageString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("page")
-			return
-		}
-		options.Page = page
+	options.Before = r.URL.Query().Get("before")
+	options.After = r.URL.Query().Get("after")
+	// parameters are mutually exclusive
+	if options.Before != "" && options.After != "" {
+		c.Err = model.NewAppError("MfaRequired", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		return
 	}
-
 	pageSizeString := r.URL.Query().Get("pageSize")
-	if len(pageString) > 0 {
+	if len(pageSizeString) > 0 {
 		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("pageSize")

@@ -128,7 +128,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}
 
 	pageSize := uint64(30)
-	if opts.PageSize == 0 {
+	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
 	}
 
@@ -175,12 +175,23 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	go func() {
 		newFetchConditions := fetchConditions
 		if !opts.Deleted {
-			newFetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
+			newFetchConditions = sq.And{newFetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
 		}
 		if opts.Since > 0 {
 			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
 		}
-
+		if opts.Before != "" {
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
+			}
+		}
+		if opts.After != "" {
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt >= (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
+			}
+		}
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
 			Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
@@ -191,7 +202,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 			Where(newFetchConditions).
 			OrderBy("Threads.LastReplyAt DESC").
-			Offset(pageSize * opts.Page).
 			Limit(pageSize).ToSql()
 		_, err := s.GetReplica().Select(&threads, query, args...)
 		threadsChan <- store.StoreResult{Data: threads, NErr: err}
