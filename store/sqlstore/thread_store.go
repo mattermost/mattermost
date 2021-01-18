@@ -126,9 +126,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
+	if !opts.Deleted {
+		fetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
+	}
 
 	pageSize := uint64(30)
-	if opts.PageSize == 0 {
+	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
 	}
 
@@ -154,6 +157,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			Select("COUNT(ThreadMemberships.PostId)").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 			From("ThreadMemberships").
 			Where(fetchConditions).ToSql()
 
@@ -166,6 +170,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
 			From("ThreadMemberships").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			Where(fetchConditions).ToSql()
 		totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
@@ -174,9 +179,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	}()
 	go func() {
 		newFetchConditions := fetchConditions
-		if !opts.Deleted {
-			newFetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
-		}
 		if opts.Since > 0 {
 			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
 		}
