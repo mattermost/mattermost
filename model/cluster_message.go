@@ -42,7 +42,6 @@ const (
 	CLUSTER_EVENT_REMOVE_PLUGIN                                     = "remove_plugin"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_TERMS_OF_SERVICE             = "inv_terms_of_service"
 	CLUSTER_EVENT_BUSY_STATE_CHANGED                                = "busy_state_change"
-	CLUSTER_EVENT_SYNC_SHARED_CHANNEL                               = "sync_shared_channel"
 
 	// Gossip communication
 	CLUSTER_GOSSIP_EVENT_REQUEST_GET_LOGS             = "gossip_request_get_logs"

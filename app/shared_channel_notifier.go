@@ -8,65 +8,66 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// NotifySharedChannelSync signals the syncService to start syncing shared channel updates
-func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
-	if channel.IsShared() {
-		syncService := a.srv.GetSharedChannelSyncService()
-
-		// When the sync service is running on the node, trigger syncing without broadcasting
-		if syncService != nil && syncService.Active() {
-			mlog.Debug(
-				"Notifying shared channel sync service",
-				mlog.String("channel_id", channel.Id),
-				mlog.String("event", event),
-			)
-			syncService.NotifyChannelChanged(channel.Id)
-			return
-		}
-
-		// When the sync service is not running on the node and cluster is enabled, broadcast shared sync message
-		if a.Cluster() != nil {
-			mlog.Debug(
-				"Shared channel sync service is not running on this node. Broadcasting sync cluster event.",
-				mlog.String("channel_id", channel.Id),
-				mlog.String("event", event),
-			)
-
-			a.Cluster().SendClusterMessage(&model.ClusterMessage{
-				Event:    model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL,
-				SendType: model.CLUSTER_SEND_RELIABLE,
-				Props: map[string]string{
-					"channelId": channel.Id,
-					"event":     event,
-				},
-			})
-
-			return
-		}
-
-		// When clustering is not enabled, there is nothing we can do, just log an error for admins to react
-		mlog.Warn(
-			"Shared channel sync service is not running on this node and clustering is not enabled. Enable clustering to resolve.",
-			mlog.String("channelId", channel.Id),
-			mlog.String("event", event),
-		)
-	}
+var SharedChannelEventsForSync model.StringArray = []string{
+	model.WEBSOCKET_EVENT_POSTED,
+	model.WEBSOCKET_EVENT_POST_EDITED,
+	model.WEBSOCKET_EVENT_POST_DELETED,
+	model.WEBSOCKET_EVENT_REACTION_ADDED,
+	model.WEBSOCKET_EVENT_REACTION_REMOVED,
 }
 
-func (a *App) ServerSyncSharedChannelHandler(props map[string]string) {
-	if syncService := a.srv.GetSharedChannelSyncService(); syncService != nil && syncService.Active() {
-		mlog.Debug(
-			"Notifying shared channel sync service",
-			mlog.String("channel_id", props["channelId"]),
-			mlog.String("event", props["event"]),
-		)
-		syncService.NotifyChannelChanged(props["channelId"])
+// NotifySharedChannelSync signals the syncService to start syncing shared channel updates
+func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
+	if !SharedChannelEventsForSync.Contains(event) || !channel.IsShared() {
 		return
 	}
 
+	syncService := a.srv.GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		return
+	}
+
+	// When the sync service is running on the node, trigger syncing without broadcasting
 	mlog.Debug(
-		"Received cluster message for shared channel sync but sync service is not running on this node. Skipping...",
-		mlog.String("channel_id", props["channelId"]),
-		mlog.String("event", props["event"]),
+		"Notifying shared channel sync service",
+		mlog.String("channel_id", channel.Id),
+		mlog.String("event", event),
 	)
+	syncService.NotifyChannelChanged(channel.Id)
+}
+
+// ServerSyncSharedChannelHandler is called when a websocket event is received by a cluster node.
+// Only on the leader node it will notify the sync service to start syncing content for the given
+// shared channel.
+func (a *App) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
+	syncService := a.srv.GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
+		mlog.Debug(
+			"Received eligible shared channel sync event but sync service is not running on this node, skipping...",
+			mlog.String("event", event.EventType()),
+		)
+		return
+	}
+
+	if !SharedChannelEventsForSync.Contains(event.EventType()) {
+		mlog.Debug(
+			"Received websocket message that is not eligible to trigger shared channel sync, skipping...",
+			mlog.String("event", event.EventType()),
+		)
+	}
+
+	if event.GetBroadcast() == nil || event.GetBroadcast().ChannelId == "" {
+		return
+	}
+
+	channel, err := a.GetChannel(event.GetBroadcast().ChannelId)
+	if err != nil {
+		mlog.Warn(
+			"Received websocket message that is eligible for shared channel sync but channel does not exist",
+			mlog.String("event", event.EventType()),
+		)
+		return
+	}
+
+	a.NotifySharedChannelSync(channel, event.EventType())
 }

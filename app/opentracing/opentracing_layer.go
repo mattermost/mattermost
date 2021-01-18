@@ -13670,7 +13670,7 @@ func (a *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState)
 	a.app.ServerBusyStateChanged(sbs)
 }
 
-func (a *OpenTracingAppLayer) ServerSyncSharedChannelHandler(props map[string]string) {
+func (a *OpenTracingAppLayer) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServerSyncSharedChannelHandler")
 
@@ -13682,7 +13682,7 @@ func (a *OpenTracingAppLayer) ServerSyncSharedChannelHandler(props map[string]st
 	}()
 
 	defer span.Finish()
-	a.app.ServerSyncSharedChannelHandler(props)
+	a.app.ServerSyncSharedChannelHandler(event)
 }
 
 func (a *OpenTracingAppLayer) SessionCacheLength() int {

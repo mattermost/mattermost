@@ -1923,36 +1923,6 @@ func TestThreadMembership(t *testing.T) {
 }
 
 func TestSharedChannelSyncForPostActions(t *testing.T) {
-	t.Run("creating a post in a shared channel triggers a content sync when sync service is not running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.srv.sharedChannelSyncService = nil
-		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
-
-		user := th.BasicUser
-
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
-
-		_, err := th.App.CreatePost(&model.Post{
-			UserId:    user.Id,
-			ChannelId: channel.Id,
-			Message:   "Hello folks",
-		}, channel, false, true)
-		require.Nil(t, err, "Creating a post should not error")
-
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Len(t, sharedChannelClusterMessages, 1, "Cluster message for shared channel content sync should have been triggered")
-
-		message := *sharedChannelClusterMessages[0]
-		expectedProps := map[string]string{
-			"channelId": channel.Id,
-			"event":     model.WEBSOCKET_EVENT_POSTED,
-		}
-		assert.Equal(t, expectedProps, message.Props)
-	})
-
 	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -1972,9 +1942,6 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 			Message:   "Hello folks",
 		}, channel, false, true)
 		require.Nil(t, err, "Creating a post should not error")
-
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Empty(t, sharedChannelClusterMessages, "Cluster message for shared channel content sync should have not been triggered")
 
 		assert.Len(t, remoteClusterService.notifications, 1)
 		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
@@ -2003,47 +1970,9 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.UpdatePost(post, true)
 		require.Nil(t, err, "Updating a post should not error")
 
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Empty(t, sharedChannelClusterMessages, "Cluster message for shared channel content sync should have not been triggered")
-
 		assert.Len(t, remoteClusterService.notifications, 2)
 		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
-	})
-
-	t.Run("updating a post in a shared channel triggers a content sync when sync service is not running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.srv.sharedChannelSyncService = nil
-		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
-
-		user := th.BasicUser
-
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
-
-		post, err := th.App.CreatePost(&model.Post{
-			UserId:    user.Id,
-			ChannelId: channel.Id,
-			Message:   "Hello folks",
-		}, channel, false, true)
-		require.Nil(t, err, "Creating a post should not error")
-
-		_, err = th.App.UpdatePost(post, true)
-		require.Nil(t, err, "Updating a post should not error")
-
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Len(t, sharedChannelClusterMessages, 2, "Cluster message for shared channel content sync should have been triggered")
-
-		for i, event := range []string{model.WEBSOCKET_EVENT_POSTED, model.WEBSOCKET_EVENT_POST_EDITED} {
-			message := *sharedChannelClusterMessages[i]
-			expectedProps := map[string]string{
-				"channelId": channel.Id,
-				"event":     event,
-			}
-			assert.Equal(t, expectedProps, message.Props)
-		}
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
@@ -2069,46 +1998,8 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 		_, err = th.App.DeletePost(post.Id, user.Id)
 		require.Nil(t, err, "Updating a post should not error")
 
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Empty(t, sharedChannelClusterMessages, "Cluster message for shared channel content sync should have not been triggered")
-
 		assert.Len(t, remoteClusterService.notifications, 2)
 		assert.Equal(t, channel.Id, remoteClusterService.notifications[0])
 		assert.Equal(t, channel.Id, remoteClusterService.notifications[1])
-	})
-
-	t.Run("deleting a post in a shared channel triggers a content sync when sync service is not running on that node", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.srv.sharedChannelSyncService = nil
-		testCluster := &testlib.FakeClusterInterface{}
-		th.Server.Cluster = testCluster
-
-		user := th.BasicUser
-
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
-
-		post, err := th.App.CreatePost(&model.Post{
-			UserId:    user.Id,
-			ChannelId: channel.Id,
-			Message:   "Hello folks",
-		}, channel, false, true)
-		require.Nil(t, err, "Creating a post should not error")
-
-		_, err = th.App.DeletePost(post.Id, user.Id)
-		require.Nil(t, err, "Updating a post should not error")
-
-		sharedChannelClusterMessages := testCluster.SelectMessages(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL)
-		assert.Len(t, sharedChannelClusterMessages, 2, "Cluster message for shared channel content sync should have been triggered")
-
-		for i, event := range []string{model.WEBSOCKET_EVENT_POSTED, model.WEBSOCKET_EVENT_POST_DELETED} {
-			message := *sharedChannelClusterMessages[i]
-			expectedProps := map[string]string{
-				"channelId": channel.Id,
-				"event":     event,
-			}
-			assert.Equal(t, expectedProps, message.Props)
-		}
 	})
 }

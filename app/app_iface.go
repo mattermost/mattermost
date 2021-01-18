@@ -275,6 +275,10 @@ type AppIface interface {
 	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
 	// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
 	ServerBusyStateChanged(sbs *model.ServerBusyState)
+	// ServerSyncSharedChannelHandler is called when a websocket event is received by a cluster node.
+	// Only on the leader node it will notify the sync service to start syncing content for the given
+	// shared channel.
+	ServerSyncSharedChannelHandler(event *model.WebSocketEvent)
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
@@ -922,7 +926,6 @@ type AppIface interface {
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
-	ServerSyncSharedChannelHandler(props map[string]string)
 	Session() *model.Session
 	SessionCacheLength() int
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool

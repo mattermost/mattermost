@@ -27,7 +27,6 @@ func (a *App) registerAllClusterMessageHandlers() {
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INSTALL_PLUGIN, a.clusterInstallPluginHandler)
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_REMOVE_PLUGIN, a.clusterRemovePluginHandler)
 	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_BUSY_STATE_CHANGED, a.clusterBusyStateChgHandler)
-	a.Cluster().RegisterClusterMessageHandler(model.CLUSTER_EVENT_SYNC_SHARED_CHANNEL, a.clusterSyncSharedChannelHandler)
 }
 
 func (a *App) clusterPublishHandler(msg *model.ClusterMessage) {
@@ -36,6 +35,7 @@ func (a *App) clusterPublishHandler(msg *model.ClusterMessage) {
 		return
 	}
 	a.PublishSkipClusterSend(event)
+	a.ServerSyncSharedChannelHandler(event)
 }
 
 func (a *App) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
@@ -81,8 +81,4 @@ func (a *App) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 
 func (a *App) clusterBusyStateChgHandler(msg *model.ClusterMessage) {
 	a.ServerBusyStateChanged(model.ServerBusyStateFromJson(strings.NewReader(msg.Data)))
-}
-
-func (a *App) clusterSyncSharedChannelHandler(msg *model.ClusterMessage) {
-	a.ServerSyncSharedChannelHandler(msg.Props)
 }
