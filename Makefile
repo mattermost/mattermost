@@ -157,7 +157,7 @@ endif
 endif
 
 run-haserver: run-client
-ifeq ($(BUILD_ENTERPRISE),true)
+ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology
 
 	docker-compose -f docker-compose.yaml up haproxy
