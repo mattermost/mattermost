@@ -70,6 +70,10 @@ func (scs *Service) processSyncMessagesViaStore(syncMessages []syncMsg, rc *mode
 			}
 		}
 
+		// get team
+		// channel.TeamId
+		// replace teamName as well
+
 		if err := scs.server.GetStore().SharedChannel().UpsertPost(sm.Post); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error saving sync Post",
 				mlog.String("remote", rc.DisplayName),

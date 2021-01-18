@@ -32,15 +32,16 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	mockServer.On("GetStore").Return(mockStore)
 
 	mockApp := scs.app.(*MockAppIface)
-	mockApp.On("SendEphemeralPost", "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{})
-
-	post := &model.Post{
-		Message:   "hello world https://comm.matt.com/team/pl/postID link",
-		ChannelId: "sourceChan",
-		UserId:    "user",
-	}
+	mockApp.On("SendEphemeralPost", "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
+	defer mockApp.AssertExpectations(t)
 
 	t.Run("same channel", func(t *testing.T) {
+		post := &model.Post{
+			Message:   "hello world https://comm.matt.com/team/pl/postID link",
+			ChannelId: "sourceChan",
+			UserId:    "user",
+		}
+
 		*pl = model.PostList{
 			Order: []string{"1"},
 			Posts: map[string]*model.Post{
@@ -56,6 +57,12 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	})
 
 	t.Run("different channel", func(t *testing.T) {
+		post := &model.Post{
+			Message:   "hello world https://comm.matt.com/team/pl/postID link https://comm.matt.com/team/pl/postID ",
+			ChannelId: "sourceChan",
+			UserId:    "user",
+		}
+
 		*pl = model.PostList{
 			Order: []string{"1"},
 			Posts: map[string]*model.Post{
@@ -65,7 +72,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 			},
 		}
 		out := scs.processPermalinkToRemote(post)
-		assert.Equal(t, "hello world https://comm.matt.com/team/pl/postID link", out)
+		assert.Equal(t, "hello world https://comm.matt.com/team/pl/postID link https://comm.matt.com/team/pl/postID ", out)
 	})
 }
 

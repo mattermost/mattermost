@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	permaLinkRegex       = regexp.MustCompile(`https?://.*/pl/([a-zA-Z0-9]+)`)
-	permaLinkSharedRegex = regexp.MustCompile(`https?://.*/plshared/([a-zA-Z0-9]+)`)
+	// Team name regex taken from model.IsValidTeamName
+	permaLinkRegex       = regexp.MustCompile(`https?://[0-9.\-A-Za-z]+/[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+/pl/([a-zA-Z0-9]+)`)
+	permaLinkSharedRegex = regexp.MustCompile(`https?://[0-9.\-A-Za-z]+/[a-z0-9]+([a-z\-0-9]+|(__)?)[a-z0-9]+/plshared/([a-zA-Z0-9]+)`)
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 
 // processPermalinkToRemote processes all permalinks going towards a remote site.
 func (scs *Service) processPermalinkToRemote(p *model.Post) string {
+	var sent bool
 	return permaLinkRegex.ReplaceAllStringFunc(p.Message, func(msg string) string {
 		// Extract the postID (This is simple enough not to warrant full-blown URL parsing.)
 		lastSlash := strings.LastIndexByte(msg, '/')
@@ -39,9 +41,12 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 
 		// If postID is for a different channel
 		if postList.Posts[postList.Order[0]].ChannelId != p.ChannelId {
-			// Send ephemeral message to OP.
+			// Send ephemeral message to OP (only once per message).
 			// Note: Does this need to be translated?
-			scs.sendEphemeralPost(p.ChannelId, p.UserId, "This post contains permalinks to other channels which may not be visible to users in other sites.")
+			if !sent {
+				scs.sendEphemeralPost(p.ChannelId, p.UserId, "This post contains permalinks to other channels which may not be visible to users in other sites.")
+				sent = true
+			}
 			// But don't modify msg
 			return msg
 		}
