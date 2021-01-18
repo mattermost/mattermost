@@ -1433,6 +1433,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
