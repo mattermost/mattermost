@@ -56,8 +56,7 @@ func (scs *Service) processSyncMessagesViaStore(syncMessages []syncMsg, rc *mode
 	var channel *model.Channel
 
 	for _, sm := range syncMessages {
-
-		// TODO: modify perma-links (MM-31596)
+		sm.Post.Message = scs.processPermalinkFromRemote(sm.Post.Message)
 
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync post received",
 			mlog.String("post_id", sm.Post.Id),

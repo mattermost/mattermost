@@ -4,6 +4,8 @@
 package sharedchannel
 
 import (
+	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -24,6 +26,10 @@ const (
 	ResponseLastUpdateAt         = "last_update_at"
 	ResponsePostErrors           = "post_errors"
 )
+
+// Mocks can be re-generated with:
+// mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
 
 type ServerIface interface {
 	Config() *model.Config
@@ -57,6 +63,7 @@ type Service struct {
 	tasks                 map[string]syncTask
 	syncTopicListenerId   string
 	inviteTopicListenerId string
+	siteURL               *url.URL
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
@@ -67,6 +74,11 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
 	}
+	parsed, err := url.Parse(*server.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse SiteURL: %w", err)
+	}
+	service.siteURL = parsed
 	return service, nil
 }
 
