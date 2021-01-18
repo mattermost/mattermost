@@ -149,7 +149,7 @@ func (a *App) SyncPluginsActiveState() {
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -795,7 +795,7 @@ func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*plugi
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Error("Unknown signature", mlog.String("path", path))
+				mlog.Warn("Unknown signature", mlog.String("path", path))
 			} else {
 				val.signaturePath = path
 			}
