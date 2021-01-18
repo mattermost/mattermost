@@ -284,7 +284,7 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	}
 }
 
-func (a *App) DoContentExtractionConfigMigration() {
+func (a *App) doContentExtractionConfigMigration() {
 	// If the migration is already marked as completed, don't do it again.
 	if _, err := a.Srv().Store.System().GetByName(ContentExtractionConfigMigrationKey); err == nil {
 		return
@@ -321,5 +321,5 @@ func (a *App) DoAppMigrations() {
 	if err != nil {
 		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
 	}
-	a.DoContentExtractionConfigMigration()
+	a.doContentExtractionConfigMigration()
 }
