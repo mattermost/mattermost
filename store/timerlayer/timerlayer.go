@@ -6238,38 +6238,6 @@ func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime 
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpsertPost(post *model.Post) error {
-	start := timemodule.Now()
-
-	err := s.SharedChannelStore.UpsertPost(post)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertPost", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerSharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-	start := timemodule.Now()
-
-	err := s.SharedChannelStore.UpsertReaction(reaction)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertReaction", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, error) {
 	start := timemodule.Now()
 

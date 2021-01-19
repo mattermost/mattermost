@@ -72,6 +72,11 @@ func (e *ErrConflict) Unwrap() error {
 	return e.err
 }
 
+// IsErrConflict allows easy type assertion without adding store as a dependency.
+func (e *ErrConflict) IsErrConflict() bool {
+	return true
+}
+
 // ErrNotFound indicates that a resource was not found
 type ErrNotFound struct {
 	resource string
@@ -87,6 +92,11 @@ func NewErrNotFound(resource, id string) *ErrNotFound {
 
 func (e *ErrNotFound) Error() string {
 	return "resource: " + e.resource + " id: " + e.Id
+}
+
+// IsErrNotFound allows easy type assertion without adding store as a dependency.
+func (e *ErrNotFound) IsErrNotFound() bool {
+	return true
 }
 
 // ErrOutOfBounds indicates that the requested total numbers of rows

@@ -381,31 +381,3 @@ func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) er
 
 	return r0
 }
-
-// UpsertPost provides a mock function with given fields: post
-func (_m *SharedChannelStore) UpsertPost(post *model.Post) error {
-	ret := _m.Called(post)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Post) error); ok {
-		r0 = rf(post)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpsertReaction provides a mock function with given fields: reaction
-func (_m *SharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-	ret := _m.Called(reaction)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Reaction) error); ok {
-		r0 = rf(reaction)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}

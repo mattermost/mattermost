@@ -5,7 +5,6 @@ package sharedchannel
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -24,7 +23,7 @@ type syncMsg struct {
 
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster
-func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.RemoteClusterMsg, error) {
+func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster) (model.RemoteClusterMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	for _, p := range posts {
@@ -38,7 +37,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 			return model.RemoteClusterMsg{}, err
 		}
 
-		users, err := scs.usersForPost(p)
+		users, err := scs.usersForPost(p, rc)
 		if err != nil {
 			return model.RemoteClusterMsg{}, err
 		}
@@ -61,21 +60,52 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 	return msg, nil
 }
 
-// usersForPost provides a list of Users associated with the post that need to be sync'ed.
-func (scs *Service) usersForPost(post *model.Post) ([]*model.User, error) {
+// usersForPost provides a list of Users associated with the post that need to be synchronized.
+func (scs *Service) usersForPost(post *model.Post, rc *model.RemoteCluster) ([]*model.User, error) {
 	users := make([]*model.User, 0)
 	creator, err := scs.server.GetStore().User().Get(post.UserId)
 	if err == nil {
-		users = append(users, creator)
+		if sync, err := scs.shouldUserSync(creator, rc); err != nil {
+			return nil, err
+		} else if sync {
+			creator = sanitizeUserForSync(creator)
+			users = append(users, creator)
+		}
 	}
 
-	// extract @mentions?
+	// TODO: extract @mentions?
 
 	return users, nil
 }
 
-// usersForPost provides a list of Users associated with the post that need to be sync'ed.
-func (scs *Service) shouldUserSync(user *model.User) (bool, error) {
-	return false, fmt.Errorf("not implemented yet")
+func sanitizeUserForSync(user *model.User) *model.User {
+	user.Password = model.NewId()
+	user.AuthData = nil
+	user.AuthService = ""
+	user.Roles = "system_user"
+	user.AllowMarketing = false
+	user.Props = model.StringMap{}
+	user.NotifyProps = model.StringMap{}
+	user.LastPasswordUpdate = 0
+	user.LastPictureUpdate = 0
+	user.FailedAttempts = 0
+	user.MfaActive = false
+	user.MfaSecret = ""
 
+	return user
+}
+
+// shouldUserSync determines if a user needs to be synchronized.
+// User should be synchronized if it has no entry in the SharedChannelUsers table,
+// or there is an entry but the LastSyncAt is less than user.UpdateAt
+func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (bool, error) {
+	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, rc.RemoteId)
+	if err != nil {
+		if _, ok := err.(errNotFound); !ok {
+			return false, nil
+		}
+	} else if scu.LastSyncAt >= user.UpdateAt {
+		return false, nil
+	}
+	return true, nil
 }

@@ -815,9 +815,6 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
-
-	UpsertPost(post *model.Post) error
-	UpsertReaction(reaction *model.Reaction) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -42,6 +42,16 @@ type AppIface interface {
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+}
+
+type errNotFound interface {
+	IsErrNotFound() bool
+}
+
+type errConflict interface {
+	IsErrConflict() bool
 }
 
 // Service provides shared channel synchronization.

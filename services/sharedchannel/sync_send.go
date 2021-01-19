@@ -177,7 +177,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return nil
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max], cache)
+	msg, err := scs.postsToMsg(pSlice[:max], cache, rc)
 	if err != nil {
 		return err
 	}
@@ -195,21 +195,32 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 			return
 		}
 
-		// TODO:  add updated users to response so SharedChannelUsers table can be upserted.  syncResponse[ResponseUsersSynced]
-
-		// TODO: Any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[ResponsePostErrors].
-		//       Write ephemeral message to post author notifying for each post that failed.
+		//
+		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in syncResponse[ResponsePostErrors].
+		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries.
+		//
 
 		// update SharedChannelRemote's LastSyncAt if send was successful
 		lastSync, err := resp.Int64(ResponseLastUpdateAt)
 		if err != nil || lastSync == 0 {
-			scs.server.GetLogger().Error("invalid last sync response after update shared channel",
+			scs.server.GetLogger().Warn("invalid last sync response after update shared channel",
 				mlog.String("remote", rc.DisplayName), mlog.Err(err), mlog.Any("last_update_at", resp[ResponseLastUpdateAt]))
 			return
 		}
-
 		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); err != nil {
-			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+			scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		}
+
+		// update all the users that were synchronized
+		userIds, err := resp.StringSlice(ResponseUsersSynced)
+		if err != nil {
+			scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
+				mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		} else {
+			if err := scs.updateSyncUsers(userIds, rc, lastSync); err != nil {
+				scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
+					mlog.String("remote", rc.DisplayName), mlog.Err(err))
+			}
 		}
 	})
 
@@ -247,6 +258,16 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 			notified[post.UserId] = true
 		}
 	}
+}
+
+func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, lastSyncAt int64) error {
+	merrs := merror.New()
+	for _, id := range userIds {
+		if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(id, lastSyncAt); err != nil {
+			merrs.Append(err)
+		}
+	}
+	return merrs.ErrorOrNil()
 }
 
 func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
