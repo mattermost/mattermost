@@ -19,6 +19,7 @@ type SearchStore struct {
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
+	fileInfo     *SearchFileInfoStore
 	configValue  atomic.Value
 }
 
@@ -32,6 +33,7 @@ func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cf
 	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: searchStore}
 	searchStore.team = &SearchTeamStore{TeamStore: baseStore.Team(), rootStore: searchStore}
 	searchStore.user = &SearchUserStore{UserStore: baseStore.User(), rootStore: searchStore}
+	searchStore.fileInfo = &SearchFileInfoStore{FileInfoStore: baseStore.FileInfo(), rootStore: searchStore}
 
 	return searchStore
 }
@@ -50,6 +52,10 @@ func (s *SearchStore) Channel() store.ChannelStore {
 
 func (s *SearchStore) Post() store.PostStore {
 	return s.post
+}
+
+func (s *SearchStore) FileInfo() store.FileInfoStore {
+	return s.fileInfo
 }
 
 func (s *SearchStore) Team() store.TeamStore {

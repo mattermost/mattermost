@@ -138,7 +138,7 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = s.Store.System().Save(system); err != nil {
-			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(err))
+			mlog.Warn("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
 		}
@@ -201,7 +201,7 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
 		if err = s.Store.System().Save(system); err != nil {
-			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(err))
+			mlog.Warn("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
 		}
