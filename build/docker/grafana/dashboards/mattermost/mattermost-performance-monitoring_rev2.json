@@ -20,7 +20,7 @@
         "name": "Server Start",
         "showIn": 0,
         "step": "5s",
-        "tagKeys": "",
+        "tagKeys": "instance",
         "tags": [],
         "titleFormat": "Server Started",
         "type": "tags",
