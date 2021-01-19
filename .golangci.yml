@@ -39,7 +39,7 @@ issues:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
-      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+      text: "SetupEnterprise"
 
     - linters:
       - scopelint
