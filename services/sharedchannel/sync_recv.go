@@ -56,7 +56,7 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 		// add/update users first
 		for _, user := range sm.Users {
 			if userSaved, err := scs.upsertSyncUser(user, rc); err != nil {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Creating sync user",
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 					mlog.String("post_id", sm.Post.Id),
 					mlog.String("channel_id", sm.Post.ChannelId),
 					mlog.String("user_id", user.Id))
@@ -79,7 +79,7 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 		rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
 		if err != nil {
 			postErrors = append(postErrors, sm.Post.Id)
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error creating/updating sync post",
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
 				mlog.String("post_id", sm.Post.Id),
 				mlog.String("channel_id", sm.Post.ChannelId),
 				mlog.Err(err))
@@ -88,7 +88,7 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 
 		for _, reaction := range sm.Reactions {
 			if _, err := scs.upsertSyncReaction(reaction, rc); err != nil {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error saving sync Reaction",
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error creating/deleting sync reaction",
 					mlog.String("remote", rc.DisplayName),
 					mlog.String("ChannelId", sm.Post.ChannelId),
 					mlog.String("PostId", sm.Post.Id),
