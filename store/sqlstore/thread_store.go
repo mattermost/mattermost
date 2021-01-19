@@ -300,6 +300,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string) (*mod
 		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
+		sq.Eq{"Threads.PostId": threadId},
 	}
 
 	var thread JoinedThread

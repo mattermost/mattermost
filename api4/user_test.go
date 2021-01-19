@@ -5688,12 +5688,18 @@ func TestSingleThreadGet(t *testing.T) {
 	time.Sleep(1)
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
+	// create another thread to check that we are not returning it by mistake
+	rpost2, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testMsg2"})
+	time.Sleep(1)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply", RootId: rpost2.Id})
+
 	// regular user should have two threads with 3 replies total
-	threads, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 1, nil)
+	threads, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
 
 	tr, resp := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId)
 	CheckNoError(t, resp)
 	require.NotNil(t, tr)
+	require.Equal(t, threads.Threads[0].PostId, tr.PostId)
 }
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
