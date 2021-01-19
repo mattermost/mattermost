@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type ShareProvider struct {
@@ -238,6 +239,15 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 	remoteId, ok := margs["remoteId"]
 	if !ok || remoteId == "" {
 		return responsef("Must specify a valid remote cluster id to invite.")
+	}
+
+	// Check if channel is shared or not.
+	if _, err := a.GetSharedChannel(args.ChannelId); err != nil {
+		var nfErr *store.ErrNotFound
+		// If it doesn't exist, then create it.
+		if errors.As(err, &nfErr) {
+			sp.doShareChannel(a, args, margs)
+		}
 	}
 
 	rc, err := a.GetRemoteCluster(remoteId)
