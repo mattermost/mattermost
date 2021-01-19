@@ -5101,7 +5101,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Misslyckades med autorisationskoden."
+    "translation": "Fel när endpoint hämtades från Discovery Document."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
@@ -8465,5 +8465,9 @@
   {
     "id": "bleveengine.create_file_index.error",
     "translation": "Fel då Bleve-index skulle skapas."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Jobbet du försöker ladda ner stöds inte för tillfället"
   }
 ]
