@@ -70,10 +70,11 @@ test-schema-postgres:
  tags:
    - docker
  script:
-   - echo "Creating databases"
-   - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
-   - echo "Importing postgres dump from version 5.0"
-   - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
+    - kubectl get pod
+    - echo "Creating databases"
+    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+    - echo "Importing postgres dump from version 5.0"
+    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
   #  - >
   #    docker run -d -it --name server-postgres --net build_mm-test \
   #      --env-file="dotenv/test-schema-validation.env" \
