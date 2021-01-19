@@ -2,9 +2,9 @@
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
   # image: $CI_REGISTRY/images/kube-ci:1.18.6-1
-  # services:
-  #   - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
-  #     alias: docker
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+      alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
