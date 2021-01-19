@@ -228,7 +228,7 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renewalLink, err := c.App.Srv().GenerateLicenseRenewalEmail()
+	renewalLink, err := c.App.Srv().GenerateLicenseRenewalLink()
 	if err != nil {
 		c.Err = err
 		return

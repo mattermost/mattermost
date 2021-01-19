@@ -523,7 +523,7 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
-	renewalLink, err := es.srv.GenerateLicenseRenewalEmail()
+	renewalLink, err := es.srv.GenerateLicenseRenewalLink()
 	if err != nil {
 		return err
 	}
