@@ -17,13 +17,13 @@
       mv kind /usr/local/bin/
 
     - |
-      curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl ; \
-      chmod +x ./kubectl ; \
+      curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl
+      chmod +x ./kubectl
       mv ./kubectl /usr/local/bin/kubectl
 
     - |
-      curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz ; \
-      tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz ; \
+      curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz
+      tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz
       mv ./kustomize /usr/local/bin/kustomize
 
     - |
@@ -32,15 +32,17 @@
 
     - kustomize build build | kubectl apply -f -
 
-    - |
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=elasticsearch
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=inbucket
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=keycloack
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=minio
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=mysql
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=openldap
-      kubectl wait --for=condition=ready pod -l com.mattermost/component=postgres
+    - kubectl wait --for=condition=ready pod --all=true --timeout=5m
+    # - |
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=elasticsearch
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=inbucket
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=keycloack
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=minio
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=mysql
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=openldap
+    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=postgres
 
     # - |
     #   cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
