@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -2448,7 +2449,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	for _, u := range rusers {
 		CheckUserSanitization(t, u)
 	}
-	require.Len(t, rusers, 1, "should be 1 user in total")
+	require.Len(t, rusers, 2, "should be 2 users in total")
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 0, 60, resp.Etag)
 	CheckEtag(t, rusers, resp)
@@ -2457,7 +2458,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Len(t, rusers, 1, "should be 1 per page")
 
-	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 1, 1, "")
+	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 2, 1, "")
 	CheckNoError(t, resp)
 	require.Empty(t, rusers, "should be no users")
 
@@ -5405,6 +5406,9 @@ func TestGetThreadsForUser(t *testing.T) {
 func TestThreadSocketEvents(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -5545,9 +5549,41 @@ func TestFollowThreads(t *testing.T) {
 	})
 }
 
+func checkThreadListReplies(t *testing.T, th *TestHelper, client *model.Client4, userId string, expectedReplies, expectedThreads int, options *model.GetUserThreadsOpts) (*model.Threads, *model.Response) {
+	opts := model.GetUserThreadsOpts{}
+	if options != nil {
+		opts = *options
+	}
+	u, r := client.GetUserThreads(userId, th.BasicTeam.Id, opts)
+	CheckNoError(t, r)
+	require.Len(t, u.Threads, expectedThreads)
+
+	count := int64(0)
+	sum := int64(0)
+	for _, thr := range u.Threads {
+		if thr.UnreadReplies > 0 {
+			count += 1
+		}
+		sum += thr.UnreadReplies
+	}
+	require.EqualValues(t, expectedReplies, sum)
+	require.Equal(t, count, u.TotalUnreadThreads)
+
+	return u, r
+}
+
+func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model.Post, *model.Response) {
+	p, resp := client.CreatePost(post)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	return p, resp
+}
+
 func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
@@ -5558,67 +5594,86 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create a post by regular user
-	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
+	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// reply with another
-	_, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	CheckNoError(t, resp2)
-	CheckCreatedStatus(t, resp2)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
-	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int) (*model.Threads, *model.Response) {
-		u, r := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
-			Page:     0,
-			PageSize: 30,
-			Deleted:  false,
-		})
-		CheckNoError(t, r)
-		require.Len(t, u.Threads, expectedThreads)
-		require.EqualValues(t, expectedReplies, u.Threads[0].UnreadReplies)
-
-		sum := int64(0)
-		for _, thr := range u.Threads {
-			sum += thr.UnreadReplies
-		}
-		require.Equal(t, sum, u.TotalUnreadReplies)
-
-		return u, r
-	}
 	// regular user should have one thread with one reply
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 1, nil)
 
 	// add another reply by regular user
-	_, resp3 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
-	CheckNoError(t, resp3)
-	CheckCreatedStatus(t, resp3)
+	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
 
 	// replying to the thread clears reply count, so it should be 0
-	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
 	// the other user should have 2 replies
-	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
 
 	// mark all as read for user
-	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
+	resp := th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
 	// reply count should be 0
-	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
 	// the other user should also have 2
-	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
 }
-func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model.Post, *model.Response) {
-	p, resp := client.CreatePost(post)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-	return p, resp
+
+func TestThreadCounts(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+
+	Client := th.Client
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
+
+	// create a post by regular user
+	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
+	// reply with another
+	time.Sleep(1)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
+
+	// create another post by regular user
+	time.Sleep(1)
+	rpost2, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testMsg1"})
+	// reply with another 2 times
+	time.Sleep(1)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply2", RootId: rpost2.Id})
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel2.Id, Message: "testReply22", RootId: rpost2.Id})
+
+	// regular user should have two threads with 3 replies total
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 2, &model.GetUserThreadsOpts{
+		Deleted: false,
+	})
+
+	// delete first thread
+	th.App.Srv().Store.Post().Delete(rpost.Id, model.GetMillis(), th.BasicUser.Id)
+
+	// we should now have 1 thread with 2 replies
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 1, &model.GetUserThreadsOpts{
+		Deleted: false,
+	})
+	// with Deleted we should get the same as before deleting, minus the reply in the deleted thread
+	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 3, 2, &model.GetUserThreadsOpts{
+		Deleted: true,
+	})
 }
+
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+	os.Setenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_COLLAPSEDTHREADS")
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON

@@ -28,7 +28,7 @@ type ThreadResponse struct {
 
 type Threads struct {
 	Total               int64             `json:"total"`
-	TotalUnreadReplies  int64             `json:"total_unread_replies"`
+	TotalUnreadThreads  int64             `json:"total_unread_threads"`
 	TotalUnreadMentions int64             `json:"total_unread_mentions"`
 	Threads             []*ThreadResponse `json:"threads"`
 }

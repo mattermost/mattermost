@@ -16,6 +16,8 @@ type FeatureFlags struct {
 	// Toggle on and off scheduled jobs for cloud user limit emails see MM-29999
 	CloudDelinquentEmailJobsEnabled bool
 
+	// Toggle on and off support for Collapsed Threads
+	CollapsedThreads bool
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
 }
@@ -24,7 +26,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestFeature = "off"
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
-
+	f.CollapsedThreads = false
 	f.PluginIncidentManagement = "1.1.1"
 }
 
