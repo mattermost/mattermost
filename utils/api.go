@@ -74,3 +74,68 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
 	fmt.Fprintln(w, `</body></html>`)
 }
+
+func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
+	RenderMobileMessage(w, `
+		<div class="icon text-success" style="font-size: 4em">
+			<i class="fa fa-check-circle" title="Success Icon"></i>
+		</div>
+		<h2> `+T("api.oauth.auth_complete")+` </h2>
+		<p id="redirecting-message"> `+T("api.oauth.redirecting_back")+` </p>
+		<p id="close-tab-message" style="display: none"> `+T("api.oauth.close_browser")+` </p>
+		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectUrl)+`"></noscript>
+		<script>
+			window.onload = function() {
+				setTimeout(function() {
+					document.getElementById('redirecting-message').style.display = 'none';
+					document.getElementById('close-tab-message').style.display = 'block';
+					window.location='`+template.HTMLEscapeString(template.JSEscapeString(redirectUrl))+`';
+				}, 2000);
+			}
+		</script>
+	`)
+}
+
+func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.AppError, redirectURL string) {
+	RenderMobileMessage(w, `
+		<div class="icon" style="color: #ccc; font-size: 4em">
+			<span class="fa fa-warning"></span>
+		</div>
+		<h2> `+T("error")+` </h2>
+		<p> `+err.Message+` </p>
+		<a href="`+redirectURL+`">
+			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+		</a>
+	`)
+}
+
+func RenderMobileMessage(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintln(w, `
+		<!DOCTYPE html>
+		<html>
+			<head>
+				<meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" />
+				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+				<style>
+					.message-container {
+						color: #555;
+						display: table-cell;
+						padding: 5em 0;
+						text-align: left;
+						vertical-align: top;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container-fluid">
+					<div class="message-container">
+						`+message+`
+					</div>
+				</div>
+			</body>
+		</html>
+	`)
+}
