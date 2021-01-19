@@ -1,7 +1,7 @@
 .test-schema:
   stage: test
-  # image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
-  image: $CI_REGISTRY/images/kube-ci:1.18.6-1
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  # image: $CI_REGISTRY/images/kube-ci:1.18.6-1
   # services:
   #   - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
   #     alias: docker
@@ -14,9 +14,14 @@
   before_script:
     # - docker ps
     # - ulimit -n 8096
-    - curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
-    - chmod +x kind
-    - sudo mv kind /usr/local/bin/
+    - |
+      curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
+      chmod +x kind
+      mv kind /usr/local/bin/
+    - |
+      curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl ; \
+      chmod +x ./kubectl ; \
+      mv ./kubectl /usr/local/bin/kubectl
     - kind create cluster --name ci-mm-${CI_PIPELINE_ID} --wait 180s
     - export KUBECONFIG="$(kind get kubeconfig-path --name $CI_PIPELINE_ID)"
     - kubectl cluster-info
