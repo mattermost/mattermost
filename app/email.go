@@ -520,10 +520,12 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
-	renewalToken, e := es.srv.GenerateRenewalToken(JWTDefaultTokenExpiration)
-	if e != nil {
-		return e
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := es.srv.GenerateLicenseRenewalEmail()
+	if err != nil {
+		return err
 	}
 
 	T := utils.GetUserTranslations(locale)
@@ -533,7 +535,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	bodyPage := es.newEmailTemplate("remove_expired_license", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	bodyPage.Props["Link"] = fmt.Sprintf("%s?token=%s&id=%s", LicenseRenewalURL, renewalToken, licenseId)
+	bodyPage.Props["Link"] = renewalLink
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
