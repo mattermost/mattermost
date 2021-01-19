@@ -44,6 +44,8 @@
     #   kubectl wait --for=condition=ready pod -l com.mattermost/component=openldap
     #   kubectl wait --for=condition=ready pod -l com.mattermost/component=postgres
 
+    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=minio -o jsonpath='{.items[0].metadata.name}') -- sh -c 'mkdir -p /data/mattermost-test'
+
     # - |
     #   cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
   after_script:

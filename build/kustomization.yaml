@@ -23,7 +23,6 @@ resources:
 
    # minio
    - manifests/minio/deployment.yaml
-   - manifests/minio/pvc.yaml
    - manifests/minio/service.yaml
 
    # mysql

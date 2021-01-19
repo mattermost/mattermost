@@ -36,10 +36,3 @@ spec:
             requests:
               cpu: 200m
               memory: 100Mi
-          volumeMounts:
-            - name: data
-              mountPath: /data/mattermost-test
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: minio
