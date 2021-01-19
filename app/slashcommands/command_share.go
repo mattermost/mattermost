@@ -52,11 +52,14 @@ func (sp *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 
 	status := model.NewAutocompleteData("status", "", "Displays status for this shared channel")
 
+	sync := model.NewAutocompleteData("sync", "", "Forces a sync with remote instances this shared channel")
+
 	share.AddCommand(shareChannel)
 	share.AddCommand(unshareChannel)
 	share.AddCommand(inviteRemote)
 	share.AddCommand(unInviteRemote)
 	share.AddCommand(status)
+	share.AddCommand(sync)
 
 	return &model.Command{
 		Trigger:          CommandTriggerShare,
@@ -159,6 +162,8 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		return sp.doUninviteRemote(a, args, margs)
 	case "status":
 		return sp.doStatus(a, args, margs)
+	case "sync":
+		return sp.doSync(a, args, margs)
 	}
 	return responsef("Unknown action `%s`. %s", action, AvailableRemoteActions)
 }
@@ -295,4 +300,13 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map
 			status.ReadOnly, status.IsInviteAccepted, online, lastSync)
 	}
 	return responsef(sb.String())
+}
+
+func (sp *ShareProvider) doSync(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+	// start sending updates to remote clusters.
+	a.Srv().GetSharedChannelSyncService().NotifyChannelChanged(args.ChannelId)
+
+	// TODO: send cluster message to each remote requesting a sync for this channel.
+
+	return responsef("##### Sync initiated.")
 }
