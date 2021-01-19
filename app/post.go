@@ -359,9 +359,6 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
-	// Notify shared channel sync service for the new change.
-	a.NotifySharedChannelSync(channel, model.WEBSOCKET_EVENT_POSTED)
-
 	return rpost, nil
 }
 
@@ -655,9 +652,6 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
-
-	// Notify shared channel sync service for post edited update
-	a.NotifySharedChannelSync(channel, message.EventType())
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -1053,7 +1047,6 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	userMessage.Add("post", postData)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
-	a.NotifySharedChannelSync(channel, userMessage.EventType())
 
 	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
 	adminMessage.Add("post", postData)

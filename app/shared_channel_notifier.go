@@ -16,51 +16,16 @@ var SharedChannelEventsForSync model.StringArray = []string{
 	model.WEBSOCKET_EVENT_REACTION_REMOVED,
 }
 
-// NotifySharedChannelSync signals the syncService to start syncing shared channel updates
-func (a *App) NotifySharedChannelSync(channel *model.Channel, event string) {
-	if !SharedChannelEventsForSync.Contains(event) || !channel.IsShared() {
-		return
-	}
-
-	syncService := a.srv.GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
-		return
-	}
-
-	// When the sync service is running on the node, trigger syncing without broadcasting
-	mlog.Debug(
-		"Notifying shared channel sync service",
-		mlog.String("channel_id", channel.Id),
-		mlog.String("event", event),
-	)
-	syncService.NotifyChannelChanged(channel.Id)
-}
-
 // ServerSyncSharedChannelHandler is called when a websocket event is received by a cluster node.
 // Only on the leader node it will notify the sync service to start syncing content for the given
 // shared channel.
-func (a *App) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
-	syncService := a.srv.GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
-		mlog.Debug(
-			"Received eligible shared channel sync event but sync service is not running on this node, skipping...",
-			mlog.String("event", event.EventType()),
-		)
+func (s *Server) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
+	syncService := s.GetSharedChannelSyncService()
+	if !isEligibleForContentSync(syncService, event) {
 		return
 	}
 
-	if !SharedChannelEventsForSync.Contains(event.EventType()) {
-		mlog.Debug(
-			"Received websocket message that is not eligible to trigger shared channel sync, skipping...",
-			mlog.String("event", event.EventType()),
-		)
-	}
-
-	if event.GetBroadcast() == nil || event.GetBroadcast().ChannelId == "" {
-		return
-	}
-
-	channel, err := a.GetChannel(event.GetBroadcast().ChannelId)
+	channel, err := s.Store.Channel().Get(event.GetBroadcast().ChannelId, true)
 	if err != nil {
 		mlog.Warn(
 			"Received websocket message that is eligible for shared channel sync but channel does not exist",
@@ -69,5 +34,17 @@ func (a *App) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
 		return
 	}
 
-	a.NotifySharedChannelSync(channel, event.EventType())
+	if !channel.IsShared() {
+		return
+	}
+
+	syncService.NotifyChannelChanged(channel.Id)
+}
+
+func isEligibleForContentSync(syncService SharedChannelServiceIFace, event *model.WebSocketEvent) bool {
+	return syncService != nil &&
+		syncService.Active() &&
+		event.GetBroadcast() != nil &&
+		event.GetBroadcast().ChannelId != "" &&
+		SharedChannelEventsForSync.Contains(event.EventType())
 }

@@ -79,18 +79,3 @@ func (c *FakeClusterInterface) ClearMessages() {
 	defer c.mut.Unlock()
 	c.messages = nil
 }
-
-func (c *FakeClusterInterface) SelectMessages(event string) []*model.ClusterMessage {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	res := []*model.ClusterMessage{}
-
-	for _, msg := range c.messages {
-		if msg.Event == event {
-			res = append(res, msg)
-		}
-	}
-
-	return res
-}

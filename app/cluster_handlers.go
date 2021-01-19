@@ -35,7 +35,6 @@ func (a *App) clusterPublishHandler(msg *model.ClusterMessage) {
 		return
 	}
 	a.PublishSkipClusterSend(event)
-	a.ServerSyncSharedChannelHandler(event)
 }
 
 func (a *App) clusterUpdateStatusHandler(msg *model.ClusterMessage) {
