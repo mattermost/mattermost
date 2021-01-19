@@ -97,7 +97,7 @@ type Post struct {
 	FileIds       StringArray     `json:"file_ids,omitempty"`
 	PendingPostId string          `json:"pending_post_id" db:"-"`
 	HasReactions  bool            `json:"has_reactions,omitempty"`
-	RemoteId      string          `json:"remote_id,omitempty"`
+	RemoteId      *string         `json:"remote_id,omitempty"`
 
 	// Transient data populated before sending a post to the client
 	ReplyCount   int64         `json:"reply_count" db:"-"`

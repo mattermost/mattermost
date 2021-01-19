@@ -92,7 +92,7 @@ type User struct {
 	Timezone               StringMap `json:"timezone"`
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
-	RemoteId               string    `json:"remote_id,omitempty"`
+	RemoteId               *string   `json:"remote_id,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`

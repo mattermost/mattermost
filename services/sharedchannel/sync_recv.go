@@ -115,7 +115,7 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 	var err error
 	var userSaved *model.User
 
-	user.RemoteId = rc.RemoteId
+	*user.RemoteId = rc.RemoteId
 
 	// does the user already exist?
 	euser, err := scs.server.GetStore().User().Get(user.Id)
@@ -156,7 +156,7 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	var appErr *model.AppError
 
-	post.RemoteId = rc.RemoteId
+	*post.RemoteId = rc.RemoteId
 
 	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id)
 	if err != nil {
