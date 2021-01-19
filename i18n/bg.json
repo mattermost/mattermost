@@ -8396,6 +8396,78 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Неуспешно получаване на код за удостоверяване."
+    "translation": "Грешка при получаването на крайна точка от Discovery Document."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Неуспешно декодиране на резултатите от търсенето"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Търсенето не успя да завърши"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Търсенето на файлове с elasticsearch е забранено на този сървър"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Неуспешно индексиране на файл"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Неуспешно изтриване файлове на потребители"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Неуспешно изтриване файлове на публикации"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Неуспешно изтриване на файл"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Неуспешно създаване на Elasticsearch шаблон за файлове"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Неуспешно затваряне на файловия индекс."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Търсенето на файлове не успя да приключи."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Неуспешно пакетно индексиране на файлове."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Неуспешно индексиране на файл."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Неуспешно изтриване файлове на потребители."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Неуспешно изтриване файлове на публикации."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Неуспешно изтриване на файлове."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Неуспешно изтриване на файла."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Грешка при създаването на файла с bleve индекса."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Заданието, което се опитвате да изтеглите, в момента не се поддържа"
   }
 ]
