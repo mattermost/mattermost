@@ -1,0 +1,17 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+networking:
+  apiServerAddress: "0.0.0.0"
+
+# add to the apiServer certSANs the name of the docker (dind) service in order to be able to reach the cluster through it
+kubeadmConfigPatchesJSON6902:
+  - group: kubeadm.k8s.io
+    version: v1beta2
+    kind: ClusterConfiguration
+    patch: |
+      - op: add
+        path: /apiServer/certSANs/-
+        value: docker
+nodes:
+  - role: control-plane
+  - role: worker

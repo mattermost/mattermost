@@ -1,6 +1,7 @@
 .test-schema:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  # image: registry.internal.mattermost.com/mattermost/ci/images/mattermost-build-docker:19.03.12-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
       alias: docker
@@ -11,8 +12,8 @@
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    - docker ps
-    - ulimit -n 8096
+    # - docker ps
+    # - ulimit -n 8096
     - |
       curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
       chmod +x kind
@@ -21,8 +22,9 @@
       curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl ; \
       chmod +x ./kubectl ; \
       mv ./kubectl /usr/local/bin/kubectl
-    - kind create cluster --name ci-mm-${CI_PIPELINE_ID} --wait 180s
-    - export KUBECONFIG="$(kind get kubeconfig-path --name $CI_PIPELINE_ID)"
+    - kind create cluster --config=./.gitlab-ci/kind-config.yaml --name ci-mm-${CI_PIPELINE_ID} --wait 3m
+    # - export KUBECONFIG="$(kind get kubeconfig --name $CI_PIPELINE_ID)"
+    - sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
     - kubectl cluster-info
     - kubectl get ns
     - kubectl create ns ci-mm-${CI_PIPELINE_ID}
