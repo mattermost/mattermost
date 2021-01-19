@@ -237,8 +237,6 @@ type AppIface interface {
 	NewWebHub() *Hub
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() *model.AppError
-	// NotifySharedChannelSync signals the syncService to start syncing shared channel updates
-	NotifySharedChannelSync(channel *model.Channel, event string)
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -275,10 +273,6 @@ type AppIface interface {
 	ServePluginPublicRequest(w http.ResponseWriter, r *http.Request)
 	// ServerBusyStateChanged is called when a CLUSTER_EVENT_BUSY_STATE_CHANGED is received.
 	ServerBusyStateChanged(sbs *model.ServerBusyState)
-	// ServerSyncSharedChannelHandler is called when a websocket event is received by a cluster node.
-	// Only on the leader node it will notify the sync service to start syncing content for the given
-	// shared channel.
-	ServerSyncSharedChannelHandler(event *model.WebSocketEvent)
 	// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.

@@ -11096,21 +11096,6 @@ func (a *OpenTracingAppLayer) NotifySessionsExpired() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifySharedChannelSync(channel *model.Channel, event string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifySharedChannelSync")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.NotifySharedChannelSync(channel, event)
-}
-
 func (a *OpenTracingAppLayer) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OpenInteractiveDialog")
@@ -13668,21 +13653,6 @@ func (a *OpenTracingAppLayer) ServerBusyStateChanged(sbs *model.ServerBusyState)
 
 	defer span.Finish()
 	a.app.ServerBusyStateChanged(sbs)
-}
-
-func (a *OpenTracingAppLayer) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ServerSyncSharedChannelHandler")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.ServerSyncSharedChannelHandler(event)
 }
 
 func (a *OpenTracingAppLayer) SessionCacheLength() int {
