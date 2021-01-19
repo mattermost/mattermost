@@ -1632,40 +1632,40 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 
 	fileData, warning := a.generateSupportPacketYaml()
 
-	if warning == "" {
-		fileDatas = append(fileDatas, fileData)
+	if fileData != nil {
+		fileDatas = append(fileDatas, *fileData)
 	} else {
 		warnings = append(warnings, warning)
 	}
 
 	fileData, warning = a.createPluginsFile()
 
-	if warning == "" {
-		fileDatas = append(fileDatas, fileData)
+	if fileData != nil {
+		fileDatas = append(fileDatas, *fileData)
 	} else {
 		warnings = append(warnings, warning)
 	}
 
 	fileData, warning = a.createSanitizedConfigFile()
 
-	if warning == "" {
-		fileDatas = append(fileDatas, fileData)
+	if fileData != nil {
+		fileDatas = append(fileDatas, *fileData)
 	} else {
 		warnings = append(warnings, warning)
 	}
 
 	fileData, warning = a.getMattermostLog()
 
-	if warning == "" {
-		fileDatas = append(fileDatas, fileData)
+	if fileData != nil {
+		fileDatas = append(fileDatas, *fileData)
 	} else {
 		warnings = append(warnings, warning)
 	}
 
 	fileData, warning = a.getNotificationsLog()
 
-	if warning == "" {
-		fileDatas = append(fileDatas, fileData)
+	if fileData != nil {
+		fileDatas = append(fileDatas, *fileData)
 	} else {
 		warnings = append(warnings, warning)
 	}
@@ -1682,9 +1682,8 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	return fileDatas
 }
 
-func (a *App) getNotificationsLog() (model.FileData, string) {
+func (a *App) getNotificationsLog() (*model.FileData, string) {
 	var warning string
-	var fileData model.FileData
 
 	// Getting notifications.log
 	if *a.Srv().Config().NotificationLogSettings.EnableFile {
@@ -1693,24 +1692,25 @@ func (a *App) getNotificationsLog() (model.FileData, string) {
 
 		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
 
-		if notificationsLogFileDataErr != nil {
-			warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
+		if notificationsLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "notifications.log",
+				Body:     notificationsLogFileData,
+			}
+			return &fileData, ""
 		}
 
-		fileData = model.FileData{
-			Filename: "notifications.log",
-			Body:     notificationsLogFileData,
-		}
+		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
+
 	} else {
 		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
 	}
 
-	return fileData, warning
+	return nil, warning
 }
 
-func (a *App) getMattermostLog() (model.FileData, string) {
+func (a *App) getMattermostLog() (*model.FileData, string) {
 	var warning string
-	var fileData model.FileData
 
 	// Getting mattermost.log
 	if *a.Srv().Config().LogSettings.EnableFile {
@@ -1719,63 +1719,65 @@ func (a *App) getMattermostLog() (model.FileData, string) {
 
 		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
 
-		if mattermostLogFileDataErr != nil {
-			warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
+		if mattermostLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "mattermost.log",
+				Body:     mattermostLogFileData,
+			}
+			return &fileData, ""
 		}
+		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
 
-		fileData = model.FileData{
-			Filename: "mattermost.log",
-			Body:     mattermostLogFileData,
-		}
 	} else {
 		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
 	}
 
-	return fileData, warning
+	return nil, warning
 }
 
-func (a *App) createSanitizedConfigFile() (model.FileData, string) {
+func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
 	var warning string
-	var fileData model.FileData
 
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
-	if err != nil {
-		warning = fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "sanitized_config.json",
+			Body:     sanitizedConfigPrettyJSON,
+		}
+		return &fileData, ""
 	}
 
-	fileData = model.FileData{
-		Filename: "sanitized_config.json",
-		Body:     sanitizedConfigPrettyJSON,
-	}
+	warning = fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
 
-	return fileData, warning
+	return nil, warning
 }
 
-func (a *App) createPluginsFile() (model.FileData, string) {
+func (a *App) createPluginsFile() (*model.FileData, string) {
 	var warning string
-	var fileData model.FileData
 
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	pluginsResponse, appErr := a.GetPlugins()
 	if appErr == nil {
 		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
-		if err != nil {
-			warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
+		if err == nil {
+			fileData := model.FileData{
+				Filename: "plugins.json",
+				Body:     pluginsPrettyJSON,
+			}
+
+			return &fileData, ""
 		}
 
-		fileData = model.FileData{
-			Filename: "plugins.json",
-			Body:     pluginsPrettyJSON,
-		}
+		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
 	} else {
 		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
 	}
 
-	return fileData, warning
+	return nil, warning
 }
 
-func (a *App) generateSupportPacketYaml() (model.FileData, string) {
+func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 	// Here we are getting information regarding Elastic Search
 	var elasticServerVersion string
 	var elasticServerPlugins []string
@@ -1807,18 +1809,17 @@ func (a *App) generateSupportPacketYaml() (model.FileData, string) {
 	}
 
 	var warning string
-	var fileData model.FileData
 
 	// Marshal to a Yaml File
 	supportPacketYaml, err := yaml.Marshal(&supportPacket)
-	if err != nil {
-		warning = fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "support_packet.yaml",
+			Body:     supportPacketYaml,
+		}
+		return &fileData, ""
 	}
 
-	fileData = model.FileData{
-		Filename: "support_packet.yaml",
-		Body:     supportPacketYaml,
-	}
-
-	return fileData, warning
+	warning = fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
+	return nil, warning
 }
