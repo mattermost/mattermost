@@ -2968,7 +2968,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "U heeft een nieuw bericht."
+    "translation": "Je hebt een nieuw direct bericht."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
@@ -2976,7 +2976,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "U heeft een nieuw bericht."
+    "translation": "Je heeft een nieuw groepsbericht."
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
@@ -3024,11 +3024,11 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -3036,7 +3036,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw vermelding in  {{ .TeamName}} op {{.Day}} {{Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3272,11 +3272,11 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Fout bij het verwijderen van de Elastisearch index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -5348,11 +5348,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor gebruikers aanmaken is mislukt"
+    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -8396,7 +8396,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Fout bij het ophalen van de autorisatiecode."
+    "translation": "Fout bij het ophalen van het endpoint van het Discovery Document."
   },
   {
     "id": "bleveengine.delete_files_batch.error",
@@ -8409,5 +8409,53 @@
   {
     "id": "bleveengine.create_file_index.error",
     "translation": "Fout bij het maken van de bleve-bestandenindex."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Fout bij het indexeren van de batch met bestanden."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Het bestand kon niet worden geïndexeerd."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Verwijderen van de bestanden van de gebruiker is mislukt."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Verwijderen van het bestand is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Fout bij het sluiten van bestanden index."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Het zoeken naar bestanden is niet voltooid."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Het type opdracht dat je probeert te downloaden wordt op dit moment niet ondersteund"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Fout bij indexeren van het bestand"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van de gebruiker"
   }
 ]
