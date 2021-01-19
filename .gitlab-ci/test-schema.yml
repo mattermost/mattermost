@@ -14,6 +14,11 @@
   before_script:
     # - docker ps
     # - ulimit -n 8096
+    - curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
+    - chmod +x kind
+    - sudo mv kind /usr/local/bin/
+    - kind create cluster --name ci-mm-${CI_PIPELINE_ID} --wait 180s
+    - export KUBECONFIG="$(kind get kubeconfig-path --name $CI_PIPELINE_ID)"
     - kubectl cluster-info
     - kubectl get ns
     - kubectl create ns ci-mm-${CI_PIPELINE_ID}
