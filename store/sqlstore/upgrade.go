@@ -1044,5 +1044,9 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 		return true
 	}
 
+	if !sqlStore.DoesColumnExist("ThreadMemberships", "UnreadMentions") {
+		return true
+	}
+
 	return false
 }
