@@ -3036,7 +3036,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in  {{ .TeamName}} op {{.Day}} {{Month}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw vermelding in  {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
