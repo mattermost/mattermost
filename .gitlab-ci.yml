@@ -10,7 +10,7 @@ include:
     ref: master
     file: private.yml
 #  - local: .gitlab-ci/test.yml
-#  - local: .gitlab-ci/test-schema.yml
+  - local: .gitlab-ci/test-schema.yml
 
 variables:
   BUILD: "yes"
