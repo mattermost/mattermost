@@ -38,6 +38,10 @@ func (s *Server) ServerSyncSharedChannelHandler(event *model.WebSocketEvent) {
 		return
 	}
 
+	mlog.Debug(
+		"Notifying shared channel sync service",
+		mlog.String("channel_id", channel.Id),
+	)
 	syncService.NotifyChannelChanged(channel.Id)
 }
 
