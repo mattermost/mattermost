@@ -90,6 +90,73 @@ services:
       - grafana
     command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
 
+  leader:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+    networks:
+      - mm-test
+    depends_on:
+      - start_dependencies
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    command: ['make', 'run-server']
+    expose:
+      - "8065"
+
+  follower:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+    networks:
+      - mm-test
+    depends_on:
+      - leader
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://follower:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    command: ['make', 'run-server']
+    restart: on-failure
+    expose:
+      - "8065"
+
+  haproxy:
+    image: nginx
+    networks:
+      - mm-test
+    volumes:
+      - ./build/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    restart: on-failure
+    depends_on:
+      - leader
+      - follower
+    ports:
+      - "8065:8065"
+
 networks:
   mm-test:
     driver: bridge
