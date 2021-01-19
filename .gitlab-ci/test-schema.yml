@@ -1,9 +1,10 @@
 .test-schema:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
-  services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
-      alias: docker
+  # image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  image: $CI_REGISTRY/images/kube-ci:1.18.6-1
+  # services:
+  #   - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+  #     alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
@@ -11,13 +12,16 @@
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    - docker ps
-
-    - ulimit -n 8096
-    - cd build
-    - docker-compose --no-ansi run --rm start_dependencies
-    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
-    - sleep 5
-    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+    # - docker ps
+    # - ulimit -n 8096
+    - kubectl create ns ci-mm-${CI_PIPELINE_ID}
+    # - cd build
+    - kustomize build build | kubectl -n ci-mm-${CI_PIPELINE_ID} apply -f -
+    # - docker-compose --no-ansi run --rm start_dependencies
+    # - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+    # - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
+    # - sleep 5
+    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+  after_script:
+    - kubectl delete ns ci-mm-${CI_PIPELINE_ID}
