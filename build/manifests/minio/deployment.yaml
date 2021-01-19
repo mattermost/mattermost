@@ -42,4 +42,4 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: postgres
+            claimName: minio
