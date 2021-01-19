@@ -19,6 +19,7 @@ import (
 	"path"
 
 	"github.com/disintegration/imaging"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -337,7 +338,7 @@ func imageToPaletted(img image.Image) *image.Paletted {
 
 func (a *App) deleteEmojiImage(id string) {
 	if err := a.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
-		mlog.Error("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
+		mlog.Warn("Failed to rename image when deleting emoji", mlog.String("emoji_id", id))
 	}
 }
 

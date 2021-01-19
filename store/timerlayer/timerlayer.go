@@ -2734,6 +2734,22 @@ func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	return result, err
 }
 
+func (s *TimerLayerFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.GetByIds(ids)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.GetByIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
@@ -2873,6 +2889,22 @@ func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerFileInfoStore) Search(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.FileInfoList, error) {
+	start := timemodule.Now()
+
+	result, err := s.FileInfoStore.Search(paramsList, userId, teamId, page, perPage)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.Search", success, elapsed)
 	}
 	return result, err
 }
@@ -4412,10 +4444,10 @@ func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	return err
 }
 
-func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.Get(id, skipFetchThreads)
+	result, err := s.PostStore.Get(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -4444,10 +4476,10 @@ func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetEtag(channelId string, allowFromCache bool) string {
+func (s *TimerLayerPostStore) GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string {
 	start := timemodule.Now()
 
-	result := s.PostStore.GetEtag(channelId, allowFromCache)
+	result := s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

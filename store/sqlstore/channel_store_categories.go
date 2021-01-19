@@ -6,12 +6,12 @@ package sqlstore
 import (
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 )
 
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
@@ -962,7 +962,20 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId"
 	} else {
-		deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.UserId = :UserId AND   cat.TeamId = :TeamId"
+		deleteQuery = `
+			DELETE FROM
+				SidebarChannels
+			WHERE
+				CategoryId IN (
+					SELECT
+						CategoryId
+					FROM
+						SidebarChannels,
+						SidebarCategories
+					WHERE
+						SidebarChannels.CategoryId = SidebarCategories.Id
+						AND SidebarCategories.TeamId = :TeamId
+						AND SidebarChannels.UserId = :UserId)`
 	}
 	if _, err := s.GetMaster().Exec(deleteQuery, params); err != nil {
 		return errors.Wrap(err, "failed to delete from SidebarChannels")
