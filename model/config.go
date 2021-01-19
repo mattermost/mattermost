@@ -265,24 +265,24 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 type ServiceSettings struct {
 	SiteURL                                           *string  `access:"environment,authentication,write_restrictable"`
 	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
-	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`
-	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`             // telemetry: disabled
+	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	ConnectionSecurity                                *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	TLSCertFile                                       *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	TLSKeyFile                                        *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"`
+	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
 	TLSStrictTransport                                *bool    `access:"write_restrictable,cloud_restrictable"`
-	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"`
-	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"`
+	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
+	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
 	UseLetsEncrypt                                    *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	LetsEncryptCertificateCacheFile                   *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	LetsEncryptCertificateCacheFile                   *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	Forward80To443                                    *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	TrustedProxyIPHeader                              []string `access:"write_restrictable,cloud_restrictable"`
+	TrustedProxyIPHeader                              []string `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
 	ReadTimeout                                       *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	WriteTimeout                                      *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	IdleTimeout                                       *int     `access:"write_restrictable,cloud_restrictable"`
 	MaximumLoginAttempts                              *int     `access:"authentication,write_restrictable,cloud_restrictable"`
-	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"`
+	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
 	GoogleDeveloperKey                                *string  `access:"site,write_restrictable,cloud_restrictable"`
 	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
 	EnableIncomingWebhooks                            *bool    `access:"integrations"`
@@ -291,7 +291,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
-	EnableLinkPreviews                                *bool    `access:"site"`
+	EnableLinkPreviews                                *bool    `access:"site"` // telemetry: disabled
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -312,8 +312,8 @@ type ServiceSettings struct {
 	SessionLengthSSOInDays                            *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	SessionCacheInMinutes                             *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	SessionIdleTimeoutInMinutes                       *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"`
-	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"`
+	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
+	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: disabled
 	WebserverMode                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableCustomEmoji                                 *bool    `access:"site"`
 	EnableEmojiPicker                                 *bool    `access:"site"`
@@ -353,12 +353,12 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
-	LocalModeSocketLocation                           *string
-	EnableAWSMetering                                 *bool
-	SplitKey                                          *string `access:"environment,write_restrictable"`
-	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
-	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
-	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	LocalModeSocketLocation                           *string // telemetry: disabled
+	EnableAWSMetering                                 *bool   // telemetry: disabled
+	SplitKey                                          *string `access:"environment,write_restrictable"` // telemetry: disabled
+	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"` // telemetry: disabled
+	DebugSplit                                        *bool   `access:"environment,write_restrictable"` // telemetry: disabled
+	ThreadAutoFollow                                  *bool   `access:"experimental"`                   // telemetry: disabled
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
@@ -803,8 +803,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 type ClusterSettings struct {
 	Enable                             *bool   `access:"environment,write_restrictable"`
-	ClusterName                        *string `access:"environment,write_restrictable,cloud_restrictable"`
-	OverrideHostname                   *string `access:"environment,write_restrictable,cloud_restrictable"`
+	ClusterName                        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	OverrideHostname                   *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	NetworkInterface                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	BindAddress                        *string `access:"environment,write_restrictable,cloud_restrictable"`
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
@@ -812,11 +812,11 @@ type ClusterSettings struct {
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	StreamingPort                      *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                       *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConnsPerHost                *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	IdleConnTimeoutMilliseconds        *int    `access:"environment,write_restrictable,cloud_restrictable"`
+	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	StreamingPort                      *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	MaxIdleConns                       *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	MaxIdleConnsPerHost                *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	IdleConnTimeoutMilliseconds        *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -884,7 +884,7 @@ func (s *ClusterSettings) SetDefaults() {
 type MetricsSettings struct {
 	Enable           *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	BlockProfileRate *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	ListenAddress    *string `access:"environment,write_restrictable,cloud_restrictable"`
+	ListenAddress    *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -964,15 +964,15 @@ func (s *AnalyticsSettings) SetDefaults() {
 
 type SSOSettings struct {
 	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"`
-	Id                *string `access:"authentication"`
-	Scope             *string `access:"authentication"`
-	AuthEndpoint      *string `access:"authentication"`
-	TokenEndpoint     *string `access:"authentication"`
-	UserApiEndpoint   *string `access:"authentication"`
-	DiscoveryEndpoint *string `access:"authentication"`
-	ButtonText        *string `access:"authentication"`
-	ButtonColor       *string `access:"authentication"`
+	Secret            *string `access:"authentication"` // telemetry: disabled
+	Id                *string `access:"authentication"` // telemetry: disabled
+	Scope             *string `access:"authentication"` // telemetry: disabled
+	AuthEndpoint      *string `access:"authentication"` // telemetry: disabled
+	TokenEndpoint     *string `access:"authentication"` // telemetry: disabled
+	UserApiEndpoint   *string `access:"authentication"` // telemetry: disabled
+	DiscoveryEndpoint *string `access:"authentication"` // telemetry: disabled
+	ButtonText        *string `access:"authentication"` // telemetry: disabled
+	ButtonColor       *string `access:"authentication"` // telemetry: disabled
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
@@ -1019,14 +1019,14 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 
 type Office365Settings struct {
 	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"`
-	Id                *string `access:"authentication"`
+	Secret            *string `access:"authentication"` // telemetry: disabled
+	Id                *string `access:"authentication"` // telemetry: disabled
 	Scope             *string `access:"authentication"`
-	AuthEndpoint      *string `access:"authentication"`
-	TokenEndpoint     *string `access:"authentication"`
-	UserApiEndpoint   *string `access:"authentication"`
-	DiscoveryEndpoint *string `access:"authentication"`
-	DirectoryId       *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"` // telemetry: disabled
+	TokenEndpoint     *string `access:"authentication"` // telemetry: disabled
+	UserApiEndpoint   *string `access:"authentication"` // telemetry: disabled
+	DiscoveryEndpoint *string `access:"authentication"` // telemetry: disabled
+	DirectoryId       *string `access:"authentication"` // telemetry: disabled
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1082,14 +1082,14 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 
 type SqlSettings struct {
 	DriverName                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	DataSourceReplicas          []string `access:"environment,write_restrictable,cloud_restrictable"`
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 }
@@ -1155,8 +1155,8 @@ type LogSettings struct {
 	FileJson               *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	FileLocation           *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	EnableSentry           *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool   `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	EnableSentry           *bool   `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	AdvancedLoggingConfig  *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
@@ -1208,7 +1208,7 @@ func (s *LogSettings) SetDefaults() {
 
 type ExperimentalAuditSettings struct {
 	FileEnabled           *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental,write_restrictable,cloud_restrictable"`
+	FileName              *string `access:"experimental,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	FileMaxSizeMB         *int    `access:"experimental,write_restrictable,cloud_restrictable"`
 	FileMaxAgeDays        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
 	FileMaxBackups        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
@@ -1334,14 +1334,14 @@ type FileSettings struct {
 	DriverName              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site,cloud_restrictable"`
-	PublicLinkSalt          *string `access:"site,cloud_restrictable"`
-	InitialFont             *string `access:"environment,cloud_restrictable"`
-	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3SecretAccessKey *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Bucket          *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3PathPrefix      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Region          *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Endpoint        *string `access:"environment,write_restrictable,cloud_restrictable"`
+	PublicLinkSalt          *string `access:"site,cloud_restrictable"`                           // telemetry: disabled
+	InitialFont             *string `access:"environment,cloud_restrictable"`                    // telemetry: disabled
+	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	AmazonS3SecretAccessKey *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	AmazonS3Bucket          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	AmazonS3PathPrefix      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	AmazonS3Region          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	AmazonS3Endpoint        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	AmazonS3SSL             *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	AmazonS3SignV2          *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	AmazonS3SSE             *bool   `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1447,16 +1447,16 @@ type EmailSettings struct {
 	ReplyToAddress                    *string `access:"site,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site"`
 	EnableSMTPAuth                    *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPUsername                      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPPassword                      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPServer                        *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPPort                          *string `access:"environment,write_restrictable,cloud_restrictable"`
+	SMTPUsername                      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	SMTPPassword                      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	SMTPServer                        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	SMTPPort                          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
 	ConnectionSecurity                *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SendPushNotifications             *bool   `access:"environment"`
-	PushNotificationServer            *string `access:"environment"`
+	PushNotificationServer            *string `access:"environment"` // telemetry: disabled
 	PushNotificationContents          *string `access:"site"`
-	PushNotificationBuffer            *int
+	PushNotificationBuffer            *int    // telemetry: disabled
 	EnableEmailBatching               *bool   `access:"site"`
 	EmailBatchingBufferSize           *int    `access:"experimental"`
 	EmailBatchingInterval             *int    `access:"experimental"`
@@ -1733,15 +1733,15 @@ func (s *SupportSettings) SetDefaults() {
 
 type AnnouncementSettings struct {
 	EnableBanner          *bool   `access:"site"`
-	BannerText            *string `access:"site"`
+	BannerText            *string `access:"site"` // telemetry: disabled
 	BannerColor           *string `access:"site"`
 	BannerTextColor       *string `access:"site"`
 	AllowBannerDismissal  *bool   `access:"site"`
 	AdminNoticesEnabled   *bool   `access:"site"`
 	UserNoticesEnabled    *bool   `access:"site"`
-	NoticesURL            *string `access:"site,write_restrictable"`
-	NoticesFetchFrequency *int    `access:"site,write_restrictable"`
-	NoticesSkipCache      *bool   `access:"site,write_restrictable"`
+	NoticesURL            *string `access:"site,write_restrictable"` // telemetry: disabled
+	NoticesFetchFrequency *int    `access:"site,write_restrictable"` // telemetry: disabled
+	NoticesSkipCache      *bool   `access:"site,write_restrictable"` // telemetry: disabled
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1816,7 +1816,7 @@ type TeamSettings struct {
 	EnableUserCreation                                        *bool    `access:"authentication"`
 	EnableOpenServer                                          *bool    `access:"authentication"`
 	EnableUserDeactivation                                    *bool    `access:"experimental"`
-	RestrictCreationToDomains                                 *string  `access:"authentication"`
+	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: disabled
 	EnableCustomBrand                                         *bool    `access:"site"`
 	CustomBrandText                                           *string  `access:"site"`
 	CustomDescriptionText                                     *string  `access:"site"`
@@ -2005,15 +2005,15 @@ type LdapSettings struct {
 	// Basic
 	Enable             *bool   `access:"authentication"`
 	EnableSync         *bool   `access:"authentication"`
-	LdapServer         *string `access:"authentication"`
-	LdapPort           *int    `access:"authentication"`
+	LdapServer         *string `access:"authentication"` // telemetry: disabled
+	LdapPort           *int    `access:"authentication"` // telemetry: disabled
 	ConnectionSecurity *string `access:"authentication"`
-	BaseDN             *string `access:"authentication"`
-	BindUsername       *string `access:"authentication"`
-	BindPassword       *string `access:"authentication"`
+	BaseDN             *string `access:"authentication"` // telemetry: disabled
+	BindUsername       *string `access:"authentication"` // telemetry: disabled
+	BindPassword       *string `access:"authentication"` // telemetry: disabled
 
 	// Filtering
-	UserFilter        *string `access:"authentication"`
+	UserFilter        *string `access:"authentication"` // telemetry: disabled
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
 	EnableAdminFilter *bool
@@ -2051,7 +2051,7 @@ type LdapSettings struct {
 	LoginButtonBorderColor *string `access:"authentication"`
 	LoginButtonTextColor   *string `access:"authentication"`
 
-	Trace *bool `access:"authentication"`
+	Trace *bool `access:"authentication"` // telemetry: disabled
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2201,7 +2201,7 @@ func (s *LdapSettings) SetDefaults() {
 
 type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance"`
-	Directory   *string `access:"compliance"`
+	Directory   *string `access:"compliance"` // telemetry: disabled
 	EnableDaily *bool   `access:"compliance"`
 }
 
@@ -2250,11 +2250,11 @@ type SamlSettings struct {
 	Encrypt     *bool `access:"authentication"`
 	SignRequest *bool `access:"authentication"`
 
-	IdpUrl                      *string `access:"authentication"`
-	IdpDescriptorUrl            *string `access:"authentication"`
-	IdpMetadataUrl              *string `access:"authentication"`
-	ServiceProviderIdentifier   *string `access:"authentication"`
-	AssertionConsumerServiceURL *string `access:"authentication"`
+	IdpUrl                      *string `access:"authentication"` // telemetry: disabled
+	IdpDescriptorUrl            *string `access:"authentication"` // telemetry: disabled
+	IdpMetadataUrl              *string `access:"authentication"` // telemetry: disabled
+	ServiceProviderIdentifier   *string `access:"authentication"` // telemetry: disabled
+	AssertionConsumerServiceURL *string `access:"authentication"` // telemetry: disabled
 
 	SignatureAlgorithm *string `access:"authentication"`
 	CanonicalAlgorithm *string `access:"authentication"`
@@ -2262,9 +2262,9 @@ type SamlSettings struct {
 	ScopingIDPProviderId *string `access:"authentication"`
 	ScopingIDPName       *string `access:"authentication"`
 
-	IdpCertificateFile    *string `access:"authentication"`
-	PublicCertificateFile *string `access:"authentication"`
-	PrivateKeyFile        *string `access:"authentication"`
+	IdpCertificateFile    *string `access:"authentication"` // telemetry: disabled
+	PublicCertificateFile *string `access:"authentication"` // telemetry: disabled
+	PrivateKeyFile        *string `access:"authentication"` // telemetry: disabled
 
 	// User Mapping
 	IdAttribute          *string `access:"authentication"`
@@ -2460,8 +2460,8 @@ type ElasticsearchSettings struct {
 	ChannelIndexShards            *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	UserIndexReplicas             *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	UserIndexShards               *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	PostsAggregatorJobStartTime   *string `access:"environment,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays       *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	PostsAggregatorJobStartTime   *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: disabled
 	IndexPrefix                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	BulkIndexingTimeWindowSeconds *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -2557,7 +2557,7 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	IndexDir                      *string `access:"experimental"`
+	IndexDir                      *string `access:"experimental"` // telemetry: disabled
 	EnableIndexing                *bool   `access:"experimental"`
 	EnableSearching               *bool   `access:"experimental"`
 	EnableAutocomplete            *bool   `access:"experimental"`
@@ -2650,10 +2650,10 @@ type PluginSettings struct {
 	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
-	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
-	Plugins                     map[string]map[string]interface{} `access:"plugins"`
-	PluginStates                map[string]*PluginState           `access:"plugins"`
+	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: disabled
+	Plugins                     map[string]map[string]interface{} `access:"plugins"`                                       // telemetry: disabled
+	PluginStates                map[string]*PluginState           `access:"plugins"`                                       // telemetry: disabled
 	EnableMarketplace           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
@@ -2986,14 +2986,14 @@ type Config struct {
 	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings
+	JobSettings               JobSettings // telemetry: disabled
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings
-	FeatureFlags              *FeatureFlags `json:",omitempty"`
-	ImportSettings            ImportSettings
+	CloudSettings             CloudSettings  // telemetry: disabled
+	FeatureFlags              *FeatureFlags  `json:",omitempty"`
+	ImportSettings            ImportSettings // telemetry: disabled
 }
 
 func (o *Config) Clone() *Config {

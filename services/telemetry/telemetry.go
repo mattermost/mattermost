@@ -768,7 +768,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
-		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"global_relay_smtp_server_timeout":      *cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout,
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
