@@ -1487,7 +1487,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			if strings.Contains(terms, "\"") {
 				queryParams["Terms"] = strings.ReplaceAll(queryParams["Terms"].(string), "\"", "")
 			}
-			searchClause = fmt.Sprintf("AND %s::tsvector @@ :Terms::tsquery", searchType)
+			searchClause = fmt.Sprintf("AND lower(%s)::tsvector @@ lower(:Terms)::tsquery", searchType)
 		} else {
 			searchClause = fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		}
