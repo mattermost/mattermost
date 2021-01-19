@@ -1,7 +1,6 @@
 .test-schema:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
-  # image: registry.internal.mattermost.com/mattermost/ci/images/mattermost-build-docker:19.03.12-1
   services:
     - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
       alias: docker
@@ -12,8 +11,6 @@
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    # - docker ps
-    # - ulimit -n 8096
     - |
       curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
       chmod +x kind
@@ -29,19 +26,22 @@
 
     - |
       kind create cluster --config=./.gitlab-ci/kind-config.yaml --name ci-mm-${CI_PIPELINE_ID} --wait 3m
-      # - export KUBECONFIG="$(kind get kubeconfig --name $CI_PIPELINE_ID)"
       sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
 
-    - kubectl cluster-info
-    - kubectl get ns
     - kubectl create ns ci-mm-${CI_PIPELINE_ID}
-    # - cd build
     - kustomize build build | kubectl -n ci-mm-${CI_PIPELINE_ID} apply -f -
-    # - docker-compose --no-ansi run --rm start_dependencies
-    # - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-    # - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
-    # - sleep 5
-    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+
+    - |
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=elasticsearch
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=inbucket
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=keycloack
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=minio
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=mysql
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=openldap
+      kubectl wait --for=condition=ready pod -l com.mattermost/component=postgres
+
+    # - |
+    #   cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
   after_script:
-    - kubectl delete ns ci-mm-${CI_PIPELINE_ID}
+    - kind delete cluster --name ci-mm-${CI_PIPELINE_ID}
