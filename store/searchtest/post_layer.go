@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/require"
 )
 
 var searchPostStoreTests = []searchTest{
@@ -214,7 +215,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",

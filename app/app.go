@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -314,7 +315,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
 		default:
-			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
+			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
 		}
 
@@ -463,7 +464,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
 			if cerr != nil {
-				mlog.Error("Error retrieving the number of registered users", mlog.Err(cerr))
+				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
 				bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
 				bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount

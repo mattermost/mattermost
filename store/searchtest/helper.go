@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SearchTestHelper struct {
@@ -392,6 +392,36 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 	return post, nil
 }
 
+func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
+	return &model.FileInfo{
+		CreatorId: creatorID,
+		PostId:    postID,
+		CreateAt:  createAt,
+		UpdateAt:  createAt,
+		DeleteAt:  0,
+		Name:      name,
+		Content:   content,
+		Path:      name,
+		Extension: extension,
+		Size:      size,
+		MimeType:  mimeType,
+	}
+}
+
+func (th *SearchTestHelper) createFileInfo(creatorID, postID, name, content, extension, mimeType string, createAt, size int64) (*model.FileInfo, error) {
+	var creationTime int64 = 1000000
+	if createAt > 0 {
+		creationTime = createAt
+	}
+	fileInfoModel := th.createFileInfoModel(creatorID, postID, name, content, extension, mimeType, creationTime, size)
+	fileInfo, appError := th.Store.FileInfo().Save(fileInfoModel)
+	if appError != nil {
+		return nil, errors.New(appError.Error())
+	}
+
+	return fileInfo, nil
+}
+
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
 	replyModel := th.createPostModel(userID, parent.ChannelId, message, hashtags, parent.Type, createAt, pinned)
 	replyModel.ParentId = parent.Id
@@ -406,6 +436,13 @@ func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent
 func (th *SearchTestHelper) deleteUserPosts(userID string) error {
 	err := th.Store.Post().PermanentDeleteByUser(userID)
 	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
+}
+
+func (th *SearchTestHelper) deleteUserFileInfos(userID string) error {
+	if _, err := th.Store.FileInfo().PermanentDeleteByUser(userID); err != nil {
 		return errors.New(err.Error())
 	}
 	return nil
@@ -465,6 +502,15 @@ func (th *SearchTestHelper) checkPostInSearchResults(t *testing.T, postID string
 		postIDS = append(postIDS, ID)
 	}
 	assert.Contains(t, postIDS, postID, "Did not find expected post in search results.")
+}
+
+func (th *SearchTestHelper) checkFileInfoInSearchResults(t *testing.T, fileID string, searchResults map[string]*model.FileInfo) {
+	t.Helper()
+	fileIDS := make([]string, len(searchResults))
+	for ID := range searchResults {
+		fileIDS = append(fileIDS, ID)
+	}
+	assert.Contains(t, fileIDS, fileID, "Did not find expected file in search results.")
 }
 
 func (th *SearchTestHelper) checkChannelIdsMatch(t *testing.T, expected []string, results *model.ChannelList) {

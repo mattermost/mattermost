@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -274,18 +273,34 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	body, teamId, props, tokenUser, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
 
 	action := ""
+	hasRedirectURL := false
+	isMobile := false
+	redirectURL := ""
 	if props != nil {
 		action = props["action"]
+		isMobile = action == model.OAUTH_ACTION_MOBILE
+		if val, ok := props["redirect_to"]; ok {
+			redirectURL = val
+			hasRedirectURL = redirectURL != ""
+		}
+	}
+
+	renderError := func(err *model.AppError) {
+		if isMobile {
+			if hasRedirectURL {
+				utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
+			} else {
+				w.Write([]byte(err.ToJson()))
+			}
+		} else {
+			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		}
 	}
 
 	if err != nil {
 		err.Translate(c.App.T)
 		c.LogErrorByCode(err)
-		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
-		}
+		renderError(err)
 		return
 	}
 
@@ -293,49 +308,48 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err.Translate(c.App.T)
 		c.LogErrorByCode(err)
-		if action == model.OAUTH_ACTION_MOBILE {
-			w.Write([]byte(err.ToJson()))
-		} else {
-			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
-		}
+		renderError(err)
 		return
 	}
 
-	var redirectUrl string
 	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
-		redirectUrl = c.GetSiteURLHeader() + "/login?extra=signin_change"
+		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
-		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
+		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
-		if parseErr != nil {
-			mlog.Debug("Error parsing boolean property from props", mlog.Err(parseErr))
-		}
 		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
-			c.Err = err
-			if action == model.OAUTH_ACTION_MOBILE {
-				w.Write([]byte(err.ToJson()))
-			}
+			mlog.Error(err.Error())
+			renderError(err)
 			return
 		}
 
-		c.App.AttachSessionCookies(w, r)
+		// Old mobile version
+		if isMobile && !hasRedirectURL {
+			c.App.AttachSessionCookies(w, r)
+			return
+		} else
+		// New mobile version
+		if isMobile && hasRedirectURL {
+			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
+				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
+			})
+			utils.RenderMobileAuthComplete(w, redirectURL)
+			return
+		} else { // For web
+			c.App.AttachSessionCookies(w, r)
 
-		if _, ok := props["redirect_to"]; ok {
-			redirectUrl = props["redirect_to"]
-		} else {
-			redirectUrl = c.GetSiteURLHeader()
+			// If no redirect url is passed, get the default one
+			if !hasRedirectURL {
+				redirectURL = c.GetSiteURLHeader()
+			}
 		}
 	}
 
-	if action == model.OAUTH_ACTION_MOBILE {
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }
 
 func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -345,7 +359,12 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	loginHint := r.URL.Query().Get("login_hint")
-	redirectTo := r.URL.Query().Get("redirect_to")
+	redirectURL := r.URL.Query().Get("redirect_to")
+
+	if redirectURL != "" && !utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL) {
+		c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, "", http.StatusBadRequest)
+		return
+	}
 
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
@@ -353,7 +372,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint, false)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectURL, loginHint, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -368,13 +387,21 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redirectURL := r.URL.Query().Get("redirect_to")
+
+	if redirectURL != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
+		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+		utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
+		return
+	}
+
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", "", true)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, redirectURL, "", true)
 	if err != nil {
 		c.Err = err
 		return

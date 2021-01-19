@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
@@ -236,6 +237,10 @@ const (
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
+func GetDefaultAppCustomURLSchemes() []string {
+	return []string{"mmauth://", "mmauthbeta://"}
+}
+
 var ServerTLSSupportedCiphers = map[string]uint16{
 	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
 	"TLS_RSA_WITH_3DES_EDE_CBC_SHA":           tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
@@ -337,7 +342,6 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
-	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -361,6 +365,7 @@ type ServiceSettings struct {
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableLegacySidebar                               *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -699,10 +704,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
-	}
-
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -798,6 +799,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
 	}
+
+	if s.EnableLegacySidebar == nil {
+		s.EnableLegacySidebar = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -848,7 +853,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
@@ -2426,9 +2431,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"`
+	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2442,6 +2448,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.IosAppDownloadLink == nil {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
+	}
+
+	if s.AppCustomURLSchemes == nil {
+		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
 	}
 }
 

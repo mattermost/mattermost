@@ -7,15 +7,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -282,7 +283,12 @@ func (wc *WebConn) IsAuthenticated() bool {
 
 		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {
-			mlog.Error("Invalid session.", mlog.Err(err))
+			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+				mlog.Debug("Invalid session.", mlog.Err(err))
+			} else {
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+			}
+
 			wc.SetSessionToken("")
 			wc.SetSession(nil)
 			wc.SetSessionExpiresAt(0)
@@ -310,7 +316,7 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 	case model.WEBSOCKET_EVENT_USER_UPDATED:
 		user, ok := msg.GetData()["user"].(*model.User)
 		if !ok {
-			mlog.Error("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
+			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
 		userId = user.Id
@@ -413,7 +419,11 @@ func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 	if currentSession == nil || currentSession.Token == "" {
 		session, err := wc.App.GetSession(wc.GetSessionToken())
 		if err != nil {
-			mlog.Error("Invalid session.", mlog.Err(err))
+			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+				mlog.Debug("Invalid session.", mlog.Err(err))
+			} else {
+				mlog.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+			}
 			return false
 		}
 		wc.SetSession(session)

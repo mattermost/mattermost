@@ -111,11 +111,11 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 	mlog.Debug("Removing plugin as per cluster message", mlog.String("plugin_id", data.Id))
 
 	if err := a.removePluginLocally(data.Id); err != nil {
-		mlog.Error("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
+		mlog.Warn("Failed to remove plugin locally", mlog.Err(err), mlog.String("id", data.Id))
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -161,11 +161,11 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStr
 	)
 
 	if err := a.notifyPluginEnabled(manifest); err != nil {
-		mlog.Error("Failed notify plugin enabled", mlog.Err(err))
+		mlog.Warn("Failed notify plugin enabled", mlog.Err(err))
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return manifest, nil
@@ -413,7 +413,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 		return model.NewAppError("removePlugin", "app.plugin.remove_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = a.removeSignature(id); err != nil {
-		mlog.Error("Can't remove signature", mlog.Err(err))
+		mlog.Warn("Can't remove signature", mlog.Err(err))
 	}
 
 	a.notifyClusterPluginEvent(
@@ -424,7 +424,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	)
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("Failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("Failed to notify plugin status changed", mlog.Err(err))
 	}
 
 	return nil
