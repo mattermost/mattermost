@@ -67,8 +67,8 @@ empty:
 
 test-schema-postgres:
  extends: .test-schema
-#  tags:
-#    - docker
+ tags:
+   - docker
  script:
    - echo "Creating databases"
    - kubectl -n ci-mm-${CI_PIPELINE_ID} get pod
