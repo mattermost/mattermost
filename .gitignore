@@ -114,3 +114,6 @@ __debug_bin
 report.xml
 go.*.orig
 config.override.mk
+
+# Compiled mjml templates
+templates/compiled/

@@ -1,0 +1,12 @@
+<mj-section>
+  <mj-column>
+    <mj-text mj-class="footerTitle">
+      {{.Props.QuestionTitle}}
+    </mj-text>
+    <mj-text mj-class="footerInfo">
+      {{.Props.QuestionInfo}}
+      <a href='mailto:{{.Props.SupportEmail}}' color="#166DE0">
+      {{.Props.SupportEmail}}</a>
+    </mj-text>
+ </mj-column>
+</mj-section>

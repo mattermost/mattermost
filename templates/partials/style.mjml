@@ -1,0 +1,13 @@
+<mj-attributes>
+  <mj-text font-family="Open Sans" align="center" />
+  <mj-button background-color="#166DE0" border-radius="4px" padding="14px 24px" />
+  <mj-image alt="" align="center" />
+  <mj-class name="title" font-weight=600 font-size=28px line-height=36px letter-spacing=-0.02em color="#3D3C40" />
+  <mj-class name="subTitle" font-size=16px line-height=24px color="rgba(61, 60, 64, 0.64)" />
+  <mj-class name="info" font-size="14px" line-height="20px" color="#3D3C40" />
+  <mj-class name="logo" width="132px" height="21.76px" />
+  <mj-class name="appDownloadButton" background-color="#FFFFFF" border="1px solid #166DE0" color="#166DE0" />
+  <mj-class name="footerTitle" font-weight="600" font-size="16px" line-height="24px" color="#3D3C40" />
+  <mj-class name="footerInfo" font-size="14px" line-height="20px" color="#3D3C40" />
+  <mj-class name="emailFooter" font-size="12px" line-height="16px" color="rgba(61, 60, 64, 0.56)" />
+</mj-attributes>

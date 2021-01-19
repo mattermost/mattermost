@@ -31,10 +31,11 @@ type mailData struct {
 	cc            string
 	replyTo       mail.Address
 	subject       string
-	htmlBody      string
+	html          string
 	attachments   []*model.FileInfo
 	embeddedFiles map[string]io.Reader
 	mimeHeaders   map[string]string
+	isBody        bool
 }
 
 // smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
@@ -249,7 +250,7 @@ func TestConnection(config *model.Config) *model.AppError {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, html string, isBody bool, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
 	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
@@ -260,15 +261,16 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		cc:            ccMail,
 		replyTo:       replyTo,
 		subject:       subject,
-		htmlBody:      htmlBody,
+		html:          html,
 		embeddedFiles: embeddedFiles,
+		isBody:        isBody,
 	}
 
 	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
+func SendMailUsingConfig(to, subject, html string, isBody bool, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, html, isBody, nil, config, enableComplianceFeatures, ccMail)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
@@ -307,9 +309,14 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
-	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"
+	htmlMessage := ""
+	if (mail.isBody) {
+		htmlMessage = "\r\n<html><body>" + mail.html + "</body></html>"
+	} else {
+		htmlMessage = mail.html
+	}
 
-	txtBody, err := html2text.FromString(mail.htmlBody)
+	txtBody, err := html2text.FromString(mail.html)
 	if err != nil {
 		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
 		txtBody = ""

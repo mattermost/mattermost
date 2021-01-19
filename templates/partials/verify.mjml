@@ -1,0 +1,8 @@
+<mj-section>
+  <mj-column>
+    <mj-image src="{{.Props.SiteURL}}/static/images/welcome_illustration.svg" width="320px" />
+    <mj-text mj-class="info">
+      {{.Props.Info}}
+    </mj-text>
+  </mj-column>
+</mj-section>

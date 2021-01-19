@@ -1,0 +1,14 @@
+<mj-section>
+  <mj-column>
+    <mj-image mj-class="logo" src="{{.Props.SiteURL}}/static/images/logo_email_blue.svg" />
+    <mj-text mj-class="title">
+      {{.Props.Title}}
+    </mj-text>
+    <mj-text mj-class="subTitle">
+      {{.Props.SubTitle}}
+    </mj-text>
+    <mj-button href="{{.Props.ButtonUrl}}">
+      {{.Props.Button}}
+    </mj-button>
+  </mj-column>
+</mj-section>
