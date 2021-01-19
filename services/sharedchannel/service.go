@@ -92,6 +92,14 @@ func (scs *Service) Shutdown() error {
 	return nil
 }
 
+// Active determines whether the service is active on the node or not.
+func (scs *Service) Active() bool {
+	scs.mux.Lock()
+	defer scs.mux.Unlock()
+
+	return scs.active
+}
+
 func (scs *Service) sendEphemeralPost(channelId string, userId string, text string) {
 	ephemeral := &model.Post{
 		ChannelId: channelId,
