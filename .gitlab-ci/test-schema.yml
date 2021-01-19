@@ -15,10 +15,12 @@
       curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
       chmod +x kind
       mv kind /usr/local/bin/
+
     - |
       curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl ; \
       chmod +x ./kubectl ; \
       mv ./kubectl /usr/local/bin/kubectl
+
     - |
       curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz ; \
       tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz ; \
@@ -28,8 +30,7 @@
       kind create cluster --config=./.gitlab-ci/kind-config.yaml --name ci-mm-${CI_PIPELINE_ID} --wait 3m
       sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
 
-    - kubectl create ns ci-mm-${CI_PIPELINE_ID}
-    - kustomize build build | kubectl -n ci-mm-${CI_PIPELINE_ID} apply -f -
+    - kustomize build build | kubectl apply -f -
 
     - |
       kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
