@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  labels:
+    com.mattermost/component: openldap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: openldap
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: openldap
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: openldap
+          image: osixia/openldap:1.2.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: LDAP_ADMIN_PASSWORD
+              value: mostest
+            - name: LDAP_DOMAIN
+              value: mm.test.com
+            - name: LDAP_ORGANISATION
+              value: Mattermost Test
+            - name: LDAP_TLS_VERIFY_CLIENT
+              value: never
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi

@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    com.mattermost/component: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: mysql
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: mysql
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: mysql
+          image: mysql:5.6
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_DATABASE
+              value: mattermost_test
+            - name: MYSQL_PASSWORD
+              value: mostest
+            - name: MYSQL_ROOT_HOST
+              value: '%'
+            - name: MYSQL_ROOT_PASSWORD
+              value: mostest
+            - name: MYSQL_USER
+              value: mmuser
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mysql/conf.d/
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: config
+          configMap:
+            name: mysql
+        - name: data
+          persistentVolumeClaim:
+            claimName: mysql

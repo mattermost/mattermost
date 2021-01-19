@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    com.mattermost/component: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: keycloak
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: keycloak
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: keycloak
+          image: jboss/keycloak:10.0.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_VENDOR
+              value: h2
+            - name: KEYCLOAK_IMPORT
+              value: /setup/realm.json
+            - name: KEYCLOAK_PASSWORD
+              value: mostest
+            - name: KEYCLOAK_USER
+              value: mmuser
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
+          volumeMounts:
+            - name: config
+              mountPath: /setup
+      volumes:
+        - name: config
+          configMap:
+            name: keycloak

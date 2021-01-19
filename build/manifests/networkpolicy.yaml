@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: build-mm-test
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+        podSelector:
+    matchLabels:
+      com.mattermost.network/build-mm-test: "true"

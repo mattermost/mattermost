@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: inbucket
+spec:
+  type: ClusterIP
+  selector:
+    com.mattermost/component: inbucket
+  ports:
+    - port: 10080
+      targetPort: 10080

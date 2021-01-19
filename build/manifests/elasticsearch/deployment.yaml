@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  labels:
+    com.mattermost/component: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: elasticsearch
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: elasticsearch
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: elasticsearch
+          image: mattermost/mattermost-elasticsearch-docker:6.5.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ES_JAVA_OPTS
+              value: -Xms512m -Xmx512m
+            - name: http.cors.allow-credentials
+              value: "true"
+            - name: http.cors.allow-headers
+              value: X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+            - name: http.cors.allow-origin
+              value: http://localhost:1358,http://127.0.0.1:1358
+            - name: http.cors.enabled
+              value: "true"
+            - name: http.host
+              value: 0.0.0.0
+            - name: http.port
+              value: "9200"
+            - name: transport.host
+              value: 127.0.0.1
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi

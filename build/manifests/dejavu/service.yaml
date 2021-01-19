@@ -1,0 +1,11 @@
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: dejavu
+# spec:
+#   type: ClusterIP
+#   selector:
+#     com.mattermost/component: dejavu
+#   ports:
+#     - port: 80
+#       targetPort: http

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    com.mattermost/component: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: minio
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: minio
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2019-10-11T00-38-09Z
+          imagePullPolicy: IfNotPresent
+          args:
+            - server
+            - /data
+          env:
+            - name: MINIO_ACCESS_KEY
+              value: minioaccesskey
+            - name: MINIO_SECRET_KEY
+              value: miniosecretkey
+            - name: MINIO_SSE_MASTER_KEY
+              value: my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi

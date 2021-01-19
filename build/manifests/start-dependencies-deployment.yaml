@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: start-dependencies
+  name: start-dependencies
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: start-dependencies
+  template:
+    metadata:
+      labels:
+        name: start-dependencies
+    spec:
+      containers:
+        - args:
+            - postgres:5432
+            - mysql:3306
+            - minio:9000
+            - inbucket:10080
+            - openldap:389
+            - elasticsearch:9200
+          image: mattermost/mattermost-wait-for-dep:latest
+          name: start-dependencies
+          resources: {}
+      restartPolicy: Always

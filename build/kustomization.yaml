@@ -1,0 +1,60 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# bases:
+#   - manifests
+
+resources:
+   # dejavu
+   - manifests/dejavu/deployment.yaml
+   - manifests/dejavu/service.yaml
+
+   # elasticsearch
+   - manifests/elasticsearch/deployment.yaml
+   - manifests/elasticsearch/service.yaml
+
+   # inbucket
+   - manifests/inbucket/deployment.yaml
+   - manifests/inbucket/service.yaml
+
+   # keycloak
+   - manifests/keycloak/deployment.yaml
+   - manifests/keycloak/service.yaml
+
+   # minio
+   - manifests/minio/deployment.yaml
+   - manifests/minio/service.yaml
+
+   # mysql
+   - manifests/mysql/deployment.yaml
+   - manifests/mysql/pvc.yaml
+   - manifests/mysql/service.yaml
+
+   # openldap
+   - manifests/openldap/deployment.yaml
+   - manifests/openldap/service.yaml
+
+   # postgres
+   - manifests/postgres/deployment.yaml
+   - manifests/postgres/pvc.yaml
+   - manifests/postgres/service.yaml
+
+commonLabels:
+  com.mattermost/app: mattermost
+
+generatorOptions:
+   disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: keycloak
+    files:
+      - docker/keycloak/keycloak.crt
+      - docker/keycloak/realm.json
+
+  - name: mysql
+    files:
+      - docker/mysql.conf.d/custom.cnf
+
+  - name: postgres
+    files:
+      - docker/postgres.conf

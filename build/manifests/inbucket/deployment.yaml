@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inbucket
+  labels:
+    com.mattermost/component: inbucket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: inbucket
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: inbucket
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: inbucket
+          image: jhillyerd/inbucket:release-1.2.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "1"
+              memory: 400Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
