@@ -84,9 +84,10 @@ func TestProcessPermalinkFromRemote(t *testing.T) {
 			siteURL: parsed,
 		}
 
-		out := scs.processPermalinkFromRemote("hello world https://comm.matt.com/team/plshared/postID link")
+		out := scs.processPermalinkFromRemote(&model.Post{Message: "hello world https://comm.matt.com/team/plshared/postID link"},
+			&model.Team{Name: "myteam"})
 		assert.Equal(t,
-			"hello world http://mysite.com/team/pl/postID link",
+			"hello world http://mysite.com/myteam/pl/postID link",
 			out)
 	})
 
@@ -97,7 +98,8 @@ func TestProcessPermalinkFromRemote(t *testing.T) {
 			siteURL: parsed,
 		}
 
-		out := scs.processPermalinkFromRemote("hello world https://comm.matt.com/team/pl/postID link")
+		out := scs.processPermalinkFromRemote(&model.Post{Message: "hello world https://comm.matt.com/team/pl/postID link"},
+			&model.Team{Name: "myteam"})
 		assert.Equal(t,
 			"hello world https://comm.matt.com/team/pl/postID link",
 			out)

@@ -54,14 +54,29 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 func (scs *Service) processSyncMessagesViaStore(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) (postErrors []string, lastUpdate int64, err error) {
 	postErrors = make([]string, 0)
 	var channel *model.Channel
+	chanToTeamMap := make(map[string]*model.Team)
 
 	for _, sm := range syncMessages {
-		sm.Post.Message = scs.processPermalinkFromRemote(sm.Post.Message)
-
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync post received",
 			mlog.String("post_id", sm.Post.Id),
 			mlog.String("channel_id", sm.Post.ChannelId),
 			mlog.Int("reaction_count", len(sm.Reactions)))
+
+		if _, ok := chanToTeamMap[sm.Post.ChannelId]; !ok {
+			team, err2 := scs.server.GetStore().Channel().GetTeamForChannel(sm.Post.ChannelId)
+			if err2 != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
+					mlog.String("ChannelId", sm.Post.ChannelId),
+					mlog.String("PostId", sm.Post.Id),
+					mlog.Err(err2),
+				)
+				postErrors = append(postErrors, sm.Post.Id)
+				continue
+			}
+			chanToTeamMap[sm.Post.ChannelId] = team
+		}
+
+		sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, chanToTeamMap[sm.Post.ChannelId])
 
 		if channel == nil {
 			if channel, err = scs.server.GetStore().Channel().Get(sm.Post.ChannelId, true); err != nil {
@@ -69,10 +84,6 @@ func (scs *Service) processSyncMessagesViaStore(syncMessages []syncMsg, rc *mode
 				return postErrors, 0, fmt.Errorf("channel not found processing sync messages: %w", err)
 			}
 		}
-
-		// get team
-		// channel.TeamId
-		// replace teamName as well
 
 		if err := scs.server.GetStore().SharedChannel().UpsertPost(sm.Post); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error saving sync Post",

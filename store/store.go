@@ -242,6 +242,8 @@ type ChannelStore interface {
 	GroupSyncedChannelCount() (int64, error)
 
 	SetShared(channelId string, shared bool) error
+	// GetTeamForChannel returns the team for a given channelID.
+	GetTeamForChannel(channelID string) (*model.Team, error)
 }
 
 type ChannelMemberHistoryStore interface {
