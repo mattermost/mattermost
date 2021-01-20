@@ -1,22 +1,23 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: build-server
+  name: build-server-postgres
   labels:
-    com.mattermost/component: build-server
+    com.mattermost/component: build-server-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      com.mattermost/component: build-server
+      com.mattermost/component: build-server-postgres
   template:
     metadata:
       labels:
-        com.mattermost/component: build-server
+        com.mattermost/component: build-server-postgres
     spec:
       restartPolicy: Always
       containers:
-        - name: build-server
+        - name: build-server-postgres
           image: mattermost/mattermost-build-server:20201119_golang-1.15.5
           imagePullPolicy: IfNotPresent
           command:
@@ -38,14 +39,69 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: build-server
+            claimName: build-server-postgres
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: build-server
+  name: build-server-postgres
   labels:
-    com.mattermost/component: build-server
+    com.mattermost/component: build-server-postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-server-mysql
+  labels:
+    com.mattermost/component: build-server-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: build-server-mysql
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: build-server-mysql
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: build-server-mysql
+          image: mattermost/mattermost-build-server:20201119_golang-1.15.5
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - "--"
+          args:
+            - "while true; do sleep 30; done;"
+          env:
+            - name: envs
+              valueFrom:
+                configMapKeyRef:
+                  key: test-schema-validation.env
+                  name: dotenv
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /build
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: build-server-mysql
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: build-server-mysql
+  labels:
+    com.mattermost/component: build-server-mysql
 spec:
   accessModes:
     - ReadWriteOnce

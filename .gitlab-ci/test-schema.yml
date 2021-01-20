@@ -12,7 +12,14 @@
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
     KUBECONFIG: /kubeconfig
   before_script:
-    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
+    - |
+      function get_pod_name() {
+        if [ -n "$1" ]; then
+          kubectl get pod -n mm-ci -l=com.mattermost/component="$1",com.mattermost/pipeline="${CI_PIPELINE_ID}" -o jsonpath='{.items[0].metadata.name}'
+        fi
+      }
+      echo ${kube_config} | base64 -d > ${KUBECONFIG}
+
     - |
       cat <<EOF >>build/kustomization.yaml
       namePrefix: "ci-${CI_PIPELINE_ID}-"
@@ -32,12 +39,6 @@
       mv ./kustomize /usr/local/bin/kustomize
 
     - kustomize build build/ | kubectl -n mm-ci apply -f -
-    - |
-      function get_pod_name() {
-        if [ -n "$1" ]; then
-          kubectl get pod -n mm-ci -l=com.mattermost/component="$1",com.mattermost/pipeline="${CI_PIPELINE_ID}" -o jsonpath='{.items[0].metadata.name}'
-        fi
-      }
 
     - |
       kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
