@@ -13,7 +13,7 @@
       {
         "datasource": "Prometheus",
         "enable": false,
-        "expr": "mattermost_system_server_start_time*1000",
+        "expr": "mattermost_system_server_start_time{instance=~\"$server\"}*1000",
         "hide": false,
         "iconColor": "#C8F2C2",
         "limit": 100,
@@ -29,7 +29,7 @@
       {
         "datasource": "Prometheus",
         "enable": false,
-        "expr": "mattermost_jobs_active",
+        "expr": "mattermost_jobs_active{instance=~\"$server\"}",
         "hide": false,
         "iconColor": "#FFF899",
         "limit": 100,
