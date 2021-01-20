@@ -968,7 +968,11 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
-	sqlStore.CreateUniqueIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", "siteurl")
+	siteURLColumn := "siteurl"
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		siteURLColumn = "siteurl(168)"
+	}
+	sqlStore.CreateUniqueIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", siteURLColumn)
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }
 }
