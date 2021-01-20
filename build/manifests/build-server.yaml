@@ -19,6 +19,12 @@ spec:
         - name: build-server
           image: mattermost/mattermost-build-server:20201119_golang-1.15.5
           imagePullPolicy: IfNotPresent
+          command:
+            - "/bin/bash"
+            - "-c"
+            - "--"
+          args:
+            - "while true; do sleep 30; done;"
           env:
             - name: envs
               valueFrom:
