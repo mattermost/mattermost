@@ -37,10 +37,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 			return model.RemoteClusterMsg{}, err
 		}
 
-		users, err := scs.usersForPost(p, rc)
-		if err != nil {
-			return model.RemoteClusterMsg{}, err
-		}
+		users := scs.usersForPost(p, reactions, rc)
 
 		sm := syncMsg{
 			Post:      p,
@@ -61,21 +58,31 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 }
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
-func (scs *Service) usersForPost(post *model.Post, rc *model.RemoteCluster) ([]*model.User, error) {
+func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster) []*model.User {
+	userIds := make(map[string]struct{}) // avoid duplicates
+
+	for _, r := range reactions {
+		userIds[r.UserId] = struct{}{}
+	}
+	userIds[post.UserId] = struct{}{}
+
 	users := make([]*model.User, 0)
-	creator, err := scs.server.GetStore().User().Get(post.UserId)
-	if err == nil {
-		if sync, err := scs.shouldUserSync(creator, rc); err != nil {
-			return nil, err
-		} else if sync {
-			creator = sanitizeUserForSync(creator)
-			users = append(users, creator)
+
+	for id := range userIds {
+		user, err := scs.server.GetStore().User().Get(id)
+		if err == nil {
+			if sync, err := scs.shouldUserSync(user, rc); err != nil {
+				continue
+			} else if sync {
+				user = sanitizeUserForSync(user)
+				users = append(users, user)
+			}
 		}
 	}
 
 	// TODO: extract @mentions?
 
-	return users, nil
+	return users
 }
 
 func sanitizeUserForSync(user *model.User) *model.User {

@@ -214,7 +214,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		// update all the users that were synchronized
 		userIds, err := resp.StringSlice(ResponseUsersSynced)
 		if err != nil {
-			scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
+			scs.server.GetLogger().Warn("missing last sync response (ResponseUsersSynced) after update shared channel",
 				mlog.String("remote", rc.DisplayName), mlog.Err(err))
 		} else {
 			if err := scs.updateSyncUsers(userIds, rc, lastSync); err != nil {
@@ -262,8 +262,14 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 
 func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, lastSyncAt int64) error {
 	merrs := merror.New()
-	for _, id := range userIds {
-		if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(id, lastSyncAt); err != nil {
+	for _, uid := range userIds {
+		scu, err := scs.server.GetStore().SharedChannel().GetUser(uid, rc.RemoteId)
+		if err != nil {
+			merrs.Append(err)
+			continue
+		}
+
+		if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(scu.Id, lastSyncAt); err != nil {
 			merrs.Append(err)
 		}
 	}

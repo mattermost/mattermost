@@ -59,7 +59,8 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 					mlog.String("post_id", sm.Post.Id),
 					mlog.String("channel_id", sm.Post.ChannelId),
-					mlog.String("user_id", user.Id))
+					mlog.String("user_id", user.Id),
+					mlog.Err(err))
 			} else {
 				usersSyncd = append(usersSyncd, userSaved.Id)
 			}
