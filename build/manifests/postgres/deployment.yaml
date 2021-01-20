@@ -38,7 +38,7 @@ spec:
               mountPath: /etc/postgresql/postgresql.conf
               subPath: postgres.conf
             - name: data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
       volumes:
         - name: config
           configMap:
