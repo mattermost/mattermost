@@ -456,6 +456,14 @@ func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
 }
 
+// IsRemote returns true if the post originated on a remote cluster.
+func (o *Post) IsRemote() bool {
+	if o.RemoteId != nil {
+		return *o.RemoteId != ""
+	}
+	return false
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
 	return o.Type == POST_JOIN_LEAVE ||
 		o.Type == POST_ADD_REMOVE ||

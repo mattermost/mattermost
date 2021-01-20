@@ -100,7 +100,7 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
-	if len(user.Id) > 0 && user.RemoteId == nil || *user.RemoteId == "" {
+	if len(user.Id) > 0 && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 
