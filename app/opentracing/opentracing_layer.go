@@ -2416,6 +2416,28 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(userId string, channel *model.Ch
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateZipFileAndAddFiles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CreateZipFileAndAddFiles(fileBackend, fileDatas, zipFileName, directory)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DBHealthCheckDelete() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DBHealthCheckDelete")

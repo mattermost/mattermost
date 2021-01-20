@@ -4,13 +4,13 @@
 package api4
 
 import (
-	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
+	"path"
 	"runtime"
 	"strconv"
 	"time"
@@ -72,6 +72,7 @@ func (api *API) InitSystem() {
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
+	const OutputDirectory = "support_packet"
 
 	// Checking to see if the user is a admin of any sort or not
 	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
@@ -93,30 +94,30 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
 
-	// Create Zip File (temporarily stored on disk)
-	conglomerateZipFile, err := os.Create(outputZipFilename)
+	fileStorageBackend, fileBackendErr := c.App.FileBackend()
+	if fileBackendErr != nil {
+		c.Err = fileBackendErr
+		return
+	}
+
+	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, OutputDirectory)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	// Since this is temporary zip, we don't want to keep the zip file so defer the deletion until after this function is ran
-	defer os.Remove(outputZipFilename)
-
-	// Create a zip writer that will write to our zip file
-	zipFileWriter := zip.NewWriter(conglomerateZipFile)
-
-	// Populate Zip file with File Datas array
-	err = model.PopulateZipfile(zipFileWriter, fileDatas)
+	fileBytes, err := fileStorageBackend.ReadFile(path.Join(OutputDirectory, outputZipFilename))
+	defer fileStorageBackend.RemoveDirectory(OutputDirectory)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_populate_zip_file", nil, err.Error(), http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, err.Error(), http.StatusForbidden)
 		return
 	}
+	fileBytesReader := bytes.NewReader(fileBytes)
 
 	// Send the zip file back to client
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, conglomerateZipFile, true, w, r)
+	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
 	if writeFileResponseErr != nil {
 		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
 		return

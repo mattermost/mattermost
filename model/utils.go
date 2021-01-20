@@ -4,7 +4,6 @@
 package model
 
 import (
-	"archive/zip"
 	"bytes"
 	"crypto/rand"
 	"encoding/base32"
@@ -717,22 +716,4 @@ func filterBlocklist(r rune) rune {
 	}
 
 	return r
-}
-
-// This is a implementation of Go's example of writing files to zip (with slight modification)
-// https://golang.org/src/archive/zip/example_test.go
-func PopulateZipfile(w *zip.Writer, fileDatas []FileData) error {
-	for _, fd := range fileDatas {
-		f, err := w.Create(fd.Filename)
-		if err != nil {
-			return err
-		}
-
-		_, err = f.Write(fd.Body)
-		if err != nil {
-			return err
-		}
-	}
-	defer w.Close()
-	return nil
 }

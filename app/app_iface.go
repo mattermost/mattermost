@@ -308,6 +308,9 @@ type AppIface interface {
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
+	// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
+	// Ensure the zip file name ends with a .zip
+	CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error
 	// This to be used for places we check the users password when they are already logged in
 	DoubleCheckPassword(user *model.User, password string) *model.AppError
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
