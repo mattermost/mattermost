@@ -21,29 +21,29 @@ empty:
   script:
     - echo "empty"
 
-lint:
- image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.33.2-1
- stage: .pre
- script:
-   - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
-   - make config-reset
-   - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
- timeout: 60 mins
- rules:
-   - if: '$TEST == "yes"'
+# lint:
+#  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.33.2-1
+#  stage: .pre
+#  script:
+#    - GO111MODULE=off GOBIN=$PWD/bin go get -u github.com/mattermost/mattermost-govet
+#    - make config-reset
+#    - make check-style #todo MM_VET_OPENSPEC_PATH='$CI_PROJECT_DIR/mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
+#  timeout: 60 mins
+#  rules:
+#    - if: '$TEST == "yes"'
 
-layers:
- image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
- stage: .pre
- script:
-   - make store-layers
-   - if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
-   - git reset --hard
-   - make app-layers
-   - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
-   - git reset --hard
- rules:
-   - if: '$TEST == "yes"'
+# layers:
+#  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+#  stage: .pre
+#  script:
+#    - make store-layers
+#    - if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
+#    - git reset --hard
+#    - make app-layers
+#    - if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
+#    - git reset --hard
+#  rules:
+#    - if: '$TEST == "yes"'
 
 #test-postgres:
 #  extends: .test
@@ -67,14 +67,14 @@ layers:
 
 test-schema-postgres:
  extends: .test-schema
- tags:
-   - docker
+#  tags:
+#    - docker
  script:
     - kubectl get pod
     - echo "Creating databases"
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+    - kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
     - echo "Importing postgres dump from version 5.0"
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
+    - kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
 
     # - |
     #   kubectl run \
@@ -100,10 +100,10 @@ test-schema-postgres:
 
   #  - docker logs -f server-postgres
     - echo "Generating dump"
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') -- pg_dump --schema-only -d latest -U mmuser > latest.sql
+    - kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+    - kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d latest -U mmuser > latest.sql
     - echo "Removing databases created for db comparison"
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=postgres -o jsonpath='{.items[0].metadata.name}') sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+    - kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
     - echo "Generating diff"
     - diff migrated.sql latest.sql > diff.txt && echo "Both schemas are same" || (echo "Schema mismatch" && cat diff.txt && exit 1)
  rules:

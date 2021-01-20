@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+   # dejavu
+   - dejavu/deployment.yaml
+   - dejavu/service.yaml
+
+   # elasticsearch
+   - elasticsearch/deployment.yaml
+   - elasticsearch/service.yaml
+
+   # inbucket
+   - inbucket/deployment.yaml
+   - inbucket/service.yaml
+
+   # keycloak
+   - keycloak/deployment.yaml
+   - keycloak/service.yaml
+
+   # minio
+   - minio/deployment.yaml
+   - minio/service.yaml
+
+   # mysql
+   - mysql/deployment.yaml
+   - mysql/pvc.yaml
+   - mysql/service.yaml
+
+   # openldap
+   - openldap/deployment.yaml
+   - openldap/service.yaml
+
+   # postgres
+   - postgres/deployment.yaml
+   - postgres/pvc.yaml
+   - postgres/service.yaml
+
+commonLabels:
+  com.mattermost/app: mattermost

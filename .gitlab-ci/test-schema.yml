@@ -10,11 +10,16 @@
     DOCKER_DRIVER: overlay2
     DOCKER_CONTENT_TRUST: 0
     DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+    KUBECONFIG: /kubeconfig
   before_script:
+    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
     - |
-      curl -sSLo kind https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
-      chmod +x kind
-      mv kind /usr/local/bin/
+      cat <<EOF >>build/kustomization.yaml
+      namePrefix: "ci-${CI_PIPELINE_ID}-"
+      commonLabels:
+        com.mattermost/branch: "${CI_COMMIT_BRANCH}"
+        com.mattermost/pipeline: "${CI_PIPELINE_ID}"
+      EOF
 
     - |
       curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl
@@ -26,27 +31,18 @@
       tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz
       mv ./kustomize /usr/local/bin/kustomize
 
+    - kustomize build build/ | kubectl -n mm-ci apply -f -
     - |
-      kind create cluster --config=./.gitlab-ci/kind-config.yaml --name ci-mm-${CI_PIPELINE_ID} --wait 3m
-      sed -i -E -e 's/localhost|0\.0\.0\.0/docker/g' "$HOME/.kube/config"
+      function get_pod_name() {
+        if [ -n "$1" ]; then
+          kubectl get pod -n mm-ci -l=com.mattermost/component="$1" -l=com.mattermost/pipeline="${CI_PIPELINE_ID}" -o jsonpath='{.items[0].metadata.name}'
+        fi
+      }
 
-    - kustomize build build | kubectl apply -f -
-
-    - kubectl wait --for=condition=ready pod --all=true --timeout=5m
-    # - |
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=dejavu
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=elasticsearch
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=inbucket
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=keycloack
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=minio
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=mysql
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=openldap
-    #   kubectl wait --for=condition=ready pod -l com.mattermost/component=postgres
-
-    - kubectl exec -t $(kubectl get pod -l=com.mattermost/component=minio -o jsonpath='{.items[0].metadata.name}') -- sh -c 'mkdir -p /data/mattermost-test'
+    - kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
+    - kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
 
     # - |
     #   cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
   after_script:
-    - kind delete cluster --name ci-mm-${CI_PIPELINE_ID}
+    - kustomize build build/ | kubectl -n mm-ci delete -f -
