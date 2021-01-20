@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-server
+  labels:
+    com.mattermost/component: build-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      com.mattermost/component: build-server
+  template:
+    metadata:
+      labels:
+        com.mattermost/component: build-server
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: build-server
+          image: mattermost/mattermost-build-server:20201119_golang-1.15.5
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: envs
+              valueFrom:
+                configMapKeyRef:
+                  key: test-schema-validation.env
+                  name: dotenv
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /mattermost-server
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: build-server
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: build-server
+  labels:
+    com.mattermost/component: build-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
