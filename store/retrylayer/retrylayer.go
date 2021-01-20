@@ -7326,6 +7326,26 @@ func (s *RetryLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 
 }
 
+func (s *RetryLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.HasRemote(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 
 	tries := 0
