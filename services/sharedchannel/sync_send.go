@@ -155,8 +155,9 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 	}
 
 	opts := model.GetPostsSinceOptions{
-		ChannelId: channelId,
-		Time:      scr.LastSyncAt,
+		ChannelId:     channelId,
+		Time:          scr.LastSyncAt,
+		SortAscending: true,
 	}
 	posts, err := scs.server.GetStore().Post().GetPostsSince(opts, true)
 	if err != nil {

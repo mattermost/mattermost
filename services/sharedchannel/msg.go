@@ -44,7 +44,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		// don't include the post if only the reactions changed (i.e. was not editted)
 		postSync := p
 		if p.EditAt < lastSyncAt {
-			p = nil
+			postSync = nil
 		}
 
 		sm := syncMsg{

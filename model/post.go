@@ -236,6 +236,7 @@ type GetPostsSinceOptions struct {
 	SkipFetchThreads         bool
 	CollapsedThreads         bool
 	CollapsedThreadsExtended bool
+	SortAscending            bool
 }
 
 type GetPostsOptions struct {
