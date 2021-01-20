@@ -240,9 +240,17 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
-	rc, err := a.GetRemoteCluster(remoteId)
+	has, err := a.HasRemote(args.ChannelId)
 	if err != nil {
-		return responsef("Remote cluster id is invalid: %v", err)
+		return responsef("Error fetching remote clusters: %v", err)
+	}
+	if has {
+		return responsef("The remote cluster has already been invited")
+	}
+
+	rc, appErr := a.GetRemoteCluster(remoteId)
+	if appErr != nil {
+		return responsef("Remote cluster id is invalid: %v", appErr)
 	}
 
 	// send channel invite to remote cluster

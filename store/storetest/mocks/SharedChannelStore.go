@@ -216,6 +216,27 @@ func (_m *SharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Share
 	return r0, r1
 }
 
+// HasRemote provides a mock function with given fields: channelID
+func (_m *SharedChannelStore) HasRemote(channelID string) (bool, error) {
+	ret := _m.Called(channelID)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: sc
 func (_m *SharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	ret := _m.Called(sc)

@@ -374,6 +374,27 @@ func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChan
 	return remotes, nil
 }
 
+// HasRemote returns whether a given channelID is present in the channel remotes or not.
+func (s SqlSharedChannelStore) HasRemote(channelID string) (bool, error) {
+	builder := s.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("SharedChannelRemotes").
+		Where(sq.Eq{"ChannelId": channelID}).
+		Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "get_shared_channel_hasremote_tosql")
+	}
+
+	var hasRemote bool
+	if err := s.GetReplica().SelectOne(&hasRemote, query, args...); err != nil {
+		return hasRemote, errors.Wrapf(err, "failed to get channel remotes for channel_id=%s", channelID)
+	}
+	return hasRemote, nil
+}
+
 // UpdateRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
 	squery, args, err := s.getQueryBuilder().
