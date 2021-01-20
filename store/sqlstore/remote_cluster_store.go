@@ -176,3 +176,7 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 	}
 	return nil
 }
+
+func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
+	s.CreateUniqueIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", "siteurl")
+}
