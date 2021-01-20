@@ -172,6 +172,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -1139,6 +1143,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1449,6 +1457,14 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme has been provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
@@ -1565,8 +1581,16 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1627,6 +1651,10 @@
   {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -6697,6 +6725,10 @@
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "error",
+    "translation": "Error"
   },
   {
     "id": "group_not_associated_to_synced_team",

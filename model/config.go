@@ -237,6 +237,10 @@ const (
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
+func GetDefaultAppCustomURLSchemes() []string {
+	return []string{"mmauth://", "mmauthbeta://"}
+}
+
 var ServerTLSSupportedCiphers = map[string]uint16{
 	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
 	"TLS_RSA_WITH_3DES_EDE_CBC_SHA":           tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
@@ -1362,7 +1366,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
+		s.MaxFileSize = NewInt64(MB * 100)
 	}
 
 	if s.DriverName == nil {
@@ -2427,9 +2431,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"`
+	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2443,6 +2448,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.IosAppDownloadLink == nil {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
+	}
+
+	if s.AppCustomURLSchemes == nil {
+		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
 	}
 }
 
