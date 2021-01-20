@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
@@ -89,6 +90,11 @@ func TestPlugin(t *testing.T) {
 				res.Write(tarData)
 			}))
 			defer func() { slowTestServer.Close() }()
+
+			storeMock := mocks.Store{}
+			statusMock := mocks.StatusStore{}
+			statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
+			storeMock.On("Status").Return(&statusMock)
 
 			manifest, resp = client.InstallPluginFromUrl(slowTestServer.URL, true)
 			CheckNoError(t, resp)
@@ -369,6 +375,9 @@ func TestDisableOnRemove(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
+
+	statusMock := mocks.StatusStore{}
+	statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
 
 	testCases := []struct {
 		Description string

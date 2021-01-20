@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	storemocks "github.com/mattermost/mattermost-server/v5/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 
@@ -363,6 +364,9 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
+
+	statusMock := storemocks.StatusStore{}
+	statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
 
 	team1 := th.CreateTeam()
 	team2 := th.CreateTeam()
