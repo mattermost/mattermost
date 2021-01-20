@@ -165,7 +165,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 			From("ThreadMemberships").
-			Where(fetchConditions).ToSql()
+			Where(newFetchConditions).ToSql()
 
 		totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
 		totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
