@@ -89,6 +89,11 @@ func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelR
 	return a.Srv().Store.SharedChannel().GetRemotes(channelId)
 }
 
+// HasRemote returns whether a given channelID is present in the channel remotes or not.
+func (a *App) HasRemote(channelID string) (bool, error) {
+	return a.Srv().Store.SharedChannel().HasRemote(channelID)
+}
+
 func (a *App) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
 	return a.Srv().Store.SharedChannel().UpdateRemoteLastSyncAt(id, syncTime)
 }
