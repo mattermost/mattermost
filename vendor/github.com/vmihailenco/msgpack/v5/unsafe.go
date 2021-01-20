@@ -7,7 +7,7 @@ import (
 )
 
 // bytesToString converts byte slice to string.
-func bytesToString(b []byte) string { //nolint:deadcode,unused
+func bytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
