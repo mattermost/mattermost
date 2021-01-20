@@ -177,7 +177,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return nil
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max], cache, rc)
+	msg, err := scs.postsToMsg(pSlice[:max], cache, rc, scr.LastSyncAt)
 	if err != nil {
 		return err
 	}

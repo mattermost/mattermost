@@ -16,6 +16,8 @@ type msgCache map[string]syncMsg
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
+	ChannelId string            `json:"channel_id"`
+	PostId    string            `json:"post_id"`
 	Post      *model.Post       `json:"post"`
 	Users     []*model.User     `json:"users"`
 	Reactions []*model.Reaction `json:"reactions"`
@@ -23,7 +25,7 @@ type syncMsg struct {
 
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster
-func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster) (model.RemoteClusterMsg, error) {
+func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	for _, p := range posts {
@@ -39,8 +41,16 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 
 		users := scs.usersForPost(p, reactions, rc)
 
+		// don't include the post if only the reactions changed (i.e. was not editted)
+		postSync := p
+		if p.EditAt < lastSyncAt {
+			p = nil
+		}
+
 		sm := syncMsg{
-			Post:      p,
+			ChannelId: p.ChannelId,
+			PostId:    p.Id,
+			Post:      postSync,
 			Users:     users,
 			Reactions: reactions,
 		}
