@@ -209,7 +209,7 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
 		if broadcast {
 			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
-				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+				mlog.Warn("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
 			}
 		} else {
 			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
@@ -302,7 +302,7 @@ func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
 	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
-		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
+		mlog.Warn("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)

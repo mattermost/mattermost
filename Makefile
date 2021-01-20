@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -6,6 +6,15 @@ ifeq ($(OS),Windows_NT)
 	PLATFORM := Windows
 else
 	PLATFORM := $(shell uname)
+endif
+
+# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
+# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
+# satisfactorily.
+ifeq ($(PLATFORM),Linux)
+	export IS_LINUX = -linux
+else
+	export IS_LINUX =
 endif
 
 IS_CI ?= false
@@ -154,6 +163,13 @@ else
 ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
 endif
+endif
+
+run-haserver: run-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Starting mattermost in an HA topology
+
+	docker-compose -f docker-compose.yaml up haproxy
 endif
 
 stop-docker: ## Stops the docker containers for local development.
@@ -473,6 +489,13 @@ restart: restart-server restart-client ## Restarts the server and webapp.
 
 restart-server: | stop-server run-server ## Restarts the mattermost server to pick up development change.
 
+restart-haserver:
+	@echo Restarting mattermost in an HA topology
+
+	docker-compose restart follower
+	docker-compose restart leader
+	docker-compose restart haproxy
+
 restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
@@ -542,11 +565,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
-	# Tidy up
-	$(GO) mod tidy
-
 	# Copy everything to vendor directory
 	$(GO) mod vendor
+
+	# Tidy up
+	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \

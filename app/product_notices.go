@@ -11,15 +11,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
+	date_constraints "github.com/reflog/dateconstraints"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/Masterminds/semver/v3"
-	"github.com/pkg/errors"
-	date_constraints "github.com/reflog/dateconstraints"
 )
 
 const MaxRepeatViewings = 3
@@ -304,12 +304,12 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

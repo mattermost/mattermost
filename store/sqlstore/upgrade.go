@@ -964,6 +964,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 	// allow 10 files per post
 	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
+	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }

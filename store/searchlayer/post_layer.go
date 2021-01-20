@@ -4,11 +4,12 @@
 package searchlayer
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/pkg/errors"
 )
 
 type SearchPostStore struct {
@@ -27,6 +28,7 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 				}
 				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
 					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Indexed post in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -40,6 +42,7 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeletePost(post); err != nil {
 					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed post from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -53,6 +56,7 @@ func (s SearchPostStore) deleteChannelPostsIndex(channelID string) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
 					mlog.Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -66,6 +70,7 @@ func (s SearchPostStore) deleteUserPostsIndex(userID string) {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUserPosts(userID); err != nil {
 					mlog.Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -103,7 +108,7 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
-		postList, err2 := s.PostStore.Get(postId, true)
+		postList, err2 := s.PostStore.Get(postId, true, false, false)
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
