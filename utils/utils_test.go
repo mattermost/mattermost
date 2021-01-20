@@ -160,3 +160,13 @@ func TestRemoveStringFromSlice(t *testing.T) {
 
 	assert.Equal(t, RemoveStringFromSlice("four", a), expected)
 }
+
+func TestAppendQueryParamsToURL(t *testing.T) {
+	url := "mattermost://callback"
+	redirectUrl := AppendQueryParamsToURL(url, map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+	})
+	expected := url + "?key1=value1&key2=value2"
+	assert.Equal(t, redirectUrl, expected)
+}
