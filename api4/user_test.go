@@ -5564,45 +5564,39 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create a post by regular user
-	rpost, resp := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
+	rpost, resp := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// reply with another
-	_, resp2 := th.SystemAdminClient.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
-	CheckNoError(t, resp2)
-	CheckCreatedStatus(t, resp2)
+	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply", RootId: rpost.Id})
 
-	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int) (*model.Threads, *model.Response) {
-		u, r := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
-			Page:     0,
-			PageSize: 30,
-			Deleted:  false,
-		})
+	checkThreadList := func(client *model.Client4, userId string, expectedReplies, expectedThreads int, opts *model.GetUserThreadsOpts) (*model.Threads, *model.Response) {
+		options := model.GetUserThreadsOpts{}
+		if opts != nil {
+			options = *opts
+		}
+		u, r := client.GetUserThreads(userId, th.BasicTeam.Id, options)
 		CheckNoError(t, r)
 		require.Len(t, u.Threads, expectedThreads)
-		require.EqualValues(t, expectedReplies, u.Threads[0].UnreadReplies)
 
 		sum := int64(0)
 		for _, thr := range u.Threads {
 			sum += thr.UnreadReplies
 		}
+		require.EqualValues(t, expectedReplies, sum)
 		require.Equal(t, sum, u.TotalUnreadReplies)
 
 		return u, r
 	}
 	// regular user should have one thread with one reply
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 1, 1, nil)
 
 	// add another reply by regular user
-	_, resp3 := Client.CreatePost(&model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
-	CheckNoError(t, resp3)
-	CheckCreatedStatus(t, resp3)
+	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply2", RootId: rpost.Id})
 
 	// replying to the thread clears reply count, so it should be 0
-	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1, nil)
 
 	// the other user should have 2 replies
-	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
 
 	// mark all as read for user
 	resp = th.Client.UpdateThreadsReadForUser(th.BasicUser.Id, th.BasicTeam.Id)
@@ -5610,10 +5604,24 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	CheckOKStatus(t, resp)
 
 	// reply count should be 0
-	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 0, 1, nil)
 
-	// the other user should also have 2
-	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1)
+	// mark other user's read state
+	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// get unread only, should return nothing
+	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 0, 0, &model.GetUserThreadsOpts{Unread: true})
+
+	// restore unread to an old date
+	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, 123)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// should have 2 unread replies now
+	checkThreadList(th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, &model.GetUserThreadsOpts{Unread: true})
+
 }
 func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model.Post, *model.Response) {
 	p, resp := client.CreatePost(post)

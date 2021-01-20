@@ -126,7 +126,6 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
-
 	pageSize := uint64(30)
 	if opts.PageSize == 0 {
 		pageSize = opts.PageSize
@@ -150,6 +149,12 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		close(totalUnreadRepliesChan)
 	}()
 	go func() {
+		newFetchConditions := fetchConditions
+
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+
 		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(ThreadMemberships.PostId)").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
@@ -181,7 +186,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
 		}
 		if opts.Unread {
-			newFetchConditions = sq.And{newFetchConditions, sq.Gt{"UnreadReplies": 0}}
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
 		}
 
 		var threads []*JoinedThread
