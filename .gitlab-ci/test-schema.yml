@@ -39,7 +39,10 @@
         fi
       }
 
-    - kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
+    - |
+      kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
+      sleep 5s
+
     - kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
     - cat tests/test-data.ldif | kubectl exec -n mm-ci -t $(get_pod_name "openldap") -- bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
   after_script:
