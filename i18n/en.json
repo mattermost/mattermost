@@ -3023,8 +3023,8 @@
     "translation": "Error creating zip file."
   },
   {
-    "id": "api.unable_to_populate_zip_file",
-    "translation": "Error populating zip file with data."
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Error reading file from backend"
   },
   {
     "id": "api.unable_write_file_response",
