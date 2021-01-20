@@ -36,6 +36,10 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache) (model.Remot
 		if err != nil {
 			return model.RemoteClusterMsg{}, err
 		}
+
+		// Parse out all permalinks in the message.
+		p.Message = scs.processPermalinkToRemote(p)
+
 		sm := syncMsg{
 			Post:      p,
 			Reactions: reactions,
