@@ -34,7 +34,7 @@ spec:
           resources: {}
           volumeMounts:
             - name: data
-              mountPath: /mattermost-server
+              mountPath: /build
       volumes:
         - name: data
           persistentVolumeClaim:
