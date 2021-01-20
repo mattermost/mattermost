@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -16,6 +17,7 @@ import (
 func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
 	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, ss) })
+	t.Run("ExistsSharedChannel", func(t *testing.T) { testExistsSharedChannel(t, ss) })
 	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, ss) })
 	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, ss) })
 	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
@@ -135,6 +137,34 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 		sc, err := ss.SharedChannel().Get(model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, sc)
+	})
+}
+
+func testExistsSharedChannel(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_get")
+	require.Nil(t, err)
+
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: model.NewId(),
+		ShareName: "testshare",
+		Home:      true,
+	}
+
+	scSaved, err := ss.SharedChannel().Save(sc)
+	require.NoError(t, err, "couldn't save shared channel", err)
+
+	t.Run("Get existing shared channel", func(t *testing.T) {
+		exists, err := ss.SharedChannel().HasChannel(scSaved.ChannelId)
+		require.NoError(t, err, "couldn't get shared channel", err)
+		assert.True(t, exists)
+	})
+
+	t.Run("Get non-existent shared channel", func(t *testing.T) {
+		exists, err := ss.SharedChannel().HasChannel(model.NewId())
+		require.NoError(t, err)
+		assert.False(t, exists)
 	})
 }
 
