@@ -1143,6 +1143,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -2892,11 +2896,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -7941,6 +7945,10 @@
   {
     "id": "model.reaction.is_valid.post_id.app_error",
     "translation": "Invalid post id."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",

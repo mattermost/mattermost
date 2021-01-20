@@ -1366,7 +1366,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
+		s.MaxFileSize = NewInt64(MB * 100)
 	}
 
 	if s.DriverName == nil {

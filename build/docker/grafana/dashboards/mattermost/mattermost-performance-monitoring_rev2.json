@@ -1609,11 +1609,11 @@
       "yaxes": [
         {
           "format": "short",
-          "label": null,
+          "label": "Active",
           "logBase": 1,
           "max": null,
           "min": null,
-          "show": false
+          "show": true
         },
         {
           "format": "short",
