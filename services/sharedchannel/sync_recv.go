@@ -107,6 +107,7 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 	}
 
 	response[ResponsePostErrors] = postErrors
+	response[ResponseUsersSynced] = usersSyncd
 
 	return nil
 }
@@ -115,7 +116,7 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 	var err error
 	var userSaved *model.User
 
-	*user.RemoteId = rc.RemoteId
+	user.RemoteId = model.NewString(rc.RemoteId)
 
 	// does the user already exist?
 	euser, err := scs.server.GetStore().User().Get(user.Id)
@@ -156,7 +157,7 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc *model.RemoteCluster) (*model.Post, error) {
 	var appErr *model.AppError
 
-	*post.RemoteId = rc.RemoteId
+	post.RemoteId = model.NewString(rc.RemoteId)
 
 	rpost, err := scs.server.GetStore().Post().GetSingle(post.Id)
 	if err != nil {
@@ -178,23 +179,26 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId))
 	}
-	return rpost, appErr
+
+	if appErr != nil {
+		err = errors.New(appErr.Error())
+	}
+	return rpost, err
 }
 
 func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.RemoteCluster) (*model.Reaction, error) {
 	savedReaction := reaction
-	var err error
+	var appErr *model.AppError
 
 	if reaction.DeleteAt == 0 {
-		savedReaction, err = scs.app.SaveReactionForPost(reaction)
-		if err != nil {
-			return nil, err
-		}
+		savedReaction, appErr = scs.app.SaveReactionForPost(reaction)
 	} else {
-		err = scs.app.DeleteReactionForPost(reaction)
-		if err != nil {
-			return nil, err
-		}
+		appErr = scs.app.DeleteReactionForPost(reaction)
 	}
-	return savedReaction, nil
+
+	var err error
+	if appErr != nil {
+		err = errors.New(appErr.Error())
+	}
+	return savedReaction, err
 }
