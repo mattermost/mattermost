@@ -58,3 +58,8 @@ configMapGenerator:
   - name: postgres
     files:
       - docker/postgres.conf
+
+  - name: dotenv
+    files:
+      - dotenv/test-schema-validation.env
+      - dotenv/test.env
