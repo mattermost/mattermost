@@ -34,6 +34,7 @@
     - kustomize build build/ | kubectl -n mm-ci apply -f -
     - |
       function get_pod_name() {
+        echo $1
         if [ -n "$1" ]; then
           kubectl get pod -n mm-ci -l=com.mattermost/component="$1" -l=com.mattermost/pipeline="${CI_PIPELINE_ID}" -o jsonpath='{.items[0].metadata.name}'
         fi
