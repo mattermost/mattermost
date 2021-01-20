@@ -23,6 +23,22 @@ type syncMsg struct {
 	Reactions []*model.Reaction `json:"reactions"`
 }
 
+func (sm syncMsg) ToJSON() ([]byte, error) {
+	b, err := json.Marshal(sm)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (sm syncMsg) String() string {
+	json, err := sm.ToJSON()
+	if err != nil {
+		return ""
+	}
+	return string(json)
+}
+
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster
 func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {

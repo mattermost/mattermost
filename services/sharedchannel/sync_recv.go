@@ -51,7 +51,9 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 			mlog.String("post_id", sm.PostId),
 			mlog.String("channel_id", sm.ChannelId),
 			mlog.Int("reaction_count", len(sm.Reactions)),
-			mlog.Int("user_count", len(sm.Users)))
+			mlog.Int("user_count", len(sm.Users)),
+			mlog.String("msg", sm.String()),
+		)
 
 		if channel == nil {
 			if channel, err = scs.server.GetStore().Channel().Get(sm.ChannelId, true); err != nil {
@@ -70,6 +72,9 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 					mlog.Err(err))
 			} else {
 				usersSyncd = append(usersSyncd, userSaved.Id)
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "User added via sync",
+					mlog.String("channel_id", sm.ChannelId),
+					mlog.String("user_id", user.Id))
 			}
 		}
 
@@ -82,8 +87,14 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 					mlog.String("post_id", sm.Post.Id),
 					mlog.String("channel_id", sm.Post.ChannelId),
 					mlog.Err(err))
-			} else if lastSyncAt < rpost.UpdateAt {
-				lastSyncAt = rpost.UpdateAt
+			} else {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Post upserted via sync",
+					mlog.String("channel_id", sm.ChannelId),
+					mlog.String("post_id", sm.Post.Id))
+
+				if lastSyncAt < rpost.UpdateAt {
+					lastSyncAt = rpost.UpdateAt
+				}
 			}
 		}
 
@@ -91,13 +102,21 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 		for _, reaction := range sm.Reactions {
 			if _, err := scs.upsertSyncReaction(reaction, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error creating/deleting sync reaction",
-					mlog.String("remote", rc.DisplayName),
-					mlog.String("ChannelId", sm.ChannelId),
-					mlog.String("PostId", reaction.PostId),
-					mlog.Err(err),
-				)
-			} else if lastSyncAt < reaction.UpdateAt {
-				lastSyncAt = reaction.UpdateAt
+					mlog.String("user_id", reaction.UserId),
+					mlog.String("post_id", reaction.PostId),
+					mlog.String("emoji", reaction.EmojiName),
+					mlog.Int64("delete_at", reaction.DeleteAt),
+					mlog.Err(err))
+			} else {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Reaction upserted via sync",
+					mlog.String("user_id", reaction.UserId),
+					mlog.String("post_id", reaction.PostId),
+					mlog.String("emoji", reaction.EmojiName),
+					mlog.Int64("delete_at", reaction.DeleteAt))
+
+				if lastSyncAt < reaction.UpdateAt {
+					lastSyncAt = reaction.UpdateAt
+				}
 			}
 		}
 	}
