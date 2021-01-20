@@ -3483,6 +3483,10 @@
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Request is missing either AuthData or AuthService parameter."
+  },
+  {
     "id": "api.user.update_user_roles.license.app_error",
     "translation": "Custom Permission Schemes not supported by current license"
   },
@@ -5685,10 +5689,6 @@
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "Unable to update the user password."
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",

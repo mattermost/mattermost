@@ -1398,6 +1398,11 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
 		auditRec.AddMeta("user", user)
 	}
