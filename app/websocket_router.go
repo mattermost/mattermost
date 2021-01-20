@@ -95,7 +95,11 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func returnWebSocketError(app *App, conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
-	mlog.Error(
+	logF := mlog.Error
+	if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
+		logF = mlog.Debug
+	}
+	logF(
 		"websocket routing error.",
 		mlog.Int64("seq", r.Seq),
 		mlog.String("user_id", conn.UserId),
