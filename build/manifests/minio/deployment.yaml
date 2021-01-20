@@ -29,10 +29,4 @@ spec:
               value: miniosecretkey
             - name: MINIO_SSE_MASTER_KEY
               value: my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574
-          resources:
-            limits:
-              cpu: "1"
-              memory: 400Mi
-            requests:
-              cpu: 200m
-              memory: 100Mi
+          resources: {}

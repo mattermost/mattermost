@@ -28,10 +28,4 @@ spec:
               value: Mattermost Test
             - name: LDAP_TLS_VERIFY_CLIENT
               value: never
-          resources:
-            limits:
-              cpu: "1"
-              memory: 400Mi
-            requests:
-              cpu: 200m
-              memory: 100Mi
+          resources: {}

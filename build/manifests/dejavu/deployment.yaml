@@ -19,10 +19,4 @@ spec:
         - name: dejavu
           image: appbaseio/dejavu:3.4.2
           imagePullPolicy: IfNotPresent
-          resources:
-            limits:
-              cpu: "1"
-              memory: 400Mi
-            requests:
-              cpu: 200m
-              memory: 100Mi
+          resources: {}

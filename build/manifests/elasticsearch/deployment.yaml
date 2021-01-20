@@ -36,10 +36,4 @@ spec:
               value: "9200"
             - name: transport.host
               value: 127.0.0.1
-          resources:
-            limits:
-              cpu: "1"
-              memory: 400Mi
-            requests:
-              cpu: 200m
-              memory: 100Mi
+          resources: {}

@@ -32,13 +32,7 @@ spec:
               value: mostest
             - name: POSTGRES_USER
               value: mmuser
-          resources:
-            limits:
-              cpu: "1"
-              memory: 400Mi
-            requests:
-              cpu: 200m
-              memory: 100Mi
+          resources: {}
           volumeMounts:
             - name: config
               mountPath: /etc/postgresql/postgresql.conf
