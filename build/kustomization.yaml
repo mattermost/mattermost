@@ -22,5 +22,5 @@ configMapGenerator:
       - docker/postgres.conf
 
   - name: dotenv
-    files:
+    envs:
       - dotenv/test.env

@@ -26,12 +26,10 @@ spec:
             - "--"
           args:
             - "while true; do sleep 30; done;"
-          env:
-            - name: envs
-              valueFrom:
-                configMapKeyRef:
-                  key: test.env
-                  name: dotenv
+          envFrom:
+            - name:
+              configMapRef:
+                name: dotenv
           resources: {}
           volumeMounts:
             - name: data
@@ -81,12 +79,10 @@ spec:
             - "--"
           args:
             - "while true; do sleep 30; done;"
-          env:
-            - name: envs
-              valueFrom:
-                configMapKeyRef:
-                  key: test.env
-                  name: dotenv
+          envFrom:
+            - name:
+              configMapRef:
+                name: dotenv
           resources: {}
           volumeMounts:
             - name: data
