@@ -28,7 +28,7 @@ type JobConfig struct {
 }
 
 // NextWaitInterval is a callback computing the next wait interval for a job.
-type NextWaitInterval func(now time.Time, metadata jobMetadata) time.Duration
+type NextWaitInterval func(now time.Time, metadata JobMetadata) time.Duration
 
 // MakeWaitForInterval creates a function to scheduling a job to run on the given interval relative
 // to the last finished timestamp.
@@ -43,7 +43,7 @@ func MakeWaitForInterval(interval time.Duration) NextWaitInterval {
 		panic("must specify non-zero ready interval")
 	}
 
-	return func(now time.Time, metadata jobMetadata) time.Duration {
+	return func(now time.Time, metadata JobMetadata) time.Duration {
 		sinceLastFinished := now.Sub(metadata.LastFinished)
 		if sinceLastFinished < interval {
 			return interval - sinceLastFinished
@@ -68,7 +68,7 @@ func MakeWaitForRoundedInterval(interval time.Duration) NextWaitInterval {
 		panic("must specify non-zero ready interval")
 	}
 
-	return func(now time.Time, metadata jobMetadata) time.Duration {
+	return func(now time.Time, metadata JobMetadata) time.Duration {
 		if metadata.LastFinished.IsZero() {
 			return 0
 		}
@@ -100,8 +100,8 @@ type Job struct {
 	done     chan bool
 }
 
-// jobMetadata persists metadata about job execution.
-type jobMetadata struct {
+// JobMetadata persists metadata about job execution.
+type JobMetadata struct {
 	// LastFinished is the last time the job finished anywhere in the cluster.
 	LastFinished time.Time
 }
@@ -131,20 +131,20 @@ func Schedule(pluginAPI JobPluginAPI, key string, nextWaitInterval NextWaitInter
 }
 
 // readMetadata reads the job execution metadata from the kv store.
-func (j *Job) readMetadata() (jobMetadata, error) {
+func (j *Job) readMetadata() (JobMetadata, error) {
 	data, appErr := j.pluginAPI.KVGet(j.key)
 	if appErr != nil {
-		return jobMetadata{}, errors.Wrap(appErr, "failed to read data")
+		return JobMetadata{}, errors.Wrap(appErr, "failed to read data")
 	}
 
 	if data == nil {
-		return jobMetadata{}, nil
+		return JobMetadata{}, nil
 	}
 
-	var metadata jobMetadata
+	var metadata JobMetadata
 	err := json.Unmarshal(data, &metadata)
 	if err != nil {
-		return jobMetadata{}, errors.Wrap(err, "failed to decode data")
+		return JobMetadata{}, errors.Wrap(err, "failed to decode data")
 	}
 
 	return metadata, nil
@@ -153,7 +153,7 @@ func (j *Job) readMetadata() (jobMetadata, error) {
 // saveMetadata writes updated job execution metadata from the kv store.
 //
 // It is assumed that the job mutex is held, negating the need to require an atomic write.
-func (j *Job) saveMetadata(metadata jobMetadata) error {
+func (j *Job) saveMetadata(metadata JobMetadata) error {
 	data, err := json.Marshal(metadata)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal data")

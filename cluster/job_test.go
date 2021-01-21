@@ -97,7 +97,7 @@ func TestMakeWaitForInterval(t *testing.T) {
 				lastFinished = now.Add(testCase.LastFinished)
 			}
 
-			actual := MakeWaitForInterval(testCase.Interval)(now, jobMetadata{
+			actual := MakeWaitForInterval(testCase.Interval)(now, JobMetadata{
 				LastFinished: lastFinished,
 			})
 			assert.Equal(t, testCase.Expected, actual)
@@ -258,7 +258,7 @@ func TestMakeWaitForRoundedInterval(t *testing.T) {
 				lastFinished = testCase.Now.Add(testCase.LastFinished)
 			}
 
-			actual := MakeWaitForRoundedInterval(testCase.Interval)(testCase.Now, jobMetadata{
+			actual := MakeWaitForRoundedInterval(testCase.Interval)(testCase.Now, JobMetadata{
 				LastFinished: lastFinished,
 			})
 			assert.Equal(t, testCase.Expected, actual)
