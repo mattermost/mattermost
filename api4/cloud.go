@@ -141,7 +141,7 @@ func updateCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomer(customerInfo)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomer(c.App.Session().UserId, customerInfo)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomer", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -179,7 +179,7 @@ func updateCloudCustomerAddress(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(address)
+	customer, appErr := c.App.Cloud().UpdateCloudCustomerAddress(c.App.Session().UserId, address)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.updateCloudCustomerAddress", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -273,7 +273,7 @@ func getInvoicesForSubscription(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription()
+	invoices, appErr := c.App.Cloud().GetInvoicesForSubscription(c.App.Session().UserId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getInvoicesForSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
@@ -304,7 +304,7 @@ func getSubscriptionInvoicePDF(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.Params.InvoiceId)
+	pdfData, filename, appErr := c.App.Cloud().GetInvoicePDF(c.App.Session().UserId, c.Params.InvoiceId)
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getSuscriptionInvoicePDF", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return

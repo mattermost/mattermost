@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"net/http"
 )
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
@@ -24,9 +25,14 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 		return nil
 	}
 
-	subscription, subErr := a.Cloud().GetSubscription()
-	if subErr != nil {
-		return subErr
+	subscription, err := a.Cloud().GetSubscription(a.Session().UserId)
+	if err != nil {
+		return model.NewAppError(
+			"app.CheckAndSendUserLimitWarningEmails",
+			"api.cloud.get_subscription.error",
+			nil,
+			err.Error(),
+			http.StatusInternalServerError)
 	}
 
 	if subscription != nil && subscription.IsPaidTier == "true" {
@@ -43,7 +49,12 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	}
 	sysAdmins, err := a.getSysAdminsEmailRecipients()
 	if err != nil {
-		return err
+		return model.NewAppError(
+			"app.CheckAndSendUserLimitWarningEmails",
+			"api.cloud.get_admins_emails.error",
+			nil,
+			err.Error(),
+			http.StatusInternalServerError)
 	}
 
 	// -1 means they are 1 user over the limit - we only want to send the email for the 11th user
