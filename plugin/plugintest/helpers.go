@@ -255,3 +255,31 @@ func (_m *Helpers) ShouldProcessMessage(post *model.Post, options ...plugin.Shou
 
 	return r0, r1
 }
+
+// ShouldProcessMessageNoBotCheck provides a mock function with given fields: post, botId, options
+func (_m *Helpers) ShouldProcessMessageNoBotCheck(post *model.Post, botId string, options ...plugin.ShouldProcessMessageOption) (bool, error) {
+	_va := make([]interface{}, len(options))
+	for _i := range options {
+		_va[_i] = options[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, post, botId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.Post, string, ...plugin.ShouldProcessMessageOption) bool); ok {
+		r0 = rf(post, botId, options...)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post, string, ...plugin.ShouldProcessMessageOption) error); ok {
+		r1 = rf(post, botId, options...)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

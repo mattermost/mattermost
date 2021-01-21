@@ -79,6 +79,19 @@ type Helpers interface {
 	// Minimum server version: 5.2
 	ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error)
 
+	// ShouldProcessMessageNoBotCheck returns if the message should be processed by a message hook.
+	//
+	// Use this method to avoid processing unnecessary messages in a MessageHasBeenPosted
+	// or MessageWillBePosted hook, and indeed in some cases avoid an infinite loop between
+	// two automated bots or plugins.
+	//
+	// The behaviour is customizable using the given options, since plugin needs may vary.
+	// By default, system messages  will be skipped.
+	// Unlike ShouldProcessMessage it does not check for botId presence in the store.
+	//
+	// Minimum server version: 5.31
+	ShouldProcessMessageNoBotCheck(post *model.Post, botId string, options ...ShouldProcessMessageOption) (bool, error)
+
 	// InstallPluginFromURL installs the plugin from the provided url.
 	//
 	// Minimum server version: 5.18

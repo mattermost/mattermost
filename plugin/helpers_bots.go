@@ -126,6 +126,16 @@ func OnlyBotDMs() ShouldProcessMessageOption {
 	}
 }
 
+// ShouldProcessMessageNoBotCheck implements Helpers.ShouldProcessMessageNoBotCheck
+func (p *HelpersImpl) ShouldProcessMessageNoBotCheck(post *model.Post, botId string, options ...ShouldProcessMessageOption) (bool, error) {
+	messageProcessOptions := &shouldProcessMessageOptions{}
+	for _, option := range options {
+		option(messageProcessOptions)
+	}
+
+	return p.shouldProcessMessage(post, botId, messageProcessOptions)
+}
+
 // ShouldProcessMessage implements Helpers.ShouldProcessMessage
 func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldProcessMessageOption) (bool, error) {
 	messageProcessOptions := &shouldProcessMessageOptions{}
@@ -143,6 +153,11 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 			return false, nil
 		}
 	}
+
+	return p.shouldProcessMessage(post, string(botIDBytes), messageProcessOptions)
+}
+
+func (p *HelpersImpl) shouldProcessMessage(post *model.Post, botId string, messageProcessOptions *shouldProcessMessageOptions) (bool, error) {
 
 	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
 		return false, nil
@@ -171,13 +186,13 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		return false, nil
 	}
 
-	if botIDBytes != nil && messageProcessOptions.OnlyBotDMs {
+	if messageProcessOptions.OnlyBotDMs {
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 		if appErr != nil {
 			return false, errors.Wrap(appErr, "unable to get channel")
 		}
 
-		if !model.IsBotDMChannel(channel, string(botIDBytes)) {
+		if !model.IsBotDMChannel(channel, botId) {
 			return false, nil
 		}
 	}
