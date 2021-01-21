@@ -293,7 +293,7 @@ func getBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Header().Set("Content-Type", "image/svg+xml")
 	w.Write(img)
