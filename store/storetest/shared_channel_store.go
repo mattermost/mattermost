@@ -17,7 +17,7 @@ import (
 func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
 	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, ss) })
-	t.Run("ExistsSharedChannel", func(t *testing.T) { testExistsSharedChannel(t, ss) })
+	t.Run("HasSharedChannel", func(t *testing.T) { testHasSharedChannel(t, ss) })
 	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, ss) })
 	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, ss) })
 	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
@@ -140,7 +140,7 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testExistsSharedChannel(t *testing.T, ss store.Store) {
+func testHasSharedChannel(t *testing.T, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_get")
 	require.Nil(t, err)
 
