@@ -48,7 +48,7 @@
       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-${TEST_SCOPE}"):/build
 
       printf "\033[36m==> TODO\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server-${TEST_SCOPE}") -- bash -c 'cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME BUILD_NUMBER=$CI_COMMIT_SHA CI_MINIO_HOST=ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-minio ./scripts/test.sh "go" "" "$(go list ./... | grep -v ./data)" "." "" "/build/mattermost-server/bin"'
+      kubectl exec -n mm-ci -t $(get_pod_name "build-server-${TEST_SCOPE}") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME BUILD_NUMBER=$CI_COMMIT_SHA CI_MINIO_HOST=ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-minio ./scripts/test.sh \"go\" \"\" \"$(go list ./... | grep -v ./data)\" \".\" \"\" \"/build/mattermost-server/bin\""
       kubectl logs -n mm-ci $(get_pod_name "build-server-${TEST_SCOPE}")
 
     # - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
