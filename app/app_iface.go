@@ -760,6 +760,7 @@ type AppIface interface {
 	HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool
 	HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userId string) bool
+	HasSharedChannel(channelID string) (bool, error)
 	HubStop()
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string

@@ -234,18 +234,33 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 	return responsef("##### This channel is no longer shared.")
 }
 
-func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
 	remoteId, ok := margs["remoteId"]
 	if !ok || remoteId == "" {
 		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
-	has, err := a.HasRemote(args.ChannelId)
+	hasRemote, err := a.HasRemote(args.ChannelId)
 	if err != nil {
 		return responsef("Error fetching remote clusters: %v", err)
 	}
-	if has {
+	if hasRemote {
 		return responsef("The remote cluster has already been invited")
+	}
+
+	// Check if channel is shared or not.
+	hasChan, err := a.HasSharedChannel(args.ChannelId)
+	if err != nil {
+		return responsef("Error while checking if shared channel exists: %v", err)
+	}
+	if !hasChan {
+		// If it doesn't exist, then create it.
+		resp2 := sp.doShareChannel(a, args, margs)
+		// We modify the outgoing response by prepending the text
+		// from the shareChannel response.
+		defer func() {
+			resp.Text = resp2.Text + "\n" + resp.Text
+		}()
 	}
 
 	rc, appErr := a.GetRemoteCluster(remoteId)

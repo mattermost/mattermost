@@ -800,6 +800,7 @@ type LinkMetadataStore interface {
 type SharedChannelStore interface {
 	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
 	Get(channelId string) (*model.SharedChannel, error)
+	HasChannel(channelID string) (bool, error)
 	GetAll(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
 	GetAllCount(opts SharedChannelFilterOpts) (int64, error)
 	Update(sc *model.SharedChannel) (*model.SharedChannel, error)

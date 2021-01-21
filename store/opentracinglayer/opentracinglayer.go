@@ -6778,6 +6778,24 @@ func (s *OpenTracingLayerSharedChannelStore) GetRemotesStatus(channelId string) 
 	return result, err
 }
 
+func (s *OpenTracingLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.HasChannel")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SharedChannelStore.HasChannel(channelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.HasRemote")
