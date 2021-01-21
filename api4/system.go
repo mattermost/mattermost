@@ -91,8 +91,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
 	now := time.Now()
-	YYYYMMDDHHSSFormat := fmt.Sprintf("%d-%02d-%02d-%02d-%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute())
-	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", YYYYMMDDHHSSFormat)
+	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
 	fileStorageBackend, fileBackendErr := c.App.FileBackend()
 	if fileBackendErr != nil {
@@ -100,14 +99,17 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, OutputDirectory)
+	// We do this incase we get concurrent requests, we will always have a unique directory.
+	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
+	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
+	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
 		return
 	}
 
-	fileBytes, err := fileStorageBackend.ReadFile(path.Join(OutputDirectory, outputZipFilename))
-	defer fileStorageBackend.RemoveDirectory(OutputDirectory)
+	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
+	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, err.Error(), http.StatusForbidden)
 		return

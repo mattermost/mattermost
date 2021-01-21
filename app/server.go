@@ -640,10 +640,10 @@ func (s *Server) AppOptions() []AppOption {
 	}
 }
 
-// Return Database type (postgres or mysql) and current version
-func (s *Server) DatabaseTypeAndVersion() (string, string) {
-	driverVersion, _ := s.Store.System().GetByName("Version")
-	return *s.Config().SqlSettings.DriverName, driverVersion.Value
+// Return Database type (postgres or mysql) and current version of Mattermost
+func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
+	mattermostVersion, _ := s.Store.System().GetByName("Version")
+	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
 }
 
 // initLogging initializes and configures the logger. This may be called more than once.
@@ -1630,44 +1630,23 @@ func (a *App) GenerateSupportPacket() []model.FileData {
 	// Creating an array of files that we are going to be adding to our zip file
 	fileDatas := []model.FileData{}
 
-	fileData, warning := a.generateSupportPacketYaml()
-
-	if fileData != nil {
-		fileDatas = append(fileDatas, *fileData)
-	} else {
-		warnings = append(warnings, warning)
+	// A array of the functions that we can iterate through since they all have the same return value
+	functions := []func() (*model.FileData, string){
+		a.generateSupportPacketYaml,
+		a.createPluginsFile,
+		a.createSanitizedConfigFile,
+		a.getMattermostLog,
+		a.getNotificationsLog,
 	}
 
-	fileData, warning = a.createPluginsFile()
+	for _, fn := range functions {
+		fileData, warning := fn()
 
-	if fileData != nil {
-		fileDatas = append(fileDatas, *fileData)
-	} else {
-		warnings = append(warnings, warning)
-	}
-
-	fileData, warning = a.createSanitizedConfigFile()
-
-	if fileData != nil {
-		fileDatas = append(fileDatas, *fileData)
-	} else {
-		warnings = append(warnings, warning)
-	}
-
-	fileData, warning = a.getMattermostLog()
-
-	if fileData != nil {
-		fileDatas = append(fileDatas, *fileData)
-	} else {
-		warnings = append(warnings, warning)
-	}
-
-	fileData, warning = a.getNotificationsLog()
-
-	if fileData != nil {
-		fileDatas = append(fileDatas, *fileData)
-	} else {
-		warnings = append(warnings, warning)
+		if fileData != nil {
+			fileDatas = append(fileDatas, *fileData)
+		} else {
+			warnings = append(warnings, warning)
+		}
 	}
 
 	// Adding a warning.txt file to the fileDatas if any warning
@@ -1736,8 +1715,6 @@ func (a *App) getMattermostLog() (*model.FileData, string) {
 }
 
 func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
-	var warning string
-
 	// Getting sanitized config, prettifying it, and then adding it to our file data array
 	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
 	if err == nil {
@@ -1748,8 +1725,7 @@ func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
 		return &fileData, ""
 	}
 
-	warning = fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
-
+	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
 	return nil, warning
 }
 
@@ -1793,8 +1769,8 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
 	}
 
-	// Here we are getting information regarding the database (mysql/postgres + version)
-	databaseType, databaseVersion := a.Srv().DatabaseTypeAndVersion()
+	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
