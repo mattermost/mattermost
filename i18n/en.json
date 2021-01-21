@@ -1190,7 +1190,6 @@
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
-  
   {
     "id": "api.context.invitation_expired.error",
     "translation": "Invitation is expired."
@@ -8278,6 +8277,10 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
     "id": "store.sql.convert_string_array",

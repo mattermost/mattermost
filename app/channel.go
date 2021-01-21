@@ -121,7 +121,6 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
 		a.Publish(message)
-
 	}
 
 	if nErr != nil {

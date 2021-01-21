@@ -3363,3 +3363,27 @@ func (s SqlChannelStore) SetShared(channelId string, shared bool) error {
 	}
 	return nil
 }
+
+// GetTeamForChannel returns the team for a given channelID.
+func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	nestedQ, nestedArgs, err := s.getQueryBuilder().Select("TeamId").From("Channels").Where(sq.Eq{"Id": channelID}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
+	}
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_team_for_channel_tosql")
+	}
+
+	team := model.Team{}
+	err = s.GetReplica().SelectOne(&team, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Team", fmt.Sprintf("channel_id=%s", channelID))
+		}
+		return nil, errors.Wrapf(err, "failed to find team with channel_id=%s", channelID)
+	}
+	return &team, nil
+}

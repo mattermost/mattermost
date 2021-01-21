@@ -1254,6 +1254,29 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, erro
 	return r0, r1
 }
 
+// GetTeamForChannel provides a mock function with given fields: channelID
+func (_m *ChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	ret := _m.Called(channelID)
+
+	var r0 *model.Team
+	if rf, ok := ret.Get(0).(func(string) *model.Team); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Team)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GroupSyncedChannelCount provides a mock function with given fields:
 func (_m *ChannelStore) GroupSyncedChannelCount() (int64, error) {
 	ret := _m.Called()

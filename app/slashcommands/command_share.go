@@ -240,12 +240,20 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Must specify a valid remote cluster id to invite.")
 	}
 
+	hasRemote, err := a.HasRemote(args.ChannelId)
+	if err != nil {
+		return responsef("Error fetching remote clusters: %v", err)
+	}
+	if hasRemote {
+		return responsef("The remote cluster has already been invited")
+	}
+
 	// Check if channel is shared or not.
-	has, err := a.HasSharedChannel(args.ChannelId)
+	hasChan, err := a.HasSharedChannel(args.ChannelId)
 	if err != nil {
 		return responsef("Error while checking if shared channel exists: %v", err)
 	}
-	if !has {
+	if !hasChan {
 		// If it doesn't exist, then create it.
 		resp2 := sp.doShareChannel(a, args, margs)
 		// We modify the outgoing response by prepending the text

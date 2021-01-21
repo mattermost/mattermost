@@ -37,6 +37,7 @@ var (
 	// used by Shared Channel Sync Service
 	LvlSharedChannelServiceDebug = LogLevel{ID: 200, Name: "SharedChannelServiceDebug"}
 	LvlSharedChannelServiceError = LogLevel{ID: 201, Name: "SharedChannelServiceError"}
+	LvlSharedChannelServiceWarn  = LogLevel{ID: 202, Name: "SharedChannelServiceWarn"}
 
 	// add more here ...
 )
