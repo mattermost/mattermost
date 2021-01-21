@@ -333,6 +333,23 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string, option
 	if channel, appErr = th.App.CreateChannel(channel, true); appErr != nil {
 		panic(appErr)
 	}
+
+	if channel.IsShared() {
+		id := model.NewId()
+		_, err := th.App.SaveSharedChannel(&model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             false,
+			ReadOnly:         false,
+			ShareName:        "shared-" + id,
+			ShareDisplayName: "shared-" + id,
+			CreatorId:        th.BasicUser.Id,
+			RemoteClusterId:  model.NewId(),
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
 	utils.EnableDebugLogForTest()
 	return channel
 }
