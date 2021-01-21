@@ -28,9 +28,9 @@ spec:
             - "while true; do sleep 30; done;"
           env:
             - name: CI_PIPELINE_ID
-              value: $$CI_PIPELINE_ID
+              value: $(CI_PIPELINE_ID)
             - name: TEST_SCOPE
-              value: $$TEST_SCOPE
+              value: $(TEST_SCOPE)
             - name: envs
               valueFrom:
                 configMapKeyRef:
@@ -86,10 +86,14 @@ spec:
           args:
             - "while true; do sleep 30; done;"
           env:
+            - name: CI_PIPELINE_ID
+              value: $(CI_PIPELINE_ID)
+            - name: TEST_SCOPE
+              value: $(TEST_SCOPE)
             - name: envs
               valueFrom:
                 configMapKeyRef:
-                  key: test-schema-validation.env
+                  key: test.env
                   name: dotenv
           resources: {}
           volumeMounts:
