@@ -57,9 +57,9 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 
 		users := scs.usersForPost(p, reactions, rc)
 
-		// don't include the post if only the reactions changed (i.e. was not editted)
+		// don't include the post if only the reactions changed.
 		postSync := p
-		if p.EditAt < lastSyncAt {
+		if p.EditAt < p.UpdateAt && p.CreateAt < p.UpdateAt && p.DeleteAt == 0 {
 			postSync = nil
 		}
 

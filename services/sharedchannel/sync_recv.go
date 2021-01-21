@@ -87,14 +87,8 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 					mlog.String("post_id", sm.Post.Id),
 					mlog.String("channel_id", sm.Post.ChannelId),
 					mlog.Err(err))
-			} else {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Post upserted via sync",
-					mlog.String("channel_id", sm.ChannelId),
-					mlog.String("post_id", sm.Post.Id))
-
-				if lastSyncAt < rpost.UpdateAt {
-					lastSyncAt = rpost.UpdateAt
-				}
+			} else if lastSyncAt < rpost.UpdateAt {
+				lastSyncAt = rpost.UpdateAt
 			}
 		}
 
@@ -188,21 +182,22 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	if rpost == nil {
 		// post doesn't exist; create new one
 		rpost, appErr = scs.app.CreatePost(post, channel, true, true)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Creating sync post",
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId))
 	} else {
 		// update post
 		rpost, appErr = scs.app.UpdatePost(post, false)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Updating sync post",
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Updated sync post",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId))
 	}
 
+	var rerr error
 	if appErr != nil {
-		err = errors.New(appErr.Error())
+		rerr = errors.New(appErr.Error())
 	}
-	return rpost, err
+	return rpost, rerr
 }
 
 func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.RemoteCluster) (*model.Reaction, error) {
