@@ -37,6 +37,7 @@ Please note that because of the net/html dependency, goquery requires Go1.1+.
 
 **Note that goquery's API is now stable, and will not break.**
 
+*    **2021-01-11 (v1.6.1)** : Fix panic when calling `{Prepend,Append,Set}Html` on a `Selection` that contains non-Element nodes.
 *    **2020-10-08 (v1.6.0)** : Parse html in context of the container node for all functions that deal with html strings (`AfterHtml`, `AppendHtml`, etc.). Thanks to [@thiemok][thiemok] and [@davidjwilkins][djw] for their work on this.
 *    **2020-02-04 (v1.5.1)** : Update module dependencies.
 *    **2018-11-15 (v1.5.0)** : Go module support (thanks @Zaba505).
@@ -147,6 +148,7 @@ func main() {
 - [Dataflow kit](https://github.com/slotix/dataflowkit), Web Scraping framework for Gophers.
 - [Geziyor](https://github.com/geziyor/geziyor), a fast web crawling & scraping framework for Go. Supports JS rendering.
 - [Pagser](https://github.com/foolin/pagser), a simple, easy, extensible, configurable HTML parser to struct based on goquery and struct tags.
+- [stitcherd](https://github.com/vhodges/stitcherd), A server for doing server side includes using css selectors and DOM updates.
 
 ## Support
 
