@@ -178,9 +178,9 @@ func (s sqlRemoteClusterStore) SetLastPingAt(remoteClusterId string) error {
 }
 
 func (s *sqlRemoteClusterStore) createIndexesIfNotExists() {
-	siteURLColumn := "siteurl"
+	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		siteURLColumn = "siteurl(168)"
+		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
-	s.CreateUniqueIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", siteURLColumn)
+	s.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 }
