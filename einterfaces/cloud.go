@@ -11,13 +11,13 @@ type CloudInterface interface {
 	GetCloudProducts(userID string) ([]*model.Product, error)
 
 	CreateCustomerPayment(userID string) (*model.StripeSetupIntent, error)
-	ConfirmCustomerPayment(string, *model.ConfirmPaymentMethodRequest) error
+	ConfirmCustomerPayment(userID string, confirmRequest *model.ConfirmPaymentMethodRequest) error
 
-	GetCloudCustomer() (*model.CloudCustomer, *model.AppError)
-	UpdateCloudCustomer(customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, *model.AppError)
-	UpdateCloudCustomerAddress(address *model.Address) (*model.CloudCustomer, *model.AppError)
+	GetCloudCustomer(userID string) (*model.CloudCustomer, error)
+	UpdateCloudCustomer(userID string, customerInfo *model.CloudCustomerInfo) (*model.CloudCustomer, error)
+	UpdateCloudCustomerAddress(userID string, address *model.Address) (*model.CloudCustomer, error)
 
-	GetSubscription() (*model.Subscription, *model.AppError)
-	GetInvoicesForSubscription() ([]*model.Invoice, *model.AppError)
-	GetInvoicePDF(invoiceID string) ([]byte, string, *model.AppError)
+	GetSubscription(userID string) (*model.Subscription, error)
+	GetInvoicesForSubscription(userID string) ([]*model.Invoice, error)
+	GetInvoicePDF(userID, invoiceID string) ([]byte, string, error)
 }

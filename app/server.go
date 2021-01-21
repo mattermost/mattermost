@@ -402,7 +402,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// we had side-effects with that in the past and needs further
 	// investigation
 	if cloudInterface != nil {
-		s.Cloud = cloudInterface(s, s.Store, s.HTTPService)
+		s.Cloud = cloudInterface(s)
 	}
 
 	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
