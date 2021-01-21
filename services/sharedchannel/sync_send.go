@@ -210,13 +210,16 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		}
 
 		// LastSyncAt will be zero if nothing got updated
-		if lastSync > 0 {
-			if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); err != nil {
-				scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
-			} else {
-				scs.server.GetLogger().Warn("successfully updated LastSyncAt for shared channel remote",
-					mlog.String("remote", rc.DisplayName), mlog.Int64("last_sync_at", lastSync))
-			}
+		if lastSync == 0 {
+			return
+		}
+
+		// update last sync time for remote
+		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); err != nil {
+			scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		} else {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for remote",
+				mlog.String("remote_id", rc.RemoteId), mlog.String("remote", rc.DisplayName), mlog.Int64("last_update_at", lastSync))
 		}
 
 		// update all the users that were synchronized
