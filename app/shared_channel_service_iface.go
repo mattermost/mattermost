@@ -9,7 +9,7 @@ import "github.com/mattermost/mattermost-server/v5/model"
 type SharedChannelServiceIFace interface {
 	Shutdown() error
 	Start() error
-	NotifyChannelChanged(channel string)
+	NotifyChannelChanged(channelId string)
 	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error
 	Active() bool
 }
