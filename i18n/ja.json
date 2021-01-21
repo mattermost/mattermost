@@ -8388,5 +8388,77 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "ファイルにデータを追加できませんでした。"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "検索結果をデコードできませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "検索を完了できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearchによるファイル検索はこのサーバーでは無効化されています"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "ファイルにインデックスを付与できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "ユーザーのファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "投稿のファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "ファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "ファイルに対するElasticsearchテンプレートを作成できませんでした"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "ファイルインデックスを閉じることができませんでした。"
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "ファイル検索を完了できませんでした。"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "ファイルバッチにインデックスを付与できませんでした。"
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "ファイルにインデックスを付与できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "ユーザーのファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "投稿のファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "ファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "ファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Bleveファイルインデックスを作成する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Discovery Documentからエンドポイントを取り出す際にエラーが発生しました。"
   }
 ]

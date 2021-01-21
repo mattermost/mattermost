@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -229,12 +228,11 @@ func requestRenewalLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renewalToken, err := c.App.Srv().GenerateRenewalToken(app.JWTDefaultTokenExpiration)
+	renewalLink, err := c.App.Srv().GenerateLicenseRenewalLink()
 	if err != nil {
 		c.Err = err
 		return
 	}
-	renewalLink := app.LicenseRenewalURL + "?token=" + renewalToken
 
 	auditRec.Success()
 	c.LogAudit("success")
