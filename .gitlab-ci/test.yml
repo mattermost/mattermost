@@ -10,6 +10,7 @@
           kubectl get pod -n mm-ci -l=com.mattermost/component="$1",com.mattermost.ci/id="${CI_PIPELINE_ID}",com.mattermost.ci/for="${TEST_SCOPE}" -o jsonpath='{.items[0].metadata.name}'
         fi
       }
+      apk add --no-cache gettext
       echo ${kube_config} | base64 -d > ${KUBECONFIG}
 
     - |
@@ -21,7 +22,10 @@
         com.mattermost.ci/branch: "${CI_COMMIT_BRANCH}"
       EOF
 
-    - kustomize build build/ | kubectl -n mm-ci apply -f -
+    - |
+      envsubst < ./build/dotenv/test.env > ./build/dotenv/test.env.tmp
+      cat ./build/dotenv/test.env.tmp > ./build/dotenv/test.env
+      kustomize build build/ | kubectl -n mm-ci apply -f -
 
     - |
       echo "Waiting for all services to become ready"
