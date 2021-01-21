@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -16,24 +17,24 @@ type InvitePeopleProvider struct {
 }
 
 const (
-	CMD_INVITE_PEOPLE = "invite_people"
+	CmdInvite_PEOPLE = "invite_people"
 )
 
 func init() {
 	app.RegisterCommandProvider(&InvitePeopleProvider{})
 }
 
-func (me *InvitePeopleProvider) GetTrigger() string {
-	return CMD_INVITE_PEOPLE
+func (*InvitePeopleProvider) GetTrigger() string {
+	return CmdInvite_PEOPLE
 }
 
-func (me *InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
 	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
 		autoComplete = false
 	}
 	return &model.Command{
-		Trigger:          CMD_INVITE_PEOPLE,
+		Trigger:          CmdInvite_PEOPLE,
 		AutoComplete:     autoComplete,
 		AutoCompleteDesc: T("api.command.invite_people.desc"),
 		AutoCompleteHint: T("api.command.invite_people.hint"),
@@ -41,7 +42,7 @@ func (me *InvitePeopleProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *
 	}
 }
 
-func (me *InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*InvitePeopleProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_INVITE_USER) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

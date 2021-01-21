@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRequireHookId(t *testing.T) {
@@ -30,6 +31,21 @@ func TestRequireHookId(t *testing.T) {
 		require.Error(t, c.Err, "Should have set Error in context")
 		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode, "Should have set status as 400")
 	})
+}
+
+func TestCloudKeyRequired(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	c := &Context{
+		App: th.App,
+	}
+
+	c.CloudKeyRequired()
+
+	assert.Equal(t, c.Err.Id, "api.context.session_expired.app_error")
 }
 
 func TestMfaRequired(t *testing.T) {
@@ -55,6 +71,8 @@ func TestMfaRequired(t *testing.T) {
 	th.App.SetSession(&model.Session{Id: "abc", UserId: "userid"})
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.UserNoticesEnabled = false
+		*cfg.AnnouncementSettings.AdminNoticesEnabled = false
 		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
 		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
 	})

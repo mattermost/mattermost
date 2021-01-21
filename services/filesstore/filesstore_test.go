@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -248,7 +249,7 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 
 	paths, err := s.backend.ListDirectory("19700101")
 	s.Nil(err)
-	s.Len(*paths, 0)
+	s.Len(paths, 0)
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -260,20 +261,20 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 
 	paths, err = s.backend.ListDirectory("19700101")
 	s.Nil(err)
-	s.Len(*paths, 1)
-	s.Equal(path1, (*paths)[0])
+	s.Len(paths, 1)
+	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("19700101/")
 	s.Nil(err)
-	s.Len(*paths, 1)
-	s.Equal(path1, (*paths)[0])
+	s.Len(paths, 1)
+	s.Equal(path1, (paths)[0])
 
 	paths, err = s.backend.ListDirectory("")
 	s.Nil(err)
 
 	found1 := false
 	found2 := false
-	for _, path := range *paths {
+	for _, path := range paths {
 		if path == "19700101" {
 			found1 = true
 		} else if path == "19800101" {
@@ -362,6 +363,28 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		s.Nil(err)
 		s.EqualValues(len(b)+len(b2)+len(b3), len(read))
 		s.EqualValues(append(append(b, b2...), b3...), read)
+	})
+}
+
+func (s *FileBackendTestSuite) TestFileSize() {
+	s.Run("nonexistent file", func() {
+		size, err := s.backend.FileSize("tests/nonexistentfile")
+		s.NotNil(err)
+		s.Zero(size)
+	})
+
+	s.Run("valid file", func() {
+		data := make([]byte, rand.Intn(1024*1024)+1)
+		path := "tests/" + model.NewId()
+
+		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
+		s.Nil(err)
+		s.EqualValues(len(data), written)
+		defer s.backend.RemoveFile(path)
+
+		size, err := s.backend.FileSize(path)
+		s.Nil(err)
+		s.Equal(int64(len(data)), size)
 	})
 }
 

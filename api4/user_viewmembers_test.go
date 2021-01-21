@@ -6,8 +6,9 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestApiResctrictedViewMembers(t *testing.T) {
@@ -79,7 +80,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				"Get not existing user without restrictions",
 				"",
 				model.NewId(),
-				"store.sql_user.missing_account.const",
+				"app.user.missing_account.const",
 			},
 			{
 				"Get not existing user with restrictions to teams",
@@ -161,7 +162,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				"Get not existing user without restrictions",
 				"",
 				model.NewId(),
-				"store.sql_user.get_by_username.app_error",
+				"app.user.get_by_username.app_error",
 			},
 			{
 				"Get not existing user with restrictions to teams",
@@ -243,7 +244,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				"Get not existing user without restrictions",
 				"",
 				th.GenerateTestEmail(),
-				"store.sql_user.missing_account.const",
+				"app.user.missing_account.const",
 			},
 			{
 				"Get not existing user with restrictions to teams",
@@ -325,7 +326,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				"Get not existing user without restrictions",
 				"",
 				model.NewId(),
-				"store.sql_user.missing_account.const",
+				"app.user.missing_account.const",
 			},
 			{
 				"Get not existing user with restrictions to teams",
@@ -407,7 +408,7 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 				"Get not existing user without restrictions",
 				"",
 				model.NewId(),
-				"store.sql_user.missing_account.const",
+				"app.user.missing_account.const",
 			},
 			{
 				"Get not existing user with restrictions to teams",

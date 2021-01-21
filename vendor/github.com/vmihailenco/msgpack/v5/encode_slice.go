@@ -1,9 +1,10 @@
 package msgpack
 
 import (
+	"math"
 	"reflect"
 
-	"github.com/vmihailenco/msgpack/v5/codes"
+	"github.com/vmihailenco/msgpack/v5/msgpcode"
 )
 
 var stringSliceType = reflect.TypeOf(([]string)(nil))
@@ -42,29 +43,36 @@ func grow(b []byte, n int) []byte {
 
 func (e *Encoder) EncodeBytesLen(l int) error {
 	if l < 256 {
-		return e.write1(codes.Bin8, uint8(l))
+		return e.write1(msgpcode.Bin8, uint8(l))
 	}
-	if l < 65536 {
-		return e.write2(codes.Bin16, uint16(l))
+	if l <= math.MaxUint16 {
+		return e.write2(msgpcode.Bin16, uint16(l))
 	}
-	return e.write4(codes.Bin32, uint32(l))
+	return e.write4(msgpcode.Bin32, uint32(l))
 }
 
-func (e *Encoder) encodeStrLen(l int) error {
+func (e *Encoder) encodeStringLen(l int) error {
 	if l < 32 {
-		return e.writeCode(codes.FixedStrLow | codes.Code(l))
+		return e.writeCode(msgpcode.FixedStrLow | byte(l))
 	}
 	if l < 256 {
-		return e.write1(codes.Str8, uint8(l))
+		return e.write1(msgpcode.Str8, uint8(l))
 	}
-	if l < 65536 {
-		return e.write2(codes.Str16, uint16(l))
+	if l <= math.MaxUint16 {
+		return e.write2(msgpcode.Str16, uint16(l))
 	}
-	return e.write4(codes.Str32, uint32(l))
+	return e.write4(msgpcode.Str32, uint32(l))
 }
 
 func (e *Encoder) EncodeString(v string) error {
-	if err := e.encodeStrLen(len(v)); err != nil {
+	if intern := e.flags&useInternedStringsFlag != 0; intern || len(e.dict) > 0 {
+		return e.encodeInternedString(v, intern)
+	}
+	return e.encodeNormalString(v)
+}
+
+func (e *Encoder) encodeNormalString(v string) error {
+	if err := e.encodeStringLen(len(v)); err != nil {
 		return err
 	}
 	return e.writeString(v)
@@ -82,12 +90,12 @@ func (e *Encoder) EncodeBytes(v []byte) error {
 
 func (e *Encoder) EncodeArrayLen(l int) error {
 	if l < 16 {
-		return e.writeCode(codes.FixedArrayLow | codes.Code(l))
+		return e.writeCode(msgpcode.FixedArrayLow | byte(l))
 	}
-	if l < 65536 {
-		return e.write2(codes.Array16, uint16(l))
+	if l <= math.MaxUint16 {
+		return e.write2(msgpcode.Array16, uint16(l))
 	}
-	return e.write4(codes.Array32, uint32(l))
+	return e.write4(msgpcode.Array32, uint32(l))
 }
 
 func encodeStringSliceValue(e *Encoder, v reflect.Value) error {

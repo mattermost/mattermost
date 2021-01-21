@@ -540,14 +540,6 @@
     "translation": "Le mode « Ne pas déranger » désactive les notifications de bureau et push sur mobile."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Le mode « Ne pas déranger » est désactivé."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Une erreur s'est produite lors de la récupération du statut de l'utilisateur."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "Ne pas déranger"
   },
@@ -1093,14 +1085,6 @@
     "translation": "Les fichiers de pièces jointes sont désactivés sur ce serveur."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Impossible de vérifier si le fichier existe."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Impossible de vérifier si le fichier existe."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Le lien public ne semble pas être valide"
   },
@@ -1121,48 +1105,12 @@
     "translation": "Impossible de récupérer le lien du fichier. Le fichier doit être lié à un message qui peut être lu par l'utilisateur actuel."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Impossible de copier le fichier dans S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Impossible de supprimer le fichier de S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Impossible de déplacer le fichier en local."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Aucun fichier de driver sélectionné."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Une erreur s'est produite lors de la lecture à partir du stockage local du serveur"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la lecture à partir du stockage S3"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Une erreur s'est produite lors de l'ouverture du processus de lecture du stockage local du serveur."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'ouverture du processus de lecture du stockage S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Vous n'avez pas les permissions requises pour écrire dans le dossier local spécifié ou une autre erreur s'est produite."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Une erreur s'est produite lors de la vérification de l'existence du bucket."
-  },
-  {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Erreur de connexion à S3 ou minio."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1199,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Impossible d'envoyer le fichier {{.Filename}}. {{.Length}} bytes dépassent le nombre de bytes maximum autorisé de {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture vers S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Une erreur s'est produite lors de la création du dossier pour le nouveau fichier"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture sur le stockage du serveur local"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2151,10 +2087,6 @@
     "translation": "Impossible d'interpréter les données de connexion de l'objet utilisateur {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Impossible de créer les données du jeton pour l'e-mail de vérification"
   },
@@ -2165,10 +2097,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Impossible de créer un utilisateur à partir du user object {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2213,10 +2141,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Le changement de méthode d'authentification n'est pas configuré ou disponible sur ce serveur."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Fournisseur de service OAuth non-supporté"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4375,20 +4299,12 @@
     "translation": "propriété « create at » invalide pour le groupe"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "propriété « delete at » invalide pour le groupe"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "propriété « description » invalide pour le groupe"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "propriété « display name » invalide pour le groupe"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "propriété « id » invalide pour le groupe"
   },
   {
     "id": "model.group.name.app_error",
@@ -4421,10 +4337,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "id de synchronisation pour le groupe à synchroniser"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "propriété « type » invalide pour le groupe"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4640,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 5 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
+    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 10 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4915,14 +4827,6 @@
     "translation": "Le champ d'adresse de destination est manquant."
   },
   {
-    "id": "store.insert_error",
-    "translation": "erreur d'insertion"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "erreur de sélection"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb : Impossible de convertir StringArray en *string"
   },
@@ -4941,10 +4845,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Impossible de trouver le canal existant"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche du canal"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4975,22 +4875,6 @@
     "translation": "Impossible de récupérer la commande"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "le groupe à synchroniser a déjà été supprimé"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "aucun groupe correspondant trouvé"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "un groupe portant ce nom existe déjà"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "membre du groupe déjà existant"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "La recherche a été désactivée sur ce serveur. Veuillez contacter votre administrateur."
   },
@@ -4999,216 +4883,16 @@
     "translation": "Un membre d'équipe existe déjà avec cet ID"
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Impossible de récupérer les utilisateurs actifs dans la période spécifiée"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "Impossible de compter les utilisateurs inactifs"
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Impossible de récupérer le nombre d'administrateurs système"
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Impossible de valider la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Impossible d'ouvrir la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Impossible de récupérer les utilisateurs"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Impossible de mettre à jour l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche du compte"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Impossible de trouver un compte existant correspondant au type d'authentification pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche du compte par type d'authentification."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Impossible de trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Impossible de trouver un compte existant correspondant à vos identifiants. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
-  },
-  {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Nous avons trouvé plusieurs utilisateurs correspondant à vos informations d'identification et nous avons été incapables de vous connecter. Veuillez contacter un administrateur."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche de nouveaux utilisateurs"
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche des profils utilisateurs"
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche des utilisateurs récemment actifs"
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche des profils utilisateurs"
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Impossibele de déterminer la date du système en se basant sur la date de création du premier utilisateur."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Impossible de compter les utilisateurs"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Impossible de compter le nombre de messages non lus pour l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Impossible de compter le nombre de messages non lus pour l'utilisateur et le canal"
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Impossible de trouver l'utilisateur."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Impossible de trouver le compte existant"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Impossible de sauvegarder le compte."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Un compte avec cette adresse e-mail existe déjà."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "La mise à jour doit être appelée pour un utilisateur existant"
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Un compte avec ce nom d'utilisateur existe déjà."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Impossible de trouver des utilisateurs qui correspondent aux paramètres de recherche spécifiés"
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Impossible de modifier le compte"
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Vous ne pouvez pas modifier les champs définis par AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Cette adresse e-mail est déjà utilisée. Veuillez en choisir une autre."
   },
   {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Impossible de trouver de compte existant à modifier"
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche du compte"
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Une erreur s'est produite lors de la mise à jour du compte"
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Ce nom d'utilisateur est déjà pris. Veuillez en choisir un autre."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Impossible de modifier les données d'authentification"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Impossible de convertir le compte à {{.Service}}. Un compte utilisant cette adresse e-mail {{.Email}} existe déjà."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Impossible de modifier le champ failed_attempts (tentatives échouées)"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Impossible de modifier le champ update_at"
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Une erreur s'est produite lors de la mise à jour du statut ​​actif MFA de l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Une erreur s'est produite lors de la modification du secret MFA de l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Impossible de modifier le mot de passe de l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Impossible de modifier la date de la dernière modification de l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Impossible de mettre à jour le champ de vérification de l'adresse e-mail"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "erreur de mise à jour"
-  },
-  {
     "id": "system.message.name",
     "translation": "Système"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Une erreur s'est produite lors de l'affichage du dossier à partir du système de stockage local du serveur."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Une erreur s'est produite lors de l'affichage du dossier à partir de S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du dossier à partir du système de stockage local du serveur."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du dossier à partir de S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du fichier du stockage local du serveur."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Une erreur s'est produite lors de la suppression du fichier de S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -5417,86 +5101,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Téléchargez la dernière version du navigateur Google Chrome"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Impossible de désactiver les utilisateurs invités."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Impossible de récupérer la liste d'identifiants des utilisateurs invités qui ont été désactivés."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Impossible de mettre à jour l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Impossible de modifier les équipes de l'utilisateur auxquelles il appartient."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Impossible d'ouvrir la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Impossible de valider la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Impossible de modifier les canaux de l'utilisateur auxquels il appartient."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Impossible de récupérer le lot d'utilisateurs à indexer."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Impossible de récupérer les membres d'équipe pour le lot d'utilisateurs à indexer."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Impossible de récupérer les membres du canal pour le lot d'utilisateurs à indexer."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche des profils utilisateurs"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Impossible de récupérer les utilisateurs connus de la base de données."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Impossible de mettre à jour l'utilisateur"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Impossible de modifier les équipes de l'utilisateur auxquelles il appartient."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Impossible d'ouvrir la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Impossible de valider la transaction de la base de données"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Impossible de modifier les canaux de l'utilisateur auxquels il appartient."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "Les options de comptage d'utilisateur n'ont aucun sens."
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Impossible de retirer le membre du groupe portant l'identifiant utilisateur « {{.UserId}} »."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "Impossible de construire la requête."
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -7227,10 +6831,6 @@
     "translation": "Impossible de récupérer les membres du canal."
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Impossible de créer le bucket."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7373,14 +6973,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Impossible d'envoyer un message dans un canal supprimé."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Une erreur s'est produite lors de l'écriture vers S3."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Le bot n'existe pas."
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
@@ -7609,5 +7201,9 @@
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "L'URL du site ne peut pas être réinitialisée."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP n'est pas disponible."
   }
 ]

@@ -50,7 +50,7 @@ var browserMinimumSupported = map[string]int{
 	"BrowserSafari": 12,
 }
 
-func CheckClientCompatability(agentString string) bool {
+func CheckClientCompatibility(agentString string) bool {
 	ua := uasurfer.Parse(agentString)
 
 	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && (ua.Browser.Version.Major < version || version < 0) {

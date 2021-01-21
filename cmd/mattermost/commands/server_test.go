@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -38,8 +39,8 @@ func SetupServerTest(t testing.TB) *ServerTestHelper {
 	// Let jobs poll for termination every 0.2s (instead of every 15s by default)
 	// Otherwise we would have to wait the whole polling duration before the test
 	// terminates.
-	originalInterval := jobs.DEFAULT_WATCHER_POLLING_INTERVAL
-	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = 200
+	originalInterval := jobs.DefaultWatcherPollingInterval
+	jobs.DefaultWatcherPollingInterval = 200
 
 	th := &ServerTestHelper{
 		disableConfigWatch: true,
@@ -50,20 +51,19 @@ func SetupServerTest(t testing.TB) *ServerTestHelper {
 }
 
 func (th *ServerTestHelper) TearDownServerTest() {
-	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = th.originalInterval
+	jobs.DefaultWatcherPollingInterval = th.originalInterval
 }
 
 func TestRunServerSuccess(t *testing.T) {
 	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 }
 
@@ -108,14 +108,13 @@ func TestRunServerSystemdNotification(t *testing.T) {
 		ch <- string(data)
 	}(socketReader)
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
 	// Start and stop the server
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -132,12 +131,11 @@ func TestRunServerNoSystemd(t *testing.T) {
 	os.Unsetenv("NOTIFY_SOCKET")
 	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
 
-	configStore, err := config.NewMemoryStore()
-	require.NoError(t, err)
+	configStore := config.NewTestMemoryStore()
 
 	// Use non-default listening port in case another server instance is already running.
 	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
-	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
+	err := runServer(configStore, false, th.interruptChan)
 	require.NoError(t, err)
 }

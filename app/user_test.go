@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"image"
 	"image/color"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	oauthgitlab "github.com/mattermost/mattermost-server/v5/model/gitlab"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -74,10 +76,14 @@ func TestCreateOAuthUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GitLabSettings.Enable = true
+	})
+
 	glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 
 	json := glUser.ToJson()
-	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id, nil)
 	require.Nil(t, err)
 
 	require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
@@ -86,7 +92,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	*th.App.Config().TeamSettings.EnableUserCreation = false
 
-	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id, nil)
 	require.NotNil(t, err, "should have failed - user creation disabled")
 }
 
@@ -267,6 +273,9 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 
 	id := model.NewId()
 	id2 := model.NewId()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GitLabSettings.Enable = true
+	})
 	gitlabProvider := einterfaces.GetOauthProvider("gitlab")
 
 	username := "user" + id
@@ -287,7 +296,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
@@ -300,7 +309,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Username, user.Username, "user's username is updated though there already exists another user with the same username")
@@ -314,7 +323,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
@@ -329,7 +338,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			data := bytes.NewReader(gitlabUser)
 
 			user = getUserFromDB(th.App, user.Id, t)
-			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+			th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 			user = getUserFromDB(th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
@@ -342,7 +351,7 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
@@ -354,11 +363,51 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		data := bytes.NewReader(gitlabUser)
 
 		user = getUserFromDB(th.App, user.Id, t)
-		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab")
+		th.App.UpdateOAuthUserAttrs(data, user, gitlabProvider, "gitlab", nil)
 		user = getUserFromDB(th.App, user.Id, t)
 
 		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
 	})
+}
+
+func TestCreateUserConflict(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := &model.User{
+		Email:    "test@localhost",
+		Username: model.NewId(),
+	}
+	user, err := th.App.Srv().Store.User().Save(user)
+	require.NoError(t, err)
+	username := user.Username
+
+	var invErr *store.ErrInvalidInput
+	// Same id
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "id", invErr.Field)
+
+	// Same email
+	user = &model.User{
+		Email:    "test@localhost",
+		Username: model.NewId(),
+	}
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "email", invErr.Field)
+
+	// Same username
+	user = &model.User{
+		Email:    "test2@localhost",
+		Username: username,
+	}
+	_, err = th.App.Srv().Store.User().Save(user)
+	require.Error(t, err)
+	require.True(t, errors.As(err, &invErr))
+	assert.Equal(t, "username", invErr.Field)
 }
 
 func TestUpdateUserEmail(t *testing.T) {
@@ -398,8 +447,8 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, err)
+		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		assert.Nil(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
@@ -419,7 +468,8 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		user.Email = newEmail
 		user3, err := th.App.UpdateUser(user, false)
-		assert.NotNil(t, err)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
 		assert.Nil(t, user3)
 	})
 
@@ -441,14 +491,29 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, err)
+		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		assert.Nil(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
 		botuser2, err := th.App.UpdateUser(&botuser, false)
 		assert.Nil(t, err)
 		assert.Equal(t, botuser2.Email, newBotEmail)
+	})
+
+	t.Run("NoVerificationAlreadyUsedEmail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = false
+		})
+
+		user2 := th.CreateUser()
+		newEmail := user2.Email
+
+		user.Email = newEmail
+		user3, err := th.App.UpdateUser(user, false)
+		require.NotNil(t, err)
+		assert.Equal(t, err.Id, "store.sql_user.update.email_taken.app_error")
+		assert.Nil(t, user3)
 	})
 }
 
@@ -474,7 +539,7 @@ func createGitlabUser(t *testing.T, a *App, id int64, username string, email str
 	var user *model.User
 	var err *model.AppError
 
-	user, err = a.CreateOAuthUser("gitlab", bytes.NewReader(gitlabUser), "")
+	user, err = a.CreateOAuthUser("gitlab", bytes.NewReader(gitlabUser), "", nil)
 	require.Nil(t, err, "unable to create the user", err)
 
 	return user, gitlabUserObj
@@ -651,7 +716,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
-			TOKEN_TYPE_VERIFY_EMAIL,
+			TokenTypeVerifyEmail,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -662,10 +727,10 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
-			TOKEN_TYPE_TEAM_INVITATION,
+			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		_, err := th.App.CreateUserWithToken(&user, token)
@@ -674,7 +739,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
-			TOKEN_TYPE_TEAM_INVITATION,
+			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -686,7 +751,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("valid regular user request", func(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
-			TOKEN_TYPE_TEAM_INVITATION,
+			TokenTypeTeamInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -706,7 +771,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
-			TOKEN_TYPE_GUEST_INVITATION,
+			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -736,11 +801,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		forbiddenInvitationEmail := model.NewId() + "other-email@test.com"
 		grantedInvitationEmail := model.NewId() + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
-			TOKEN_TYPE_GUEST_INVITATION,
+			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		grantedDomainToken := model.NewToken(
-			TOKEN_TYPE_GUEST_INVITATION,
+			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(forbiddenDomainToken))
@@ -783,7 +848,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
-			TOKEN_TYPE_GUEST_INVITATION,
+			TokenTypeGuestInvitation,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -828,8 +893,8 @@ func TestPermanentDeleteUser(t *testing.T) {
 	var bots1 []*model.Bot
 	var bots2 []*model.Bot
 
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	_, err1 := sqlSupplier.GetMaster().Select(&bots1, "SELECT * FROM Bots")
+	sqlStore := mainHelper.GetSQLStore()
+	_, err1 := sqlStore.GetMaster().Select(&bots1, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 1, len(bots1))
 
@@ -840,7 +905,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	err = th.App.PermanentDeleteUser(retUser1)
 	assert.Nil(t, err)
 
-	_, err1 = sqlSupplier.GetMaster().Select(&bots2, "SELECT * FROM Bots")
+	_, err1 = sqlStore.GetMaster().Select(&bots2, "SELECT * FROM Bots")
 	assert.Nil(t, err1)
 	assert.Equal(t, 0, len(bots2))
 

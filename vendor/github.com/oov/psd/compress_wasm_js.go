@@ -4,8 +4,6 @@ package psd
 
 import (
 	"io"
-	"runtime"
-	"sync"
 )
 
 func decodePackBits(dest []byte, r io.Reader, width int, lines int, large bool) (read int, err error) {
@@ -44,40 +42,19 @@ func decodePackBits(dest []byte, r io.Reader, width int, lines int, large bool) 
 	}
 	read += l
 
-	n := runtime.GOMAXPROCS(0)
-	for n > 1 && n<<1 > lines {
-		n--
-	}
-	if n == 1 {
-		decodePackBitsPerLine(dest, buf, lens)
-		return
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(n)
-	step := lines / n
-	ofs = 0
-	for i := 1; i < n; i++ {
-		go func(dest []byte, buf []byte, lens []int) {
-			defer wg.Done()
-			decodePackBitsPerLine(dest, buf, lens)
-		}(dest[ofs*width:(ofs+step)*width], buf[offsets[ofs]:offsets[ofs+step]], lens[ofs:ofs+step])
-		ofs += step
-	}
-	go func() {
-		defer wg.Done()
-		decodePackBitsPerLine(dest[ofs*width:], buf[offsets[ofs]:], lens[ofs:])
-	}()
-	wg.Wait()
+	err = decodePackBitsPerLine(dest, buf, lens)
 	return
 }
 
-func decodePackBitsPerLine(dest []byte, buf []byte, lens []int) {
+func decodePackBitsPerLine(dest []byte, buf []byte, lens []int) error {
 	var l int
 	for _, ln := range lens {
 		for i := 0; i < ln; {
 			if buf[i] <= 0x7f {
 				l = int(buf[i]) + 1
+				if len(dest) < l || ln-i-1 < l {
+					return errBrokenPackBits
+				}
 				copy(dest[:l], buf[i+1:])
 				dest = dest[l:]
 				i += l + 1
@@ -88,6 +65,9 @@ func decodePackBitsPerLine(dest []byte, buf []byte, lens []int) {
 				continue
 			}
 			l = int(-buf[i]) + 1
+			if len(dest) < l || i+1 >= ln {
+				return errBrokenPackBits
+			}
 			for j, c := 0, buf[i+1]; j < l; j++ {
 				dest[j] = c
 			}
@@ -96,4 +76,5 @@ func decodePackBitsPerLine(dest []byte, buf []byte, lens []int) {
 		}
 		buf = buf[ln:]
 	}
+	return nil
 }

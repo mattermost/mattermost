@@ -9,17 +9,17 @@ import (
 	"strings"
 
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlSchemeStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSchemeStore(sqlStore SqlStore) store.SchemeStore {
+func newSqlSchemeStore(sqlStore *SqlStore) store.SchemeStore {
 	s := &SqlSchemeStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	PENDING_POST_IDS_CACHE_SIZE = 25000
-	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
-	PAGE_DEFAULT                = 0
+	PendingPostIDsCacheSize = 25000
+	PendingPostIDsCacheTTL  = 30 * time.Second
+	PageDefault             = 0
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
@@ -53,9 +53,15 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, userErr := a.Srv().Store.User().Get(post.UserId)
-			if userErr != nil {
-				return nil, userErr
+			user, nErr := a.Srv().Store.User().Get(post.UserId)
+			if nErr != nil {
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(nErr, &nfErr):
+					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+				default:
+					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+				}
 			}
 
 			T := utils.GetUserTranslations(user.Locale)
@@ -80,7 +86,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 	_, fromBot := post.GetProps()["from_bot"]
 	if !fromWebhook && !fromBot {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
-			mlog.Error(
+			mlog.Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
@@ -122,7 +128,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	var postId string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
 	if nErr == cache.ErrKeyNotFound {
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PendingPostIDsCacheTTL)
 		return nil, nil
 	}
 
@@ -170,7 +176,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return
 		}
 
-		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PENDING_POST_IDS_CACHE_TTL)
+		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, PendingPostIDsCacheTTL)
 	}()
 
 	post.SanitizeProps()
@@ -179,15 +185,21 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	if len(post.RootId) > 0 {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
-			r, pErr := a.Srv().Store.Post().Get(post.RootId, false)
+			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, false, false)
 			pchan <- store.StoreResult{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
 
-	user, err := a.Srv().Store.User().Get(post.UserId)
-	if err != nil {
-		return nil, err
+	user, nErr := a.Srv().Store.User().Get(post.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreatePost", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreatePost", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if user.IsBot {
@@ -261,7 +273,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			post.AddProp("attachments", attachmentsInterface)
 		}
 		if err != nil {
-			mlog.Error("Could not convert post attachments to map interface.", mlog.Err(err))
+			mlog.Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
 	}
 
@@ -306,13 +318,15 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PENDING_POST_IDS_CACHE_TTL)
+	a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, PendingPostIDsCacheTTL)
 
+	// We make a copy of the post for the plugin hook to avoid a race condition.
+	rPostCopy := rpost.Clone()
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.MessageHasBeenPosted(pluginContext, rpost)
+				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
 			}, plugin.MessageHasBeenPostedId)
 		})
@@ -324,7 +338,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if len(post.FileIds) > 0 {
 		if err = a.attachFilesToPost(post); err != nil {
-			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
+			mlog.Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics() != nil {
@@ -337,7 +351,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rpost = a.PreparePostForClient(rpost, true, false)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
-		mlog.Error("Failed to handle post events", mlog.Err(err))
+		mlog.Warn("Failed to handle post events", mlog.Err(err))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
@@ -398,7 +412,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 			if mentioned.Type == model.CHANNEL_OPEN {
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
-					mlog.Error("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]interface{}{
@@ -443,9 +457,15 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 		return err
 	}
 
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		if err := a.Srv().Store.Thread().CreateMembershipIfNeeded(post.UserId, post.RootId, true, false, true); err != nil {
+			return err
+		}
+	}
+
 	if post.Type != model.POST_AUTO_RESPONDER { // don't respond to an auto-responder
 		a.Srv().Go(func() {
-			_, err := a.SendAutoResponseIfNecessary(channel, user)
+			_, err := a.SendAutoResponseIfNecessary(channel, user, post)
 			if err != nil {
 				mlog.Error("Failed to send auto response", mlog.String("user_id", user.Id), mlog.String("post_id", post.Id), mlog.Err(err))
 			}
@@ -522,7 +542,7 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	postLists, nErr := a.Srv().Store.Post().Get(post.Id, false)
+	postLists, nErr := a.Srv().Store.Post().Get(post.Id, false, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -698,8 +718,8 @@ func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelId string) string {
-	return a.Srv().Store.Post().GetEtag(channelId, true)
+func (a *App) GetPostsEtag(channelId string, collapsedThreads bool) string {
+	return a.Srv().Store.Post().GetEtag(channelId, true, collapsedThreads)
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
@@ -726,8 +746,8 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 	return post, nil
 }
 
-func (a *App) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(postId, skipFetchThreads)
+func (a *App) GetPostThread(postId string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+	posts, err := a.Srv().Store.Post().Get(postId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -772,7 +792,7 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	list, nErr := a.Srv().Store.Post().Get(postId, false)
+	list, nErr := a.Srv().Store.Post().Get(postId, false, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
@@ -955,7 +975,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
 	if member, err = a.GetChannelMember(channelId, userId); err != nil {
@@ -971,7 +991,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads)
+	postList, err := a.GetPostThread(lastUnreadPostId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		return nil, err
 	}
@@ -979,13 +999,13 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 	// channel organically, those replies will be added below.
 	postList.Order = []string{lastUnreadPostId}
 
-	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListBefore, err := a.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitBefore, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
 		return nil, err
 	} else if postListBefore != nil {
 		postList.Extend(postListBefore)
 	}
 
-	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PAGE_DEFAULT, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads}); err != nil {
+	if postListAfter, err := a.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelId, PostId: lastUnreadPostId, Page: PageDefault, PerPage: limitAfter - 1, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended}); err != nil {
 		return nil, err
 	} else if postListAfter != nil {
 		postList.Extend(postListAfter)
@@ -1021,9 +1041,18 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post, false, false).ToJson())
-	a.Publish(message)
+	postData := a.PreparePostForClient(post, false, false).ToJson()
+
+	userMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	userMessage.Add("post", postData)
+	userMessage.GetBroadcast().ContainsSanitizedData = true
+	a.Publish(userMessage)
+
+	adminMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
+	adminMessage.Add("post", postData)
+	adminMessage.Add("delete_by", deleteByID)
+	adminMessage.GetBroadcast().ContainsSensitiveData = true
+	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {
 		a.DeletePostFiles(post)
@@ -1132,7 +1161,7 @@ func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, 
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
 		if err != nil {
-			mlog.Error("error getting channel id by name from in filter", mlog.Err(err))
+			mlog.Warn("error getting channel id by name from in filter", mlog.Err(err))
 			continue
 		}
 		channels[idx] = channel.Id
@@ -1142,11 +1171,12 @@ func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, 
 
 func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	for idx, username := range usernames {
-		if user, err := a.GetUserByUsername(username); err != nil {
-			mlog.Error("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
-		} else {
-			usernames[idx] = user.Id
+		user, err := a.GetUserByUsername(username)
+		if err != nil {
+			mlog.Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
+			continue
 		}
+		usernames[idx] = user.Id
 	}
 	return usernames
 }
@@ -1311,6 +1341,64 @@ func (a *App) MaxPostSize() int {
 	return a.Srv().MaxPostSize()
 }
 
+// countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
+func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId string, timestamp int64) (int64, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return 0, err
+	}
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return 0, err
+	}
+
+	keywords := addMentionKeywordsForUser(
+		map[string][]string{},
+		user,
+		map[string]string{},
+		&model.Status{Status: model.STATUS_ONLINE}, // Assume the user is online since they would've triggered this
+		true, // Assume channel mentions are always allowed for simplicity
+	)
+
+	posts, nErr := a.Srv().Store.Thread().GetPosts(post.Id, timestamp)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	count := 0
+
+	if channel.Type == model.CHANNEL_DIRECT {
+		// In a DM channel, every post made by the other user is a mention
+		otherId := channel.GetOtherUserIdForDM(user.Id)
+		for _, p := range posts {
+			if p.UserId == otherId {
+				count++
+			}
+		}
+
+		return int64(count), nil
+	}
+
+	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
+	if nErr != nil {
+		return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	mentions := getExplicitMentions(post, keywords, groups)
+	if _, ok := mentions.Mentions[user.Id]; ok {
+		count += 1
+	}
+
+	for _, p := range posts {
+		mentions = getExplicitMentions(p, keywords, groups)
+		if _, ok := mentions.Mentions[user.Id]; ok {
+			count += 1
+		}
+	}
+
+	return int64(count), nil
+}
+
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
 func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *model.AppError) {
@@ -1347,7 +1435,7 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, err := a.GetPostThread(post.Id, false)
+	thread, err := a.GetPostThread(post.Id, false, false, false)
 	if err != nil {
 		return 0, err
 	}
@@ -1449,4 +1537,8 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	}
 
 	return false
+}
+
+func (a *App) GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userId, teamId)
 }

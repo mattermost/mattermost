@@ -11,19 +11,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
+	date_constraints "github.com/reflog/dateconstraints"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
-
-	"github.com/Masterminds/semver/v3"
-	date_constraints "github.com/reflog/dateconstraints"
 )
 
-const MAX_REPEAT_VIEWINGS = 3
-const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
+const MaxRepeatViewings = 3
+const MinSecondsBetweenRepeatViewings = 60 * 60
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -179,7 +179,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userId string, k
 	}
 	pref, err := preferences.Get(userId, parts[0], parts[1])
 	if err != nil {
-		return false, err
+		return false, nil
 	}
 	return pref.Value == expectedValue, nil
 }
@@ -237,10 +237,10 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
 			if repeatable {
-				if view.Viewed > MAX_REPEAT_VIEWINGS {
+				if view.Viewed > MaxRepeatViewings {
 					continue
 				}
-				if (time.Now().UTC().Unix() - view.Timestamp) < MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS {
+				if (time.Now().UTC().Unix() - view.Timestamp) < MinSecondsBetweenRepeatViewings {
 					continue
 				}
 			} else if view.Viewed > 0 {
@@ -301,16 +301,15 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
-	var appErr *model.AppError
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if appErr != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
+	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if err != nil {
+		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

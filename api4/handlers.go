@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gziphandler"
+
 	"github.com/mattermost/mattermost-server/v5/web"
 )
 
@@ -41,6 +42,26 @@ func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.R
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
+		IsStatic:            false,
+		IsLocal:             false,
+	}
+	if *api.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+
+}
+
+// CloudApiKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
+func (api *API) CloudApiKeyRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &web.Handler{
+		GetGlobalAppOptions: api.GetGlobalAppOptions,
+		HandleFunc:          h,
+		HandlerName:         web.GetHandlerName(h),
+		RequireSession:      false,
+		RequireCloudKey:     true,
+		TrustRequester:      false,
+		RequireMfa:          false,
 		IsStatic:            false,
 		IsLocal:             false,
 	}

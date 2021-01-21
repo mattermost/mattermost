@@ -50,16 +50,16 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 		finalConfig[strings.ToLower(setting)] = value
 	}
 
-	if pluginSettingsJsonBytes, err := json.Marshal(finalConfig); err != nil {
+	pluginSettingsJsonBytes, err := json.Marshal(finalConfig)
+	if err != nil {
 		api.logger.Error("Error marshaling config for plugin", mlog.Err(err))
 		return nil
-	} else {
-		err := json.Unmarshal(pluginSettingsJsonBytes, dest)
-		if err != nil {
-			api.logger.Error("Error unmarshaling config for plugin", mlog.Err(err))
-		}
-		return nil
 	}
+	err = json.Unmarshal(pluginSettingsJsonBytes, dest)
+	if err != nil {
+		api.logger.Error("Error unmarshaling config for plugin", mlog.Err(err))
+	}
+	return nil
 }
 
 func (api *PluginAPI) RegisterCommand(command *model.Command) error {
@@ -574,7 +574,7 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId, false)
+	return api.app.GetPostThread(postId, false, false, false)
 }
 
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {

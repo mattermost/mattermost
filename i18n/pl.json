@@ -540,14 +540,6 @@
     "translation": "Tryb \"Nie przeszkadzać\" wyłącza powiadomienia desktopowe oraz mobilne powiadomienia push."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Tryb \"Nie przeszkadzać\" jest wyłączony."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Nie można odczytać statusu użytkownika."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "dnd"
   },
@@ -1096,14 +1088,6 @@
     "translation": "Dodawanie załączników na tym serwerze jest zablokowane."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Link wydaje się być niepoprawny."
   },
@@ -1124,48 +1108,12 @@
     "translation": "Nie można uzyskać publicznego łącza do pliku. Plik musi być załączony do wiadomości, którą możesz odczytać."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Nie można skopiować pliku w S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Nie można skasować pliku z usługi S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Nie można przenieść pliku lokalnie."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Nie wybrano sterownika pliku."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Wystąpił błąd podczas odczytu z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Napotkano błąd podczas odczytu z zasobnika S3"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Wystąpił błąd podczas otwierania czytnika z lokalnego magazynu plików serwera"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Napotkano błąd przy odczycie z magazynu S3"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Nie ma uprawnień do zapisu na podaną lokalną ścieżkę lub innego błędu."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Błąd podczas sprawdzania czy wiadro istnieje."
-  },
-  {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Błąd połączenia do S3 lub minio."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1202,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Nie można przesłać pliku {{.Filename}}. {{.Length}} bajtów przekracza maksymalną dozwoloną liczbę {{.Limit}} bajtów."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Napotkano błąd podczas tworzenia katalogu dla nowych plików"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do lokalnego magazynu"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2156,10 +2092,6 @@
     "translation": "Nie udało się przetworzyć danych uwierzytelniania z obiektu użytkownika {{.Service}}"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO za pomocą protokołu OAuth 2.0 nie jest dostępne na tym serwerze"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Nie udało się utworzyć danych tokena dla weryfikacji adresu e-mail"
   },
@@ -2170,10 +2102,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Nie udało się utworzyć konta z obiektu użytkownika {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO za pomocą protokołu OAuth 2.0 nie jest dostępne na tym serwerze"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2218,10 +2146,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Transfer uwierzytelnienia nie jest skonfigurowany lub dostępny na tym serwerze."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Niewspierany usługodawca OAuth"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4380,20 +4304,12 @@
     "translation": "nieprawidłowe create at własności dla grupy"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "nieprawidłowe właściwości delete at dla grupy"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "nieprawidłowa właściwość opisu dla grupy"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "nieprawidłowa właściwość nazwy wyświetlanej dla grupy"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "nieprawidłowa właściwość id dla grupy"
   },
   {
     "id": "model.group.name.app_error",
@@ -4426,10 +4342,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "nieprawidłowa wartość syncable id dla grupy syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "niepoprawna właściwość type dla grupy syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4645,7 +4557,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 5 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
+    "translation": "Nieprawidłowe identyfikatory plików. Pamiętaj, że przesłane pliki są ograniczone maksymalnie do 10 plików. Użyj dodatkowych wpisów, aby uzyskać więcej plików."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4920,14 +4832,6 @@
     "translation": "Brak adresu DO."
   },
   {
-    "id": "store.insert_error",
-    "translation": "błąd wstawiania"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "wybierz błąd"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Nie udało się skonwertować StringArray do *string"
   },
@@ -4946,10 +4850,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Nie można znaleźć istniejącego kanału"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Napotkaliśmy błąd podczas wyszukiwania kanału"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4980,22 +4880,6 @@
     "translation": "Nie można uzyskać komendy"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "grupa syncable została już usunięta"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "nie znaleziono pasującej grupy"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "grupa o tej nazwie już istnieje"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "członek grupy już istnieje"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Wyszukiwanie zostało wyłączone na serwerze. Skontaktuj się z Administratorem."
   },
@@ -5004,216 +4888,16 @@
     "translation": "Użytkownik zespołu o takim ID już istnieje"
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Nie można uzyskać aktywnych użytkowników w wymaganym okresie"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "Nie mogliśmy uzyskać ilości nieaktywnych użytkowników"
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Nie można uzyskać liczby administratorów systemu"
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Nie można rozpocząć transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Nie można pobrać użytkowników"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika"
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Napotkaliśmy błąd szukając konta"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Nie można znaleźć istniejącego konta odpowiadającego Twojemu typowi uwierzytelniania dla tego zespołu. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Napotkaliśmy błąd podczas próby znalezienia konta według typu uwierzytelniania."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Nie można znaleźć istniejącego konta pasującego do Twojej nazwy użytkownika dla tego zespołu. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Nie można znaleźć istniejącego konta pasującego do poświadczeń. Ten zespół może wymagać zaproszenia od właściciela zespołu do dołączenia."
-  },
-  {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Znaleźliśmy wielu użytkowników pasujących do twoich poświadczeń i nie mogliśmy się zalogować. Skontaktuj się z administratorem."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Podczas wyszukiwania nowych użytkowników napotkaliśmy błąd"
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Podczas wyszukiwania profili użytkowników napotkaliśmy błąd"
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Wystąpił błąd podczas wyszukiwania ostatnio aktywnych użytkowników"
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Wystąpił błąd podczas wyszukiwania profili użytkowników"
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Nie można określić daty systemu na podstawie daty pierwszego utworzenia użytkownika."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Nie udało się policzyć ilości użytkowników"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Nie mogliśmy uzyskać nieprzeczytanych wiadomości do użytkownika"
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Nie mogliśmy uzyskać nieprzeczytanych wiadomości do użytkownika i kanału"
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Nie można znaleźć użytkownika."
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Nie można usunąć istniejącego konta"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Nie można zapisać konta."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Konto z takim adresem e-mail już istnieje."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Należy wywołać aktualizacja dla dotychczasowych użytkowników"
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Konto z taką nazwą użytkownika już istnieje."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Nie można znaleźć żadnego użytkownika pasującego do parametrów wyszukiwania"
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Nie można zaktualizować konta"
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Nie można zmienić pola ustawioneg przez AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Ten adres e-mail jest już zajęty. Proszę wybrać inny."
   },
   {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Nie można znaleźć istniejącego konta do zaktualizowania"
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Wystąpił błąd podczas wyszukiwania konta"
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Napotkaliśmy błąd aktualizując konto"
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Ta nazwa użytkownika jest już zajęta. Proszę wybrać inną."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Nie można zaktualizować danych autoryzacji"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Nie można przełączyć konta na {{.Service}}. Konto z podanym adresem {{.Email}} już istnieje."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Nie można zaktualizować parametru failed_attempts"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Nie można zaktualizować update_at"
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Napotkaliśmy błąd podczas aktualizowania aktywnego stanu MFA użytkownika"
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Napotkaliśmy błąd podczas aktualizacji sekretu MFA użytkownika"
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Nie można zaktualizować hasła użytkownika"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Nie można zaktualizować daty ostatniej aktualizacji użytkownika"
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Nie można zaktualizować pola weryfikacji adresu e-mail"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "błąd aktualizacji"
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Napotkano błąd wykazu katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania katalogu z S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z lokalnego magazynu plików serwera."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Wystąpił błąd podczas usuwania pliku z S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -5422,86 +5106,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "Pobierz najnowszą wersję Chrome"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Nie udało się dezaktywować gościa"
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "Nie można uzyskać listy nieaktywnych identyfikatorów gości."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika"
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Nie udało się zaktualizować członkostwa zespołów użytkownika"
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Nie można rozpocząć transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Nie udało się członkostw użytkownika na kanałach"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Nie można uzyskać wielu użytkowników do indeksowania"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Nie można uzyskać członków zespołu dla użytkowników pakietu dla indeksowania"
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Nie można uzyskać członków kanału dla użytkowników pakietu dla indeksowania"
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Podczas wyszukiwania profili użytkowników napotkaliśmy błąd"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "Unable to get know users from the database."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Nie udało się zaktualizować użytkownika"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Nie udało się zaktualizować członkostwa zespołów użytkownika"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Nie można rozpocząć transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Nie udało się członkostw użytkownika na kanałach"
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions nie mają sensu"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Możesz usuwać członków grupy z userId \"{{.UserId}}\""
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "nie udało się zbudować zapytania"
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -7240,10 +6844,6 @@
     "translation": "Nie udało się pobrać członków kanału"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Nie udało się stworzyć wiadra."
-  },
-  {
     "id": "api.server.warn_metric.start_trial",
     "translation": "Request trial"
   },
@@ -7386,14 +6986,6 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Nie można utworzyć wiadomości na usuniętym kanale."
-  },
-  {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Napotkano błąd podczas zapisu do usługi S3"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bot nie istnieje"
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",

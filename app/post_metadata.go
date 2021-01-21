@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
@@ -27,12 +28,12 @@ type linkMetadataCache struct {
 	PostImage *model.PostImage
 }
 
-const LINK_CACHE_SIZE = 10000
-const LINK_CACHE_DURATION = 1 * time.Hour
+const LinkCacheSize = 10000
+const LinkCacheDuration = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = cache.NewLRU(&cache.LRUOptions{
-	Size: LINK_CACHE_SIZE,
+var linkCache = cache.NewLRU(cache.LRUOptions{
+	Size: LinkCacheSize,
 })
 
 func (a *App) InitPostMetadata() {
@@ -80,6 +81,8 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 	if !*a.Config().ServiceSettings.EnablePostIconOverride || emojiName == "" {
 		return
 	}
+
+	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
 		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
@@ -404,6 +407,12 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 		client := a.HTTPService().MakeClient(false)
 		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		mmTransport := a.HTTPService().MakeTransport(false)
+		client.Transport = mmTransport.Transport
+
+		if strings.HasPrefix(requestURL, "https://twitter.com/") || strings.HasPrefix(requestURL, "https://mobile.twitter.com/") {
+			request.Header.Add("User-Agent", "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)")
+		}
 
 		var res *http.Response
 		res, err = client.Do(request)
@@ -506,7 +515,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 		PostImage: image,
 	}
 
-	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LINK_CACHE_DURATION)
+	linkCache.SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, LinkCacheDuration)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
@@ -526,9 +535,8 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		// one of these required fields exists before returning the OpenGraph data
 		if og.Title != "" || og.Type != "" || og.URL != "" {
 			return og, nil, nil
-		} else {
-			return nil, nil, nil
 		}
+		return nil, nil, nil
 	} else {
 		// Not an image or web page with OpenGraph information
 		return nil, nil, nil

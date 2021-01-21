@@ -60,25 +60,21 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
         s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
     {{else}}
         {{if $element.Results | errorPresent}}
-            {{if $element.Results | isAppError}}
-                return s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-            {{else}}
-                tries := 0
-                for {
-                    {{genResultsVars $element.Results false }} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-                    if {{$element.Results | errorVar}} == nil {
-                        return {{genResultsVars $element.Results true }}
-                    }
-                    if !isRepeatableError({{$element.Results | errorVar}}) {
-                        return {{genResultsVars $element.Results false }}
-                    }
-                    tries++
-                    if tries >= 3 {
-                        {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
-                        return {{genResultsVars $element.Results false }}
-                    }
+            tries := 0
+            for {
+                {{genResultsVars $element.Results false }} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
+                if {{$element.Results | errorVar}} == nil {
+                    return {{genResultsVars $element.Results true }}
                 }
-            {{end}}
+                if !isRepeatableError({{$element.Results | errorVar}}) {
+                    return {{genResultsVars $element.Results false }}
+                }
+                tries++
+                if tries >= 3 {
+                    {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
+                    return {{genResultsVars $element.Results false }}
+                }
+            }
         {{else}}
             return s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
         {{end}}

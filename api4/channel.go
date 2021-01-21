@@ -40,9 +40,9 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelCategories.Handle("", api.ApiSessionRequired(updateCategoriesForTeamForUser)).Methods("PUT")
 	api.BaseRoutes.ChannelCategories.Handle("/order", api.ApiSessionRequired(getCategoryOrderForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelCategories.Handle("/order", api.ApiSessionRequired(updateCategoryOrderForTeamForUser)).Methods("PUT")
-	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getCategoryForTeamForUser)).Methods("GET")
-	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(updateCategoryForTeamForUser)).Methods("PUT")
-	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9]+}", api.ApiSessionRequired(deleteCategoryForTeamForUser)).Methods("DELETE")
+	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getCategoryForTeamForUser)).Methods("GET")
+	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.ApiSessionRequired(updateCategoryForTeamForUser)).Methods("PUT")
+	api.BaseRoutes.ChannelCategories.Handle("/{category_id:[A-Za-z0-9_-]+}", api.ApiSessionRequired(deleteCategoryForTeamForUser)).Methods("DELETE")
 
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
@@ -212,7 +212,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err := c.App.PostUpdateChannelDisplayNameMessage(c.App.Session().UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn("Error while posting channel display name message", mlog.Err(err))
 		}
 	}
 
@@ -1447,7 +1447,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	postRootId, ok := props["post_root_id"].(string)
-	if ok && len(postRootId) != 0 && !model.IsValidId(postRootId) {
+	if ok && postRootId != "" && !model.IsValidId(postRootId) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
@@ -1481,7 +1481,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isNewMembership := false
 	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		if err.Id == app.MISSING_CHANNEL_MEMBER_ERROR {
+		if err.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {
 			c.Err = err

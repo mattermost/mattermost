@@ -85,7 +85,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store.User().Get(upstreamRequest.UserId)
-		userChan <- store.StoreResult{Data: user, Err: err}
+		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -188,8 +188,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}()
 
 	ur := <-userChan
-	if ur.Err != nil {
-		return "", ur.Err
+	if ur.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(ur.NErr, &nfErr):
+			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	user := ur.Data.(*model.User)
 	upstreamRequest.UserName = user.Username
@@ -232,13 +238,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			return "", appErr
 		}
 		return "", nil
-	} else {
-		resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-		if appErr != nil {
-			return "", appErr
-		}
-		defer resp.Body.Close()
 	}
+	resp, appErr = a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
+	}
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -532,7 +537,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
@@ -548,7 +553,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	mailToLinkContent := &MailToLinkContent{
 		MetricId:      warnMetricId,
-		MailRecipient: "support@mattermost.com",
+		MailRecipient: model.MM_SUPPORT_ADVISOR_ADDRESS,
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
 		MailBody:      mailBody,

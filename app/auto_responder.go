@@ -4,11 +4,10 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
+func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User, post *model.Post) (bool, *model.AppError) {
 	if channel.Type != model.CHANNEL_DIRECT {
 		return false, nil
 	}
@@ -28,10 +27,10 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, err
 	}
 
-	return a.SendAutoResponse(channel, receiver)
+	return a.SendAutoResponse(channel, receiver, post)
 }
 
-func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError) {
+func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	if receiver == nil || receiver.NotifyProps == nil {
 		return false, nil
 	}
@@ -43,17 +42,20 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bo
 		return false, nil
 	}
 
+	rootID := post.Id
+	if post.RootId != "" {
+		rootID = post.RootId
+	}
+
 	autoResponderPost := &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
-		RootId:    "",
-		ParentId:  "",
+		RootId:    rootID,
 		Type:      model.POST_AUTO_RESPONDER,
 		UserId:    receiver.Id,
 	}
 
 	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
-		mlog.Error(err.Error())
 		return false, err
 	}
 

@@ -184,7 +184,7 @@ func plan(segmentsIn []Segment, o *MergePlanOptions) (*MergePlan, error) {
 		calcBudget = CalcBudget
 	}
 
-	budgetNumSegments := CalcBudget(eligiblesLiveSize, minLiveSize, o)
+	budgetNumSegments := calcBudget(eligiblesLiveSize, minLiveSize, o)
 
 	scoreSegments := o.ScoreSegments
 	if scoreSegments == nil {

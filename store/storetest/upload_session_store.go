@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestUploadSessionStore(t *testing.T, ss store.Store) {
@@ -144,12 +144,6 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 			Path:      "/tmp/test3",
 		},
 	}
-
-	t.Run("getting invalid userId should fail", func(t *testing.T) {
-		us, err := ss.UploadSession().GetForUser("invalidId")
-		require.Error(t, err)
-		require.Nil(t, us)
-	})
 
 	t.Run("should return no sessions", func(t *testing.T) {
 		us, err := ss.UploadSession().GetForUser(userId)

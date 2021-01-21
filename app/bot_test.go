@@ -97,7 +97,7 @@ func TestCreateBot(t *testing.T) {
 			OwnerId:     th.BasicUser.Id,
 		})
 		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.username_exists.app_error", err.Id)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
 	})
 }
 
@@ -201,7 +201,7 @@ func TestPatchBot(t *testing.T) {
 
 		_, err = th.App.PatchBot(bot.UserId, botPatch)
 		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.update.username_taken.app_error", err.Id)
+		require.Equal(t, "app.user.update.find.app_error", err.Id)
 	})
 }
 
@@ -465,7 +465,7 @@ func TestUpdateBotActive(t *testing.T) {
 
 		_, err := th.App.UpdateBotActive(model.NewId(), false)
 		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.missing_account.const", err.Id)
+		require.Equal(t, "app.user.missing_account.const", err.Id)
 	})
 
 	t.Run("disable/enable bot", func(t *testing.T) {

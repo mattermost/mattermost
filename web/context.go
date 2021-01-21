@@ -18,7 +18,7 @@ import (
 
 type Context struct {
 	App           app.AppIface
-	Log           *mlog.Logger
+	Logger        *mlog.Logger
 	Params        *Params
 	Err           *model.AppError
 	siteURLHeader string
@@ -68,7 +68,7 @@ func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
@@ -81,47 +81,27 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
 		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
-		c.LogError(appErr)
+		c.LogErrorByCode(appErr)
 	}
 }
 
-func (c *Context) LogError(err *model.AppError) {
-	// Filter out 404s, endless reconnects and browser compatibility errors
-	if err.StatusCode == http.StatusNotFound ||
-		(c.App.Path() == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
-		err.Id == "web.check_browser_compatibility.app_error" {
-		c.LogDebug(err)
-	} else {
-		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogInfo(err *model.AppError) {
-	// Filter out 401s
-	if err.StatusCode == http.StatusUnauthorized {
-		c.LogDebug(err)
-	} else {
-		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
-			mlog.String("err_where", err.Where),
-			mlog.Int("http_code", err.StatusCode),
-			mlog.String("err_details", err.DetailedError),
-		)
-	}
-}
-
-func (c *Context) LogDebug(err *model.AppError) {
-	c.Log.Debug(
-		err.SystemMessage(utils.TDefault),
+func (c *Context) LogErrorByCode(err *model.AppError) {
+	code := err.StatusCode
+	msg := err.SystemMessage(utils.TDefault)
+	fields := []mlog.Field{
 		mlog.String("err_where", err.Where),
 		mlog.Int("http_code", err.StatusCode),
 		mlog.String("err_details", err.DetailedError),
-	)
+	}
+	switch {
+	case (code >= http.StatusBadRequest && code < http.StatusInternalServerError) ||
+		err.Id == "web.check_browser_compatibility.app_error":
+		c.Logger.Debug(msg, fields...)
+	case code == http.StatusNotImplemented:
+		c.Logger.Info(msg, fields...)
+	default:
+		c.Logger.Error(msg, fields...)
+	}
 }
 
 func (c *Context) IsSystemAdmin() bool {
@@ -139,6 +119,13 @@ func (c *Context) SessionRequired() {
 
 	if len(c.App.Session().UserId) == 0 {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
+		return
+	}
+}
+
+func (c *Context) CloudKeyRequired() {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.Cloud || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_CLOUD_KEY {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
 		return
 	}
 }
@@ -301,7 +288,7 @@ func (c *Context) RequireCategoryId() *Context {
 		return c
 	}
 
-	if len(c.Params.CategoryId) != 26 {
+	if !model.IsValidCategoryId(c.Params.CategoryId) {
 		c.SetInvalidUrlParam("category_id")
 	}
 	return c
@@ -325,6 +312,28 @@ func (c *Context) RequireTokenId() *Context {
 
 	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
+	}
+	return c
+}
+
+func (c *Context) RequireThreadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ThreadId) {
+		c.SetInvalidUrlParam("thread_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTimestamp() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.Timestamp == 0 {
+		c.SetInvalidUrlParam("timestamp")
 	}
 	return c
 }
@@ -661,5 +670,17 @@ func (c *Context) RequireBotUserId() *Context {
 	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
+	return c
+}
+
+func (c *Context) RequireInvoiceId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.InvoiceId) != 27 {
+		c.SetInvalidUrlParam("invoice_id")
+	}
+
 	return c
 }

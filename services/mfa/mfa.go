@@ -10,15 +10,16 @@ import (
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/mattermost/rsc/qr"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/rsc/qr"
 )
 
 const (
 	// This will result in 160 bits of entropy (base32 encoded), as recommended by rfc4226.
-	MFA_SECRET_SIZE = 20
+	MFASecretSize = 20
 )
 
 type Mfa struct {
@@ -58,7 +59,7 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 
 	issuer := getIssuerFromUrl(*m.ConfigService.Config().ServiceSettings.SiteURL)
 
-	secret := model.NewRandomBase32String(MFA_SECRET_SIZE)
+	secret := model.NewRandomBase32String(MFASecretSize)
 
 	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, user.Email, secret, issuer)
 
@@ -111,7 +112,7 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 		return err
 	}
 
-	schan := make(chan *model.AppError, 1)
+	schan := make(chan error, 1)
 	go func() {
 		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)

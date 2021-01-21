@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -6,6 +6,15 @@ ifeq ($(OS),Windows_NT)
 	PLATFORM := Windows
 else
 	PLATFORM := $(shell uname)
+endif
+
+# Set an environment variable on Linux used to resolve `docker.host.internal` inconsistencies with
+# docker. This can be reworked once https://github.com/docker/for-linux/issues/264 is resolved
+# satisfactorily.
+ifeq ($(PLATFORM),Linux)
+	export IS_LINUX = -linux
+else
+	export IS_LINUX =
 endif
 
 IS_CI ?= false
@@ -95,7 +104,8 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-response-v0.6.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -155,6 +165,13 @@ ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
 endif
 endif
 
+run-haserver: run-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Starting mattermost in an HA topology
+
+	docker-compose -f docker-compose.yaml up haproxy
+endif
+
 stop-docker: ## Stops the docker containers for local development.
 ifeq ($(MM_NO_DOCKER),true)
 	@echo No Docker Enabled: skipping docker stop
@@ -188,14 +205,9 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
-	@echo "mmctl already exists in bin/mmctl not downloading a new version."
+	@echo "MMCTL already exists in bin/mmctl not downloading a new version."
 else
-	@MMCTL_VERSION=$$(scripts/get_latest_release.sh mattermost/mmctl release-); if [ $$? -eq 0 ]; then \
-		scripts/download_mmctl_release.sh $$MMCTL_VERSION; \
-	else \
-		echo $$MMCTL_VERSION; \
-		exit 1; \
-	fi;
+	@scripts/download_mmctl_release.sh
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
@@ -222,9 +234,10 @@ i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
-i18n-check: ## Exit on empty translation strings except in english base file
+i18n-check: ## Exit on empty translation strings and translation source strings
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
+	$(GOBIN)/mmgotool i18n check-empty-src --portal-dir=""
 
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -476,6 +489,13 @@ restart: restart-server restart-client ## Restarts the server and webapp.
 
 restart-server: | stop-server run-server ## Restarts the mattermost server to pick up development change.
 
+restart-haserver:
+	@echo Restarting mattermost in an HA topology
+
+	docker-compose restart follower
+	docker-compose restart leader
+	docker-compose restart haproxy
+
 restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
@@ -545,11 +565,11 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	$(GO) get -u ./...
 
-	# Tidy up
-	$(GO) mod tidy
-
 	# Copy everything to vendor directory
 	$(GO) mod vendor
+
+	# Tidy up
+	$(GO) mod tidy
 
 vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \

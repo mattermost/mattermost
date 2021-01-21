@@ -4,6 +4,8 @@
 package active_users
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
@@ -91,7 +93,7 @@ func (worker *Worker) DoJob(job *model.Job) {
 
 	if err != nil {
 		mlog.Error("Worker: Failed to get active user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
-		worker.setJobError(job, err)
+		worker.setJobError(job, model.NewAppError("DoJob", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError))
 		return
 	}
 

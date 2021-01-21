@@ -21,7 +21,7 @@ func getUserFromUserArg(a *app.App, userArg string) *model.User {
 	user, _ := a.Srv().Store.User().GetByEmail(userArg)
 
 	if user == nil {
-		var err *model.AppError
+		var err error
 		if user, err = a.Srv().Store.User().GetByUsername(userArg); err == nil {
 			return user
 		}

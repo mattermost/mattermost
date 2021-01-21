@@ -19,12 +19,13 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
@@ -327,6 +328,18 @@ func TestPreparePostForClient(t *testing.T) {
 			assert.EqualValues(t, emoji, s)
 		})
 
+		t.Run("overrides icon URL with name surrounded by colons", func(t *testing.T) {
+			colonEmoji := ":basketball:"
+			clientPost := prepare(true, url, colonEmoji)
+
+			s, ok := clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_URL]
+			assert.True(t, ok)
+			assert.EqualValues(t, overridenUrl, s)
+			s, ok = clientPost.GetProps()[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+			assert.True(t, ok)
+			assert.EqualValues(t, colonEmoji, s)
+		})
+
 	})
 
 	t.Run("markdown image dimensions", func(t *testing.T) {
@@ -547,6 +560,8 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
+
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
 
 		return th
 	}

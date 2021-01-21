@@ -4,9 +4,7 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,12 +24,12 @@ var (
 // FileStore is a config store backed by a file such as config/config.json.
 //
 // It also uses the folder containing the configuration file for storing other configuration files.
+// Not to be used directly. Only to be used as a backing store for config.Store
 type FileStore struct {
-	commonStore
-
-	path    string
-	watch   bool
-	watcher *watcher
+	path     string
+	watch    bool
+	watcher  *watcher
+	callback func()
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
@@ -46,15 +44,6 @@ func NewFileStore(path string, watch bool) (fs *FileStore, err error) {
 	fs = &FileStore{
 		path:  resolvedPath,
 		watch: watch,
-	}
-	if err = fs.Load(); err != nil {
-		return nil, errors.Wrap(err, "failed to load")
-	}
-
-	if fs.watch {
-		if err = fs.startWatcher(); err != nil {
-			mlog.Error("failed to start config watcher", mlog.String("path", path), mlog.Err(err))
-		}
 	}
 
 	return fs, nil
@@ -104,19 +93,21 @@ func (fs *FileStore) resolveFilePath(name string) string {
 }
 
 // Set replaces the current configuration in its entirety and updates the backing store.
-func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return fs.commonStore.set(newCfg, true, func(cfg *model.Config) error {
-		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
-			return ErrReadOnlyConfiguration
-		}
+func (fs *FileStore) Set(newCfg *model.Config) error {
+	if *newCfg.ClusterSettings.Enable && *newCfg.ClusterSettings.ReadOnlyConfig {
+		return ErrReadOnlyConfiguration
+	}
 
-		return fs.commonStore.validate(cfg)
-	}, fs.persist)
+	return fs.persist(newCfg)
 }
 
 // persist writes the configuration to the configured file.
 func (fs *FileStore) persist(cfg *model.Config) error {
-	fs.stopWatcher()
+	needsRestart := false
+	if fs.watcher != nil {
+		fs.stopWatcher()
+		needsRestart = true
+	}
 
 	b, err := marshalConfig(cfg)
 	if err != nil {
@@ -128,8 +119,8 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to write file")
 	}
 
-	if fs.watch {
-		if err = fs.startWatcher(); err != nil {
+	if fs.watch && needsRestart {
+		if err = fs.Watch(fs.callback); err != nil {
 			mlog.Error("failed to start config watcher", mlog.String("path", fs.path), mlog.Err(err))
 		}
 	}
@@ -138,35 +129,22 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 }
 
 // Load updates the current configuration from the backing store.
-func (fs *FileStore) Load() (err error) {
-	var needsSave bool
-	var f io.ReadCloser
-
-	f, err = os.Open(fs.path)
+func (fs *FileStore) Load() ([]byte, error) {
+	f, err := os.Open(fs.path)
 	if os.IsNotExist(err) {
-		needsSave = true
-		defaultCfg := &model.Config{}
-		defaultCfg.SetDefaults()
-
-		var defaultCfgBytes []byte
-		defaultCfgBytes, err = marshalConfig(defaultCfg)
-		if err != nil {
-			return errors.Wrap(err, "failed to serialize default config")
-		}
-
-		f = ioutil.NopCloser(bytes.NewReader(defaultCfgBytes))
+		return nil, nil
 
 	} else if err != nil {
-		return errors.Wrapf(err, "failed to open %s for reading", fs.path)
+		return nil, errors.Wrapf(err, "failed to open %s for reading", fs.path)
 	}
-	defer func() {
-		closeErr := f.Close()
-		if err == nil && closeErr != nil {
-			err = errors.Wrap(closeErr, "failed to close")
-		}
-	}()
+	defer f.Close()
 
-	return fs.commonStore.load(f, needsSave, fs.commonStore.validate, fs.persist)
+	fileBytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileBytes, nil
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.
@@ -237,17 +215,13 @@ func (fs *FileStore) RemoveFile(name string) error {
 	return nil
 }
 
-// startWatcher starts a watcher to monitor for external config file changes.
-func (fs *FileStore) startWatcher() error {
-	if fs.watcher != nil {
+func (fs *FileStore) Watch(callback func()) error {
+	if fs.watcher != nil || !fs.watch {
 		return nil
 	}
 
-	watcher, err := newWatcher(fs.path, func() {
-		if err := fs.Load(); err != nil {
-			mlog.Error("failed to reload file on change", mlog.String("path", fs.path), mlog.Err(err))
-		}
-	})
+	fs.callback = callback
+	watcher, err := newWatcher(fs.path, callback)
 	if err != nil {
 		return err
 	}
@@ -276,9 +250,6 @@ func (fs *FileStore) String() string {
 
 // Close cleans up resources associated with the store.
 func (fs *FileStore) Close() error {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
-
 	fs.stopWatcher()
 
 	return nil

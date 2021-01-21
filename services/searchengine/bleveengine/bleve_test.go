@@ -25,7 +25,7 @@ type BleveEngineTestSuite struct {
 	suite.Suite
 
 	SQLSettings  *model.SqlSettings
-	SQLSupplier  *sqlstore.SqlSupplier
+	SQLStore     *sqlstore.SqlStore
 	SearchEngine *searchengine.Broker
 	Store        *searchlayer.SearchStore
 	BleveEngine  *BleveEngine
@@ -50,7 +50,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName)
-	s.SQLSupplier = sqlstore.NewSqlSupplier(*s.SQLSettings, nil)
+	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
@@ -61,7 +61,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 	cfg.SqlSettings.DisableDatabaseSearch = model.NewBool(true)
 
 	s.SearchEngine = searchengine.NewBroker(cfg, nil)
-	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLSupplier}, s.SearchEngine, cfg)
+	s.Store = searchlayer.NewSearchLayer(&testlib.TestStore{Store: s.SQLStore}, s.SearchEngine, cfg)
 
 	s.BleveEngine = NewBleveEngine(cfg, nil)
 	s.BleveEngine.indexSync = true
@@ -78,13 +78,13 @@ func (s *BleveEngineTestSuite) SetupSuite() {
 
 func (s *BleveEngineTestSuite) TearDownSuite() {
 	os.RemoveAll(s.IndexDir)
-	s.SQLSupplier.Close()
+	s.SQLStore.Close()
 	storetest.CleanupSqlSettings(s.SQLSettings)
 }
 
 func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 	searchTestEngine := &searchtest.SearchTestEngine{
-		Driver: searchtest.ENGINE_BLEVE,
+		Driver: searchtest.EngineBleve,
 	}
 
 	s.Run("TestSearchChannelStore", func() {
@@ -97,6 +97,10 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 
 	s.Run("TestSearchPostStore", func() {
 		searchtest.TestSearchPostStore(s.T(), s.Store, searchTestEngine)
+	})
+
+	s.Run("TestSearchFileInfoStore", func() {
+		searchtest.TestSearchFileInfoStore(s.T(), s.Store, searchTestEngine)
 	})
 }
 

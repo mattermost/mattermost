@@ -540,14 +540,6 @@
     "translation": "Niet storen schakelt desktop en mobiele pushmeldingen uit."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Niet storen is ingeschakeld."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Fout bij het ophalen van de status van de gebruiker."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "niet storen"
   },
@@ -948,7 +940,7 @@
   },
   {
     "id": "api.context.invalid_body_param.app_error",
-    "translation": "Foutief of ontrbrekend {{.Name}} in request body."
+    "translation": "Foutief of ontbrekend {{.Name}} in request body."
   },
   {
     "id": "api.context.invalid_param.app_error",
@@ -1093,14 +1085,6 @@
     "translation": "Bijlagen zijn uitgeschakeld op deze server."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Fout bij het controleren of het bestand bestaat."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Fout bij het nagaan of het bestand bestaat."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "De publieke link lijkt niet geldig."
   },
@@ -1121,48 +1105,12 @@
     "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Fout bij het kopiëren van het bestand binnen S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Kan bestand niet verwijderen van S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Kan lokaal bestand niet verplaatsen."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Geen file-driver geselecteerd."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale server opslag."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Je hebt geen rechten om te schrijven naar het opgegeven lokale pad of een andere fout."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Fout bij het controleren of de bucket bestaat."
-  },
-  {
-    "id": "api.file.test_connection.s3.connection.app_error",
-    "translation": "Slechte verbinding naar S3 of minio."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1199,18 +1147,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Fout bij het opladen van bestand {{.Filename}}. {{.Length}} bytes overschrijdt het maximum aantal {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het aanmaken van een map voor het nieuwe bestand."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar lokale serveropslag."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1628,15 +1564,15 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+    "translation": "Kan Slackgebruiker {{.Username}} niet toevoegen aan het kanaal.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+    "translation": "Kan het Slack kanaal {{.DisplayName}} niet importeren.\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "Het Slack kanaal {{.DisplayName}} bestaat reeds als een actief Mattermost kanaal. Beide kanalen zijn samengevoegd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -1644,19 +1580,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Slackgebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} is geïmporteerd.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack gebruiker is samengevoegd met een bestaande Mattermost gebruiker met zelfde e-mail {{.Email}} en gebruikersnaam {{.Username}}.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slackgebruiker is samengevoegd met een bestaande Mattermostgebruiker met overeenstemmend e-mail {{.Email}} en gebruikersnaam{{.Username}}, maar kon niet toevoegd worden aan het team.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+    "translation": "Gebruiker {{.Username}} heeft geen e-mailadres in de Slack-export. We gebruikten voorlopig {{.Email}} . De gebruiker zou zijn e-mailadres moeten bijwerken eens deze is aangemeld in het systeem.\n"
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1676,7 +1612,7 @@
   },
   {
     "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n"
+    "translation": "- Bijkomende fouten kunnen gevonden worden in de serverlogs.\n"
   },
   {
     "id": "api.slackimport.slack_import.notes",
@@ -1692,7 +1628,7 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
+    "translation": "Kan het Slack-exportbestand niet openen.\n"
   },
   {
     "id": "api.status.user_not_found.app_error",
@@ -1704,7 +1640,7 @@
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
-    "translation": "Parameter required to add user to team."
+    "translation": "Waarde verplicht om gebruiker toe te voegen aan het team."
   },
   {
     "id": "api.team.get_invite_info.not_open_team",
@@ -1716,7 +1652,7 @@
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
-    "translation": "Unable to read the team icon file."
+    "translation": "Kan het teamicoonbestand liet lezen."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -1744,15 +1680,15 @@
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
+    "translation": "Fout verzoek: bestandsgrootte veld is niet aanwezig."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "Email invitations are disabled."
+    "translation": "E-mailuitnodigingen zijn uitgeschakeld."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+    "translation": "Volgende e-mailadressen maken geen deel uit van een aanvaard domein: {{.Addresses}}. Contacteer je systeembeheerder voor verdere details."
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -1768,7 +1704,7 @@
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "%v joined the team."
+    "translation": "%v werd lid van het team."
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -1776,7 +1712,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v verliet het team."
   },
   {
     "id": "api.team.move_channel.post.error",
@@ -1784,7 +1720,7 @@
   },
   {
     "id": "api.team.move_channel.success",
-    "translation": "This channel has been moved to this team from %v."
+    "translation": "Het kanaal werd verplaatst van dit team naar %v."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1848,39 +1784,39 @@
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
-    "translation": "Specified user is not a member of specified team."
+    "translation": "De opgegeven gebruiker is geen lid van het opgegeven team."
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
-    "translation": "Your license does not support updating a team's scheme"
+    "translation": "Jouw licentie staat niet toe om een teamschema te wijzigen"
   },
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
-    "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+    "translation": "Niet in staat om het schema aan het team te koppelen omdat het opgegeven schema geen teamschema is."
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "You deactivated your account on {{ .SiteURL }}."
+    "translation": "Je schakelde je account uit op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "Je account is uitgeschakeld op {{ .ServerURL }}"
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "Als deze verandering niet werd aangevraagd door jou of je wil je account heractiveren, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}] Je account op {{ .ServerURL }} is uitgeschakeld"
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "Je e-mailadres voor {{.TeamDisplayName}} is gewijzigd naar {{.NewEmail}}."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1888,7 +1824,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Your email address has changed"
+    "translation": "[{{ .SiteName }}] Je e-mail adres is gewijzigd"
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1904,7 +1840,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Verify new email address"
+    "translation": "[{{ .SiteName }}] Verifieer je nieuw e-mailadres"
   },
   {
     "id": "api.templates.email_footer",
@@ -1912,15 +1848,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "Bij vragen, mail ons: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "Met vriendelijke groeten,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "Het {{.SiteName}} team"
   },
   {
     "id": "api.templates.email_organization",
@@ -1928,7 +1864,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "Maakte je deze wijziging niet, contacteer je systeembeheerder."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1948,27 +1884,27 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .TeamDisplayName }} Team"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "Multi-factor authenticatie is toegevoegd aan uw account op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "Multi-factor authenticatie werd toegevoegd"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Your MFA has been updated"
+    "translation": "[{{ .SiteName }}] Jouw MFA is geüpdatet"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "Multi-factor authenticatie werd verwijderd van je account op {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "Multi-factor authenticatie werd verwijderd"
   },
   {
     "id": "api.templates.password_change_body.info",
@@ -2128,7 +2064,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Niet ondersteunde OAuth service provider."
+    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2151,10 +2087,6 @@
     "translation": "Kan de auth data niet verwerken voor gebruikers object bij {{.Service}}."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Failed to create token data for email verification"
   },
@@ -2165,10 +2097,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2213,10 +2141,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Ongeldige OAuth service provider"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -3044,7 +2968,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "U heeft een nieuw bericht."
+    "translation": "Je hebt een nieuw direct bericht."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
@@ -3052,7 +2976,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.full",
-    "translation": "U heeft een nieuw bericht."
+    "translation": "Je heeft een nieuw groepsbericht."
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
@@ -3100,11 +3024,11 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -3112,7 +3036,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Month}} {{.Day}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw vermelding in  {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3348,11 +3272,11 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Failed to delete Elasticsearch index"
+    "translation": "Fout bij het verwijderen van de Elastisearch index"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
+    "translation": "Fout bij het verwijderen van de Elastisearch indexen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4375,20 +4299,12 @@
     "translation": "invalid create at property for group"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "invalid description property for group"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "invalid display name property for group"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
   },
   {
     "id": "model.group.name.app_error",
@@ -4421,10 +4337,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4640,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4915,14 +4827,6 @@
     "translation": "Missing TO address."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Kan StringArray niet naar *string omzetten"
   },
@@ -4941,10 +4845,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Het kanaal kon niet gevonden worden"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4975,22 +4875,6 @@
     "translation": "Bericht kan niet opgehaald worden"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Een team met dat domein bestaat al"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
@@ -4999,216 +4883,16 @@
     "translation": "Een team lid met de opgegeven id bestaat al"
   },
   {
-    "id": "store.sql_user.analytics_daily_active_users.app_error",
-    "translation": "Unable to get the active users during the requested period"
-  },
-  {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "De gebruikers kunnen niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
-  },
-  {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
-  },
-  {
-    "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
-  },
-  {
-    "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "We kunnen geen bestaand account vinden die inloggen bij dit team toe staat. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Er is een probleem opgetreden om een account te vinden op basis van authenticatie type."
-  },
-  {
-    "id": "store.sql_user.get_by_username.app_error",
-    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
-  },
-  {
-    "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "We vonden meerdere gebruikers die overeenkomen met uw referenties en waren niet in staat om u te laten inloggen. Neem contact op met een systeembeheerder."
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van voorkeuren"
-  },
-  {
-    "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Unable to infer the system date based on the first user creation date."
-  },
-  {
-    "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Het aantal gebruikers kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Het aantal ongelezen berichten voor de gebruiker en kanaal kan niet geteld worden"
-  },
-  {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "We kunnen geen bestaand team vinden om bij te werken"
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Een account met dat e-mail adres bestaat al."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
-  },
-  {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Een account met deze gebruikersnaam bestaat al."
-  },
-  {
-    "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user matching the search parameters"
-  },
-  {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Velden die gezet zijn door AD/LDAP kunnen niet gewijzigd worden"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "Dit e-mail adres is reeds in gebruik. Kies aub een andere."
   },
   {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "We kunnen geen account vinden om bij te werken"
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "Er is een fout opgestreden bij het bijwerken van het account"
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "Deze gebruikersnaam is al in gebruik. Kies een andere."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het emailadres {{.Email}}."
-  },
-  {
-    "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts"
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het bijwerken van de MFA status van de gebruiker"
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Er is een probleem opgetreden bij het bijwerken van de gebruiker zijn MFA geheim"
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password"
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user"
-  },
-  {
-    "id": "store.sql_user.verify_email.app_error",
-    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
-  },
-  {
     "id": "system.message.name",
     "translation": "Systeem"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -5443,86 +5127,6 @@
     "translation": "Download de nieuwste Chrome browser"
   },
   {
-    "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
-    "translation": "Gasten kunnen niet worden gedeactiveerd."
-  },
-  {
-    "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-    "translation": "De lijst van deactiveren van gasten-ids kan niet worden opgehaald."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Het bijwerken van de teamlidmaatschappen van de gebruiker is mislukt."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "De teamleden voor de gebruikersbatch kunnen niet worden opgehaald voor indexering."
-  },
-  {
-    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "De kanaalleden kunnen niet worden opgehaald voor de gebruikersbatch voor indexering."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "Er is een probleem opgestreden tijdens het opzoeken van het gebruikersprofiel"
-  },
-  {
-    "id": "store.sql_user.get_known_users.get_users.app_error",
-    "translation": "De gekende gebruikers kunnen niet worden opgehaald uit de database."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Kan de kanalen niet ophalen"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Het bijwerken van de teamlidmaatschappen van de gebruiker is mislukt."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction"
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Bijwerken van de lidmaatschappen van de gebruikerskanalen is mislukt."
-  },
-  {
-    "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions maken geen zin."
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "maken van query is mislukt."
-  },
-  {
     "id": "searchengine.bleve.disabled.error",
     "translation": "Fout bij leegmaken van Bleve indexen: de engine is uitgeschakeld"
   },
@@ -5744,11 +5348,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor gebruikers aanmaken is mislukt"
+    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor gebruikers is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+    "translation": "Het aanmaken van het Elasticsearch-sjabloon voor berichten is mislukt"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -6891,10 +6495,6 @@
     "translation": "Kan de auto-aanvul opdrachten niet oplijsten."
   },
   {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Meer dan één rij is gewijzigd."
-  },
-  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Fout bij het ophalen van de statistieken."
   },
@@ -7467,18 +7067,6 @@
     "translation": "Je hebt reeds geüpgraded naar de Mattermost Enterprise Editie. Gelieve de server te herstarten om de upgrade te beëindigen."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Fout bij het openen van het bestand."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Bestand bestaat niet."
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Fout bij het migreren van de configuratie-opslag."
   },
@@ -7536,7 +7124,7 @@
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": "Fout bij het ophalen van de kanaal per id."
+    "translation": "Fout bij het ophalen van de kanalen per id."
   },
   {
     "id": "app.channel.get_for_post.app_error",
@@ -7544,7 +7132,7 @@
   },
   {
     "id": "app.channel.get_member.missing.app_error",
-    "translation": "Geen kanaallid gevonden voor deze gebruikerID en kanaalID."
+    "translation": "Geen kanaallid gevonden voor deze gebruikersid en kanaalid."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -7564,7 +7152,7 @@
   },
   {
     "id": "app.channel.get_member_count.app_error",
-    "translation": "Kan het aantal leden van het kanaal niet ophalen."
+    "translation": "We kunnen het aantal leden van het kanaal niet tellen."
   },
   {
     "id": "app.channel.get_member.app_error",
@@ -7576,11 +7164,11 @@
   },
   {
     "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "app.channel.count_posts_since.app_error",
-    "translation": "Fout bij het tellen van het berichten sinds de opgegeven datum."
+    "translation": "Kan berichten niet tellen vanaf de opgegeven datum."
   },
   {
     "id": "api.upload.upload_data.invalid_content_type",
@@ -7588,7 +7176,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "Mattermost kon niet upgraden naar de Enterprise editie."
+    "translation": "Mattermost kon niet worden geüpgraded naar de Enterprise Editie."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
@@ -7612,11 +7200,11 @@
   },
   {
     "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Niet in staat om het aantal kanaal te verkrijgen."
+    "translation": "Kan het aantal kanalen niet tellen."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
-    "translation": "Niet in staat om kanaaltype tellingen te verkrijgen."
+    "translation": "We kunnen de kanalen typen niet tellen."
   },
   {
     "id": "api.user.update_password.user_and_hashed.app_error",
@@ -7636,11 +7224,11 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "Mattermost was niet in staat om te upgraden naar Enterprise editie. De digitale handtekening van het gedownloade binaire bestand kon niet worden geverifieerd."
+    "translation": "Mattermost kon niet upgraden naar de Enterprise editie. De digitale handtekening van het gedownloade bestand kon niet worden geverifieerd."
   },
   {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
-    "translation": "Mattermost kon niet upgraden naar de Enterprise editie. Deze functie werkt enkel op Linuxsystemen met x86-64 architectuur."
+    "translation": "Mattermost kont niet upgraden naar de Enterprise editie. Dit werkt enkel op Linuxsystemen met een X86-64 architectuur."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
@@ -7863,10 +7451,6 @@
     "translation": "Kan geen proeflicentie verkrijgen, probeer opnieuw of neem contact op met support@mattermost.com. Kan het aantal geregistreerde gebruikers niet verkrijgen."
   },
   {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Er trad een fout op bij een bestand in S3."
-  },
-  {
     "id": "ent.message_export.csv_export.get_attachment_error",
     "translation": "Fout bij het verkrijgen van de bestandsinfo voor een bericht."
   },
@@ -7889,10 +7473,6 @@
   {
     "id": "app.upload.upload_data.read_file.app_error",
     "translation": "Kon het bestand niet lezen."
-  },
-  {
-    "id": "store.sql_user.analytics_get_external_users.app_error",
-    "translation": "Fout bij het tellen van het aantal gebruikers met niet lokale domeine-mails"
   },
   {
     "id": "model.upload_session.is_valid.user_id.app_error",
@@ -8148,11 +7728,11 @@
   },
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
-    "translation": "Fout bij het kanaal markeren als ongelezen."
+    "translation": "Kan kanaal niet markeren als ongelezen."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
-    "translation": "Kan laatst gezien op niet bijwerken."
+    "translation": "De laatst bekeken tijd kon niet worden bijgewerkt."
   },
   {
     "id": "api.cloud.license_error",
@@ -8164,7 +7744,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
-    "translation": "Kan de kanalenbatch niet ophalen voor indexering."
+    "translation": "De kanelenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -8219,16 +7799,12 @@
     "translation": "Ophalen van kanaalleden is mislukt."
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Kan S3 bucket niet aanmaken."
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
-    "translation": "Kan de berichten-batch niet ophalen voor indexering."
+    "translation": "De berichtenbatch voor indexering kan niet worden opgehaald."
   },
   {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
-    "translation": "Er is een fout opgetreden bij het permanent wissen van de batch van berichten."
+    "translation": "Er liep iets mis bij het permanent verwijden van de batch met berichten."
   },
   {
     "id": "app.post.search.app_error",
@@ -8276,15 +7852,15 @@
   },
   {
     "id": "model.plugin_command_crash.error.app_error",
-    "translation": "/{{.Command}} command crashte de {{.PluginId}} plugin. Contacteer je systeembeheerder"
+    "translation": "/{{.Command}} opdracht heeft de plugin {{.PluginId}} gecrasht. Neem contact op met je systeembeheerder"
   },
   {
     "id": "ent.saml.do_login.invalid_time.app_error",
-    "translation": "We ontvingen een ongeldige tijd in het antwoord van de Identity Provider. Neem contact op met de beheerder."
+    "translation": "We kregen een ongeldige tijd in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
-    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+    "translation": "We hebben een ongeldige handtekening ontvangen in het antwoord van de Identiteitsaanbieder. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "ent.cloud.request_error",
@@ -8299,11 +7875,587 @@
     "translation": "Authenticatie tegenover CWS mislukt"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Fout bij het oplijsten van de objecten."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Fout bij het verwerken van het verzoek naar CWS."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Fout bij het bijwerken van het lidmaatschap van het draadje voor de genoemde gebruiker"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Kon het bestand niet opladen {{.Filename}}. Geweigerd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Fout bij het verplaatsen van het bestand."
+  },
+  {
+    "id": "api.templates.email_us_anytime_at",
+    "translation": "Stuur ons een mailtje via "
+  },
+  {
+    "id": "api.templates.copyright",
+    "translation": "© 2020 Mattermost, Inc. 855 El Camino Real, 13A-168, Palo Alto, CA, 94301"
+  },
+  {
+    "id": "api.templates.at_limit_title",
+    "translation": "Je het de grens van het aantal gebruikers in de gratis versie bereikt. "
+  },
+  {
+    "id": "api.templates.at_limit_subject",
+    "translation": "Mattermost Cloud gebruikerslimiet bereikt"
+  },
+  {
+    "id": "api.templates.at_limit_info2",
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "api.templates.at_limit_info1",
+    "translation": "Het lijkt dat je nu 10 of meer gebruikers hebt in je werkomgeving — Dat is fantastisch! Als je meer teamleden wil uitnodigen, overweeg dan een upgrade naar Mattermost Cloud Professional."
+  },
+  {
+    "id": "app.user.verify_email.app_error",
+    "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "Kon de datum van de laatste aanpassing van de gebruiker niet bijwerken."
+  },
+  {
+    "id": "app.user.update_password.app_error",
+    "translation": "Fout bij het bijwerken van het gebruikerswachtwoord."
+  },
+  {
+    "id": "app.user.update_failed_pwd_attempts.app_error",
+    "translation": "Fout bij het bijwerken van failed_attempts."
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "Niet mogelijk om account om te schakelen naar {{.Service}}. Een ander account maakt gebruik van het emailadres {{.Email}}."
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "Kan de authenticatiegegevens niet ophalen."
+  },
+  {
+    "id": "app.user.update_active_for_multiple_users.updating.app_error",
+    "translation": "Gasten kunnen niet worden gedeactiveerd."
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "We kunnen geen account vinden om bij te werken"
+  },
+  {
+    "id": "app.user.search.app_error",
+    "translation": "Kon geen gebruiker vinden die overeenstemt met de zoekparameters."
+  },
+  {
+    "id": "app.user.save.username_exists.app_error",
+    "translation": "Een account met deze gebruikersnaam bestaat al."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
+  },
+  {
+    "id": "app.user.save.email_exists.app_error",
+    "translation": "Een account met dat e-mail adres bestaat al."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Fout bij het bewaren van het account."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Fout bij het bijwerken van de gebruiker."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Kan het bestaande account niet verwijderen."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "De gebruikersbatch voor indexering kan niet worden opgehaald."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Het aantal ongelezen berichten voor de gebruiker kan niet geteld worden"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "Het aantal gebruikers kan niet geteld worden"
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van recent actieve gebruikers."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van de gebruikersprofielen."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Er is een probleem opgetreden tijdens het opzoeken van de gebruikersprofielen."
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "Er is een fout opgetreden bij het zoeken naar nieuwe gebruikers."
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "De gekende gebruikers kunnen niet worden opgehaald uit de database."
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "We kunnen geen bestaand account vinden met de gebruikersnaam voor dit team. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "Er is een probleem opgetreden om een account te vinden op basis van authenticatie type."
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "We kunnen geen bestaand account vinden die inloggen bij dit team toe staat. Het kan zijn dat een uitnodiging voor het team nodig is om lid te worden."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "Er is een fout opgestreden bij het opzoeken van het account"
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "Fout bij het bijwerken van de gebruiker."
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Fout bij het ophalen van de gebruikers."
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "De inactieve gebruikers kunnen niet geteld worden."
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "Fout bij het ophalen van de actieve gebruikers gedurende de opgegeven periode."
+  },
+  {
+    "id": "api.templates.upgrade_mattermost_cloud",
+    "translation": "Upgraden"
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Je werkplek overschrijdt de gratis gebruikerslimiet"
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "Mattermost Cloud werkplek Gebruikerslimiet overschreden"
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Maar je kan gebruikers ook uitschakelen in de Beheerdersconsole en zo plaatsen openen voor meer gebruikers of onder de gratis gebruikerslimiet blijven."
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "Je hebt meer dan 10 gebruikers in je werkplek en dat is overschrijdt de limiet binnen de gratis versie van Mattermost Cloud Professional. Om onderbrekingen te vermijden in je Mattermost werkplek, kan je upgraden."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_contact_support",
+    "translation": "Neem contact met de helpdesk"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Ingeklapte draadjesinstelling moet ofwel uitgeschakeld zijn, default_on of default_off"
+  },
+  {
+    "id": "app.user.update_threads_read_for_user.app_error",
+    "translation": "Niet in staat om alle draadjes van deze gebruiker bij te werken als gelezen"
+  },
+  {
+    "id": "app.user.update_thread_read_for_user.app_error",
+    "translation": "Niet in staat om de leesstatus voor het draadje bij te werken"
+  },
+  {
+    "id": "app.user.update_thread_follow_for_user.app_error",
+    "translation": "Niet in staat om de volgende status voor de draadje bij te werken"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Niet in staat om draadjes van gebruiker op te halen"
+  },
+  {
+    "id": "app.update_error",
+    "translation": "fout bij bijwerken"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "fout bij selecteren"
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "invoerfout"
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "groepslid bestaat reeds"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "geen overeenkomende groep gevonden"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "ongeldige eigenschap voor ID voor groep."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "group syncable was reeds verwijderd"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Mislukte betaling"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Actie vereist: Betaling mislukt voor Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Om een ononderbroken abonnement op Mattermost Cloud te garanderen, kan je contact opnemen met jouw financiële instelling om het onderliggende probleem op te lossen of jouw betalingsinformatie bijwerken. Zodra de betalingsinformatie is bijgewerkt, zal Mattermost proberen een eventueel openstaand saldo te vereffenen."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "Zij gaven de volgende reden:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Jouw financiële instelling weigerde een betaling van uw {{.CardBrand}} ****{{.LastFour}} geassocieerd met uw Mattermost Cloud werkruimte."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Mattermost Cloud Workspace opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "Jouw Mattermost Cloud abonnement is opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "Neem contact met ons op om jouw werkruimte opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "Jouw Mattermost-werkruimte is opgeschort. Alle inhoud en gegevens binnen jouw werkruimte worden binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Los het nu op"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "De opschorting van jouw Mattermost Cloud werkruimte is gepland voor morgen"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "Jouw Mattermost Cloud abonnement zal binnenkort worden opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "Zodra jouw werkruimte is geschorst, worden alle inhoud en gegevens binnen jouw werkruimte binnen 1-3 maanden verwijderd."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "Zodra jouw werkruimte is geschorst, kan niet meer inloggen op jouw account of de betalingsgegevens bijwerken. Je moet contact opnemen met onze helpdesk om jouw service opnieuw te activeren."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "Om opschorting te voorkomen, voeg jouw betalingsgegevens toe"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "Dit is een laatste herinnering dat we geen betaling hebben ontvangen voor uw Mattermost Cloud werkruimte, die tegen {{ .OverLimitDate }} betaald moest zijn . Morgen schorsen we jouw dienst."
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "Geen betalingsmethode in jouw account"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost kon jouw meest recente automatische betaling niet verwerken. Om jouw dienst actief te houden, dien je zo snel mogelijk betalingsgegevens toe te voegen of uw dienst kan worden opgeschort."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Mattermost Cloud Werkplaats opschorting"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Handel nu om jouw Mattermost Cloud-abonnement te behouden"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "Je verliest de toegang tot jouw berichtgeschiedenis"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "Je kan de betalingsgegevens niet bijwerken zonder contact op te nemen met onze helpdesk"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "Je kunt niet inloggen op je werkplek"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "Als er geen actie wordt ondernomen, wordt jouw werkplek opgeschort"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info1",
+    "translation": "Er is nog tijd om jouw Mattermost Cloud workspace actief te houden door problemen met jouw betaalmethode op te lossen. Om opschorting te voorkomen kan je jouw betaalmethode bijwerken."
+  },
+  {
+    "id": "api.templates.over_limit_14_days_title",
+    "translation": "Betaling niet ontvangen"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.over_limit_14_days_info1",
+    "translation": "Gewoon een herinnering dat we geen betaling hebben ontvangen voor jouw Mattermost abonnement dat gefactureerd is op {{ .OverLimitDate }}.  We zullen binnenkort beginnen met een proces om jouuw dienst op te schorten als de betaling niet is ontvangen."
+  },
+  {
+    "id": "api.roles.patch_roles.not_allowed_permission.error",
+    "translation": "Een of meer van de volgende rechten die je probeert toe te voegen of te verwijderen zijn niet toegestaan"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Betaal nu"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": "Het bijwerken van bekeken berichten is mislukt"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
+  },
+  {
+    "id": "model.config.is_valid.import.retention_days_too_low.app_error",
+    "translation": "Ongeldige waarde voor RetentionDays. Waarde is te laag."
+  },
+  {
+    "id": "model.config.is_valid.import.directory.app_error",
+    "translation": "Ongeldige waarde voor map."
+  },
+  {
+    "id": "import_process.worker.do_job.unzip",
+    "translation": "Fout bij het importeren: kon bestand niet decomprimeren."
+  },
+  {
+    "id": "import_process.worker.do_job.tmp_dir",
+    "translation": "Fout bij het importeren: kon geen tijdelijke map aanmaken."
+  },
+  {
+    "id": "import_process.worker.do_job.open_file",
+    "translation": "Fout bij het importeren: kan het bestand niet openen."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_jsonl",
+    "translation": "Fout bij het importeren: JSONL bestand ontbreekt."
+  },
+  {
+    "id": "import_process.worker.do_job.missing_file",
+    "translation": "Fout bij het importeren: import_file parameter ontbreekt."
+  },
+  {
+    "id": "import_process.worker.do_job.file_exists",
+    "translation": "Fout bij het importeren: bestand bestaat niet."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Fout bij het verplaatsen van het geüploade bestand."
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Kan het antwoord niet verwerken."
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "Er bestaat al een kanaallid met dat id."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "Aangepaste rechtenschema's worden niet ondersteund door je huidige licentie"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Je Mattermost Cloud factuur moet worden betaald"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "Achterstallige betaling voor jouw Mattermost Cloud abonnement"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "Om je factuur te bekijken en een betalingswijze toe te voegen, selecteer Nu betalen."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Jouw Mattermost Cloud factuur voor de meest recente factuurperiode is verwerkt. Wij hebben jouw betalingsgegevens echter niet in ons bestand."
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "Geen licentie aanwezig"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Dit type van licentie ondersteunt niet het aanmaken van een vernieuwingstoken"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Fout bij het aanmaken van een nieuw vernieuwingstoken."
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Fout bij het ophalen van de link om de licentie te vernieuwen"
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Kan het csv-bestand niet schrijven."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Kan het exportbestand niet schrijven."
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Kan het bestand niet schrijven."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Geen toegang tot de bestandsopslag."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Kan het bestand niet verwijderen."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Kan de directory niet verwijderen."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Kan het bestand niet lezen."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Kan het bestand niet verplaatsen."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Kan de mappen niet oplijsten."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "De bestandsinformatie kan niet worden opgehaald."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Niet in staat om een bestandslezer te krijgen."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Kon niet nagaan of het bestand bestaat."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Kan geen gegevens aan het bestand toevoegen."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Kan het bestand voor globalrelay niet schrijven."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Fout bij het ophalen van het endpoint van het Discovery Document."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Verwijderen van de bestanden is mislukt."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Verwijderen van het bestand is mislukt."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Fout bij het maken van de bleve-bestandenindex."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Fout bij het indexeren van de batch met bestanden."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Het bestand kon niet worden geïndexeerd."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Verwijderen van de bestanden van de gebruiker is mislukt."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van het bericht."
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Verwijderen van het bestand is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Elasticsearch-sjabloon voor berichten aanmaken is mislukt"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Fout bij het sluiten van bestanden index."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Het zoeken naar bestanden is niet voltooid."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Het type opdracht dat je probeert te downloaden wordt op dit moment niet ondersteund"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Fout bij indexeren van het bestand"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Fout bij het verwijderen van de bestanden van de gebruiker"
   }
 ]

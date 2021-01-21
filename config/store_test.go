@@ -9,8 +9,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/config"
 )
 
 func TestNewStore(t *testing.T) {
@@ -28,25 +29,25 @@ func TestNewStore(t *testing.T) {
 	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
 
 	t.Run("database dsn", func(t *testing.T) {
-		ds, err := config.NewStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), false)
+		ds, err := config.NewStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), false, nil)
 		require.NoError(t, err)
 		ds.Close()
 	})
 
 	t.Run("database dsn, watch ignored", func(t *testing.T) {
-		ds, err := config.NewStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), true)
+		ds, err := config.NewStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource), true, nil)
 		require.NoError(t, err)
 		ds.Close()
 	})
 
 	t.Run("file dsn", func(t *testing.T) {
-		fs, err := config.NewStore("config.json", false)
+		fs, err := config.NewStore("config.json", false, nil)
 		require.NoError(t, err)
 		fs.Close()
 	})
 
 	t.Run("file dsn, watch", func(t *testing.T) {
-		fs, err := config.NewStore("config.json", true)
+		fs, err := config.NewStore("config.json", true, nil)
 		require.NoError(t, err)
 		fs.Close()
 	})

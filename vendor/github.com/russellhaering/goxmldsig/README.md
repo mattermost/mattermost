@@ -7,7 +7,7 @@ XML Digital Signatures implemented in pure Go.
 
 ## Installation
 
-Install `goxmldsig` into your `$GOPATH` using `go get`:
+Install `goxmldsig` using `go get`:
 
 ```
 $ go get github.com/russellhaering/goxmldsig

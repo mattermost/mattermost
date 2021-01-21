@@ -108,8 +108,8 @@ webapp/coverage
 /tags
 .idea
 
-debug
-client
+/debug
+/client
 __debug_bin
 report.xml
 go.*.orig

@@ -11,7 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion7
 
 // HealthClient is the client API for Health service.
 //
@@ -116,14 +116,21 @@ type HealthServer interface {
 type UnimplementedHealthServer struct {
 }
 
-func (*UnimplementedHealthServer) Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
+func (UnimplementedHealthServer) Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
 }
-func (*UnimplementedHealthServer) Watch(*HealthCheckRequest, Health_WatchServer) error {
+func (UnimplementedHealthServer) Watch(*HealthCheckRequest, Health_WatchServer) error {
 	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
 }
 
-func RegisterHealthServer(s *grpc.Server, srv HealthServer) {
+// UnsafeHealthServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to HealthServer will
+// result in compilation errors.
+type UnsafeHealthServer interface {
+	mustEmbedUnimplementedHealthServer()
+}
+
+func RegisterHealthServer(s grpc.ServiceRegistrar, srv HealthServer) {
 	s.RegisterService(&_Health_serviceDesc, srv)
 }
 

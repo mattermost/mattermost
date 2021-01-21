@@ -67,6 +67,12 @@ func (c *MarketplaceMetering) BatchMeterUsageRequest(input *BatchMeterUsageInput
 //
 // BatchMeterUsage can process up to 25 UsageRecords at a time.
 //
+// A UsageRecord can optionally include multiple usage allocations, to provide
+// customers with usagedata split into buckets by tags that you define (or allow
+// the customer to define).
+//
+// BatchMeterUsage requests must be less than 1MB in size.
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -86,6 +92,13 @@ func (c *MarketplaceMetering) BatchMeterUsageRequest(input *BatchMeterUsageInput
 //   * InvalidUsageDimensionException
 //   The usage dimension does not match one of the UsageDimensions associated
 //   with products.
+//
+//   * InvalidTagException
+//   The tag is invalid, or the number of tags is greater than 5.
+//
+//   * InvalidUsageAllocationsException
+//   The usage allocation objects are invalid, or the number of allocations is
+//   greater than 500 for a single usage record.
 //
 //   * InvalidCustomerIdentifierException
 //   You have metered usage for a CustomerIdentifier that does not exist.
@@ -171,6 +184,10 @@ func (c *MarketplaceMetering) MeterUsageRequest(input *MeterUsageInput) (req *re
 // MeterUsage is authenticated on the buyer's AWS account using credentials
 // from the EC2 instance, ECS task, or EKS pod.
 //
+// MeterUsage can optionally include multiple usage allocations, to provide
+// customers with usage data split into buckets by tags that you define (or
+// allow the customer to define).
+//
 // Returns awserr.Error for service API and SDK errors. Use runtime type assertions
 // with awserr.Error's Code and Message methods to get detailed information about
 // the error.
@@ -190,6 +207,13 @@ func (c *MarketplaceMetering) MeterUsageRequest(input *MeterUsageInput) (req *re
 //   * InvalidUsageDimensionException
 //   The usage dimension does not match one of the UsageDimensions associated
 //   with products.
+//
+//   * InvalidTagException
+//   The tag is invalid, or the number of tags is greater than 5.
+//
+//   * InvalidUsageAllocationsException
+//   The usage allocation objects are invalid, or the number of allocations is
+//   greater than 500 for a single usage record.
 //
 //   * InvalidEndpointRegionException
 //   The endpoint being called is in a AWS Region different from your EC2 instance,
@@ -331,7 +355,7 @@ func (c *MarketplaceMetering) RegisterUsageRequest(input *RegisterUsageInput) (r
 //
 //   * PlatformNotSupportedException
 //   AWS Marketplace does not support metering usage from the underlying platform.
-//   Currently, only Amazon ECS is supported.
+//   Currently, Amazon ECS, Amazon EKS, and AWS Fargate are supported.
 //
 //   * CustomerNotEntitledException
 //   Exception thrown when the customer does not have a valid subscription for
@@ -1148,6 +1172,62 @@ func (s *InvalidRegionException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// The tag is invalid, or the number of tags is greater than 5.
+type InvalidTagException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidTagException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidTagException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidTagException(v protocol.ResponseMetadata) error {
+	return &InvalidTagException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidTagException) Code() string {
+	return "InvalidTagException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidTagException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidTagException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidTagException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidTagException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidTagException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
 // Registration token is invalid.
 type InvalidTokenException struct {
 	_            struct{}                  `type:"structure"`
@@ -1201,6 +1281,63 @@ func (s *InvalidTokenException) StatusCode() int {
 
 // RequestID returns the service's response RequestID for request.
 func (s *InvalidTokenException) RequestID() string {
+	return s.RespMetadata.RequestID
+}
+
+// The usage allocation objects are invalid, or the number of allocations is
+// greater than 500 for a single usage record.
+type InvalidUsageAllocationsException struct {
+	_            struct{}                  `type:"structure"`
+	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
+
+	Message_ *string `locationName:"message" type:"string"`
+}
+
+// String returns the string representation
+func (s InvalidUsageAllocationsException) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s InvalidUsageAllocationsException) GoString() string {
+	return s.String()
+}
+
+func newErrorInvalidUsageAllocationsException(v protocol.ResponseMetadata) error {
+	return &InvalidUsageAllocationsException{
+		RespMetadata: v,
+	}
+}
+
+// Code returns the exception type name.
+func (s *InvalidUsageAllocationsException) Code() string {
+	return "InvalidUsageAllocationsException"
+}
+
+// Message returns the exception's message.
+func (s *InvalidUsageAllocationsException) Message() string {
+	if s.Message_ != nil {
+		return *s.Message_
+	}
+	return ""
+}
+
+// OrigErr always returns nil, satisfies awserr.Error interface.
+func (s *InvalidUsageAllocationsException) OrigErr() error {
+	return nil
+}
+
+func (s *InvalidUsageAllocationsException) Error() string {
+	return fmt.Sprintf("%s: %s", s.Code(), s.Message())
+}
+
+// Status code returns the HTTP status code for the request's response error.
+func (s *InvalidUsageAllocationsException) StatusCode() int {
+	return s.RespMetadata.StatusCode
+}
+
+// RequestID returns the service's response RequestID for request.
+func (s *InvalidUsageAllocationsException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
@@ -1283,6 +1420,13 @@ type MeterUsageInput struct {
 	// Timestamp is a required field
 	Timestamp *time.Time `type:"timestamp" required:"true"`
 
+	// The set of UsageAllocations to submit.
+	//
+	// The sum of all UsageAllocation quantities must equal the UsageQuantity of
+	// the MeterUsage request, and each UsageAllocation must have a unique set of
+	// tags (include no tags).
+	UsageAllocations []*UsageAllocation `min:"1" type:"list"`
+
 	// It will be one of the fcp dimension name provided during the publishing of
 	// the product.
 	//
@@ -1315,11 +1459,24 @@ func (s *MeterUsageInput) Validate() error {
 	if s.Timestamp == nil {
 		invalidParams.Add(request.NewErrParamRequired("Timestamp"))
 	}
+	if s.UsageAllocations != nil && len(s.UsageAllocations) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UsageAllocations", 1))
+	}
 	if s.UsageDimension == nil {
 		invalidParams.Add(request.NewErrParamRequired("UsageDimension"))
 	}
 	if s.UsageDimension != nil && len(*s.UsageDimension) < 1 {
 		invalidParams.Add(request.NewErrParamMinLen("UsageDimension", 1))
+	}
+	if s.UsageAllocations != nil {
+		for i, v := range s.UsageAllocations {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "UsageAllocations", i), err.(request.ErrInvalidParams))
+			}
+		}
 	}
 
 	if invalidParams.Len() > 0 {
@@ -1343,6 +1500,12 @@ func (s *MeterUsageInput) SetProductCode(v string) *MeterUsageInput {
 // SetTimestamp sets the Timestamp field's value.
 func (s *MeterUsageInput) SetTimestamp(v time.Time) *MeterUsageInput {
 	s.Timestamp = &v
+	return s
+}
+
+// SetUsageAllocations sets the UsageAllocations field's value.
+func (s *MeterUsageInput) SetUsageAllocations(v []*UsageAllocation) *MeterUsageInput {
+	s.UsageAllocations = v
 	return s
 }
 
@@ -1382,7 +1545,7 @@ func (s *MeterUsageOutput) SetMeteringRecordId(v string) *MeterUsageOutput {
 }
 
 // AWS Marketplace does not support metering usage from the underlying platform.
-// Currently, only Amazon ECS is supported.
+// Currently, Amazon ECS, Amazon EKS, and AWS Fargate are supported.
 type PlatformNotSupportedException struct {
 	_            struct{}                  `type:"structure"`
 	RespMetadata protocol.ResponseMetadata `json:"-" xml:"-"`
@@ -1619,6 +1782,67 @@ func (s *ResolveCustomerOutput) SetProductCode(v string) *ResolveCustomerOutput 
 	return s
 }
 
+// Metadata assigned to an allocation. Each tag is made up of a key and a value.
+type Tag struct {
+	_ struct{} `type:"structure"`
+
+	// One part of a key-value pair that makes up a tag. A key is a label that acts
+	// like a category for the specific tag values.
+	//
+	// Key is a required field
+	Key *string `min:"1" type:"string" required:"true"`
+
+	// One part of a key-value pair that makes up a tag. A value acts as a descriptor
+	// within a tag category (key). The value can be empty or null.
+	//
+	// Value is a required field
+	Value *string `min:"1" type:"string" required:"true"`
+}
+
+// String returns the string representation
+func (s Tag) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s Tag) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *Tag) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "Tag"}
+	if s.Key == nil {
+		invalidParams.Add(request.NewErrParamRequired("Key"))
+	}
+	if s.Key != nil && len(*s.Key) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Key", 1))
+	}
+	if s.Value == nil {
+		invalidParams.Add(request.NewErrParamRequired("Value"))
+	}
+	if s.Value != nil && len(*s.Value) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Value", 1))
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetKey sets the Key field's value.
+func (s *Tag) SetKey(v string) *Tag {
+	s.Key = &v
+	return s
+}
+
+// SetValue sets the Value field's value.
+func (s *Tag) SetValue(v string) *Tag {
+	s.Value = &v
+	return s
+}
+
 // The calls to the API are throttled.
 type ThrottlingException struct {
 	_            struct{}                  `type:"structure"`
@@ -1731,6 +1955,70 @@ func (s *TimestampOutOfBoundsException) RequestID() string {
 	return s.RespMetadata.RequestID
 }
 
+// Usage allocations allow you to split usage into buckets by tags.
+//
+// Each UsageAllocation indicates the usage quantity for a specific set of tags.
+type UsageAllocation struct {
+	_ struct{} `type:"structure"`
+
+	// The total quantity allocated to this bucket of usage.
+	//
+	// AllocatedUsageQuantity is a required field
+	AllocatedUsageQuantity *int64 `type:"integer" required:"true"`
+
+	// The set of tags that define the bucket of usage. For the bucket of items
+	// with no tags, this parameter can be left out.
+	Tags []*Tag `min:"1" type:"list"`
+}
+
+// String returns the string representation
+func (s UsageAllocation) String() string {
+	return awsutil.Prettify(s)
+}
+
+// GoString returns the string representation
+func (s UsageAllocation) GoString() string {
+	return s.String()
+}
+
+// Validate inspects the fields of the type to determine if they are valid.
+func (s *UsageAllocation) Validate() error {
+	invalidParams := request.ErrInvalidParams{Context: "UsageAllocation"}
+	if s.AllocatedUsageQuantity == nil {
+		invalidParams.Add(request.NewErrParamRequired("AllocatedUsageQuantity"))
+	}
+	if s.Tags != nil && len(s.Tags) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("Tags", 1))
+	}
+	if s.Tags != nil {
+		for i, v := range s.Tags {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "Tags", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
+
+	if invalidParams.Len() > 0 {
+		return invalidParams
+	}
+	return nil
+}
+
+// SetAllocatedUsageQuantity sets the AllocatedUsageQuantity field's value.
+func (s *UsageAllocation) SetAllocatedUsageQuantity(v int64) *UsageAllocation {
+	s.AllocatedUsageQuantity = &v
+	return s
+}
+
+// SetTags sets the Tags field's value.
+func (s *UsageAllocation) SetTags(v []*Tag) *UsageAllocation {
+	s.Tags = v
+	return s
+}
+
 // A UsageRecord indicates a quantity of usage for a given product, customer,
 // dimension and time.
 //
@@ -1763,6 +2051,10 @@ type UsageRecord struct {
 	//
 	// Timestamp is a required field
 	Timestamp *time.Time `type:"timestamp" required:"true"`
+
+	// The set of UsageAllocations to submit. The sum of all UsageAllocation quantities
+	// must equal the Quantity of the UsageRecord.
+	UsageAllocations []*UsageAllocation `min:"1" type:"list"`
 }
 
 // String returns the string representation
@@ -1793,6 +2085,19 @@ func (s *UsageRecord) Validate() error {
 	if s.Timestamp == nil {
 		invalidParams.Add(request.NewErrParamRequired("Timestamp"))
 	}
+	if s.UsageAllocations != nil && len(s.UsageAllocations) < 1 {
+		invalidParams.Add(request.NewErrParamMinLen("UsageAllocations", 1))
+	}
+	if s.UsageAllocations != nil {
+		for i, v := range s.UsageAllocations {
+			if v == nil {
+				continue
+			}
+			if err := v.Validate(); err != nil {
+				invalidParams.AddNested(fmt.Sprintf("%s[%v]", "UsageAllocations", i), err.(request.ErrInvalidParams))
+			}
+		}
+	}
 
 	if invalidParams.Len() > 0 {
 		return invalidParams
@@ -1821,6 +2126,12 @@ func (s *UsageRecord) SetQuantity(v int64) *UsageRecord {
 // SetTimestamp sets the Timestamp field's value.
 func (s *UsageRecord) SetTimestamp(v time.Time) *UsageRecord {
 	s.Timestamp = &v
+	return s
+}
+
+// SetUsageAllocations sets the UsageAllocations field's value.
+func (s *UsageRecord) SetUsageAllocations(v []*UsageAllocation) *UsageRecord {
+	s.UsageAllocations = v
 	return s
 }
 
@@ -1888,3 +2199,12 @@ const (
 	// UsageRecordResultStatusDuplicateRecord is a UsageRecordResultStatus enum value
 	UsageRecordResultStatusDuplicateRecord = "DuplicateRecord"
 )
+
+// UsageRecordResultStatus_Values returns all elements of the UsageRecordResultStatus enum
+func UsageRecordResultStatus_Values() []string {
+	return []string{
+		UsageRecordResultStatusSuccess,
+		UsageRecordResultStatusCustomerNotSubscribed,
+		UsageRecordResultStatusDuplicateRecord,
+	}
+}

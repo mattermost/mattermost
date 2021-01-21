@@ -6,19 +6,19 @@ package sqlstore
 import (
 	"database/sql"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlTermsOfServiceStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
+func newSqlTermsOfServiceStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.TermsOfServiceStore {
 	s := SqlTermsOfServiceStore{sqlStore, metrics}
 
 	for _, db := range sqlStore.GetAllConns() {

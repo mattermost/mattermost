@@ -14,6 +14,7 @@ import (
 	"unicode"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -184,7 +185,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
 	if appErr != nil {
-		mlog.Error("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
+		mlog.Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
 
 	args.TriggerId = triggerId
@@ -231,28 +232,29 @@ func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 		wg.Add(1)
 		go func(mention string) {
 			defer wg.Done()
-			user, err := a.Srv().Store.User().GetByUsername(mention)
+			user, nErr := a.Srv().Store.User().GetByUsername(mention)
 
-			if err != nil && err.StatusCode != http.StatusNotFound {
-				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(err))
+			var nfErr *store.ErrNotFound
+			if nErr != nil && !errors.As(nErr, &nfErr) {
+				mlog.Warn("Failed to retrieve user @"+mention, mlog.Err(nErr))
 				return
 			}
 
 			// If it's a http.StatusNotFound error, check for usernames in substrings
 			// without trailing punctuation
-			if err != nil {
+			if nErr != nil {
 				trimmed, ok := model.TrimUsernameSpecialChar(mention)
 				for ; ok; trimmed, ok = model.TrimUsernameSpecialChar(trimmed) {
-					userFromTrimmed, userErr := a.Srv().Store.User().GetByUsername(trimmed)
-					if userErr != nil && err.StatusCode != http.StatusNotFound {
+					userFromTrimmed, nErr := a.Srv().Store.User().GetByUsername(trimmed)
+					if nErr != nil && !errors.As(nErr, &nfErr) {
 						return
 					}
 
-					if userErr != nil {
+					if nErr != nil {
 						continue
 					}
 
-					_, err = a.GetTeamMember(teamId, userFromTrimmed.Id)
+					_, err := a.GetTeamMember(teamId, userFromTrimmed.Id)
 					if err != nil {
 						// The user is not in the team, so we should ignore it
 						return
@@ -265,7 +267,7 @@ func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 				return
 			}
 
-			_, err = a.GetTeamMember(teamId, user.Id)
+			_, err := a.GetTeamMember(teamId, user.Id)
 			if err != nil {
 				// The user is not in the team, so we should ignore it
 				return
@@ -367,7 +369,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store.User().Get(args.UserId)
-		userChan <- store.StoreResult{Data: user, Err: err}
+		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -389,8 +391,14 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	team := tr.Data.(*model.Team)
 
 	ur := <-userChan
-	if ur.Err != nil {
-		return nil, nil, ur.Err
+	if ur.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(ur.NErr, &nfErr):
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, ur.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	user := ur.Data.(*model.User)
 
@@ -513,7 +521,7 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	trigger := ""
-	if len(args.Command) != 0 {
+	if args.Command != "" {
 		parts := strings.Split(args.Command, " ")
 		trigger = parts[0][1:]
 		trigger = strings.ToLower(trigger)
@@ -523,7 +531,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Error("error occurred in handling command response post", mlog.Err(err))
+		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -532,7 +540,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Error("error occurred in handling command response post", mlog.Err(err))
+				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}
@@ -554,7 +562,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.Type = response.Type
 	post.SetProps(response.Props)
 
-	if len(response.ChannelId) != 0 {
+	if response.ChannelId != "" {
 		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
 		if err != nil {
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
@@ -566,20 +574,20 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	isBotPost := !builtIn
 
 	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
-		if len(command.Username) != 0 {
+		if command.Username != "" {
 			post.AddProp("override_username", command.Username)
 			isBotPost = true
-		} else if len(response.Username) != 0 {
+		} else if response.Username != "" {
 			post.AddProp("override_username", response.Username)
 			isBotPost = true
 		}
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if len(command.IconURL) != 0 {
+		if command.IconURL != "" {
 			post.AddProp("override_icon_url", command.IconURL)
 			isBotPost = true
-		} else if len(response.IconURL) != 0 {
+		} else if response.IconURL != "" {
 			post.AddProp("override_icon_url", response.IconURL)
 			isBotPost = true
 		} else {

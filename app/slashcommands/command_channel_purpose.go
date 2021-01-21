@@ -14,20 +14,20 @@ type PurposeProvider struct {
 }
 
 const (
-	CMD_PURPOSE = "purpose"
+	CmdPurpose = "purpose"
 )
 
 func init() {
 	app.RegisterCommandProvider(&PurposeProvider{})
 }
 
-func (me *PurposeProvider) GetTrigger() string {
-	return CMD_PURPOSE
+func (*PurposeProvider) GetTrigger() string {
+	return CmdPurpose
 }
 
-func (me *PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_PURPOSE,
+		Trigger:          CmdPurpose,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_purpose.desc"),
 		AutoCompleteHint: T("api.command_channel_purpose.hint"),
@@ -35,7 +35,7 @@ func (me *PurposeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model
 	}
 }
 
-func (me *PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*PurposeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

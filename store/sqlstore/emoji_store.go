@@ -7,19 +7,19 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlEmojiStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 }
 
-func newSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
+func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	s := &SqlEmojiStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,

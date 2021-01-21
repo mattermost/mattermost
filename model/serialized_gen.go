@@ -1620,3 +1620,160 @@ func (z *User) Msgsize() (s int) {
 	s += msgp.BoolSize + msgp.StringPrefixSize + len(z.MfaSecret) + msgp.Int64Size + msgp.BoolSize + msgp.StringPrefixSize + len(z.BotDescription) + msgp.Int64Size + msgp.StringPrefixSize + len(z.TermsOfServiceId) + msgp.Int64Size
 	return
 }
+
+// DecodeMsg implements msgp.Decodable
+func (z *UserMap) DecodeMsg(dc *msgp.Reader) (err error) {
+	var zb0003 uint32
+	zb0003, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if (*z) == nil {
+		(*z) = make(UserMap, zb0003)
+	} else if len((*z)) > 0 {
+		for key := range *z {
+			delete((*z), key)
+		}
+	}
+	for zb0003 > 0 {
+		zb0003--
+		var zb0001 string
+		var zb0002 *User
+		zb0001, err = dc.ReadString()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		if dc.IsNil() {
+			err = dc.ReadNil()
+			if err != nil {
+				err = msgp.WrapError(err, zb0001)
+				return
+			}
+			zb0002 = nil
+		} else {
+			if zb0002 == nil {
+				zb0002 = new(User)
+			}
+			err = zb0002.DecodeMsg(dc)
+			if err != nil {
+				err = msgp.WrapError(err, zb0001)
+				return
+			}
+		}
+		(*z)[zb0001] = zb0002
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z UserMap) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteMapHeader(uint32(len(z)))
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0004, zb0005 := range z {
+		err = en.WriteString(zb0004)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		if zb0005 == nil {
+			err = en.WriteNil()
+			if err != nil {
+				return
+			}
+		} else {
+			err = zb0005.EncodeMsg(en)
+			if err != nil {
+				err = msgp.WrapError(err, zb0004)
+				return
+			}
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z UserMap) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendMapHeader(o, uint32(len(z)))
+	for zb0004, zb0005 := range z {
+		o = msgp.AppendString(o, zb0004)
+		if zb0005 == nil {
+			o = msgp.AppendNil(o)
+		} else {
+			o, err = zb0005.MarshalMsg(o)
+			if err != nil {
+				err = msgp.WrapError(err, zb0004)
+				return
+			}
+		}
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserMap) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var zb0003 uint32
+	zb0003, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	if (*z) == nil {
+		(*z) = make(UserMap, zb0003)
+	} else if len((*z)) > 0 {
+		for key := range *z {
+			delete((*z), key)
+		}
+	}
+	for zb0003 > 0 {
+		var zb0001 string
+		var zb0002 *User
+		zb0003--
+		zb0001, bts, err = msgp.ReadStringBytes(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		if msgp.IsNil(bts) {
+			bts, err = msgp.ReadNilBytes(bts)
+			if err != nil {
+				return
+			}
+			zb0002 = nil
+		} else {
+			if zb0002 == nil {
+				zb0002 = new(User)
+			}
+			bts, err = zb0002.UnmarshalMsg(bts)
+			if err != nil {
+				err = msgp.WrapError(err, zb0001)
+				return
+			}
+		}
+		(*z)[zb0001] = zb0002
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z UserMap) Msgsize() (s int) {
+	s = msgp.MapHeaderSize
+	if z != nil {
+		for zb0004, zb0005 := range z {
+			_ = zb0005
+			s += msgp.StringPrefixSize + len(zb0004)
+			if zb0005 == nil {
+				s += msgp.NilSize
+			} else {
+				s += zb0005.Msgsize()
+			}
+		}
+	}
+	return
+}

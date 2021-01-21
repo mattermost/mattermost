@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -69,7 +70,7 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 	serverIfaceMock.On("HttpService").Return(httpservice.MakeHTTPService(configService))
 
 	storeMock := &storeMocks.Store{}
-	storeMock.On("GetDbVersion").Return("5.24.0", nil)
+	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)
 
 	systemStore := storeMocks.SystemStore{}
 	props := model.StringMap{}
@@ -266,7 +267,7 @@ func TestRudderTelemetry(t *testing.T) {
 	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
-	telemetryService.initRudder(server.URL, RUDDER_KEY)
+	telemetryService.initRudder(server.URL, RudderKey)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
@@ -345,32 +346,32 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TRACK_CONFIG_SERVICE,
-			TRACK_CONFIG_TEAM,
-			TRACK_CONFIG_SQL,
-			TRACK_CONFIG_LOG,
-			TRACK_CONFIG_NOTIFICATION_LOG,
-			TRACK_CONFIG_FILE,
-			TRACK_CONFIG_RATE,
-			TRACK_CONFIG_EMAIL,
-			TRACK_CONFIG_PRIVACY,
-			TRACK_CONFIG_OAUTH,
-			TRACK_CONFIG_LDAP,
-			TRACK_CONFIG_COMPLIANCE,
-			TRACK_CONFIG_LOCALIZATION,
-			TRACK_CONFIG_SAML,
-			TRACK_CONFIG_PASSWORD,
-			TRACK_CONFIG_CLUSTER,
-			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_SUPPORT,
-			TRACK_CONFIG_NATIVEAPP,
-			TRACK_CONFIG_EXPERIMENTAL,
-			TRACK_CONFIG_ANALYTICS,
-			TRACK_CONFIG_PLUGIN,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
-			TRACK_CONFIG_MESSAGE_EXPORT,
-			TRACK_PLUGINS,
+			TrackConfigService,
+			TrackConfigTeam,
+			TrackConfigSQL,
+			TrackConfigLog,
+			TrackConfigNotificationLog,
+			TrackConfigFile,
+			TrackConfigRate,
+			TrackConfigEmail,
+			TrackConfigPrivacy,
+			TrackConfigOauth,
+			TrackConfigLDAP,
+			TrackConfigCompliance,
+			TrackConfigLocalization,
+			TrackConfigSAML,
+			TrackConfigPassword,
+			TrackConfigCluster,
+			TrackConfigMetrics,
+			TrackConfigSupport,
+			TrackConfigNativeApp,
+			TrackConfigExperimental,
+			TrackConfigAnalytics,
+			TrackConfigPlugin,
+			TrackActivity,
+			TrackServer,
+			TrackConfigMessageExport,
+			TrackPlugins,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -387,32 +388,32 @@ func TestRudderTelemetry(t *testing.T) {
 		collectInfo(&info)
 
 		for _, item := range []string{
-			TRACK_CONFIG_SERVICE,
-			TRACK_CONFIG_TEAM,
-			TRACK_CONFIG_SQL,
-			TRACK_CONFIG_LOG,
-			TRACK_CONFIG_NOTIFICATION_LOG,
-			TRACK_CONFIG_FILE,
-			TRACK_CONFIG_RATE,
-			TRACK_CONFIG_EMAIL,
-			TRACK_CONFIG_PRIVACY,
-			TRACK_CONFIG_OAUTH,
-			TRACK_CONFIG_LDAP,
-			TRACK_CONFIG_COMPLIANCE,
-			TRACK_CONFIG_LOCALIZATION,
-			TRACK_CONFIG_SAML,
-			TRACK_CONFIG_PASSWORD,
-			TRACK_CONFIG_CLUSTER,
-			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_SUPPORT,
-			TRACK_CONFIG_NATIVEAPP,
-			TRACK_CONFIG_EXPERIMENTAL,
-			TRACK_CONFIG_ANALYTICS,
-			TRACK_CONFIG_PLUGIN,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
-			TRACK_CONFIG_MESSAGE_EXPORT,
-			TRACK_PLUGINS,
+			TrackConfigService,
+			TrackConfigTeam,
+			TrackConfigSQL,
+			TrackConfigLog,
+			TrackConfigNotificationLog,
+			TrackConfigFile,
+			TrackConfigRate,
+			TrackConfigEmail,
+			TrackConfigPrivacy,
+			TrackConfigOauth,
+			TrackConfigLDAP,
+			TrackConfigCompliance,
+			TrackConfigLocalization,
+			TrackConfigSAML,
+			TrackConfigPassword,
+			TrackConfigCluster,
+			TrackConfigMetrics,
+			TrackConfigSupport,
+			TrackConfigNativeApp,
+			TrackConfigExperimental,
+			TrackConfigAnalytics,
+			TrackConfigPlugin,
+			TrackActivity,
+			TrackServer,
+			TrackConfigMessageExport,
+			TrackPlugins,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -424,7 +425,7 @@ func TestRudderTelemetry(t *testing.T) {
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_CONFIG_PLUGIN {
+			if b.Event == TrackConfigPlugin {
 				assert.Contains(t, b.Properties, "enable_testplugin")
 				assert.Contains(t, b.Properties, "version_testplugin")
 
@@ -442,7 +443,7 @@ func TestRudderTelemetry(t *testing.T) {
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_CONFIG_PLUGIN {
+			if b.Event == TrackConfigPlugin {
 				assert.NotContains(t, b.Properties, "enable_testplugin")
 				assert.NotContains(t, b.Properties, "version_testplugin")
 
@@ -454,6 +455,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryNoRudderKey", func(t *testing.T) {
+		if !strings.Contains(RudderKey, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
 		telemetryService.sendDailyTelemetry(false)
 
 		select {
@@ -465,6 +469,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {
+		if !strings.Contains(RudderKey, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
 		*cfg.LogSettings.EnableDiagnostics = false
 		defer func() {
 			*cfg.LogSettings.EnableDiagnostics = true
@@ -481,36 +488,39 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("TestInstallationType", func(t *testing.T) {
-		os.Unsetenv(ENV_VAR_INSTALL_TYPE)
+		os.Unsetenv(EnvVarInstallType)
 		telemetryService.sendDailyTelemetry(true)
 
 		var batches []batch
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_SERVER {
+			if b.Event == TrackServer {
 				assert.Equal(t, b.Properties["installation_type"], "")
 			}
 		}
 
-		os.Setenv(ENV_VAR_INSTALL_TYPE, "docker")
-		defer os.Unsetenv(ENV_VAR_INSTALL_TYPE)
+		os.Setenv(EnvVarInstallType, "docker")
+		defer os.Unsetenv(EnvVarInstallType)
 
 		batches = []batch{}
 		collectBatches(&batches)
 
 		for _, b := range batches {
-			if b.Event == TRACK_SERVER {
+			if b.Event == TrackServer {
 				assert.Equal(t, b.Properties["installation_type"], "docker")
 			}
 		}
 	})
 
 	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
-		os.Setenv("RUDDER_KEY", "abc123")
-		os.Setenv("RUDDER_DATAPLANE_URL", "arudderstackplace")
-		defer os.Unsetenv("RUDDER_KEY")
-		defer os.Unsetenv("RUDDER_DATAPLANE_URL")
+		if !strings.Contains(RudderKey, "placeholder") {
+			t.Skipf("Skipping telemetry on production builds")
+		}
+		os.Setenv("RudderKey", "abc123")
+		os.Setenv("RudderDataplaneURL", "arudderstackplace")
+		defer os.Unsetenv("RudderKey")
+		defer os.Unsetenv("RudderDataplaneURL")
 
 		config := telemetryService.getRudderConfig()
 

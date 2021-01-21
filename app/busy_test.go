@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBusySet(t *testing.T) {
@@ -84,6 +85,16 @@ func TestBusyExpires(t *testing.T) {
 	require.Equal(t, time.Time{}.Unix(), expire.Unix())
 	// allow a moment for cluster to sync
 	require.Eventually(t, func() bool { return compareBusyState(t, busy, cluster.Busy) }, time.Second*15, time.Millisecond*20)
+}
+
+func TestBusyRace(t *testing.T) {
+	cluster := &ClusterMock{Busy: &Busy{}}
+	busy := NewBusy(cluster)
+
+	busy.Set(500 * time.Millisecond)
+
+	// We are sleeping in order to let the race trigger.
+	time.Sleep(time.Second)
 }
 
 func compareBusyState(t *testing.T, busy1 *Busy, busy2 *Busy) bool {

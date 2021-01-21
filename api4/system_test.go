@@ -14,11 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetPing(t *testing.T) {
@@ -68,6 +68,7 @@ func TestGetPing(t *testing.T) {
 	}, "with server status")
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.ReloadConfig()
 		resp, appErr := client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -76,16 +77,10 @@ func TestGetPing(t *testing.T) {
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
-		// Run the enviroment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalue")
+		// Run the environment variable override code to test
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
-		memoryStore, err := config.NewMemoryStore()
-		require.Nil(t, err)
-		retrievedConfig := memoryStore.Get()
-
-		// replace config with generated config
-		oldConfig := th.App.Config().Clone()
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
+		th.App.ReloadConfig()
 
 		resp, appErr = client.DoApiGet(client.GetSystemRoute()+"/ping", "")
 		require.Nil(t, appErr)
@@ -94,7 +89,6 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
 	}, "ping feature flag test")
 }
 
@@ -485,7 +479,7 @@ func TestS3TestConnection(t *testing.T) {
 		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckInternalErrorStatus(t, resp)
-		assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
+		assert.Equal(t, "api.file.test_connection.app_error", resp.Error.Id)
 
 		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
@@ -595,7 +589,7 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
+		params := []int{-1, 0, MaxServerBusySeconds + 1}
 		for _, p := range params {
 			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)

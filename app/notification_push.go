@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -164,7 +164,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
 
 	// If the post only has images then push an appropriate message
-	if len(postMessage) == 0 && hasFiles {
+	if postMessage == "" && hasFiles {
 		if channelType == model.CHANNEL_DIRECT {
 			return strings.Trim(userLocale("api.post.send_notifications_and_forget.push_image_only"), " ")
 		}
@@ -211,7 +211,7 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
@@ -242,7 +242,7 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
@@ -322,7 +322,7 @@ func (hub *PushNotificationsHub) start() {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(notification.userId)
 				default:
-					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
 
 				if err != nil {
@@ -525,7 +525,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 
 	unreadCount, err := a.Srv().Store.User().GetUnreadCount(user.Id)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("BuildPushNotificationMessage", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	msg.Badge = int(unreadCount)
 
@@ -580,6 +580,12 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 
 	if fw, ok := post.GetProp("from_webhook").(string); ok {
 		msg.FromWebhook = fw
+	}
+
+	for _, attachment := range post.Attachments() {
+		if attachment.Fallback != "" {
+			post.Message += "\n" + attachment.Fallback
+		}
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)

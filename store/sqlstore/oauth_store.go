@@ -8,17 +8,17 @@ import (
 	"fmt"
 
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlOAuthStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
+func newSqlOAuthStore(sqlStore *SqlStore) store.OAuthStore {
 	as := &SqlOAuthStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

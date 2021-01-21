@@ -14,22 +14,22 @@ type RenameProvider struct {
 }
 
 const (
-	CMD_RENAME = "rename"
+	CmdRename = "rename"
 )
 
 func init() {
 	app.RegisterCommandProvider(&RenameProvider{})
 }
 
-func (me *RenameProvider) GetTrigger() string {
-	return CMD_RENAME
+func (*RenameProvider) GetTrigger() string {
+	return CmdRename
 }
 
-func (me *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
-	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
+func (*RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+	renameAutocompleteData := model.NewAutocompleteData(CmdRename, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
 	renameAutocompleteData.AddTextArgument(T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
-		Trigger:          CMD_RENAME,
+		Trigger:          CmdRename,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_rename.desc"),
 		AutoCompleteHint: T("api.command_channel_rename.hint"),
@@ -38,7 +38,7 @@ func (me *RenameProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.
 	}
 }
 
-func (me *RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*RenameProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{

@@ -73,6 +73,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, productNoticesInterface.MakeScheduler())
 	}
 
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, cloudInterface.MakeScheduler())
+	}
+
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }
@@ -163,13 +167,13 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	scheduler := schedulers.schedulers[idx]
 
 	if !pendingJobs {
-		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
+		pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+		if err != nil {
 			mlog.Error("Failed to set next job run time", mlog.Err(err))
 			schedulers.nextRunTimes[idx] = nil
 			return
-		} else {
-			pendingJobs = pj
 		}
+		pendingJobs = pj
 	}
 
 	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
@@ -197,7 +201,7 @@ func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Sch
 	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
 }
 
-func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+func (schedulers *Schedulers) handleConfigChange(oldConfig, newConfig *model.Config) {
 	mlog.Debug("Schedulers received config change.")
 	schedulers.configChanged <- newConfig
 }

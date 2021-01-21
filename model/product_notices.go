@@ -5,8 +5,9 @@ package model
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
 	"io"
+
+	"github.com/pkg/errors"
 )
 
 type ProductNotices []ProductNotice
@@ -158,6 +159,9 @@ func (t *NoticeInstanceType) Matches(isCloud bool) bool {
 		return true
 	}
 	if *t == NoticeInstanceType_Cloud && !isCloud {
+		return false
+	}
+	if *t == NoticeInstanceType_OnPrem && isCloud {
 		return false
 	}
 	return true

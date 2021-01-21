@@ -6,20 +6,20 @@ package sqlstore
 import (
 	"database/sql"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlCommandStore struct {
-	SqlStore
+	*SqlStore
 
 	commandsQuery sq.SelectBuilder
 }
 
-func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
+func newSqlCommandStore(sqlStore *SqlStore) store.CommandStore {
 	s := &SqlCommandStore{SqlStore: sqlStore}
 
 	s.commandsQuery = s.getQueryBuilder().

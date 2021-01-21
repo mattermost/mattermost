@@ -464,6 +464,74 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["ReactionHasBeenAdded"] = ReactionHasBeenAddedId
+}
+
+type Z_ReactionHasBeenAddedArgs struct {
+	A *Context
+	B *model.Reaction
+}
+
+type Z_ReactionHasBeenAddedReturns struct {
+}
+
+func (g *hooksRPCClient) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
+	_args := &Z_ReactionHasBeenAddedArgs{c, reaction}
+	_returns := &Z_ReactionHasBeenAddedReturns{}
+	if g.implemented[ReactionHasBeenAddedId] {
+		if err := g.client.Call("Plugin.ReactionHasBeenAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call ReactionHasBeenAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) ReactionHasBeenAdded(args *Z_ReactionHasBeenAddedArgs, returns *Z_ReactionHasBeenAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReactionHasBeenAdded(c *Context, reaction *model.Reaction)
+	}); ok {
+		hook.ReactionHasBeenAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ReactionHasBeenAdded called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ReactionHasBeenRemoved"] = ReactionHasBeenRemovedId
+}
+
+type Z_ReactionHasBeenRemovedArgs struct {
+	A *Context
+	B *model.Reaction
+}
+
+type Z_ReactionHasBeenRemovedReturns struct {
+}
+
+func (g *hooksRPCClient) ReactionHasBeenRemoved(c *Context, reaction *model.Reaction) {
+	_args := &Z_ReactionHasBeenRemovedArgs{c, reaction}
+	_returns := &Z_ReactionHasBeenRemovedReturns{}
+	if g.implemented[ReactionHasBeenRemovedId] {
+		if err := g.client.Call("Plugin.ReactionHasBeenRemoved", _args, _returns); err != nil {
+			g.log.Error("RPC call ReactionHasBeenRemoved to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) ReactionHasBeenRemoved(args *Z_ReactionHasBeenRemovedArgs, returns *Z_ReactionHasBeenRemovedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReactionHasBeenRemoved(c *Context, reaction *model.Reaction)
+	}); ok {
+		hook.ReactionHasBeenRemoved(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ReactionHasBeenRemoved called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

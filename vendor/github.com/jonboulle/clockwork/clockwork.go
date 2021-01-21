@@ -97,7 +97,7 @@ func (fc *fakeClock) After(d time.Duration) <-chan time.Time {
 	defer fc.l.Unlock()
 	now := fc.time
 	done := make(chan time.Time, 1)
-	if d.Nanoseconds() == 0 {
+	if d.Nanoseconds() <= 0 {
 		// special case - trigger immediately
 		done <- now
 	} else {
@@ -152,7 +152,7 @@ func (fc *fakeClock) NewTicker(d time.Duration) Ticker {
 		clock:  fc,
 		period: d,
 	}
-	go ft.tick()
+	ft.runTickThread()
 	return ft
 }
 

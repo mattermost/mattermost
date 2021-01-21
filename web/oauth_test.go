@@ -13,11 +13,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
@@ -127,6 +128,16 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ClientId = model.NewId()
 	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.Login(ApiClient, th.SystemAdminUser)
+	defer th.TearDown()
+
+	_, resp := ApiClient.AuthorizeOAuthApp(nil)
+	require.NotNil(t, resp.Error)
+	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
@@ -473,9 +484,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	_, err = th.App.Srv().Store.User().UpdateAuthData(
+	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
@@ -549,10 +560,18 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) *model.User {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
-	return user
+	return user, nil
+}
+
+func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+	return nil, nil
 }
 
 func GenerateTestAppName() string {
