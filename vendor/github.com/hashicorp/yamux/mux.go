@@ -46,7 +46,7 @@ func DefaultConfig() *Config {
 		AcceptBacklog:          256,
 		EnableKeepAlive:        true,
 		KeepAliveInterval:      30 * time.Second,
-		ConnectionWriteTimeout: 10 * time.Second,
+		ConnectionWriteTimeout: 15 * time.Minute,
 		MaxStreamWindowSize:    initialStreamWindow,
 		LogOutput:              os.Stderr,
 	}
