@@ -53,77 +53,77 @@ test-postgres:
   rules:
     - if: '$TEST == "yes"'
 
-test-mysql:
-  extends: .test
-  variables:
-    TEST_SCOPE: mysql
-    MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
-    MM_SQLSETTINGS_DRIVERNAME: mysql
-  rules:
-    - if: '$TEST == "yes"'
+# test-mysql:
+#   extends: .test
+#   variables:
+#     TEST_SCOPE: mysql
+#     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
+#     MM_SQLSETTINGS_DRIVERNAME: mysql
+#   rules:
+#     - if: '$TEST == "yes"'
 
-test-schema-postgres:
-  extends: .test-setup
-  variables:
-    TEST_SCOPE: schema-postgres
-  script:
-    - |
-      printf "\033[36m==> Creating databases\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
+# test-schema-postgres:
+#   extends: .test-setup
+#   variables:
+#     TEST_SCOPE: schema-postgres
+#   script:
+#     - |
+#       printf "\033[36m==> Creating databases\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
-      printf "\033[36m==> Importing postgres dump from version 5.0\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
+#       printf "\033[36m==> Importing postgres dump from version 5.0\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
 
-      printf "\033[36m==> Copying files to build-server-postgres\033[0m\n"
-      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-postgres"):/build
+#       printf "\033[36m==> Copying files to build-server-postgres\033[0m\n"
+#       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-postgres"):/build
 
-      printf "\033[36m==> TODO\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server-postgres") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-postgres:5432/latest?sslmode=disable&connect_timeout=10' MM_SQLSETTINGS_DRIVERNAME='postgres' go run ./cmd/mattermost/main.go version"
-      kubectl logs -n mm-ci $(get_pod_name "build-server-postgres")
+#       printf "\033[36m==> TODO\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "build-server-postgres") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-postgres:5432/latest?sslmode=disable&connect_timeout=10' MM_SQLSETTINGS_DRIVERNAME='postgres' go run ./cmd/mattermost/main.go version"
+#       kubectl logs -n mm-ci $(get_pod_name "build-server-postgres")
 
-      printf "\033[36m==> Generating dump\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d migrated -U mmuser > migrated.sql
-      kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d latest -U mmuser > latest.sql
+#       printf "\033[36m==> Generating dump\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d migrated -U mmuser > migrated.sql
+#       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d latest -U mmuser > latest.sql
 
-      printf "\033[36m==> Removing databases created for db comparison\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
+#       printf "\033[36m==> Removing databases created for db comparison\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
-      printf "\033[36m==> Generating diff\033[0m\n"
-      diff migrated.sql latest.sql > diff.txt && printf "\033[36m==> Both schemas are same\033[0m\n" || (printf "\033[36m==> Schema mismatch\033[0m\n" && cat diff.txt && exit 1)
-  rules:
-    - if: '$TEST == "yes"'
+#       printf "\033[36m==> Generating diff\033[0m\n"
+#       diff migrated.sql latest.sql > diff.txt && printf "\033[36m==> Both schemas are same\033[0m\n" || (printf "\033[36m==> Schema mismatch\033[0m\n" && cat diff.txt && exit 1)
+#   rules:
+#     - if: '$TEST == "yes"'
 
-test-schema-mysql:
-  extends: .test-setup
-  variables:
-    TEST_SCOPE: schema-mysql
-  script:
-    - |
-      printf "\033[36m==> Creating databases\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
+# test-schema-mysql:
+#   extends: .test-setup
+#   variables:
+#     TEST_SCOPE: schema-mysql
+#   script:
+#     - |
+#       printf "\033[36m==> Creating databases\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
 
-      printf "\033[36m==> Importing mysql dump from version 5.0\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest < ./scripts/mattermost-mysql-5.0.sql
+#       printf "\033[36m==> Importing mysql dump from version 5.0\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest < ./scripts/mattermost-mysql-5.0.sql
 
-      printf "\033[36m==> Copying files to build-server-mysql\033[0m\n"
-      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-mysql"):/build
+#       printf "\033[36m==> Copying files to build-server-mysql\033[0m\n"
+#       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-mysql"):/build
 
-      printf "\033[36m==> TODO\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server-mysql") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' MM_SQLSETTINGS_DRIVERNAME='mysql' go run ./cmd/mattermost/main.go version"
-      kubectl logs -n mm-ci $(get_pod_name "build-server-mysql")
+#       printf "\033[36m==> TODO\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "build-server-mysql") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' MM_SQLSETTINGS_DRIVERNAME='mysql' go run ./cmd/mattermost/main.go version"
+#       kubectl logs -n mm-ci $(get_pod_name "build-server-mysql")
 
-      printf "\033[36m==> Ignoring known MySQL mismatch 'ChannelMembers.SchemeGuest'\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
+#       printf "\033[36m==> Ignoring known MySQL mismatch 'ChannelMembers.SchemeGuest'\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
 
-      printf "\033[36m==> Generating dump\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
+#       printf "\033[36m==> Generating dump\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
 
-      printf "\033[36m==> Removing databases created for db comparison\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
+#       printf "\033[36m==> Removing databases created for db comparison\033[0m\n"
+#       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
 
-      printf "\033[36m==> Generating diff\033[0m\n"
-      diff migrated.sql latest.sql > diff.txt && printf "\033[36m==> Both schemas are same\033[0m\n" || (printf "\033[36m==> Schema mismatch\033[0m\n" && cat diff.txt && exit 1)
-  rules:
-    - if: '$TEST == "yes"'
+#       printf "\033[36m==> Generating diff\033[0m\n"
+#       diff migrated.sql latest.sql > diff.txt && printf "\033[36m==> Both schemas are same\033[0m\n" || (printf "\033[36m==> Schema mismatch\033[0m\n" && cat diff.txt && exit 1)
+#   rules:
+#     - if: '$TEST == "yes"'
