@@ -1,8 +1,10 @@
 # gosseract OCR
-[![Build Status](https://travis-ci.org/otiai10/gosseract.svg?branch=master)](https://travis-ci.org/otiai10/gosseract)
+<!-- [![Build Status](https://travis-ci.org/otiai10/gosseract.svg?branch=master)](https://travis-ci.org/otiai10/gosseract) -->
+[![Runtime Test](https://github.com/otiai10/gosseract/workflows/Runtime%20Test/badge.svg)](https://github.com/otiai10/gosseract/actions?query=workflow%3A%22Runtime+Test%22)
 [![codecov](https://codecov.io/gh/otiai10/gosseract/branch/master/graph/badge.svg)](https://codecov.io/gh/otiai10/gosseract)
 [![Go Report Card](https://goreportcard.com/badge/github.com/otiai10/gosseract)](https://goreportcard.com/report/github.com/otiai10/gosseract)
-[![GoDoc](https://godoc.org/github.com/otiai10/gosseract?status.svg)](https://godoc.org/github.com/otiai10/gosseract)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/otiai10/gosseract/blob/master/LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/otiai10/gosseract/v2.svg)](https://pkg.go.dev/github.com/otiai10/gosseract/v2)
 
 Golang OCR package, by using Tesseract C++ library.
 
@@ -19,7 +21,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/otiai10/gosseract"
+	"github.com/otiai10/gosseract/v2"
 )
 
 func main() {
