@@ -44,23 +44,23 @@ empty:
 #   rules:
 #     - if: '$TEST == "yes"'
 
-# test-postgres:
-#   extends: .test
-#   variables:
-#     TEST_SCOPE: postgres
-#     MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-#     MM_SQLSETTINGS_DRIVERNAME: postgres
-#   rules:
-#     - if: '$TEST == "yes"'
+test-postgres:
+  extends: .test
+  variables:
+    TEST_SCOPE: postgres
+    MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+    MM_SQLSETTINGS_DRIVERNAME: postgres
+  rules:
+    - if: '$TEST == "yes"'
 
-# test-mysql:
-#   extends: .test
-#   variables:
-#     TEST_SCOPE: mysql
-#     MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
-#     MM_SQLSETTINGS_DRIVERNAME: mysql
-#   rules:
-#     - if: '$TEST == "yes"'
+test-mysql:
+  extends: .test
+  variables:
+    TEST_SCOPE: mysql
+    MM_SQLSETTINGS_DATASOURCE: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true"
+    MM_SQLSETTINGS_DRIVERNAME: mysql
+  rules:
+    - if: '$TEST == "yes"'
 
 test-schema-postgres:
   extends: .test-setup
@@ -68,26 +68,28 @@ test-schema-postgres:
     TEST_SCOPE: schema-postgres
   script:
     - |
-      echo "==> Creating databases"
+      echo "\033[36m==> Creating databases\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
-      echo "Importing postgres dump from version 5.0"
+
+      echo "\033[36m==> Importing postgres dump from version 5.0\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- psql -U mmuser -d migrated < ./scripts/mattermost-postgresql-5.0.sql
 
-    - |
-      echo "==> Copying files to build-server-postgres"
+      echo "\033[36m==> Copying files to build-server-postgres\033[0m"
       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-postgres"):/build
-      echo "==> TODO"
+
+      echo "\033[36m==> TODO\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "build-server-postgres") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-postgres:5432/latest?sslmode=disable&connect_timeout=10' MM_SQLSETTINGS_DRIVERNAME='postgres' go run ./cmd/mattermost/main.go version"
       kubectl logs -n mm-ci $(get_pod_name "build-server-postgres")
 
-    - |
-      echo "==> Generating dump"
+      echo "\033[36m==> Generating dump\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d migrated -U mmuser > migrated.sql
       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- pg_dump --schema-only -d latest -U mmuser > latest.sql
-      echo "==> Removing databases created for db comparison"
+
+      echo "\033[36m==> Removing databases created for db comparison\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "postgres") -- sh -c 'exec echo "DROP DATABASE migrated; DROP DATABASE latest;" | exec psql -U mmuser mattermost_test'
-      echo "==> Generating diff"
-      diff migrated.sql latest.sql > diff.txt && echo "==> Both schemas are same" || (echo "==> Schema mismatch" && cat diff.txt && exit 1)
+
+      echo "\033[36m==> Generating diff\033[0m"
+      diff migrated.sql latest.sql > diff.txt && echo "\033[36m==> Both schemas are same\033[0m" || (echo "\033[36m==> Schema mismatch\033[0m" && cat diff.txt && exit 1)
   rules:
     - if: '$TEST == "yes"'
 
@@ -97,28 +99,31 @@ test-schema-mysql:
     TEST_SCOPE: schema-mysql
   script:
     - |
-      echo "==> Creating databases"
+      echo "\033[36m==> Creating databases\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
-      echo "==> Importing mysql dump from version 5.0"
+
+      echo "\033[36m==> Importing mysql dump from version 5.0\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest < ./scripts/mattermost-mysql-5.0.sql
 
-    - |
-      echo "==> Copying files to build-server-mysql"
+      echo "\033[36m==> Copying files to build-server-mysql\033[0m"
       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-mysql"):/build
-      echo "==> TODO"
+
+      echo "\033[36m==> TODO\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "build-server-mysql") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' MM_SQLSETTINGS_DRIVERNAME='mysql' go run ./cmd/mattermost/main.go version"
       kubectl logs -n mm-ci $(get_pod_name "build-server-mysql")
 
-    - |
-      echo "==> Ignoring known MySQL mismatch 'ChannelMembers.SchemeGuest'"
+      echo "\033[36m==> Ignoring known MySQL mismatch 'ChannelMembers.SchemeGuest'\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -D latest -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;" || echo "drop failed"
-      echo "==> Generating dump"
+
+      echo "\033[36m==> Generating dump\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > migrated.sql
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysqldump --skip-opt --no-data --compact -u root -pmostest latest > latest.sql
-      echo "==> Removing databases created for db comparison"
+
+      echo "\033[36m==> Removing databases created for db comparison\033[0m"
       kubectl exec -n mm-ci -t $(get_pod_name "mysql") -- mysql -uroot -pmostest -e 'DROP DATABASE migrated; DROP DATABASE latest'
-      echo "==> Generating diff"
-      diff migrated.sql latest.sql > diff.txt && echo "==> Both schemas are same" || (echo "==> Schema mismatch" && cat diff.txt && exit 1)
+
+      echo "\033[36m==> Generating diff\033[0m"
+      diff migrated.sql latest.sql > diff.txt && echo "\033[36m==> Both schemas are same\033[0m" || (echo "\033[36m==> Schema mismatch\033[0m" && cat diff.txt && exit 1)
   rules:
     - if: '$TEST == "yes"'

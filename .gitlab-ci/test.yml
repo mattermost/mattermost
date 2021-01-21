@@ -25,7 +25,7 @@
 
     - |
       echo "Waiting for all services to become ready"
-      kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
+      kubectl wait -n mm-ci --for=condition=ready pod -l=com.mattermost.ci/id="${CI_PIPELINE_ID}",com.mattermost.ci/for="${TEST_SCOPE}" --timeout=5m
       sleep 30s
 
     - kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
@@ -39,42 +39,36 @@
     - mkdir -p client/plugins
     - mkdir -p build/test-results
     - mkdir -p build/logs
-    # - cd build
-    # - docker-compose --no-ansi run --rm start_dependencies
-    # - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-    # - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
-    # - sleep 5
-    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
-    # - ulimit -n 8096
+
     # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
 
     - |
-      echo "Copying files to build-server-postgres"
-      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-postgres"):/build
-      echo "TODO"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server-postgres") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@ci-${CI_PIPELINE_ID}-postgres:5432/latest?sslmode=disable&connect_timeout=10' MM_SQLSETTINGS_DRIVERNAME='postgres' go run ./cmd/mattermost/main.go version"
-      kubectl logs -n mm-ci $(get_pod_name "build-server-postgres")
+      echo "\033[36m==> Copying files to build-server-${TEST_SCOPE}\033[0m"
+      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-${TEST_SCOPE}"):/build
 
-    - >
-      time docker run -it  -d --name server --net build_mm-test \
-        --env-file=dotenv/test.env \
-        --env MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE \
-        --env MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME \
-        --env GOBIN=$PWD/bin \
-        -v $CI_PROJECT_DIR:/mattermost-server \
-        -w /mattermost-server \
-        $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
-        bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=;"
-    - docker logs -f server
-    - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
-    - docker ps -a --no-trunc > logs/docker_ps
-    - docker stats -a --no-stream > logs/docker_stats
-    - tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
-    - cp ../report.xml test-results
-    - DOCKER_EXIT_CODE=$(docker inspect server --format='{{.State.ExitCode}}')
-    - echo $DOCKER_EXIT_CODE
-    - exit $DOCKER_EXIT_CODE
+      echo "\033[36m==> TODO\033[0m"
+      kubectl exec -n mm-ci -t $(get_pod_name "build-server-${TEST_SCOPE}") -- bash -c 'cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME BUILD_NUMBER=$CI_COMMIT_SHA ./scripts/test.sh "go" "" "$(go list ./... | grep -v ./data)" "." "" "/build/mattermost-server/bin"'
+      kubectl logs -n mm-ci $(get_pod_name "build-server-${TEST_SCOPE}")
+
+    # - >
+    #   time docker run -it  -d --name server --net build_mm-test \
+    #     --env-file=dotenv/test.env \
+    #     --env MM_SQLSETTINGS_DATASOURCE=$MM_SQLSETTINGS_DATASOURCE \
+    #     --env MM_SQLSETTINGS_DRIVERNAME=$MM_SQLSETTINGS_DRIVERNAME \
+    #     --env GOBIN=$PWD/bin \
+    #     -v $CI_PROJECT_DIR:/mattermost-server \
+    #     -w /mattermost-server \
+    #     $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
+    #     bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CI_COMMIT_SHA TESTFLAGS= TESTFLAGSEE=;"
+    # - docker logs -f server
+    # - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
+    # - docker ps -a --no-trunc > logs/docker_ps
+    # - docker stats -a --no-stream > logs/docker_stats
+    # - tar -czvf logs/docker_logs.tar.gz logs/docker-compose_logs logs/docker_ps logs/docker_stats
+    # - cp ../report.xml test-results
+    # - DOCKER_EXIT_CODE=$(docker inspect server --format='{{.State.ExitCode}}')
+    # - echo $DOCKER_EXIT_CODE
+    # - exit $DOCKER_EXIT_CODE
   artifacts:
     paths:
       - build/logs
