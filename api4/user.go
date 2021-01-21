@@ -1071,13 +1071,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte((autocomplete.ToJson())))
 }
 
-func convertToUserPatch(user *model.User) *model.UserPatch {
-	return &model.UserPatch{
-		FirstName: &user.FirstName, LastName: &user.LastName, Nickname: &user.Nickname,
-		Position: &user.Position, Email: &user.Email, Username: &user.Username,
-	}
-}
-
 func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
@@ -1126,7 +1119,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, convertToUserPatch(user))
+	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, user.ToPatch())
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",

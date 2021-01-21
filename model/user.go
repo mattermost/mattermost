@@ -711,6 +711,16 @@ func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
 }
 
+func (u *User) ToPatch() *UserPatch {
+	return &UserPatch{
+		Username: &u.Username, Password: &u.Password,
+		Nickname: &u.Nickname, FirstName: &u.FirstName, LastName: &u.LastName,
+		Position: &u.Position, Email: &u.Email,
+		Props: u.Props, NotifyProps: u.NotifyProps,
+		Locale: &u.Locale, Timezone: u.Timezone,
+	}
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	var user *User
