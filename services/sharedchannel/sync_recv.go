@@ -52,7 +52,6 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 			mlog.String("channel_id", sm.ChannelId),
 			mlog.Int("reaction_count", len(sm.Reactions)),
 			mlog.Int("user_count", len(sm.Users)),
-			mlog.String("msg", sm.String()),
 		)
 
 		if channel == nil {

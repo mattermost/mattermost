@@ -58,11 +58,13 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 
 		users := scs.usersForPost(p, reactions, rc)
 
-		// don't include the post if only the reactions changed.
+		// TODO:  don't include the post if only the reactions changed. Unfortunately there is no way to reliably know the
+		//        difference between an existing (synchronized) post with new reaction, and a brand new post (un-synchronized)
+		//        with a reaction.
 		postSync := p
-		if p.EditAt < p.UpdateAt && p.CreateAt < p.UpdateAt && p.DeleteAt == 0 {
-			postSync = nil
-		}
+		//if p.EditAt < p.UpdateAt && p.CreateAt < p.UpdateAt && p.DeleteAt == 0 {
+		//	postSync = nil
+		//}
 
 		sm := syncMsg{
 			ChannelId: p.ChannelId,
@@ -133,6 +135,11 @@ func sanitizeUserForSync(user *model.User) *model.User {
 // User should be synchronized if it has no entry in the SharedChannelUsers table,
 // or there is an entry but the LastSyncAt is less than user.UpdateAt
 func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (bool, error) {
+	// don't sync users with the remote they originated from.
+	if user.RemoteId != nil && *user.RemoteId == rc.RemoteId {
+		return false, nil
+	}
+
 	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
