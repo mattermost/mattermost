@@ -635,7 +635,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Write([]byte(info.ToJson()))
 }
 
