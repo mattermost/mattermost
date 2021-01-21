@@ -8,5 +8,15 @@ import (
 )
 
 type DataRetentionInterface interface {
-	GetPolicy() (*model.DataRetentionPolicy, *model.AppError)
+	GetGlobalPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
+	GetPolicies() ([]*model.RetentionPolicy, *model.AppError)
+	GetPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError)
+	GetPolicy(id string) (*model.RetentionPolicy, *model.AppError)
+	CreatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
+	PatchPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
+	DeletePolicy(policy *model.RetentionPolicy) *model.AppError
+	AddTeamsToPolicy(policyTeams []*model.RetentionPolicyTeam) *model.AppError
+	RemoveTeamFromPolicy(policyTeam *model.RetentionPolicyTeam) *model.AppError
+	AddChannelsToPolicy(policyChannels []*model.RetentionPolicyChannel) *model.AppError
+	RemoveChannelFromPolicy(policyChannel *model.RetentionPolicyChannel) *model.AppError
 }

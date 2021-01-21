@@ -14,16 +14,41 @@ type DataRetentionInterface struct {
 	mock.Mock
 }
 
-// GetPolicy provides a mock function with given fields:
-func (_m *DataRetentionInterface) GetPolicy() (*model.DataRetentionPolicy, *model.AppError) {
+// GetPolicies provides a mock function with given fields:
+func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicy, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 *model.DataRetentionPolicy
-	if rf, ok := ret.Get(0).(func() *model.DataRetentionPolicy); ok {
+	var r0 []*model.RetentionPolicy
+	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicy); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.DataRetentionPolicy)
+			r0 = ret.Get(0).([]*model.RetentionPolicy)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetPolicy provides a mock function with given fields:
+func (_m *DataRetentionInterface) GetPolicy() (*model.GlobalRetentionPolicy, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 *model.GlobalRetentionPolicy
+	if rf, ok := ret.Get(0).(func() *model.GlobalRetentionPolicy); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.GlobalRetentionPolicy)
 		}
 	}
 

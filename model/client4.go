@@ -4458,13 +4458,13 @@ func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
 // Data Retention Section
 
 // GetDataRetentionPolicy will get the current server data retention policy details.
-func (c *Client4) GetDataRetentionPolicy() (*DataRetentionPolicy, *Response) {
+func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response) {
 	r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policy", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return DataRetentionPolicyFromJson(r.Body), BuildResponse(r)
+	return GlobalRetentionPolicyFromJson(r.Body), BuildResponse(r)
 }
 
 // Commands Section

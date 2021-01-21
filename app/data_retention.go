@@ -9,10 +9,24 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) GetDataRetentionPolicy() (*model.DataRetentionPolicy, *model.AppError) {
+func (a *App) GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.AppError) {
 	if a.DataRetention() == nil {
 		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.DataRetention().GetPolicy()
+	return a.DataRetention().GetGlobalPolicy()
+}
+
+func (a *App) GetRetentionPolicies() ([]*model.RetentionPolicy, *model.AppError) {
+	if a.DataRetention() == nil {
+		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
+	}
+	return a.DataRetention().GetPolicies()
+}
+
+func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicy, *model.AppError) {
+	if a.DataRetention() == nil {
+		return nil, model.NewAppError("App.GetDataRetentionPolicy", "ent.data_retention.generic.license.error", nil, "", http.StatusNotImplemented)
+	}
+	return a.DataRetention().GetPolicy(id)
 }

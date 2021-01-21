@@ -84,6 +84,7 @@ type SqlStoreStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	retentionPolicy      store.RetentionPolicyStore
 	thread               store.ThreadStore
 	user                 store.UserStore
 	bot                  store.BotStore
@@ -155,6 +156,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
 	store.stores.post = newSqlPostStore(store, metrics)
+	store.stores.retentionPolicy = newSqlRetentionPolicyStore(store, metrics)
 	store.stores.user = newSqlUserStore(store, metrics)
 	store.stores.bot = newSqlBotStore(store, metrics)
 	store.stores.audit = newSqlAuditStore(store)
@@ -206,6 +208,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
+	store.stores.retentionPolicy.(*SqlRetentionPolicyStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
 	store.stores.user.(*SqlUserStore).createIndexesIfNotExists()
 	store.stores.bot.(*SqlBotStore).createIndexesIfNotExists()
@@ -972,6 +975,36 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 	return true
 }
 
+func (ss *SqlStore) CreateForeignKeyIfNotExists(
+	tableName, columnName, refTableName, refColumnName string,
+	onDeleteCascade bool,
+) (err error) {
+	deleteClause := ""
+	if onDeleteCascade {
+		deleteClause = " ON DELETE CASCADE"
+	}
+	constraintName := "FK_" + tableName + "_" + refTableName
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sQuery := `
+		DO $$
+		BEGIN
+			IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '` + constraintName + `') THEN
+			  ALTER TABLE ` + tableName + ` ADD CONSTRAINT ` + constraintName +
+			` FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + `(` + refColumnName + `)` +
+			deleteClause + `;
+			END IF;
+		END;
+		$$`
+		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	} else {
+		err = errors.New("not implemented yet")
+	}
+	if err != nil {
+		mlog.Warn("Could not create foreign key: " + err.Error())
+	}
+	return
+}
+
 func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool {
 
 	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1094,6 +1127,10 @@ func (ss *SqlStore) Channel() store.ChannelStore {
 
 func (ss *SqlStore) Post() store.PostStore {
 	return ss.stores.post
+}
+
+func (ss *SqlStore) RetentionPolicy() store.RetentionPolicyStore {
+	return ss.stores.retentionPolicy
 }
 
 func (ss *SqlStore) User() store.UserStore {

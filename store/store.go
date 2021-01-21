@@ -23,6 +23,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	RetentionPolicy() RetentionPolicyStore
 	Thread() ThreadStore
 	User() UserStore
 	Bot() BotStore
@@ -68,6 +69,19 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+}
+
+type RetentionPolicyStore interface {
+	Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
+	Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
+	Get(id string) (*model.RetentionPolicy, error)
+	GetAll() ([]*model.RetentionPolicy, error)
+	GetAllWithCounts() ([]*model.RetentionPolicy, error)
+	Delete(id string) error
+	AddChannels(policyChannels []*model.RetentionPolicyChannel) error
+	RemoveChannel(policyChannel *model.RetentionPolicyChannel) error
+	AddTeams(policyTeams []*model.RetentionPolicyTeam) error
+	RemoveTeam(policyTeam *model.RetentionPolicyTeam) error
 }
 
 type TeamStore interface {
