@@ -2892,11 +2892,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
