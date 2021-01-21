@@ -2,22 +2,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: build-server-postgres
+  name: build-server
   labels:
-    com.mattermost/component: build-server-postgres
+    com.mattermost/component: build-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      com.mattermost/component: build-server-postgres
+      com.mattermost/component: build-server
   template:
     metadata:
       labels:
-        com.mattermost/component: build-server-postgres
+        com.mattermost/component: build-server
     spec:
       restartPolicy: Always
       containers:
-        - name: build-server-postgres
+        - name: build-server
           image: mattermost/mattermost-build-server:20201119_golang-1.15.5
           imagePullPolicy: IfNotPresent
           command:
@@ -37,67 +37,14 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: build-server-postgres
+            claimName: build-server
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: build-server-postgres
+  name: build-server
   labels:
-    com.mattermost/component: build-server-postgres
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Mi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: build-server-mysql
-  labels:
-    com.mattermost/component: build-server-mysql
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      com.mattermost/component: build-server-mysql
-  template:
-    metadata:
-      labels:
-        com.mattermost/component: build-server-mysql
-    spec:
-      restartPolicy: Always
-      containers:
-        - name: build-server-mysql
-          image: mattermost/mattermost-build-server:20201119_golang-1.15.5
-          imagePullPolicy: IfNotPresent
-          command:
-            - "/bin/bash"
-            - "-c"
-            - "--"
-          args:
-            - "while true; do sleep 30; done;"
-          envFrom:
-            - name:
-              configMapRef:
-                name: dotenv
-          resources: {}
-          volumeMounts:
-            - name: data
-              mountPath: /build
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: build-server-mysql
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: build-server-mysql
-  labels:
-    com.mattermost/component: build-server-mysql
+    com.mattermost/component: build-server
 spec:
   accessModes:
     - ReadWriteOnce

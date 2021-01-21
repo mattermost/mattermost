@@ -48,12 +48,12 @@
     # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
 
     - |
-      printf "\033[36m==> Copying files to build-server-${TEST_SCOPE}\033[0m\n"
-      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-${TEST_SCOPE}"):/build
+      printf "\033[36m==> Copying files to build-server\033[0m\n"
+      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server"):/build
 
       printf "\033[36m==> TODO\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server-${TEST_SCOPE}") -- bash -c 'cd /build/mattermost-server; BUILD_NUMBER='"${CI_COMMIT_SHA}"' ./scripts/test.sh "go" "" "$(go list ./... | grep -v ./data)" "." "" "/build/mattermost-server/bin"'
-      kubectl logs -n mm-ci $(get_pod_name "build-server-${TEST_SCOPE}")
+      kubectl exec -n mm-ci -t $(get_pod_name "build-server") -- bash -c 'cd /build/mattermost-server; BUILD_NUMBER='"${CI_COMMIT_SHA}"' ./scripts/test.sh "go" "" "$(go list ./... | grep -v ./data)" "." "" "/build/mattermost-server/bin"'
+      kubectl logs -n mm-ci $(get_pod_name "build-server")
 
     # - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs
     # - docker ps -a --no-trunc > logs/docker_ps
