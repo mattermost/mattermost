@@ -858,7 +858,7 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.EnableGossipCompression == nil {
-		s.EnableGossipCompression = NewBool(false)
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
