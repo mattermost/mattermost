@@ -1,31 +1,79 @@
-.test:
+.test-setup:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
-  services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
-      alias: docker
+  image: $CI_REGISTRY/images/kube-ci:1.19.4-3
+  # image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  # services:
+  #   - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+  #     alias: docker
   variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_CONTENT_TRUST: 0
-    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  #   DOCKER_TLS_CERTDIR: ""
+  #   DOCKER_HOST: tcp://docker:2375/
+  #   DOCKER_DRIVER: overlay2
+  #   DOCKER_CONTENT_TRUST: 0
+  #   DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+    KUBECONFIG: /kubeconfig
+  before_script:
+    - |
+      function get_pod_name() {
+        if [ -n "$1" ]; then
+          kubectl get pod -n mm-ci -l=com.mattermost/component="$1",com.mattermost.ci/id="${CI_PIPELINE_ID}",com.mattermost.ci/for="${TEST_SCOPE}" -o jsonpath='{.items[0].metadata.name}'
+        fi
+      }
+      echo ${kube_config} | base64 -d > ${KUBECONFIG}
 
-    MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-    MM_SQLSETTINGS_DRIVERNAME: postgres
+    - |
+      cat <<EOF >>build/kustomization.yaml
+      namePrefix: "ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-"
+      commonLabels:
+        com.mattermost.ci/id: "${CI_PIPELINE_ID}"
+        com.mattermost.ci/for: "${TEST_SCOPE}"
+        com.mattermost.ci/branch: "${CI_COMMIT_BRANCH}"
+      EOF
+
+    # - |
+    #   curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl
+    #   chmod +x ./kubectl
+    #   mv ./kubectl /usr/local/bin/kubectl
+
+    # - |
+    #   curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz
+    #   tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz
+    #   mv ./kustomize /usr/local/bin/kustomize
+
+    - kustomize build build/ | kubectl -n mm-ci apply -f -
+
+    - |
+      kubectl wait -n mm-ci --for=condition=ready pod --all=true --timeout=5m
+      sleep 5s
+
+    - kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
+    - cat tests/test-data.ldif | kubectl exec -n mm-ci -t $(get_pod_name "openldap") -- bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+  after_script:
+    - kustomize build build/ | kubectl -n mm-ci delete -f -
+
+.test:
+  extends: .test-setup
   script:
     - mkdir -p client/plugins
     - mkdir -p build/test-results
     - mkdir -p build/logs
-    - cd build
-    - docker-compose --no-ansi run --rm start_dependencies
-    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
-    - sleep 5
-    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
-    - ulimit -n 8096
+    # - cd build
+    # - docker-compose --no-ansi run --rm start_dependencies
+    # - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+    # - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test'
+    # - sleep 5
+    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+    # - docker run --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+    # - ulimit -n 8096
     # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
+
+    - |
+      echo "Copying files to build-server-postgres"
+      kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server-postgres"):/build
+      echo "TODO"
+      kubectl exec -n mm-ci -t $(get_pod_name "build-server-postgres") -- bash -c "cd /build/mattermost-server; MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@ci-${CI_PIPELINE_ID}-postgres:5432/latest?sslmode=disable&connect_timeout=10' MM_SQLSETTINGS_DRIVERNAME='postgres' go run ./cmd/mattermost/main.go version"
+      kubectl logs -n mm-ci $(get_pod_name "build-server-postgres")
+
     - >
       time docker run -it  -d --name server --net build_mm-test \
         --env-file=dotenv/test.env \
