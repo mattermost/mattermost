@@ -1,16 +1,7 @@
 .test-setup:
   stage: test
   image: $CI_REGISTRY/images/kube-ci:1.19.4-3
-  # image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
-  # services:
-  #   - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
-  #     alias: docker
   variables:
-  #   DOCKER_TLS_CERTDIR: ""
-  #   DOCKER_HOST: tcp://docker:2375/
-  #   DOCKER_DRIVER: overlay2
-  #   DOCKER_CONTENT_TRUST: 0
-  #   DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
     KUBECONFIG: /kubeconfig
   before_script:
     - |
@@ -29,16 +20,6 @@
         com.mattermost.ci/for: "${TEST_SCOPE}"
         com.mattermost.ci/branch: "${CI_COMMIT_BRANCH}"
       EOF
-
-    # - |
-    #   curl -sSLO https://storage.googleapis.com/kubernetes-release/release/v1.19.4/bin/linux/amd64/kubectl
-    #   chmod +x ./kubectl
-    #   mv ./kubectl /usr/local/bin/kubectl
-
-    # - |
-    #   curl -sSLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.7/kustomize_v3.8.7_linux_amd64.tar.gz
-    #   tar -zxvf kustomize_v3.8.7_linux_amd64.tar.gz
-    #   mv ./kustomize /usr/local/bin/kustomize
 
     - kustomize build build/ | kubectl -n mm-ci apply -f -
 
