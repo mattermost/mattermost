@@ -137,7 +137,7 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 		if _, ok := err.(errNotFound); !ok {
 			return false, nil
 		}
-	} else if scu.LastSyncAt >= user.UpdateAt {
+	} else if scu.LastSyncAt < user.UpdateAt {
 		return false, nil
 	}
 	return true, nil

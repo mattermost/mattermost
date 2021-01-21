@@ -188,7 +188,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, channel *model.Channel, rc 
 	} else {
 		// update post
 		rpost, appErr = scs.app.UpdatePost(post, false)
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Updated sync post",
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Updated sync post",
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId))
 	}
