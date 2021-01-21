@@ -23,26 +23,28 @@ type channelInviteMsg struct {
 	DisplayName string `json:"display_name"`
 	Header      string `json:"header"`
 	Purpose     string `json:"purpose"`
+	Type        string `json:"type"`
 }
 
 // SendChannelInvite asynchronously sends a channel invite to a remote cluster. The remote cluster is
 // expected to create a new channel with the same channel id, and respond with status OK.
 // If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
-func (scs *Service) SendChannelInvite(channelId string, userId string, description string, rc *model.RemoteCluster) error {
+func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error {
 
-	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
+	sc, err := scs.server.GetStore().SharedChannel().Get(channel.Id)
 	if err != nil {
 		return err
 	}
 
 	invite := channelInviteMsg{
-		ChannelId:   sc.ChannelId,
+		ChannelId:   channel.Id,
 		TeamId:      rc.RemoteTeamId,
 		ReadOnly:    sc.ReadOnly,
 		Name:        sc.ShareName,
 		DisplayName: sc.ShareDisplayName,
 		Header:      sc.ShareHeader,
 		Purpose:     sc.SharePurpose,
+		Type:        channel.Type,
 	}
 
 	json, err := json.Marshal(invite)
@@ -54,7 +56,7 @@ func (scs *Service) SendChannelInvite(channelId string, userId string, descripti
 
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
-		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channel.Id)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
@@ -62,7 +64,7 @@ func (scs *Service) SendChannelInvite(channelId string, userId string, descripti
 
 	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
 		if err != nil || !resp.IsSuccess() {
-			scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Error())))
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Error())))
 			return
 		}
 
@@ -75,10 +77,10 @@ func (scs *Service) SendChannelInvite(channelId string, userId string, descripti
 			IsInviteConfirmed: true,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-			scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 			return
 		}
-		scs.sendEphemeralPost(channelId, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 	})
 }
 
@@ -120,7 +122,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		channelNew := &model.Channel{
 			Id:          invite.ChannelId,
 			TeamId:      invite.TeamId,
-			Type:        model.CHANNEL_OPEN,
+			Type:        invite.Type,
 			DisplayName: invite.DisplayName,
 			Name:        invite.Name,
 			Header:      invite.Header,
