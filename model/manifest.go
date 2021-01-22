@@ -118,6 +118,7 @@ type PluginSettingsSchema struct {
 //      "server": {
 //        "executables": {
 //          "linux-amd64": "server/dist/plugin-linux-amd64",
+//          "freebsd-amd64": "server/dist/plugin-freebsd-amd64",
 //          "darwin-amd64": "server/dist/plugin-darwin-amd64",
 //          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
 //        }
@@ -232,6 +233,7 @@ func (ms *ManifestServer) MarshalJSON() ([]byte, error) {
 		}
 
 		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["freebsd-amd64"] = ms.Executables.FreeBSDAmd64
 		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
 		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
 	}
@@ -250,6 +252,7 @@ func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
 	if len(aux.AllExecutables) > 0 {
 		ms.Executables = &ManifestExecutables{
 			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			FreeBSDAmd64: aux.AllExecutables["freebsd-amd64"],
 			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
 			WindowsAmd64: aux.AllExecutables["windows-amd64"],
 		}
@@ -268,6 +271,7 @@ func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
 		}
 
 		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["freebsd-amd64"] = ms.Executables.FreeBSDAmd64
 		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
 		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
 	}
@@ -286,6 +290,7 @@ func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error
 	if len(aux.AllExecutables) > 0 {
 		ms.Executables = &ManifestExecutables{
 			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			FreeBSDAmd64: aux.AllExecutables["freebsd-amd64"],
 			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
 			WindowsAmd64: aux.AllExecutables["windows-amd64"],
 		}
@@ -298,6 +303,8 @@ func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error
 type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
+	// FreeBSDAmd64 is the path to your executable binary for the corresponding platform
+	FreeBSDAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
 	// DarwinAmd64 is the path to your executable binary for the corresponding platform
 	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
 	// WindowsAmd64 is the path to your executable binary for the corresponding platform
