@@ -117,20 +117,24 @@ type SqlStoreStores struct {
 	linkMetadata         store.LinkMetadataStore
 }
 
+type AsyncMigration func()
+
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter       int64
+	srCounter       int64
+	master          *gorp.DbMap
+	replicas        []*gorp.DbMap
+	searchReplicas  []*gorp.DbMap
+	stores          SqlStoreStores
+	settings        *model.SqlSettings
+	lockedToMaster  bool
+	context         context.Context
+	license         *model.License
+	licenseMutex    sync.RWMutex
+	asyncMigrations []AsyncMigration
+	wg              sync.WaitGroup
 }
 
 type TraceOnAdapter struct{}
@@ -145,9 +149,10 @@ func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 
 func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
 	store := &SqlStore{
-		rrCounter: 0,
-		srCounter: 0,
-		settings:  &settings,
+		rrCounter:       0,
+		srCounter:       0,
+		settings:        &settings,
+		asyncMigrations: []AsyncMigration{},
 	}
 
 	store.initConnection()
@@ -233,7 +238,10 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
 	store.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
 	store.stores.scheme.(*SqlSchemeStore).createIndexesIfNotExists()
-	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
+
+	store.asyncMigrations = append(store.asyncMigrations, store.stores.preference.(*SqlPreferenceStore).generateAsyncMigrations()...)
+
+	store.dispatchAsyncMigrations()
 
 	return store
 }
@@ -933,7 +941,6 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			os.Exit(ExitCreateIndexPostgres)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
 			mlog.Critical("Failed to check index", mlog.Err(err))
@@ -1070,6 +1077,10 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 }
 
 func (ss *SqlStore) Close() {
+	mlog.Debug("Waiting for active async migrations to finish...")
+	ss.wg.Wait()
+	mlog.Debug("Async migrations completed...")
+
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
@@ -1242,6 +1253,16 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.licenseMutex.Lock()
 	defer ss.licenseMutex.Unlock()
 	ss.license = license
+}
+
+func (ss *SqlStore) dispatchAsyncMigrations() {
+	ss.wg.Add(len(ss.asyncMigrations))
+	for _, migration := range ss.asyncMigrations {
+		go func(m func()) {
+			defer ss.wg.Done()
+			m()
+		}(migration)
+	}
 }
 
 type mattermConverter struct{}

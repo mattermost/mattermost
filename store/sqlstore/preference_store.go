@@ -32,6 +32,12 @@ func newSqlPreferenceStore(sqlStore *SqlStore) store.PreferenceStore {
 	return s
 }
 
+func (s SqlPreferenceStore) generateAsyncMigrations() []AsyncMigration {
+	return []AsyncMigration{
+		s.deleteUnusedFeatures,
+	}
+}
+
 func (s SqlPreferenceStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId")
 	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")
