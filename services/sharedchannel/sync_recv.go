@@ -28,7 +28,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
 
-	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync messages received",
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Batch of sync messages received",
 		mlog.String("remote", rc.DisplayName),
 		mlog.Int("sync_msg_count", len(syncMessages)),
 	)
@@ -47,11 +47,12 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 
 		// TODO: modify perma-links (MM-31596)
 
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync post received",
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 			mlog.String("post_id", sm.PostId),
 			mlog.String("channel_id", sm.ChannelId),
 			mlog.Int("reaction_count", len(sm.Reactions)),
 			mlog.Int("user_count", len(sm.Users)),
+			mlog.Bool("has_post", sm.Post != nil),
 		)
 
 		if channel == nil {

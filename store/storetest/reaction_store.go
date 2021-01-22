@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -16,10 +17,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 )
 
-func TestReactionStore(t *testing.T, ss store.Store) {
+func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ReactionSave", func(t *testing.T) { testReactionSave(t, ss) })
 	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, ss) })
 	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
+	t.Run("ReactionGetForPostSince", func(t *testing.T) { testReactionGetForPostSince(t, ss, s) })
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
@@ -267,6 +269,148 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 			assert.Equal(t, reaction.PostId, postId, "shouldn't have returned reaction for another post")
 		}
 	}
+}
+
+func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
+	now := model.GetMillis()
+	later := now + 1800000 // add 30 minutes
+
+	postId := model.NewId()
+	userId := model.NewId()
+	reactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    postId,
+			EmojiName: "smile",
+			UpdateAt:  later,
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    postId,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    postId,
+			EmojiName: "sad",
+			UpdateAt:  later,
+		},
+		{
+			UserId:    userId,
+			PostId:    model.NewId(),
+			EmojiName: "angry",
+		},
+		{
+			UserId:    userId,
+			PostId:    postId,
+			EmojiName: "angry",
+			DeleteAt:  now + 1,
+			UpdateAt:  later,
+		},
+	}
+
+	for _, reaction := range reactions {
+		delete := reaction.DeleteAt
+		update := reaction.UpdateAt
+
+		_, err := ss.Reaction().Save(reaction)
+		require.Nil(t, err)
+
+		if delete > 0 {
+			_, err := ss.Reaction().Delete(reaction)
+			require.Nil(t, err)
+		}
+		if update > 0 {
+			err := forceUpdateAt(reaction, update, s)
+			require.Nil(t, err)
+		}
+		err = forceNULL(reaction, s) // test COALESCE
+		require.Nil(t, err)
+	}
+
+	t.Run("reactions since", func(t *testing.T) {
+		// should return 2 reactions that are not deleted for post
+		returned, err := ss.Reaction().GetForPostSince(postId, later-1, false, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
+		for _, r := range returned {
+			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
+		}
+
+	})
+
+	t.Run("reactions since, incl deleted", func(t *testing.T) {
+		// should return 3 reactions for post, including one deleted
+		returned, err := ss.Reaction().GetForPostSince(postId, later-1, false, true)
+		require.Nil(t, err)
+		require.Len(t, returned, 3, "should've returned 3 reactions")
+		var count int
+		for _, r := range returned {
+			if r.DeleteAt > 0 {
+				count++
+			}
+		}
+		assert.Equal(t, 1, count, "should not have returned 1 deleted reaction")
+
+	})
+
+	t.Run("reactions since, invalid post", func(t *testing.T) {
+		// should return 0 reactions for invalid post
+		returned, err := ss.Reaction().GetForPostSince(model.NewId(), later-1, false, true)
+		require.Nil(t, err)
+		require.Empty(t, returned, "should've returned 0 reactions")
+	})
+
+	t.Run("reactions since, far future", func(t *testing.T) {
+		// should return 0 reactions for since far in the future
+		returned, err := ss.Reaction().GetForPostSince(postId, later*2, false, true)
+		require.Nil(t, err)
+		require.Empty(t, returned, "should've returned 0 reactions")
+	})
+}
+
+func forceUpdateAt(reaction *model.Reaction, updateAt int64, s SqlStore) error {
+	params := map[string]interface{}{
+		"UserId":    reaction.UserId,
+		"PostId":    reaction.PostId,
+		"EmojiName": reaction.EmojiName,
+		"UpdateAt":  updateAt,
+	}
+
+	sqlResult, err := s.GetMaster().Exec(`
+		UPDATE 
+			Reactions 
+		SET 
+			UpdateAt=:UpdateAt 
+		WHERE 
+			UserId = :UserId AND 
+			PostId = :PostId AND 
+			EmojiName = :EmojiName`, params,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rows, err := sqlResult.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows != 1 {
+		return errors.New("expected one row affected")
+	}
+	return nil
+}
+
+func forceNULL(reaction *model.Reaction, s SqlStore) error {
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET UpdateAt = NULL WHERE UpdateAt = 0`); err != nil {
+		return err
+	}
+	if _, err := s.GetMaster().Exec(`UPDATE Reactions SET DeleteAt = NULL WHERE DeleteAt = 0`); err != nil {
+		return err
+	}
+	return nil
 }
 
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {

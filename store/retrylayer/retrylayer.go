@@ -6300,6 +6300,26 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 
 }
 
+func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetForPostSince(postId, since, allowFromCache, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 
 	tries := 0

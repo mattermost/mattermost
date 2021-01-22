@@ -51,7 +51,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 			continue
 		}
 
-		reactions, err := scs.server.GetStore().Reaction().GetForPost(p.Id, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, true, true)
 		if err != nil {
 			return model.RemoteClusterMsg{}, err
 		}

@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -75,6 +77,7 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, er
 	return reaction, nil
 }
 
+// GetForPost returns all reactions associated with `postId` that are not deleted.
 func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	var reactions []*model.Reaction
 
@@ -93,6 +96,34 @@ func (s *SqlReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mo
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
 		return nil, errors.Wrapf(err, "failed to get Reactions with postId=%s", postId)
+	}
+
+	return reactions, nil
+}
+
+// GetForPostSince returns all reactions associated with `postId` updated after `since`.
+func (s *SqlReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+
+	query := s.getQueryBuilder().
+		Select("UserId", "PostId", "EmojiName", "CreateAt", "COALESCE(UpdateAt, CreateAt) As UpdateAt", "COALESCE(DeleteAt, 0) As DeleteAt").
+		From("Reactions").
+		Where(sq.Eq{"PostId": postId}).
+		Where(sq.Gt{"UpdateAt": since})
+
+	if !inclDeleted {
+		query = query.Where(sq.Eq{"COALESCE(DeleteAt, 0)": 0})
+	}
+
+	query.OrderBy("CreateAt")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "reactions_getforpostsince_tosql")
+	}
+
+	var reactions []*model.Reaction
+	if _, err := s.GetReplica().Select(&reactions, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find reactions")
 	}
 
 	return reactions, nil

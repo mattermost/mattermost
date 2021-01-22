@@ -5279,6 +5279,22 @@ func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	return result, err
 }
 
+func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+	start := timemodule.Now()
+
+	result, err := s.ReactionStore.GetForPostSince(postId, since, allowFromCache, inclDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
