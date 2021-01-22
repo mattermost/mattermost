@@ -227,9 +227,9 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 		return responsef("Shared channel was not deleted: `are_you_sure` must be `Y`.")
 	}
 
-	sc, errApp := a.GetSharedChannel(args.ChannelId)
-	if errApp != nil {
-		return responsef("Cannot unshare this channel: %v", errApp)
+	sc, appErr := a.GetSharedChannel(args.ChannelId)
+	if appErr != nil {
+		return responsef("Cannot unshare this channel: %v", appErr)
 	}
 
 	deleted, err := a.DeleteSharedChannel(args.ChannelId)
