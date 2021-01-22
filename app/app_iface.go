@@ -655,9 +655,9 @@ type AppIface interface {
 	GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError)
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
-	GetRetentionPolicies() ([]*model.RetentionPolicy, *model.AppError)
+	GetRetentionPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError)
 	GetRetentionPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError)
-	GetRetentionPolicy(id string) (*model.RetentionPolicy, *model.AppError)
+	GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -842,7 +842,7 @@ type AppIface interface {
 	RegisterPluginCommand(pluginId string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
-	RemoveChannelFromRetentionPolicy(policyId string, channelId string) *model.AppError
+	RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
@@ -853,9 +853,9 @@ type AppIface interface {
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
-	RemoveTeamFromRetentionPolicy(policyId string, teamId string) *model.AppError
 	RemoveTeamIcon(teamId string) *model.AppError
 	RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError
+	RemoveTeamsFromRetentionPolicy(policyId string, teamIds []string) *model.AppError
 	RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError

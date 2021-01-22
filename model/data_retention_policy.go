@@ -16,11 +16,28 @@ type GlobalRetentionPolicy struct {
 }
 
 type RetentionPolicy struct {
-	Id           string      `json:"id"`
-	DisplayName  string      `json:"display_name"`
-	PostDuration int64       `json:"post_duration"`
-	ChannelIds   StringArray `json:"channel_ids" db:"-"`
-	TeamIds      StringArray `json:"team_ids" db:"-"`
+	Id           string `json:"id"`
+	DisplayName  string `json:"display_name"`
+	PostDuration int64  `json:"post_duration"`
+}
+
+type ChannelDisplayInfo struct {
+	Id              string `json:"id"`
+	DisplayName     string `json:"display_name"`
+	TeamDisplayName string `json:"team_display_name"`
+}
+
+type TeamDisplayInfo struct {
+	Id          string `json:"id"`
+	DisplayName string `json:"display_name"`
+}
+
+type RetentionPolicyEnriched struct {
+	Id           string               `json:"id"`
+	DisplayName  string               `json:"display_name"`
+	PostDuration int64                `json:"post_duration"`
+	Teams        []TeamDisplayInfo    `json:"teams"`
+	Channels     []ChannelDisplayInfo `json:"channels"`
 }
 
 type RetentionPolicyWithCounts struct {
@@ -58,6 +75,15 @@ func (rp *RetentionPolicy) ToJsonBytes() []byte {
 }
 
 func (rp *RetentionPolicy) ToJson() string {
+	return string(rp.ToJsonBytes())
+}
+
+func (rp *RetentionPolicyEnriched) ToJsonBytes() []byte {
+	b, _ := json.Marshal(rp)
+	return b
+}
+
+func (rp *RetentionPolicyEnriched) ToJson() string {
 	return string(rp.ToJsonBytes())
 }
 

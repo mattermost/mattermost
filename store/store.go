@@ -74,14 +74,14 @@ type Store interface {
 type RetentionPolicyStore interface {
 	Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
 	Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
-	Get(id string) (*model.RetentionPolicy, error)
-	GetAll() ([]*model.RetentionPolicy, error)
+	Get(id string) (*model.RetentionPolicyEnriched, error)
+	GetAll() ([]*model.RetentionPolicyEnriched, error)
 	GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error)
 	Delete(id string) error
 	AddChannels(policyId string, channelIds []string) error
-	RemoveChannel(policyId string, channelId string) error
+	RemoveChannels(policyId string, channelIds []string) error
 	AddTeams(policyId string, teamIds []string) error
-	RemoveTeam(policyId, teamId string) error
+	RemoveTeams(policyId string, teamIds []string) error
 }
 
 type TeamStore interface {

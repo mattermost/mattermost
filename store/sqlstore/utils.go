@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/gorp"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
@@ -88,4 +89,13 @@ func isQuotedWord(s string) bool {
 	}
 
 	return s[0] == '"' && s[len(s)-1] == '"'
+}
+
+// inStrings returns a squirrel.Sqlizer expression which determines if colName is in elems.
+func inStrings(colName string, elems []string) sq.Sqlizer {
+	iElems := make([]interface{}, len(elems))
+	for i, elem := range elems {
+		iElems[i] = elem
+	}
+	return sq.Expr(colName+" IN ("+sq.Placeholders(len(elems))+")", iElems...)
 }

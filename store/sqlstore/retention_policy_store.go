@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -14,11 +15,14 @@ type SqlRetentionPolicyStore struct {
 }
 
 type retentionPolicyRow struct {
-	Id           string
-	DisplayName  string
-	PostDuration int64
-	ChannelId    *string
-	TeamId       *string
+	Id                     string
+	DisplayName            string
+	PostDuration           int64
+	ChannelId              *string
+	ChannelDisplayName     *string
+	ChannelTeamDisplayName *string
+	TeamId                 *string
+	TeamDisplayName        *string
 }
 
 func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.RetentionPolicyStore {
@@ -63,7 +67,6 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.Re
 		Columns("Id", "DisplayName", "PostDuration").
 		Values(policy.Id, policy.DisplayName, policy.PostDuration)
 	_, err := builder.RunWith(s.GetMaster()).Exec()
-	setEmptyTeamsAndChannels(policy)
 	return policy, err
 }
 
@@ -89,86 +92,86 @@ func (s *SqlRetentionPolicyStore) Update(policy *model.RetentionPolicy) (*model.
 	} else if len(rows) == 0 {
 		return nil, errors.New("policy not found")
 	}
-	policy = rows[0]
-	setEmptyTeamsAndChannels(policy)
-	return policy, nil
+	return rows[0], nil
 }
 
-func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicy, error) {
-	const sQuery = `
-	SELECT A.Id, A.DisplayName, A.PostDuration, B.ChannelId, NULL AS TeamId
-	FROM RetentionPolicies AS A
-	LEFT JOIN RetentionPoliciesChannels AS B ON A.Id = B.PolicyId
-	WHERE A.Id = :policyId
-	UNION
-	SELECT A.Id, A.DisplayName, A.PostDuration, NULL AS ChannelId, C.TeamId
-	FROM RetentionPolicies AS A
-	LEFT JOIN RetentionPoliciesTeams AS C ON A.Id = C.PolicyId
-	WHERE A.Id = :policyId`
-	var rows []retentionPolicyRow
-	_, err := s.GetReplica().Select(&rows, sQuery, map[string]string{"policyId": id})
+func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+	policies, err := s.getAll(&id)
 	if err != nil {
 		return nil, err
-	} else if len(rows) == 0 {
+	} else if len(policies) == 0 {
 		return nil, errors.New("policy not found")
 	}
-	policy := &model.RetentionPolicy{
-		Id:           rows[0].Id,
-		DisplayName:  rows[0].DisplayName,
-		PostDuration: rows[0].PostDuration,
-		ChannelIds:   make([]string, 0),
-		TeamIds:      make([]string, 0),
-	}
-	for _, row := range rows {
-		if row.ChannelId != nil {
-			policy.ChannelIds = append(policy.ChannelIds, *row.ChannelId)
-		} else if row.TeamId != nil {
-			policy.TeamIds = append(policy.TeamIds, *row.TeamId)
-		}
-	}
-	return policy, nil
+	return policies[0], nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicy, error) {
-	const sQuery = `
-	SELECT A.Id, A.DisplayName, A.PostDuration, B.ChannelId, NULL AS TeamId
-	FROM RetentionPolicies AS A
-	LEFT JOIN RetentionPoliciesChannels AS B ON A.Id = B.PolicyId
-	UNION
-	SELECT A.Id, A.DisplayName, A.PostDuration, NULL AS ChannelId, C.TeamId
-	FROM RetentionPolicies AS A
-	LEFT JOIN RetentionPoliciesTeams AS C ON A.Id = C.PolicyId`
+func (s *SqlRetentionPolicyStore) getAll(id *string) ([]*model.RetentionPolicyEnriched, error) {
+	props := make(map[string]string)
+	if id != nil {
+		props["policyId"] = *id
+	}
+	builder := s.getQueryBuilder().
+		Select(`A.Id, A.DisplayName, A.PostDuration, B.ChannelId, C.DisplayName AS ChannelDisplayName,
+			D.DisplayName AS ChannelTeamDisplayName, NULL AS TeamId, NULL AS TeamDisplayName`).
+		From("RetentionPolicies AS A").
+		LeftJoin("RetentionPoliciesChannels AS B ON A.Id = B.PolicyId").
+		LeftJoin("Channels AS C ON B.ChannelId = C.Id").
+		LeftJoin("Teams AS D ON C.TeamId = D.Id")
+	if id != nil {
+		builder = builder.Where("A.Id = :policyId")
+	}
+	sChannelQuery, _, _ := builder.ToSql()
+	builder = s.getQueryBuilder().
+		Select(`A.Id, A.DisplayName, A.PostDuration, NULL AS ChannelId, NULL AS ChannelDisplayName,
+			NULL AS ChannelTeamDisplayName, E.TeamId, F.DisplayName AS TeamDisplayName`).
+		From("RetentionPolicies AS A").
+		LeftJoin("RetentionPoliciesTeams AS E ON A.Id = E.PolicyId").
+		LeftJoin("Teams AS F ON E.TeamId = F.Id")
+	if id != nil {
+		builder = builder.Where("A.Id = :policyId")
+	}
+	sTeamQuery, _, _ := builder.ToSql()
+	sQuery := sChannelQuery + " UNION " + sTeamQuery
 	var rows []*retentionPolicyRow
-	_, err := s.GetReplica().Select(&rows, sQuery)
+	_, err := s.GetReplica().Select(&rows, sQuery, props)
 	if err != nil {
 		return nil, err
 	}
-	mPolicies := make(map[string]*model.RetentionPolicy)
+	mPolicies := make(map[string]*model.RetentionPolicyEnriched)
 	for _, row := range rows {
 		policy, ok := mPolicies[row.Id]
 		if !ok {
-			policy = &model.RetentionPolicy{
-				Id:           rows[0].Id,
-				DisplayName:  rows[0].DisplayName,
-				PostDuration: rows[0].PostDuration,
-				ChannelIds:   make([]string, 0),
-				TeamIds:      make([]string, 0),
+			policy = &model.RetentionPolicyEnriched{
+				Id:           row.Id,
+				DisplayName:  row.DisplayName,
+				PostDuration: row.PostDuration,
+				Channels:     make([]model.ChannelDisplayInfo, 0),
+				Teams:        make([]model.TeamDisplayInfo, 0),
 			}
 			mPolicies[row.Id] = policy
 		}
 		if row.ChannelId != nil {
-			policy.ChannelIds = append(policy.ChannelIds, *row.ChannelId)
+			policy.Channels = append(
+				policy.Channels, model.ChannelDisplayInfo{
+					Id: *row.ChannelId, DisplayName: *row.ChannelDisplayName,
+					TeamDisplayName: *row.ChannelTeamDisplayName})
 		} else if row.TeamId != nil {
-			policy.TeamIds = append(policy.TeamIds, *row.TeamId)
+			policy.Teams = append(
+				policy.Teams, model.TeamDisplayInfo{
+					Id: *row.TeamId, DisplayName: *row.TeamDisplayName})
 		}
 	}
-	aPolicies := make([]*model.RetentionPolicy, len(mPolicies))
+	aPolicies := make([]*model.RetentionPolicyEnriched, len(mPolicies))
 	i := 0
 	for _, policy := range mPolicies {
 		aPolicies[i] = policy
 		i++
 	}
 	return aPolicies, nil
+}
+
+func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+	return s.getAll(nil)
 }
 
 func (s *SqlRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
@@ -219,21 +222,15 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) RemoveChannel(policyId string, channelId string) error {
+func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
-		Where("PolicyId = ? AND ChannelId = ?", policyId, channelId)
-	result, err := builder.RunWith(s.GetMaster()).Exec()
-	if err != nil {
-		return err
-	}
-	numRowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if numRowsAffected == 0 {
-		return errors.New("channel was not part of policy")
-	}
-	return nil
+		Where(sq.And{
+			sq.Eq{"PolicyId": policyId},
+			inStrings("ChannelId", channelIds),
+		})
+	_, err := builder.RunWith(s.GetMaster()).Exec()
+	return err
 }
 
 func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
@@ -247,21 +244,13 @@ func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) er
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) RemoveTeam(policyId, teamId string) error {
+func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
-		Where("PolicyId = ? AND TeamId = ?", policyId, teamId)
-	result, err := builder.RunWith(s.GetMaster()).Exec()
-	numRowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	} else if numRowsAffected == 0 {
-		return errors.New("team was not part of policy")
-	}
-	return nil
-}
-
-func setEmptyTeamsAndChannels(policy *model.RetentionPolicy) {
-	policy.ChannelIds = make([]string, 0)
-	policy.TeamIds = make([]string, 0)
+		Where(sq.And{
+			sq.Eq{"PolicyId": policyId},
+			inStrings("TeamId", teamIds),
+		})
+	_, err := builder.RunWith(s.GetMaster()).Exec()
+	return err
 }

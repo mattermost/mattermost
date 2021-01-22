@@ -16,7 +16,7 @@ func (a *App) GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.A
 	return a.DataRetention().GetGlobalPolicy()
 }
 
-func (a *App) GetRetentionPolicies() ([]*model.RetentionPolicy, *model.AppError) {
+func (a *App) GetRetentionPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPolicies")
 	}
@@ -30,7 +30,7 @@ func (a *App) GetRetentionPoliciesWithCounts() ([]*model.RetentionPolicyWithCoun
 	return a.DataRetention().GetPoliciesWithCounts()
 }
 
-func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicy, *model.AppError) {
+func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPolicy")
 	}
@@ -72,11 +72,11 @@ func (a *App) AddTeamsToRetentionPolicy(policyId string, teamIds []string) *mode
 	return a.DataRetention().AddTeamsToPolicy(policyId, teamIds)
 }
 
-func (a *App) RemoveTeamFromRetentionPolicy(policyId string, teamId string) *model.AppError {
+func (a *App) RemoveTeamsFromRetentionPolicy(policyId string, teamIds []string) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
 		return newLicenseError("RemoveTeamFromRetentionPolicy")
 	}
-	return a.DataRetention().RemoveTeamFromPolicy(policyId, teamId)
+	return a.DataRetention().RemoveTeamsFromPolicy(policyId, teamIds)
 }
 
 func (a *App) AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError {
@@ -86,11 +86,11 @@ func (a *App) AddChannelsToRetentionPolicy(policyId string, channelIds []string)
 	return a.DataRetention().AddChannelsToPolicy(policyId, channelIds)
 }
 
-func (a *App) RemoveChannelFromRetentionPolicy(policyId string, channelId string) *model.AppError {
+func (a *App) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
 		return newLicenseError("RemoveChannelFromRetentionPolicy")
 	}
-	return a.DataRetention().RemoveChannelFromPolicy(policyId, channelId)
+	return a.DataRetention().RemoveChannelsFromPolicy(policyId, channelIds)
 }
 
 func (a *App) hasValidRetentionPolicy() bool {

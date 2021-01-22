@@ -16,16 +16,23 @@ import (
 func (api *API) InitDataRetention() {
 	api.BaseRoutes.DataRetention.Handle("/policy", api.ApiSessionRequired(getGlobalPolicy)).Methods("GET")
 	api.BaseRoutes.DataRetention.Handle("/policies", api.ApiSessionRequired(getPolicies)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policy", api.ApiSessionRequired(createPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}", api.ApiSessionRequired(getPolicy)).Methods("GET")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}", api.ApiSessionRequired(patchPolicy)).Methods("PATCH")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}", api.ApiSessionRequired(updatePolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}", api.ApiSessionRequired(deletePolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}", api.ApiSessionRequired(updatePolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}/teams", api.ApiSessionRequired(addTeamsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}/teams/{team_id}", api.ApiSessionRequired(removeTeamFromPolicy)).Methods("DELETE")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
-	api.BaseRoutes.DataRetention.Handle("/policy/{policy_id}/channels/{channel_id}", api.ApiSessionRequired(removeChannelFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies", api.ApiSessionRequired(createPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(getPolicy)).Methods("GET")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(patchPolicy)).Methods("PATCH")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(updatePolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}", api.ApiSessionRequired(deletePolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/teams", api.ApiSessionRequired(addTeamsToPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/teams", api.ApiSessionRequired(removeTeamsFromPolicy)).Methods("DELETE")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/channels", api.ApiSessionRequired(addChannelsToPolicy)).Methods("POST")
+	api.BaseRoutes.DataRetention.Handle("/policies/{policy_id}/channels", api.ApiSessionRequired(removeChannelsFromPolicy)).Methods("DELETE")
+}
+
+type teamIdsList struct {
+	TeamIds []string `json:"team_ids"`
+}
+
+type channelIdsList struct {
+	ChannelIds []string `json:"channel_ids"`
 }
 
 func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -148,9 +155,6 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	type teamIdsList struct {
-		TeamIds []string `json:"team_ids"`
-	}
 	policyId := mux.Vars(r)["policy_id"]
 	var lst teamIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
@@ -166,10 +170,15 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func removeTeamFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	policyId := mux.Vars(r)["policy_id"]
-	teamId := mux.Vars(r)["team_id"]
-	err := c.App.RemoveTeamFromRetentionPolicy(policyId, teamId)
+	var lst teamIdsList
+	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
+	if jsonErr != nil {
+		c.SetInvalidParam("team_ids")
+		return
+	}
+	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, lst.TeamIds)
 	if err != nil {
 		c.Err = err
 		return
@@ -178,9 +187,6 @@ func removeTeamFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	type channelIdsList struct {
-		ChannelIds []string `json:"channel_ids"`
-	}
 	policyId := mux.Vars(r)["policy_id"]
 	var lst channelIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
@@ -196,10 +202,15 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func removeChannelFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	policyId := mux.Vars(r)["policy_id"]
-	channelId := mux.Vars(r)["channel_id"]
-	err := c.App.RemoveChannelFromRetentionPolicy(policyId, channelId)
+	var lst channelIdsList
+	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
+	if jsonErr != nil {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
+	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, lst.ChannelIds)
 	if err != nil {
 		c.Err = err
 		return

@@ -57,15 +57,15 @@ func (_m *RetentionPolicyStore) Delete(id string) error {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *RetentionPolicyStore) Get(id string) (*model.RetentionPolicy, error) {
+func (_m *RetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
 	ret := _m.Called(id)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(string) *model.RetentionPolicy); ok {
+	var r0 *model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func(string) *model.RetentionPolicyEnriched); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
+			r0 = ret.Get(0).(*model.RetentionPolicyEnriched)
 		}
 	}
 
@@ -80,15 +80,15 @@ func (_m *RetentionPolicyStore) Get(id string) (*model.RetentionPolicy, error) {
 }
 
 // GetAll provides a mock function with given fields:
-func (_m *RetentionPolicyStore) GetAll() ([]*model.RetentionPolicy, error) {
+func (_m *RetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
 	ret := _m.Called()
 
-	var r0 []*model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicy); ok {
+	var r0 []*model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyEnriched); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.RetentionPolicy)
+			r0 = ret.Get(0).([]*model.RetentionPolicyEnriched)
 		}
 	}
 
@@ -125,13 +125,13 @@ func (_m *RetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWith
 	return r0, r1
 }
 
-// RemoveChannel provides a mock function with given fields: policyId, channelId
-func (_m *RetentionPolicyStore) RemoveChannel(policyId string, channelId string) error {
-	ret := _m.Called(policyId, channelId)
+// RemoveChannels provides a mock function with given fields: policyId, channelIds
+func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
+	ret := _m.Called(policyId, channelIds)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(policyId, channelId)
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(policyId, channelIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -139,13 +139,13 @@ func (_m *RetentionPolicyStore) RemoveChannel(policyId string, channelId string)
 	return r0
 }
 
-// RemoveTeam provides a mock function with given fields: policyId, teamId
-func (_m *RetentionPolicyStore) RemoveTeam(policyId string, teamId string) error {
-	ret := _m.Called(policyId, teamId)
+// RemoveTeams provides a mock function with given fields: policyId, teamIds
+func (_m *RetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
+	ret := _m.Called(policyId, teamIds)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(policyId, teamId)
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(policyId, teamIds)
 	} else {
 		r0 = ret.Error(0)
 	}

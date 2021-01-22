@@ -7618,7 +7618,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamId string, p
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPolicies() ([]*model.RetentionPolicy, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPolicies")
 
@@ -7662,7 +7662,7 @@ func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts() ([]*model.Retenti
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPolicy(id string) (*model.RetentionPolicy, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPolicy")
 
@@ -11892,9 +11892,9 @@ func (a *OpenTracingAppLayer) RemoveAllDeactivatedMembersFromChannel(channel *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveChannelFromRetentionPolicy(policyId string, channelId string) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveChannelFromRetentionPolicy")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveChannelsFromRetentionPolicy")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -11904,7 +11904,7 @@ func (a *OpenTracingAppLayer) RemoveChannelFromRetentionPolicy(policyId string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveChannelFromRetentionPolicy(policyId, channelId)
+	resultVar0 := a.app.RemoveChannelsFromRetentionPolicy(policyId, channelIds)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12120,28 +12120,6 @@ func (a *OpenTracingAppLayer) RemoveSamlPublicCertificate() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveTeamFromRetentionPolicy(policyId string, teamId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamFromRetentionPolicy")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RemoveTeamFromRetentionPolicy(policyId, teamId)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) RemoveTeamIcon(teamId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamIcon")
@@ -12177,6 +12155,28 @@ func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(teamMember *model.TeamMem
 
 	defer span.Finish()
 	resultVar0 := a.app.RemoveTeamMemberFromTeam(teamMember, requestorId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RemoveTeamsFromRetentionPolicy(policyId string, teamIds []string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveTeamsFromRetentionPolicy")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveTeamsFromRetentionPolicy(policyId, teamIds)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

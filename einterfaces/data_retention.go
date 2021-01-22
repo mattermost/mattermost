@@ -9,15 +9,15 @@ import (
 
 type DataRetentionInterface interface {
 	GetGlobalPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
-	GetPolicies() ([]*model.RetentionPolicy, *model.AppError)
+	GetPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError)
 	GetPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError)
-	GetPolicy(id string) (*model.RetentionPolicy, *model.AppError)
+	GetPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError)
 	CreatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	PatchPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	UpdatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	DeletePolicy(policyId string) *model.AppError
 	AddTeamsToPolicy(policyId string, teamIds []string) *model.AppError
-	RemoveTeamFromPolicy(policyId string, teamId string) *model.AppError
+	RemoveTeamsFromPolicy(policyId string, teamIds []string) *model.AppError
 	AddChannelsToPolicy(policyId string, channelIds []string) *model.AppError
-	RemoveChannelFromPolicy(policyId string, channelId string) *model.AppError
+	RemoveChannelsFromPolicy(policyId string, channelIds []string) *model.AppError
 }

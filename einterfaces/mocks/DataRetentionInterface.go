@@ -113,15 +113,15 @@ func (_m *DataRetentionInterface) GetGlobalPolicy() (*model.GlobalRetentionPolic
 }
 
 // GetPolicies provides a mock function with given fields:
-func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicy, *model.AppError) {
+func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 []*model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicy); ok {
+	var r0 []*model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyEnriched); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.RetentionPolicy)
+			r0 = ret.Get(0).([]*model.RetentionPolicyEnriched)
 		}
 	}
 
@@ -163,15 +163,15 @@ func (_m *DataRetentionInterface) GetPoliciesWithCounts() ([]*model.RetentionPol
 }
 
 // GetPolicy provides a mock function with given fields: id
-func (_m *DataRetentionInterface) GetPolicy(id string) (*model.RetentionPolicy, *model.AppError) {
+func (_m *DataRetentionInterface) GetPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError) {
 	ret := _m.Called(id)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(string) *model.RetentionPolicy); ok {
+	var r0 *model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func(string) *model.RetentionPolicyEnriched); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
+			r0 = ret.Get(0).(*model.RetentionPolicyEnriched)
 		}
 	}
 
@@ -212,13 +212,13 @@ func (_m *DataRetentionInterface) PatchPolicy(policy *model.RetentionPolicy) (*m
 	return r0, r1
 }
 
-// RemoveChannelFromPolicy provides a mock function with given fields: policyId, channelId
-func (_m *DataRetentionInterface) RemoveChannelFromPolicy(policyId string, channelId string) *model.AppError {
-	ret := _m.Called(policyId, channelId)
+// RemoveChannelsFromPolicy provides a mock function with given fields: policyId, channelIds
+func (_m *DataRetentionInterface) RemoveChannelsFromPolicy(policyId string, channelIds []string) *model.AppError {
+	ret := _m.Called(policyId, channelIds)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
-		r0 = rf(policyId, channelId)
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(policyId, channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -228,13 +228,13 @@ func (_m *DataRetentionInterface) RemoveChannelFromPolicy(policyId string, chann
 	return r0
 }
 
-// RemoveTeamFromPolicy provides a mock function with given fields: policyId, teamId
-func (_m *DataRetentionInterface) RemoveTeamFromPolicy(policyId string, teamId string) *model.AppError {
-	ret := _m.Called(policyId, teamId)
+// RemoveTeamsFromPolicy provides a mock function with given fields: policyId, teamIds
+func (_m *DataRetentionInterface) RemoveTeamsFromPolicy(policyId string, teamIds []string) *model.AppError {
+	ret := _m.Called(policyId, teamIds)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
-		r0 = rf(policyId, teamId)
+	if rf, ok := ret.Get(0).(func(string, []string) *model.AppError); ok {
+		r0 = rf(policyId, teamIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
