@@ -13,7 +13,7 @@
       apk add --no-cache gettext
       echo ${kube_config} | base64 -d > ${KUBECONFIG}
 
-    - |
+      printf "\033[36m==> Deploying required services\033[0m\n"
       cat <<EOF >>build/kustomization.yaml
       namePrefix: "ci-${CI_PIPELINE_ID}-${TEST_SCOPE}-"
       commonLabels:
@@ -22,32 +22,31 @@
         com.mattermost.ci/branch: "${CI_COMMIT_BRANCH}"
       EOF
 
-    - |
       envsubst < ./build/dotenv/test.env > ./build/dotenv/test.env.tmp
       cat ./build/dotenv/test.env.tmp > ./build/dotenv/test.env
       kustomize build build/ | kubectl -n mm-ci apply -f -
 
-    - |
-      echo "Waiting for all services to become ready"
+      printf "\033[36m==> Waiting for all services to become ready\033[0m\n"
       sleep 5s
       kubectl wait -n mm-ci --for=condition=ready pod -l=com.mattermost.ci/id="${CI_PIPELINE_ID}",com.mattermost.ci/for="${TEST_SCOPE}" --timeout=5m
       sleep 30s
 
-    - kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
-    - cat tests/test-data.ldif | kubectl exec -n mm-ci -t $(get_pod_name "openldap") -- bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
-  # after_script:
-  #   - kustomize build build/ | kubectl -n mm-ci delete -f -
+      printf "\033[36m==> Preparing minio\033[0m\n"
+      kubectl exec -n mm-ci -t $(get_pod_name "minio") -- sh -c 'mkdir -p /data/mattermost-test'
+
+      printf "\033[36m==> Preparing openldap\033[0m\n"
+      cat tests/test-data.ldif | kubectl exec -n mm-ci -t $(get_pod_name "openldap") -- bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
+  after_script:
+    - kustomize build build/ | kubectl -n mm-ci delete -f -
 
 .test:
   extends: .test-setup
   script:
-    - mkdir -p client/plugins
-    - mkdir -p build/test-results
-    - mkdir -p build/logs
-
-    # todo: remove setting GOBIN here, once circleci can be removed (see build/dotenv/test.env)
-
     - |
+      mkdir -p client/plugins
+      mkdir -p build/test-results
+      mkdir -p build/logs
+
       printf "\033[36m==> Copying files to build-server\033[0m\n"
       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server"):/build
 

@@ -101,6 +101,7 @@ func (h *MainHelper) Main(m *testing.M) {
 
 func (h *MainHelper) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	fmt.Println(driverName)
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}

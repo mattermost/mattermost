@@ -50,7 +50,9 @@ func log(message string) {
 // The database name is generated randomly and must be created before use.
 func MySQLSettings() *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_MYSQL_DSN", defaultMysqlDSN)
+	fmt.Println(dsn)
 	cfg, err := mysql.ParseDSN(dsn)
+	fmt.Println(cfg)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
@@ -64,7 +66,9 @@ func MySQLSettings() *model.SqlSettings {
 // The database name is generated randomly and must be created before use.
 func PostgreSQLSettings() *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_POSTGRESQL_DSN", defaultPostgresqlDSN)
+	fmt.Println(dsn)
 	dsnUrl, err := url.Parse(dsn)
+	fmt.Println(dsnUrl)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
@@ -187,6 +191,9 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 	default:
 		panic("unsupported driver " + driver)
 	}
+
+	fmt.Println(settings)
+	fmt.Println(dbName)
 
 	if err := execAsRoot(settings, "CREATE DATABASE "+dbName); err != nil {
 		panic("failed to create temporary database " + dbName + ": " + err.Error())
