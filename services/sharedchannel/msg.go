@@ -46,6 +46,10 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	for _, p := range posts {
+		if p.IsSystemMessage() { // don't sync system messages
+			continue
+		}
+
 		if sm, ok := cache[p.Id]; ok {
 			syncMessages = append(syncMessages, sm)
 			continue
