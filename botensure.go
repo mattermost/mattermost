@@ -89,7 +89,7 @@ func (b *BotService) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 			var botIDBytes []byte
 
 			err = utils.ProgressiveRetry(func() error {
-				botIDBytes, err = b.api.KVGet(plugin.BOT_USER_KEY)
+				botIDBytes, err = b.api.KVGet(plugin.BotUserKey)
 				if err != nil {
 					return err
 				}
@@ -103,7 +103,7 @@ func (b *BotService) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 		}
 	}()
 
-	botIDBytes, kvGetErr := b.api.KVGet(plugin.BOT_USER_KEY)
+	botIDBytes, kvGetErr := b.api.KVGet(plugin.BotUserKey)
 	if kvGetErr != nil {
 		return "", errors.Wrap(kvGetErr, "failed to get bot")
 	}
@@ -129,7 +129,7 @@ func (b *BotService) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, userGetErr := b.api.GetUserByUsername(bot.Username); userGetErr == nil && user != nil {
 		if user.IsBot {
-			if kvSetErr := b.api.KVSet(plugin.BOT_USER_KEY, []byte(user.Id)); kvSetErr != nil {
+			if kvSetErr := b.api.KVSet(plugin.BotUserKey, []byte(user.Id)); kvSetErr != nil {
 				b.api.LogWarn("Failed to set claimed bot user id.", "userid", user.Id, "err", kvSetErr)
 			}
 		} else {
@@ -152,7 +152,7 @@ func (b *BotService) ensureBot(bot *model.Bot) (retBotID string, retErr error) {
 		return "", errors.Wrap(createBotErr, "failed to create bot")
 	}
 
-	if kvSetErr := b.api.KVSet(plugin.BOT_USER_KEY, []byte(createdBot.UserId)); kvSetErr != nil {
+	if kvSetErr := b.api.KVSet(plugin.BotUserKey, []byte(createdBot.UserId)); kvSetErr != nil {
 		b.api.LogWarn("Failed to set created bot user id.", "userid", createdBot.UserId, "err", kvSetErr)
 	}
 

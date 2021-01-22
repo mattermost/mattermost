@@ -361,7 +361,7 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotID := model.NewId()
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("PatchBot", expectedBotID, &model.BotPatch{
 				Username:    &testbot.Username,
 				DisplayName: &testbot.DisplayName,
@@ -380,7 +380,7 @@ func TestEnsureBot(t *testing.T) {
 			client := pluginapi.NewClient(api)
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, &model.AppError{})
+			api.On("KVGet", plugin.BotUserKey).Return(nil, &model.AppError{})
 
 			botID, err := client.Bot.EnsureBot(testbot)
 
@@ -402,7 +402,7 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
@@ -431,7 +431,7 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
@@ -467,7 +467,7 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
 			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
@@ -512,7 +512,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("KVGet", plugin.BotUserKey).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
 			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
@@ -546,12 +546,12 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotID := model.NewId()
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
 				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
+			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
 
 			botID, err := client.Bot.EnsureBot(testbot)
 			require.NoError(t, err)
@@ -566,12 +566,12 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotID := model.NewId()
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
 				Id:    expectedBotID,
 				IsBot: true,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
+			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
 
 			botID, err := client.Bot.EnsureBot(testbot)
 			require.NoError(t, err)
@@ -586,7 +586,7 @@ func TestEnsureBot(t *testing.T) {
 			expectedBotID := model.NewId()
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
 				Id:    expectedBotID,
 				IsBot: false,
@@ -604,7 +604,7 @@ func TestEnsureBot(t *testing.T) {
 			client := pluginapi.NewClient(api)
 
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(nil, &model.AppError{})
 
@@ -627,12 +627,12 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
 				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
+			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
@@ -656,12 +656,12 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
 				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
+			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
@@ -692,12 +692,12 @@ func TestEnsureBot(t *testing.T) {
 			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
+			api.On("KVGet", plugin.BotUserKey).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
 				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
+			api.On("KVSet", plugin.BotUserKey, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
 			api.On("SetProfileImage", expectedBotID, profileImageBytes).Return(nil)
 			api.On("SetBotIconImage", expectedBotID, iconImageBytes).Return(nil)
