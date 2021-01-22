@@ -14,9 +14,10 @@ type DataRetentionInterface interface {
 	GetPolicy(id string) (*model.RetentionPolicy, *model.AppError)
 	CreatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	PatchPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
-	DeletePolicy(policy *model.RetentionPolicy) *model.AppError
-	AddTeamsToPolicy(policyTeams []*model.RetentionPolicyTeam) *model.AppError
-	RemoveTeamFromPolicy(policyTeam *model.RetentionPolicyTeam) *model.AppError
-	AddChannelsToPolicy(policyChannels []*model.RetentionPolicyChannel) *model.AppError
-	RemoveChannelFromPolicy(policyChannel *model.RetentionPolicyChannel) *model.AppError
+	UpdatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
+	DeletePolicy(policyId string) *model.AppError
+	AddTeamsToPolicy(policyId string, teamIds []string) *model.AppError
+	RemoveTeamFromPolicy(policyId string, teamId string) *model.AppError
+	AddChannelsToPolicy(policyId string, channelIds []string) *model.AppError
+	RemoveChannelFromPolicy(policyId string, channelId string) *model.AppError
 }

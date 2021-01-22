@@ -350,6 +350,7 @@ type AppIface interface {
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userId, token string) *model.AppError
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
+	AddChannelsToRetentionPolicy(policyId string, channelIds []string) *model.AppError
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
 	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -364,6 +365,7 @@ type AppIface interface {
 	AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMember, *model.AppError)
 	AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError)
 	AddTeamMembers(teamId string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError)
+	AddTeamsToRetentionPolicy(policyId string, teamIds []string) *model.AppError
 	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
 	AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError)
 	AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError)
@@ -436,6 +438,7 @@ type AppIface interface {
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)
+	CreateRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(session *model.Session) (*model.Session, *model.AppError)
@@ -475,6 +478,7 @@ type AppIface interface {
 	DeletePostFiles(post *model.Post)
 	DeletePreferences(userId string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+	DeleteRetentionPolicy(id string) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
@@ -652,6 +656,8 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError)
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRetentionPolicies() ([]*model.RetentionPolicy, *model.AppError)
+	GetRetentionPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError)
+	GetRetentionPolicy(id string) (*model.RetentionPolicy, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
@@ -798,6 +804,7 @@ type AppIface interface {
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
 	PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError)
+	PatchRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)
 	PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppError)
@@ -835,6 +842,7 @@ type AppIface interface {
 	RegisterPluginCommand(pluginId string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
+	RemoveChannelFromRetentionPolicy(policyId string, channelId string) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
@@ -845,6 +853,7 @@ type AppIface interface {
 	RemoveSamlIdpCertificate() *model.AppError
 	RemoveSamlPrivateCertificate() *model.AppError
 	RemoveSamlPublicCertificate() *model.AppError
+	RemoveTeamFromRetentionPolicy(policyId string, teamId string) *model.AppError
 	RemoveTeamIcon(teamId string) *model.AppError
 	RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError
 	RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError
@@ -996,6 +1005,7 @@ type AppIface interface {
 	UpdatePasswordSendEmail(user *model.User, newPassword, method string) *model.AppError
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	UpdatePreferences(userId string, preferences model.Preferences) *model.AppError
+	UpdateRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError)
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)

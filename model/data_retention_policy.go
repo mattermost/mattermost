@@ -52,13 +52,17 @@ func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
 	return grp
 }
 
-func (rp *RetentionPolicy) ToJson() string {
+func (rp *RetentionPolicy) ToJsonBytes() []byte {
 	b, _ := json.Marshal(rp)
-	return string(b)
+	return b
 }
 
-func RetentionPolicyFromJson(data io.Reader) *RetentionPolicy {
+func (rp *RetentionPolicy) ToJson() string {
+	return string(rp.ToJsonBytes())
+}
+
+func RetentionPolicyFromJson(data io.Reader) (*RetentionPolicy, error) {
 	var rp *RetentionPolicy
-	json.NewDecoder(data).Decode(&rp)
-	return rp
+	err := json.NewDecoder(data).Decode(&rp)
+	return rp, err
 }

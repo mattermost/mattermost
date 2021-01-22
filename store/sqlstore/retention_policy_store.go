@@ -13,6 +13,14 @@ type SqlRetentionPolicyStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
+type retentionPolicyRow struct {
+	Id           string
+	DisplayName  string
+	PostDuration int64
+	ChannelId    *string
+	TeamId       *string
+}
+
 func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.RetentionPolicyStore {
 	s := &SqlRetentionPolicyStore{
 		SqlStore: sqlStore,
@@ -46,34 +54,45 @@ func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "TeamId", "Teams", "Id", true)
 }
 
+// TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
+
 func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+	policy.Id = model.NewId()
 	builder := s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
 		Values(policy.Id, policy.DisplayName, policy.PostDuration)
 	_, err := builder.RunWith(s.GetMaster()).Exec()
+	setEmptyTeamsAndChannels(policy)
 	return policy, err
 }
 
 func (s *SqlRetentionPolicyStore) Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
-	builder := s.getQueryBuilder().
-		Update("RetentionPolicies").
-		Set("DisplayName", policy.DisplayName).
-		Set("PostDuration", policy.PostDuration).
-		Where("Id = ?", policy.Id)
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return policy, err
+	builder := s.getQueryBuilder().Update("RetentionPolicies")
+	if policy.DisplayName != "" {
+		builder = builder.Set("DisplayName", policy.DisplayName)
+	}
+	if policy.PostDuration != 0 {
+		builder = builder.Set("PostDuration", policy.PostDuration)
+	}
+	builder = builder.
+		Where("Id = ?", policy.Id).
+		Suffix("RETURNING Id, DisplayName, PostDuration")
+	sQuery, args, err := builder.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows := make([]*model.RetentionPolicy, 0, 1)
+	_, err = s.GetMaster().Select(&rows, sQuery, args...)
+	if err != nil {
+		return nil, err
+	} else if len(rows) == 0 {
+		return nil, errors.New("policy not found")
+	}
+	policy = rows[0]
+	setEmptyTeamsAndChannels(policy)
+	return policy, nil
 }
-
-type retentionPolicyRow struct {
-	Id           string
-	DisplayName  string
-	PostDuration int64
-	ChannelId    *string
-	TeamId       *string
-}
-
-// TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicy, error) {
 	const sQuery = `
@@ -176,44 +195,73 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPolicies").
 		Where("Id = ?", id)
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+	result, err := builder.RunWith(s.GetMaster()).Exec()
+	if err != nil {
+		return err
+	}
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	} else if numRowsAffected == 0 {
+		return errors.New("policy not found")
+	}
+	return nil
 }
 
-func (s *SqlRetentionPolicyStore) AddChannels(policyChannels []*model.RetentionPolicyChannel) error {
+func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
 	builder := s.getQueryBuilder().
 		Insert("RetentionPoliciesChannels").
 		Columns("policyId", "channelId")
-	for _, policyChannel := range policyChannels {
-		builder = builder.Values(policyChannel.PolicyId, policyChannel.ChannelId)
+	for _, channelId := range channelIds {
+		builder = builder.Values(policyId, channelId)
 	}
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) RemoveChannel(policyChannel *model.RetentionPolicyChannel) error {
+func (s *SqlRetentionPolicyStore) RemoveChannel(policyId string, channelId string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
-		Where("PolicyId = ? AND ChannelId = ?", policyChannel.PolicyId, policyChannel.ChannelId)
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+		Where("PolicyId = ? AND ChannelId = ?", policyId, channelId)
+	result, err := builder.RunWith(s.GetMaster()).Exec()
+	if err != nil {
+		return err
+	}
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	} else if numRowsAffected == 0 {
+		return errors.New("channel was not part of policy")
+	}
+	return nil
 }
 
-func (s *SqlRetentionPolicyStore) AddTeams(policyTeams []*model.RetentionPolicyTeam) error {
+func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
 	builder := s.getQueryBuilder().
 		Insert("RetentionPoliciesTeams").
 		Columns("PolicyId", "TeamId")
-	for _, policyTeam := range policyTeams {
-		builder = builder.Values(policyTeam.PolicyId, policyTeam.TeamId)
+	for _, teamId := range teamIds {
+		builder = builder.Values(policyId, teamId)
 	}
 	_, err := builder.RunWith(s.GetMaster()).Exec()
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) RemoveTeam(policyTeam *model.RetentionPolicyTeam) error {
+func (s *SqlRetentionPolicyStore) RemoveTeam(policyId, teamId string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
-		Where("PolicyId = ? AND TeamId = ?", policyTeam.PolicyId, policyTeam.TeamId)
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return err
+		Where("PolicyId = ? AND TeamId = ?", policyId, teamId)
+	result, err := builder.RunWith(s.GetMaster()).Exec()
+	numRowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	} else if numRowsAffected == 0 {
+		return errors.New("team was not part of policy")
+	}
+	return nil
+}
+
+func setEmptyTeamsAndChannels(policy *model.RetentionPolicy) {
+	policy.ChannelIds = make([]string, 0)
+	policy.TeamIds = make([]string, 0)
 }

@@ -6171,6 +6171,10 @@
     "translation": "We encountered an error performing the requested operation."
   },
   {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policy is invalid."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
