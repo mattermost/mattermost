@@ -242,6 +242,8 @@ type ChannelStore interface {
 	GroupSyncedChannelCount() (int64, error)
 
 	SetShared(channelId string, shared bool) error
+	// GetTeamForChannel returns the team for a given channelID.
+	GetTeamForChannel(channelID string) (*model.Team, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -799,6 +801,7 @@ type LinkMetadataStore interface {
 type SharedChannelStore interface {
 	Save(sc *model.SharedChannel) (*model.SharedChannel, error)
 	Get(channelId string) (*model.SharedChannel, error)
+	HasChannel(channelID string) (bool, error)
 	GetAll(offset, limit int, opts SharedChannelFilterOpts) ([]*model.SharedChannel, error)
 	GetAllCount(opts SharedChannelFilterOpts) (int64, error)
 	Update(sc *model.SharedChannel) (*model.SharedChannel, error)
@@ -807,6 +810,7 @@ type SharedChannelStore interface {
 	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	GetRemote(id string) (*model.SharedChannelRemote, error)
+	HasRemote(channelID string) (bool, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteLastSyncAt(id string, syncTime int64) error

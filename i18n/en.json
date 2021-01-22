@@ -172,6 +172,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -1163,6 +1167,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1190,7 +1198,6 @@
     "id": "api.context.invalid_url_param.app_error",
     "translation": "Invalid or missing {{.Name}} parameter in request URL."
   },
-  
   {
     "id": "api.context.invitation_expired.error",
     "translation": "Invitation is expired."
@@ -1482,6 +1489,14 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme has been provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
@@ -1598,8 +1613,16 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1660,6 +1683,10 @@
   {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1972,8 +1999,16 @@
     "translation": "We encountered an error saving the remote cluster."
   },
   {
+    "id": "api.remote_cluster.save_not_unique.app_error",
+    "translation": "Remote cluster has already been added."
+  },
+  {
     "id": "api.remote_cluster.service_not_enabled.app_error",
     "translation": "The remote cluster service is not enabled."
+  },
+  {
+    "id": "api.remote_cluster.update_not_unique.app_error",
+    "translation": "Remote cluster with the same url already exists."
   },
   {
     "id": "api.restricted_system_admin",
@@ -2929,11 +2964,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -6760,6 +6795,10 @@
     "translation": "Unable to complete SAML login with an empty email address."
   },
   {
+    "id": "error",
+    "translation": "Error"
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
@@ -8282,6 +8321,10 @@
   {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
+  },
+  {
+    "id": "sharedchannel.permalink.not_found",
+    "translation": "This post contains permalinks to other channels which may not be visible to users in other sites."
   },
   {
     "id": "store.sql.convert_string_array",

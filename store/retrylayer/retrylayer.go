@@ -1690,6 +1690,26 @@ func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 
 }
 
+func (s *RetryLayerChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamForChannel(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 
 	tries := 0
@@ -7351,6 +7371,46 @@ func (s *RetryLayerSharedChannelStore) GetUser(userId string, remoteId string) (
 	tries := 0
 	for {
 		result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.HasChannel(channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.HasRemote(channelID)
 		if err == nil {
 			return result, nil
 		}

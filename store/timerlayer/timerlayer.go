@@ -1435,6 +1435,22 @@ func (s *TimerLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetTeamForChannel(channelID string) (*model.Team, error) {
+	start := timemodule.Now()
+
+	result, err := s.ChannelStore.GetTeamForChannel(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	start := timemodule.Now()
 
@@ -6138,6 +6154,38 @@ func (s *TimerLayerSharedChannelStore) GetUser(userId string, remoteId string) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.HasChannel(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.HasChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.HasRemote(channelID)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.HasRemote", success, elapsed)
 	}
 	return result, err
 }

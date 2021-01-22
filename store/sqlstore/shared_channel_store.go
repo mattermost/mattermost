@@ -117,6 +117,27 @@ func (s SqlSharedChannelStore) Get(channelId string) (*model.SharedChannel, erro
 	return &sc, nil
 }
 
+// HasChannel returns whether a given channelID is a shared channel or not.
+func (s SqlSharedChannelStore) HasChannel(channelID string) (bool, error) {
+	builder := s.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("SharedChannels").
+		Where(sq.Eq{"SharedChannels.ChannelId": channelID}).
+		Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "get_shared_channel_exists_tosql")
+	}
+
+	var exists bool
+	if err := s.GetReplica().SelectOne(&exists, query, args...); err != nil {
+		return exists, errors.Wrapf(err, "failed to get shared channel for channel_id=%s", channelID)
+	}
+	return exists, nil
+}
+
 // GetAll fetches a paginated list of shared channels filtered by SharedChannelSearchOpts.
 func (s SqlSharedChannelStore) GetAll(offset, limit int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	if opts.ExcludeHome && opts.ExcludeRemote {
@@ -379,6 +400,27 @@ func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChan
 		return nil, errors.Wrapf(err, "failed to get shared channel remotes for channel_id=%s", channelId)
 	}
 	return remotes, nil
+}
+
+// HasRemote returns whether a given channelID is present in the channel remotes or not.
+func (s SqlSharedChannelStore) HasRemote(channelID string) (bool, error) {
+	builder := s.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("SharedChannelRemotes").
+		Where(sq.Eq{"ChannelId": channelID}).
+		Suffix(")")
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrapf(err, "get_shared_channel_hasremote_tosql")
+	}
+
+	var hasRemote bool
+	if err := s.GetReplica().SelectOne(&hasRemote, query, args...); err != nil {
+		return hasRemote, errors.Wrapf(err, "failed to get channel remotes for channel_id=%s", channelID)
+	}
+	return hasRemote, nil
 }
 
 // UpdateRemoteLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelRemote.

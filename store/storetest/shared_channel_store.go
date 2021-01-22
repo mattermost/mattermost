@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -16,6 +17,7 @@ import (
 func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveSharedChannel", func(t *testing.T) { testSaveSharedChannel(t, ss) })
 	t.Run("GetSharedChannel", func(t *testing.T) { testGetSharedChannel(t, ss) })
+	t.Run("HasSharedChannel", func(t *testing.T) { testHasSharedChannel(t, ss) })
 	t.Run("GetSharedChannels", func(t *testing.T) { testGetSharedChannels(t, ss) })
 	t.Run("UpdateSharedChannel", func(t *testing.T) { testUpdateSharedChannel(t, ss) })
 	t.Run("DeleteSharedChannel", func(t *testing.T) { testDeleteSharedChannel(t, ss) })
@@ -25,6 +27,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, ss) })
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
+	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, ss) })
 	t.Run("UpdateSharedChannelRemoteLastSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteLastSyncAt(t, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
 
@@ -139,6 +142,34 @@ func testGetSharedChannel(t *testing.T, ss store.Store) {
 		sc, err := ss.SharedChannel().Get(model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, sc)
+	})
+}
+
+func testHasSharedChannel(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_get")
+	require.Nil(t, err)
+
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: model.NewId(),
+		ShareName: "testshare",
+		Home:      true,
+	}
+
+	scSaved, err := ss.SharedChannel().Save(sc)
+	require.NoError(t, err, "couldn't save shared channel", err)
+
+	t.Run("Get existing shared channel", func(t *testing.T) {
+		exists, err := ss.SharedChannel().HasChannel(scSaved.ChannelId)
+		require.NoError(t, err, "couldn't get shared channel", err)
+		assert.True(t, exists)
+	})
+
+	t.Run("Get non-existent shared channel", func(t *testing.T) {
+		exists, err := ss.SharedChannel().HasChannel(model.NewId())
+		require.NoError(t, err)
+		assert.False(t, exists)
 	})
 }
 
@@ -545,6 +576,34 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 		remotes, err := ss.SharedChannel().GetRemotes(model.NewId())
 		require.Nil(t, err, "should not error", err)
 		require.Len(t, remotes, 0)
+	})
+}
+
+func testHasRemote(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_remotes_get2")
+	require.Nil(t, err)
+
+	creator := model.NewId()
+	data := []model.SharedChannelRemote{
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteClusterId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteClusterId: model.NewId()},
+	}
+
+	for _, r := range data {
+		_, err := ss.SharedChannel().SaveRemote(&r)
+		require.Nil(t, err, "error saving shared channel remote")
+	}
+
+	t.Run("has channel", func(t *testing.T) {
+		has, err := ss.SharedChannel().HasRemote(channel.Id)
+		require.NoError(t, err)
+		assert.True(t, has)
+	})
+
+	t.Run("does not have channel", func(t *testing.T) {
+		has, err := ss.SharedChannel().HasRemote(model.NewId())
+		require.NoError(t, err)
+		assert.False(t, has)
 	})
 }
 

@@ -33,19 +33,19 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 		mlog.Int("sync_msg_count", len(syncMessages)),
 	)
 
-	return scs.processSyncMessagesViaAppAddUsers(syncMessages, rc, response)
+	return scs.processSyncMessages(syncMessages, rc, response)
 }
 
-func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
 	var channel *model.Channel
 	postErrors := make([]string, 0)
 	usersSyncd := make([]string, 0)
 	var lastSyncAt int64
 	var err error
 
-	for _, sm := range syncMessages {
+	chanToTeamMap := make(map[string]*model.Team)
 
-		// TODO: modify perma-links (MM-31596)
+	for _, sm := range syncMessages {
 
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 			mlog.String("post_id", sm.PostId),
@@ -54,6 +54,22 @@ func (scs *Service) processSyncMessagesViaAppAddUsers(syncMessages []syncMsg, rc
 			mlog.Int("user_count", len(sm.Users)),
 			mlog.Bool("has_post", sm.Post != nil),
 		)
+
+		if _, ok := chanToTeamMap[sm.Post.ChannelId]; !ok {
+			team, err2 := scs.server.GetStore().Channel().GetTeamForChannel(sm.Post.ChannelId)
+			if err2 != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
+					mlog.String("ChannelId", sm.Post.ChannelId),
+					mlog.String("PostId", sm.Post.Id),
+					mlog.Err(err2),
+				)
+				postErrors = append(postErrors, sm.Post.Id)
+				continue
+			}
+			chanToTeamMap[sm.Post.ChannelId] = team
+		}
+
+		sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, chanToTeamMap[sm.Post.ChannelId])
 
 		if channel == nil {
 			if channel, err = scs.server.GetStore().Channel().Get(sm.ChannelId, true); err != nil {

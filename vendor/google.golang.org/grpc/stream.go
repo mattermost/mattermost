@@ -175,7 +175,10 @@ func newClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 
 	var mc serviceconfig.MethodConfig
 	var onCommit func()
-	rpcConfig := cc.safeConfigSelector.SelectConfig(iresolver.RPCInfo{Context: ctx, Method: method})
+	rpcConfig, err := cc.safeConfigSelector.SelectConfig(iresolver.RPCInfo{Context: ctx, Method: method})
+	if err != nil {
+		return nil, status.Convert(err).Err()
+	}
 	if rpcConfig != nil {
 		if rpcConfig.Context != nil {
 			ctx = rpcConfig.Context

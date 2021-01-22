@@ -22,7 +22,7 @@ func TestReactionStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("ReactionDelete", func(t *testing.T) { testReactionDelete(t, ss) })
 	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
 	t.Run("ReactionGetForPostSince", func(t *testing.T) { testReactionGetForPostSince(t, ss, s) })
-	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
+	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss, s) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
 	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
@@ -413,7 +413,7 @@ func forceNULL(reaction *model.Reaction, s SqlStore) error {
 	return nil
 }
 
-func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
+func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore) {
 	emojiToDelete := model.NewId()
 
 	post, err1 := ss.Post().Save(&model.Post{
@@ -465,6 +465,12 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	for _, reaction := range reactions {
 		_, err := ss.Reaction().Save(reaction)
 		require.Nil(t, err)
+
+		// make at least one Reaction record contain NULL for Update and DeleteAt to simulate post schema upgrade case.
+		if reaction.EmojiName == emojiToDelete {
+			err = forceNULL(reaction, s)
+			require.Nil(t, err)
+		}
 	}
 
 	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)

@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20201216181404-3faa6075089a // indirect
+	github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210115172116-62e41801d5d2 // indirect
 	github.com/reflog/struct2interface v0.6.1 // indirect
 	github.com/tinylib/msgp v1.1.5 // indirect
 	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect

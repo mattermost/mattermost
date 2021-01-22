@@ -52,6 +52,10 @@ func (a *App) GetSharedChannel(channelId string) (*model.SharedChannel, error) {
 	return a.Srv().Store.SharedChannel().Get(channelId)
 }
 
+func (a *App) HasSharedChannel(channelID string) (bool, error) {
+	return a.Srv().Store.SharedChannel().HasChannel(channelID)
+}
+
 func (a *App) GetSharedChannels(page int, perPage int, opts store.SharedChannelFilterOpts) ([]*model.SharedChannel, error) {
 	return a.Srv().Store.SharedChannel().GetAll(page*perPage, perPage, opts)
 }
@@ -87,6 +91,11 @@ func (a *App) GetSharedChannelRemoteByIds(channelId string, remoteId string) (*m
 
 func (a *App) GetSharedChannelRemotes(channelId string) ([]*model.SharedChannelRemote, error) {
 	return a.Srv().Store.SharedChannel().GetRemotes(channelId)
+}
+
+// HasRemote returns whether a given channelID is present in the channel remotes or not.
+func (a *App) HasRemote(channelID string) (bool, error) {
+	return a.Srv().Store.SharedChannel().HasRemote(channelID)
 }
 
 func (a *App) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {

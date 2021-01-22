@@ -960,6 +960,8 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 	}
 }
 
+const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
+
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 	// allow 10 files per post
@@ -972,6 +974,11 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
+	}
+	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
 
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }

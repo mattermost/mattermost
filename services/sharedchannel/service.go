@@ -4,6 +4,8 @@
 package sharedchannel
 
 import (
+	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -25,6 +27,10 @@ const (
 	ResponsePostErrors           = "post_errors"
 	ResponseUsersSynced          = "users_synced"
 )
+
+// Mocks can be re-generated with:
+// ./bin/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// ./bin/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
 
 type ServerIface interface {
 	Config() *model.Config
@@ -68,6 +74,7 @@ type Service struct {
 	tasks                 map[string]syncTask
 	syncTopicListenerId   string
 	inviteTopicListenerId string
+	siteURL               *url.URL
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
@@ -78,6 +85,11 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
 	}
+	parsed, err := url.Parse(*server.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse SiteURL: %w", err)
+	}
+	service.siteURL = parsed
 	return service, nil
 }
 
@@ -101,6 +113,14 @@ func (scs *Service) Shutdown() error {
 	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()
 	return nil
+}
+
+// Active determines whether the service is active on the node or not.
+func (scs *Service) Active() bool {
+	scs.mux.Lock()
+	defer scs.mux.Unlock()
+
+	return scs.active
 }
 
 func (scs *Service) sendEphemeralPost(channelId string, userId string, text string) {

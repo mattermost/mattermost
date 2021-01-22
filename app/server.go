@@ -146,7 +146,7 @@ type Server struct {
 	telemetryService *telemetry.TelemetryService
 
 	remoteClusterService     *remotecluster.Service
-	sharedChannelSyncService *sharedchannel.Service
+	sharedChannelSyncService SharedChannelServiceIFace
 
 	phase2PermissionsMigrationComplete bool
 
@@ -224,7 +224,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	// This is called after initLogging() to avoid a race condition.
@@ -826,7 +826,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() error {
+func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -839,13 +839,13 @@ func (s *Server) Shutdown() error {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	if s.remoteClusterService != nil {
@@ -901,14 +901,14 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Error("Error flushing logs", mlog.Err(err))
+		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
@@ -917,8 +917,6 @@ func (s *Server) Shutdown() error {
 	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer timeoutCancel2()
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
 }
 
 func (s *Server) Restart() error {
@@ -1401,17 +1399,17 @@ func doCheckWarnMetricStatus(a *App) {
 
 	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err0 != nil {
-		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
 	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err1 != nil {
-		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
 	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
-		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
 	// If an account is created with a different email domain
@@ -1420,7 +1418,7 @@ func doCheckWarnMetricStatus(a *App) {
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err3 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1454,7 +1452,7 @@ func doCheckWarnMetricStatus(a *App) {
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 			if err4 != nil {
-				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
@@ -1531,7 +1529,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1652,7 +1650,7 @@ func (s *Server) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
 	if jobsDataRetentionJobInterface != nil {
 		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}
@@ -1706,7 +1704,7 @@ func (s *Server) GetRemoteClusterService() *remotecluster.Service {
 
 // GetSharedChannelSyncService returns the `SharedChannelSyncService` instantiated by the server.
 // May be nil if the service is not enabled via license.
-func (s *Server) GetSharedChannelSyncService() *sharedchannel.Service {
+func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 	return s.sharedChannelSyncService
 }
 

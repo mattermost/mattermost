@@ -6,6 +6,10 @@ package app
 import (
 	"net/http"
 
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
@@ -13,6 +17,10 @@ import (
 func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store.RemoteCluster().Save(rc)
 	if err != nil {
+		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
+			return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save_not_unique.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
 		return nil, model.NewAppError("AddRemoteCluster", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return rc, nil
@@ -21,7 +29,11 @@ func (a *App) AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *
 func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store.RemoteCluster().Update(rc)
 	if err != nil {
-		return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		if sqlstore.IsUniqueConstraintError(errors.Cause(err), []string{sqlstore.RemoteClusterSiteURLUniqueIndex}) {
+			return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update_not_unique.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		return nil, model.NewAppError("UpdateRemoteCluster", "api.remote_cluster.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return rc, nil
 }
