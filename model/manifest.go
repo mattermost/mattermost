@@ -304,7 +304,7 @@ type ManifestExecutables struct {
 	// LinuxAmd64 is the path to your executable binary for the corresponding platform
 	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
 	// FreeBSDAmd64 is the path to your executable binary for the corresponding platform
-	FreeBSDAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
+	FreeBSDAmd64 string `json:"freebsd-amd64,omitempty" yaml:"freebsd-amd64,omitempty"`
 	// DarwinAmd64 is the path to your executable binary for the corresponding platform
 	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
 	// WindowsAmd64 is the path to your executable binary for the corresponding platform
