@@ -35,7 +35,6 @@ const (
 )
 
 type StringInterface map[string]interface{}
-type StringMap map[string]string
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
