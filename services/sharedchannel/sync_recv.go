@@ -131,12 +131,9 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 		}
 	}
 
-	if lastSyncAt > 0 {
-		response[ResponseLastUpdateAt] = lastSyncAt
-	}
-
-	response[ResponsePostErrors] = postErrors
-	response[ResponseUsersSynced] = usersSyncd
+	response[ResponseLastUpdateAt] = lastSyncAt // might be zero
+	response[ResponsePostErrors] = postErrors   // might be empty
+	response[ResponseUsersSynced] = usersSyncd  // might be empty
 
 	return nil
 }
