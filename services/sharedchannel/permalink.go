@@ -30,7 +30,7 @@ func (scs *Service) processPermalinkToRemote(p *model.Post) string {
 		// Extract the postID (This is simple enough not to warrant full-blown URL parsing.)
 		lastSlash := strings.LastIndexByte(msg, '/')
 		postID := msg[lastSlash+1:]
-		postList, err := scs.server.GetStore().Post().Get(postID, true)
+		postList, err := scs.server.GetStore().Post().Get(postID, true, false, false)
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "Unable to get post during replacing permalinks", mlog.Err(err))
 			return msg

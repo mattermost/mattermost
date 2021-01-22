@@ -26,7 +26,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	utils.TranslationsPreInit()
 
 	pl := &model.PostList{}
-	mockPostStore.On("Get", "postID", true).Return(pl, nil)
+	mockPostStore.On("Get", "postID", true, false, false).Return(pl, nil)
 
 	mockStore.On("Post").Return(&mockPostStore)
 

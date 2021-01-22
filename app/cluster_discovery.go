@@ -37,17 +37,15 @@ func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
 func (cds *ClusterDiscoveryService) Start() {
 	err := cds.srv.Store.ClusterDiscovery().Cleanup()
 	if err != nil {
-		mlog.Error("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
+		mlog.Warn("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
 	}
 
 	exists, err := cds.srv.Store.ClusterDiscovery().Exists(&cds.ClusterDiscovery)
 	if err != nil {
-		mlog.Error("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
-	} else {
-		if exists {
-			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
-				mlog.Error("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
-			}
+		mlog.Warn("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
+	} else if exists {
+		if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
+			mlog.Warn("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 		}
 	}
 
@@ -62,7 +60,7 @@ func (cds *ClusterDiscoveryService) Start() {
 		defer func() {
 			ticker.Stop()
 			if _, err := cds.srv.Store.ClusterDiscovery().Delete(&cds.ClusterDiscovery); err != nil {
-				mlog.Error("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
+				mlog.Warn("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()), mlog.Err(err))
 			}
 			mlog.Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscovery", cds.ClusterDiscovery.ToJson()))
 		}()
