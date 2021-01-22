@@ -125,6 +125,29 @@ func (_m *RetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWith
 	return r0, r1
 }
 
+// Patch provides a mock function with given fields: policy
+func (_m *RetentionPolicyStore) Patch(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+	ret := _m.Called(policy)
+
+	var r0 *model.RetentionPolicy
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicy) *model.RetentionPolicy); ok {
+		r0 = rf(policy)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RetentionPolicy)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicy) error); ok {
+		r1 = rf(policy)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemoveChannels provides a mock function with given fields: policyId, channelIds
 func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
 	ret := _m.Called(policyId, channelIds)
@@ -177,24 +200,15 @@ func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.Rete
 }
 
 // Update provides a mock function with given fields: policy
-func (_m *RetentionPolicyStore) Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (_m *RetentionPolicyStore) Update(policy *model.RetentionPolicyUpdate) error {
 	ret := _m.Called(policy)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicy) *model.RetentionPolicy); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) error); ok {
 		r0 = rf(policy)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
-		}
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicy) error); ok {
-		r1 = rf(policy)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }

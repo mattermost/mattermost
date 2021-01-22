@@ -73,7 +73,8 @@ type Store interface {
 
 type RetentionPolicyStore interface {
 	Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
-	Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
+	Patch(policy *model.RetentionPolicy) (*model.RetentionPolicy, error)
+	Update(policy *model.RetentionPolicyUpdate) error
 	Get(id string) (*model.RetentionPolicyEnriched, error)
 	GetAll() ([]*model.RetentionPolicyEnriched, error)
 	GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error)

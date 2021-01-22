@@ -127,7 +127,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyFromJson(r.Body)
+	policy, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
@@ -136,12 +136,12 @@ func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("policy")
 		return
 	}
-	policy, err := c.App.UpdateRetentionPolicy(policy)
+	err := c.App.UpdateRetentionPolicy(policy)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	w.Write(policy.ToJsonBytes())
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {

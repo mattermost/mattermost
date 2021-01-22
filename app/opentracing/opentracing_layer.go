@@ -15392,7 +15392,7 @@ func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateRetentionPolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRetentionPolicy")
 
@@ -15404,14 +15404,14 @@ func (a *OpenTracingAppLayer) UpdateRetentionPolicy(policy *model.RetentionPolic
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateRetentionPolicy(policy)
+	resultVar0 := a.app.UpdateRetentionPolicy(policy)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {

@@ -40,6 +40,14 @@ type RetentionPolicyEnriched struct {
 	Channels     []ChannelDisplayInfo `json:"channels"`
 }
 
+type RetentionPolicyUpdate struct {
+	Id           string   `json:"id"`
+	DisplayName  string   `json:"display_name"`
+	PostDuration int64    `json:"post_duration"`
+	TeamIds      []string `json:"team_ids"`
+	ChannelIds   []string `json:"channel_ids"`
+}
+
 type RetentionPolicyWithCounts struct {
 	Id           string `json:"id"`
 	DisplayName  string `json:"display_name"`
@@ -89,6 +97,12 @@ func (rp *RetentionPolicyEnriched) ToJson() string {
 
 func RetentionPolicyFromJson(data io.Reader) (*RetentionPolicy, error) {
 	var rp *RetentionPolicy
+	err := json.NewDecoder(data).Decode(&rp)
+	return rp, err
+}
+
+func RetentionPolicyUpdateFromJson(data io.Reader) (*RetentionPolicyUpdate, error) {
+	var rp *RetentionPolicyUpdate
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
 }

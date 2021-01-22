@@ -245,26 +245,17 @@ func (_m *DataRetentionInterface) RemoveTeamsFromPolicy(policyId string, teamIds
 }
 
 // UpdatePolicy provides a mock function with given fields: policy
-func (_m *DataRetentionInterface) UpdatePolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (_m *DataRetentionInterface) UpdatePolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
 	ret := _m.Called(policy)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicy) *model.RetentionPolicy); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.AppError); ok {
 		r0 = rf(policy)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicy) *model.AppError); ok {
-		r1 = rf(policy)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
+	return r0
 }

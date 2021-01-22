@@ -70,7 +70,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.Re
 	return policy, err
 }
 
-func (s *SqlRetentionPolicyStore) Update(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (s *SqlRetentionPolicyStore) Patch(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
 	builder := s.getQueryBuilder().Update("RetentionPolicies")
 	if policy.DisplayName != "" {
 		builder = builder.Set("DisplayName", policy.DisplayName)
@@ -93,6 +93,64 @@ func (s *SqlRetentionPolicyStore) Update(policy *model.RetentionPolicy) (*model.
 		return nil, errors.New("policy not found")
 	}
 	return rows[0], nil
+}
+
+func (s *SqlRetentionPolicyStore) Update(policy *model.RetentionPolicyUpdate) error {
+	// The `ON DELETE CASCADE` part of the foreign key constraints should delete all
+	// necessary channels and teams from RetentionPoliciesChannels and
+	// RetentionPoliciesTeams respectively
+	query := ""
+	args := make([]interface{}, 0)
+	rpDeleteQuery, rpDeleteArgs, _ := s.getQueryBuilder().
+		Delete("RetentionPolicies").
+		Where(sq.Eq{"Id": policy.Id}).
+		ToSql()
+	query += rpDeleteQuery
+	args = append(args, rpDeleteArgs...)
+
+	rpInsertQuery, rpInsertArgs, _ := s.getQueryBuilder().
+		Insert("RetentionPolicies").
+		Columns("Id, DisplayName, PostDuration").
+		Values(policy.Id, policy.DisplayName, policy.PostDuration).
+		ToSql()
+	query += "; " + rpInsertQuery
+	args = append(args, rpInsertArgs...)
+
+	if len(policy.ChannelIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesChannels").
+			Columns("PolicyId", "ChannelId")
+		for _, channelId := range policy.ChannelIds {
+			builder = builder.Values(policy.Id, channelId)
+		}
+		rpcInsertQuery, rpcInsertArgs, _ := builder.ToSql()
+		query += "; " + rpcInsertQuery
+		args = append(args, rpcInsertArgs...)
+	}
+
+	if len(policy.TeamIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesTeams").
+			Columns("PolicyId", "TeamId")
+		for _, teamId := range policy.TeamIds {
+			builder = builder.Values(policy.Id, teamId)
+		}
+		rptInsertQuery, rptInsertArgs, _ := builder.ToSql()
+		query += "; " + rptInsertQuery
+		args = append(args, rptInsertArgs...)
+	}
+
+	txn, err := s.GetMaster().Begin()
+	if err != nil {
+		return err
+	}
+	_, err = txn.Exec(query, args...)
+	if err != nil {
+		txn.Rollback()
+		return err
+	}
+	txn.Commit()
+	return nil
 }
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {

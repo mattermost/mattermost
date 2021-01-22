@@ -51,9 +51,9 @@ func (a *App) PatchRetentionPolicy(policy *model.RetentionPolicy) (*model.Retent
 	return a.DataRetention().PatchPolicy(policy)
 }
 
-func (a *App) UpdateRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (a *App) UpdateRetentionPolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
-		return nil, newLicenseError("UpdateRetentionPolicy")
+		return newLicenseError("UpdateRetentionPolicy")
 	}
 	return a.DataRetention().UpdatePolicy(policy)
 }
