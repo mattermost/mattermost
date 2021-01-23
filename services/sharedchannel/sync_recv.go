@@ -69,8 +69,6 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 			chanToTeamMap[sm.Post.ChannelId] = team
 		}
 
-		sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, chanToTeamMap[sm.Post.ChannelId])
-
 		if channel == nil {
 			if channel, err = scs.server.GetStore().Channel().Get(sm.ChannelId, true); err != nil {
 				// if the channel doesn't exist then none of these sync messages are going to work.
@@ -96,6 +94,8 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 
 		// add post (may be nil if only reactions changed)
 		if sm.Post != nil {
+			sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, chanToTeamMap[sm.Post.ChannelId])
+
 			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
 			if err != nil {
 				postErrors = append(postErrors, sm.Post.Id)
