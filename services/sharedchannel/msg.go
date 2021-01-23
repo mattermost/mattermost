@@ -117,7 +117,7 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 	}
 	userIds[post.UserId] = struct{}{}
 
-	// TODO: extract @mentions?
+	// TODO: extract @mentions to local users and sync those as well?
 
 	users := make([]*model.User, 0)
 
@@ -178,7 +178,18 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 				mlog.String("user_id", user.Id))
 		}
 	} else if scu.LastSyncAt < user.UpdateAt {
-		return false, nil
+		// Users.UpdateAt is updated quite frequently and for reasons we don't care about for sync.
+		//
+		// For now we'll mitigate that by not synchronizing users more than once per hour; alternatively we can start
+		// storing the fields we care about in SharedChannelUsers and check if any changed, but in some use cases
+		// the SharedChannelUsers table gets very large.
+		//
+		// Another option is to trigger sync on User update.
+		//
+		// Fields we care about for sync: username, email, nickname, firstname, lastname, position.
+		if model.GetMillis()-scu.LastSyncAt < 3600000 { // 1 hour
+			return false, nil
+		}
 	}
 	return true, nil
 }
