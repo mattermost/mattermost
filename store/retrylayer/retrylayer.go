@@ -6320,11 +6320,11 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 
 }
 
-func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.GetForPostSince(postId, since, allowFromCache, inclDeleted)
+		result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
 		if err == nil {
 			return result, nil
 		}

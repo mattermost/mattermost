@@ -97,13 +97,13 @@ func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mode
 	return r0, r1
 }
 
-// GetForPostSince provides a mock function with given fields: postId, since, allowFromCache, inclDeleted
-func (_m *ReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
-	ret := _m.Called(postId, since, allowFromCache, inclDeleted)
+// GetForPostSince provides a mock function with given fields: postId, since, excludeRemoteId, inclDeleted
+func (_m *ReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+	ret := _m.Called(postId, since, excludeRemoteId, inclDeleted)
 
 	var r0 []*model.Reaction
-	if rf, ok := ret.Get(0).(func(string, int64, bool, bool) []*model.Reaction); ok {
-		r0 = rf(postId, since, allowFromCache, inclDeleted)
+	if rf, ok := ret.Get(0).(func(string, int64, string, bool) []*model.Reaction); ok {
+		r0 = rf(postId, since, excludeRemoteId, inclDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Reaction)
@@ -111,8 +111,8 @@ func (_m *ReactionStore) GetForPostSince(postId string, since int64, allowFromCa
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64, bool, bool) error); ok {
-		r1 = rf(postId, since, allowFromCache, inclDeleted)
+	if rf, ok := ret.Get(1).(func(string, int64, string, bool) error); ok {
+		r1 = rf(postId, since, excludeRemoteId, inclDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}

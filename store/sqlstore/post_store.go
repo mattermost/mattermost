@@ -40,7 +40,7 @@ func (s *SqlPostStore) ClearCaches() {
 }
 
 func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -63,6 +63,7 @@ func postToSlice(post *model.Post) []interface{} {
 		model.ArrayToJson(post.Filenames),
 		model.ArrayToJson(post.FileIds),
 		post.HasReactions,
+		post.RemoteId,
 	}
 }
 

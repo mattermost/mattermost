@@ -274,6 +274,7 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 	now := model.GetMillis()
 	later := now + 1800000 // add 30 minutes
+	remoteId := model.NewId()
 
 	postId := model.NewId()
 	userId := model.NewId()
@@ -294,6 +295,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 			PostId:    postId,
 			EmojiName: "sad",
 			UpdateAt:  later,
+			RemoteId:  &remoteId,
 		},
 		{
 			UserId:    userId,
@@ -330,7 +332,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("reactions since", func(t *testing.T) {
 		// should return 2 reactions that are not deleted for post
-		returned, err := ss.Reaction().GetForPostSince(postId, later-1, false, false)
+		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", false)
 		require.Nil(t, err)
 		require.Len(t, returned, 2, "should've returned 2 non-deleted reactions")
 		for _, r := range returned {
@@ -341,7 +343,7 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("reactions since, incl deleted", func(t *testing.T) {
 		// should return 3 reactions for post, including one deleted
-		returned, err := ss.Reaction().GetForPostSince(postId, later-1, false, true)
+		returned, err := ss.Reaction().GetForPostSince(postId, later-1, "", true)
 		require.Nil(t, err)
 		require.Len(t, returned, 3, "should've returned 3 reactions")
 		var count int
@@ -354,16 +356,26 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 
 	})
 
+	t.Run("reactions since, filter remoteId", func(t *testing.T) {
+		// should return 1 reactions that are not deleted for post and have no remoteId
+		returned, err := ss.Reaction().GetForPostSince(postId, later-1, remoteId, false)
+		require.Nil(t, err)
+		require.Len(t, returned, 1, "should've returned 1 filtered reactions")
+		for _, r := range returned {
+			assert.Zero(t, r.DeleteAt, "should not have returned deleted reaction")
+		}
+	})
+
 	t.Run("reactions since, invalid post", func(t *testing.T) {
 		// should return 0 reactions for invalid post
-		returned, err := ss.Reaction().GetForPostSince(model.NewId(), later-1, false, true)
+		returned, err := ss.Reaction().GetForPostSince(model.NewId(), later-1, "", true)
 		require.Nil(t, err)
 		require.Empty(t, returned, "should've returned 0 reactions")
 	})
 
 	t.Run("reactions since, far future", func(t *testing.T) {
 		// should return 0 reactions for since far in the future
-		returned, err := ss.Reaction().GetForPostSince(postId, later*2, false, true)
+		returned, err := ss.Reaction().GetForPostSince(postId, later*2, "", true)
 		require.Nil(t, err)
 		require.Empty(t, returned, "should've returned 0 reactions")
 	})

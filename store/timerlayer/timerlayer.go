@@ -5295,10 +5295,10 @@ func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
-	result, err := s.ReactionStore.GetForPostSince(postId, since, allowFromCache, inclDeleted)
+	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

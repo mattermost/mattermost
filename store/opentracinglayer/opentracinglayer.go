@@ -5847,7 +5847,7 @@ func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache
 	return result, err
 }
 
-func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int64, allowFromCache bool, inclDeleted bool) ([]*model.Reaction, error) {
+func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetForPostSince")
 	s.Root.Store.SetContext(newCtx)
@@ -5856,7 +5856,7 @@ func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int
 	}()
 
 	defer span.Finish()
-	result, err := s.ReactionStore.GetForPostSince(postId, since, allowFromCache, inclDeleted)
+	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

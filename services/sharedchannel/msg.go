@@ -55,20 +55,28 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 			continue
 		}
 
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, true, true)
+		// any reactions originating from the remote cluster are filtered out
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, rc.RemoteId, true)
 		if err != nil {
 			return model.RemoteClusterMsg{}, err
 		}
 
+		// any users originating from the remote cluster are filtered out
 		users := scs.usersForPost(p, reactions, rc)
+
+		postSync := p
 
 		// TODO:  don't include the post if only the reactions changed. Unfortunately there is no way to reliably know the
 		//        difference between an existing (synchronized) post with new reaction, and a brand new post (un-synchronized)
 		//        with a reaction.
-		postSync := p
 		//if p.EditAt < p.UpdateAt && p.CreateAt < p.UpdateAt && p.DeleteAt == 0 {
 		//	postSync = nil
 		//}
+
+		// don't sync a post back to the remote it came from.
+		if p.RemoteId != nil && *p.RemoteId == rc.RemoteId {
+			postSync = nil
+		}
 
 		// Parse out all permalinks in the message.
 		postSync.Message = scs.processPermalinkToRemote(postSync)
