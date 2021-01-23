@@ -219,6 +219,8 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, rc *model.Remot
 	savedReaction := reaction
 	var appErr *model.AppError
 
+	reaction.RemoteId = model.NewString(rc.RemoteId)
+
 	if reaction.DeleteAt == 0 {
 		savedReaction, appErr = scs.app.SaveReactionForPost(reaction)
 	} else {
