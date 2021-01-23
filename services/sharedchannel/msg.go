@@ -61,9 +61,6 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 			return model.RemoteClusterMsg{}, err
 		}
 
-		// any users originating from the remote cluster are filtered out
-		users := scs.usersForPost(p, reactions, rc)
-
 		postSync := p
 
 		// TODO:  don't include the post if only the reactions changed. Unfortunately there is no way to reliably know the
@@ -82,6 +79,9 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		if postSync != nil {
 			postSync.Message = scs.processPermalinkToRemote(postSync)
 		}
+
+		// any users originating from the remote cluster are filtered out
+		users := scs.usersForPost(p, reactions, rc)
 
 		sm := syncMsg{
 			ChannelId: p.ChannelId,

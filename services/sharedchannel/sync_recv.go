@@ -170,6 +170,7 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 			Position:  &user.Position,
 			Locale:    &user.Locale,
 			Timezone:  user.Timezone,
+			RemoteId:  user.RemoteId,
 		}
 		euser.Patch(patch)
 		userUpdated, err := scs.server.GetStore().User().Update(euser, false)

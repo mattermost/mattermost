@@ -126,6 +126,7 @@ type UserPatch struct {
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
+	RemoteId    *string   `json:"remote_id"`
 }
 
 //msgp:ignore UserAuth
@@ -505,6 +506,10 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.Timezone != nil {
 		u.Timezone = patch.Timezone
+	}
+
+	if patch.RemoteId != nil {
+		u.RemoteId = patch.RemoteId
 	}
 }
 
