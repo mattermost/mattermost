@@ -79,7 +79,9 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		}
 
 		// Parse out all permalinks in the message.
-		postSync.Message = scs.processPermalinkToRemote(postSync)
+		if postSync != nil {
+			postSync.Message = scs.processPermalinkToRemote(postSync)
+		}
 
 		sm := syncMsg{
 			ChannelId: p.ChannelId,
