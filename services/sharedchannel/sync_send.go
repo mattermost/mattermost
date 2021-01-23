@@ -284,7 +284,7 @@ func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, l
 			merrs.Append(err)
 		} else {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for user",
-				mlog.String("user_id", scu.Id), mlog.Int64("last_update_at", lastSyncAt))
+				mlog.String("user_id", scu.UserId), mlog.Int64("last_update_at", lastSyncAt))
 		}
 	}
 	return merrs.ErrorOrNil()

@@ -83,6 +83,11 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		// any users originating from the remote cluster are filtered out
 		users := scs.usersForPost(p, reactions, rc)
 
+		// if everything was filtered out then don't send an empty message.
+		if postSync == nil && len(reactions) == 0 && len(users) == 0 {
+			continue
+		}
+
 		sm := syncMsg{
 			ChannelId: p.ChannelId,
 			PostId:    p.Id,
@@ -112,6 +117,8 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 	}
 	userIds[post.UserId] = struct{}{}
 
+	// TODO: extract @mentions?
+
 	users := make([]*model.User, 0)
 
 	for id := range userIds {
@@ -125,9 +132,6 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 			}
 		}
 	}
-
-	// TODO: extract @mentions?
-
 	return users
 }
 

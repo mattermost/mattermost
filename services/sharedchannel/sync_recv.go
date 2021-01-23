@@ -89,7 +89,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 					mlog.Err(err))
 			} else {
 				usersSyncd = append(usersSyncd, userSaved.Id)
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "User added via sync",
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "User upserted via sync",
 					mlog.String("channel_id", sm.ChannelId),
 					mlog.String("user_id", user.Id))
 			}
@@ -112,7 +112,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 		// add/remove reactions
 		for _, reaction := range sm.Reactions {
 			if _, err := scs.upsertSyncReaction(reaction, rc); err != nil {
-				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error creating/deleting sync reaction",
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync reaction",
 					mlog.String("user_id", reaction.UserId),
 					mlog.String("post_id", reaction.PostId),
 					mlog.String("emoji", reaction.EmojiName),
