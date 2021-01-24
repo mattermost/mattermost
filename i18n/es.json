@@ -5808,7 +5808,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licencia"
+    "translation": "Renovar Licencia ahora"
   },
   {
     "id": "api.templates.invite_guest_subject",
