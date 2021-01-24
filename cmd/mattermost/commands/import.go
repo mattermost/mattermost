@@ -102,7 +102,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
-	
+
 	apply, err := command.Flags().GetBool("apply")
 	if err != nil {
 		return errors.New("Apply flag error")
