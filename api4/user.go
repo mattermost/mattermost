@@ -2849,7 +2849,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.After = r.URL.Query().Get("after")
 	// parameters are mutually exclusive
 	if options.Before != "" && options.After != "" {
-		c.Err = model.NewAppError("MfaRequired", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
 		return
 	}
 	pageSizeString := r.URL.Query().Get("pageSize")
