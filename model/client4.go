@@ -5820,8 +5820,12 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	return &threads, BuildResponse(r)
 }
 
-func (c *Client4) GetUserThread(userId, teamId, threadId string) (*ThreadResponse, *Response) {
-	r, appErr := c.DoApiGet(c.GetUserThreadRoute(userId, teamId, threadId), "")
+func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response) {
+	url := c.GetUserThreadRoute(userId, teamId, threadId)
+	if extended {
+		url += "?extended=true"
+	}
+	r, appErr := c.DoApiGet(url, "")
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}

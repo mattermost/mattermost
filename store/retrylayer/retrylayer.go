@@ -8498,11 +8498,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId)
+		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 		if err == nil {
 			return result, nil
 		}

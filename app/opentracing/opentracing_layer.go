@@ -8507,7 +8507,7 @@ func (a *OpenTracingAppLayer) GetTermsOfService(id string) (*model.TermsOfServic
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetThreadForUser(userId string, teamId string, threadId string) (*model.ThreadResponse, *model.AppError) {
+func (a *OpenTracingAppLayer) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadForUser")
 
@@ -8519,7 +8519,7 @@ func (a *OpenTracingAppLayer) GetThreadForUser(userId string, teamId string, thr
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetThreadForUser(userId, teamId, threadId)
+	resultVar0, resultVar1 := a.app.GetThreadForUser(userId, teamId, threadId, extended)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

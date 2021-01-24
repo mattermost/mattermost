@@ -5696,10 +5696,15 @@ func TestSingleThreadGet(t *testing.T) {
 	// regular user should have two threads with 3 replies total
 	threads, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
 
-	tr, resp := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId)
+	tr, resp := th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, false)
 	CheckNoError(t, resp)
 	require.NotNil(t, tr)
 	require.Equal(t, threads.Threads[0].PostId, tr.PostId)
+	require.Empty(t, tr.Participants[0].Username)
+
+	tr, resp = th.Client.GetUserThread(th.BasicUser.Id, th.BasicTeam.Id, threads.Threads[0].PostId, true)
+	CheckNoError(t, resp)
+	require.NotEmpty(t, tr.Participants[0].Username)
 }
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {

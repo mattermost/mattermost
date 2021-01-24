@@ -2825,7 +2825,10 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
-	threads, err := c.App.GetThreadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId)
+	extendedStr := r.URL.Query().Get("extended")
+
+	extended, _ := strconv.ParseBool(extendedStr)
+	threads, err := c.App.GetThreadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, extended)
 	if err != nil {
 		c.Err = err
 		return

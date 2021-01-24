@@ -7064,10 +7064,10 @@ func (s *TimerLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 	return result, err
 }
 
-func (s *TimerLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string) (*model.ThreadResponse, error) {
+func (s *TimerLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
 	start := timemodule.Now()
 
-	result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId)
+	result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -2386,10 +2386,13 @@ func (a *App) GetThreadsForUser(userId, teamId string, options model.GetUserThre
 	return threads, nil
 }
 
-func (a *App) GetThreadForUser(userId, teamId, threadId string) (*model.ThreadResponse, *model.AppError) {
-	thread, err := a.Srv().Store.Thread().GetThreadForUser(userId, teamId, threadId)
+func (a *App) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, err := a.Srv().Store.Thread().GetThreadForUser(userId, teamId, threadId, extended)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if thread == nil {
+		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, err.Error(), http.StatusNotFound)
 	}
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
