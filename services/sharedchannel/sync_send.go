@@ -149,6 +149,11 @@ func (scs *Service) processTask(task syncTask) error {
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
 func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, cache msgCache) error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+	}
+
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelId, rc.RemoteId)
 	if err != nil {
 		return err
@@ -183,9 +188,13 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return err
 	}
 
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+	if len(msg.Payload) == 0 {
+		// everything was filtered out, nothing to send.
+		if repeat {
+			contTask := newSyncTask(channelId, rc.RemoteId)
+			scs.addTask(contTask)
+		}
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
@@ -222,7 +231,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 				mlog.String("remote_id", rc.RemoteId), mlog.String("remote", rc.DisplayName), mlog.Int64("last_update_at", lastSync))
 		}
 
-		// update all the users that were synchronized
+		// update LastSyncAt for all the users that were synchronized
 		userIds, err := resp.StringSlice(ResponseUsersSynced)
 		if err != nil {
 			scs.server.GetLogger().Warn("missing last sync response (ResponseUsersSynced) after update shared channel",

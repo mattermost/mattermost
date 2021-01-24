@@ -41,7 +41,7 @@ func (sm syncMsg) String() string {
 }
 
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
-// sent to a remote cluster
+// sent to a remote cluster.
 func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
@@ -97,6 +97,11 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		}
 		syncMessages = append(syncMessages, sm)
 		cache[p.Id] = sm
+	}
+
+	if len(syncMessages) == 0 {
+		// everything was filtered out and nothing to send.
+		return model.RemoteClusterMsg{}, nil
 	}
 
 	json, err := json.Marshal(syncMessages)
