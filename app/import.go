@@ -7,12 +7,12 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
-	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 
@@ -148,10 +148,10 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			if dryRun == true{
+			if dryRun == true {
 				fmt.Println("DryRun is enabled.")
 			} else {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+				return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 			}
 		}
 
@@ -162,20 +162,20 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 		if lineNumber == 1 {
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
 			if appErr != nil {
-				if dryRun == true{
+				if dryRun == true {
 					fmt.Println("DryRun is enabled.")
 				} else {
-				return appErr, lineNumber
+					return appErr, lineNumber
 				}
 			}
 
 			if importDataFileVersion != 1 {
-				if dryRun == true{
+				if dryRun == true {
 					fmt.Println("DryRun is enabled.")
 				} else {
-				return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+				}
 			}
-		}
 			lastLineType = line.Type
 			continue
 		}
@@ -231,10 +231,10 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 	}
 
 	if err := scanner.Err(); err != nil {
-		if dryRun == true{
+		if dryRun == true {
 			fmt.Println("DryRun is enabled.")
 		} else {
-		return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
+			return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
 		}
 	}
 
