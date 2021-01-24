@@ -81,7 +81,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 		}
 
 		// any users originating from the remote cluster are filtered out
-		users := scs.usersForPost(p, reactions, rc)
+		users := scs.usersForPost(postSync, reactions, rc)
 
 		// if everything was filtered out then don't send an empty message.
 		if postSync == nil && len(reactions) == 0 && len(users) == 0 {
@@ -117,10 +117,13 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster) []*model.User {
 	userIds := make(map[string]struct{}) // avoid duplicates
 
+	if post != nil {
+		userIds[post.UserId] = struct{}{}
+	}
+
 	for _, r := range reactions {
 		userIds[r.UserId] = struct{}{}
 	}
-	userIds[post.UserId] = struct{}{}
 
 	// TODO: extract @mentions to local users and sync those as well?
 
