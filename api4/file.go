@@ -565,7 +565,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(info.PostId) == 0 {
+	if info.PostId == "" {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -658,7 +658,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
-	if len(hash) == 0 {
+	if hash == "" {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return

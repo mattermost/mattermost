@@ -96,7 +96,7 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 		targetChannelId = channel.Id
 	}
 
-	if len(parsedMessage) > 0 {
+	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
