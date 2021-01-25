@@ -2072,10 +2072,6 @@
     "translation": "Ogiltig kanal."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kunde inte uppdatera användarens lösenord."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Kunde inte uppdatera failed_attempts."
   },
@@ -5193,7 +5189,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Förnya licens"
+    "translation": "Förnya licensen nu"
   },
   {
     "id": "api.templates.post_body.button",
@@ -6717,7 +6713,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterpriselicensen har upphört gälla och några funktioner kan ha stängts av. Vänligen förnya licensen."
+    "translation": "Din Enterpriselicens har upphört gälla och några funktioner kan ha stängts av. Vänligen förnya licensen nu."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -8469,5 +8465,45 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Jobbet du försöker ladda ner stöds inte för tillfället"
+  },
+  {
+    "id": "error",
+    "translation": "Fel"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Omdirigerar dig tillbaka till appen."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Du kan stänga webbläsarfliken nu."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Autentiseringen slutfördes"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "En ogiltig omdirigerings-url har bilagts"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Det bilagda anpassade url-schemat är felaktigt"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Tillbaka till {{.SiteName}}"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Att ändra {{.Name}} är inte tillåtet av säkerhetsskäl."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "\"Update at\" måste vara en giltig tid."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Anropet saknar antingen parametern AuthData eller AuthService."
   }
 ]
