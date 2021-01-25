@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -385,6 +386,42 @@ func (s *FileBackendTestSuite) TestFileSize() {
 		size, err := s.backend.FileSize(path)
 		s.Nil(err)
 		s.Equal(int64(len(data)), size)
+	})
+}
+
+func (s *FileBackendTestSuite) TestFileModTime() {
+	s.Run("nonexistent file", func() {
+		modTime, err := s.backend.FileModTime("tests/nonexistentfile")
+		s.NotNil(err)
+		s.Empty(modTime)
+	})
+
+	s.Run("valid file", func() {
+		path := "tests/" + model.NewId()
+		data := []byte("some data")
+
+		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
+		s.Nil(err)
+		s.EqualValues(len(data), written)
+		defer s.backend.RemoveFile(path)
+
+		modTime, err := s.backend.FileModTime(path)
+		s.Nil(err)
+		s.NotEmpty(modTime)
+
+		// We wait 1 second so that the times will differ enough to be testable.
+		time.Sleep(1 * time.Second)
+
+		path2 := "tests/" + model.NewId()
+		written, err = s.backend.WriteFile(bytes.NewReader(data), path2)
+		s.Nil(err)
+		s.EqualValues(len(data), written)
+		defer s.backend.RemoveFile(path2)
+
+		modTime2, err := s.backend.FileModTime(path2)
+		s.Nil(err)
+		s.NotEmpty(modTime2)
+		s.True(modTime2.After(modTime))
 	})
 }
 

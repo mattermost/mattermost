@@ -119,6 +119,9 @@ func (a *App) initJobs() {
 	if jobsImportProcessInterface != nil {
 		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
 	}
+	if jobsImportDeleteInterface != nil {
+		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
+	}
 
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
