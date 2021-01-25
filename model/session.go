@@ -31,6 +31,9 @@ const (
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
 
+//msgp StringMap
+type StringMap map[string]string
+
 //msgp:tuple Session
 
 // Session contains the user session details.

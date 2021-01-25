@@ -172,6 +172,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -1139,6 +1143,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1453,12 +1461,24 @@
     "translation": "Channel listed in the request doesn't belong to the user"
   },
   {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme has been provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
   {
     "id": "api.job.unable_to_download_job",
     "translation": "Unable to download this job"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "The job type you are trying to download is not supported at the moment"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -1565,8 +1585,16 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1627,6 +1655,10 @@
   {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -2868,11 +2900,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -3224,7 +3256,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Failed to get authorization code."
+    "translation": "Error retreiving endpoint from Discovery Document."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -3457,6 +3489,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Request is missing either AuthData or AuthService parameter."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -5691,10 +5727,6 @@
     "translation": "Unable to update the failed_attempts."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Unable to update the user password."
-  },
-  {
     "id": "app.user.update_thread_follow_for_user.app_error",
     "translation": "Unable to update following state for thread"
   },
@@ -5855,6 +5887,10 @@
     "translation": "Error creating the bleve channel index."
   },
   {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Error creating the bleve file index."
+  },
+  {
     "id": "bleveengine.create_post_index.error",
     "translation": "Error creating the bleve post index."
   },
@@ -5871,12 +5907,28 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Failed to delete the file."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Failed to delete the files."
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Failed to delete the post files."
+  },
+  {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Failed to delete the user files."
   },
   {
     "id": "bleveengine.delete_user_posts.error",
@@ -5885,6 +5937,10 @@
   {
     "id": "bleveengine.index_channel.error",
     "translation": "Failed to index the channel."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Failed to index the file."
   },
   {
     "id": "bleveengine.index_post.error",
@@ -5897,6 +5953,10 @@
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
     "translation": "Failed to index channel batch."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Failed to index file batch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
@@ -5943,6 +6003,10 @@
     "translation": "Channel search failed to complete."
   },
   {
+    "id": "bleveengine.search_files.error",
+    "translation": "File search failed to complete."
+  },
+  {
     "id": "bleveengine.search_posts.error",
     "translation": "Post search failed to complete."
   },
@@ -5961,6 +6025,10 @@
   {
     "id": "bleveengine.stop_channel_index.error",
     "translation": "Failed to close channel index."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Failed to close file index."
   },
   {
     "id": "bleveengine.stop_post_index.error",
@@ -6183,6 +6251,10 @@
     "translation": "Failed to create Elasticsearch template for channels"
   },
   {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for files"
+  },
+  {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
     "translation": "Failed to create Elasticsearch template for posts"
   },
@@ -6207,12 +6279,24 @@
     "translation": "Failed to delete channel posts"
   },
   {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Failed to delete file"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Failed to delete post files"
+  },
+  {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Failed to delete user files"
   },
   {
     "id": "ent.elasticsearch.delete_user_posts.error",
@@ -6229,6 +6313,10 @@
   {
     "id": "ent.elasticsearch.index_channels_batch.error",
     "translation": "Unable to get the channels batch for indexing."
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Failed to index the file"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -6280,6 +6368,18 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch files searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Failed to decode search results"
   },
   {
@@ -6657,6 +6757,10 @@
   {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "error",
+    "translation": "Error"
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -7881,6 +7985,10 @@
   {
     "id": "model.reaction.is_valid.post_id.app_error",
     "translation": "Invalid post id."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",

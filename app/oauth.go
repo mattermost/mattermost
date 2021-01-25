@@ -109,7 +109,7 @@ func (a *App) DeleteOAuthApp(appId string) *model.AppError {
 	}
 
 	if err := a.Srv().InvalidateAllCaches(); err != nil {
-		mlog.Error("error in invalidating cache", mlog.Err(err))
+		mlog.Warn("error in invalidating cache", mlog.Err(err))
 	}
 
 	return nil
@@ -204,7 +204,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	}
 
 	if err != nil {
-		mlog.Error("error getting oauth redirect uri", mlog.Err(err))
+		mlog.Warn("error getting oauth redirect uri", mlog.Err(err))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -217,7 +217,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	}
 
 	if nErr := a.Srv().Store.Preference().Save(&model.Preferences{authorizedApp}); nErr != nil {
-		mlog.Error("error saving store preference", mlog.Err(nErr))
+		mlog.Warn("error saving store preference", mlog.Err(nErr))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -384,7 +384,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv().Store.Session().Remove(accessData.Token); err != nil {
-		mlog.Error("error removing access data token from session", mlog.Err(err))
+		mlog.Warn("error removing access data token from session", mlog.Err(err))
 	}
 
 	session, err := a.newSession(appName, user)
@@ -717,7 +717,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
+		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e2.Error(), http.StatusNotImplemented)
 	}
 
 	secure := false
@@ -782,7 +782,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	sso, e2 := provider.GetSSOSettings(a.Config(), service)
 	if e2 != nil {
-		return nil, "", nil, nil, model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
+		return nil, "", nil, nil, model.NewAppError("AuthorizeOAuthUser.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, e.Error(), http.StatusNotImplemented)
 	}
 
 	b, strErr := b64.StdEncoding.DecodeString(state)
@@ -816,7 +816,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	appErr = a.DeleteToken(expectedToken)
 	if appErr != nil {
-		mlog.Error("error deleting token", mlog.Err(appErr))
+		mlog.Warn("error deleting token", mlog.Err(appErr))
 	}
 
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
@@ -876,7 +876,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if ar.IdToken != "" {
 		userFromToken, err = provider.GetUserFromIdToken(ar.IdToken)
 		if err != nil {
-			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, e.Error(), http.StatusInternalServerError)
+			return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

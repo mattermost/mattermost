@@ -31,10 +31,10 @@ const (
 	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	NUMBERS           = "0123456789"
 	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	MB                = 1 << 20
 )
 
 type StringInterface map[string]interface{}
-type StringMap map[string]string
 type StringArray []string
 
 func (sa StringArray) Remove(input string) StringArray {
