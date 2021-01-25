@@ -41,7 +41,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	url := ""
 	ok := false
-	if url, ok = props["url"].(string); len(url) == 0 || !ok {
+	if url, ok = props["url"].(string); url == "" || !ok {
 		c.SetInvalidParam("url")
 		return
 	}

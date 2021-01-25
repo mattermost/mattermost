@@ -1840,7 +1840,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, err := a.Srv().Store.Token().GetByToken(tokenId)
 		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
@@ -1859,7 +1859,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 
 		return tokenData["teamId"], nil
 	}
-	if len(inviteId) > 0 {
+	if inviteId != "" {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
 		if err == nil {
 			return team.Id, nil
@@ -1897,7 +1897,7 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 }
 
 func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -1926,7 +1926,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.get_team.app_error", nil, getTeamErr.Error(), http.StatusBadRequest)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

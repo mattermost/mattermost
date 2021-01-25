@@ -473,7 +473,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := r.URL.Query().Get("url")
-	if len(url) == 0 {
+	if url == "" {
 		c.SetInvalidParam("url")
 		return
 	}

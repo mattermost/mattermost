@@ -204,7 +204,7 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 }
 
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	if len(*cfg.EmailSettings.SMTPServer) == 0 {
+	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
