@@ -81,7 +81,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 
 		// add/update users first
 		for _, user := range sm.Users {
-			if userSaved, err := scs.upsertSyncUser(user, rc); err != nil {
+			if userSaved, err := scs.upsertSyncUser(user, channel, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 					mlog.String("post_id", sm.PostId),
 					mlog.String("channel_id", sm.ChannelId),
@@ -139,7 +139,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 	return nil
 }
 
-func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var userSaved *model.User
 
@@ -179,6 +179,14 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 		}
 		userSaved = userUpdated.New
 	}
+
+	// add user to channel; We do this here regardless of whether the user was just
+	// created or patched since AddUserToChannel first checks if they are already added,
+	// which we would do here anyway. AddUserToChannel does not error if user already added.
+	if _, err := scs.app.AddUserToChannel(userSaved, channel); err != nil {
+		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
+	}
+
 	return userSaved, nil
 }
 
