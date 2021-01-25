@@ -6071,6 +6071,10 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.cloud.subscription.error",
+    "translation": "Error getting subscription"
+  },
+  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
