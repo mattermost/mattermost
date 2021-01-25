@@ -1715,7 +1715,7 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 }
 
 // SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
-// For testing only. 
+// For testing only.
 func (s *Server) SetRemoteClusterService(remoteClusterService *remotecluster.Service) {
 	s.remoteClusterService = remoteClusterService
 }
