@@ -37,6 +37,7 @@ const (
 	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"
 	OVER_USER_LIMIT_FORGIVEN_COUNT                = "OverUserLimitForgivenCount"
 	OVER_USER_LIMIT_LAST_EMAIL_SENT               = "OverUserLimitLastEmailSent"
+	ASYNC_MIGRATION_RUNNER_ID                     = "async_migration_runner_id"
 )
 
 const (

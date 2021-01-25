@@ -5946,10 +5946,10 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, error) {
 	return result, err
 }
 
-func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+func (s *TimerLayerSystemStore) InsertIfNotExists(system *model.System) (*model.System, error) {
 	start := timemodule.Now()
 
-	result, err := s.SystemStore.InsertIfExists(system)
+	result, err := s.SystemStore.InsertIfNotExists(system)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5957,7 +5957,7 @@ func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.Sys
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.InsertIfExists", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.InsertIfNotExists", success, elapsed)
 	}
 	return result, err
 }
@@ -6040,6 +6040,22 @@ func (s *TimerLayerSystemStore) Update(system *model.System) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.Update", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerSystemStore) UpsertWithCond(system *model.System, condArgs map[string]string) (*model.System, error) {
+	start := timemodule.Now()
+
+	result, err := s.SystemStore.UpsertWithCond(system, condArgs)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.UpsertWithCond", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, error) {

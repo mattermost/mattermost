@@ -18,7 +18,7 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 	t.Run("", func(t *testing.T) { testSystemStore(t, ss) })
 	t.Run("SaveOrUpdate", func(t *testing.T) { testSystemStoreSaveOrUpdate(t, ss) })
 	t.Run("PermanentDeleteByName", func(t *testing.T) { testSystemStorePermanentDeleteByName(t, ss) })
-	t.Run("InsertIfExists", func(t *testing.T) {
+	t.Run("InsertIfNotExists", func(t *testing.T) {
 		testInsertIfExists(t, ss)
 	})
 	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, ss) })
@@ -121,13 +121,13 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 	t.Run("Serial", func(t *testing.T) {
 		s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "somekey"}
 
-		s2, err := ss.System().InsertIfExists(s1)
+		s2, err := ss.System().InsertIfNotExists(s1)
 		require.Nil(t, err)
 		assert.Equal(t, s1.Value, s2.Value)
 
 		s1New := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "anotherKey"}
 
-		s3, err := ss.System().InsertIfExists(s1New)
+		s3, err := ss.System().InsertIfNotExists(s1New)
 		require.Nil(t, err)
 		assert.Equal(t, s1.Value, s3.Value)
 	})
@@ -140,7 +140,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "firstKey"}
 			var err error
-			s2, err = ss.System().InsertIfExists(s1)
+			s2, err = ss.System().InsertIfNotExists(s1)
 			require.Nil(t, err)
 		}()
 
@@ -148,7 +148,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "secondKey"}
 			var err error
-			s3, err = ss.System().InsertIfExists(s1)
+			s3, err = ss.System().InsertIfNotExists(s1)
 			require.Nil(t, err)
 		}()
 		wg.Wait()

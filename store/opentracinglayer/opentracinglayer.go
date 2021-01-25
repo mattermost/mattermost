@@ -6578,16 +6578,16 @@ func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, err
 	return result, err
 }
 
-func (s *OpenTracingLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+func (s *OpenTracingLayerSystemStore) InsertIfNotExists(system *model.System) (*model.System, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.InsertIfExists")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.InsertIfNotExists")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.SystemStore.InsertIfExists(system)
+	result, err := s.SystemStore.InsertIfNotExists(system)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6684,6 +6684,24 @@ func (s *OpenTracingLayerSystemStore) Update(system *model.System) error {
 	}
 
 	return err
+}
+
+func (s *OpenTracingLayerSystemStore) UpsertWithCond(system *model.System, condArgs map[string]string) (*model.System, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.UpsertWithCond")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SystemStore.UpsertWithCond(system, condArgs)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
 }
 
 func (s *OpenTracingLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, error) {

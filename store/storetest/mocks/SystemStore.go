@@ -60,8 +60,8 @@ func (_m *SystemStore) GetByName(name string) (*model.System, error) {
 	return r0, r1
 }
 
-// InsertIfExists provides a mock function with given fields: system
-func (_m *SystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+// InsertIfNotExists provides a mock function with given fields: system
+func (_m *SystemStore) InsertIfNotExists(system *model.System) (*model.System, error) {
 	ret := _m.Called(system)
 
 	var r0 *model.System
@@ -160,4 +160,27 @@ func (_m *SystemStore) Update(system *model.System) error {
 	}
 
 	return r0
+}
+
+// UpsertWithCond provides a mock function with given fields: system, condArgs
+func (_m *SystemStore) UpsertWithCond(system *model.System, condArgs map[string]string) (*model.System, error) {
+	ret := _m.Called(system, condArgs)
+
+	var r0 *model.System
+	if rf, ok := ret.Get(0).(func(*model.System, map[string]string) *model.System); ok {
+		r0 = rf(system, condArgs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.System)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.System, map[string]string) error); ok {
+		r1 = rf(system, condArgs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

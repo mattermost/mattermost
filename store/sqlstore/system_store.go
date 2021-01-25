@@ -116,7 +116,7 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, error
 
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
-func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+func (s SqlSystemStore) InsertIfNotExists(system *model.System) (*model.System, error) {
 	tx, err := s.GetMaster().BeginTx(context.Background(), &sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
@@ -146,4 +146,37 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, err
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 	return system, nil
+}
+
+// UpsertWithCond selects for update a system record with the provided condArgs and updates it's value
+// from the given system arg.
+func (s SqlSystemStore) UpsertWithCond(system *model.System, condArgs map[string]string) (*model.System, error) {
+	tx, err := s.GetMaster().BeginTx(context.Background(), &sql.TxOptions{
+		Isolation: sql.LevelReadCommitted,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(tx)
+
+	var result *model.System
+	query := `SELECT * FROM Systems Where Name = :Name AND Value = :Value FOR UPDATE`
+	if err := tx.SelectOne(&result, query, condArgs); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
+	}
+
+	result.Value = system.Value
+
+	if _, err := tx.Update(result); err != nil {
+		return nil, errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+	return result, nil
 }

@@ -133,6 +133,7 @@ type SqlStore struct {
 	context         context.Context
 	license         *model.License
 	licenseMutex    sync.RWMutex
+	id              string
 	asyncMigrations []AsyncMigration
 	wg              sync.WaitGroup
 }
@@ -153,6 +154,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		srCounter:       0,
 		settings:        &settings,
 		asyncMigrations: []AsyncMigration{},
+		id:              model.NewId(),
 	}
 
 	store.initConnection()
@@ -241,7 +243,9 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.asyncMigrations = append(store.asyncMigrations, store.stores.preference.(*SqlPreferenceStore).generateAsyncMigrations()...)
 
-	store.dispatchAsyncMigrations()
+	if store.tryToDispatchAsyncMigrations() {
+		store.dispatchAsyncMigrations()
+	}
 
 	return store
 }
@@ -1081,6 +1085,16 @@ func (ss *SqlStore) Close() {
 	ss.wg.Wait()
 	mlog.Debug("Async migrations completed...")
 
+	if _, err := ss.System().UpsertWithCond(&model.System{
+		Name:  model.ASYNC_MIGRATION_RUNNER_ID,
+		Value: "",
+	}, map[string]string{
+		"Name":  model.ASYNC_MIGRATION_RUNNER_ID,
+		"Value": ss.id,
+	}); err != nil {
+		mlog.Warn("Failed updating system async migrations", mlog.Err(err))
+	}
+
 	ss.master.Db.Close()
 	for _, replica := range ss.replicas {
 		replica.Db.Close()
@@ -1263,6 +1277,28 @@ func (ss *SqlStore) dispatchAsyncMigrations() {
 			m()
 		}(migration)
 	}
+}
+
+func (ss *SqlStore) tryToDispatchAsyncMigrations() bool {
+	system, err := ss.System().UpsertWithCond(&model.System{
+		Name:  model.ASYNC_MIGRATION_RUNNER_ID,
+		Value: ss.id,
+	}, map[string]string{
+		"Name":  model.ASYNC_MIGRATION_RUNNER_ID,
+		"Value": "",
+	})
+
+	if err != nil {
+		mlog.Warn("Error while updating async migrations", mlog.Err(err))
+		return false
+	}
+
+	if system == nil {
+		mlog.Debug("Skipping async migration dispatching, another node has already started the migrations.")
+		return false
+	}
+
+	return true
 }
 
 type mattermConverter struct{}

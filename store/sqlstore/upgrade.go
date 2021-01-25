@@ -968,7 +968,10 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
-
+	_, _ = sqlStore.System().InsertIfNotExists(&model.System{
+		Name:  model.ASYNC_MIGRATION_RUNNER_ID,
+		Value: "",
+	})
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }
 }

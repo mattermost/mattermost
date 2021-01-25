@@ -461,8 +461,9 @@ type SystemStore interface {
 	Get() (model.StringMap, error)
 	GetByName(name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
-	InsertIfExists(system *model.System) (*model.System, error)
+	InsertIfNotExists(system *model.System) (*model.System, error)
 	SaveOrUpdateWithWarnMetricHandling(system *model.System) error
+	UpsertWithCond(system *model.System, condArgs map[string]string) (*model.System, error)
 }
 
 type WebhookStore interface {
