@@ -8496,7 +8496,7 @@
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
-    "translation": "Het veranderen van {{{.Name}} is niet toegestaan om veiligheidsredenen."
+    "translation": "Het veranderen van {{.Name}} is niet toegestaan om veiligheidsredenen."
   },
   {
     "id": "api.back_to_app",

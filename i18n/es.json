@@ -8256,7 +8256,7 @@
   },
   {
     "id": "api.config.update_config.not_allowed_security.app_error",
-    "translation": "no está permitido cambiar {{. Name}} de nombre por razones de seguridad."
+    "translation": "no está permitido cambiar {{.Name}} de nombre por razones de seguridad."
   },
   {
     "id": "api.back_to_app",
