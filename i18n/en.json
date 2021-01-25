@@ -2383,6 +2383,10 @@
     "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
   },
   {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error getting cloud subscription"
+  },
+  {
     "id": "api.team.demote_user_to_guest.disabled.error",
     "translation": "Guest accounts are disabled."
   },
