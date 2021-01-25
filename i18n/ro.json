@@ -8401,6 +8401,78 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Nu s-a obținut codul de autorizare."
+    "translation": "Eroare la recuperarea punctului final din Documentul de descoperire."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Ștergerea fișierelor de postare nu a reușit."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Decodarea rezultatelor căutării nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Căutarea nu a fost finalizată"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Căutarea fișierelor Elasticsearch este dezactivată pe acest server"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Nu s-a putut indexa fișierul"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Ștergerea fișierelor utilizator nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "Ștergerea fișierelor de postare nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Ștergerea fișierului nu a reușit"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Nu s-a putut crea șablonul Elasticsearch pentru fișiere"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Nu s-a putut închide indexul fișierului."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Căutarea fișierelor nu s-a finalizat."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Nu s-a reușit indexarea lotului de fișiere."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Nu s-a putut indexa fișierul."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Ștergerea fișierelor utilizator nu a reușit."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Ștergerea fișierelor nu a reușit."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Ștergerea fișierului nu a reușit."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Eroare la crearea indexului de fișier bleve."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "Tipul de job pe care încercați să îl descărcați nu este acceptat în acest moment"
   }
 ]

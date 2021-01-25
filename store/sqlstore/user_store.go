@@ -99,7 +99,7 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
-	if len(user.Id) > 0 {
+	if user.Id != "" {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 

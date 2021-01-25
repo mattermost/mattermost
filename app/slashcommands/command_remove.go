@@ -96,7 +96,7 @@ func doCommand(a *app.App, args *model.CommandArgs, message string) *model.Comma
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_remove.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

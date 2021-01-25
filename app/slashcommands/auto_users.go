@@ -93,9 +93,9 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, error) {
 		Nickname: userName,
 		Password: UserPassword}
 
-	ruser, resp := cfg.client.CreateUserWithInviteId(user, cfg.team.InviteId)
-	if resp.Error != nil {
-		return nil, resp.Error
+	ruser, appErr := cfg.app.CreateUserWithInviteId(user, cfg.team.InviteId, "")
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}

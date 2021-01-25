@@ -67,7 +67,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 		req.ContentLength = contentLength
 	}
 	req.Header.Set("Content-Type", contentType)
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
