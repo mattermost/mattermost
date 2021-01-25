@@ -131,7 +131,7 @@ type UserPatch struct {
 
 //msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"`
+	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
