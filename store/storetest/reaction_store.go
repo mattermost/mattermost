@@ -319,11 +319,11 @@ func testReactionGetForPostSince(t *testing.T, ss store.Store, s SqlStore) {
 		require.Nil(t, err)
 
 		if delete > 0 {
-			_, err := ss.Reaction().Delete(reaction)
+			_, err = ss.Reaction().Delete(reaction)
 			require.Nil(t, err)
 		}
 		if update > 0 {
-			err := forceUpdateAt(reaction, update, s)
+			err = forceUpdateAt(reaction, update, s)
 			require.Nil(t, err)
 		}
 		err = forceNULL(reaction, s) // test COALESCE

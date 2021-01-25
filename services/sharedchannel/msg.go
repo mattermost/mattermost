@@ -176,11 +176,11 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
-		scu := &model.SharedChannelUser{
+		scu = &model.SharedChannelUser{
 			UserId:          user.Id,
 			RemoteClusterId: rc.RemoteId,
 		}
-		if _, err := scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
+		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("user_id", user.Id))
