@@ -59,6 +59,10 @@ func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
 		return false, model.NewAppError("ClaimJob", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if updated && srv.metrics != nil {
+		srv.metrics.IncrementJobActive(job.Type)
+	}
+
 	return updated, nil
 }
 
@@ -83,6 +87,11 @@ func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS); err != nil {
 		return model.NewAppError("SetJobSuccess", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
+
 	return nil
 }
 
@@ -91,6 +100,10 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
 		if err != nil {
 			return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if srv.metrics != nil {
+			srv.metrics.DecrementJobActive(job.Type)
 		}
 
 		return nil
@@ -102,12 +115,15 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 		job.Data = make(map[string]string)
 	}
 	job.Data["error"] = jobError.Message
-	if len(jobError.DetailedError) > 0 {
+	if jobError.DetailedError != "" {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if updated && srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
 	}
 
 	if !updated {
@@ -127,6 +143,11 @@ func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
 	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_CANCELED); err != nil {
 		return model.NewAppError("SetJobCanceled", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	if srv.metrics != nil {
+		srv.metrics.DecrementJobActive(job.Type)
+	}
+
 	return nil
 }
 
@@ -145,6 +166,15 @@ func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
 		return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if updated {
+		if srv.metrics != nil {
+			job, err := srv.GetJob(jobId)
+			if err != nil {
+				return model.NewAppError("RequestCancellation", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			srv.metrics.DecrementJobActive(job.Type)
+		}
+
 		return nil
 	}
 

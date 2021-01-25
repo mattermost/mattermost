@@ -341,7 +341,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -400,7 +400,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -520,7 +520,14 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := es.srv.GenerateLicenseRenewalLink()
+	if err != nil {
+		return err
+	}
+
 	T := utils.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -528,7 +535,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	bodyPage := es.newEmailTemplate("remove_expired_license", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["Link"] = renewalLink
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
