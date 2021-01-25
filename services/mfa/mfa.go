@@ -43,7 +43,7 @@ func getIssuerFromUrl(uri string) string {
 	issuer := "Mattermost"
 	siteUrl := strings.TrimSpace(uri)
 
-	if len(siteUrl) > 0 {
+	if siteUrl != "" {
 		siteUrl = strings.TrimPrefix(siteUrl, "https://")
 		siteUrl = strings.TrimPrefix(siteUrl, "http://")
 		issuer = strings.TrimPrefix(siteUrl, "www.")

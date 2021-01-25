@@ -79,7 +79,7 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

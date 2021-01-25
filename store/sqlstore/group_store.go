@@ -986,7 +986,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 		query = query.Where("ug.AllowReference = true")
 	}
 
-	if len(opts.Q) > 0 {
+	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1051,7 +1051,7 @@ func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncab
 		query = query.Where("ug.AllowReference = true")
 	}
 
-	if len(opts.Q) > 0 {
+	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
@@ -1171,7 +1171,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		groupsQuery = groupsQuery.Where("g.AllowReference = true")
 	}
 
-	if len(opts.Q) > 0 {
+	if opts.Q != "" {
 		pattern := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(opts.Q, "\\"))
 		operatorKeyword := "ILIKE"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
