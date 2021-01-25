@@ -102,7 +102,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")

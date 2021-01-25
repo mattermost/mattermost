@@ -393,7 +393,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 		return nil, err
 	}
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		err = a.AddUserToTeamByTeamId(teamId, user)
 		if err != nil {
 			return nil, err
@@ -410,7 +410,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 
 // CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
 func CheckEmailDomain(email string, domains string) bool {
-	if len(domains) == 0 {
+	if domains == "" {
 		return true
 	}
 
@@ -762,7 +762,7 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		}
 	}
 
-	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != "" && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -873,7 +873,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		img, appErr := a.GetDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr

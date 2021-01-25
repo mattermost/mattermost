@@ -115,7 +115,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 		job.Data = make(map[string]string)
 	}
 	job.Data["error"] = jobError.Message
-	if len(jobError.DetailedError) > 0 {
+	if jobError.DetailedError != "" {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)

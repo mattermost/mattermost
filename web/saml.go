@@ -84,7 +84,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	relayState := r.FormValue("RelayState")
 
 	relayProps := make(map[string]string)
-	if len(relayState) > 0 {
+	if relayState != "" {
 		stateStr := ""
 		b, err := b64.StdEncoding.DecodeString(relayState)
 		if err != nil {

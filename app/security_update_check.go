@@ -55,7 +55,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 		v.Set(PropSecurityDatabase, *s.Config().SqlSettings.DriverName)
 		v.Set(PropSecurityOS, runtime.GOOS)
 
-		if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
+		if props[model.SYSTEM_RAN_UNIT_TESTS] != "" {
 			v.Set(PropSecurityUnitTests, "1")
 		} else {
 			v.Set(PropSecurityUnitTests, "0")
