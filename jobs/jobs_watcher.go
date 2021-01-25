@@ -156,6 +156,13 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_EXPORT_PROCESS {
+			if watcher.workers.ExportProcess != nil {
+				select {
+				case watcher.workers.ExportProcess.JobChannel() <- *job:
+				default:
+				}
+			}
 		} else if job.Type == model.JOB_TYPE_CLOUD {
 			if watcher.workers.Cloud != nil {
 				select {

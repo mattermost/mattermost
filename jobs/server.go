@@ -29,6 +29,7 @@ type JobServer struct {
 	ProductNotices          tjobs.ProductNoticesJobInterface
 	ActiveUsers             tjobs.ActiveUsersJobInterface
 	ImportProcess           tjobs.ImportProcessInterface
+	ExportProcess           tjobs.ExportProcessInterface
 	Cloud                   ejobs.CloudJobInterface
 }
 

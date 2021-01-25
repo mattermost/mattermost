@@ -122,6 +122,9 @@ const (
 	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
 	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
 
+	EXPORT_SETTINGS_DEFAULT_DIRECTORY      = "./export"
+	EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
+
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
 	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://about.mattermost.com/default-terms/"
@@ -2917,6 +2920,37 @@ func (s *ImportSettings) SetDefaults() {
 	}
 }
 
+// ExportSettings defines configuration settings for file exports.
+type ExportSettings struct {
+	// The directory where to store the exported files.
+	Directory *string
+	// The number of days to retain the exported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ExportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ExportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(EXPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -2994,6 +3028,7 @@ type Config struct {
 	CloudSettings             CloudSettings
 	FeatureFlags              *FeatureFlags `json:",omitempty"`
 	ImportSettings            ImportSettings
+	ExportSettings            ExportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -3102,6 +3137,7 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags.SetDefaults()
 	}
 	o.ImportSettings.SetDefaults()
+	o.ExportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
