@@ -187,22 +187,22 @@ func (_m *DataRetentionInterface) GetPolicy(id string) (*model.RetentionPolicyEn
 	return r0, r1
 }
 
-// PatchPolicy provides a mock function with given fields: policy
-func (_m *DataRetentionInterface) PatchPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
-	ret := _m.Called(policy)
+// PatchPolicy provides a mock function with given fields: patch
+func (_m *DataRetentionInterface) PatchPolicy(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
+	ret := _m.Called(patch)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicy) *model.RetentionPolicy); ok {
-		r0 = rf(policy)
+	var r0 *model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.RetentionPolicyEnriched); ok {
+		r0 = rf(patch)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
+			r0 = ret.Get(0).(*model.RetentionPolicyEnriched)
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicy) *model.AppError); ok {
-		r1 = rf(policy)
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyUpdate) *model.AppError); ok {
+		r1 = rf(patch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -244,18 +244,27 @@ func (_m *DataRetentionInterface) RemoveTeamsFromPolicy(policyId string, teamIds
 	return r0
 }
 
-// UpdatePolicy provides a mock function with given fields: policy
-func (_m *DataRetentionInterface) UpdatePolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
-	ret := _m.Called(policy)
+// UpdatePolicy provides a mock function with given fields: update
+func (_m *DataRetentionInterface) UpdatePolicy(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
+	ret := _m.Called(update)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.AppError); ok {
-		r0 = rf(policy)
+	var r0 *model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.RetentionPolicyEnriched); ok {
+		r0 = rf(update)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
+			r0 = ret.Get(0).(*model.RetentionPolicyEnriched)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyUpdate) *model.AppError); ok {
+		r1 = rf(update)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }

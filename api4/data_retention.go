@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -99,58 +100,75 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("policy")
 		return
 	}
+	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy", policy)
+
 	policy, err := c.App.CreateRetentionPolicy(policy)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("policy", policy) // overwrite meta
+	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
 	w.Write(policy.ToJsonBytes())
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyFromJson(r.Body)
+	patch, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
-	policy.Id = mux.Vars(r)["policy_id"]
-	if policy == nil {
-		c.SetInvalidParam("policy")
-		return
-	}
-	policy, err := c.App.PatchRetentionPolicy(policy)
+	patch.Id = mux.Vars(r)["policy_id"]
+
+	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("patch", patch)
+
+	policy, err := c.App.PatchRetentionPolicy(patch)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	w.Write(policy.ToJsonBytes())
 }
 
 func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
+	update, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
-	policy.Id = mux.Vars(r)["policy_id"]
-	if policy == nil {
-		c.SetInvalidParam("policy")
-		return
-	}
-	err := c.App.UpdateRetentionPolicy(policy)
+	update.Id = mux.Vars(r)["policy_id"]
+
+	auditRec := c.MakeAuditRecord("updatePolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("update", update)
+
+	policy, err := c.App.UpdateRetentionPolicy(update)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	auditRec.Success()
+	w.Write(policy.ToJsonBytes())
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	policyId := mux.Vars(r)["policy_id"]
+
+	auditRec := c.MakeAuditRecord("deletePolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy_id", policyId)
+
 	err := c.App.DeleteRetentionPolicy(policyId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -162,11 +180,18 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team_ids")
 		return
 	}
+	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy_id", policyId)
+	auditRec.AddMeta("team_ids", lst.TeamIds)
+
 	err := c.App.AddTeamsToRetentionPolicy(policyId, lst.TeamIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -178,11 +203,18 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("team_ids")
 		return
 	}
+	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy_id", policyId)
+	auditRec.AddMeta("team_ids", lst.TeamIds)
+
 	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, lst.TeamIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -194,11 +226,18 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
+	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy_id", policyId)
+	auditRec.AddMeta("channel_ids", lst.ChannelIds)
+
 	err := c.App.AddChannelsToRetentionPolicy(policyId, lst.ChannelIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -210,10 +249,17 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		c.SetInvalidParam("channel_ids")
 		return
 	}
+	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("policy_id", policyId)
+	auditRec.AddMeta("channel_ids", lst.ChannelIds)
+
 	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, lst.ChannelIds)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 	w.WriteHeader(http.StatusNoContent)
 }

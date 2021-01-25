@@ -11083,7 +11083,7 @@ func (a *OpenTracingAppLayer) PatchPost(postId string, patch *model.PostPatch) (
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) PatchRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (a *OpenTracingAppLayer) PatchRetentionPolicy(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PatchRetentionPolicy")
 
@@ -11095,7 +11095,7 @@ func (a *OpenTracingAppLayer) PatchRetentionPolicy(policy *model.RetentionPolicy
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.PatchRetentionPolicy(policy)
+	resultVar0, resultVar1 := a.app.PatchRetentionPolicy(patch)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15392,7 +15392,7 @@ func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateRetentionPolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateRetentionPolicy(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRetentionPolicy")
 
@@ -15404,14 +15404,14 @@ func (a *OpenTracingAppLayer) UpdateRetentionPolicy(policy *model.RetentionPolic
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateRetentionPolicy(policy)
+	resultVar0, resultVar1 := a.app.UpdateRetentionPolicy(update)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {

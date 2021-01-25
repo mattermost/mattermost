@@ -44,23 +44,23 @@ func (a *App) CreateRetentionPolicy(policy *model.RetentionPolicy) (*model.Reten
 	return a.DataRetention().CreatePolicy(policy)
 }
 
-func (a *App) PatchRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (a *App) PatchRetentionPolicy(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("PatchRetentionPolicy")
 	}
-	return a.DataRetention().PatchPolicy(policy)
+	return a.DataRetention().PatchPolicy(patch)
 }
 
-func (a *App) UpdateRetentionPolicy(policy *model.RetentionPolicyUpdate) *model.AppError {
+func (a *App) UpdateRetentionPolicy(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
-		return newLicenseError("UpdateRetentionPolicy")
+		return nil, newLicenseError("UpdateRetentionPolicy")
 	}
-	return a.DataRetention().UpdatePolicy(policy)
+	return a.DataRetention().UpdatePolicy(update)
 }
 
 func (a *App) DeleteRetentionPolicy(id string) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
-		return newLicenseError("UpdateRetentionPolicy")
+		return newLicenseError("DeleteRetentionPolicy")
 	}
 	return a.DataRetention().DeletePolicy(id)
 }
@@ -74,7 +74,7 @@ func (a *App) AddTeamsToRetentionPolicy(policyId string, teamIds []string) *mode
 
 func (a *App) RemoveTeamsFromRetentionPolicy(policyId string, teamIds []string) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
-		return newLicenseError("RemoveTeamFromRetentionPolicy")
+		return newLicenseError("RemoveTeamsFromRetentionPolicy")
 	}
 	return a.DataRetention().RemoveTeamsFromPolicy(policyId, teamIds)
 }
@@ -88,7 +88,7 @@ func (a *App) AddChannelsToRetentionPolicy(policyId string, channelIds []string)
 
 func (a *App) RemoveChannelsFromRetentionPolicy(policyId string, channelIds []string) *model.AppError {
 	if !a.hasValidRetentionPolicy() {
-		return newLicenseError("RemoveChannelFromRetentionPolicy")
+		return newLicenseError("RemoveChannelsFromRetentionPolicy")
 	}
 	return a.DataRetention().RemoveChannelsFromPolicy(policyId, channelIds)
 }
