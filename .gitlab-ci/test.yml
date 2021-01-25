@@ -51,7 +51,7 @@
       kubectl cp -n mm-ci $CI_PROJECT_DIR $(get_pod_name "build-server"):/build
 
       printf "\033[36m==> TODO\033[0m\n"
-      kubectl exec -n mm-ci -t $(get_pod_name "build-server") -- bash -c 'cd /build/mattermost-server; BUILD_NUMBER='"${CI_COMMIT_SHA}"' ./scripts/test.sh "go" "" "$(go list ./... | grep -v ./data)" "." "" "/build/mattermost-server/bin"'
+      kubectl exec -n mm-ci -t $(get_pod_name "build-server") -- bash -c 'cd /build/mattermost-server; BUILD_NUMBER='"${CI_COMMIT_SHA}"' make test-server TESTFLAGS= TESTFLAGSEE='
       kubectl logs -n mm-ci $(get_pod_name "build-server")
 
     # - docker-compose logs --tail="all" -t --no-color > logs/docker-compose_logs

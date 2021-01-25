@@ -30,7 +30,13 @@ spec:
             - name:
               configMapRef:
                 name: dotenv
-          resources: {}
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
           volumeMounts:
             - name: data
               mountPath: /build
@@ -50,4 +56,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi
+      storage: 20Gi
