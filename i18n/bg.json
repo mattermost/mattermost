@@ -3736,10 +3736,6 @@
     "translation": "Неуспешно обновяване следването на разговор"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Потребителската парола не може да се актуализира."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Невъзможно е да се актуализират failed_attempts."
   },

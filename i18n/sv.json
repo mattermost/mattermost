@@ -2072,10 +2072,6 @@
     "translation": "Ogiltig kanal."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kunde inte uppdatera användarens lösenord."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Kunde inte uppdatera failed_attempts."
   },

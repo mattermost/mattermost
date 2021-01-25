@@ -8058,10 +8058,6 @@
     "translation": "スレッドの以下の状態を更新できませんでした"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "ユーザーパスワードを更新できませんでした。"
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "failed_attemptsを更新できませんでした。"
   },

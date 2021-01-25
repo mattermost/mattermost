@@ -7892,10 +7892,6 @@
     "translation": "Imposibil de actualizat următoarea stare pentru fir"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Nu se poate actualiza parola de utilizator."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Imposibil de actualizat fail_attempt."
   },

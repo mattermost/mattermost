@@ -7923,10 +7923,6 @@
     "translation": "Kon de datum van de laatste aanpassing van de gebruiker niet bijwerken."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Fout bij het bijwerken van het gebruikerswachtwoord."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Fout bij het bijwerken van failed_attempts."
   },

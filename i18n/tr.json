@@ -7751,10 +7751,6 @@
     "translation": "Kullanıcının son güncellenme tarihi güncellenemedi."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kullanıcı parolası güncellenemedi."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Başarısız oturum açma girişimleri güncellenemedi."
   },
