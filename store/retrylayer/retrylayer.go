@@ -40,6 +40,7 @@ type RetryLayer struct {
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
+	RetentionPolicyStore      store.RetentionPolicyStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
 	SessionStore              store.SessionStore
@@ -134,6 +135,10 @@ func (s *RetryLayer) ProductNotices() store.ProductNoticesStore {
 
 func (s *RetryLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *RetryLayer) RetentionPolicy() store.RetentionPolicyStore {
+	return s.RetentionPolicyStore
 }
 
 func (s *RetryLayer) Role() store.RoleStore {
@@ -289,6 +294,11 @@ type RetryLayerProductNoticesStore struct {
 
 type RetryLayerReactionStore struct {
 	store.ReactionStore
+	Root *RetryLayer
+}
+
+type RetryLayerRetentionPolicyStore struct {
+	store.RetentionPolicyStore
 	Root *RetryLayer
 }
 
@@ -6300,6 +6310,226 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
+func (s *RetryLayerRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.AddChannels(policyId, channelIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.AddTeams(policyId, teamIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Delete(id string) error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.Delete(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.Get(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetAll()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.GetAllWithCounts()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.Patch(patch)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.RemoveChannels(policyId, channelIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.RemoveTeams(policyId, teamIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.Save(policy)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+
+	tries := 0
+	for {
+		result, err := s.RetentionPolicyStore.Update(update)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 
 	tries := 0
@@ -10963,6 +11193,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PreferenceStore = &RetryLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &RetryLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}

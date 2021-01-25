@@ -38,6 +38,7 @@ type TimerLayer struct {
 	PreferenceStore           store.PreferenceStore
 	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
+	RetentionPolicyStore      store.RetentionPolicyStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
 	SessionStore              store.SessionStore
@@ -132,6 +133,10 @@ func (s *TimerLayer) ProductNotices() store.ProductNoticesStore {
 
 func (s *TimerLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *TimerLayer) RetentionPolicy() store.RetentionPolicyStore {
+	return s.RetentionPolicyStore
 }
 
 func (s *TimerLayer) Role() store.RoleStore {
@@ -287,6 +292,11 @@ type TimerLayerProductNoticesStore struct {
 
 type TimerLayerReactionStore struct {
 	store.ReactionStore
+	Root *TimerLayer
+}
+
+type TimerLayerRetentionPolicyStore struct {
+	store.RetentionPolicyStore
 	Root *TimerLayer
 }
 
@@ -5275,6 +5285,182 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return result, err
 }
 
+func (s *TimerLayerRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.AddChannels(policyId, channelIds)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.AddChannels", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.AddTeams(policyId, teamIds)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.AddTeams", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Delete(id string) error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.Delete(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.Get(id)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetAll()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.GetAllWithCounts()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.GetAllWithCounts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.Patch(patch)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Patch", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.RemoveChannels(policyId, channelIds)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveChannels", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.RemoveTeams(policyId, teamIds)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveTeams", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.Save(policy)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+	start := timemodule.Now()
+
+	result, err := s.RetentionPolicyStore.Update(update)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	start := timemodule.Now()
 
@@ -9155,6 +9341,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.RetentionPolicyStore = &TimerLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
