@@ -3036,7 +3036,7 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in  {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw vermelding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -5872,11 +5872,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise licentie is vervallen en sommige functies zijn mogelijk uitgeschakeld. Gelieve te vernieuwen."
+    "translation": "Je Enterprise editie licentie is vervallen en sommige functies zijn mogelijk uitgeschakeld. Gelieve je licentie nu te vernieuwen."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Licentie vernieuwen"
+    "translation": "Licentie nu vernieuwen"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7923,10 +7923,6 @@
     "translation": "Kon de datum van de laatste aanpassing van de gebruiker niet bijwerken."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Fout bij het bijwerken van het gebruikerswachtwoord."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Fout bij het bijwerken van failed_attempts."
   },
@@ -8457,5 +8453,61 @@
   {
     "id": "ent.elasticsearch.delete_user_files.error",
     "translation": "Fout bij het verwijderen van de bestanden van de gebruiker"
+  },
+  {
+    "id": "error",
+    "translation": "Fout"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Fout bij decoderen van zoekresultaten"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Zoeken is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elastichsearch naar bestanden is op deze server uitgeschakeld"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "We sturen je terug naar de app."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Je kan dit browsertabblad nu sluiten."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authenticatie compleet"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Ongeldige omleidingsurl werd voorzien"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Ongeldig aangepaste url schema is verstrekt"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Het veranderen van {{.Name}} is niet toegestaan om veiligheidsredenen."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Terug naar {{.siteName}}"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Het verzoek ontbreekt ofwel AuthData ofwel AuthService parameter."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Fout bij het ophalen van de laatste wijzigingstijd voor het bestand."
   }
 ]
