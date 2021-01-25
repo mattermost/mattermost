@@ -1721,6 +1721,7 @@ func (s *Server) SetRemoteClusterService(remoteClusterService *remotecluster.Ser
 }
 
 // SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// For testing only.
 func (s *Server) SetSharedChannelSyncService(sharedChannelSyncService SharedChannelServiceIFace) {
 	s.sharedChannelSyncService = sharedChannelSyncService
 }
