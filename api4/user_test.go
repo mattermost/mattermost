@@ -5827,3 +5827,34 @@ func TestReadThreads(t *testing.T) {
 		require.Equal(t, uss3.Threads[1].LastViewedAt, timestamp)
 	})
 }
+
+func TestGetGeneralUserStats(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("count users", func(t *testing.T) {
+
+		// we know that th.InitLogin creates 5 users. In addition to those we create a user bot.
+		// Therefore the system has 6 users in total.
+
+		enableBotAccountCreation := th.App.Config().ServiceSettings.EnableBotAccountCreation
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = *enableBotAccountCreation
+		})
+
+		bot := th.CreateBotWithSystemAdminClient()
+		th.App.AddUserToTeam(th.BasicTeam.Id, bot.UserId, "")
+
+		userStats, resp := th.Client.GetGeneralUserStats()
+		CheckNoError(t, resp)
+		CheckOKStatus(t, resp)
+
+		// However, this endpoint applies no filters and therefore bot accounts are not included.
+		// This makes users count 5
+		require.Equal(t, int(userStats.TotalUsersCount), 5)
+	})
+}
