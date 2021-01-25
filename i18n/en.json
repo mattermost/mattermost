@@ -7176,7 +7176,7 @@
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
-    "translation": "Invalid value for Directory."
+    "translation": "Value for Directory should not be empty."
   },
   {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
