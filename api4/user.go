@@ -604,7 +604,7 @@ func getGeneralUserStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	// This endpoint can be used by all users get user stats that require no special permissions to view. Accepts no filters and doesn't apply any filters.
 	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
-		c.Err = model.NewAppError("getTotalUsersCount", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getGeneralUserStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
