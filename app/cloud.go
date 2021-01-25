@@ -4,9 +4,10 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"net/http"
 )
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
@@ -47,13 +48,13 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	if remainingUsers > 0 {
 		return nil
 	}
-	sysAdmins, err := a.getSysAdminsEmailRecipients()
-	if err != nil {
+	sysAdmins, appErr := a.getSysAdminsEmailRecipients()
+	if appErr != nil {
 		return model.NewAppError(
 			"app.CheckAndSendUserLimitWarningEmails",
 			"api.cloud.get_admins_emails.error",
 			nil,
-			err.Error(),
+			appErr.Error(),
 			http.StatusInternalServerError)
 	}
 
@@ -61,12 +62,26 @@ func (a *App) CheckAndSendUserLimitWarningEmails() *model.AppError {
 	if remainingUsers == -1 {
 		// Over limit by 1 user
 		for admin := range sysAdmins {
-			a.Srv().EmailService.SendOverUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+			_, appErr := a.Srv().EmailService.SendOverUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+			if appErr != nil {
+				a.Log().Error(
+					"Error sending user limit warning email to admin",
+					mlog.String("username", sysAdmins[admin].Username),
+					mlog.Err(err),
+				)
+			}
 		}
 	} else if remainingUsers == 0 {
 		// At limit
 		for admin := range sysAdmins {
-			a.Srv().EmailService.SendAtUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+			_, appErr := a.Srv().EmailService.SendAtUserLimitWarningEmail(sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+			if appErr != nil {
+				a.Log().Error(
+					"Error sending user limit warning email to admin",
+					mlog.String("username", sysAdmins[admin].Username),
+					mlog.Err(err),
+				)
+			}
 		}
 	}
 	return nil
