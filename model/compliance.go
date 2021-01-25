@@ -84,7 +84,7 @@ func (c *Compliance) IsValid() *AppError {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(c.Desc) > 512 || len(c.Desc) == 0 {
+	if len(c.Desc) > 512 || c.Desc == "" {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -173,7 +173,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hooks []*model.IncomingWebhook
 	var err *model.AppError
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_MANAGE_INCOMING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS)
 			return
@@ -436,7 +436,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	var hooks []*model.OutgoingWebhook
 	var err *model.AppError
 
-	if len(channelId) > 0 {
+	if channelId != "" {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channelId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
 			return
@@ -448,7 +448,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		hooks, err = c.App.GetOutgoingWebhooksForChannelPageByUser(channelId, userId, c.Params.Page, c.Params.PerPage)
-	} else if len(teamId) > 0 {
+	} else if teamId != "" {
 		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), teamId, model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS)
 			return

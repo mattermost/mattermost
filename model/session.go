@@ -31,6 +31,9 @@ const (
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
 
+//msgp StringMap
+type StringMap map[string]string
+
 //msgp:tuple Session
 
 // Session contains the user session details.
@@ -152,7 +155,7 @@ func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (s *Session) IsMobileApp() bool {
-	return len(s.DeviceId) > 0 || s.IsMobile()
+	return s.DeviceId != "" || s.IsMobile()
 }
 
 func (s *Session) IsMobile() bool {

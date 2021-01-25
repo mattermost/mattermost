@@ -95,7 +95,7 @@ func (a *App) ExportPermissions(w io.Writer) error {
 
 			roles := []*model.Role{}
 			for _, roleName := range roleNames {
-				if len(roleName) == 0 {
+				if roleName == "" {
 					continue
 				}
 				role, err := a.GetRoleByName(roleName)
@@ -206,7 +206,7 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 			{schemeCreated.DefaultChannelGuestRole, schemeIn.DefaultChannelGuestRole},
 		}
 		for _, roleNameTuple := range roleNameTuples {
-			if len(roleNameTuple[0]) == 0 || len(roleNameTuple[1]) == 0 {
+			if roleNameTuple[0] == "" || roleNameTuple[1] == "" {
 				continue
 			}
 

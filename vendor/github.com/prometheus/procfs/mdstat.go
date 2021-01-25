@@ -22,8 +22,9 @@ import (
 )
 
 var (
-	statusLineRE   = regexp.MustCompile(`(\d+) blocks .*\[(\d+)/(\d+)\] \[[U_]+\]`)
-	recoveryLineRE = regexp.MustCompile(`\((\d+)/\d+\)`)
+	statusLineRE      = regexp.MustCompile(`(\d+) blocks .*\[(\d+)/(\d+)\] \[[U_]+\]`)
+	recoveryLineRE    = regexp.MustCompile(`\((\d+)/\d+\)`)
+	componentDeviceRE = regexp.MustCompile(`(.*)\[\d+\]`)
 )
 
 // MDStat holds info parsed from /proc/mdstat.
@@ -44,6 +45,8 @@ type MDStat struct {
 	BlocksTotal int64
 	// Number of blocks on the device that are in sync.
 	BlocksSynced int64
+	// Name of md component devices
+	Devices []string
 }
 
 // MDStat parses an mdstat-file (/proc/mdstat) and returns a slice of
@@ -140,6 +143,7 @@ func parseMDStat(mdStatData []byte) ([]MDStat, error) {
 			DisksTotal:    total,
 			BlocksTotal:   size,
 			BlocksSynced:  syncedBlocks,
+			Devices:       evalComponentDevices(deviceFields),
 		})
 	}
 
@@ -194,4 +198,19 @@ func evalRecoveryLine(recoveryLine string) (syncedBlocks int64, err error) {
 	}
 
 	return syncedBlocks, nil
+}
+
+func evalComponentDevices(deviceFields []string) []string {
+	mdComponentDevices := make([]string, 0)
+	if len(deviceFields) > 3 {
+		for _, field := range deviceFields[4:] {
+			match := componentDeviceRE.FindStringSubmatch(field)
+			if match == nil {
+				continue
+			}
+			mdComponentDevices = append(mdComponentDevices, match[1])
+		}
+	}
+
+	return mdComponentDevices
 }

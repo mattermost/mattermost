@@ -54,7 +54,7 @@ func (*MuteProvider) DoCommand(a *app.App, args *model.CommandArgs, message stri
 		channelName = splitMessage[0]
 	}
 
-	if len(channelName) > 0 && len(message) > 0 {
+	if channelName != "" && message != "" {
 		channel, _ = a.Srv().Store.Channel().GetByName(channel.TeamId, channelName, true)
 
 		if channel == nil {
