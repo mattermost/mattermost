@@ -1610,6 +1610,17 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetGeneralUserStats is used by all users get user stats that require no special permissions to view.
+// Accepts no filters and doesn't apply any filters.
+func (c *Client4) GetGeneralUserStats() (*UsersStats, *Response) {
+	r, err := c.DoApiGet(c.GetUsersRoute()+"/stats/general", "")
+	defer closeBody(r)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	return UsersStatsFromJson(r.Body), BuildResponse(r)
+}
+
 // Bots section
 
 // CreateBot creates a bot in the system based on the provided bot struct.
