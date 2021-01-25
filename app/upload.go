@@ -69,17 +69,17 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
 
 	if err = <-errChan; err != nil {
 		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
@@ -92,7 +92,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
@@ -297,7 +297,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	// delete upload session
 	if storeErr := a.Srv().Store.UploadSession().Delete(us.Id); storeErr != nil {
-		mlog.Error("Failed to delete UploadSession", mlog.Err(storeErr))
+		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil

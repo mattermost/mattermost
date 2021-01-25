@@ -294,7 +294,9 @@ func (*LoadTestProvider) UsersCommand(a *app.App, args *model.CommandArgs, messa
 	client := model.NewAPIv4Client(args.SiteURL)
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
-	userCreator.CreateTestUsers(usersr)
+	if _, err := userCreator.CreateTestUsers(usersr); err != nil {
+		return &model.CommandResponse{Text: "Failed to add users: " + err.Error(), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
 
 	return &model.CommandResponse{Text: "Added users", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
 }

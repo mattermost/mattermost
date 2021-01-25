@@ -112,7 +112,9 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-			a.postJoinMessageForDefaultChannel(user, requestor, channel)
+			if aErr := a.postJoinMessageForDefaultChannel(user, requestor, channel); aErr != nil {
+				mlog.Warn("Failed to post join/leave message", mlog.Err(aErr))
+			}
 		}
 
 		a.invalidateCacheForChannelMembers(channel.Id)
@@ -142,28 +144,30 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 	return nil
 }
 
-func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *model.User, channel *model.Channel) {
+func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *model.User, channel *model.Channel) *model.AppError {
 	if channel.Name == model.DEFAULT_CHANNEL {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		} else {
 			if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		}
 	} else {
 		if requestor == nil {
 			if err := a.postJoinChannelMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		} else {
 			if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		}
 	}
+
+	return nil
 }
 
 func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
@@ -733,7 +737,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		}
 
 		if _, err := a.CreatePost(post, channel, false, true); err != nil {
-			mlog.Error("Failed to post unarchive message", mlog.Err(err))
+			mlog.Warn("Failed to post unarchive message", mlog.Err(err))
 		}
 	}
 
@@ -753,19 +757,19 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if channel.Header != oldChannelHeader {
 		if err = a.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, channel.Header); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, channel.Purpose); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
@@ -1248,21 +1252,21 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		}
 
 		if _, err := a.CreatePost(post, channel, false, true); err != nil {
-			mlog.Error("Failed to post archive message", mlog.Err(err))
+			mlog.Warn("Failed to post archive message", mlog.Err(err))
 		}
 	}
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv().Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			mlog.Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.invalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv().Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			mlog.Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 

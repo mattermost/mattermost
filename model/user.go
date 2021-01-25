@@ -106,11 +106,13 @@ type User struct {
 // It is used to generate methods which can be used for fast serialization/de-serialization.
 type UserMap map[string]*User
 
+//msgp:ignore UserUpdate
 type UserUpdate struct {
 	Old *User
 	New *User
 }
 
+//msgp:ignore UserPatch
 type UserPatch struct {
 	Username    *string   `json:"username"`
 	Password    *string   `json:"password,omitempty"`
@@ -125,12 +127,14 @@ type UserPatch struct {
 	Timezone    StringMap `json:"timezone"`
 }
 
+//msgp:ignore UserAuth
 type UserAuth struct {
-	Password    string  `json:"password,omitempty"`
+	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
 }
 
+//msgp:ignore UserForIndexing
 type UserForIndexing struct {
 	Id          string   `json:"id"`
 	Username    string   `json:"username"`
@@ -144,6 +148,7 @@ type UserForIndexing struct {
 	ChannelsIds []string `json:"channel_id"`
 }
 
+//msgp:ignore ViewUsersRestrictions
 type ViewUsersRestrictions struct {
 	Teams    []string
 	Channels []string
@@ -160,6 +165,7 @@ func (r *ViewUsersRestrictions) Hash() string {
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
+//msgp:ignore UserSlice
 type UserSlice []*User
 
 func (u UserSlice) Usernames() []string {
@@ -860,6 +866,7 @@ func IsValidLocale(locale string) bool {
 	return true
 }
 
+//msgp:ignore UserWithGroups
 type UserWithGroups struct {
 	User
 	GroupIDs    *string  `json:"-"`
@@ -880,6 +887,7 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 	return strings.Split(trimmed, ",")
 }
 
+//msgp:ignore UsersWithGroupsAndCount
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
@@ -892,6 +900,7 @@ func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
 	return uwg
 }
 
+//msgp:ignore lockedRand
 type lockedRand struct {
 	mu sync.Mutex
 	rn *rand.Rand
