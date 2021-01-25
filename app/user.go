@@ -1198,29 +1198,14 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 }
 
 func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
-		userAuth.AuthData = nil
-		userAuth.AuthService = ""
-
-		if err := a.IsPasswordValid(userAuth.Password); err != nil {
-			return nil, err
-		}
-		password := model.HashPassword(userAuth.Password)
-
-		if err := a.Srv().Store.User().UpdatePassword(userId, password); err != nil {
-			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_password.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		userAuth.Password = ""
-
-		if _, err := a.Srv().Store.User().UpdateAuthData(userId, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
-			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(err, &invErr):
-				return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			default:
-				return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	userAuth.Password = ""
+	if _, err := a.Srv().Store.User().UpdateAuthData(userId, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

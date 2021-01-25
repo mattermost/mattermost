@@ -331,3 +331,13 @@ func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error)
 	}
 	return true, nil
 }
+
+// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
+func (s *Server) GenerateLicenseRenewalLink() (string, *model.AppError) {
+	renewalToken, err := s.GenerateRenewalToken(JWTDefaultTokenExpiration)
+	if err != nil {
+		return "", err
+	}
+	renewalLink := LicenseRenewalURL + "?token=" + renewalToken
+	return renewalLink, nil
+}

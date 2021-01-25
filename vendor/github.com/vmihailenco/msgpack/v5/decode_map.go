@@ -312,12 +312,12 @@ func decodeStructValue(d *Decoder, v reflect.Value) error {
 	}
 
 	for i := 0; i < n; i++ {
-		name, err := d.bytesTemp()
+		name, err := d.decodeStringTemp()
 		if err != nil {
 			return err
 		}
 
-		if f := fields.Map[string(name)]; f != nil {
+		if f := fields.Map[name]; f != nil {
 			if err := f.DecodeValue(d, v); err != nil {
 				return err
 			}

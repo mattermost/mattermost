@@ -368,7 +368,7 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 	w.Header().Set("Content-Type", "image/png")
 	w.Write(img)
 }
@@ -408,9 +408,9 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if readFailed {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 5*60)) // 5 mins
 	} else {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 
@@ -1395,6 +1395,11 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	userAuth := model.UserAuthFromJson(r.Body)
 	if userAuth == nil {
 		c.SetInvalidParam("user")
+		return
+	}
+
+	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
+		c.Err = model.NewAppError("updateUserAuth", "api.user.update_user_auth.invalid_request", nil, "", http.StatusBadRequest)
 		return
 	}
 
