@@ -722,3 +722,29 @@ func (a *App) exportFile(outPath, filePath string, zipWr *zip.Writer) *model.App
 
 	return nil
 }
+
+func (a *App) ListExports() ([]string, *model.AppError) {
+	exports, appErr := a.ListDirectory(*a.Config().ExportSettings.Directory)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	results := make([]string, len(exports))
+	for i := range exports {
+		results[i] = filepath.Base(exports[i])
+	}
+
+	return results, nil
+}
+
+func (a *App) DeleteExport(name string) *model.AppError {
+	filePath := filepath.Join(*a.Config().ExportSettings.Directory, name)
+
+	if ok, err := a.FileExists(filePath); err != nil {
+		return err
+	} else if !ok {
+		return nil
+	}
+
+	return a.RemoveFile(filePath)
+}

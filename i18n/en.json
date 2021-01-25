@@ -1317,6 +1317,10 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Unable to find export file."
+  },
+  {
     "id": "api.file.append_file.app_error",
     "translation": "Unable to append data to the file."
   },
@@ -4053,6 +4057,10 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Unable to marshal response."
   },
   {
     "id": "app.export.zip_create.error",
