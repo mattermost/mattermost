@@ -7180,7 +7180,7 @@
   },
   {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
-    "translation": "Invalid value for RetentionDays. Value is too low."
+    "translation": "Invalid value for RetentionDays. Value should be greater than 0"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
