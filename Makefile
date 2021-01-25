@@ -591,6 +591,12 @@ endif
 
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
+	# There will be some warnings about "unresolved identifiers", 
+	# but that is because of the above problem. Since we are generating 
+	# methods for all the relevant files at a package level, all 
+	# identifiers will be resolved. An alternative to remove the warnings 
+	# would be to temporarily move all the structs to the same file, 
+	# but that involves a lot of manual work.
 	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
 	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
 	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
