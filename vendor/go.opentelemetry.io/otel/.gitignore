@@ -10,7 +10,6 @@ coverage.*
 
 gen/
 
-/example/basic/basic
 /example/grpc/client/client
 /example/grpc/server/server
 /example/http/client/client
@@ -19,5 +18,6 @@ gen/
 /example/namedtracer/namedtracer
 /example/opencensus/opencensus
 /example/prometheus/prometheus
+/example/prom-collector/prom-collector
 /example/zipkin/zipkin
 /example/otel-collector/otel-collector

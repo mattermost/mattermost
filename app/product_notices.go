@@ -83,12 +83,13 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC().Truncate(time.Hour * 24)
+		y, m, d := time.Now().UTC().Date()
+		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&now) {
+		if !c.Check(&trunc) {
 			return false, nil
 		}
 	}
@@ -304,12 +305,12 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

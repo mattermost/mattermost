@@ -55,7 +55,7 @@ func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
 
 func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bool, string, *model.AppError) {
 	var progress *AdvancedPermissionsPhase2Progress
-	if len(lastDone) == 0 {
+	if lastDone == "" {
 		// Haven't started the migration yet.
 		progress = new(AdvancedPermissionsPhase2Progress)
 		progress.CurrentTable = "TeamMembers"

@@ -52,7 +52,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		scheme.Description = *data.Description
 	}
 
-	if len(scheme.Id) == 0 {
+	if scheme.Id == "" {
 		scheme, err = a.CreateScheme(scheme)
 	} else {
 		scheme, err = a.UpdateScheme(scheme)
@@ -146,7 +146,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 		role.SchemeManaged = false
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		_, err = a.CreateRole(role)
 	} else {
 		_, err = a.UpdateRole(role)
@@ -406,7 +406,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			roles = *data.Roles
 			hasUserRolesChanged = true
 		}
-	} else if len(user.Roles) == 0 {
+	} else if user.Roles == "" {
 		// Set SYSTEM_USER roles on newly created users by default.
 		if user.Roles != model.SYSTEM_USER_ROLE_ID {
 			roles = model.SYSTEM_USER_ROLE_ID
@@ -497,7 +497,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 				return err
 			}
 		}
-		if len(password) > 0 {
+		if password != "" {
 			if err = a.UpdatePassword(user, password); err != nil {
 				return err
 			}
@@ -530,11 +530,13 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
+			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
 		}
 		defer file.Close()
-		if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
-			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
+		if err == nil {
+			if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
+				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
+			}
 		}
 	}
 
@@ -1076,7 +1078,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 			reply.FileIds = append(reply.FileIds, fileID)
 		}
 
-		if len(reply.Id) == 0 {
+		if reply.Id == "" {
 			postsForCreateList = append(postsForCreateList, reply)
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, reply)
@@ -1331,7 +1333,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
-		if len(post.Id) == 0 {
+		if post.Id == "" {
 			postsForCreateList = append(postsForCreateList, post)
 			postsForCreateMap[getPostStrID(post)] = line.LineNumber
 		} else {
@@ -1627,7 +1629,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
-		if len(post.Id) == 0 {
+		if post.Id == "" {
 			postsForCreateList = append(postsForCreateList, post)
 			postsForCreateMap[getPostStrID(post)] = line.LineNumber
 		} else {
