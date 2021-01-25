@@ -211,6 +211,9 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 	if _, err := a.SaveSharedChannel(sc); err != nil {
 		return responsef("Could not share this channel: %v", err)
 	}
+
+	notifyClientsForChannelUpdate(a, sc)
+
 	return responsef("##### This channel is now shared.")
 }
 
@@ -224,6 +227,11 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 		return responsef("Shared channel was not deleted: `are_you_sure` must be `Y`.")
 	}
 
+	sc, appErr := a.GetSharedChannel(args.ChannelId)
+	if appErr != nil {
+		return responsef("Cannot unshare this channel: %v", appErr)
+	}
+
 	deleted, err := a.DeleteSharedChannel(args.ChannelId)
 	if err != nil {
 		return responsef("Could not unshare this channel: %v", err)
@@ -231,6 +239,9 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 	if !deleted {
 		return responsef("Cannot unshare a channel that is not shared.")
 	}
+
+	notifyClientsForChannelUpdate(a, sc)
+
 	return responsef("##### This channel is no longer shared.")
 }
 
@@ -332,4 +343,10 @@ func (sp *ShareProvider) doSync(a *app.App, args *model.CommandArgs, margs map[s
 	// TODO: send cluster message to each remote requesting a sync for this channel.
 
 	return responsef("##### Sync initiated.")
+}
+
+func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {
+	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CONVERTED, sharedChannel.TeamId, "", "", nil)
+	messageWs.Add("channel_id", sharedChannel.ChannelId)
+	a.Publish(messageWs)
 }

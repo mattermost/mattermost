@@ -17,7 +17,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	t.Run("adding a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 
-		remoteClusterService := newMockRemoteClusterService(nil)
+		remoteClusterService := NewMockRemoteClusterService(nil)
 		th.App.srv.sharedChannelSyncService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster
@@ -52,7 +52,7 @@ func TestSharedChannelSyncForReactionActions(t *testing.T) {
 	t.Run("removing a reaction in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 
-		remoteClusterService := newMockRemoteClusterService(nil)
+		remoteClusterService := NewMockRemoteClusterService(nil)
 		th.App.srv.sharedChannelSyncService = remoteClusterService
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Cluster = testCluster

@@ -14,7 +14,7 @@ type SharedChannelServiceIFace interface {
 	Active() bool
 }
 
-func newMockRemoteClusterService(service SharedChannelServiceIFace) *mockRemoteClusterService {
+func NewMockRemoteClusterService(service SharedChannelServiceIFace) *mockRemoteClusterService {
 	return &mockRemoteClusterService{service, true, []string{}}
 }
 
