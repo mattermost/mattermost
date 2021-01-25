@@ -103,6 +103,10 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy", policy)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	policy, err := c.App.CreateRetentionPolicy(policy)
 	if err != nil {
@@ -126,6 +130,10 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("patch", patch)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	policy, err := c.App.PatchRetentionPolicy(patch)
 	if err != nil {
@@ -146,6 +154,10 @@ func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updatePolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("update", update)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	policy, err := c.App.UpdateRetentionPolicy(update)
 	if err != nil {
@@ -162,6 +174,10 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deletePolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	err := c.App.DeleteRetentionPolicy(policyId)
 	if err != nil {
@@ -184,6 +200,10 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("team_ids", lst.TeamIds)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	err := c.App.AddTeamsToRetentionPolicy(policyId, lst.TeamIds)
 	if err != nil {
@@ -207,6 +227,10 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("team_ids", lst.TeamIds)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, lst.TeamIds)
 	if err != nil {
@@ -230,6 +254,10 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", lst.ChannelIds)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	err := c.App.AddChannelsToRetentionPolicy(policyId, lst.ChannelIds)
 	if err != nil {
@@ -253,6 +281,10 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("policy_id", policyId)
 	auditRec.AddMeta("channel_ids", lst.ChannelIds)
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, lst.ChannelIds)
 	if err != nil {
