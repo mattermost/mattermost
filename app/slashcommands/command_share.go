@@ -279,8 +279,12 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef("Remote cluster id is invalid: %v", appErr)
 	}
 
+	channel, errApp := a.GetChannel(args.ChannelId)
+	if errApp != nil {
+		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
+	}
 	// send channel invite to remote cluster
-	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(args.ChannelId, args.UserId, margs["description"], rc); err != nil {
+	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, args.UserId, margs["description"], rc); err != nil {
 		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
 	}
 

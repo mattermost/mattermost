@@ -10,7 +10,7 @@ type SharedChannelServiceIFace interface {
 	Shutdown() error
 	Start() error
 	NotifyChannelChanged(channelId string)
-	SendChannelInvite(channelId string, userId string, description string, rc *model.RemoteCluster) error
+	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error
 	Active() bool
 }
 
