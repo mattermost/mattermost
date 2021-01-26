@@ -66,6 +66,13 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFreeTierStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	subscription, appErr := c.App.Cloud().GetSubscription()
+
+	if appErr != nil {
+		c.Err = model.NewAppError("Api4.getFreeTierStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		c.Err = model.NewAppError("Api4.getFreeTierStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -75,11 +82,12 @@ func getFreeTierStats(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s := cloudUserLimit - count
 
-	seats, _ := json.Marshal(model.FreeTierStats{
+	stats, _ := json.Marshal(model.FreeTierStats{
 		RemainingSeats: int(s),
+		TierStatus:     subscription.IsPaidTier,
 	})
 
-	w.Write([]byte(string(seats)))
+	w.Write([]byte(string(stats)))
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
