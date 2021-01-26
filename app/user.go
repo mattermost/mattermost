@@ -393,7 +393,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 		return nil, err
 	}
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		err = a.AddUserToTeamByTeamId(teamId, user)
 		if err != nil {
 			return nil, err
@@ -410,7 +410,7 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 
 // CheckEmailDomain checks that an email domain matches a list of space-delimited domains as a string.
 func CheckEmailDomain(email string, domains string) bool {
-	if len(domains) == 0 {
+	if domains == "" {
 		return true
 	}
 
@@ -762,7 +762,7 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		}
 	}
 
-	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+	if user.AuthService != "" && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -873,7 +873,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 }
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		img, appErr := a.GetDefaultProfileImage(user)
 		if appErr != nil {
 			return nil, false, appErr
@@ -1198,29 +1198,14 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 }
 
 func (a *App) UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError) {
-	if userAuth.AuthData == nil || *userAuth.AuthData == "" || userAuth.AuthService == "" {
-		userAuth.AuthData = nil
-		userAuth.AuthService = ""
-
-		if err := a.IsPasswordValid(userAuth.Password); err != nil {
-			return nil, err
-		}
-		password := model.HashPassword(userAuth.Password)
-
-		if err := a.Srv().Store.User().UpdatePassword(userId, password); err != nil {
-			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_password.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		userAuth.Password = ""
-
-		if _, err := a.Srv().Store.User().UpdateAuthData(userId, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
-			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(err, &invErr):
-				return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			default:
-				return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	userAuth.Password = ""
+	if _, err := a.Srv().Store.User().UpdateAuthData(userId, userAuth.AuthService, userAuth.AuthData, "", false); err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.email_exists.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("UpdateUserAuth", "app.user.update_auth_data.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

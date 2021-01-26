@@ -22,7 +22,7 @@ const (
 )
 
 func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -69,7 +69,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 }
 
 func (a *App) GetBrandImage() ([]byte, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

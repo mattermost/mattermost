@@ -173,7 +173,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(authRequest.Scope) == 0 {
+	if authRequest.Scope == "" {
 		authRequest.Scope = model.DEFAULT_SCOPE
 	}
 
@@ -619,7 +619,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}
-		if len(teamId) > 0 {
+		if teamId != "" {
 			err = a.AddUserToTeamByTeamId(teamId, user)
 		}
 	}
@@ -763,11 +763,11 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
-	if len(scope) > 0 {
+	if scope != "" {
 		authUrl += "&scope=" + utils.UrlEncode(scope)
 	}
 
-	if len(loginHint) > 0 {
+	if loginHint != "" {
 		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
 	}
 
@@ -865,7 +865,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+buf.String(), http.StatusInternalServerError)
 	}
 
-	if len(ar.AccessToken) == 0 {
+	if ar.AccessToken == "" {
 		return nil, "", stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
 	}
 

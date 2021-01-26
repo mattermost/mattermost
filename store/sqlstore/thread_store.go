@@ -375,7 +375,8 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
-		Where(sq.Eq{"UserId": userId}, sq.Eq{"PostId": threadId}).
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"PostId": threadId}).
 		Set("LastViewed", timestamp).
 		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {

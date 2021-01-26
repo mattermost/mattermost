@@ -64,7 +64,7 @@ type baseBalancer struct {
 	csEvltr *balancer.ConnectivityStateEvaluator
 	state   connectivity.State
 
-	subConns map[resolver.Address]balancer.SubConn
+	subConns map[resolver.Address]balancer.SubConn // `attributes` is stripped from the keys of this map (the addresses)
 	scStates map[balancer.SubConn]connectivity.State
 	picker   balancer.Picker
 	config   Config
@@ -101,17 +101,41 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 	// addrsSet is the set converted from addrs, it's used for quick lookup of an address.
 	addrsSet := make(map[resolver.Address]struct{})
 	for _, a := range s.ResolverState.Addresses {
-		addrsSet[a] = struct{}{}
-		if _, ok := b.subConns[a]; !ok {
+		// Strip attributes from addresses before using them as map keys. So
+		// that when two addresses only differ in attributes pointers (but with
+		// the same attribute content), they are considered the same address.
+		//
+		// Note that this doesn't handle the case where the attribute content is
+		// different. So if users want to set different attributes to create
+		// duplicate connections to the same backend, it doesn't work. This is
+		// fine for now, because duplicate is done by setting Metadata today.
+		//
+		// TODO: read attributes to handle duplicate connections.
+		aNoAttrs := a
+		aNoAttrs.Attributes = nil
+		addrsSet[aNoAttrs] = struct{}{}
+		if sc, ok := b.subConns[aNoAttrs]; !ok {
 			// a is a new address (not existing in b.subConns).
+			//
+			// When creating SubConn, the original address with attributes is
+			// passed through. So that connection configurations in attributes
+			// (like creds) will be used.
 			sc, err := b.cc.NewSubConn([]resolver.Address{a}, balancer.NewSubConnOptions{HealthCheckEnabled: b.config.HealthCheck})
 			if err != nil {
 				logger.Warningf("base.baseBalancer: failed to create new SubConn: %v", err)
 				continue
 			}
-			b.subConns[a] = sc
+			b.subConns[aNoAttrs] = sc
 			b.scStates[sc] = connectivity.Idle
 			sc.Connect()
+		} else {
+			// Always update the subconn's address in case the attributes
+			// changed.
+			//
+			// The SubConn does a reflect.DeepEqual of the new and old
+			// addresses. So this is a noop if the current address is the same
+			// as the old one (including attributes).
+			sc.UpdateAddresses([]resolver.Address{a})
 		}
 	}
 	for a, sc := range b.subConns {
