@@ -5804,7 +5804,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "La licencia Enterprise ha expirado y algunas características podrían ser deshabilitadas. Por favor renovar."
+    "translation": "Su licencia de la Enterprise Edition ha expirado y algunas características pueden estar desactivadas. Por favor, renueve su licencia ahora."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
@@ -8001,5 +8001,265 @@
   {
     "id": "api.templates.over_limit_30_days_info1",
     "translation": "Todavía hay tiempo para mantener su espacio de trabajo activo en Mattermost Cloud resolviendo los problemas con su método de pago. Para evitar la suspensión, actualice su método de pago."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "Ocurrió un error al encontrar la cuenta."
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "No se actualizó el usuario."
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "No se pudo obtener los usuarios."
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "No pudimos contar los usuarios inactivos."
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "No se han podido conseguir los usuarios activos durante el período solicitado."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Falla al mover el archivo subido."
+  },
+  {
+    "id": "app.update_error",
+    "translation": "error actualizando"
+  },
+  {
+    "id": "app.select_error",
+    "translation": "error al seleccionar"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "No hay licencia presente"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "Este tipo de licencia no soporta la generación de tokens de renovación"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "Falla al generar un nuevo token de renovación."
+  },
+  {
+    "id": "app.insert_error",
+    "translation": "error al insertar"
+  },
+  {
+    "id": "app.import.marshal.app_error",
+    "translation": "Incapaz de ordenar la respuesta."
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "el miembro del grupo ya existe"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "No se puede eliminar el miembro del grupo con la identificación de usuario \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "no se encontró ningún grupo que coincida"
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "propiedad de identificación inválida para el grupo."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "el grupo sincronizable ya se ha eliminado"
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": "Ya existe un miembro del canal con el mismo ID."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "Los esquemas de permisos personalizados no son compatibles con la licencia actual"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "A la solicitud le falta el parámetro AuthData o AuthService."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Error all obtener el endpoint para Documento de Descubrimiento."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.title",
+    "translation": "Su factura de Mattermost Cloud está por vencer"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.subject",
+    "translation": "El pago de su suscripción a Mattermost Cloud está pendiente"
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info3",
+    "translation": "Para revisar su factura y añadir un método de pago, seleccione Pagar ahora."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.info1",
+    "translation": "Su factura de Mattermost Cloud para el período de facturación más reciente ha sido procesada. Sin embargo, no tenemos los detalles de su pago guardados."
+  },
+  {
+    "id": "api.templates.payment_failed_no_card.button",
+    "translation": "Pagar ahora"
+  },
+  {
+    "id": "api.templates.payment_failed.title",
+    "translation": "Pago fallido"
+  },
+  {
+    "id": "api.templates.payment_failed.subject",
+    "translation": "Se requiere una acción: El pago de Mattermost Cloud no se ha realizado"
+  },
+  {
+    "id": "api.templates.payment_failed.info3",
+    "translation": "Para asegurar una suscripción ininterrumpida a Mattermost Cloud, por favor, póngase en contacto con su institución financiera para arreglar el problema subyacente o actualizar su información de pago. Una vez actualizada la información de pago, Mattermost intentará liquidar cualquier saldo pendiente."
+  },
+  {
+    "id": "api.templates.payment_failed.info2",
+    "translation": "Proporcionaron la siguiente razón:"
+  },
+  {
+    "id": "api.templates.payment_failed.info1",
+    "translation": "Su institución financiera rechazó un pago de su {{.CardBrand}} ****{{.LastFour}} asociado a su espacio de trabajo de Mattermost Cloud."
+  },
+  {
+    "id": "api.templates.over_limit_title",
+    "translation": "Su espacio de trabajo está por encima del límite de usuarios de la versión gratuita"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_title",
+    "translation": "Espacio de trabajo de Mattermost Cloud suspendido"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_subject",
+    "translation": "Su suscripción a Mattermost Cloud ha sido suspendida"
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info2",
+    "translation": "Contáctenos para reactivar su espacio de trabajo."
+  },
+  {
+    "id": "api.templates.over_limit_suspended_info1",
+    "translation": "Su espacio de trabajo en Mattermost ha sido suspendido. Todos los contenidos y datos de su espacio de trabajo serán eliminados en un plazo de 1 a 3 meses."
+  },
+  {
+    "id": "api.templates.over_limit_subject",
+    "translation": "El espacio de trabajo de Mattermost Cloud está sobre el límite de usuarios"
+  },
+  {
+    "id": "api.templates.over_limit_info2",
+    "translation": "Alternativamente, puede desactivar los usuarios en la consola de administración para abrir plazas para más usuarios o mantenerse por debajo del límite de usuarios gratuitos."
+  },
+  {
+    "id": "api.templates.over_limit_info1",
+    "translation": "Parece que tienes más de 10 usuarios en tu espacio de trabajo, lo cual está más allá de los límites de la versión gratuita de Mattermost Cloud Professional. Para evitar cualquier interrupción en su espacio de trabajo de Mattermost, por favor, actualícelo."
+  },
+  {
+    "id": "api.templates.over_limit_fix_now",
+    "translation": "Arreglar ahora"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_title",
+    "translation": "La suspensión de su espacio de trabajo en Mattermost Cloud está programada para mañana"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_subject",
+    "translation": "Su suscripción a Mattermost Cloud será suspendida pronto"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info4",
+    "translation": "Una vez que su espacio de trabajo es suspendido, todo el contenido y los datos dentro de su espacio de trabajo se eliminarán dentro de 1-3 meses."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info3",
+    "translation": "Una vez que su espacio de trabajo se haya suspendido, no podrá acceder a su cuenta ni actualizar la información de pago. Tendrá que contactar a nuestro equipo de soporte para reactivar su servicio."
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info2",
+    "translation": "Para evitar la suspensión, agregue su información de pago"
+  },
+  {
+    "id": "api.templates.over_limit_90_days_info1",
+    "translation": "Este es un recordatorio final de que no hemos recibido el pago por su espacio de trabajo de Mattermost Cloud, el cual ha estado retrasado desde {{ .OverLimitDate }}. Mañana suspenderemos su servicio."
+  },
+  {
+    "id": "api.templates.over_limit_7_days_title",
+    "translation": "No hay ningún método de pago guardado"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_subject",
+    "translation": "El pago de su suscripción a Mattermost Cloud está atrasado"
+  },
+  {
+    "id": "api.templates.over_limit_7_days_info1",
+    "translation": "Mattermost no pudo procesar su pago automático más reciente. Para mantener su servicio activo, por favor añada los detalles de pago tan pronto como sea posible o su servicio puede ser suspendido."
+  },
+  {
+    "id": "api.templates.over_limit_30_days_title",
+    "translation": "Suspensión del espacio de trabajo en Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_subject",
+    "translation": " Actúa para mantener tu suscripción a Mattermost Cloud"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item3",
+    "translation": "Perderá el acceso a su historial de mensajes"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item2",
+    "translation": "No podrás actualizar la información de pago sin contactar a nuestro equipo de soporte"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2_item1",
+    "translation": "No podrás acceder a tu espacio de trabajo"
+  },
+  {
+    "id": "api.templates.over_limit_30_days_info2",
+    "translation": "Si no se toma ninguna medida, su espacio de trabajo se suspenderá"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirigiéndote de nuevo a la aplicación."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Puedes cerrar esta pestaña del navegador ahora."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Autenticación completa"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "El tipo de trabajo que está tratando de descargar no está soportado en este momento"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Se ha proporcionado una url de redireccionamiento inválida"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Se ha proporcionado un esquema de url personalizado inválido"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "No se puede obtener la hora de la última modificación del archivo."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "no está permitido cambiar {{.Name}} de nombre por razones de seguridad."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Volver a {{.SiteName}}"
   }
 ]
