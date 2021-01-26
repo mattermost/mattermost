@@ -5,6 +5,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"net/http"
 	"os"
@@ -157,17 +158,14 @@ func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 	sessions, err := a.Srv().Store.Session().GetSessions(userId)
 	if err != nil {
 		mlog.Error("Unable to get user sessions", mlog.String("user_id", userId), mlog.Err(err))
+		return
 	}
 
 	for _, session := range sessions {
-		if isGuest {
-			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
-		} else {
-			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
-		}
+		session.AddProp(model.SESSION_PROP_IS_GUEST, fmt.Sprintf("%t", isGuest))
 		err := a.Srv().Store.Session().UpdateProps(session)
 		if err != nil {
-			mlog.Error("Unable to update isGuest session", mlog.Err(err))
+			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		a.AddSessionToCache(session)
@@ -279,8 +277,7 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 		if session.DeviceId == deviceId && session.Id != currentSessionId {
 			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userId))
 			if err := a.RevokeSession(session); err != nil {
-				// Soft error so we still remove the other sessions
-				mlog.Error(err.Error())
+				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceId), mlog.Err(err))
 			}
 		}
 	}
@@ -341,7 +338,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := a.Srv().Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Error("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now

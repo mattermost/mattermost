@@ -7875,10 +7875,6 @@
     "translation": "Incapaz de atualizar o seguinte estado para o tópico"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Não foi possível atualizar a senha do usuário."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Não foi possível atualizar o failed_attempts."
   },

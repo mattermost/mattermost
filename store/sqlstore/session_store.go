@@ -49,7 +49,7 @@ func (me SqlSessionStore) createIndexesIfNotExists() {
 }
 
 func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
-	if len(session.Id) > 0 {
+	if session.Id != "" {
 		return nil, store.NewErrInvalidInput("Session", "id", session.Id)
 	}
 	session.PreSave()
