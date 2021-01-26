@@ -979,28 +979,49 @@ func (ss *SqlStore) CreateForeignKeyIfNotExists(
 	tableName, columnName, refTableName, refColumnName string,
 	onDeleteCascade bool,
 ) (err error) {
-	deleteClause := ""
-	if onDeleteCascade {
-		deleteClause = " ON DELETE CASCADE"
-	}
-	constraintName := "FK_" + tableName + "_" + refTableName
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		sQuery := `
-		DO $$
-		BEGIN
-			IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = '` + constraintName + `') THEN
-			  ALTER TABLE ` + tableName + ` ADD CONSTRAINT ` + constraintName +
-			` FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + `(` + refColumnName + `)` +
-			deleteClause + `;
-			END IF;
-		END;
-		$$`
-		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+	if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		err = errors.New("sqlite does not support ADD CONSTRAINT")
 	} else {
-		err = errors.New("not implemented yet")
+		deleteClause := ""
+		if onDeleteCascade {
+			deleteClause = "ON DELETE CASCADE"
+		}
+		constraintName := "FK_" + tableName + "_" + refTableName
+		sQuery := `
+		ALTER TABLE ` + tableName + `
+		ADD CONSTRAINT ` + constraintName + `
+		FOREIGN KEY (` + columnName + `) REFERENCES ` + refTableName + ` (` + refColumnName + `)
+		` + deleteClause + `;`
+		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+		if IsConstraintAlreadyExistsError(err) {
+			err = nil
+		}
 	}
 	if err != nil {
 		mlog.Warn("Could not create foreign key: " + err.Error())
+	}
+	return
+}
+
+func (ss *SqlStore) CreateCheckConstraintIfNotExists(
+	tableName, columnName, checkClause string,
+) (err error) {
+	if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		err = errors.New("sqlite does not support ADD CONSTRAINT")
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		err = errors.New("MySQL 8.0+ is required for CHECK constraints")
+	} else {
+		constraintName := "CHK_" + tableName + "_" + columnName
+		sQuery := `
+		ALTER TABLE ` + tableName + `
+		ADD CONSTRAINT ` + constraintName + ` CHECK (` + checkClause + `);`
+		_, err = ss.GetMaster().ExecNoTimeout(sQuery)
+		if IsConstraintAlreadyExistsError(err) {
+			err = nil
+		}
+	}
+	if err != nil {
+		mlog.Warn("Could not create constraint: " + err.Error())
 	}
 	return
 }
@@ -1055,6 +1076,15 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 	}
 
 	return true
+}
+
+func IsConstraintAlreadyExistsError(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42710" {
+		return true
+	} else if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1022 {
+		return true
+	}
+	return false
 }
 
 func IsUniqueConstraintError(err error, indexName []string) bool {

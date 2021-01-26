@@ -35,23 +35,24 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 		table := db.AddTableWithName(model.RetentionPolicy{}, "RetentionPolicies")
 		table.SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("DisplayName").SetMaxSize(26)
+		table.ColMap("DisplayName").SetMaxSize(64)
 
 		tableC := db.AddTableWithName(model.RetentionPolicyChannel{}, "RetentionPoliciesChannels")
 		tableC.SetKeys(false, "ChannelId")
 		tableC.ColMap("PolicyId").SetMaxSize(26)
 		tableC.ColMap("ChannelId").SetMaxSize(26)
 
-		tableP := db.AddTableWithName(model.RetentionPolicyTeam{}, "RetentionPoliciesTeams")
-		tableP.SetKeys(false, "TeamId")
-		tableP.ColMap("PolicyId").SetMaxSize(26)
-		tableP.ColMap("TeamId").SetMaxSize(26)
+		tableT := db.AddTableWithName(model.RetentionPolicyTeam{}, "RetentionPoliciesTeams")
+		tableT.SetKeys(false, "TeamId")
+		tableT.ColMap("PolicyId").SetMaxSize(26)
+		tableT.ColMap("TeamId").SetMaxSize(26)
 	}
 
 	return s
 }
 
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
+	s.CreateCheckConstraintIfNotExists("RetentionPolicies", "PostDuration", "PostDuration > 0")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "ChannelId", "Channels", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
