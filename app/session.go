@@ -37,14 +37,14 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
-func AddSessionToPool(session *model.Session) {
+func ReturnSessionToPool(session *model.Session) {
 	if session != nil {
 		session.Id = ""
-		UserSessionPool.Put(session)
+		userSessionPool.Put(session)
 	}
 }
 
-var UserSessionPool = sync.Pool{
+var userSessionPool = sync.Pool{
 	New: func() interface{} {
 		return &model.Session{}
 	},
@@ -68,7 +68,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 
-	var session = UserSessionPool.Get().(*model.Session)
+	var session = userSessionPool.Get().(*model.Session)
 
 	var err *model.AppError
 	if err := a.Srv().sessionCache.Get(token, session); err == nil {
