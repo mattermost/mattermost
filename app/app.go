@@ -119,6 +119,9 @@ func (a *App) initJobs() {
 	if jobsImportProcessInterface != nil {
 		a.srv.Jobs.ImportProcess = jobsImportProcessInterface(a)
 	}
+	if jobsImportDeleteInterface != nil {
+		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
+	}
 
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
@@ -315,7 +318,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
 		default:
-			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
+			mlog.Debug("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
 		}
 
@@ -451,7 +454,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 		}
 
 		if !forceAck {
-			if len(*a.Config().EmailSettings.SMTPServer) == 0 {
+			if *a.Config().EmailSettings.SMTPServer == "" {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.missing_server.app_error", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusInternalServerError)
 			}
 			T := utils.GetUserTranslations(sender.Locale)
@@ -464,7 +467,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			//same definition as the active users count metric displayed in the SystemConsole Analytics section
 			registeredUsersCount, cerr := a.Srv().Store.User().Count(model.UserCountOptions{})
 			if cerr != nil {
-				mlog.Error("Error retrieving the number of registered users", mlog.Err(cerr))
+				mlog.Warn("Error retrieving the number of registered users", mlog.Err(cerr))
 			} else {
 				bodyPage.Props["RegisteredUsersHeader"] = T("api.templates.warn_metric_ack.body.registered_users_header")
 				bodyPage.Props["RegisteredUsersValue"] = registeredUsersCount

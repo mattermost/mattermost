@@ -86,7 +86,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 	_, fromBot := post.GetProps()["from_bot"]
 	if !fromWebhook && !fromBot {
 		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
-			mlog.Error(
+			mlog.Warn(
 				"Encountered error updating last viewed",
 				mlog.String("channel_id", post.ChannelId),
 				mlog.String("user_id", post.UserId),
@@ -182,7 +182,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	post.SanitizeProps()
 
 	var pchan chan store.StoreResult
-	if len(post.RootId) > 0 {
+	if post.RootId != "" {
 		pchan = make(chan store.StoreResult, 1)
 		go func() {
 			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, false, false)
@@ -242,7 +242,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 
 		rootPost := parentPostList.Posts[post.RootId]
-		if len(rootPost.RootId) > 0 {
+		if rootPost.RootId != "" {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -273,7 +273,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			post.AddProp("attachments", attachmentsInterface)
 		}
 		if err != nil {
-			mlog.Error("Could not convert post attachments to map interface.", mlog.Err(err))
+			mlog.Warn("Could not convert post attachments to map interface.", mlog.Err(err))
 		}
 	}
 
@@ -338,7 +338,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	if len(post.FileIds) > 0 {
 		if err = a.attachFilesToPost(post); err != nil {
-			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
+			mlog.Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics() != nil {
@@ -351,7 +351,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rpost = a.PreparePostForClient(rpost, true, false)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList, setOnline); err != nil {
-		mlog.Error("Failed to handle post events", mlog.Err(err))
+		mlog.Warn("Failed to handle post events", mlog.Err(err))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
@@ -412,7 +412,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 			if mentioned.Type == model.CHANNEL_OPEN {
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
-					mlog.Error("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					mlog.Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]interface{}{
@@ -439,7 +439,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList, setOnline bool) error {
 	var team *model.Team
-	if len(channel.TeamId) > 0 {
+	if channel.TeamId != "" {
 		t, err := a.Srv().Store.Team().Get(channel.TeamId)
 		if err != nil {
 			return err
@@ -1161,7 +1161,7 @@ func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, 
 	for idx, channelName := range channels {
 		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
 		if err != nil {
-			mlog.Error("error getting channel id by name from in filter", mlog.Err(err))
+			mlog.Warn("error getting channel id by name from in filter", mlog.Err(err))
 			continue
 		}
 		channels[idx] = channel.Id
@@ -1171,11 +1171,12 @@ func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, 
 
 func (a *App) convertUserNameToUserIds(usernames []string) []string {
 	for idx, username := range usernames {
-		if user, err := a.GetUserByUsername(username); err != nil {
-			mlog.Error("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
-		} else {
-			usernames[idx] = user.Id
+		user, err := a.GetUserByUsername(username)
+		if err != nil {
+			mlog.Warn("error getting user by username", mlog.String("user_name", username), mlog.Err(err))
+			continue
 		}
+		usernames[idx] = user.Id
 	}
 	return usernames
 }

@@ -322,7 +322,7 @@ func (hub *PushNotificationsHub) start() {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(notification.userId)
 				default:
-					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
 
 				if err != nil {

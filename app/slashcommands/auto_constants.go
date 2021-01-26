@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	UserPassword         = "passwd"
+	UserPassword         = "Usr@MMTest123"
 	ChannelType          = model.CHANNEL_OPEN
 	BTestTeamDisplayName = "TestTeam"
 	BTestTeamName        = "z-z-testdomaina"

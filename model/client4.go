@@ -588,11 +588,11 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag st
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if len(etag) > 0 {
+	if etag != "" {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
 	}
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -633,7 +633,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -657,7 +657,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -681,7 +681,7 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -1494,7 +1494,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -1743,7 +1743,7 @@ func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Respons
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -2277,7 +2277,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -3475,7 +3475,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -3882,7 +3882,7 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) 
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
 	}
 
@@ -4252,7 +4252,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -4407,7 +4407,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 	}
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -5046,7 +5046,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
