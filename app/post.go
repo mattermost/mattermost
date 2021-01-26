@@ -1375,9 +1375,12 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamId str
 		return int64(count), nil
 	}
 
-	team, err := a.GetTeam(teamId)
-	if err != nil {
-		return 0, err
+	var team *model.Team
+	if teamId != "" {
+		team, err = a.GetTeam(teamId)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)
