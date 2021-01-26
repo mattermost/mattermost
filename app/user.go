@@ -2392,7 +2392,7 @@ func (a *App) GetThreadForUser(userId, teamId, threadId string, extended bool) (
 		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if thread == nil {
-		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("GetThreadForUser", "app.user.get_threads_for_user.not_found", nil, "thread not found/followed", http.StatusNotFound)
 	}
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeProps()
