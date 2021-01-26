@@ -1119,7 +1119,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check that the fields being updated are not set by the login provider
-	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, user.ToPatch())
+	conflictField := checkProviderAttributes(c.App, ouser, user.ToPatch())
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"updateUser", "api.user.update_user.login_provider_attribute_set.app_error",
@@ -1149,72 +1149,35 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(ruser.ToJson()))
 }
 
-// checkLoginProviderAttributes returns the empty string if the patch can be applied without
+// checkProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
-func checkLoginProviderAttributes(cfg *model.Config, ouser *model.User, patch *model.UserPatch) string {
-	type attrParam struct {
-		name          string
-		patchValue    *string
-		userValue     *string
-		providerValue *string
-	}
+func checkProviderAttributes(a app.AppIface, ouser *model.User, patch *model.UserPatch) string {
 	tryingToChange := func(patchValue *string, userValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
-	isConflict := func(patchValue *string, userValue *string, providerValue *string) bool {
-		return tryingToChange(patchValue, userValue) && *providerValue != ""
-	}
-	// If either the first name or last name is already set, then neither of them
-	// may be modified (LDAP and SAML users only).
-	isNameConflict := func(firstNameAttr *string, lastNameAttr *string) bool {
-		nameIsChanging := tryingToChange(patch.FirstName, &ouser.FirstName) ||
-			tryingToChange(patch.LastName, &ouser.LastName)
-		nameIsAlreadySet := *firstNameAttr != "" || *lastNameAttr != ""
-		return nameIsChanging && nameIsAlreadySet
-	}
+	LS := &a.Config().LdapSettings
+	SS := &a.Config().SamlSettings
 
-	if ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *cfg.SamlSettings.EnableSyncWithLdap) {
-		LS := &cfg.LdapSettings
-		if isNameConflict(LS.FirstNameAttribute, LS.LastNameAttribute) {
-			return "full name"
-		}
-		for _, attr := range []attrParam{
-			{"nickname", patch.Nickname, &ouser.Nickname, LS.NicknameAttribute},
-			{"position", patch.Position, &ouser.Position, LS.PositionAttribute},
-			{"email", patch.Email, &ouser.Email, LS.EmailAttribute},
-		} {
-			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
-				return attr.name
-			}
-		}
-	} else if ouser.IsSAMLUser() {
-		SS := &cfg.SamlSettings
-		if isNameConflict(SS.FirstNameAttribute, SS.LastNameAttribute) {
-			return "full name"
-		}
-		for _, attr := range []attrParam{
-			{"nickname", patch.Nickname, &ouser.Nickname, SS.NicknameAttribute},
-			{"position", patch.Position, &ouser.Position, SS.PositionAttribute},
-			{"email", patch.Email, &ouser.Email, SS.EmailAttribute},
-		} {
-			if isConflict(attr.patchValue, attr.userValue, attr.providerValue) {
-				return attr.name
-			}
-		}
+	conflictField := ""
+	if a.Ldap() != nil &&
+		(ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *SS.EnableSyncWithLdap)) {
+		conflictField = a.Ldap().CheckProviderAttributes(LS, ouser, patch)
+	} else if a.Saml() != nil && ouser.IsSAMLUser() {
+		conflictField = a.Saml().CheckProviderAttributes(SS, ouser, patch)
 	} else if ouser.IsOAuthUser() {
 		if tryingToChange(patch.FirstName, &ouser.FirstName) ||
 			tryingToChange(patch.LastName, &ouser.LastName) {
-			return "full name"
+			conflictField = "full name"
 		}
 	}
 	// If any login provider is used, then the username may not be changed
 	if ouser.AuthService != "" {
-		if tryingToChange(patch.Username, &ouser.Username) {
-			return "username"
+		if tryingToChange(patch.Username, &ouser.Username) && conflictField == "" {
+			conflictField = "username"
 		}
 	}
-	return ""
+	return conflictField
 }
 
 func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1258,7 +1221,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	conflictField := checkLoginProviderAttributes(c.App.Config(), ouser, patch)
+	conflictField := checkProviderAttributes(c.App, ouser, patch)
 	if conflictField != "" {
 		c.Err = model.NewAppError(
 			"patchUser", "api.user.patch_user.login_provider_attribute_set.app_error",
