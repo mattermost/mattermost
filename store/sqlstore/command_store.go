@@ -54,7 +54,7 @@ func (s SqlCommandStore) createIndexesIfNotExists() {
 }
 
 func (s SqlCommandStore) Save(command *model.Command) (*model.Command, error) {
-	if len(command.Id) > 0 {
+	if command.Id != "" {
 		return nil, store.NewErrInvalidInput("Command", "CommandId", command.Id)
 	}
 
@@ -193,7 +193,7 @@ func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 		From("Commands").
 		Where(sq.Eq{"DeleteAt": 0})
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
 
