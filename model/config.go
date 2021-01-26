@@ -3247,7 +3247,7 @@ func (s *SqlSettings) isValid() *AppError {
 	}
 
 	if *s.ConnMaxIdleTimeMilliseconds < 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.QueryTimeout <= 0 {
