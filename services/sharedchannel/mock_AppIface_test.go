@@ -39,6 +39,22 @@ func (_m *MockAppIface) AddUserToChannel(user *model.User, channel *model.Channe
 	return r0, r1
 }
 
+// AddUserToTeamByTeamId provides a mock function with given fields: teamId, user
+func (_m *MockAppIface) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
+	ret := _m.Called(teamId, user)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, *model.User) *model.AppError); ok {
+		r0 = rf(teamId, user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // CreateChannelWithUser provides a mock function with given fields: channel, userId
 func (_m *MockAppIface) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel, userId)

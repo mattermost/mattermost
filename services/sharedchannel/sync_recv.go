@@ -180,9 +180,17 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 		userSaved = userUpdated.New
 	}
 
-	// add user to channel; We do this here regardless of whether the user was just
-	// created or patched since AddUserToChannel first checks if they are already added,
-	// which we would do here anyway. AddUserToChannel does not error if user already added.
+	// add user to team. We do this here regardless of whether the user was
+	// just created or patched since there are three steps to adding a user
+	// (insert rec, add to team, add to channel) and any one could fail.
+	// Instead of undoing what succeeded on any failure we simply do all steps each
+	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user already
+	// added and exit quickly.
+	if err := scs.app.AddUserToTeamByTeamId(channel.TeamId, userSaved); err != nil {
+		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+	}
+
+	// add user to channel
 	if _, err := scs.app.AddUserToChannel(userSaved, channel); err != nil {
 		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 	}
