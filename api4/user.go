@@ -31,7 +31,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/stats/general", api.ApiSessionRequired(getGeneralUserStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
@@ -598,21 +597,6 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(stats.ToJson()))
-}
-
-func getGeneralUserStats(c *Context, w http.ResponseWriter, r *http.Request) {
-	// This endpoint can be used by all users get user stats that require no special permissions to view. Accepts no filters and doesn't apply any filters.
-	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
-	if err != nil {
-		c.Err = model.NewAppError("getGeneralUserStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	userStats := &model.UsersStats{
-		TotalUsersCount: count,
-	}
-
-	w.Write([]byte(userStats.ToJson()))
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {

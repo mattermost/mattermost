@@ -38,6 +38,9 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
+
+	// GET /api/v4/cloud/free_tier/stats
+	api.BaseRoutes.Cloud.Handle("/free_tier/stats", api.ApiSessionRequired(getFreeTierStats)).Methods("GET")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -60,6 +63,23 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+}
+
+func getFreeTierStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getFreeTierStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+
+	s := cloudUserLimit - count
+
+	seats, _ := json.Marshal(model.FreeTierStats{
+		RemainingSeats: int(s),
+	})
+
+	w.Write([]byte(string(seats)))
 }
 
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
