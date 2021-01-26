@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -149,7 +148,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
 			if dryRun {
-				fmt.Println("DryRun is enabled.")
+				mlog.Warn("JSON Decode error", mlog.Err(err))
 			} else {
 				return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
 			}
@@ -163,7 +162,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
 			if appErr != nil {
 				if dryRun {
-					fmt.Println("DryRun is enabled.")
+					mlog.Warn("Import data file version error", mlog.Err(appErr))
 				} else {
 					return appErr, lineNumber
 				}
@@ -171,7 +170,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 
 			if importDataFileVersion != 1 {
 				if dryRun {
-					fmt.Println("DryRun is enabled.")
+					mlog.Warn("Unsupported version error", mlog.Err(appErr))
 				} else {
 					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
 				}
@@ -232,7 +231,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 
 	if err := scanner.Err(); err != nil {
 		if dryRun {
-			fmt.Println("DryRun is enabled.")
+			mlog.Warn("File scan error", mlog.Err(err))
 		} else {
 			return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
 		}
