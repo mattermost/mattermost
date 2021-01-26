@@ -4,7 +4,7 @@
 <p align="center"><a href="#features">Features</a> section describes in detail about Resty capabilities</p>
 </p>
 <p align="center">
-<p align="center"><a href="https://travis-ci.org/go-resty/resty"><img src="https://travis-ci.org/go-resty/resty.svg?branch=master" alt="Build Status"></a> <a href="https://codecov.io/gh/go-resty/resty/branch/master"><img src="https://codecov.io/gh/go-resty/resty/branch/master/graph/badge.svg" alt="Code Coverage"></a> <a href="https://goreportcard.com/report/go-resty/resty"><img src="https://goreportcard.com/badge/go-resty/resty" alt="Go Report Card"></a> <a href="https://github.com/go-resty/resty/releases/latest"><img src="https://img.shields.io/badge/version-2.3.0-blue.svg" alt="Release Version"></a> <a href="https://pkg.go.dev/github.com/go-resty/resty/v2"><img src="https://godoc.org/github.com/go-resty/resty?status.svg" alt="GoDoc"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/go-resty/resty.svg" alt="License"></a> <a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go"></a></p>
+<p align="center"><a href="https://travis-ci.org/go-resty/resty"><img src="https://travis-ci.org/go-resty/resty.svg?branch=master" alt="Build Status"></a> <a href="https://codecov.io/gh/go-resty/resty/branch/master"><img src="https://codecov.io/gh/go-resty/resty/branch/master/graph/badge.svg" alt="Code Coverage"></a> <a href="https://goreportcard.com/report/go-resty/resty"><img src="https://goreportcard.com/badge/go-resty/resty" alt="Go Report Card"></a> <a href="https://github.com/go-resty/resty/releases/latest"><img src="https://img.shields.io/badge/version-2.4.0-blue.svg" alt="Release Version"></a> <a href="https://pkg.go.dev/github.com/go-resty/resty/v2"><img src="https://godoc.org/github.com/go-resty/resty?status.svg" alt="GoDoc"></a> <a href="LICENSE"><img src="https://img.shields.io/github/license/go-resty/resty.svg" alt="License"></a> <a href="https://github.com/avelino/awesome-go"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go"></a></p>
 </p>
 <p align="center">
 <h4 align="center">Resty Communication Channels</h4>
@@ -13,9 +13,10 @@
 
 ## News
 
+  * v2.4.0 [released](https://github.com/go-resty/resty/releases/tag/v2.4.0) and tagged on Jan 11, 2021.
   * v2.3.0 [released](https://github.com/go-resty/resty/releases/tag/v2.3.0) and tagged on May 20, 2020.
   * v2.0.0 [released](https://github.com/go-resty/resty/releases/tag/v2.0.0) and tagged on Jul 16, 2019.
-  * v1.12.0 [released](https://github.com/go-resty/resty/releases/tag/v1.12.0) and tagged on Feb 27, 2019.  
+  * v1.12.0 [released](https://github.com/go-resty/resty/releases/tag/v1.12.0) and tagged on Feb 27, 2019.
   * v1.0 released and tagged on Sep 25, 2017. - Resty's first version was released on Sep 15, 2015 then it grew gradually as a very handy and helpful library. Its been a two years since first release. I'm very thankful to Resty users and its [contributors](https://github.com/go-resty/resty/graphs/contributors).
 
 ## Features
@@ -25,6 +26,7 @@
   * [Request](https://godoc.org/github.com/go-resty/resty#Request) Body can be `string`, `[]byte`, `struct`, `map`, `slice` and `io.Reader` too
     * Auto detects `Content-Type`
     * Buffer less processing for `io.Reader`
+    * Native `*http.Request` instance may be accessed during middleware and request execution via `Request.RawRequest`
     * Request Body can be read multiple times via `Request.RawRequest.GetBody()`
   * [Response](https://godoc.org/github.com/go-resty/resty#Response) object gives you more possibility
     * Access as `[]byte` array - `response.Body()` OR Access as `string` - `response.String()`
@@ -54,11 +56,12 @@
   * Option to specify expected `Content-Type` when response `Content-Type` header missing. Refer to [#92](https://github.com/go-resty/resty/issues/92)
   * Resty design
     * Have client level settings & options and also override at Request level if you want to
-    * Request and Response middlewares
+    * Request and Response middleware
     * Create Multiple clients if you want to `resty.New()`
     * Supports `http.RoundTripper` implementation, see [SetTransport](https://godoc.org/github.com/go-resty/resty#Client.SetTransport)
     * goroutine concurrent safe
     * Resty Client trace, see [Client.EnableTrace](https://godoc.org/github.com/go-resty/resty#Client.EnableTrace) and [Request.EnableTrace](https://godoc.org/github.com/go-resty/resty#Request.EnableTrace)
+      * Since v2.4.0, trace info contains a `RequestAttempt` value, and the `Request` object contains an `Attempt` attribute
     * Debug mode - clean and informative logging presentation
     * Gzip - Go does it automatically also resty has fallback handling too
     * Works fine with `HTTP/2` and `HTTP/1.1`
@@ -82,7 +85,7 @@
 
 #### Supported Go Versions
 
-Initially Resty started supporting `go modules` since `v1.10.0` release. 
+Initially Resty started supporting `go modules` since `v1.10.0` release.
 
 Starting Resty v2 and higher versions, it fully embraces [go modules](https://github.com/golang/go/wiki/Modules) package release. It requires a Go version capable of understanding `/vN` suffixed imports:
 
@@ -104,7 +107,7 @@ Resty author also published following projects for Go Community.
 
 ```bash
 # Go Modules
-require github.com/go-resty/resty/v2 v2.3.0
+require github.com/go-resty/resty/v2 v2.4.0
 ```
 
 ## Usage
@@ -123,65 +126,70 @@ import "github.com/go-resty/resty/v2"
 client := resty.New()
 
 resp, err := client.R().
-		EnableTrace().
-		Get("https://httpbin.org/get")
+    EnableTrace().
+    Get("https://httpbin.org/get")
 
 // Explore response object
 fmt.Println("Response Info:")
-fmt.Println("Error      :", err)
-fmt.Println("Status Code:", resp.StatusCode())
-fmt.Println("Status     :", resp.Status())
-fmt.Println("Proto      :", resp.Proto())
-fmt.Println("Time       :", resp.Time())
-fmt.Println("Received At:", resp.ReceivedAt())
-fmt.Println("Body       :\n", resp)
+fmt.Println("  Error      :", err)
+fmt.Println("  Status Code:", resp.StatusCode())
+fmt.Println("  Status     :", resp.Status())
+fmt.Println("  Proto      :", resp.Proto())
+fmt.Println("  Time       :", resp.Time())
+fmt.Println("  Received At:", resp.ReceivedAt())
+fmt.Println("  Body       :\n", resp)
 fmt.Println()
 
 // Explore trace info
 fmt.Println("Request Trace Info:")
 ti := resp.Request.TraceInfo()
-fmt.Println("DNSLookup    :", ti.DNSLookup)
-fmt.Println("ConnTime     :", ti.ConnTime)
-fmt.Println("TCPConnTime  :", ti.TCPConnTime)
-fmt.Println("TLSHandshake :", ti.TLSHandshake)
-fmt.Println("ServerTime   :", ti.ServerTime)
-fmt.Println("ResponseTime :", ti.ResponseTime)
-fmt.Println("TotalTime    :", ti.TotalTime)
-fmt.Println("IsConnReused :", ti.IsConnReused)
-fmt.Println("IsConnWasIdle:", ti.IsConnWasIdle)
-fmt.Println("ConnIdleTime :", ti.ConnIdleTime)
+fmt.Println("  DNSLookup     :", ti.DNSLookup)
+fmt.Println("  ConnTime      :", ti.ConnTime)
+fmt.Println("  TCPConnTime   :", ti.TCPConnTime)
+fmt.Println("  TLSHandshake  :", ti.TLSHandshake)
+fmt.Println("  ServerTime    :", ti.ServerTime)
+fmt.Println("  ResponseTime  :", ti.ResponseTime)
+fmt.Println("  TotalTime     :", ti.TotalTime)
+fmt.Println("  IsConnReused  :", ti.IsConnReused)
+fmt.Println("  IsConnWasIdle :", ti.IsConnWasIdle)
+fmt.Println("  ConnIdleTime  :", ti.ConnIdleTime)
+fmt.Println("  RequestAttempt:", ti.RequestAttempt)
+fmt.Println("  RemoteAddr    :", ti.RemoteAddr.String())
 
 /* Output
 Response Info:
-Error      : <nil>
-Status Code: 200
-Status     : 200 OK
-Proto      : HTTP/2.0
-Time       : 475.611189ms
-Received At: 2020-05-19 00:11:06.828188 -0700 PDT m=+0.476510773
-Body       :
- {
-  "args": {},
-  "headers": {
-    "Accept-Encoding": "gzip",
-    "Host": "httpbin.org",
-    "User-Agent": "go-resty/2.3.0 (https://github.com/go-resty/resty)"
-  },
-  "origin": "0.0.0.0",
-  "url": "https://httpbin.org/get"
-}
+  Error      : <nil>
+  Status Code: 200
+  Status     : 200 OK
+  Proto      : HTTP/2.0
+  Time       : 457.034718ms
+  Received At: 2020-09-14 15:35:29.784681 -0700 PDT m=+0.458137045
+  Body       :
+  {
+    "args": {},
+    "headers": {
+      "Accept-Encoding": "gzip",
+      "Host": "httpbin.org",
+      "User-Agent": "go-resty/2.4.0 (https://github.com/go-resty/resty)",
+      "X-Amzn-Trace-Id": "Root=1-5f5ff031-000ff6292204aa6898e4de49"
+    },
+    "origin": "0.0.0.0",
+    "url": "https://httpbin.org/get"
+  }
 
 Request Trace Info:
-DNSLookup    : 4.870246ms
-ConnTime     : 393.95373ms
-TCPConnTime  : 78.360432ms
-TLSHandshake : 310.032859ms
-ServerTime   : 81.648284ms
-ResponseTime : 124.266µs
-TotalTime    : 475.611189ms
-IsConnReused : false
-IsConnWasIdle: false
-ConnIdleTime : 0s
+  DNSLookup     : 4.074657ms
+  ConnTime      : 381.709936ms
+  TCPConnTime   : 77.428048ms
+  TLSHandshake  : 299.623597ms
+  ServerTime    : 75.414703ms
+  ResponseTime  : 79.337µs
+  TotalTime     : 457.034718ms
+  IsConnReused  : false
+  IsConnWasIdle : false
+  ConnIdleTime  : 0s
+  RequestAttempt: 1
+  RemoteAddr    : 3.221.81.55:443
 */
 ```
 
@@ -210,6 +218,13 @@ resp, err := client.R().
       SetHeader("Accept", "application/json").
       SetAuthToken("BC594900518B4F7EAC75BD37F019E08FBC594900518B4F7EAC75BD37F019E08F").
       Get("/show_product")
+
+
+// If necessary, you can force response content type to tell Resty to parse a JSON response into your struct
+resp, err := client.R().
+      SetResult(result).
+      ForceContentType("application/json").
+      Get("v2/alpine/manifests/latest")
 ```
 
 #### Various POST method combinations
@@ -500,6 +515,28 @@ client.OnAfterResponse(func(c *resty.Client, resp *resty.Response) error {
   })
 ```
 
+#### OnError Hooks
+
+Resty provides OnError hooks that may be called because:
+
+- The client failed to send the request due to connection timeout, TLS handshake failure, etc...
+- The request was retried the maximum amount of times, and still failed.
+
+If there was a response from the server, the original error will be wrapped in `*resty.ResponseError` which contains the last response received.
+
+```go
+// Create a Resty Client
+client := resty.New()
+
+client.OnError(func(req *resty.Request, err error) {
+  if v, ok := err.(*resty.ResponseError); ok {
+    // v.Response contains the last response from the server
+    // v.Err contains the original error
+  }
+  // Log the error, increment a metric, etc...
+})
+```
+
 #### Redirect Policy
 
 Resty provides few ready to use redirect policy(s) also it supports multiple policies together.
@@ -639,7 +676,7 @@ client.
     SetRetryMaxWaitTime(20 * time.Second).
     // SetRetryAfter sets callback to calculate wait time between retries.
     // Default (nil) implies exponential backoff with jitter
-    SetRetryAfter(func(client *Client, resp *Response) (time.Duration, error) {
+    SetRetryAfter(func(client *resty.Client, resp *resty.Response) (time.Duration, error) {
         return 0, errors.New("quota exceeded")
     })
 ```
@@ -647,7 +684,7 @@ client.
 Above setup will result in resty retrying requests returned non nil error up to
 3 times with delay increased after each attempt.
 
-You can optionally provide client with custom retry conditions:
+You can optionally provide client with [custom retry conditions](https://pkg.go.dev/github.com/go-resty/resty/v2#RetryConditionFunc):
 
 ```go
 // Create a Resty Client
@@ -655,7 +692,7 @@ client := resty.New()
 
 client.AddRetryCondition(
     // RetryConditionFunc type is for retry condition function
-	  // input: non-nil Response OR request execution error
+    // input: non-nil Response OR request execution error
     func(r *resty.Response, err error) bool {
         return r.StatusCode() == http.StatusTooManyRequests
     },
@@ -823,7 +860,7 @@ More detailed example of mocking resty http requests using ginko could be found 
 Resty releases versions according to [Semantic Versioning](http://semver.org)
 
   * Resty v2 does not use `gopkg.in` service for library versioning.
-  * Resty fully adapted to `go mod` capabilities since `v1.10.0` release. 
+  * Resty fully adapted to `go mod` capabilities since `v1.10.0` release.
   * Resty v1 series was using `gopkg.in` to provide versioning. `gopkg.in/resty.vX` points to appropriate tagged versions; `X` denotes version series number and it's a stable release for production use. For e.g. `gopkg.in/resty.v0`.
   * Development takes place at the master branch. Although the code in master should always compile and test successfully, it might break API's. I aim to maintain backwards compatibility, but sometimes API's and behavior might be changed to fix a bug.
 

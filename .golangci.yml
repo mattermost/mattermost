@@ -10,8 +10,6 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
-  goimports:
-    local-prefixes: github.com/mattermost/mattermost-server/v5
 
 linters:
   disable-all: true

@@ -5843,11 +5843,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "エンタープライズライセンスの有効期限が切れ、一部の機能が無効になることがあります。更新してください。"
+    "translation": "エンタープライズエディションのライセンスの有効期限が切れ、一部の機能が無効になることがあります。今すぐライセンスを更新してください。"
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "ライセンスを更新する"
+    "translation": "今すぐライセンスを更新する"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -8058,10 +8058,6 @@
     "translation": "スレッドの以下の状態を更新できませんでした"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "ユーザーパスワードを更新できませんでした。"
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "failed_attemptsを更新できませんでした。"
   },
@@ -8460,5 +8456,45 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Discovery Documentからエンドポイントを取り出す際にエラーが発生しました。"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "error",
+    "translation": "エラー"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "アプリにリダイレクトします。"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "このブラウザのタブを閉じることができます。"
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "認証が完了しました"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "ダウンロードしようとしているジョブ種別は現在サポートされていません"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "不正なリダイレクトURLが指定されています"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "不正なカスタムURLスキームが指定されています"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "セキュリティ上の理由により {{.Name}} の変更は許可されていません。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} に戻る"
   }
 ]

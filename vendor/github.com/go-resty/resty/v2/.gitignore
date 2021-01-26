@@ -25,7 +25,6 @@ _testmain.go
 
 coverage.out
 coverage.txt
-go.sum
 
 # Exclude intellij IDE folders
 .idea/*
