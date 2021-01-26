@@ -47,6 +47,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_SYSTEM_ROLES_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_BILLING_PERMISSIONS, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_DOWNLOAD_COMPLIANCE_EXPORT_RESULTS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_REMOTE_CLUSTERS_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("Get").Return(make(model.StringMap), nil)

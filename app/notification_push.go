@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -322,7 +322,7 @@ func (hub *PushNotificationsHub) start() {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(notification.userId)
 				default:
-					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
 
 				if err != nil {
@@ -583,7 +583,9 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	}
 
 	for _, attachment := range post.Attachments() {
-		post.Message += "\n" + attachment.Fallback
+		if attachment.Fallback != "" {
+			post.Message += "\n" + attachment.Fallback
+		}
 	}
 
 	userLocale := utils.GetUserTranslations(user.Locale)

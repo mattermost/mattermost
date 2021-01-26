@@ -84,7 +84,7 @@ func (c *Compliance) IsValid() *AppError {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(c.Desc) > 512 || len(c.Desc) == 0 {
+	if len(c.Desc) > 512 || c.Desc == "" {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -110,11 +110,11 @@ func ComplianceFromJson(data io.Reader) *Compliance {
 }
 
 func (c Compliances) ToJson() string {
-	if b, err := json.Marshal(c); err != nil {
+	b, err := json.Marshal(c)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func CompliancesFromJson(data io.Reader) Compliances {

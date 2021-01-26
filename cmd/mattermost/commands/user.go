@@ -10,10 +10,11 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/spf13/cobra"
 )
 
 var UserCmd = &cobra.Command{
@@ -842,7 +843,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	fromAuth := args[0]
 	matchField := args[2]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "saml") {
 		return errors.New("Invalid from_auth argument")
 	}
 
@@ -851,7 +852,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 		fromAuth = ""
 	}
 
-	if len(matchField) == 0 || (matchField != "email" && matchField != "username") {
+	if matchField == "" || (matchField != "email" && matchField != "username") {
 		return errors.New("Invalid match_field argument")
 	}
 
@@ -902,7 +903,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 
 	fromAuth := args[0]
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
+	if fromAuth == "" || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap") {
 		return errors.New("Invalid from_auth argument")
 	}
 

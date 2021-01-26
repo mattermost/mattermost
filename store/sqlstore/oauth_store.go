@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlOAuthStore struct {
@@ -62,7 +62,7 @@ func (as SqlOAuthStore) createIndexesIfNotExists() {
 }
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
-	if len(app.Id) > 0 {
+	if app.Id != "" {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)
 	}
 

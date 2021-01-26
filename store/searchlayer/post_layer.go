@@ -4,8 +4,7 @@
 package searchlayer
 
 import (
-	"errors"
-	"net/http"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -28,7 +27,8 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 					return
 				}
 				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
-					mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Indexed post in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -41,7 +41,8 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeletePost(post); err != nil {
-					mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed post from the index in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id))
 			})
@@ -54,7 +55,8 @@ func (s SearchPostStore) deleteChannelPostsIndex(channelID string) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
-					mlog.Error("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -67,7 +69,8 @@ func (s SearchPostStore) deleteUserPostsIndex(userID string) {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeleteUserPosts(userID); err != nil {
-					mlog.Error("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					mlog.Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					return
 				}
 				mlog.Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
 			})
@@ -105,7 +108,7 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
-		postList, err2 := s.PostStore.Get(postId, true)
+		postList, err2 := s.PostStore.Get(postId, true, false, false)
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
@@ -137,17 +140,9 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	}
 
 	// We only allow the user to search in channels they are a member of.
-	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
-	if nErr != nil {
-		mlog.Error("error getting channel for user", mlog.Err(nErr))
-		var nfErr *store.ErrNotFound
-		switch {
-		// TODO: This error key would go away once this store method is migrated to return plain errors
-		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-		}
+	userChannels, err2 := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
+	if err2 != nil {
+		return nil, errors.Wrap(err2, "error getting channel for user")
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)
@@ -178,7 +173,7 @@ func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchPara
 		if engine.IsSearchEnabled() {
 			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
-				mlog.Error("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			mlog.Debug("Using the first available search engine", mlog.String("search_engine", engine.GetName()))

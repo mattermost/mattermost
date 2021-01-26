@@ -11,10 +11,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
-const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
+const OpenGraphMetadataCacheSize = 10000
 
-var openGraphDataCache = cache.NewLRU(&cache.LRUOptions{
-	Size: OPEN_GRAPH_METADATA_CACHE_SIZE,
+var openGraphDataCache = cache.NewLRU(cache.LRUOptions{
+	Size: OpenGraphMetadataCacheSize,
 })
 
 func (api *API) InitOpenGraph() {
@@ -41,7 +41,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	url := ""
 	ok := false
-	if url, ok = props["url"].(string); len(url) == 0 || !ok {
+	if url, ok = props["url"].(string); url == "" || !ok {
 		c.SetInvalidParam("url")
 		return
 	}

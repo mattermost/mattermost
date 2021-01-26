@@ -9,7 +9,10 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -139,14 +142,28 @@ func (h *MainHelper) setupResources() {
 func (h *MainHelper) PreloadMigrations() {
 	var buf []byte
 	var err error
+	basePath := os.Getenv("MM_SERVER_PATH")
+	relPath := "testlib/testdata"
 	switch *h.Settings.DriverName {
 	case model.DATABASE_DRIVER_POSTGRES:
-		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/postgres_migration_warmup.sql")
+		var finalPath string
+		if basePath != "" {
+			finalPath = filepath.Join(basePath, relPath, "postgres_migration_warmup.sql")
+		} else {
+			finalPath = filepath.Join("mattermost-server", relPath, "postgres_migration_warmup.sql")
+		}
+		buf, err = ioutil.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
 	case model.DATABASE_DRIVER_MYSQL:
-		buf, err = ioutil.ReadFile("mattermost-server/testlib/testdata/mysql_migration_warmup.sql")
+		var finalPath string
+		if basePath != "" {
+			finalPath = filepath.Join(basePath, relPath, "mysql_migration_warmup.sql")
+		} else {
+			finalPath = filepath.Join("mattermost-server", relPath, "mysql_migration_warmup.sql")
+		}
+		buf, err = ioutil.ReadFile(finalPath)
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
@@ -154,8 +171,7 @@ func (h *MainHelper) PreloadMigrations() {
 	handle := h.SQLStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		mlog.Error("Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly.")
-		panic(err)
+		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
 	}
 }
 

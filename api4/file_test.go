@@ -19,12 +19,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var testDir = ""
@@ -66,7 +67,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 		req.ContentLength = contentLength
 	}
 	req.Header.Set("Content-Type", contentType)
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -404,6 +405,18 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
+		// animated GIF
+		{
+			title:                       "Happy image thumbnail/preview 12",
+			names:                       []string{"testgif.gif"},
+			expectedImageThumbnailNames: []string{"testgif_expected_thumbnail.jpg"},
+			expectedImagePreviewNames:   []string{"testgif_expected_preview.jpg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{118},
+			expectedImageHeights:        []int{118},
+			expectedImageHasPreview:     []bool{false},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
 		{
 			title:                    "Happy admin",
 			client:                   th.SystemAdminClient,
@@ -623,7 +636,7 @@ func TestUploadFiles(t *testing.T) {
 					_, fname := filepath.Split(dbInfo.Path)
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
-					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FILE_TEAM_ID, channel.Id, ri.CreatorId, ri.Id)
+					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))

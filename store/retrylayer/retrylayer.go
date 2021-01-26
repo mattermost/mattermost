@@ -3190,6 +3190,26 @@ func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 
 }
 
+func (s *RetryLayerFileInfoStore) GetByIds(ids []string) ([]*model.FileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetByIds(ids)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 
 	tries := 0
@@ -3341,6 +3361,26 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 	tries := 0
 	for {
 		result, err := s.FileInfoStore.Save(info)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) Search(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.FileInfoList, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.Search(paramsList, userId, teamId, page, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -5262,11 +5302,11 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 
 }
 
-func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
+func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Get(id, skipFetchThreads)
+		result, err := s.PostStore.Get(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 		if err == nil {
 			return result, nil
 		}
@@ -5302,9 +5342,9 @@ func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 
 }
 
-func (s *RetryLayerPostStore) GetEtag(channelId string, allowFromCache bool) string {
+func (s *RetryLayerPostStore) GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string {
 
-	return s.PostStore.GetEtag(channelId, allowFromCache)
+	return s.PostStore.GetEtag(channelId, allowFromCache, collapsedThreads)
 
 }
 
@@ -8418,11 +8458,11 @@ func (s *RetryLayerThreadStore) GetMembershipForUser(userId string, postId strin
 
 }
 
-func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamId string) ([]*model.ThreadMembership, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetMembershipsForUser(userId)
+		result, err := s.ThreadStore.GetMembershipsForUser(userId, teamId)
 		if err == nil {
 			return result, nil
 		}
@@ -8458,11 +8498,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userId, opts)
+		result, err := s.ThreadStore.GetThreadsForUser(userId, teamId, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -8478,11 +8518,11 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, opts model.GetU
 
 }
 
-func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
+func (s *RetryLayerThreadStore) MarkAllAsRead(userId string, teamId string) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.MarkAllAsRead(userId, timestamp)
+		err := s.ThreadStore.MarkAllAsRead(userId, teamId)
 		if err == nil {
 			return nil
 		}

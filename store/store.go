@@ -61,7 +61,7 @@ type Store interface {
 	DropAllTables()
 	RecycleDBConnections(d time.Duration)
 	GetCurrentSchemaVersion() string
-	GetDbVersion() (string, error)
+	GetDbVersion(numerical bool) (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
@@ -251,16 +251,16 @@ type ThreadStore interface {
 	Save(thread *model.Thread) (*model.Thread, error)
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
-	GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
 
-	MarkAllAsRead(userId string, timestamp int64) error
+	MarkAllAsRead(userId, teamId string) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
 
 	SaveMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
 	UpdateMembership(membership *model.ThreadMembership) (*model.ThreadMembership, error)
-	GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error)
+	GetMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
 	GetMembershipForUser(userId, postId string) (*model.ThreadMembership, error)
 	DeleteMembershipForUser(userId, postId string) error
 	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error
@@ -272,7 +272,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
@@ -288,7 +288,7 @@ type PostStore interface {
 	GetPostAfterTime(channelId string, time int64) (*model.Post, error)
 	GetPostIdAfterTime(channelId string, time int64) (string, error)
 	GetPostIdBeforeTime(channelId string, time int64) (string, error)
-	GetEtag(channelId string, allowFromCache bool) string
+	GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string
 	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
@@ -564,6 +564,7 @@ type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, error)
 	Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
+	GetByIds(ids []string) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userId string) ([]*model.FileInfo, error)
@@ -575,6 +576,7 @@ type FileInfoStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userId string) (int64, error)
 	SetContent(fileId, content string) error
+	Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error)
 	ClearCaches()
 }
 

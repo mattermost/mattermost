@@ -6,61 +6,62 @@ package searchtest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/require"
 )
 
 var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by name",
 		Fn:   testAutocompleteChannelByName,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by display name",
 		Fn:   testAutocompleteChannelByDisplayName,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character",
 		Fn:   testAutocompleteChannelByNameSplittedWithDashChar,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
 		Fn:   testAutocompleteChannelByNameSplittedWithUnderscoreChar,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its display name when has parts splitted by whitespace character",
 		Fn:   testAutocompleteChannelByDisplayNameSplittedByWhitespaces,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete retrieving all channels if the term is empty",
 		Fn:   testAutocompleteAllChannelsIfTermIsEmpty,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should be able to autocomplete channels in a case insensitive manner",
 		Fn:   testSearchChannelsInCaseInsensitiveManner,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should autocomplete only returning public channels",
 		Fn:   testSearchOnlyPublicChannels,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should support to autocomplete having a hyphen as the last character",
 		Fn:   testSearchShouldSupportHavingHyphenAsLastCharacter,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 	{
 		Name: "Should support to autocomplete with archived channels",
 		Fn:   testSearchShouldSupportAutocompleteWithArchivedChannels,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{EngineAll},
 	},
 }
 

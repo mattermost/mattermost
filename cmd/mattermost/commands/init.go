@@ -4,16 +4,16 @@
 package commands
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/spf13/cobra"
 )
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
-
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)

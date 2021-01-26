@@ -21,13 +21,13 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/stretchr/testify/require"
 )
 
 func TestStartServerSuccess(t *testing.T) {
@@ -328,9 +328,7 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-
-	err = s.Shutdown()
-	require.NoError(t, err)
+	s.Shutdown()
 
 	// Checking whether panic was logged
 	var panicLogged = false
@@ -382,7 +380,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SENTRY_DSN = dsn.String()
+		SentryDSN = dsn.String()
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)
@@ -433,7 +431,7 @@ func TestSentry(t *testing.T) {
 		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
 		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
 		require.NoError(t, err)
-		SENTRY_DSN = dsn.String()
+		SentryDSN = dsn.String()
 
 		s, err := NewServer(func(server *Server) error {
 			configStore, _ := config.NewFileStore("config.json", true)

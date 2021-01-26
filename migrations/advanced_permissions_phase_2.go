@@ -55,7 +55,7 @@ func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
 
 func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bool, string, *model.AppError) {
 	var progress *AdvancedPermissionsPhase2Progress
-	if len(lastDone) == 0 {
+	if lastDone == "" {
 		// Haven't started the migration yet.
 		progress = new(AdvancedPermissionsPhase2Progress)
 		progress.CurrentTable = "TeamMembers"
@@ -71,33 +71,33 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		if result, err := worker.srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
+		result, err := worker.srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId)
+		if err != nil {
 			return false, progress.ToJson(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			if result == nil {
-				// We haven't progressed. That means that we've reached the end of this stage of the migration, and should now advance to the next stage.
-				progress.LastUserId = strings.Repeat("0", 26)
-				progress.CurrentTable = "ChannelMembers"
-				return false, progress.ToJson(), nil
-			}
-
-			progress.LastTeamId = result["TeamId"]
-			progress.LastUserId = result["UserId"]
 		}
+		if result == nil {
+			// We haven't progressed. That means that we've reached the end of this stage of the migration, and should now advance to the next stage.
+			progress.LastUserId = strings.Repeat("0", 26)
+			progress.CurrentTable = "ChannelMembers"
+			return false, progress.ToJson(), nil
+		}
+
+		progress.LastTeamId = result["TeamId"]
+		progress.LastUserId = result["UserId"]
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		if data, err := worker.srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
+		data, err := worker.srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId)
+		if err != nil {
 			return false, progress.ToJson(), model.NewAppError("MigrationsWorker.runAdvancedPermissionsPhase2Migration", "app.channel.migrate_channel_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			if data == nil {
-				// We haven't progressed. That means we've reached the end of this final stage of the migration.
-
-				return true, progress.ToJson(), nil
-			}
-
-			progress.LastChannelId = data["ChannelId"]
-			progress.LastUserId = data["UserId"]
 		}
+		if data == nil {
+			// We haven't progressed. That means we've reached the end of this final stage of the migration.
+
+			return true, progress.ToJson(), nil
+		}
+
+		progress.LastChannelId = data["ChannelId"]
+		progress.LastUserId = data["UserId"]
 	}
 
 	return false, progress.ToJson(), nil

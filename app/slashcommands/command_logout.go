@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -13,7 +14,7 @@ type LogoutProvider struct {
 }
 
 const (
-	CMD_LOGOUT = "logout"
+	CmdLogout = "logout"
 )
 
 func init() {
@@ -21,12 +22,12 @@ func init() {
 }
 
 func (*LogoutProvider) GetTrigger() string {
-	return CMD_LOGOUT
+	return CmdLogout
 }
 
 func (*LogoutProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_LOGOUT,
+		Trigger:          CmdLogout,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_logout.desc"),
 		AutoCompleteHint: "",

@@ -10,20 +10,20 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"net/mail"
+	"net/smtp"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"net/mail"
-	"net/smtp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
@@ -424,10 +424,10 @@ func TestSendMail(t *testing.T) {
 			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, nil}
 			appErr = SendMail(mocm, mail, mockBackend, time.Now())
 			require.Nil(t, appErr)
-			if len(tc.contains) > 0 {
+			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
 			}
-			if len(tc.notContains) > 0 {
+			if tc.notContains != "" {
 				require.NotContains(t, string(mocm.data), tc.notContains)
 			}
 			mocm.data = []byte{}

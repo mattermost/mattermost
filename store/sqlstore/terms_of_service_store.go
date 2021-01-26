@@ -6,11 +6,11 @@ package sqlstore
 import (
 	"database/sql"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlTermsOfServiceStore struct {
@@ -35,7 +35,7 @@ func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
-	if len(termsOfService.Id) > 0 {
+	if termsOfService.Id != "" {
 		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)
 	}
 

@@ -12,9 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -281,6 +282,20 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  false,
+		},
+		{
+			name: "notice with server version check on cloud should ignore version",
+			args: args{
+				cloud:         true,
+				serverVersion: "cloud.54.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
 		},
 
 		{

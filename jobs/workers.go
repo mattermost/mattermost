@@ -28,6 +28,7 @@ type Workers struct {
 	ProductNotices           model.Worker
 	ActiveUsers              model.Worker
 	ImportProcess            model.Worker
+	ImportDelete             model.Worker
 	Cloud                    model.Worker
 
 	listenerId string
@@ -37,7 +38,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
 	}
-	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
+	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	if srv.DataRetentionJob != nil {
 		workers.DataRetention = srv.DataRetentionJob.MakeWorker()
@@ -85,6 +86,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 
 	if importProcessInterface := srv.ImportProcess; importProcessInterface != nil {
 		workers.ImportProcess = importProcessInterface.MakeWorker()
+	}
+
+	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
+		workers.ImportDelete = importDeleteInterface.MakeWorker()
 	}
 
 	if cloudInterface := srv.Cloud; cloudInterface != nil {
@@ -144,6 +149,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ImportProcess != nil {
 			go workers.ImportProcess.Run()
+		}
+
+		if workers.ImportDelete != nil {
+			go workers.ImportDelete.Run()
 		}
 
 		if workers.Cloud != nil {
@@ -261,6 +270,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.ImportProcess != nil {
 		workers.ImportProcess.Stop()
+	}
+
+	if workers.ImportDelete != nil {
+		workers.ImportDelete.Stop()
 	}
 
 	if workers.Cloud != nil {

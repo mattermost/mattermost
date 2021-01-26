@@ -9,10 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var ExportCmd = &cobra.Command{

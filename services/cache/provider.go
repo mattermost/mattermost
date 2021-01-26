@@ -3,7 +3,9 @@
 
 package cache
 
-import "time"
+import (
+	"time"
+)
 
 // CacheOptions contains options for initializaing a cache
 type CacheOptions struct {
@@ -11,12 +13,14 @@ type CacheOptions struct {
 	DefaultExpiry          time.Duration
 	Name                   string
 	InvalidateClusterEvent string
+	Striped                bool
+	StripedBuckets         int
 }
 
 // Provider is a provider for Cache
 type Provider interface {
 	// NewCache creates a new cache with given options.
-	NewCache(opts *CacheOptions) Cache
+	NewCache(opts *CacheOptions) (Cache, error)
 	// Connect opens a new connection to the cache using specific provider parameters.
 	Connect() error
 	// Close releases any resources used by the cache provider.
@@ -32,13 +36,22 @@ func NewProvider() Provider {
 }
 
 // NewCache creates a new cache with given opts
-func (c *cacheProvider) NewCache(opts *CacheOptions) Cache {
-	return NewLRU(&LRUOptions{
+func (c *cacheProvider) NewCache(opts *CacheOptions) (Cache, error) {
+	if opts.Striped {
+		return NewLRUStriped(LRUOptions{
+			Name:                   opts.Name,
+			Size:                   opts.Size,
+			DefaultExpiry:          opts.DefaultExpiry,
+			InvalidateClusterEvent: opts.InvalidateClusterEvent,
+			StripedBuckets:         opts.StripedBuckets,
+		})
+	}
+	return NewLRU(LRUOptions{
 		Name:                   opts.Name,
 		Size:                   opts.Size,
 		DefaultExpiry:          opts.DefaultExpiry,
 		InvalidateClusterEvent: opts.InvalidateClusterEvent,
-	})
+	}), nil
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.

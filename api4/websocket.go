@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -25,14 +25,13 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		mlog.Error("websocket connect err.", mlog.Err(err))
 		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
 	wc := c.App.NewWebConn(ws, *c.App.Session(), c.App.T, "")
 
-	if len(c.App.Session().UserId) > 0 {
+	if c.App.Session().UserId != "" {
 		c.App.HubRegister(wc)
 	}
 

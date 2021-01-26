@@ -16,7 +16,7 @@ import (
 	"github.com/go-redis/redis/v8/internal/hashtag"
 	"github.com/go-redis/redis/v8/internal/pool"
 	"github.com/go-redis/redis/v8/internal/proto"
-	"golang.org/x/exp/rand"
+	"github.com/go-redis/redis/v8/internal/rand"
 )
 
 var errClusterNoNodes = fmt.Errorf("redis: cluster has no nodes")
@@ -86,7 +86,7 @@ func (opt *ClusterOptions) init() {
 		opt.MaxRedirects = 3
 	}
 
-	if (opt.RouteByLatency || opt.RouteRandomly) && opt.ClusterSlots == nil {
+	if opt.RouteByLatency || opt.RouteRandomly {
 		opt.ReadOnly = true
 	}
 
@@ -153,9 +153,13 @@ func (opt *ClusterOptions) clientOptions() *Options {
 		IdleTimeout:        opt.IdleTimeout,
 		IdleCheckFrequency: disableIdleCheck,
 
-		readOnly: opt.ReadOnly,
-
 		TLSConfig: opt.TLSConfig,
+		// If ClusterSlots is populated, then we probably have an artificial
+		// cluster whose nodes are not in clustering mode (otherwise there isn't
+		// much use for ClusterSlots config).  This means we cannot execute the
+		// READONLY command against that node -- setting readOnly to false in such
+		// situations in the options below will prevent that from happening.
+		readOnly: opt.ReadOnly && opt.ClusterSlots == nil,
 	}
 }
 
@@ -751,15 +755,6 @@ func (c *ClusterClient) Process(ctx context.Context, cmd Cmder) error {
 }
 
 func (c *ClusterClient) process(ctx context.Context, cmd Cmder) error {
-	err := c._process(ctx, cmd)
-	if err != nil {
-		cmd.SetErr(err)
-		return err
-	}
-	return nil
-}
-
-func (c *ClusterClient) _process(ctx context.Context, cmd Cmder) error {
 	cmdInfo := c.cmdInfo(cmd.Name())
 	slot := c.cmdSlot(cmd)
 
@@ -1197,9 +1192,12 @@ func (c *ClusterClient) pipelineReadCmds(
 ) error {
 	for _, cmd := range cmds {
 		err := cmd.readReply(rd)
+		cmd.SetErr(err)
+
 		if err == nil {
 			continue
 		}
+
 		if c.checkMovedErr(ctx, cmd, err, failedCmds) {
 			continue
 		}
@@ -1258,10 +1256,13 @@ func (c *ClusterClient) TxPipelined(ctx context.Context, fn func(Pipeliner) erro
 }
 
 func (c *ClusterClient) processTxPipeline(ctx context.Context, cmds []Cmder) error {
-	return c.hooks.processPipeline(ctx, cmds, c._processTxPipeline)
+	return c.hooks.processTxPipeline(ctx, cmds, c._processTxPipeline)
 }
 
 func (c *ClusterClient) _processTxPipeline(ctx context.Context, cmds []Cmder) error {
+	// Trim multi .. exec.
+	cmds = cmds[1 : len(cmds)-1]
+
 	state, err := c.state.Get(ctx)
 	if err != nil {
 		setCmdsErr(cmds, err)
@@ -1297,6 +1298,7 @@ func (c *ClusterClient) _processTxPipeline(ctx context.Context, cmds []Cmder) er
 					if err == nil {
 						return
 					}
+
 					if attempt < c.opt.MaxRedirects {
 						if err := c.mapCmdsByNode(ctx, failedCmds, cmds); err != nil {
 							setCmdsErr(cmds, err)
@@ -1554,7 +1556,7 @@ func (c *ClusterClient) retryBackoff(attempt int) time.Duration {
 	return internal.RetryBackoff(attempt, c.opt.MinRetryBackoff, c.opt.MaxRetryBackoff)
 }
 
-func (c *ClusterClient) cmdsInfo() (map[string]*CommandInfo, error) {
+func (c *ClusterClient) cmdsInfo(ctx context.Context) (map[string]*CommandInfo, error) {
 	// Try 3 random nodes.
 	const nodeLimit = 3
 
@@ -1581,7 +1583,7 @@ func (c *ClusterClient) cmdsInfo() (map[string]*CommandInfo, error) {
 			continue
 		}
 
-		info, err := node.Client.Command(c.ctx).Result()
+		info, err := node.Client.Command(ctx).Result()
 		if err == nil {
 			return info, nil
 		}
@@ -1597,7 +1599,7 @@ func (c *ClusterClient) cmdsInfo() (map[string]*CommandInfo, error) {
 }
 
 func (c *ClusterClient) cmdInfo(name string) *CommandInfo {
-	cmdsInfo, err := c.cmdsInfoCache.Get()
+	cmdsInfo, err := c.cmdsInfoCache.Get(c.ctx)
 	if err != nil {
 		return nil
 	}
@@ -1659,6 +1661,35 @@ func (c *ClusterClient) slotMasterNode(ctx context.Context, slot int) (*clusterN
 		return nil, err
 	}
 	return state.slotMasterNode(slot)
+}
+
+// SlaveForKey gets a client for a replica node to run any command on it.
+// This is especially useful if we want to run a particular lua script which has
+// only read only commands on the replica.
+// This is because other redis commands generally have a flag that points that
+// they are read only and automatically run on the replica nodes
+// if ClusterOptions.ReadOnly flag is set to true.
+func (c *ClusterClient) SlaveForKey(ctx context.Context, key string) (*Client, error) {
+	state, err := c.state.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	slot := hashtag.Slot(key)
+	node, err := c.slotReadOnlyNode(state, slot)
+	if err != nil {
+		return nil, err
+	}
+	return node.Client, err
+}
+
+// MasterForKey return a client to the master node for a particular key.
+func (c *ClusterClient) MasterForKey(ctx context.Context, key string) (*Client, error) {
+	slot := hashtag.Slot(key)
+	node, err := c.slotMasterNode(ctx, slot)
+	if err != nil {
+		return nil, err
+	}
+	return node.Client, err
 }
 
 func appendUniqueNode(nodes []*clusterNode, node *clusterNode) []*clusterNode {

@@ -6,11 +6,12 @@ package commands
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
 var ChannelCmd = &cobra.Command{
@@ -435,28 +436,28 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 	auditRec.AddMeta("team", team)
 	a.LogAuditRec(auditRec, nil)
 
-	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000)
+	if err != nil {
 		return err
-	} else {
-		for _, webhook := range incomingWebhooks {
-			if webhook.ChannelId == channel.Id {
-				webhook.TeamId = team.Id
-				if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
-					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
-				}
+	}
+	for _, webhook := range incomingWebhooks {
+		if webhook.ChannelId == channel.Id {
+			webhook.TeamId = team.Id
+			if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
+				CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
 			}
 		}
 	}
 
-	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000)
+	if err != nil {
 		return err
-	} else {
-		for _, webhook := range outgoingWebhooks {
-			if webhook.ChannelId == channel.Id {
-				webhook.TeamId = team.Id
-				if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
-					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
-				}
+	}
+	for _, webhook := range outgoingWebhooks {
+		if webhook.ChannelId == channel.Id {
+			webhook.TeamId = team.Id
+			if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
+				CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 			}
 		}
 	}
@@ -611,7 +612,6 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 }
 
 func searchChannelCmdF(command *cobra.Command, args []string) error {
-
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return errors.Wrap(err, "failed to InitDBCommandContextCobra")

@@ -177,7 +177,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		time.Sleep(PENDING_POST_IDS_CACHE_TTL)
+		time.Sleep(PendingPostIDsCacheTTL)
 
 		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
 			UserId:        th.BasicUser.Id,
@@ -1892,11 +1892,11 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of the thread since they replied to a post
-		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id)
+		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 1)
 		// second user should also be part of a thread since they were mentioned
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id)
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 1)
 
@@ -1916,8 +1916,57 @@ func TestThreadMembership(t *testing.T) {
 		require.Nil(t, err)
 
 		// first user should now be part of two threads
-		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id)
+		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
 		require.Nil(t, err2)
 		require.Len(t, memberships, 2)
+	})
+}
+
+func TestCollapsedThreadFetch(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
+	})
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+
+	t.Run("should only return root posts, enriched", func(t *testing.T) {
+		channel := th.CreateChannel(th.BasicTeam)
+		th.AddUserToChannel(user2, channel)
+		defer th.App.DeleteChannel(channel, user1.Id)
+
+		postRoot, err := th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "root post",
+		}, channel, false, true)
+		require.Nil(t, err)
+
+		_, err = th.App.CreatePost(&model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			RootId:    postRoot.Id,
+			Message:   fmt.Sprintf("@%s", user2.Username),
+		}, channel, false, true)
+		require.Nil(t, err)
+		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
+		require.Nil(t, nErr)
+		require.Len(t, thread.Participants, 2)
+		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id)
+		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.EqualValues(t, 1, l.Posts[postRoot.Id].ReplyCount)
+		require.EqualValues(t, []string{user1.Id, user2.Id}, []string{l.Posts[postRoot.Id].Participants[0].Id, l.Posts[postRoot.Id].Participants[1].Id})
+		require.Empty(t, l.Posts[postRoot.Id].Participants[0].Email)
+		require.NotZero(t, l.Posts[postRoot.Id].LastReplyAt)
+
+		// try extended fetch
+		l, err = th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, true)
+		require.Nil(t, err)
+		require.Len(t, l.Order, 1)
+		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)
 	})
 }
