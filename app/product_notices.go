@@ -95,7 +95,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	// check if current server version is notice range
-	if cnd.ServerVersion != nil {
+	if !isCloud && cnd.ServerVersion != nil {
 		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
