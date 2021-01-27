@@ -131,5 +131,5 @@ type FailedPayment struct {
 
 type FreeTierStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
-	TierStatus     string `json:"tier_status"`
+	IsPaidTier     string `json:"is_paid_tier"`
 }

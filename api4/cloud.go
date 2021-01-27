@@ -49,6 +49,11 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_BILLING) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_BILLING)
+		return
+	}
+
 	subscription, appErr := c.App.Cloud().GetSubscription()
 
 	if appErr != nil {
@@ -84,7 +89,7 @@ func getFreeTierStats(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	stats, _ := json.Marshal(model.FreeTierStats{
 		RemainingSeats: int(s),
-		TierStatus:     subscription.IsPaidTier,
+		IsPaidTier:     subscription.IsPaidTier,
 	})
 
 	w.Write([]byte(string(stats)))
