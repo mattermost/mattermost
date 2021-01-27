@@ -168,7 +168,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 					return appErr, lineNumber
 				}
 			}
-		appErr = model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest)
+			appErr = model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest)
 			if importDataFileVersion != 1 {
 				if dryRun {
 					mlog.Warn(appErr.Where, mlog.Err(appErr))
