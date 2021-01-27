@@ -482,7 +482,7 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 
-	if len(r.DisplayName) == 0 || len(r.DisplayName) > ROLE_DISPLAY_NAME_MAX_LENGTH {
+	if r.DisplayName == "" || len(r.DisplayName) > ROLE_DISPLAY_NAME_MAX_LENGTH {
 		return false
 	}
 
@@ -526,7 +526,7 @@ func CleanRoleNames(roleNames []string) ([]string, bool) {
 }
 
 func IsValidRoleName(roleName string) bool {
-	if len(roleName) <= 0 || len(roleName) > ROLE_NAME_MAX_LENGTH {
+	if roleName == "" || len(roleName) > ROLE_NAME_MAX_LENGTH {
 		return false
 	}
 

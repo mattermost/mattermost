@@ -5540,7 +5540,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen lisansı yenileyin."
+    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen şimdi lisansı yenileyin."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -7751,10 +7751,6 @@
     "translation": "Kullanıcının son güncellenme tarihi güncellenemedi."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kullanıcı parolası güncellenemedi."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Başarısız oturum açma girişimleri güncellenemedi."
   },
@@ -8469,5 +8465,45 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "İndirmek istediğiniz görev türü şu anda desteklenmiyor"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "error",
+    "translation": "Hata"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Uygulamaya geri yönlendiriliyorsunuz."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Bu tarayıcı sekmesini kapatabilirsiniz."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Kimlik doğrulandı"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Belirtilen yönlendirme adresi geçersiz"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Belirtilen özel adres şeması geçersiz"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Güvenlik nedeniyle {{.Name}} değişikliğine izin verilmiyor."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} sitesine geri dön"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "İstekte AuthData ya da AuthService parametresi eksik."
   }
 ]

@@ -167,11 +167,8 @@ defaultCase:
 	capLevel := float64(max)
 
 	temp := math.Min(capLevel, base*math.Exp2(float64(attempt)))
-	ri := int(temp / 2)
-	if ri <= 0 {
-		ri = maxInt // max int for arch 386
-	}
-	result := time.Duration(math.Abs(float64(ri + rand.Intn(ri))))
+	ri := int64(temp / 2)
+	result := time.Duration(math.Abs(float64(ri + rand.Int63n(ri))))
 
 	if result < min {
 		result = min

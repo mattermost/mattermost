@@ -15,6 +15,9 @@ const (
 	USERNAME = "Username"
 )
 
+//msgp:tuple TeamMember
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -26,28 +29,33 @@ type TeamMember struct {
 	ExplicitRoles string `json:"explicit_roles"`
 }
 
+//msgp:ignore TeamUnread
 type TeamUnread struct {
 	TeamId       string `json:"team_id"`
 	MsgCount     int64  `json:"msg_count"`
 	MentionCount int64  `json:"mention_count"`
 }
 
+//msgp:ignore TeamMemberForExport
 type TeamMemberForExport struct {
 	TeamMember
 	TeamName string
 }
 
+//msgp:ignore TeamMemberWithError
 type TeamMemberWithError struct {
 	UserId string      `json:"user_id"`
 	Member *TeamMember `json:"member"`
 	Error  *AppError   `json:"error"`
 }
 
+//msgp:ignore EmailInviteWithError
 type EmailInviteWithError struct {
 	Email string    `json:"email"`
 	Error *AppError `json:"error"`
 }
 
+//msgp:ignore TeamMembersGetOptions
 type TeamMembersGetOptions struct {
 	// Sort the team members. Accepts "Username", but defaults to "Id".
 	Sort string

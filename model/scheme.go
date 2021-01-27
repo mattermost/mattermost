@@ -114,7 +114,7 @@ func (scheme *Scheme) IsValid() bool {
 }
 
 func (scheme *Scheme) IsValidForCreate() bool {
-	if len(scheme.DisplayName) == 0 || len(scheme.DisplayName) > SCHEME_DISPLAY_NAME_MAX_LENGTH {
+	if scheme.DisplayName == "" || len(scheme.DisplayName) > SCHEME_DISPLAY_NAME_MAX_LENGTH {
 		return false
 	}
 
