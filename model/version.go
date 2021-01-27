@@ -13,6 +13,8 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"5.32.0",
+	"5.31.0",
 	"5.30.0",
 	"5.29.0",
 	"5.28.0",
@@ -148,9 +150,8 @@ func IsCurrentVersion(versionToCheck string) bool {
 
 	if toCheckMajor == currentMajor && toCheckMinor == currentMinor {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 func IsPreviousVersionsSupported(versionToCheck string) bool {

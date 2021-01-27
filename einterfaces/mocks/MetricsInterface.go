@@ -24,6 +24,11 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// DecrementJobActive provides a mock function with given fields: jobType
+func (_m *MetricsInterface) DecrementJobActive(jobType string) {
+	_m.Called(jobType)
+}
+
 // DecrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
 func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, amount float64) {
 	_m.Called(hub, amount)
@@ -75,6 +80,16 @@ func (_m *MetricsInterface) IncrementEtagMissCounter(route string) {
 	_m.Called(route)
 }
 
+// IncrementFileIndexCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementFileIndexCounter() {
+	_m.Called()
+}
+
+// IncrementFilesSearchCounter provides a mock function with given fields:
+func (_m *MetricsInterface) IncrementFilesSearchCounter() {
+	_m.Called()
+}
+
 // IncrementHttpError provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementHttpError() {
 	_m.Called()
@@ -83,6 +98,11 @@ func (_m *MetricsInterface) IncrementHttpError() {
 // IncrementHttpRequest provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementHttpRequest() {
 	_m.Called()
+}
+
+// IncrementJobActive provides a mock function with given fields: jobType
+func (_m *MetricsInterface) IncrementJobActive(jobType string) {
+	_m.Called(jobType)
 }
 
 // IncrementLogin provides a mock function with given fields:
@@ -203,6 +223,11 @@ func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 // ObserveEnabledUsers provides a mock function with given fields: users
 func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
 	_m.Called(users)
+}
+
+// ObserveFilesSearchDuration provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveFilesSearchDuration(elapsed float64) {
+	_m.Called(elapsed)
 }
 
 // ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed

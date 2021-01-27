@@ -6,12 +6,12 @@ package config
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"sync"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
-	"github.com/pkg/errors"
 )
 
 // Listener is a callback function invoked when the configuration changes.
@@ -83,7 +83,7 @@ func NewStoreFromBacking(backingStore BackingStore, customDefaults *model.Config
 }
 
 func getBackingStore(dsn string, watch bool) (BackingStore, error) {
-	if strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://") {
+	if IsDatabaseDSN(dsn) {
 		return NewDatabaseStore(dsn)
 	}
 

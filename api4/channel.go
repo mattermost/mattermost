@@ -173,13 +173,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(channel.Type) > 0 && channel.Type != oldChannel.Type {
+	if channel.Type != "" && channel.Type != oldChannel.Type {
 		c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.typechange.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if oldChannel.Name == model.DEFAULT_CHANNEL {
-		if len(channel.Name) > 0 && channel.Name != oldChannel.Name {
+		if channel.Name != "" && channel.Name != oldChannel.Name {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 			return
 		}
@@ -190,11 +190,11 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldChannelDisplayName := oldChannel.DisplayName
 
-	if len(channel.DisplayName) > 0 {
+	if channel.DisplayName != "" {
 		oldChannel.DisplayName = channel.DisplayName
 	}
 
-	if len(channel.Name) > 0 {
+	if channel.Name != "" {
 		oldChannel.Name = channel.Name
 		auditRec.AddMeta("new_channel_name", oldChannel.Name)
 	}
@@ -212,7 +212,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err := c.App.PostUpdateChannelDisplayNameMessage(c.App.Session().UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn("Error while posting channel display name message", mlog.Err(err))
 		}
 	}
 
@@ -1447,7 +1447,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	postRootId, ok := props["post_root_id"].(string)
-	if ok && len(postRootId) != 0 && !model.IsValidId(postRootId) {
+	if ok && postRootId != "" && !model.IsValidId(postRootId) {
 		c.SetInvalidParam("post_root_id")
 		return
 	}
@@ -1481,7 +1481,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isNewMembership := false
 	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		if err.Id == app.MISSING_CHANNEL_MEMBER_ERROR {
+		if err.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {
 			c.Err = err

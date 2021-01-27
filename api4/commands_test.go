@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestEchoCommand(t *testing.T) {
@@ -29,7 +30,7 @@ func TestEchoCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1 := Client.Must(Client.GetPostsForChannel(channel1.Id, 0, 2, "")).(*model.PostList)
+	p1 := Client.Must(Client.GetPostsForChannel(channel1.Id, 0, 2, "", false)).(*model.PostList)
 	require.Len(t, p1.Order, 2, "Echo command failed to send")
 }
 
@@ -301,7 +302,7 @@ func TestMeCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "")).(*model.PostList)
+	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "", false)).(*model.PostList)
 	require.Len(t, p1.Order, 2, "Command failed to send")
 
 	pt := p1.Posts[p1.Order[0]].Type
@@ -390,7 +391,7 @@ func TestShrugCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "")).(*model.PostList)
+	p1 := Client.Must(Client.GetPostsForChannel(channel.Id, 0, 2, "", false)).(*model.PostList)
 	require.Len(t, p1.Order, 2, "Command failed to send")
 	require.Equal(t, `¯\\\_(ツ)\_/¯`, p1.Posts[p1.Order[0]].Message, "invalid shrug response")
 }

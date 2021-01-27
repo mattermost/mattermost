@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/pkg/errors"
 )
 
 type SqlSchemeStore struct {
@@ -47,7 +47,7 @@ func (s SqlSchemeStore) createIndexesIfNotExists() {
 }
 
 func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
-	if len(scheme.Id) == 0 {
+	if scheme.Id == "" {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")
@@ -213,7 +213,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	}
 
 	scheme.Id = model.NewId()
-	if len(scheme.Name) == 0 {
+	if scheme.Name == "" {
 		scheme.Name = model.NewId()
 	}
 	scheme.CreateAt = model.GetMillis()
@@ -332,7 +332,7 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	var schemes []*model.Scheme
 
 	scopeClause := ""
-	if len(scope) > 0 {
+	if scope != "" {
 		scopeClause = " AND Scope=:Scope "
 	}
 

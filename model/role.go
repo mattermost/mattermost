@@ -61,6 +61,13 @@ func init() {
 			PERMISSION_LIST_PUBLIC_TEAMS,
 			PERMISSION_VIEW_TEAM,
 		},
+		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE.Id: {
+			PERMISSION_MANAGE_JOBS,
+		},
+		PERMISSION_SYSCONSOLE_READ_COMPLIANCE.Id: {
+			PERMISSION_READ_JOBS,
+			PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
+		},
 		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id: {
 			PERMISSION_READ_JOBS,
 		},
@@ -475,7 +482,7 @@ func (r *Role) IsValidWithoutId() bool {
 		return false
 	}
 
-	if len(r.DisplayName) == 0 || len(r.DisplayName) > ROLE_DISPLAY_NAME_MAX_LENGTH {
+	if r.DisplayName == "" || len(r.DisplayName) > ROLE_DISPLAY_NAME_MAX_LENGTH {
 		return false
 	}
 
@@ -519,7 +526,7 @@ func CleanRoleNames(roleNames []string) ([]string, bool) {
 }
 
 func IsValidRoleName(roleName string) bool {
-	if len(roleName) <= 0 || len(roleName) > ROLE_NAME_MAX_LENGTH {
+	if roleName == "" || len(roleName) > ROLE_NAME_MAX_LENGTH {
 		return false
 	}
 

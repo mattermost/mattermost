@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetUserStatus(t *testing.T) {

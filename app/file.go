@@ -67,13 +67,46 @@ const (
 	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
 
 	// Deprecated
-	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
-	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
-	IMAGE_PREVIEW_PIXEL_WIDTH    = 1920
+	ImageThumbnailPixelWidth  = 120
+	ImageThumbnailPixelHeight = 100
+	ImagePreviewPixelWidth    = 1920
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	return a.Srv().FileBackend()
+}
+
+func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	err := filesstore.CheckMandatoryS3Fields(settings)
+	if err != nil {
+		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (a *App) TestFilesStoreConnection() *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	nErr := backend.TestConnection()
+	if nErr != nil {
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+	license := a.Srv().License()
+	backend, err := filesstore.NewFileBackend(cfg, license != nil && *license.Features.Compliance)
+	if err != nil {
+		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	nErr := backend.TestConnection()
+	if nErr != nil {
+		return model.NewAppError("TestConnection", "api.file.test_connection.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
@@ -81,7 +114,11 @@ func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	return backend.ReadFile(path)
+	result, nErr := backend.ReadFile(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ReadFile", "api.file.read_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 // Caller must close the first return value
@@ -90,7 +127,11 @@ func (a *App) FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppErr
 	if err != nil {
 		return nil, err
 	}
-	return backend.Reader(path)
+	result, nErr := backend.Reader(path)
+	if nErr != nil {
+		return nil, model.NewAppError("FileReader", "api.file.file_reader.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) FileExists(path string) (bool, *model.AppError) {
@@ -98,7 +139,11 @@ func (a *App) FileExists(path string) (bool, *model.AppError) {
 	if err != nil {
 		return false, err
 	}
-	return backend.FileExists(path)
+	result, nErr := backend.FileExists(path)
+	if nErr != nil {
+		return false, model.NewAppError("FileExists", "api.file.file_exists.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) FileSize(path string) (int64, *model.AppError) {
@@ -106,7 +151,24 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	if err != nil {
 		return 0, err
 	}
-	return backend.FileSize(path)
+	size, nErr := backend.FileSize(path)
+	if nErr != nil {
+		return 0, model.NewAppError("FileSize", "api.file.file_size.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return size, nil
+}
+
+func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return time.Time{}, err
+	}
+	modTime, nErr := backend.FileModTime(path)
+	if nErr != nil {
+		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return modTime, nil
 }
 
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
@@ -114,7 +176,11 @@ func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	return backend.MoveFile(oldPath, newPath)
+	nErr := backend.MoveFile(oldPath, newPath)
+	if nErr != nil {
+		return model.NewAppError("MoveFile", "api.file.move_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -123,7 +189,11 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, err
 	}
 
-	return backend.WriteFile(fr, path)
+	result, nErr := backend.WriteFile(fr, path)
+	if nErr != nil {
+		return result, model.NewAppError("WriteFile", "api.file.write_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
@@ -132,7 +202,11 @@ func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
 		return 0, err
 	}
 
-	return backend.AppendFile(fr, path)
+	result, nErr := backend.AppendFile(fr, path)
+	if nErr != nil {
+		return result, model.NewAppError("AppendFile", "api.file.append_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return result, nil
 }
 
 func (a *App) RemoveFile(path string) *model.AppError {
@@ -140,7 +214,11 @@ func (a *App) RemoveFile(path string) *model.AppError {
 	if err != nil {
 		return err
 	}
-	return backend.RemoveFile(path)
+	nErr := backend.RemoveFile(path)
+	if nErr != nil {
+		return model.NewAppError("RemoveFile", "api.file.remove_file.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
@@ -148,12 +226,25 @@ func (a *App) ListDirectory(path string) ([]string, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	paths, err := backend.ListDirectory(path)
-	if err != nil {
-		return nil, err
+	paths, nErr := backend.ListDirectory(path)
+	if nErr != nil {
+		return nil, model.NewAppError("ListDirectory", "api.file.list_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	return *paths, nil
+	return paths, nil
+}
+
+func (a *App) RemoveDirectory(path string) *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	nErr := backend.RemoveDirectory(path)
+	if nErr != nil {
+		return model.NewAppError("RemoveDirectory", "api.file.remove_directory.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, oldId, filename string) *model.FileInfo {
@@ -310,7 +401,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, nErr := a.Srv().Store.Post().Get(post.Id, false)
+	result, nErr := a.Srv().Store.Post().Get(post.Id, false, false, false)
 	if nErr != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -407,7 +498,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
 func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -612,7 +703,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		o(t)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error",
 			"", http.StatusNotImplemented)
 	}
@@ -684,7 +775,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.teeInput)
 		if err != nil {
-			mlog.Error("Failed to parse SVG", mlog.Err(err))
+			mlog.Warn("Failed to parse SVG", mlog.Err(err))
 		}
 		if svgInfo.Width > 0 && svgInfo.Height > 0 {
 			t.fileinfo.Width = svgInfo.Width

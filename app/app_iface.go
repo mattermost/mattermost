@@ -399,6 +399,7 @@ type AppIface interface {
 	ChannelMembersToRemove(teamID *string) ([]*model.ChannelMember, *model.AppError)
 	CheckAndSendUserLimitWarningEmails() *model.AppError
 	CheckForClientSideCert(r *http.Request) (string, string, string)
+	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
@@ -503,6 +504,7 @@ type AppIface interface {
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
+	FileModTime(path string) (time.Time, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FillInChannelProps(channel *model.Channel) *model.AppError
 	FillInChannelsProps(channelList *model.ChannelList) *model.AppError
@@ -636,13 +638,13 @@ type AppIface interface {
 	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
 	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
-	GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError)
+	GetPostThread(postId string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
 	GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsEtag(channelId string) string
-	GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError)
+	GetPostsEtag(channelId string, collapsedThreads bool) string
+	GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError)
 	GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError)
 	GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
 	GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError)
@@ -840,6 +842,7 @@ type AppIface interface {
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
+	RemoveDirectory(path string) *model.AppError
 	RemoveFile(path string) *model.AppError
 	RemoveLdapPrivateCertificate() *model.AppError
 	RemoveLdapPublicCertificate() *model.AppError
@@ -963,6 +966,8 @@ type AppIface interface {
 	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userId string, cfg *model.Config) *model.AppError
+	TestFilesStoreConnection() *model.AppError
+	TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError
 	TestLdap() *model.AppError
 	TestSiteURL(siteURL string) *model.AppError
 	Timezones() *timezones.Timezones

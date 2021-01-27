@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	EMOJI_MAX_AUTOCOMPLETE_ITEMS = 100
+	EmojiMaxAutocompleteItems = 100
 )
 
 func (api *API) InitEmoji() {
@@ -240,7 +240,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/"+imageType)
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Write(image)
 }
 
@@ -256,7 +256,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PER_PAGE_MAXIMUM)
+	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, web.PerPageMaximum)
 	if err != nil {
 		c.Err = err
 		return
@@ -273,7 +273,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(name, true, EMOJI_MAX_AUTOCOMPLETE_ITEMS)
+	emojis, err := c.App.SearchEmoji(name, true, EmojiMaxAutocompleteItems)
 	if err != nil {
 		c.Err = err
 		return

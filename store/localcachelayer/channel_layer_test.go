@@ -6,17 +6,16 @@ package localcachelayer
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestChannelStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTestWithSqlStore(t, storetest.TestReactionStore)
 }
 
 func TestChannelStoreChannelMemberCountsCache(t *testing.T) {

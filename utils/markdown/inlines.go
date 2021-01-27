@@ -406,10 +406,9 @@ func (p *inlineParser) lookForLinkOrImage() {
 			}
 			p.delimiterStack.Remove(element)
 			return
-		} else {
-			p.delimiterStack.Remove(element)
-			break
 		}
+		p.delimiterStack.Remove(element)
+		break
 	}
 	absPos := relativeToAbsolutePosition(p.ranges, p.position)
 	p.inlines = append(p.inlines, &Text{

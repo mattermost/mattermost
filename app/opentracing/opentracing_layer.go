@@ -1071,6 +1071,28 @@ func (a *OpenTracingAppLayer) CheckForClientSideCert(r *http.Request) (string, s
 	return resultVar0, resultVar1, resultVar2
 }
 
+func (a *OpenTracingAppLayer) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckMandatoryS3Fields")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CheckMandatoryS3Fields(settings)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPasswordAndAllCriteria")
@@ -3658,6 +3680,28 @@ func (a *OpenTracingAppLayer) FileExists(path string) (bool, *model.AppError) {
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.FileExists(path)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) FileModTime(path string) (time.Time, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.FileModTime")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.FileModTime(path)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7034,7 +7078,7 @@ func (a *OpenTracingAppLayer) GetPostIdBeforeTime(channelId string, time int64) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostThread")
 
@@ -7046,7 +7090,7 @@ func (a *OpenTracingAppLayer) GetPostThread(postId string, skipFetchThreads bool
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostThread(postId, skipFetchThreads)
+	resultVar0, resultVar1 := a.app.GetPostThread(postId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7144,7 +7188,7 @@ func (a *OpenTracingAppLayer) GetPostsBeforePost(options model.GetPostsOptions) 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
+func (a *OpenTracingAppLayer) GetPostsEtag(channelId string, collapsedThreads bool) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsEtag")
 
@@ -7156,12 +7200,12 @@ func (a *OpenTracingAppLayer) GetPostsEtag(channelId string) string {
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetPostsEtag(channelId)
+	resultVar0 := a.app.GetPostsEtag(channelId, collapsedThreads)
 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId string, userId string, limitBefore int, limitAfter int, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPostsForChannelAroundLastUnread")
 
@@ -7173,7 +7217,7 @@ func (a *OpenTracingAppLayer) GetPostsForChannelAroundLastUnread(channelId strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter, skipFetchThreads)
+	resultVar0, resultVar1 := a.app.GetPostsForChannelAroundLastUnread(channelId, userId, limitBefore, limitAfter, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11709,6 +11753,28 @@ func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
 	a.app.RemoveConfigListener(id)
 }
 
+func (a *OpenTracingAppLayer) RemoveDirectory(path string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveDirectory")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveDirectory(path)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveFile")
@@ -14306,6 +14372,50 @@ func (a *OpenTracingAppLayer) TestEmail(userId string, cfg *model.Config) *model
 
 	defer span.Finish()
 	resultVar0 := a.app.TestEmail(userId, cfg)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) TestFilesStoreConnection() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFilesStoreConnection")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.TestFilesStoreConnection()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) TestFilesStoreConnectionWithConfig(cfg *model.FileSettings) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TestFilesStoreConnectionWithConfig")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.TestFilesStoreConnectionWithConfig(cfg)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

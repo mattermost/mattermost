@@ -3,7 +3,9 @@
 
 package model
 
-import "net/http"
+import (
+	"net/http"
+)
 
 const (
 	TOKEN_SIZE            = 64

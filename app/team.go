@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -342,7 +343,7 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *mod
 		return "", "", "", err
 	}
 
-	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
+	if team.SchemeId != nil && *team.SchemeId != "" {
 		scheme, err := a.GetScheme(*team.SchemeId)
 		if err != nil {
 			return "", "", "", err
@@ -510,7 +511,7 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -545,11 +546,11 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
+	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -591,17 +592,17 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeamByToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeamByToken", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	user := result.Data.(*model.User)
 
-	if user.IsGuest() && token.Type == TOKEN_TYPE_TEAM_INVITATION {
+	if user.IsGuest() && token.Type == TokenTypeTeamInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
-	if !user.IsGuest() && token.Type == TOKEN_TYPE_GUEST_INVITATION {
+	if !user.IsGuest() && token.Type == TokenTypeGuestInvitation {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -609,7 +610,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		return nil, err
 	}
 
-	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
+	if token.Type == TokenTypeGuestInvitation {
 		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
 			return nil, model.NewAppError("AddUserToTeamByToken", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -618,13 +619,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(user, channel)
 			if err != nil {
-				mlog.Error("error adding user to channel", mlog.Err(err))
+				mlog.Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		return nil, err
+		mlog.Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, nil
@@ -662,7 +663,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, model.NewAppError("AddUserToTeamByInviteId", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("AddUserToTeamByInviteId", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("AddUserToTeamByInviteId", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -783,7 +784,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	}
 
 	if err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
-		mlog.Error(
+		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -796,7 +797,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Error(
+			mlog.Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),
@@ -1184,7 +1185,7 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return model.NewAppError("RemoveUserFromTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("RemoveUserFromTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("RemoveUserFromTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1210,7 +1211,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("RemoveTeamMemberFromTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("RemoveTeamMemberFromTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("RemoveTeamMemberFromTeam", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1305,11 +1306,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err = a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -1389,7 +1390,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User,
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, nil, model.NewAppError("prepareInviteNewUsersToTeam", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1514,7 +1515,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(result.NErr, &nfErr):
-			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
@@ -1839,17 +1840,17 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, err := a.Srv().Store.Token().GetByToken(tokenId)
 		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
+		if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
+		if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
 			a.DeleteToken(token)
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -1858,13 +1859,13 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 
 		return tokenData["teamId"], nil
 	}
-	if len(inviteId) > 0 {
+	if inviteId != "" {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
 		if err == nil {
 			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error("error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
+		mlog.Warn("Error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
 	}
 
 	return "", nil
@@ -1896,7 +1897,7 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 }
 
 func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -1925,7 +1926,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.get_team.app_error", nil, getTeamErr.Error(), http.StatusBadRequest)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -2005,10 +2006,10 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 }
 
 func (a *App) InvalidateAllEmailInvites() *model.AppError {
-	if err := a.Srv().Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); err != nil {
+	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeTeamInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if err := a.Srv().Store.Token().RemoveAllTokensByType(TOKEN_TYPE_GUEST_INVITATION); err != nil {
+	if err := a.Srv().Store.Token().RemoveAllTokensByType(TokenTypeGuestInvitation); err != nil {
 		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil

@@ -14,6 +14,7 @@ const (
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
+	SYSTEM_LICENSE_RENEWAL_TOKEN                  = "LicenseRenewalToken"
 	SYSTEM_LAST_COMPLIANCE_TIME                   = "LastComplianceTime"
 	SYSTEM_ASYMMETRIC_SIGNING_KEY                 = "AsymmetricSigningKey"
 	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
@@ -183,9 +184,8 @@ func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
 	var o WarnMetricStatus
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
 		return nil
-	} else {
-		return &o
 	}
+	return &o
 }
 
 func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {

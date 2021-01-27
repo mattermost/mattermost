@@ -50,16 +50,16 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 		finalConfig[strings.ToLower(setting)] = value
 	}
 
-	if pluginSettingsJsonBytes, err := json.Marshal(finalConfig); err != nil {
+	pluginSettingsJsonBytes, err := json.Marshal(finalConfig)
+	if err != nil {
 		api.logger.Error("Error marshaling config for plugin", mlog.Err(err))
 		return nil
-	} else {
-		err := json.Unmarshal(pluginSettingsJsonBytes, dest)
-		if err != nil {
-			api.logger.Error("Error unmarshaling config for plugin", mlog.Err(err))
-		}
-		return nil
 	}
+	err = json.Unmarshal(pluginSettingsJsonBytes, dest)
+	if err != nil {
+		api.logger.Error("Error unmarshaling config for plugin", mlog.Err(err))
+	}
+	return nil
 }
 
 func (api *PluginAPI) RegisterCommand(command *model.Command) error {
@@ -582,7 +582,7 @@ func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId, false)
+	return api.app.GetPostThread(postId, false, false, false)
 }
 
 func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
@@ -662,7 +662,7 @@ func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
 		return "", err
 	}
 
-	if len(info.PostId) == 0 {
+	if info.PostId == "" {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 	}
 

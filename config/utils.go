@@ -131,7 +131,7 @@ func FixInvalidLocales(cfg *model.Config) bool {
 		changed = true
 	}
 
-	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+	if *cfg.LocalizationSettings.AvailableLocales != "" {
 		isDefaultClientLocaleInAvailableLocales := false
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
 			if _, ok := locales[word]; !ok {
@@ -171,6 +171,10 @@ func Merge(cfg *model.Config, patch *model.Config, mergeConfig *utils.MergeConfi
 
 	retCfg := ret.(model.Config)
 	return &retCfg, nil
+}
+
+func IsDatabaseDSN(dsn string) bool {
+	return strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://")
 }
 
 // stripPassword remove the password from a given DSN

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -259,9 +258,6 @@ func Serve(opts *ServeConfig) {
 	// negotiate the version and plugins
 	// start with default version in the handshake config
 	protoVersion, protoType, pluginSet := protocolVersion(opts)
-
-	// Logging goes to the original stderr
-	log.SetOutput(os.Stderr)
 
 	logger := opts.Logger
 	if logger == nil {

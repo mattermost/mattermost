@@ -14,7 +14,7 @@ type HeaderProvider struct {
 }
 
 const (
-	CMD_HEADER = "header"
+	CmdHeader = "header"
 )
 
 func init() {
@@ -22,12 +22,12 @@ func init() {
 }
 
 func (*HeaderProvider) GetTrigger() string {
-	return CMD_HEADER
+	return CmdHeader
 }
 
 func (*HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_HEADER,
+		Trigger:          CmdHeader,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_header.desc"),
 		AutoCompleteHint: T("api.command_channel_header.hint"),
@@ -79,7 +79,7 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

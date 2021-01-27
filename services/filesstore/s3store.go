@@ -5,17 +5,17 @@ package filesstore
 
 import (
 	"context"
-	"errors"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -118,7 +118,7 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	return s3Clnt, nil
 }
 
-func (b *S3FileBackend) TestConnection() *model.AppError {
+func (b *S3FileBackend) TestConnection() error {
 	exists := true
 	var err error
 	// If a path prefix is present, we attempt to test the bucket by listing objects under the path
@@ -129,14 +129,14 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound {
-				return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.list_objects.app_error", nil, obj.Err.Error(), http.StatusInternalServerError)
+				return errors.Wrap(err, "unable to list objects in the s3 bucket")
 			}
 			exists = false
 		}
 	} else {
 		exists, err = b.client.BucketExists(context.Background(), b.bucket)
 		if err != nil {
-			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "unable to check if the s3 bucket exists")
 		}
 	}
 
@@ -146,7 +146,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 		mlog.Warn("Bucket specified does not exist. Attempting to create...")
 		err := b.client.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
 		if err != nil {
-			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_create.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "unable to create the s3 bucket")
 		}
 	}
 
@@ -154,32 +154,32 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 }
 
 // Caller must close the first return value
-func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
+func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
-		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
 	return minioObject, nil
 }
 
-func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
+func (b *S3FileBackend) ReadFile(path string) ([]byte, error) {
 	path = filepath.Join(b.pathPrefix, path)
 	minioObject, err := b.client.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "unable to open file %s", path)
 	}
 
 	defer minioObject.Close()
-	if f, err := ioutil.ReadAll(minioObject); err != nil {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return f, nil
+	f, err := ioutil.ReadAll(minioObject)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to read file %s", path)
 	}
+	return f, nil
 }
 
-func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
+func (b *S3FileBackend) FileExists(path string) (bool, error) {
 	path = filepath.Join(b.pathPrefix, path)
 
 	_, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
@@ -192,21 +192,32 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 		return false, nil
 	}
 
-	return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	return false, errors.Wrapf(err, "unable to know if file %s exists", path)
 }
 
-func (b *S3FileBackend) FileSize(path string) (int64, *model.AppError) {
+func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	path = filepath.Join(b.pathPrefix, path)
 
 	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
 	if err != nil {
-		return 0, model.NewAppError("FileSize", "api.file.file_size.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "unable to get file size for %s", path)
 	}
 
 	return info.Size, nil
 }
 
-func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
+func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+	}
+
+	return info.LastModified, nil
+}
+
+func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -220,12 +231,12 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 		Encryption: encrypt.NewSSE(),
 	}
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
-		return model.NewAppError("copyFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 	return nil
 }
 
-func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
+func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
 	srcOpts := s3.CopySrcOptions{
@@ -240,17 +251,17 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	}
 
 	if _, err := b.client.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "unable to copy the file to %s to the new destionation", newPath)
 	}
 
 	if err := b.client.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "unable to remove the file old file %s", oldPath)
 	}
 
 	return nil
 }
 
-func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
@@ -262,16 +273,16 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	options := s3PutOptions(b.encrypt, contentType)
 	info, err := b.client.PutObject(context.Background(), b.bucket, path, fr, -1, options)
 	if err != nil {
-		return info.Size, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return info.Size, errors.Wrapf(err, "unable write the data in the file %s", path)
 	}
 
 	return info.Size, nil
 }
 
-func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	fp := filepath.Join(b.pathPrefix, path)
 	if _, err := b.client.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
-		return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "unable to find the file %s to append the data", path)
 	}
 
 	var contentType string
@@ -302,23 +313,18 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.App
 		}
 		_, err = b.client.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
 		if err != nil {
-			return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 		}
 		return info.Size, nil
 	}
 
-	var errString string
-	if err != nil {
-		errString = err.Error()
-	}
-
-	return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, errString, http.StatusInternalServerError)
+	return 0, errors.Wrapf(err, "unable append the data in the file %s", path)
 }
 
-func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
+func (b *S3FileBackend) RemoveFile(path string) error {
 	path = filepath.Join(b.pathPrefix, path)
 	if err := b.client.RemoveObject(context.Background(), b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
-		return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "unable to remove the file %s", path)
 	}
 
 	return nil
@@ -344,11 +350,9 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
-	var paths []string
-
+func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
 		path = path + "/"
@@ -357,9 +361,10 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 	opts := s3.ListObjectsOptions{
 		Prefix: path,
 	}
+	var paths []string
 	for object := range b.client.ListObjects(context.Background(), b.bucket, opts) {
 		if object.Err != nil {
-			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(object.Err, "unable to list the directory %s", path)
 		}
 		// We strip the path prefix that gets applied,
 		// so that it remains transparent to the application.
@@ -370,10 +375,10 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 		}
 	}
 
-	return &paths, nil
+	return paths, nil
 }
 
-func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
+func (b *S3FileBackend) RemoveDirectory(path string) error {
 	opts := s3.ListObjectsOptions{
 		Prefix:    filepath.Join(b.pathPrefix, path),
 		Recursive: true,
@@ -382,7 +387,7 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	objectsCh := b.client.RemoveObjects(context.Background(), b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
 	for err := range objectsCh {
 		if err.Err != nil {
-			return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Err.Error(), http.StatusInternalServerError)
+			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
 		}
 	}
 
@@ -402,13 +407,13 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	return options
 }
 
-func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
-		return model.NewAppError("S3File", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
+func CheckMandatoryS3Fields(settings *model.FileSettings) error {
+	if settings.AmazonS3Bucket == nil || *settings.AmazonS3Bucket == "" {
+		return errors.New("missing s3 bucket settings")
 	}
 
 	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
+	if settings.AmazonS3Endpoint == nil || *settings.AmazonS3Endpoint == "" {
 		settings.SetDefaults(true)
 	}
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	plugin "github.com/hashicorp/go-plugin"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 

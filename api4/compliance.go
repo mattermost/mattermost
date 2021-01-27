@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/avct/uasurfer"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -129,7 +130,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 
 	c.LogAudit("downloaded " + job.Desc)
 
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set("Content-Length", strconv.Itoa(len(reportBytes)))
 	w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
 

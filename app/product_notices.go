@@ -11,19 +11,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
+	"github.com/pkg/errors"
+	date_constraints "github.com/reflog/dateconstraints"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/Masterminds/semver/v3"
-	"github.com/pkg/errors"
-	date_constraints "github.com/reflog/dateconstraints"
 )
 
-const MAX_REPEAT_VIEWINGS = 3
-const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
+const MaxRepeatViewings = 3
+const MinSecondsBetweenRepeatViewings = 60 * 60
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -83,18 +83,19 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC().Truncate(time.Hour * 24)
+		y, m, d := time.Now().UTC().Date()
+		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&now) {
+		if !c.Check(&trunc) {
 			return false, nil
 		}
 	}
 
 	// check if current server version is notice range
-	if cnd.ServerVersion != nil {
+	if !isCloud && cnd.ServerVersion != nil {
 		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {
@@ -237,10 +238,10 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
 			if repeatable {
-				if view.Viewed > MAX_REPEAT_VIEWINGS {
+				if view.Viewed > MaxRepeatViewings {
 					continue
 				}
-				if (time.Now().UTC().Unix() - view.Timestamp) < MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS {
+				if (time.Now().UTC().Unix() - view.Timestamp) < MinSecondsBetweenRepeatViewings {
 					continue
 				}
 			} else if view.Viewed > 0 {
@@ -304,12 +305,12 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 	if err != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
+		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)

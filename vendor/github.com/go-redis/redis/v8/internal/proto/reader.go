@@ -71,13 +71,25 @@ func (r *Reader) ReadLine() ([]byte, error) {
 func (r *Reader) readLine() ([]byte, error) {
 	b, err := r.rd.ReadSlice('\n')
 	if err != nil {
-		return nil, err
+		if err != bufio.ErrBufferFull {
+			return nil, err
+		}
+
+		full := make([]byte, len(b))
+		copy(full, b)
+
+		b, err = r.rd.ReadBytes('\n')
+		if err != nil {
+			return nil, err
+		}
+
+		full = append(full, b...)
+		b = full
 	}
 	if len(b) <= 2 || b[len(b)-1] != '\n' || b[len(b)-2] != '\r' {
 		return nil, fmt.Errorf("redis: invalid reply: %q", b)
 	}
-	b = b[:len(b)-2]
-	return b, nil
+	return b[:len(b)-2], nil
 }
 
 func (r *Reader) ReadReply(m MultiBulkParse) (interface{}, error) {
@@ -181,7 +193,7 @@ func (r *Reader) ReadArrayReply(m MultiBulkParse) (interface{}, error) {
 	}
 }
 
-func (r *Reader) ReadArrayLen() (int64, error) {
+func (r *Reader) ReadArrayLen() (int, error) {
 	line, err := r.ReadLine()
 	if err != nil {
 		return 0, err
@@ -190,7 +202,11 @@ func (r *Reader) ReadArrayLen() (int64, error) {
 	case ErrorReply:
 		return 0, ParseErrorReply(line)
 	case ArrayReply:
-		return parseArrayLen(line)
+		n, err := parseArrayLen(line)
+		if err != nil {
+			return 0, err
+		}
+		return int(n), nil
 	default:
 		return 0, fmt.Errorf("redis: can't parse array reply: %.100q", line)
 	}
@@ -216,7 +232,8 @@ func (r *Reader) ReadScanReply() ([]string, uint64, error) {
 	}
 
 	keys := make([]string, n)
-	for i := int64(0); i < n; i++ {
+
+	for i := 0; i < n; i++ {
 		key, err := r.ReadString()
 		if err != nil {
 			return nil, 0, err

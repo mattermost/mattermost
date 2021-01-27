@@ -16,16 +16,17 @@ import (
 	"time"
 
 	"github.com/icrowley/fake"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/spf13/cobra"
 )
 
 const (
-	DEACTIVATED_USER = "deactivated"
-	GUEST_USER       = "guest"
+	DeactivatedUser = "deactivated"
+	GuestUser       = "guest"
 )
 
 var SampleDataCmd = &cobra.Command{
@@ -296,12 +297,12 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		allUsers = append(allUsers, *userLine.User.Username)
 	}
 	for i := 0; i < guests; i++ {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, GUEST_USER)
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, GuestUser)
 		encoder.Encode(userLine)
 		allUsers = append(allUsers, *userLine.User.Username)
 	}
 	for i := 0; i < deactivatedUsers; i++ {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, DEACTIVATED_USER)
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, DeactivatedUser)
 		encoder.Encode(userLine)
 		allUsers = append(allUsers, *userLine.User.Username)
 	}
@@ -401,7 +402,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	var email string
 
 	switch userType {
-	case GUEST_USER:
+	case GuestUser:
 		password = fmt.Sprintf("SampleGu@st-%d", idx)
 		email = fmt.Sprintf("guest-%d@sample.mattermost.com", idx)
 		roles = "system_guest"
@@ -410,7 +411,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 			password = "SampleGu@st1"
 			email = "guest@sample.mattermost.com"
 		}
-	case DEACTIVATED_USER:
+	case DeactivatedUser:
 		password = fmt.Sprintf("SampleDe@ctivated-%d", idx)
 		email = fmt.Sprintf("deactivated-%d@sample.mattermost.com", idx)
 	default:
@@ -492,12 +493,12 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		team := possibleTeams[position]
 		possibleTeams = append(possibleTeams[:position], possibleTeams[position+1:]...)
 		if teamChannels, err := teamsAndChannels[team]; err {
-			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team, userType == GUEST_USER))
+			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team, userType == GuestUser))
 		}
 	}
 
 	var deleteAt int64
-	if userType == DEACTIVATED_USER {
+	if userType == DeactivatedUser {
 		deleteAt = model.GetMillis()
 	}
 

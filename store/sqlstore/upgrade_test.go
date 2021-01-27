@@ -6,8 +6,9 @@ package sqlstore
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func TestStoreUpgrade(t *testing.T) {
@@ -34,26 +35,26 @@ func TestStoreUpgrade(t *testing.T) {
 		})
 
 		t.Run("upgrade from earliest supported version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			saveSchemaVersion(sqlStore, Version300)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade from no existing version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "")
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running earlier minor version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "5.1.0")
 			err := upgradeDatabase(sqlStore, "5.8.0")
 			require.NoError(t, err)
-			// Assert CURRENT_SCHEMA_VERSION, not 5.8.0, since the migrations will move
+			// Assert CurrentSchemaVersion, not 5.8.0, since the migrations will move
 			// past 5.8.0 regardless of the input parameter.
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running later minor version", func(t *testing.T) {
@@ -65,9 +66,9 @@ func TestStoreUpgrade(t *testing.T) {
 
 		t.Run("upgrade schema running earlier major version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, "4.1.0")
-			err := upgradeDatabase(sqlStore, CURRENT_SCHEMA_VERSION)
+			err := upgradeDatabase(sqlStore, CurrentSchemaVersion)
 			require.NoError(t, err)
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("upgrade schema running later major version", func(t *testing.T) {
@@ -84,21 +85,21 @@ func TestSaveSchemaVersion(t *testing.T) {
 		sqlStore := ss.(*SqlStore)
 
 		t.Run("set earliest version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, VERSION_3_0_0)
+			saveSchemaVersion(sqlStore, Version300)
 			props, err := ss.System().Get()
 			require.Nil(t, err)
 
-			require.Equal(t, VERSION_3_0_0, props["Version"])
-			require.Equal(t, VERSION_3_0_0, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, Version300, props["Version"])
+			require.Equal(t, Version300, sqlStore.GetCurrentSchemaVersion())
 		})
 
 		t.Run("set current version", func(t *testing.T) {
-			saveSchemaVersion(sqlStore, CURRENT_SCHEMA_VERSION)
+			saveSchemaVersion(sqlStore, CurrentSchemaVersion)
 			props, err := ss.System().Get()
 			require.Nil(t, err)
 
-			require.Equal(t, CURRENT_SCHEMA_VERSION, props["Version"])
-			require.Equal(t, CURRENT_SCHEMA_VERSION, sqlStore.GetCurrentSchemaVersion())
+			require.Equal(t, CurrentSchemaVersion, props["Version"])
+			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())
 		})
 	})
 }

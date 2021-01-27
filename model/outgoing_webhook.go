@@ -140,7 +140,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 0 && !IsValidId(o.ChannelId) {
+	if o.ChannelId != "" && !IsValidId(o.ChannelId) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -154,7 +154,7 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 
 	if len(o.TriggerWords) != 0 {
 		for _, triggerWord := range o.TriggerWords {
-			if len(triggerWord) == 0 {
+			if triggerWord == "" {
 				return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -215,7 +215,7 @@ func (o *OutgoingWebhook) PreUpdate() {
 }
 
 func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
-	if len(word) == 0 {
+	if word == "" {
 		return false
 	}
 
@@ -229,7 +229,7 @@ func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
-	if len(word) == 0 {
+	if word == "" {
 		return false
 	}
 
@@ -243,7 +243,7 @@ func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
 }
 
 func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (triggerWord string) {
-	if len(word) == 0 {
+	if word == "" {
 		return
 	}
 

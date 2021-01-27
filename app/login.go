@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -28,7 +29,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
 
-	if len(subject) > 0 {
+	if subject != "" {
 		for _, v := range strings.Split(subject, "/") {
 			kv := strings.Split(v, "=")
 			if len(kv) == 2 && kv[0] == "emailAddress" {
@@ -52,7 +53,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		}
 	}()
 
-	if len(password) == 0 && !IsCWSLogin(a, cwsToken) {
+	if password == "" && !IsCWSLogin(a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -69,7 +70,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		}
 		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Error("error retrieving the cws token from the store", mlog.Err(err))
+			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -83,11 +84,11 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 			token = &model.Token{
 				Token:    cwsToken,
 				CreateAt: model.GetMillis(),
-				Type:     TOKEN_TYPE_CWS_ACCESS,
+				Type:     TokenTypeCWSAccess,
 			}
 			err := a.Srv().Store.Token().Save(token)
 			if err != nil {
-				mlog.Error("error storing the cws token in the store", mlog.Err(err))
+				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -122,10 +123,10 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
 	// If we are given a userID then fail if we can't find a user with that ID
-	if len(id) != 0 {
+	if id != "" {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != MISSING_ACCOUNT_ERROR {
+			if err.Id != MissingAccountError {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
 			}
@@ -174,7 +175,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}}
 	session.GenerateCSRF()
 
-	if len(deviceId) > 0 {
+	if deviceId != "" {
 		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id
