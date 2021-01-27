@@ -316,6 +316,7 @@ type PostStore interface {
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error)

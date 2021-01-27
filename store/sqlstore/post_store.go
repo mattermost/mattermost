@@ -1798,10 +1798,38 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 	return rowsAffected, nil
 }
 
-func (s *SqlPostStore) PermanentDeleteBatchGranular(endTime int64, limit int64) (int64, error) {
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of posts which belong to a
+// granular (i.e. team or channel-specific) retention policy. `now` must be a Unix timestamp
+// in milliseconds.
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	// Channel-specific policies override team-specific policies
 	const sQuery = `
-	DELETE FROM Posts WHERE
-	`
+	DELETE FROM Posts WHERE Id IN (
+		SELECT A.Id FROM Posts AS A
+		INNER JOIN Channels AS B ON A.ChannelId = B.Id
+		INNER JOIN Teams AS C ON B.TeamId = C.Id
+		LEFT JOIN RetentionPoliciesChannels AS D ON A.ChannelId = D.ChannelId
+		LEFT JOIN RetentionPoliciesTeams AS E ON C.Id = E.TeamId
+		INNER JOIN RetentionPolicies AS F ON D.PolicyId = F.Id OR E.PolicyId = F.Id
+		WHERE (
+			D.ChannelId IS NOT NULL
+			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			E.TeamId IS NOT NULL AND D.ChannelId IS NULL
+			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+		)
+		LIMIT :Limit
+	)`
+	props := map[string]interface{}{"Now": now, "Limit": limit}
+	result, err := s.GetMaster().Exec(sQuery, props)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Posts")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Posts")
+	}
+	return rowsAffected, nil
 }
 
 func (s *SqlPostStore) GetOldest() (*model.Post, error) {
