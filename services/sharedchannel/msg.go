@@ -11,10 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// msgCache caches the work of converting a change in the Posts table to a remote cluster message.
-// Maps Post id to syncMsg.
-type msgCache map[string]syncMsg
-
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
@@ -43,16 +39,11 @@ func (sm syncMsg) String() string {
 
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
+func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
-			continue
-		}
-
-		if sm, ok := cache[p.Id]; ok {
-			syncMessages = append(syncMessages, sm)
 			continue
 		}
 
@@ -97,7 +88,6 @@ func (scs *Service) postsToMsg(posts []*model.Post, cache msgCache, rc *model.Re
 			Reactions: reactions,
 		}
 		syncMessages = append(syncMessages, sm)
-		cache[p.Id] = sm
 	}
 
 	if len(syncMessages) == 0 {

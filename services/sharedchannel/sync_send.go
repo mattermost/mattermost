@@ -128,10 +128,9 @@ func (scs *Service) processTask(task syncTask) error {
 		remotes = []*model.RemoteCluster{rc}
 	}
 
-	cache := make(msgCache)
 	errs := merror.New()
 	for _, rc := range remotes {
-		if err := scs.updateForRemote(task.channelId, rc, cache); err != nil {
+		if err := scs.updateForRemote(task.channelId, rc); err != nil {
 			errs.Append(err)
 			// retry...
 			if task.retryCount < MaxRetries {
@@ -148,7 +147,7 @@ func (scs *Service) processTask(task syncTask) error {
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
-func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, cache msgCache) error {
+func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
@@ -183,7 +182,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return nil
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max], cache, rc, scr.LastSyncAt)
+	msg, err := scs.postsToMsg(pSlice[:max], rc, scr.LastSyncAt)
 	if err != nil {
 		return err
 	}
