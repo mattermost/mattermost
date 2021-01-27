@@ -184,6 +184,19 @@ func (ts *TelemetryService) sendTelemetry(event string, properties map[string]in
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
+	if reflect.TypeOf(setting).Kind() == reflect.Slice && reflect.TypeOf(defaultValue).Kind() == reflect.Slice {
+		settingVal := reflect.ValueOf(setting)
+		defaultValueVal := reflect.ValueOf(defaultValue)
+		if settingVal.Len() != defaultValueVal.Len() {
+			return false
+		}
+		for i := 0; i < settingVal.Len(); i++ {
+			if settingVal.Index(i).Interface() != defaultValueVal.Index(i).Interface() {
+				return false
+			}
+		}
+		return true
+	}
 	return setting == defaultValue
 }
 
@@ -697,7 +710,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigNativeApp, map[string]interface{}{
-		"isdefault_app_custom_url_schemes":    reflect.DeepEqual(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
+		"isdefault_app_custom_url_schemes":    isDefault(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
