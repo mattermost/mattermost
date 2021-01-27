@@ -47,6 +47,7 @@ type AppIface interface {
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 }
 
 // Service provides shared channel synchronization.
@@ -176,4 +177,17 @@ func (scs *Service) pause() {
 	scs.done = nil
 
 	scs.server.GetLogger().Debug("Shared Channel Service inactive")
+}
+
+// Makes the remote channel to be read only, only for guests.
+func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
+	readonlyChannelModerations := []*model.ChannelModerationPatch{
+		{
+			Name:  &model.ChannelModeratedPermissions[0],
+			Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+		},
+	}
+
+	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
+	return err
 }
