@@ -383,7 +383,11 @@ func (c *Client4) GetComplianceReportsRoute() string {
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
-	return fmt.Sprintf("/compliance/reports/%v", reportId)
+	return fmt.Sprintf("%s/%s", c.GetComplianceReportsRoute(), reportId)
+}
+
+func (c *Client4) GetComplianceReportDownloadRoute(reportId string) string {
+	return fmt.Sprintf("%s/%s/download", c.GetComplianceReportsRoute(), reportId)
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
@@ -3873,7 +3877,7 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}

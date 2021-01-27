@@ -93,19 +93,19 @@ TESTS=.
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
+PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
