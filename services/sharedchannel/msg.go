@@ -195,7 +195,7 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 		// Another option is to trigger sync on User update.
 		//
 		// Fields we care about for sync: username, email, nickname, firstname, lastname, position.
-		if model.GetMillis()-scu.LastSyncAt < 3600000 { // 1 hour
+		if time.Since(model.GetTimeForMillis(scu.LastSyncAt)) < time.Hour {
 			return false, nil
 		}
 	}
