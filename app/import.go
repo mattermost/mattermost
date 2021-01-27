@@ -159,9 +159,12 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 		}
 
 		if lineNumber == 1 {
-			importDataFileVersion, appErr := processImportDataFileVersionLine(line); appErr != nil && dryRun {
-					mlog.Warn(appErr.Where, mlog.Err(appErr))}
-			return appErr, lineNumber
+			importDataFileVersion, appErr := processImportDataFileVersionLine(line); if appErr != nil && dryRun {
+				mlog.Warn(appErr.Where, mlog.Err(appErr))
+			} else {
+				return appErr, lineNumber
+			}
+
 			appErr = model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest)
 			if importDataFileVersion != 1 {
 				if dryRun {
@@ -193,13 +196,13 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 			}
 		}
 
-			// Set up the workers and channel for this type.
-			lastLineType = line.Type
-			linesChan = make(chan LineImportWorkerData, workers)
-			for i := 0; i < workers; i++ {
-				wg.Add(1)
-				go a.bulkImportWorker(dryRun, &wg, linesChan, errorsChan)
-			}
+		// Set up the workers and channel for this type.
+		lastLineType = line.Type
+		linesChan = make(chan LineImportWorkerData, workers)
+		for i := 0; i < workers; i++ {
+			wg.Add(1)
+			go a.bulkImportWorker(dryRun, &wg, linesChan, errorsChan)
+		}
 
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
