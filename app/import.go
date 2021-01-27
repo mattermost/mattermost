@@ -130,6 +130,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 	scanner := bufio.NewScanner(fileReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
+	appErr := model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest)
 
 	lineNumber := 0
 
@@ -148,9 +149,9 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
 			if dryRun {
-				mlog.Warn("JSON Decode error", mlog.Err(err))
+				mlog.Warn(appErr.Where, mlog.Err(appErr))
 			} else {
-				return model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error(), http.StatusBadRequest), lineNumber
+				return appErr, lineNumber
 			}
 		}
 
@@ -162,17 +163,17 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
 			if appErr != nil {
 				if dryRun {
-					mlog.Warn("Import data file version error", mlog.Err(appErr))
+					mlog.Warn(appErr.Where, mlog.Err(appErr))
 				} else {
 					return appErr, lineNumber
 				}
 			}
-
+		appErr = model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest)
 			if importDataFileVersion != 1 {
 				if dryRun {
-					mlog.Warn("Unsupported version error", mlog.Err(appErr))
+					mlog.Warn(appErr.Where, mlog.Err(appErr))
 				} else {
-					return model.NewAppError("BulkImport", "app.import.bulk_import.unsupported_version.error", nil, "", http.StatusBadRequest), lineNumber
+					return appErr, lineNumber
 				}
 			}
 			lastLineType = line.Type
@@ -189,8 +190,10 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					if stopOnError(err) {
+					if !dryRun && stopOnError(err) {
 						return err.Error, err.LineNumber
+					} else {
+						mlog.Warn("Large image import error", mlog.Err(err.Error))
 					}
 				}
 			}
@@ -207,10 +210,12 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
 		case err := <-errorsChan:
-			if stopOnError(err) {
+			if !dryRun && stopOnError(err) {
 				close(linesChan)
 				wg.Wait()
 				return err.Error, err.LineNumber
+			} else {
+				mlog.Warn("Large image import error", mlog.Err(err.Error))
 			}
 		}
 	}
@@ -224,19 +229,20 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		if stopOnError(err) {
+		if !dryRun && stopOnError(err) {
 			return err.Error, err.LineNumber
+		} else {
+			mlog.Warn("Large image import error", mlog.Err(err.Error))
 		}
 	}
-
+	appErr = model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, appErr.Error(), http.StatusInternalServerError)
 	if err := scanner.Err(); err != nil {
 		if dryRun {
-			mlog.Warn("File scan error", mlog.Err(err))
+			mlog.Warn(appErr.Where, mlog.Err(appErr))
 		} else {
-			return model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError), 0
+			return appErr, 0
 		}
 	}
-
 	return nil, 0
 }
 
