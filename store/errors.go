@@ -26,6 +26,13 @@ func (e *ErrInvalidInput) Error() string {
 	return fmt.Sprintf("invalid input: entity: %s field: %s value: %s", e.Entity, e.Field, e.Value)
 }
 
+func (e *ErrInvalidInput) InvalidInputInfo() (entity string, field string, value interface{}) {
+	entity = e.Entity
+	field = e.Field
+	value = e.Value
+	return
+}
+
 // ErrLimitExceeded indicates an error that has occurred because some value exceeded a limit.
 type ErrLimitExceeded struct {
 	What  string // What was the object that exceeded.

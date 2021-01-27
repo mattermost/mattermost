@@ -52,12 +52,14 @@ type AppIface interface {
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 }
 
+// errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
 type errNotFound interface {
 	IsErrNotFound() bool
 }
 
-type errConflict interface {
-	IsErrConflict() bool
+// errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
+type errInvalidInput interface {
+	InvalidInputInfo() (entity string, field string, value interface{})
 }
 
 // Service provides shared channel synchronization.

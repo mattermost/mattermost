@@ -155,12 +155,15 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 
 	if euser == nil {
 		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
-			if _, ok := err.(errConflict); !ok {
-				return nil, fmt.Errorf("error inserting sync user: %w", err)
+			if e, ok := err.(errInvalidInput); ok {
+				_, field, value := e.InvalidInputInfo()
+				if field == "email" || field == "username" {
+					// username or email collision
+					// TODO: handle collision by modifying username/email (MM-32133)
+					return nil, fmt.Errorf("collision inserting sync user (%s=%s): %w", field, value, err)
+				}
 			}
-			// probably a username or email collision
-			// TODO: handle collision by modifying username/email (MM-32133)
-			return nil, fmt.Errorf("username or email collision inserting sync user: %w", err)
+			return nil, fmt.Errorf("error inserting sync user: %w", err)
 		}
 	} else {
 		patch := &model.UserPatch{
