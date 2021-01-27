@@ -51,7 +51,7 @@ type Client struct {
 	// TessdataPrefix can indicate directory path to `tessdata`.
 	// It is set `/usr/local/share/tessdata/` or something like that, as default.
 	// TODO: Implement and test
-	TessdataPrefix *string
+	TessdataPrefix string
 
 	// Languages are languages to be detected. If not specified, it's gonna be "eng".
 	Languages []string
@@ -229,8 +229,18 @@ func (client *Client) SetConfigFile(fpath string) error {
 	return nil
 }
 
+// SetTessdataPrefix sets path to the models directory.
+// Environment variable TESSDATA_PREFIX is used as default.
+func (client *Client) SetTessdataPrefix(prefix string) error {
+	if prefix == "" {
+		return fmt.Errorf("tessdata prefix could not be empty")
+	}
+	client.TessdataPrefix = prefix
+	client.flagForInit()
+	return nil
+}
+
 // Initialize tesseract::TessBaseAPI
-// TODO: add tessdata prefix
 func (client *Client) init() error {
 
 	if !client.shouldInit {
@@ -250,8 +260,14 @@ func (client *Client) init() error {
 	}
 	defer C.free(unsafe.Pointer(configfile))
 
+	var tessdataPrefix *C.char
+	if client.TessdataPrefix != "" {
+		tessdataPrefix = C.CString(client.TessdataPrefix)
+	}
+	defer C.free(unsafe.Pointer(tessdataPrefix))
+
 	errbuf := [512]C.char{}
-	res := C.Init(client.api, nil, languages, configfile, &errbuf[0])
+	res := C.Init(client.api, tessdataPrefix, languages, configfile, &errbuf[0])
 	msg := C.GoString(&errbuf[0])
 
 	if res != 0 {
@@ -351,7 +367,7 @@ func (client *Client) GetBoundingBoxes(level PageIteratorLevel) (out []BoundingB
 	length := int(boxArray.length)
 	defer C.free(unsafe.Pointer(boxArray.boxes))
 	defer C.free(unsafe.Pointer(boxArray))
-
+	out = make([]BoundingBox, 0, length)
 	for i := 0; i < length; i++ {
 		// cast to bounding_box: boxes + i*sizeof(box)
 		box := (*C.struct_bounding_box)(unsafe.Pointer(uintptr(unsafe.Pointer(boxArray.boxes)) + uintptr(i)*unsafe.Sizeof(C.struct_bounding_box{})))
@@ -367,8 +383,7 @@ func (client *Client) GetBoundingBoxes(level PageIteratorLevel) (out []BoundingB
 
 // GetAvailableLanguages returns a list of available languages in the default tesspath
 func GetAvailableLanguages() ([]string, error) {
-	path := C.GoString(C.GetDataPath())
-	languages, err := filepath.Glob(filepath.Join(path, "*.traineddata"))
+	languages, err := filepath.Glob(filepath.Join(getDataPath(), "*.traineddata"))
 	if err != nil {
 		return languages, err
 	}
@@ -393,7 +408,7 @@ func (client *Client) GetBoundingBoxesVerbose() (out []BoundingBox, err error) {
 	length := int(boxArray.length)
 	defer C.free(unsafe.Pointer(boxArray.boxes))
 	defer C.free(unsafe.Pointer(boxArray))
-
+	out = make([]BoundingBox, 0, length)
 	for i := 0; i < length; i++ {
 		// cast to bounding_box: boxes + i*sizeof(box)
 		box := (*C.struct_bounding_box)(unsafe.Pointer(uintptr(unsafe.Pointer(boxArray.boxes)) + uintptr(i)*unsafe.Sizeof(C.struct_bounding_box{})))
@@ -408,4 +423,10 @@ func (client *Client) GetBoundingBoxesVerbose() (out []BoundingBox, err error) {
 		})
 	}
 	return
+}
+
+// getDataPath is useful hepler to determine where current tesseract
+// installation stores trained models
+func getDataPath() string {
+	return C.GoString(C.GetDataPath())
 }

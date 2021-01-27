@@ -109,17 +109,15 @@ func (e *Encoder) ResetDict(w io.Writer, dict map[string]int) {
 	e.resetWriter(w)
 	e.flags = 0
 	e.structTag = ""
-	e.SetDict(dict)
+	e.dict = dict
 }
 
-func (e *Encoder) SetDict(dict map[string]int) {
-	if len(dict) > 0 {
-		e.dict = dict
-	} else {
-		for k := range e.dict {
-			delete(e.dict, k)
-		}
-	}
+func (e *Encoder) WithDict(dict map[string]int, fn func(*Encoder) error) error {
+	oldDict := e.dict
+	e.dict = dict
+	err := fn(e)
+	e.dict = oldDict
+	return err
 }
 
 func (e *Encoder) resetWriter(w io.Writer) {

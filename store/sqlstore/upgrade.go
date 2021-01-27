@@ -966,7 +966,9 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }
 }
