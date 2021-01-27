@@ -1540,11 +1540,11 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Hız sınırlama bellek deposu hazırlanamadı. MemoryStoreSize yapılandırma ayarını denetleyin."
+    "translation": "Hız sınırlaması bellek deposu hazırlanamadı. MemoryStoreSize yapılandırma ayarını denetleyin."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
-    "translation": "Hız sınırlama hazırlanamadı."
+    "translation": "Hız sınırlaması hazırlanamadı."
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -4132,11 +4132,11 @@
   },
   {
     "id": "model.config.is_valid.rate_mem.app_error",
-    "translation": "Bellek depolama boyutu hız sınırı ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
+    "translation": "Hız sınırlaması ayarı için bellek depolama boyutu geçersiz. Değer pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.rate_sec.app_error",
-    "translation": "Saniyelik hız sınırı ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
+    "translation": "Saniyelik hız sınırlaması ayarı geçersiz. Değer pozitif bir sayı olmalıdır."
   },
   {
     "id": "model.config.is_valid.read_timeout.app_error",
@@ -5540,7 +5540,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen lisansı yenileyin."
+    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler devre dışı kalabilir. Lütfen şimdi lisansı yenileyin."
   },
   {
     "id": "api.user.create_password_token.error",
@@ -7751,10 +7751,6 @@
     "translation": "Kullanıcının son güncellenme tarihi güncellenemedi."
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Kullanıcı parolası güncellenemedi."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Başarısız oturum açma girişimleri güncellenemedi."
   },
@@ -7916,15 +7912,15 @@
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
-    "translation": "Hız sınırlayıcıda sorun çıktı."
+    "translation": "Hız sınırlamasında sorun çıktı."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Çağrı e-postaları hız sınırı aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
+    "translation": "Çağrı e-postaları hız sınırlaması aşıldı. Zamanlayıcı {{.ResetAfter}} saniye sonra sıfırlanacak. Lütfen {{.RetryAfter}} saniye sonra yeniden deneyin."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
-    "translation": "Hız sınırlayıcı ayarlanmamış."
+    "translation": "Hız sınırlaması ayarlanmamış."
   },
   {
     "id": "app.channel.autofollow.app_error",
@@ -8324,7 +8320,7 @@
   },
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
-    "translation": "Kimlik doğrulama kodu alınamadı."
+    "translation": "Uç nokta Keşif Belgesinden alınırken sorun çıktı."
   },
   {
     "id": "ent.compliance.global_relay.write_file.appError",
@@ -8397,5 +8393,117 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "Veriler dosyaya eklenemedi."
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "Arama sonuçlarının kodu çözülemedi"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "Arama tamamlanamadı"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearch dosyaları bu sunucu üzerinde devre dışı bırakılmış"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "Dosya dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "Kullanıcı dosyaları silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "İleti dosyaları silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "Dosya silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Dosyalar için Elasticsearch kalıbı oluşturulamadı"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Dosya dizini kapatılamadı."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Dosya araması tamamlanamadı."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Dosya yığını dizine eklenemedi."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Dosya dizine eklenemedi."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Kullanıcı dosyaları silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "İleti dosyaları silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Dosyalar silinemedi."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Dosya silinemedi."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Bleve dosya dizini oluşturulurken sorun çıktı."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "İndirmek istediğiniz görev türü şu anda desteklenmiyor"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Güncelleme zamanı geçerli bir zaman olmalıdır."
+  },
+  {
+    "id": "error",
+    "translation": "Hata"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Uygulamaya geri yönlendiriliyorsunuz."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Bu tarayıcı sekmesini kapatabilirsiniz."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Kimlik doğrulandı"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Belirtilen yönlendirme adresi geçersiz"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Belirtilen özel adres şeması geçersiz"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Güvenlik nedeniyle {{.Name}} değişikliğine izin verilmiyor."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} sitesine geri dön"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "İstekte AuthData ya da AuthService parametresi eksik."
   }
 ]

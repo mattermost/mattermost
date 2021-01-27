@@ -792,7 +792,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sinceString := r.URL.Query().Get("since")
-	if len(sinceString) > 0 {
+	if sinceString != "" {
 		since, parseError := strconv.ParseInt(sinceString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("since")

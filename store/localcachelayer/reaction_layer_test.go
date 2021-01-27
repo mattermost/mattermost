@@ -15,7 +15,7 @@ import (
 )
 
 func TestReactionStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTestWithSqlStore(t, storetest.TestReactionStore)
 }
 
 func TestReactionStoreCache(t *testing.T) {

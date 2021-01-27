@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -209,6 +210,17 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	return info.Size, nil
 }
 
+func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+	}
+
+	return info.LastModified, nil
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
@@ -344,7 +356,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 
 func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
 		path = path + "/"
@@ -400,12 +412,12 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 }
 
 func CheckMandatoryS3Fields(settings *model.FileSettings) error {
-	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
+	if settings.AmazonS3Bucket == nil || *settings.AmazonS3Bucket == "" {
 		return errors.New("missing s3 bucket settings")
 	}
 
 	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
+	if settings.AmazonS3Endpoint == nil || *settings.AmazonS3Endpoint == "" {
 		settings.SetDefaults(true)
 	}
 

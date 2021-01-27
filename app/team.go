@@ -619,13 +619,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(user, channel)
 			if err != nil {
-				mlog.Error("error adding user to channel", mlog.Err(err))
+				mlog.Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
 	}
 
 	if err := a.DeleteToken(token); err != nil {
-		return nil, err
+		mlog.Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, nil
@@ -784,7 +784,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	}
 
 	if err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
-		mlog.Error(
+		mlog.Warn(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
 			mlog.String("team_id", team.Id),
@@ -797,7 +797,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 	if !user.IsGuest() {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(team.Id, user, shouldBeAdmin, userRequestorId); err != nil {
-			mlog.Error(
+			mlog.Warn(
 				"Encountered an issue joining default channels.",
 				mlog.String("user_id", user.Id),
 				mlog.String("team_id", team.Id),
@@ -1306,11 +1306,11 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
 			if err = a.postLeaveTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		} else {
 			if err = a.postRemoveFromTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				mlog.Warn("Failed to post join/leave message", mlog.Err(err))
 			}
 		}
 	}
@@ -1840,7 +1840,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	tokenId := query.Get("t")
 	inviteId := query.Get("id")
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		token, err := a.Srv().Store.Token().GetByToken(tokenId)
 		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
@@ -1859,13 +1859,13 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 
 		return tokenData["teamId"], nil
 	}
-	if len(inviteId) > 0 {
+	if inviteId != "" {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
 		if err == nil {
 			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error("error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
+		mlog.Warn("Error getting team by inviteId.", mlog.String("invite_id", inviteId), mlog.Err(err))
 	}
 
 	return "", nil
@@ -1897,7 +1897,7 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 }
 
 func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -1926,7 +1926,7 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.get_team.app_error", nil, getTeamErr.Error(), http.StatusBadRequest)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
