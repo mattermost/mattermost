@@ -129,7 +129,7 @@ type FailedPayment struct {
 	FailureMessage string `json:"failure_message"`
 }
 
-type FreeTierStats struct {
+type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
 	IsPaidTier     string `json:"is_paid_tier"`
 }
