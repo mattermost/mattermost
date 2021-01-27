@@ -32,7 +32,7 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 	model.AppErrorInit(utils.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false, nil),
+		app.Config(configDSN, false, true, nil),
 		app.StartSearchEngine,
 	)
 	if err != nil {
