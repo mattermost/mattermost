@@ -722,10 +722,7 @@ func (u *User) GetPreferredTimezone() string {
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
 func (u *User) IsRemote() bool {
-	if u.RemoteId != nil {
-		return *u.RemoteId != ""
-	}
-	return false
+	return u.RemoteId != nil && *u.RemoteId != ""
 }
 
 // UserFromJson will decode the input and return a User
