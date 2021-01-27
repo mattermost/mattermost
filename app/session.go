@@ -5,9 +5,11 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -35,6 +37,19 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
+func ReturnSessionToPool(session *model.Session) {
+	if session != nil {
+		session.Id = ""
+		userSessionPool.Put(session)
+	}
+}
+
+var userSessionPool = sync.Pool{
+	New: func() interface{} {
+		return &model.Session{}
+	},
+}
+
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	apiKey := os.Getenv("MM_CLOUD_API_KEY")
 	if apiKey != "" && apiKey == token {
@@ -53,9 +68,10 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 
-	var session *model.Session
+	var session = userSessionPool.Get().(*model.Session)
+
 	var err *model.AppError
-	if err := a.Srv().sessionCache.Get(token, &session); err == nil {
+	if err := a.Srv().sessionCache.Get(token, session); err == nil {
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
 		}
@@ -65,7 +81,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session.Id == "" {
 		var nErr error
 		if session, nErr = a.Srv().Store.Session().Get(token); nErr == nil {
 			if session != nil {
@@ -82,7 +98,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session == nil || session.Id == "" {
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
 			detailedError := ""
@@ -97,7 +113,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil || session.IsExpired() {
+	if session.Id == "" || session.IsExpired() {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
 	}
 
@@ -142,17 +158,14 @@ func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 	sessions, err := a.Srv().Store.Session().GetSessions(userId)
 	if err != nil {
 		mlog.Error("Unable to get user sessions", mlog.String("user_id", userId), mlog.Err(err))
+		return
 	}
 
 	for _, session := range sessions {
-		if isGuest {
-			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
-		} else {
-			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
-		}
+		session.AddProp(model.SESSION_PROP_IS_GUEST, fmt.Sprintf("%t", isGuest))
 		err := a.Srv().Store.Session().UpdateProps(session)
 		if err != nil {
-			mlog.Error("Unable to update isGuest session", mlog.Err(err))
+			mlog.Warn("Unable to update isGuest session", mlog.Err(err))
 			continue
 		}
 		a.AddSessionToCache(session)
@@ -264,8 +277,7 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 		if session.DeviceId == deviceId && session.Id != currentSessionId {
 			mlog.Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userId))
 			if err := a.RevokeSession(session); err != nil {
-				// Soft error so we still remove the other sessions
-				mlog.Error(err.Error())
+				mlog.Warn("Could not revoke session for device", mlog.String("device_id", deviceId), mlog.Err(err))
 			}
 		}
 	}
@@ -326,7 +338,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if err := a.Srv().Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
-		mlog.Error("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
+		mlog.Warn("Failed to update LastActivityAt", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id), mlog.Err(err))
 	}
 
 	session.LastActivityAt = now

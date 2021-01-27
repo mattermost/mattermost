@@ -112,7 +112,9 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-			a.postJoinMessageForDefaultChannel(user, requestor, channel)
+			if aErr := a.postJoinMessageForDefaultChannel(user, requestor, channel); aErr != nil {
+				mlog.Warn("Failed to post join/leave message", mlog.Err(aErr))
+			}
 		}
 
 		a.invalidateCacheForChannelMembers(channel.Id)
@@ -142,28 +144,30 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 	return nil
 }
 
-func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *model.User, channel *model.Channel) {
+func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *model.User, channel *model.Channel) *model.AppError {
 	if channel.Name == model.DEFAULT_CHANNEL {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		} else {
 			if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		}
 	} else {
 		if requestor == nil {
 			if err := a.postJoinChannelMessage(user, channel); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		} else {
 			if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
-				mlog.Error("Failed to post join/leave message", mlog.Err(err))
+				return err
 			}
 		}
 	}
+
+	return nil
 }
 
 func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
@@ -171,7 +175,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(channel.TeamId) == 0 {
+	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -733,7 +737,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 		}
 
 		if _, err := a.CreatePost(post, channel, false, true); err != nil {
-			mlog.Error("Failed to post unarchive message", mlog.Err(err))
+			mlog.Warn("Failed to post unarchive message", mlog.Err(err))
 		}
 	}
 
@@ -753,19 +757,19 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 
 	if oldChannelDisplayName != channel.DisplayName {
 		if err = a.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if channel.Header != oldChannelHeader {
 		if err = a.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, channel.Header); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
 		if err = a.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, channel.Purpose); err != nil {
-			mlog.Error(err.Error())
+			mlog.Warn(err.Error())
 		}
 	}
 
@@ -835,7 +839,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -852,7 +856,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -875,7 +879,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -900,7 +904,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	var scheme *model.Scheme
 	// Channel has no scheme so create one
-	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
 		scheme, err = a.CreateChannelScheme(channel)
 		if err != nil {
 			return nil, err
@@ -932,7 +936,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -1248,21 +1252,21 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		}
 
 		if _, err := a.CreatePost(post, channel, false, true); err != nil {
-			mlog.Error("Failed to post archive message", mlog.Err(err))
+			mlog.Warn("Failed to post archive message", mlog.Err(err))
 		}
 	}
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
 		if err := a.Srv().Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			mlog.Warn("Encountered error deleting incoming webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 		a.invalidateCacheForWebhook(hook.Id)
 	}
 
 	for _, hook := range outgoingHooks {
 		if err := a.Srv().Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
-			mlog.Error("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
+			mlog.Warn("Encountered error deleting outgoing webhook", mlog.String("hook_id", hook.Id), mlog.Err(err))
 		}
 	}
 
@@ -2550,11 +2554,11 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 
 	channelIds := []string{}
 
-	if len(view.ChannelId) > 0 {
+	if view.ChannelId != "" {
 		channelIds = append(channelIds, view.ChannelId)
 	}
 
-	if len(view.PrevChannelId) > 0 {
+	if view.PrevChannelId != "" {
 		channelIds = append(channelIds, view.PrevChannelId)
 	}
 
