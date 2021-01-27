@@ -1,7 +1,7 @@
 # ws
 
 [![GoDoc][godoc-image]][godoc-url]
-[![Travis][travis-image]][travis-url]
+[![CI][ci-badge]][ci-url]
 
 > [RFC6455][rfc-url] WebSocket implementation in Go.
 
@@ -351,10 +351,100 @@ func main() {
 }
 ```
 
+# Compression
+
+There is a `ws/wsflate` package to support [Permessage-Deflate Compression
+Extension][rfc-pmce].
+
+It provides minimalistic I/O wrappers to be used in conjunction with any
+deflate implementation (for example, the standard library's
+[compress/flate][compress/flate].
+
+```go
+package main
+
+import (
+	"bytes"
+	"log"
+	"net"
+
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsflate"
+)
+
+func main() {
+	ln, err := net.Listen("tcp", "localhost:8080")
+	if err != nil {
+		// handle error
+	}
+	e := wsflate.Extension{
+		// We are using default parameters here since we use
+		// wsflate.{Compress,Decompress}Frame helpers below in the code.
+		// This assumes that we use standard compress/flate package as flate
+		// implementation.
+		Parameters: wsflate.DefaultParameters,
+	}
+	u := ws.Upgrader{
+		Negotiate: e.Negotiate,
+	}
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Reset extension after previous upgrades.
+		e.Reset()
+
+		_, err = u.Upgrade(conn)
+		if err != nil {
+			log.Printf("upgrade error: %s", err)
+			continue
+		}
+		if _, ok := e.Accepted(); !ok {
+			log.Printf("didn't negotiate compression for %s", conn.RemoteAddr())
+			conn.Close()
+			continue
+		}
+
+		go func() {
+			defer conn.Close()
+			for {
+				frame, err := ws.ReadFrame(conn)
+				if err != nil {
+					// Handle error.
+					return
+				}
+				frame = ws.UnmaskFrameInPlace(frame)
+				frame, err = wsflate.DecompressFrame(frame)
+				if err != nil {
+					// Handle error.
+					return
+				}
+
+				// Do something with frame...
+
+				ack := ws.NewTextFrame([]byte("this is an acknowledgement"))
+				ack, err = wsflate.CompressFrame(ack)
+				if err != nil {
+					// Handle error.
+					return
+				}
+				if err = ws.WriteFrame(conn, ack); err != nil {
+					// Handle error.
+					return
+				}
+			}
+		}()
+	}
+}
+```
 
 
 [rfc-url]: https://tools.ietf.org/html/rfc6455
+[rfc-pmce]: https://tools.ietf.org/html/rfc7692#section-7
 [godoc-image]: https://godoc.org/github.com/gobwas/ws?status.svg
 [godoc-url]: https://godoc.org/github.com/gobwas/ws
-[travis-image]: https://travis-ci.org/gobwas/ws.svg?branch=master
-[travis-url]: https://travis-ci.org/gobwas/ws
+[compress/flate]: https://golang.org/pkg/compress/flate/
+[ci-badge]:    https://github.com/gobwas/ws/workflows/CI/badge.svg
+[ci-url]:      https://github.com/gobwas/ws/actions?query=workflow%3ACI

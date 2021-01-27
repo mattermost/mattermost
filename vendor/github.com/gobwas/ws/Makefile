@@ -13,15 +13,22 @@ bin/gocovmerge:
 
 .PHONY: autobahn
 autobahn: clean bin/reporter 
-	./autobahn/script/test.sh --build
+	./autobahn/script/test.sh --build --follow-logs
 	bin/reporter $(PWD)/autobahn/report/index.json
+
+.PHONY: autobahn/report
+autobahn/report: bin/reporter
+	./bin/reporter -http localhost:5555 ./autobahn/report/index.json
 
 test:
 	go test -coverprofile=ws.coverage .
 	go test -coverprofile=wsutil.coverage ./wsutil
+	go test -coverprofile=wsfalte.coverage ./wsflate
+	# No statemenets to cover in ./tests (there are only tests).
+	go test ./tests
 
 cover: bin/gocovmerge test autobahn
-	bin/gocovmerge ws.coverage wsutil.coverage autobahn/report/server.coverage > total.coverage
+	bin/gocovmerge ws.coverage wsutil.coverage wsflate.coverage autobahn/report/server.coverage > total.coverage
 
 benchcmp: BENCH_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 benchcmp: BENCH_OLD:=$(shell mktemp -t old.XXXX)

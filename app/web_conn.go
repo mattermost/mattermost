@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
+	"github.com/mailru/easygo/netpoll"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
@@ -44,6 +46,7 @@ type WebConn struct {
 	Sequence         int64
 	UserId           string
 
+	readMut                   sync.Mutex
 	allChannelMembers         map[string]string
 	lastAllChannelMembersTime int64
 	lastUserActivityAt        int64
@@ -79,6 +82,7 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateF
 	wc.SetSessionToken(session.Token)
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
+	wc.startPoller()
 	return wc
 }
 
@@ -127,21 +131,67 @@ func (wc *WebConn) SetSession(v *model.Session) {
 }
 
 // Pump starts the WebConn instance. After this, the websocket
-// is ready to send/receive messages.
+// is ready to send messages.
 func (wc *WebConn) Pump() {
+	// writePump is blocking in nature.
 	wc.writePump()
+	// Once it exits, we close everything.
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
 }
 
+// startPoller adds the file descriptor of the connection
+// to the global epoll instance and registers a callback.
+func (wc *WebConn) startPoller() {
+	desc := netpoll.Must(netpoll.HandleRead(wc.WebSocket))
+	wc.App.Srv().Poller().Start(desc, func(wsEv netpoll.Event) {
+		if wsEv&(netpoll.EventReadHup|netpoll.EventHup) != 0 {
+			wc.App.Srv().Poller().Stop(desc)
+			wc.Close()
+			return
+		}
+
+		// Block until we have a token.
+		wc.App.Srv().GetWebConnToken()
+		// Read from conn.
+		go func() {
+			defer wc.App.Srv().ReleaseWebConnToken()
+			err := wc.ReadMsg()
+			if err != nil {
+				mlog.Debug("Error while reading message from websocket", mlog.Err(err))
+				wc.App.Srv().Poller().Stop(desc)
+				wc.Close()
+			}
+		}()
+	})
+}
+
+// GetWebConnToken creates backpressure by using
+// a counting semaphore to limit the number of concurrent goroutines.
+func (s *Server) GetWebConnToken() {
+	s.webConnSemaWg.Add(1)
+	s.webConnSema <- struct{}{}
+}
+
+// ReleaseWebConnToken releases a token
+// got from the semaphore
+func (s *Server) ReleaseWebConnToken() {
+	<-s.webConnSema
+	s.webConnSemaWg.Done()
+}
+
 // ReadMsg will read a single message from the websocket connection.
 func (wc *WebConn) ReadMsg() error {
-	// TODO(agniva):
-	// wc.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
 	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 
 	r := wsutil.NewReader(wc.WebSocket, ws.StateServerSide)
+	r.MaxFrameSize = model.SOCKET_MAX_MESSAGE_SIZE_KB
 	decoder := json.NewDecoder(r)
+
+	// The reader's methods are not goroutine safe.
+	// We restrict only one reader goroutine per-connection.
+	wc.readMut.Lock()
+	defer wc.readMut.Unlock()
 
 	var req model.WebSocketRequest
 	hdr, err := r.NextFrame()
@@ -162,6 +212,8 @@ func (wc *WebConn) ReadMsg() error {
 	default:
 		// Default case of data message.
 		if err := decoder.Decode(&req); err != nil {
+			// We discard any remaining data left in the socket.
+			r.Discard()
 			return errors.Wrap(err, "error during decoding websocket message")
 		}
 

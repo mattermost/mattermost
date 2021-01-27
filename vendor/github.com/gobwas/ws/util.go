@@ -113,7 +113,7 @@ func strHasToken(header, token string) (has bool) {
 
 func btsHasToken(header, token []byte) (has bool) {
 	httphead.ScanTokens(header, func(v []byte) bool {
-		has = btsEqualFold(v, token)
+		has = bytes.EqualFold(v, token)
 		return !has
 	})
 	return
@@ -197,47 +197,6 @@ func readLine(br *bufio.Reader) ([]byte, error) {
 
 		return line, nil
 	}
-}
-
-// strEqualFold checks s to be case insensitive equal to p.
-// Note that p must be only ascii letters. That is, every byte in p belongs to
-// range ['a','z'] or ['A','Z'].
-func strEqualFold(s, p string) bool {
-	return btsEqualFold(strToBytes(s), strToBytes(p))
-}
-
-// btsEqualFold checks s to be case insensitive equal to p.
-// Note that p must be only ascii letters. That is, every byte in p belongs to
-// range ['a','z'] or ['A','Z'].
-func btsEqualFold(s, p []byte) bool {
-	if len(s) != len(p) {
-		return false
-	}
-	n := len(s)
-	// Prepare manual conversion on bytes that not lay in uint64.
-	m := n % 8
-	for i := 0; i < m; i++ {
-		if s[i]|toLower != p[i]|toLower {
-			return false
-		}
-	}
-	// Iterate over uint64 parts of s.
-	n = (n - m) >> 3
-	if n == 0 {
-		// There are no more bytes to compare.
-		return true
-	}
-
-	for i := 0; i < n; i++ {
-		x := m + (i << 3)
-		av := *(*uint64)(unsafe.Pointer(&s[x]))
-		bv := *(*uint64)(unsafe.Pointer(&p[x]))
-		if av|toLower8 != bv|toLower8 {
-			return false
-		}
-	}
-
-	return true
 }
 
 func min(a, b int) int {

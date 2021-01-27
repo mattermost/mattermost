@@ -12,7 +12,11 @@ import (
 // preceding NextFrame() call.
 var ErrNoFrameAdvance = errors.New("no frame advance")
 
-// FrameHandlerFunc handles parsed frame header and its body represetned by
+// ErrFrameTooLarge indicates that a message of length higher than
+// MaxFrameSize was being read.
+var ErrFrameTooLarge = errors.New("frame too large")
+
+// FrameHandlerFunc handles parsed frame header and its body represented by
 // io.Reader.
 //
 // Note that reader represents already unmasked body.
@@ -37,7 +41,17 @@ type Reader struct {
 	// bytes are not valid UTF-8 sequence, ErrInvalidUTF8 returned.
 	CheckUTF8 bool
 
-	// TODO(gobwas): add max frame size limit here.
+	// Extensions is a list of negotiated extensions for reader Source.
+	// It is used to meet the specs and clear appropriate bits in fragment
+	// header RSV segment.
+	Extensions []RecvExtension
+
+	// MaxFrameSize controls the maximum frame size in bytes
+	// that can be read. A message exceeding that size will return
+	// a ErrFrameTooLarge to the application.
+	//
+	// Not setting this field means there is no limit.
+	MaxFrameSize int64
 
 	OnContinuation FrameHandlerFunc
 	OnIntermediate FrameHandlerFunc
@@ -46,6 +60,7 @@ type Reader struct {
 	frame  io.Reader        // Used to as frame reader.
 	raw    io.LimitedReader // Used to discard frames without cipher.
 	utf8   UTF8Reader       // Used to check UTF8 sequences if CheckUTF8 is true.
+	fseq   int              // Fragment sequence in message counter.
 }
 
 // NewReader creates new frame reader that reads from r keeping given state to
@@ -100,9 +115,10 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 		return
 	}
 	if err == nil && r.raw.N != 0 {
-		return
+		return n, nil
 	}
 
+	// EOF condition (either err is io.EOF or r.raw.N is zero).
 	switch {
 	case r.raw.N != 0:
 		err = io.ErrUnexpectedEOF
@@ -112,6 +128,8 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 		r.resetFragment()
 
 	case r.CheckUTF8 && !r.utf8.Valid():
+		// NOTE: check utf8 only when full message received, since partial
+		// reads may be invalid.
 		n = r.utf8.Accepted()
 		err = ErrInvalidUTF8
 
@@ -166,14 +184,29 @@ func (r *Reader) NextFrame() (hdr ws.Header, err error) {
 		return hdr, err
 	}
 
+	if n := r.MaxFrameSize; n > 0 && hdr.Length > n {
+		return hdr, ErrFrameTooLarge
+	}
+
 	// Save raw reader to use it on discarding frame without ciphering and
 	// other streaming checks.
-	r.raw = io.LimitedReader{r.Source, hdr.Length}
+	r.raw = io.LimitedReader{
+		R: r.Source,
+		N: hdr.Length,
+	}
 
 	frame := io.Reader(&r.raw)
 	if hdr.Masked {
 		frame = NewCipherReader(frame, hdr.Mask)
 	}
+
+	for _, ext := range r.Extensions {
+		hdr.Rsv, err = ext.BitsRecv(r.fseq, hdr.Rsv)
+		if err != nil {
+			return hdr, err
+		}
+	}
+
 	if r.fragmented() {
 		if hdr.OpCode.IsControl() {
 			if cb := r.OnIntermediate; cb != nil {
@@ -204,8 +237,10 @@ func (r *Reader) NextFrame() (hdr ws.Header, err error) {
 
 	if hdr.Fin {
 		r.State = r.State.Clear(ws.StateFragmented)
+		r.fseq = 0
 	} else {
 		r.State = r.State.Set(ws.StateFragmented)
+		r.fseq++
 	}
 
 	return
@@ -226,6 +261,7 @@ func (r *Reader) reset() {
 	r.raw = io.LimitedReader{}
 	r.frame = nil
 	r.utf8 = UTF8Reader{}
+	r.fseq = 0
 	r.opCode = 0
 }
 

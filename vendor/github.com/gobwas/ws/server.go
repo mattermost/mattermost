@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gobwas/httphead"
@@ -128,7 +129,22 @@ type HTTPUpgrader struct {
 	// Extension is the select function that is used to select extensions from
 	// list requested by client. If this field is set, then the all matched
 	// extensions are sent to a client as negotiated.
+	//
+	// DEPRECATED. Use Negotiate instead.
 	Extension func(httphead.Option) bool
+
+	// Negotiate is the callback that is used to negotiate extensions from
+	// the client's offer. If this field is set, then the returned non-zero
+	// extensions are sent to the client as accepted extensions in the
+	// response.
+	//
+	// The argument is only valid until the Negotiate callback returns.
+	//
+	// If returned error is non-nil then connection is rejected and response is
+	// sent with appropriate HTTP error code and body set to error message.
+	//
+	// RejectConnectionError could be used to get more control on response.
+	Negotiate func(httphead.Option) (httphead.Option, error)
 }
 
 // Upgrade upgrades http connection to the websocket connection.
@@ -159,7 +175,7 @@ func (u HTTPUpgrader) Upgrade(r *http.Request, w http.ResponseWriter) (conn net.
 		err = ErrHandshakeBadProtocol
 	} else if r.Host == "" {
 		err = ErrHandshakeBadHost
-	} else if u := httpGetHeader(r.Header, headerUpgradeCanonical); u != "websocket" && !strEqualFold(u, "websocket") {
+	} else if u := httpGetHeader(r.Header, headerUpgradeCanonical); u != "websocket" && !strings.EqualFold(u, "websocket") {
 		err = ErrHandshakeBadUpgrade
 	} else if c := httpGetHeader(r.Header, headerConnectionCanonical); c != "Upgrade" && !strHasToken(c, "upgrade") {
 		err = ErrHandshakeBadConnection
@@ -199,11 +215,20 @@ func (u HTTPUpgrader) Upgrade(r *http.Request, w http.ResponseWriter) (conn net.
 			}
 		}
 	}
-	if check := u.Extension; err == nil && check != nil {
+	if f := u.Negotiate; err == nil && f != nil {
+		for _, h := range r.Header[headerSecExtensionsCanonical] {
+			hs.Extensions, err = negotiateExtensions(strToBytes(h), hs.Extensions, f)
+			if err != nil {
+				break
+			}
+		}
+	}
+	// DEPRECATED path.
+	if check := u.Extension; err == nil && check != nil && u.Negotiate == nil {
 		xs := r.Header[headerSecExtensionsCanonical]
 		for i := 0; i < len(xs) && err == nil; i++ {
 			var ok bool
-			hs.Extensions, ok = strSelectExtensions(xs[i], hs.Extensions, check)
+			hs.Extensions, ok = btsSelectExtensions(strToBytes(xs[i]), hs.Extensions, check)
 			if !ok {
 				err = ErrMalformedRequest
 			}
@@ -270,6 +295,9 @@ type Upgrader struct {
 	// from list requested by client. If this field is set, then the all matched
 	// extensions are sent to a client as negotiated.
 	//
+	// Note that Extension may be called multiple times and implementations
+	// must track uniqueness of accepted extensions manually.
+	//
 	// The argument is only valid until the callback returns.
 	//
 	// According to the RFC6455 order of extensions passed by a client is
@@ -282,12 +310,37 @@ type Upgrader struct {
 	// fields listed by the client in its request represent a preference of the
 	// header fields it wishes to use, with the first options listed being most
 	// preferable."
+	//
+	// DEPRECATED. Use Negotiate instead.
 	Extension func(httphead.Option) bool
 
-	// ExtensionCustorm allow user to parse Sec-WebSocket-Extensions header manually.
+	// ExtensionCustom allow user to parse Sec-WebSocket-Extensions header
+	// manually.
+	//
+	// If ExtensionCustom() decides to accept received extension, it must
+	// append appropriate option to the given slice of httphead.Option.
+	// It returns results of append() to the given slice and a flag that
+	// reports whether given header value is wellformed or not.
+	//
+	// Note that ExtensionCustom may be called multiple times and
+	// implementations must track uniqueness of accepted extensions manually.
+	//
 	// Note that returned options should be valid until Upgrade returns.
 	// If ExtensionCustom is set, it used instead of Extension function.
 	ExtensionCustom func([]byte, []httphead.Option) ([]httphead.Option, bool)
+
+	// Negotiate is the callback that is used to negotiate extensions from
+	// the client's offer. If this field is set, then the returned non-zero
+	// extensions are sent to the client as accepted extensions in the
+	// response.
+	//
+	// The argument is only valid until the Negotiate callback returns.
+	//
+	// If returned error is non-nil then connection is rejected and response is
+	// sent with appropriate HTTP error code and body set to error message.
+	//
+	// RejectConnectionError could be used to get more control on response.
+	Negotiate func(httphead.Option) (httphead.Option, error)
 
 	// Header is an optional HandshakeHeader instance that could be used to
 	// write additional headers to the handshake response.
@@ -475,7 +528,7 @@ func (u Upgrader) Upgrade(conn io.ReadWriter) (hs Handshake, err error) {
 
 		case headerUpgradeCanonical:
 			headerSeen |= headerSeenUpgrade
-			if !bytes.Equal(v, specHeaderValueUpgrade) && !btsEqualFold(v, specHeaderValueUpgrade) {
+			if !bytes.Equal(v, specHeaderValueUpgrade) && !bytes.EqualFold(v, specHeaderValueUpgrade) {
 				err = ErrHandshakeBadUpgrade
 			}
 
@@ -513,7 +566,11 @@ func (u Upgrader) Upgrade(conn io.ReadWriter) (hs Handshake, err error) {
 			}
 
 		case headerSecExtensionsCanonical:
-			if custom, check := u.ExtensionCustom, u.Extension; custom != nil || check != nil {
+			if f := u.Negotiate; err == nil && f != nil {
+				hs.Extensions, err = negotiateExtensions(v, hs.Extensions, f)
+			}
+			// DEPRECATED path.
+			if custom, check := u.ExtensionCustom, u.Extension; u.Negotiate == nil && (custom != nil || check != nil) {
 				var ok bool
 				if custom != nil {
 					hs.Extensions, ok = custom(v, hs.Extensions)

@@ -1,7 +1,7 @@
 package ws
 
 import (
-	"unsafe"
+	"encoding/binary"
 )
 
 // Cipher applies XOR cipher to the payload using mask.
@@ -35,19 +35,24 @@ func Cipher(payload []byte, mask [4]byte, offset int) {
 		payload[i] ^= mask[(mpos+i)%4]
 	}
 
-	// We should cast mask to uint32 with unsafe instead of encoding.BigEndian
-	// to avoid care of os dependent byte order. That is, on any endianess mask
-	// and payload will be presented with the same order. In other words, we
-	// could not use encoding.BigEndian on xoring payload as uint64.
-	m := *(*uint32)(unsafe.Pointer(&mask))
-	m2 := uint64(m)<<32 | uint64(m)
-
+	// NOTE: we use here binary.LittleEndian regardless of what is real
+	// endianess on machine is. To do so, we have to use binary.LittleEndian in
+	// the masking loop below as well.
+	var (
+		m  = binary.LittleEndian.Uint32(mask[:])
+		m2 = uint64(m)<<32 | uint64(m)
+	)
 	// Skip already processed right part.
 	// Get number of uint64 parts remaining to process.
 	n = (n - ln - rn) >> 3
 	for i := 0; i < n; i++ {
-		v := (*uint64)(unsafe.Pointer(&payload[ln+(i<<3)]))
-		*v = *v ^ m2
+		var (
+			j     = ln + (i << 3)
+			chunk = payload[j : j+8]
+		)
+		p := binary.LittleEndian.Uint64(chunk)
+		p = p ^ m2
+		binary.LittleEndian.PutUint64(chunk, p)
 	}
 }
 

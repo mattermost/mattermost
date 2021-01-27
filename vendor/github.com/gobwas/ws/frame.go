@@ -206,6 +206,28 @@ func (h Header) Rsv2() bool { return h.Rsv&bit6 != 0 }
 // Rsv3 reports whether the header has third rsv bit set.
 func (h Header) Rsv3() bool { return h.Rsv&bit7 != 0 }
 
+// Rsv creates rsv byte representation from bits.
+func Rsv(r1, r2, r3 bool) (rsv byte) {
+	if r1 {
+		rsv |= bit5
+	}
+	if r2 {
+		rsv |= bit6
+	}
+	if r3 {
+		rsv |= bit7
+	}
+	return rsv
+}
+
+// RsvBits returns rsv bits from bytes representation.
+func RsvBits(rsv byte) (r1, r2, r3 bool) {
+	r1 = rsv&bit5 != 0
+	r2 = rsv&bit6 != 0
+	r3 = rsv&bit7 != 0
+	return
+}
+
 // Frame represents websocket frame.
 // See https://tools.ietf.org/html/rfc6455#section-5.2
 type Frame struct {
@@ -319,6 +341,29 @@ func MaskFrameInPlace(f Frame) Frame {
 	return MaskFrameInPlaceWith(f, NewMask())
 }
 
+var zeroMask [4]byte
+
+// UnmaskFrame unmasks frame and returns frame with unmasked payload and Mask
+// header's field cleared.
+// Note that it copies f payload.
+func UnmaskFrame(f Frame) Frame {
+	p := make([]byte, len(f.Payload))
+	copy(p, f.Payload)
+	f.Payload = p
+	return UnmaskFrameInPlace(f)
+}
+
+// UnmaskFrameInPlace unmasks frame and returns frame with unmasked payload and
+// Mask header's field cleared.
+// Note that it applies xor cipher to f.Payload without copying, that is, it
+// modifies f.Payload inplace.
+func UnmaskFrameInPlace(f Frame) Frame {
+	Cipher(f.Payload, f.Header.Mask, 0)
+	f.Header.Masked = false
+	f.Header.Mask = zeroMask
+	return f
+}
+
 // MaskFrameInPlaceWith masks frame with given mask and returns frame
 // with masked payload and Mask header's field set.
 // Note that it applies xor cipher to f.Payload without copying, that is, it
@@ -356,36 +401,20 @@ func MustCompileFrame(f Frame) []byte {
 	return bts
 }
 
-// Rsv creates rsv byte representation.
-func Rsv(r1, r2, r3 bool) (rsv byte) {
-	if r1 {
-		rsv |= bit5
-	}
-	if r2 {
-		rsv |= bit6
-	}
-	if r3 {
-		rsv |= bit7
-	}
-	return rsv
-}
-
-func makeCloseFrame(code StatusCode, reason string) Frame {
-	return NewCloseFrame(NewCloseFrameBody(
-		code, reason,
-	))
+func makeCloseFrame(code StatusCode) Frame {
+	return NewCloseFrame(NewCloseFrameBody(code, ""))
 }
 
 var (
-	closeFrameNormalClosure           = makeCloseFrame(StatusNormalClosure, "")
-	closeFrameGoingAway               = makeCloseFrame(StatusGoingAway, "")
-	closeFrameProtocolError           = makeCloseFrame(StatusProtocolError, "")
-	closeFrameUnsupportedData         = makeCloseFrame(StatusUnsupportedData, "")
-	closeFrameNoMeaningYet            = makeCloseFrame(StatusNoMeaningYet, "")
-	closeFrameInvalidFramePayloadData = makeCloseFrame(StatusInvalidFramePayloadData, "")
-	closeFramePolicyViolation         = makeCloseFrame(StatusPolicyViolation, "")
-	closeFrameMessageTooBig           = makeCloseFrame(StatusMessageTooBig, "")
-	closeFrameMandatoryExt            = makeCloseFrame(StatusMandatoryExt, "")
-	closeFrameInternalServerError     = makeCloseFrame(StatusInternalServerError, "")
-	closeFrameTLSHandshake            = makeCloseFrame(StatusTLSHandshake, "")
+	closeFrameNormalClosure           = makeCloseFrame(StatusNormalClosure)
+	closeFrameGoingAway               = makeCloseFrame(StatusGoingAway)
+	closeFrameProtocolError           = makeCloseFrame(StatusProtocolError)
+	closeFrameUnsupportedData         = makeCloseFrame(StatusUnsupportedData)
+	closeFrameNoMeaningYet            = makeCloseFrame(StatusNoMeaningYet)
+	closeFrameInvalidFramePayloadData = makeCloseFrame(StatusInvalidFramePayloadData)
+	closeFramePolicyViolation         = makeCloseFrame(StatusPolicyViolation)
+	closeFrameMessageTooBig           = makeCloseFrame(StatusMessageTooBig)
+	closeFrameMandatoryExt            = makeCloseFrame(StatusMandatoryExt)
+	closeFrameInternalServerError     = makeCloseFrame(StatusInternalServerError)
+	closeFrameTLSHandshake            = makeCloseFrame(StatusTLSHandshake)
 )

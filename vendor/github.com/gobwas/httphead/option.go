@@ -25,6 +25,12 @@ func (opt Option) Copy(p []byte) Option {
 	return opt
 }
 
+// Clone is a shorthand for making slice of opt.Size() sequenced with Copy()
+// call.
+func (opt Option) Clone() Option {
+	return opt.Copy(make([]byte, opt.Size()))
+}
+
 // String represents option as a string.
 func (opt Option) String() string {
 	return "{" + string(opt.Name) + " " + opt.Parameters.String() + "}"

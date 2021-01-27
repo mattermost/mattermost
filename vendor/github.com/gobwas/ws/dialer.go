@@ -371,7 +371,7 @@ func (d Dialer) Upgrade(conn io.ReadWriter, u *url.URL) (br *bufio.Reader, hs Ha
 		switch btsToString(k) {
 		case headerUpgradeCanonical:
 			headerSeen |= headerSeenUpgrade
-			if !bytes.Equal(v, specHeaderValueUpgrade) && !btsEqualFold(v, specHeaderValueUpgrade) {
+			if !bytes.Equal(v, specHeaderValueUpgrade) && !bytes.EqualFold(v, specHeaderValueUpgrade) {
 				err = ErrHandshakeBadUpgrade
 				return
 			}
@@ -382,7 +382,7 @@ func (d Dialer) Upgrade(conn io.ReadWriter, u *url.URL) (br *bufio.Reader, hs Ha
 			//   > A |Connection| header field with value "Upgrade".
 			// That is, in server side, "Connection" header could contain
 			// multiple token. But in response it must contains exactly one.
-			if !bytes.Equal(v, specHeaderValueConnection) && !btsEqualFold(v, specHeaderValueConnection) {
+			if !bytes.Equal(v, specHeaderValueConnection) && !bytes.EqualFold(v, specHeaderValueConnection) {
 				err = ErrHandshakeBadConnection
 				return
 			}
@@ -474,11 +474,18 @@ func matchSelectedExtensions(selected []byte, wanted, received []httphead.Option
 	index = -1
 	match := func() (ok bool) {
 		for _, want := range wanted {
-			if option.Equal(want) {
+			// A server accepts one or more extensions by including a
+			// |Sec-WebSocket-Extensions| header field containing one or more
+			// extensions that were requested by the client.
+			//
+			// The interpretation of any extension parameters, and what
+			// constitutes a valid response by a server to a requested set of
+			// parameters by a client, will be defined by each such extension.
+			if bytes.Equal(option.Name, want.Name) {
 				// Check parsed extension to be present in client
 				// requested extensions. We move matched extension
 				// from client list to avoid allocation.
-				received = append(received, want)
+				received = append(received, option)
 				return true
 			}
 		}

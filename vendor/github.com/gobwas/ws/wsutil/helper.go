@@ -113,7 +113,7 @@ func ReadClientText(rw io.ReadWriter) ([]byte, error) {
 // It discards received text messages.
 //
 // Note this may handle and write control frames into the writer part of a given
-//  io.ReadWriter.
+// io.ReadWriter.
 func ReadClientBinary(rw io.ReadWriter) ([]byte, error) {
 	p, _, err := readData(rw, ws.StateServerSide, ws.OpBinary)
 	return p, err
@@ -133,7 +133,7 @@ func ReadServerData(rw io.ReadWriter) ([]byte, ws.OpCode, error) {
 // It discards received binary messages.
 //
 // Note this may handle and write control frames into the writer part of a given
-//  io.ReadWriter.
+// io.ReadWriter.
 func ReadServerText(rw io.ReadWriter) ([]byte, error) {
 	p, _, err := readData(rw, ws.StateClientSide, ws.OpText)
 	return p, err
@@ -152,7 +152,7 @@ func ReadServerBinary(rw io.ReadWriter) ([]byte, error) {
 
 // WriteMessage is a helper function that writes message to the w. It
 // constructs single frame with given operation code and payload.
-// It uses given state to prepare side-dependtend things, like cipher
+// It uses given state to prepare side-dependent things, like cipher
 // payload bytes from client to server. It will not mutate p bytes if
 // cipher must be made.
 //

@@ -109,9 +109,10 @@ func CheckHeader(h Header, s State) error {
 		return ErrProtocolContinuationExpected
 	case !s.Fragmented() && h.OpCode == OpContinuation:
 		return ErrProtocolContinuationUnexpected
-	}
 
-	return nil
+	default:
+		return nil
+	}
 }
 
 // CheckCloseFrameData checks received close information

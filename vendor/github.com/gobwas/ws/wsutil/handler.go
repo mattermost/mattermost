@@ -194,7 +194,7 @@ func (c ControlHandler) HandleClose(h ws.Header) error {
 	// If an endpoint receives a Close frame and did not previously
 	// send a Close frame, the endpoint MUST send a Close frame in
 	// response. (When sending a Close frame in response, the endpoint
-	// typically echos the status code it received.)
+	// typically echoes the status code it received.)
 	_, err := w.Write(p[:2])
 	if err != nil {
 		return err

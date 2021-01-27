@@ -35,7 +35,7 @@ require (
 	github.com/go-redis/redis/v8 v8.4.9 // indirect
 	github.com/go-resty/resty/v2 v2.4.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gobwas/ws v1.0.2
+	github.com/gobwas/ws v1.1.0-rc.2
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/uuid v1.1.5 // indirect

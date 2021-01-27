@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/gobwas/ws"
-	"github.com/mailru/easygo/netpoll"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -42,25 +40,4 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go wc.Pump()
-
-	desc := netpoll.Must(netpoll.HandleRead(conn))
-	c.App.Srv().Poller().Start(desc, func(wsEv netpoll.Event) {
-		if wsEv&(netpoll.EventReadHup|netpoll.EventHup) != 0 {
-			c.App.Srv().Poller().Stop(desc)
-			wc.Close()
-			return
-		}
-
-		// read from conn
-		// TODO(agniva): Implement semaphore to force backpressure
-		// on goroutine creation.
-		go func() {
-			err := wc.ReadMsg()
-			if err != nil {
-				mlog.Debug("Error while reading message from websocket", mlog.Err(err))
-				c.App.Srv().Poller().Stop(desc)
-				wc.Close()
-			}
-		}()
-	})
 }

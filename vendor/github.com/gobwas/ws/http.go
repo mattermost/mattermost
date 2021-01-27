@@ -215,16 +215,52 @@ func btsSelectProtocol(h []byte, check func([]byte) bool) (ret string, ok bool) 
 	return
 }
 
-func strSelectExtensions(h string, selected []httphead.Option, check func(httphead.Option) bool) ([]httphead.Option, bool) {
-	return btsSelectExtensions(strToBytes(h), selected, check)
-}
-
 func btsSelectExtensions(h []byte, selected []httphead.Option, check func(httphead.Option) bool) ([]httphead.Option, bool) {
 	s := httphead.OptionSelector{
-		Flags: httphead.SelectUnique | httphead.SelectCopy,
+		Flags: httphead.SelectCopy,
 		Check: check,
 	}
 	return s.Select(h, selected)
+}
+
+func negotiateMaybe(in httphead.Option, dest []httphead.Option, f func(httphead.Option) (httphead.Option, error)) ([]httphead.Option, error) {
+	if in.Size() == 0 {
+		return dest, nil
+	}
+	opt, err := f(in)
+	if err != nil {
+		return nil, err
+	}
+	if opt.Size() > 0 {
+		dest = append(dest, opt)
+	}
+	return dest, nil
+}
+
+func negotiateExtensions(
+	h []byte, dest []httphead.Option,
+	f func(httphead.Option) (httphead.Option, error),
+) (_ []httphead.Option, err error) {
+	index := -1
+	var current httphead.Option
+	ok := httphead.ScanOptions(h, func(i int, name, attr, val []byte) httphead.Control {
+		if i != index {
+			dest, err = negotiateMaybe(current, dest, f)
+			if err != nil {
+				return httphead.ControlBreak
+			}
+			index = i
+			current = httphead.Option{Name: name}
+		}
+		if attr != nil {
+			current.Parameters.Set(attr, val)
+		}
+		return httphead.ControlContinue
+	})
+	if !ok {
+		return nil, ErrMalformedRequest
+	}
+	return negotiateMaybe(current, dest, f)
 }
 
 func httpWriteHeader(bw *bufio.Writer, key, value string) {

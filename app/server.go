@@ -99,9 +99,11 @@ type Server struct {
 
 	EmailService *EmailService
 
-	hubs     []*Hub
-	hashSeed maphash.Seed
-	poller   netpoll.Poller
+	hubs          []*Hub
+	hashSeed      maphash.Seed
+	poller        netpoll.Poller
+	webConnSema   chan struct{}
+	webConnSemaWg *sync.WaitGroup
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -229,6 +231,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to create a netpoll instance")
 	}
 	s.poller = poller
+	s.webConnSemaWg = new(sync.WaitGroup)
+	s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
 
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
@@ -1200,7 +1204,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 
 		return utils.OriginChecker(allowed)
 	}
-	return nil
+	return utils.SameOriginChecker()
 }
 
 func (s *Server) checkPushNotificationServerUrl() {
