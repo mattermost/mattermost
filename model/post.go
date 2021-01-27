@@ -459,10 +459,7 @@ func (o *Post) IsSystemMessage() bool {
 
 // IsRemote returns true if the post originated on a remote cluster.
 func (o *Post) IsRemote() bool {
-	if o.RemoteId != nil {
-		return *o.RemoteId != ""
-	}
-	return false
+	return o.RemoteId != nil && *o.RemoteId != ""
 }
 
 func (o *Post) IsJoinLeaveMessage() bool {
