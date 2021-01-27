@@ -1798,6 +1798,12 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 	return rowsAffected, nil
 }
 
+func (s *SqlPostStore) PermanentDeleteBatchGranular(endTime int64, limit int64) (int64, error) {
+	const sQuery = `
+	DELETE FROM Posts WHERE
+	`
+}
+
 func (s *SqlPostStore) GetOldest() (*model.Post, error) {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
