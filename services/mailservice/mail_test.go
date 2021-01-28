@@ -110,7 +110,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		connInfo,
 	)
 	require.NotNil(t, err4, "Should get a timeout get while creating a new SMTP client")
-	assert.Equal(t, err4.Id, "utils.mail.connect_smtp.open_tls.app_error")
+	assert.Contains(t, err4.Error(), "unable to connect to the smtp server")
 
 	_, err5 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
