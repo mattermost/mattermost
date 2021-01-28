@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"bytes"
 	"net"
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"runtime/pprof"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -64,6 +66,19 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 	// This is done to print goroutines from all threads (see golang.org/issue/13161)
 	// and also preserve a crash dump for later investigation.
 	debug.SetTraceback("crash")
+
+	defer func() {
+		// A panic pass-through layer which just logs it
+		// and sends it upwards.
+		if x := recover(); x != nil {
+			var buf bytes.Buffer
+			pprof.Lookup("goroutine").WriteTo(&buf, 2)
+			mlog.Critical("A panic occurred",
+				mlog.Any("error", x),
+				mlog.String("stack", buf.String()))
+			panic(x)
+		}
+	}()
 
 	options := []app.Option{
 		app.ConfigStore(configStore),
