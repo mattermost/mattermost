@@ -123,10 +123,10 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 	for id := range userIds {
 		user, err := scs.server.GetStore().User().Get(id)
 		if err == nil {
-			if sync, err := scs.shouldUserSync(user, rc); err != nil {
+			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
 					mlog.String("user_id", id),
-					mlog.Err(err))
+					mlog.Err(err2))
 				continue
 			} else if sync {
 				users = append(users, sanitizeUserForSync(user))
