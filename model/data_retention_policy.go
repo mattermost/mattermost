@@ -33,27 +33,21 @@ type TeamDisplayInfo struct {
 }
 
 type RetentionPolicyEnriched struct {
-	Id           string               `json:"id"`
-	DisplayName  string               `json:"display_name"`
-	PostDuration int64                `json:"post_duration"`
-	Teams        []TeamDisplayInfo    `json:"teams"`
-	Channels     []ChannelDisplayInfo `json:"channels"`
+	RetentionPolicy
+	Teams    []TeamDisplayInfo    `json:"teams"`
+	Channels []ChannelDisplayInfo `json:"channels"`
 }
 
 type RetentionPolicyUpdate struct {
-	Id           string   `json:"id"`
-	DisplayName  string   `json:"display_name"`
-	PostDuration int64    `json:"post_duration"`
-	TeamIds      []string `json:"team_ids"`
-	ChannelIds   []string `json:"channel_ids"`
+	RetentionPolicy
+	TeamIds    []string `json:"team_ids"`
+	ChannelIds []string `json:"channel_ids"`
 }
 
 type RetentionPolicyWithCounts struct {
-	Id           string `json:"id"`
-	DisplayName  string `json:"display_name"`
-	PostDuration int64  `json:"post_duration"`
-	ChannelCount int64  `json:"channel_count"`
-	TeamCount    int64  `json:"team_count"`
+	RetentionPolicy
+	ChannelCount int64 `json:"channel_count"`
+	TeamCount    int64 `json:"team_count"`
 }
 
 type RetentionPolicyChannel struct {
@@ -66,9 +60,9 @@ type RetentionPolicyTeam struct {
 	TeamId   string
 }
 
-func (grp *GlobalRetentionPolicy) ToJson() string {
-	b, _ := json.Marshal(grp)
-	return string(b)
+func (rp *GlobalRetentionPolicy) ToJson() []byte {
+	b, _ := json.Marshal(rp)
+	return b
 }
 
 func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
@@ -77,22 +71,14 @@ func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
 	return grp
 }
 
-func (rp *RetentionPolicy) ToJsonBytes() []byte {
+func (rp *RetentionPolicy) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
 }
 
-func (rp *RetentionPolicy) ToJson() string {
-	return string(rp.ToJsonBytes())
-}
-
-func (rp *RetentionPolicyEnriched) ToJsonBytes() []byte {
+func (rp *RetentionPolicyEnriched) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
-}
-
-func (rp *RetentionPolicyEnriched) ToJson() string {
-	return string(rp.ToJsonBytes())
 }
 
 func RetentionPolicyFromJson(data io.Reader) (*RetentionPolicy, error) {

@@ -214,11 +214,13 @@ func (s *SqlRetentionPolicyStore) createPoliciesFromRows(rows []*retentionPolicy
 		policy, ok := mPolicies[row.Id]
 		if !ok {
 			policy = &model.RetentionPolicyEnriched{
-				Id:           row.Id,
-				DisplayName:  row.DisplayName,
-				PostDuration: row.PostDuration,
-				Channels:     make([]model.ChannelDisplayInfo, 0),
-				Teams:        make([]model.TeamDisplayInfo, 0),
+				RetentionPolicy: model.RetentionPolicy{
+					Id:           row.Id,
+					DisplayName:  row.DisplayName,
+					PostDuration: row.PostDuration,
+				},
+				Channels: make([]model.ChannelDisplayInfo, 0),
+				Teams:    make([]model.TeamDisplayInfo, 0),
 			}
 			mPolicies[row.Id] = policy
 		}
