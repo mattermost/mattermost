@@ -124,11 +124,17 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 		user, err := scs.server.GetStore().User().Get(id)
 		if err == nil {
 			if sync, err := scs.shouldUserSync(user, rc); err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",
+					mlog.String("user_id", id),
+					mlog.Err(err))
 				continue
 			} else if sync {
-				user = sanitizeUserForSync(user)
-				users = append(users, user)
+				users = append(users, sanitizeUserForSync(user))
 			}
+		} else {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error checking if user should sync",
+				mlog.String("user_id", id),
+				mlog.Err(err))
 		}
 	}
 	return users
@@ -163,7 +169,7 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 	scu, err := scs.server.GetStore().SharedChannel().GetUser(user.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			return false, nil
+			return false, err
 		}
 
 		// user not in the SharedChannelUsers table, so we must add them.
