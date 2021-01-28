@@ -1337,6 +1337,10 @@
     "translation": "Unable to check if the file exists."
   },
   {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Unable to get last modification time for file."
+  },
+  {
     "id": "api.file.file_reader.app_error",
     "translation": "Unable to get a file reader."
   },
@@ -3485,6 +3489,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Request is missing either AuthData or AuthService parameter."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -5689,10 +5697,6 @@
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "Unable to update the user password."
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",

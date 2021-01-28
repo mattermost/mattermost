@@ -47,7 +47,7 @@ func (ad *AuthData) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.Code) == 0 || len(ad.Code) > 128 {
+	if ad.Code == "" || len(ad.Code) > 128 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.auth_code.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 	}
 
@@ -82,11 +82,11 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.ResponseType) == 0 {
+	if ar.ResponseType == "" {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.response_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ar.RedirectUri) == 0 || len(ar.RedirectUri) > 256 || !IsValidHttpUrl(ar.RedirectUri) {
+	if ar.RedirectUri == "" || len(ar.RedirectUri) > 256 || !IsValidHttpUrl(ar.RedirectUri) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
@@ -110,7 +110,7 @@ func (ad *AuthData) PreSave() {
 		ad.CreateAt = GetMillis()
 	}
 
-	if len(ad.Scope) == 0 {
+	if ad.Scope == "" {
 		ad.Scope = DEFAULT_SCOPE
 	}
 }

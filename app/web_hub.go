@@ -435,7 +435,7 @@ func (h *Hub) Start() {
 				connIndex.Remove(webConn)
 				atomic.StoreInt64(&h.connectionCount, int64(len(connIndex.All())))
 
-				if len(webConn.UserId) == 0 {
+				if webConn.UserId == "" {
 					continue
 				}
 
