@@ -129,7 +129,6 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 	scanner := bufio.NewScanner(fileReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
-	appErr := model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest)
 
 	lineNumber := 0
 
@@ -147,6 +146,7 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
+			appErr := model.NewAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, "", http.StatusBadRequest)
 			if dryRun {
 				mlog.Warn(appErr.Where, mlog.Err(appErr))
 			} else {
@@ -233,8 +233,8 @@ func (a *App) bulkImport(fileReader io.Reader, dryRun bool, workers int, importP
 			mlog.Warn("Large image import error", mlog.Err(err.Error))
 		}
 	}
-	appErr = model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, appErr.Error(), http.StatusInternalServerError)
 	if err := scanner.Err(); err != nil {
+		appErr := model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error(), http.StatusInternalServerError)
 		if dryRun {
 			mlog.Warn(appErr.Where, mlog.Err(appErr))
 		} else {
