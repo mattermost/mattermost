@@ -5824,6 +5824,23 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	return &threads, BuildResponse(r)
 }
 
+func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response) {
+	url := c.GetUserThreadRoute(userId, teamId, threadId)
+	if extended {
+		url += "?extended=true"
+	}
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
+
+	return &thread, BuildResponse(r)
+}
+
 func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
 	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read", c.GetUserThreadsRoute(userId, teamId)), "")
 	if appErr != nil {
