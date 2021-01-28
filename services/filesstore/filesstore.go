@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	DRIVER_S3    = "amazons3"
-	DRIVER_LOCAL = "local"
+	driverS3    = "amazons3"
+	driverLocal = "local"
 )
 
 type ReadCloseSeeker interface {
@@ -68,13 +68,13 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 
 func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
 	switch settings.DriverName {
-	case DRIVER_S3:
+	case driverS3:
 		backend, err := NewS3FileBackend(settings)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
 		}
 		return backend, nil
-	case DRIVER_LOCAL:
+	case driverLocal:
 		return &LocalFileBackend{
 			directory: settings.Directory,
 		}, nil

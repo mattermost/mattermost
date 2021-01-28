@@ -152,7 +152,8 @@ func SetupTestResources() (string, error) {
 
 		if testResource.action == actionCopy {
 			if testResource.resType == resourceTypeFile {
-				fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+				var fileBackend filesstore.FileBackend
+				fileBackend, err = filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
 				if err != nil {
 					return "", errors.Wrapf(err, "failed to copy file %s to %s", testResource.src, resourceDestInTemp)
 				}

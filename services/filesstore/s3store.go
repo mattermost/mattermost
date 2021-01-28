@@ -42,13 +42,13 @@ const (
 )
 
 var (
-	IMAGE_EXTENSIONS = [7]string{".jpg", ".jpeg", ".gif", ".bmp", ".png", ".tiff", "tif"}
-	IMAGE_MIME_TYPES = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+	imageExtensions = [7]string{".jpg", ".jpeg", ".gif", ".bmp", ".png", ".tiff", "tif"}
+	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
 )
 
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
-	for _, imgExt := range IMAGE_EXTENSIONS {
+	for _, imgExt := range imageExtensions {
 		if ext == imgExt {
 			return true
 		}
@@ -58,10 +58,10 @@ func isFileExtImage(ext string) bool {
 
 func getImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if IMAGE_MIME_TYPES[ext] == "" {
+	if imageMimeTypes[ext] == "" {
 		return "image"
 	}
-	return IMAGE_MIME_TYPES[ext]
+	return imageMimeTypes[ext]
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend.
