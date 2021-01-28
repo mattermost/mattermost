@@ -322,69 +322,60 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 
 func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
 	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
-			var err *model.AppError
-			channel, err = a.createDirectChannel(userId, otherUserId)
-			if err != nil {
-				if err.Id == store.ChannelExistsError {
-					return channel, nil
-				}
-				return nil, err
-			}
-
-			a.WaitForChannelMembership(channel.Id, userId)
-
-			a.InvalidateCacheForUser(userId)
-			a.InvalidateCacheForUser(otherUserId)
-
-			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-				a.Srv().Go(func() {
-					pluginContext := a.PluginContext()
-					pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-						hooks.ChannelHasBeenCreated(pluginContext, channel)
-						return true
-					}, plugin.ChannelHasBeenCreatedId)
-				})
-			}
-
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
-			message.Add("teammate_id", otherUserId)
-			a.Publish(message)
-
-			return channel, nil
-		}
+	if nErr == nil {
+		return channel, nil
+	}
+	var nfErr *store.ErrNotFound
+	if !errors.As(nErr, &nfErr) {
 		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+
+	channel, err := a.createDirectChannel(userId, otherUserId)
+	if err != nil {
+		if err.Id == store.ChannelExistsError {
+			return channel, nil
+		}
+		return nil, err
+	}
+
+	a.WaitForChannelMembership(channel.Id, userId)
+
+	a.InvalidateCacheForUser(userId)
+	a.InvalidateCacheForUser(otherUserId)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ChannelHasBeenCreated(pluginContext, channel)
+				return true
+			}, plugin.ChannelHasBeenCreatedId)
+		})
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
+	message.Add("teammate_id", otherUserId)
+	a.Publish(message)
+
 	return channel, nil
 }
 
 func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
-	uc1 := make(chan store.StoreResult, 1)
-	uc2 := make(chan store.StoreResult, 1)
-	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
-		uc1 <- store.StoreResult{Data: user, NErr: err}
-		close(uc1)
-	}()
-	go func() {
-		user, err := a.Srv().Store.User().Get(otherUserId)
-		uc2 <- store.StoreResult{Data: user, NErr: err}
-		close(uc2)
-	}()
-
-	result := <-uc1
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userId, http.StatusBadRequest)
+	users, err := a.Srv().Store.User().GetMany([]string{userId, otherUserId})
+	if err != nil {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
-	result = <-uc2
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
+	if len(users) != 2 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userId, otherUserId), http.StatusBadRequest)
 	}
-	otherUser := result.Data.(*model.User)
+
+	user := users[0]
+	otherUser := users[1]
+	if user.Id != userId {
+		user = users[1]
+		otherUser = users[0]
+	}
 
 	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
 	if nErr != nil {
