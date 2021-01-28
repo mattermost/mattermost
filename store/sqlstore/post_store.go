@@ -116,7 +116,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
-		if len(post.Id) > 0 && !post.IsRemote() {
+		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
