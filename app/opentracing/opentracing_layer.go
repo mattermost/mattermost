@@ -1697,7 +1697,7 @@ func (a *OpenTracingAppLayer) CreateCommandPost(post *model.Post, teamID string,
 		a.ctx = origCtx
 	}()
 
-	span.SetTag("teamId", teamID)
+	span.SetTag("teamID", teamID)
 
 	span.SetTag("skipSlackParsing", skipSlackParsing)
 
@@ -10305,7 +10305,7 @@ func (a *OpenTracingAppLayer) ListAutocompleteCommands(teamID string, T goi18n.T
 		a.ctx = origCtx
 	}()
 
-	span.SetTag("teamId", teamID)
+	span.SetTag("teamID", teamID)
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.ListAutocompleteCommands(teamID, T)
