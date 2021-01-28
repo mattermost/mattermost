@@ -18,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // S3FileBackend contains all necessary information to communicate with
@@ -42,19 +41,42 @@ const (
 	bucketNotFound = "NoSuchBucket"
 )
 
+var (
+	IMAGE_EXTENSIONS = [7]string{".jpg", ".jpeg", ".gif", ".bmp", ".png", ".tiff", "tif"}
+	IMAGE_MIME_TYPES = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+)
+
+func isFileExtImage(ext string) bool {
+	ext = strings.ToLower(ext)
+	for _, imgExt := range IMAGE_EXTENSIONS {
+		if ext == imgExt {
+			return true
+		}
+	}
+	return false
+}
+
+func getImageMimeType(ext string) string {
+	ext = strings.ToLower(ext)
+	if IMAGE_MIME_TYPES[ext] == "" {
+		return "image"
+	}
+	return IMAGE_MIME_TYPES[ext]
+}
+
 // NewS3FileBackend returns an instance of an S3FileBackend.
-func NewS3FileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
+func NewS3FileBackend(settings FileBackendSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
-		endpoint:   *settings.AmazonS3Endpoint,
-		accessKey:  *settings.AmazonS3AccessKeyId,
-		secretKey:  *settings.AmazonS3SecretAccessKey,
-		secure:     settings.AmazonS3SSL == nil || *settings.AmazonS3SSL,
-		signV2:     settings.AmazonS3SignV2 != nil && *settings.AmazonS3SignV2,
-		region:     *settings.AmazonS3Region,
-		bucket:     *settings.AmazonS3Bucket,
-		pathPrefix: *settings.AmazonS3PathPrefix,
-		encrypt:    settings.AmazonS3SSE != nil && *settings.AmazonS3SSE && enableComplianceFeatures,
-		trace:      settings.AmazonS3Trace != nil && *settings.AmazonS3Trace,
+		endpoint:   settings.AmazonS3Endpoint,
+		accessKey:  settings.AmazonS3AccessKeyId,
+		secretKey:  settings.AmazonS3SecretAccessKey,
+		secure:     settings.AmazonS3SSL,
+		signV2:     settings.AmazonS3SignV2,
+		region:     settings.AmazonS3Region,
+		bucket:     settings.AmazonS3Bucket,
+		pathPrefix: settings.AmazonS3PathPrefix,
+		encrypt:    settings.AmazonS3SSE && enableComplianceFeatures,
+		trace:      settings.AmazonS3Trace,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -264,8 +286,8 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
-		contentType = model.GetImageMimeType(ext)
+	if ext := filepath.Ext(path); isFileExtImage(ext) {
+		contentType = getImageMimeType(ext)
 	} else {
 		contentType = "binary/octet-stream"
 	}
@@ -286,8 +308,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	}
 
 	var contentType string
-	if ext := filepath.Ext(fp); model.IsFileExtImage(ext) {
-		contentType = model.GetImageMimeType(ext)
+	if ext := filepath.Ext(fp); isFileExtImage(ext) {
+		contentType = getImageMimeType(ext)
 	} else {
 		contentType = "binary/octet-stream"
 	}
@@ -405,17 +427,4 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	options.PartSize = 1024 * 1024 * 5
 
 	return options
-}
-
-func CheckMandatoryS3Fields(settings *model.FileSettings) error {
-	if settings.AmazonS3Bucket == nil || *settings.AmazonS3Bucket == "" {
-		return errors.New("missing s3 bucket settings")
-	}
-
-	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == nil || *settings.AmazonS3Endpoint == "" {
-		settings.SetDefaults(true)
-	}
-
-	return nil
 }

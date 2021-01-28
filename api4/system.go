@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 )
 
@@ -384,7 +385,21 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
+	backendSettings := filesstore.FileBackendSettings{
+		DriverName:              *cfg.FileSettings.DriverName,
+		Directory:               *cfg.FileSettings.Directory,
+		AmazonS3AccessKeyId:     *cfg.FileSettings.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *cfg.FileSettings.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *cfg.FileSettings.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *cfg.FileSettings.AmazonS3PathPrefix,
+		AmazonS3Region:          *cfg.FileSettings.AmazonS3Region,
+		AmazonS3Endpoint:        *cfg.FileSettings.AmazonS3Endpoint,
+		AmazonS3SSL:             cfg.FileSettings.AmazonS3SSL == nil || *cfg.FileSettings.AmazonS3SSL,
+		AmazonS3SignV2:          cfg.FileSettings.AmazonS3SignV2 != nil && *cfg.FileSettings.AmazonS3SignV2,
+		AmazonS3SSE:             cfg.FileSettings.AmazonS3SSE != nil && *cfg.FileSettings.AmazonS3SSE,
+		AmazonS3Trace:           cfg.FileSettings.AmazonS3Trace != nil && *cfg.FileSettings.AmazonS3Trace,
+	}
+	err := c.App.CheckMandatoryS3Fields(&backendSettings)
 	if err != nil {
 		c.Err = err
 		return

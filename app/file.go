@@ -76,8 +76,8 @@ func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	return a.Srv().FileBackend()
 }
 
-func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
-	err := filesstore.CheckMandatoryS3Fields(settings)
+func (a *App) CheckMandatoryS3Fields(settings *filesstore.FileBackendSettings) *model.AppError {
+	err := settings.CheckMandatoryS3Fields()
 	if err != nil {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, err.Error(), http.StatusBadRequest)
 	}
