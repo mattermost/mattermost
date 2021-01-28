@@ -46,7 +46,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
 		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
-		tableSharedChannelUsers.ColMap("RemoteClusterId").SetMaxSize(64)
+		tableSharedChannelUsers.ColMap("RemoteClusterId").SetMaxSize(26)
 		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteClusterId")
 	}
 

@@ -38,12 +38,12 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 
 func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
 	var channel *model.Channel
+	var team *model.Team
+
 	postErrors := make([]string, 0)
 	usersSyncd := make([]string, 0)
 	var lastSyncAt int64
 	var err error
-
-	chanToTeamMap := make(map[string]*model.Team)
 
 	for _, sm := range syncMessages {
 
@@ -62,24 +62,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 			}
 		}
 
-		if sm.Post != nil {
-			if _, ok := chanToTeamMap[sm.Post.ChannelId]; !ok {
-				team, err2 := scs.server.GetStore().Channel().GetTeamForChannel(sm.Post.ChannelId)
-				if err2 != nil {
-					scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
-						mlog.String("ChannelId", sm.Post.ChannelId),
-						mlog.String("PostId", sm.Post.Id),
-						mlog.Err(err2),
-					)
-					postErrors = append(postErrors, sm.Post.Id)
-					continue
-				}
-				chanToTeamMap[sm.Post.ChannelId] = team
-			}
-			sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, chanToTeamMap[sm.Post.ChannelId])
-		}
-
-		// add/update users first
+		// add/update users before posts
 		for _, user := range sm.Users {
 			if userSaved, err := scs.upsertSyncUser(user, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
@@ -90,20 +73,50 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 			} else {
 				usersSyncd = append(usersSyncd, userSaved.Id)
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "User upserted via sync",
+					mlog.String("post_id", sm.PostId),
 					mlog.String("channel_id", sm.ChannelId),
-					mlog.String("user_id", user.Id))
+					mlog.String("user_id", user.Id),
+				)
 			}
 		}
 
-		// add post (may be nil if only reactions changed)
 		if sm.Post != nil {
+			if sm.ChannelId != sm.Post.ChannelId {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "ChannelId mismatch",
+					mlog.String("sm.ChannelId", sm.ChannelId),
+					mlog.String("sm.Post.ChannelId", sm.Post.ChannelId),
+					mlog.String("PostId", sm.Post.Id),
+				)
+				postErrors = append(postErrors, sm.Post.Id)
+				continue
+			}
+
+			if team == nil {
+				var err2 error
+				team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(sm.ChannelId)
+				if err2 != nil {
+					scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error getting Team for Channel",
+						mlog.String("ChannelId", sm.Post.ChannelId),
+						mlog.String("PostId", sm.Post.Id),
+						mlog.Err(err2),
+					)
+					postErrors = append(postErrors, sm.Post.Id)
+					continue
+				}
+			}
+
+			// process perma-links for remote
+			sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
+
+			// add/update post (may be nil if only reactions changed)
 			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)
 			if err != nil {
 				postErrors = append(postErrors, sm.Post.Id)
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync post",
 					mlog.String("post_id", sm.Post.Id),
 					mlog.String("channel_id", sm.Post.ChannelId),
-					mlog.Err(err))
+					mlog.Err(err),
+				)
 			} else if lastSyncAt < rpost.UpdateAt {
 				lastSyncAt = rpost.UpdateAt
 			}
@@ -117,13 +130,15 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 					mlog.String("post_id", reaction.PostId),
 					mlog.String("emoji", reaction.EmojiName),
 					mlog.Int64("delete_at", reaction.DeleteAt),
-					mlog.Err(err))
+					mlog.Err(err),
+				)
 			} else {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Reaction upserted via sync",
 					mlog.String("user_id", reaction.UserId),
 					mlog.String("post_id", reaction.PostId),
 					mlog.String("emoji", reaction.EmojiName),
-					mlog.Int64("delete_at", reaction.DeleteAt))
+					mlog.Int64("delete_at", reaction.DeleteAt),
+				)
 
 				if lastSyncAt < reaction.UpdateAt {
 					lastSyncAt = reaction.UpdateAt
