@@ -5381,7 +5381,7 @@ func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionP
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *TimerLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Patch(patch)
@@ -5429,7 +5429,7 @@ func (s *TimerLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Save(policy)
@@ -5445,7 +5445,7 @@ func (s *TimerLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*m
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *TimerLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	start := timemodule.Now()
 
 	result, err := s.RetentionPolicyStore.Update(update)

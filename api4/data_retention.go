@@ -8,9 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -49,17 +47,9 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	sCountsOnly := r.URL.Query().Get("counts_only")
-	bCountsOnly := false
-	var err error
 	var body map[string]interface{}
-	if sCountsOnly != "" {
-		bCountsOnly, err = strconv.ParseBool(sCountsOnly)
-		if err != nil {
-			mlog.Warn("Failed to parse counts_only URL query parameter from getPolicies request", mlog.Err(err))
-		}
-	}
-	if bCountsOnly {
+	countsOnly, _ := strconv.ParseBool(r.URL.Query().Get("counts_only"))
+	if countsOnly {
 		policies, err := c.App.GetRetentionPoliciesWithCounts()
 		if err != nil {
 			c.Err = err
@@ -85,17 +75,17 @@ func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
-	policy, err := c.App.GetRetentionPolicy(policyId)
+	c.RequirePolicyId()
+	policy, err := c.App.GetRetentionPolicy(c.Params.PolicyId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	w.Write(policy.ToJsonBytes())
+	w.Write(policy.ToJson())
 }
 
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyFromJson(r.Body)
+	policy, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 		return
@@ -108,24 +98,25 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	policy, err := c.App.CreateRetentionPolicy(policy)
+	newPolicy, err := c.App.CreateRetentionPolicy(policy)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.AddMeta("policy", policy) // overwrite meta
+	auditRec.AddMeta("policy", newPolicy) // overwrite meta
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write(policy.ToJsonBytes())
+	w.Write(newPolicy.ToJson())
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	patch, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
+	patch, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
-	patch.Id = mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	patch.Id = c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord("patchPolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -141,15 +132,16 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(policy.ToJsonBytes())
+	w.Write(policy.ToJson())
 }
 
 func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	update, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
+	update, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
-	update.Id = mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	update.Id = c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord("updatePolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -165,11 +157,12 @@ func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.Success()
-	w.Write(policy.ToJsonBytes())
+	w.Write(policy.ToJson())
 }
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	policyId := c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord("deletePolicy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -189,7 +182,8 @@ func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	policyId := c.Params.PolicyId
 	var lst teamIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
 	if jsonErr != nil {
@@ -216,7 +210,8 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	policyId := c.Params.PolicyId
 	var lst teamIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
 	if jsonErr != nil {
@@ -243,7 +238,8 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	policyId := c.Params.PolicyId
 	var lst channelIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
 	if jsonErr != nil {
@@ -270,7 +266,8 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policyId := mux.Vars(r)["policy_id"]
+	c.RequirePolicyId()
+	policyId := c.Params.PolicyId
 	var lst channelIdsList
 	jsonErr := json.NewDecoder(r.Body).Decode(&lst)
 	if jsonErr != nil {

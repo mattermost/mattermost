@@ -37,21 +37,21 @@ func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *mo
 	return a.DataRetention().GetPolicy(id)
 }
 
-func (a *App) CreateRetentionPolicy(policy *model.RetentionPolicy) (*model.RetentionPolicy, *model.AppError) {
+func (a *App) CreateRetentionPolicy(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("CreateRetentionPolicy")
 	}
 	return a.DataRetention().CreatePolicy(policy)
 }
 
-func (a *App) PatchRetentionPolicy(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) PatchRetentionPolicy(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("PatchRetentionPolicy")
 	}
 	return a.DataRetention().PatchPolicy(patch)
 }
 
-func (a *App) UpdateRetentionPolicy(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) UpdateRetentionPolicy(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("UpdateRetentionPolicy")
 	}
