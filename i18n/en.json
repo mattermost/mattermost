@@ -3495,6 +3495,10 @@
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
   },
   {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Field '{{.Field}}' must be set through user's login provider."
+  },
+  {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "Request is missing either AuthData or AuthService parameter."
   },
