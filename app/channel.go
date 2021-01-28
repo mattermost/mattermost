@@ -366,6 +366,16 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
+	if len(users) == 0 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userId, otherUserId), http.StatusBadRequest)
+	}
+
+	// We are doing this because we allow a user to create a direct channel with themselves
+	if userId == otherUserId {
+		users = append(users, users[0])
+	}
+
+	// After we counted for direct channels with the same user, if we do not have two users then we failed to find one
 	if len(users) != 2 {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userId, otherUserId), http.StatusBadRequest)
 	}
