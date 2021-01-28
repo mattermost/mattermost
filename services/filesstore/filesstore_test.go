@@ -46,7 +46,7 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
-			DriverName: DRIVER_LOCAL,
+			DriverName: driverLocal,
 			Directory:  dir,
 		},
 	})
@@ -75,7 +75,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
-			DriverName:              DRIVER_S3,
+			DriverName:              driverS3,
 			AmazonS3AccessKeyId:     "minioaccesskey",
 			AmazonS3SecretAccessKey: "miniosecretkey",
 			AmazonS3Bucket:          "mattermost-test",
@@ -428,7 +428,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 
 func BenchmarkS3WriteFile(b *testing.B) {
 	settings := FileBackendSettings{
-		DriverName:              DRIVER_S3,
+		DriverName:              driverS3,
 		AmazonS3AccessKeyId:     "minioaccesskey",
 		AmazonS3SecretAccessKey: "miniosecretkey",
 		AmazonS3Bucket:          "mattermost-test",
