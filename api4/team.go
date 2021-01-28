@@ -657,9 +657,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("invite_id", inviteId)
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session().UserId, tokenId)
-	} else if len(inviteId) > 0 {
+	} else if inviteId != "" {
 		if c.App.Session().Props[model.SESSION_PROP_IS_GUEST] == "true" {
 			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
 			return

@@ -93,19 +93,19 @@ TESTS=.
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
-PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
+PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.5.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -576,7 +576,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=serialized_gen.go -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \
@@ -591,10 +591,16 @@ endif
 
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
-	# So you would need to move the structs that need to be serialized temporarily
-	# to session.go and run the tool.
+	# There will be some warnings about "unresolved identifiers", 
+	# but that is because of the above problem. Since we are generating 
+	# methods for all the relevant files at a package level, all 
+	# identifiers will be resolved. An alternative to remove the warnings 
+	# would be to temporarily move all the structs to the same file, 
+	# but that involves a lot of manual work.
 	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
-	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
+	$(GOBIN)/msgp -file=./model/user.go -tests=false -o=./model/user_serial_gen.go
+	$(GOBIN)/msgp -file=./model/team_member.go -tests=false -o=./model/team_member_serial_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
