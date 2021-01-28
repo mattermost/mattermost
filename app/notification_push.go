@@ -41,7 +41,7 @@ type PushNotificationsHub struct {
 type PushNotification struct {
 	notificationType   notificationType
 	currentSessionId   string
-	userId             string
+	userID             string
 	channelId          string
 	post               *model.Post
 	user               *model.User
@@ -74,8 +74,8 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 	return a.sendPushNotificationToAllSessions(msg, user.Id, "")
 }
 
-func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userId string, skipSessionId string) *model.AppError {
-	sessions, err := a.getMobileAppSessions(userId)
+func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, userID string, skipSessionId string) *model.AppError {
+	sessions, err := a.getMobileAppSessions(userID)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, exp
 	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId string) *model.AppError {
+func (a *App) clearPushNotificationSync(currentSessionId, userID, channelId string) *model.AppError {
 	msg := &model.PushNotification{
 		Type:             model.PUSH_TYPE_CLEAR,
 		Version:          model.PUSH_MESSAGE_V2,
@@ -209,22 +209,22 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
 	if err != nil {
 		return model.NewAppError("clearPushNotificationSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
 
-	return a.sendPushNotificationToAllSessions(msg, userId, currentSessionId)
+	return a.sendPushNotificationToAllSessions(msg, userID, currentSessionId)
 }
 
-func (a *App) clearPushNotification(currentSessionId, userId, channelId string) {
+func (a *App) clearPushNotification(currentSessionId, userID, channelId string) {
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
-		userId:           userId,
+		userID:           userID,
 		channelId:        channelId,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
@@ -232,7 +232,7 @@ func (a *App) clearPushNotification(currentSessionId, userId, channelId string) 
 	}
 }
 
-func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
+func (a *App) updateMobileAppBadgeSync(userID string) *model.AppError {
 	msg := &model.PushNotification{
 		Type:             model.PUSH_TYPE_UPDATE_BADGE,
 		Version:          model.PUSH_MESSAGE_V2,
@@ -240,21 +240,21 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 		ContentAvailable: 1,
 	}
 
-	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userId)
+	unreadCount, err := a.Srv().Store.User().GetUnreadCount(userID)
 	if err != nil {
 		return model.NewAppError("updateMobileAppBadgeSync", "app.user.get_unread_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg.Badge = int(unreadCount)
 
-	return a.sendPushNotificationToAllSessions(msg, userId, "")
+	return a.sendPushNotificationToAllSessions(msg, userID, "")
 }
 
-func (a *App) UpdateMobileAppBadge(userId string) {
+func (a *App) UpdateMobileAppBadge(userID string) {
 	select {
 	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeUpdateBadge,
-		userId:           userId,
+		userID:           userID,
 	}:
 	case <-a.Srv().PushNotificationsHub.stopChan:
 		return
@@ -307,7 +307,7 @@ func (hub *PushNotificationsHub) start() {
 				var err *model.AppError
 				switch notification.notificationType {
 				case notificationTypeClear:
-					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
+					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userID, notification.channelId)
 				case notificationTypeMessage:
 					err = hub.app.sendPushNotificationSync(
 						notification.post,
@@ -320,7 +320,7 @@ func (hub *PushNotificationsHub) start() {
 						notification.replyToThreadType,
 					)
 				case notificationTypeUpdateBadge:
-					err = hub.app.updateMobileAppBadgeSync(notification.userId)
+					err = hub.app.updateMobileAppBadgeSync(notification.userID)
 				default:
 					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
@@ -429,8 +429,8 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	return nil
 }
 
-func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
+func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppError) {
+	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userID)
 	if err != nil {
 		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

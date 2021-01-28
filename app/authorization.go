@@ -104,23 +104,23 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToCategory(session model.Session, userId, teamID, categoryId string) bool {
+func (a *App) SessionHasPermissionToCategory(session model.Session, userID, teamID, categoryId string) bool {
 	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
 		return true
 	}
 	category, err := a.GetSidebarCategory(categoryId)
-	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userId && category.TeamId == teamID
+	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
-func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
-	if userId == "" {
+func (a *App) SessionHasPermissionToUser(session model.Session, userID string) bool {
+	if userID == "" {
 		return false
 	}
 	if session.IsUnrestricted() {
 		return true
 	}
 
-	if session.UserId == userId {
+	if session.UserId == userID {
 		return true
 	}
 
@@ -131,15 +131,15 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
 	if session.IsUnrestricted() {
 		return true
 	}
-	if a.SessionHasPermissionToUser(session, userId) {
+	if a.SessionHasPermissionToUser(session, userID) {
 		return true
 	}
 
-	if err := a.SessionHasPermissionToManageBot(session, userId); err == nil {
+	if err := a.SessionHasPermissionToManageBot(session, userID); err == nil {
 		return true
 	}
 
@@ -206,8 +206,8 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, p
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
-	if askingUserId == userId {
+func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
+	if askingUserId == userID {
 		return true
 	}
 

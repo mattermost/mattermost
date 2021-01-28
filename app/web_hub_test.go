@@ -36,9 +36,9 @@ func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(t *testing.T, a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	require.Nil(t, appErr)
 

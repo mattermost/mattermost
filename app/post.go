@@ -483,7 +483,7 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	return nil
 }
 
-func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
+func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -498,7 +498,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
@@ -507,7 +507,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	post.UpdateAt = model.GetMillis()
@@ -516,7 +516,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	post.GenerateActionIds()
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userID, nil)
 	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
@@ -525,16 +525,16 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userId, postId string) {
+func (a *App) DeleteEphemeralPost(userID, postId string) {
 	post := &model.Post{
 		Id:       postId,
-		UserId:   userId,
+		UserId:   userID,
 		Type:     model.POST_EPHEMERAL,
 		DeleteAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userID, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 }
@@ -764,8 +764,8 @@ func (a *App) GetPostThread(postId string, skipFetchThreads, collapsedThreads, c
 	return posts, nil
 }
 
-func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userId, offset, limit)
+func (a *App) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -773,8 +773,8 @@ func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.Post
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForTeam(userId, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetFlaggedPostsForTeam(userId, teamID, offset, limit)
+func (a *App) GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store.Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -782,8 +782,8 @@ func (a *App) GetFlaggedPostsForTeam(userId, teamID string, offset int, limit in
 	return postList, nil
 }
 
-func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+func (a *App) GetFlaggedPostsForChannel(userID, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userID, channelId, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -791,7 +791,7 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 	return postList, nil
 }
 
-func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
+func (a *App) GetPermalinkPost(postId string, userID string) (*model.PostList, *model.AppError) {
 	list, nErr := a.Srv().Store.Post().Get(postId, false, false, false)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -816,7 +816,7 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 		return nil, err
 	}
 
-	if err = a.JoinChannel(channel, userId); err != nil {
+	if err = a.JoinChannel(channel, userID); err != nil {
 		return nil, err
 	}
 
@@ -975,10 +975,10 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.NextPostId = nextPostId
 	originalList.PrevPostId = prevPostId
 }
-func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
+func (a *App) GetPostsForChannelAroundLastUnread(channelId, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.GetChannelMember(channelId, userId); err != nil {
+	if member, err = a.GetChannelMember(channelId, userID); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
 		return model.NewPostList(), nil
@@ -1083,18 +1083,18 @@ func (a *App) DeletePostFiles(post *model.Post) {
 	}
 }
 
-func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamID string, includeDeleted bool) (*model.Channel, error) {
+func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userID, teamID string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
-		var userIds []string
+		var userIDs []string
 		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
 		for _, user := range users {
-			userIds = append(userIds, user.Id)
+			userIDs = append(userIDs, user.Id)
 		}
 
-		channel, err := a.GetGroupChannel(userIds)
+		channel, err := a.GetGroupChannel(userIDs)
 		if err != nil {
 			return nil, err
 		}
@@ -1106,7 +1106,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(userId, user.Id)
+		channel, err := a.GetOrCreateDirectChannel(userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -1120,7 +1120,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 	return channel, nil
 }
 
-func (a *App) searchPostsInTeam(teamID string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
+func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
 	pchan := make(chan store.StoreResult, len(paramsList))
@@ -1135,7 +1135,7 @@ func (a *App) searchPostsInTeam(teamID string, userId string, paramsList []*mode
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := a.Srv().Store.Post().Search(teamID, userId, params)
+			postList, err := a.Srv().Store.Post().Search(teamID, userID, params)
 			pchan <- store.StoreResult{Data: postList, NErr: err}
 		}(params)
 	}
@@ -1157,9 +1157,9 @@ func (a *App) searchPostsInTeam(teamID string, userId string, paramsList []*mode
 	return posts, nil
 }
 
-func (a *App) convertChannelNamesToChannelIds(channels []string, userId string, teamID string, includeDeletedChannels bool) []string {
+func (a *App) convertChannelNamesToChannelIds(channels []string, userID string, teamID string, includeDeletedChannels bool) []string {
 	for idx, channelName := range channels {
-		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamID, includeDeletedChannels)
+		channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userID, teamID, includeDeletedChannels)
 		if err != nil {
 			mlog.Warn("error getting channel id by name from in filter", mlog.Err(err))
 			continue
@@ -1190,13 +1190,13 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) SearchPostsInTeamForUser(terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userId), http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamID, userID), http.StatusNotImplemented)
 	}
 
 	finalParamsList := []*model.SearchParams{}
@@ -1207,8 +1207,8 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamID strin
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
-			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userId, teamID, includeDeletedChannels)
-			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userId, teamID, includeDeletedChannels)
+			params.InChannels = a.convertChannelNamesToChannelIds(params.InChannels, userID, teamID, includeDeletedChannels)
+			params.ExcludedChannels = a.convertChannelNamesToChannelIds(params.ExcludedChannels, userID, teamID, includeDeletedChannels)
 
 			// Convert usernames to user IDs
 			params.FromUsers = a.convertUserNameToUserIds(params.FromUsers)
@@ -1223,7 +1223,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamID strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamID, page, perPage)
+	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userID, teamID, page, perPage)
 	if nErr != nil {
 		var appErr *model.AppError
 		switch {
@@ -1539,6 +1539,6 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 	return false
 }
 
-func (a *App) GetThreadMembershipsForUser(userId, teamID string) ([]*model.ThreadMembership, error) {
-	return a.Srv().Store.Thread().GetMembershipsForUser(userId, teamID)
+func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
+	return a.Srv().Store.Thread().GetMembershipsForUser(userID, teamID)
 }

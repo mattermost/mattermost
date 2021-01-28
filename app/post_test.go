@@ -626,11 +626,11 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	// Create a post with a file attachment.
 	teamID := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userId, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userID, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -641,7 +641,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		Message:       "asd",
 		ChannelId:     channelId,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        userId,
+		UserId:        userID,
 		CreateAt:      0,
 		FileIds:       []string{info1.Id},
 	}
@@ -650,7 +650,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Delete the post.
-	post, err = th.App.DeletePost(post.Id, userId)
+	post, err = th.App.DeletePost(post.Id, userID)
 	assert.Nil(t, err)
 
 	// Wait for the cleanup routine to finish.

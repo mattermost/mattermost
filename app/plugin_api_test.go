@@ -1275,10 +1275,10 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, data, actualData)
 
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	post, err := api.CreatePost(&model.Post{
 		Message:   "test",
-		UserId:    userId,
+		UserId:    userID,
 		ChannelId: channelId,
 		FileIds:   model.StringArray{fileInfo.Id},
 	})
@@ -1712,7 +1712,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	testCases := []struct {
 		description      string
 		teamID           string
-		userId           string
+		userID           string
 		params           model.SearchParameter
 		expectedPostsLen int
 	}{
@@ -1741,7 +1741,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamID, testCase.userId, testCase.params)
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamID, testCase.userID, testCase.params)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
 		})

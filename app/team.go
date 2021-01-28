@@ -48,8 +48,8 @@ func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return rteam, nil
 }
 
-func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userId)
+func (a *App) CreateTeamWithUser(team *model.Team, userID string) (*model.Team, *model.AppError) {
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -354,8 +354,8 @@ func (a *App) GetSchemeRolesForTeam(teamID string) (string, string, string, *mod
 	return model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
 }
 
-func (a *App) UpdateTeamMemberRoles(teamID string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	member, nErr := a.Srv().Store.Team().GetMember(teamID, userId)
+func (a *App) UpdateTeamMemberRoles(teamID string, userID string, newRoles string) (*model.TeamMember, *model.AppError) {
+	member, nErr := a.Srv().Store.Team().GetMember(teamID, userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -367,7 +367,7 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userId string, newRoles strin
 	}
 
 	if member == nil {
-		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamID, http.StatusBadRequest)
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userID+" teamId="+teamID, http.StatusBadRequest)
 	}
 
 	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamID)
@@ -429,15 +429,15 @@ func (a *App) UpdateTeamMemberRoles(teamID string, userId string, newRoles strin
 		}
 	}
 
-	a.ClearSessionCacheForUser(userId)
+	a.ClearSessionCacheForUser(userID)
 
-	a.sendUpdatedMemberRoleEvent(userId, member)
+	a.sendUpdatedMemberRoleEvent(userID, member)
 
 	return member, nil
 }
 
-func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
-	member, err := a.GetTeamMember(teamID, userId)
+func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+	member, err := a.GetTeamMember(teamID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -466,20 +466,20 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userId string, isScheme
 		}
 	}
 
-	a.ClearSessionCacheForUser(userId)
+	a.ClearSessionCacheForUser(userID)
 
-	a.sendUpdatedMemberRoleEvent(userId, member)
+	a.sendUpdatedMemberRoleEvent(userID, member)
 
 	return member, nil
 }
 
-func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
+func (a *App) sendUpdatedMemberRoleEvent(userID string, member *model.TeamMember) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userID, nil)
 	message.Add("member", member.ToJson())
 	a.Publish(message)
 }
 
-func (a *App) AddUserToTeam(teamID string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
+func (a *App) AddUserToTeam(teamID string, userID string, userRequestorId string) (*model.Team, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
@@ -489,7 +489,7 @@ func (a *App) AddUserToTeam(teamID string, userId string, userRequestorId string
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -540,7 +540,7 @@ func (a *App) AddUserToTeamByTeamId(teamID string, user *model.User) *model.AppE
 	return a.JoinUserToTeam(team, user, "")
 }
 
-func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
+func (a *App) AddUserToTeamByToken(userID string, tokenId string) (*model.Team, *model.AppError) {
 	token, err := a.Srv().Store.Token().GetByToken(tokenId)
 	if err != nil {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -566,7 +566,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -631,7 +631,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	return team, nil
 }
 
-func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
+func (a *App) AddUserToTeamByInviteId(inviteId string, userID string) (*model.Team, *model.AppError) {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
@@ -641,7 +641,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -988,8 +988,8 @@ func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	teams, err := a.Srv().Store.Team().GetTeamsByUserId(userId)
+func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store.Team().GetTeamsByUserId(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsForUser", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -997,8 +997,8 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (a *App) GetTeamMember(teamID, userId string) (*model.TeamMember, *model.AppError) {
-	teamMember, err := a.Srv().Store.Team().GetMember(teamID, userId)
+func (a *App) GetTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
+	teamMember, err := a.Srv().Store.Team().GetMember(teamID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1012,8 +1012,8 @@ func (a *App) GetTeamMember(teamID, userId string) (*model.TeamMember, *model.Ap
 	return teamMember, nil
 }
 
-func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(context.Background(), userId)
+func (a *App) GetTeamMembersForUser(userID string) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store.Team().GetTeamsForUser(context.Background(), userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUser", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1021,8 +1021,8 @@ func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.
 	return teamMembers, nil
 }
 
-func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
+func (a *App) GetTeamMembersForUserWithPagination(userID string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store.Team().GetTeamsForUserWithPagination(userID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersForUserWithPagination", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1039,8 +1039,8 @@ func (a *App) GetTeamMembers(teamID string, offset int, limit int, teamMembersGe
 	return teamMembers, nil
 }
 
-func (a *App) GetTeamMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	teamMembers, err := a.Srv().Store.Team().GetMembersByIds(teamID, userIds, restrictions)
+func (a *App) GetTeamMembersByIds(teamID string, userIDs []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	teamMembers, err := a.Srv().Store.Team().GetMembersByIds(teamID, userIDs, restrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamMembersByIds", "app.team.get_members_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1048,32 +1048,32 @@ func (a *App) GetTeamMembersByIds(teamID string, userIds []string, restrictions 
 	return teamMembers, nil
 }
 
-func (a *App) AddTeamMember(teamID, userId string) (*model.TeamMember, *model.AppError) {
-	if _, err := a.AddUserToTeam(teamID, userId, ""); err != nil {
+func (a *App) AddTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
+	if _, err := a.AddUserToTeam(teamID, userID, ""); err != nil {
 		return nil, err
 	}
 
-	teamMember, err := a.GetTeamMember(teamID, userId)
+	teamMember, err := a.GetTeamMember(teamID, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
 	message.Add("team_id", teamID)
-	message.Add("user_id", userId)
+	message.Add("user_id", userID)
 	a.Publish(message)
 
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMembers(teamID string, userIds []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
+func (a *App) AddTeamMembers(teamID string, userIDs []string, userRequestorId string, graceful bool) ([]*model.TeamMemberWithError, *model.AppError) {
 	var membersWithErrors []*model.TeamMemberWithError
 
-	for _, userId := range userIds {
-		if _, err := a.AddUserToTeam(teamID, userId, userRequestorId); err != nil {
+	for _, userID := range userIDs {
+		if _, err := a.AddUserToTeam(teamID, userID, userRequestorId); err != nil {
 			if graceful {
 				membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
-					UserId: userId,
+					UserId: userID,
 					Error:  err,
 				})
 				continue
@@ -1081,31 +1081,31 @@ func (a *App) AddTeamMembers(teamID string, userIds []string, userRequestorId st
 			return nil, err
 		}
 
-		teamMember, err := a.GetTeamMember(teamID, userId)
+		teamMember, err := a.GetTeamMember(teamID, userID)
 		if err != nil {
 			return nil, err
 		}
 		membersWithErrors = append(membersWithErrors, &model.TeamMemberWithError{
-			UserId: userId,
+			UserId: userID,
 			Member: teamMember,
 		})
 
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userId, nil)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", userID, nil)
 		message.Add("team_id", teamID)
-		message.Add("user_id", userId)
+		message.Add("user_id", userID)
 		a.Publish(message)
 	}
 
 	return membersWithErrors, nil
 }
 
-func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *model.AppError) {
-	team, err := a.AddUserToTeamByToken(userId, tokenId)
+func (a *App) AddTeamMemberByToken(userID, tokenId string) (*model.TeamMember, *model.AppError) {
+	team, err := a.AddUserToTeamByToken(userID, tokenId)
 	if err != nil {
 		return nil, err
 	}
 
-	teamMember, err := a.GetTeamMember(team.Id, userId)
+	teamMember, err := a.GetTeamMember(team.Id, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1113,8 +1113,8 @@ func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *
 	return teamMember, nil
 }
 
-func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMember, *model.AppError) {
-	team, err := a.AddUserToTeamByInviteId(inviteId, userId)
+func (a *App) AddTeamMemberByInviteId(inviteId, userID string) (*model.TeamMember, *model.AppError) {
+	team, err := a.AddUserToTeamByInviteId(inviteId, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1123,15 +1123,15 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 		return nil, model.NewAppError("AddTeamMemberByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
-	teamMember, err := a.GetTeamMember(team.Id, userId)
+	teamMember, err := a.GetTeamMember(team.Id, userID)
 	if err != nil {
 		return nil, err
 	}
 	return teamMember, nil
 }
 
-func (a *App) GetTeamUnread(teamID, userId string) (*model.TeamUnread, *model.AppError) {
-	channelUnreads, err := a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userId)
+func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.AppError) {
+	channelUnreads, err := a.Srv().Store.Team().GetChannelUnreadsForTeam(teamID, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1153,7 +1153,7 @@ func (a *App) GetTeamUnread(teamID, userId string) (*model.TeamUnread, *model.Ap
 	return teamUnread, nil
 }
 
-func (a *App) RemoveUserFromTeam(teamID string, userId string, requestorId string) *model.AppError {
+func (a *App) RemoveUserFromTeam(teamID string, userID string, requestorId string) *model.AppError {
 	tchan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(teamID)
@@ -1163,7 +1163,7 @@ func (a *App) RemoveUserFromTeam(teamID string, userId string, requestorId strin
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userId)
+		user, err := a.Srv().Store.User().Get(userID)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1662,8 +1662,8 @@ func (a *App) FindTeamByName(name string) bool {
 	return true
 }
 
-func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
-	data, err := a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string) ([]*model.TeamUnread, *model.AppError) {
+	data, err := a.Srv().Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

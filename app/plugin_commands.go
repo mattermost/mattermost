@@ -148,8 +148,8 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	for username, userId := range a.MentionsToTeamMembers(args.Command, args.TeamId) {
-		args.AddUserMention(username, userId)
+	for username, userID := range a.MentionsToTeamMembers(args.Command, args.TeamId) {
+		args.AddUserMention(username, userID)
 	}
 
 	for channelName, channelId := range a.MentionsToPublicChannels(args.Command, args.TeamId) {

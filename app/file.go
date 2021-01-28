@@ -247,9 +247,9 @@ func (a *App) RemoveDirectory(path string) *model.AppError {
 	return nil
 }
 
-func (a *App) getInfoForFilename(post *model.Post, teamID, channelId, userId, oldId, filename string) *model.FileInfo {
+func (a *App) getInfoForFilename(post *model.Post, teamID, channelId, userID, oldId, filename string) *model.FileInfo {
 	name, _ := url.QueryUnescape(filename)
-	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelId, userId, oldId)
+	pathPrefix := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/", teamID, channelId, userID, oldId)
 	path := pathPrefix + name
 
 	// Open the file and populate the fields of the FileInfo
@@ -321,8 +321,8 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 var fileMigrationLock sync.Mutex
 var oldFilenameMatchExp *regexp.Regexp = regexp.MustCompile(`^\/([a-z\d]{26})\/([a-z\d]{26})\/([a-z\d]{26})\/([^\/]+)$`)
 
-// Parse the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
-func parseOldFilenames(filenames []string, channelId, userId string) [][]string {
+// Parse the path from the Filename of the form /{channelId}/{userID}/{uid}/{nameWithExtension}
+func parseOldFilenames(filenames []string, channelId, userID string) [][]string {
 	parsed := [][]string{}
 	for _, filename := range filenames {
 		matches := oldFilenameMatchExp.FindStringSubmatch(filename)
@@ -332,8 +332,8 @@ func parseOldFilenames(filenames []string, channelId, userId string) [][]string 
 		}
 		if matches[1] != channelId {
 			mlog.Error("ChannelId in Filename does not match", mlog.String("channel_id", channelId), mlog.String("matched", matches[1]))
-		} else if matches[2] != userId {
-			mlog.Error("UserId in Filename does not match", mlog.String("user_id", userId), mlog.String("matched", matches[2]))
+		} else if matches[2] != userID {
+			mlog.Error("UserId in Filename does not match", mlog.String("user_id", userID), mlog.String("matched", matches[2]))
 		} else {
 			parsed = append(parsed, matches[1:])
 		}
@@ -473,7 +473,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadMultipartFiles(teamID string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadMultipartFiles(teamID string, channelId string, userID string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	files := make([]io.ReadCloser, len(fileHeaders))
 	filenames := make([]string, len(fileHeaders))
 
@@ -491,13 +491,13 @@ func (a *App) UploadMultipartFiles(teamID string, channelId string, userId strin
 		filenames[i] = fileHeader.Filename
 	}
 
-	return a.UploadFiles(teamID, channelId, userId, files, filenames, clientIds, now)
+	return a.UploadFiles(teamID, channelId, userID, files, filenames, clientIds, now)
 }
 
 // Uploads some files to the given team and channel as the given user. files and filenames should have
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
-func (a *App) UploadFiles(teamID string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamID string, channelId string, userID string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
 	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -520,7 +520,7 @@ func (a *App) UploadFiles(teamID string, channelId string, userId string, files 
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelId, userId, filenames[i], data)
+		info, data, err := a.DoUploadFileExpectModification(now, teamID, channelId, userID, filenames[i], data)
 		if err != nil {
 			return nil, err
 		}
@@ -578,9 +578,9 @@ func UploadFileSetTeamId(teamID string) func(t *UploadFileTask) {
 	}
 }
 
-func UploadFileSetUserId(userId string) func(t *UploadFileTask) {
+func UploadFileSetUserId(userID string) func(t *UploadFileTask) {
 	return func(t *UploadFileTask) {
-		t.UserId = filepath.Base(userId)
+		t.UserId = filepath.Base(userID)
 	}
 }
 
@@ -939,7 +939,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	filename := filepath.Base(rawFilename)
 	teamID := filepath.Base(rawTeamId)
 	channelId := filepath.Base(rawChannelId)
-	userId := filepath.Base(rawUserId)
+	userID := filepath.Base(rawUserId)
 
 	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
@@ -956,10 +956,10 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	}
 
 	info.Id = model.NewId()
-	info.CreatorId = userId
+	info.CreatorId = userID
 	info.CreateAt = now.UnixNano() / int64(time.Millisecond)
 
-	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelId + "/users/" + userId + "/" + info.Id + "/"
+	pathPrefix := now.Format("20060102") + "/teams/" + teamID + "/channels/" + channelId + "/users/" + userID + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
@@ -1220,7 +1220,7 @@ func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
+func (a *App) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()
@@ -1238,7 +1238,7 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 		}
 
 		fileInfo.Id = model.NewId()
-		fileInfo.CreatorId = userId
+		fileInfo.CreatorId = userID
 		fileInfo.CreateAt = now
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""

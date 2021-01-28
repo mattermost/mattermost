@@ -65,8 +65,8 @@ func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, 
 	return groups, nil
 }
 
-func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetByUser(userId)
+func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetByUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsByUserId", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}

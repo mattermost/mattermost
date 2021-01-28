@@ -311,7 +311,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
-	var userId string
+	var userID string
 	var canSee bool
 
 	switch msg.EventType() {
@@ -321,14 +321,14 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
-		userId = user.Id
+		userID = user.Id
 	case model.WEBSOCKET_EVENT_NEW_USER:
-		userId = msg.GetData()["user_id"].(string)
+		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true
 	}
 
-	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userId)
+	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
