@@ -27,6 +27,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -597,4 +598,32 @@ func newFramer(conn net.Conn, writeBufferSize, readBufferSize int, maxHeaderList
 	f.fr.MaxHeaderListSize = maxHeaderListSize
 	f.fr.ReadMetaHeaders = hpack.NewDecoder(http2InitHeaderTableSize, nil)
 	return f
+}
+
+// parseDialTarget returns the network and address to pass to dialer.
+func parseDialTarget(target string) (string, string) {
+	net := "tcp"
+	m1 := strings.Index(target, ":")
+	m2 := strings.Index(target, ":/")
+	// handle unix:addr which will fail with url.Parse
+	if m1 >= 0 && m2 < 0 {
+		if n := target[0:m1]; n == "unix" {
+			return n, target[m1+1:]
+		}
+	}
+	if m2 >= 0 {
+		t, err := url.Parse(target)
+		if err != nil {
+			return net, target
+		}
+		scheme := t.Scheme
+		addr := t.Path
+		if scheme == "unix" {
+			if addr == "" {
+				addr = t.Host
+			}
+			return scheme, addr
+		}
+	}
+	return net, target
 }

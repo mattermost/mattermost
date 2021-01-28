@@ -268,6 +268,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
 	db.SetMaxOpenConns(*settings.MaxOpenConns)
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
+	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
 	var dbmap *gorp.DbMap
 
@@ -424,7 +425,7 @@ func (ss *SqlStore) MarkSystemRanUnitTests() {
 	}
 
 	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-	if len(unitTests) == 0 {
+	if unitTests == "" {
 		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
 		ss.System().Save(systemTests)
 	}

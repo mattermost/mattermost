@@ -35,7 +35,7 @@ func (s SqlTermsOfServiceStore) createIndexesIfNotExists() {
 }
 
 func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
-	if len(termsOfService.Id) > 0 {
+	if termsOfService.Id != "" {
 		return nil, store.NewErrInvalidInput("TermsOfService", "Id", termsOfService.Id)
 	}
 

@@ -38,7 +38,7 @@ func TestPlugin(t *testing.T) {
 
 	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	cfsStore, err := config.NewStoreFromBacking(fs, nil)
+	cfsStore, err := config.NewStoreFromBacking(fs, nil, false)
 	require.Nil(t, err)
 	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
 	assert.True(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
@@ -48,7 +48,7 @@ func TestPlugin(t *testing.T) {
 	assert.Contains(t, output, "Disabled plugin: testplugin")
 	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	cfsStore, err = config.NewStoreFromBacking(fs, nil)
+	cfsStore, err = config.NewStoreFromBacking(fs, nil, false)
 	require.Nil(t, err)
 	require.NotNil(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"])
 	assert.False(t, cfsStore.Get().PluginSettings.PluginStates["testplugin"].Enable)
