@@ -95,6 +95,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
+	api.BaseRoutes.UserThread.Handle("", api.ApiSessionRequired(getThreadForUser)).Methods("GET")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateThreadByUser)).Methods("PUT")
@@ -2818,6 +2819,27 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId().RequireThreadId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	extendedStr := r.URL.Query().Get("extended")
+
+	extended, _ := strconv.ParseBool(extendedStr)
+	threads, err := c.App.GetThreadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, extended)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(threads.ToJson()))
 }
 
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
