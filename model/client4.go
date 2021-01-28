@@ -383,7 +383,11 @@ func (c *Client4) GetComplianceReportsRoute() string {
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
-	return fmt.Sprintf("/compliance/reports/%v", reportId)
+	return fmt.Sprintf("%s/%s", c.GetComplianceReportsRoute(), reportId)
+}
+
+func (c *Client4) GetComplianceReportDownloadRoute(reportId string) string {
+	return fmt.Sprintf("%s/%s/download", c.GetComplianceReportsRoute(), reportId)
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
@@ -3873,7 +3877,7 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -5818,6 +5822,23 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	json.NewDecoder(r.Body).Decode(&threads)
 
 	return &threads, BuildResponse(r)
+}
+
+func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response) {
+	url := c.GetUserThreadRoute(userId, teamId, threadId)
+	if extended {
+		url += "?extended=true"
+	}
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
+
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {

@@ -693,6 +693,7 @@ type AppIface interface {
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, *model.AppError)
 	GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)

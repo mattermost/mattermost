@@ -283,6 +283,71 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	return result, nil
 }
+func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
+	type JoinedThread struct {
+		PostId         string
+		Following      bool
+		ReplyCount     int64
+		LastReplyAt    int64
+		LastViewedAt   int64
+		UnreadReplies  int64
+		UnreadMentions int64
+		Participants   model.StringArray
+		model.Post
+	}
+
+	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
+	fetchConditions := sq.And{
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+		sq.Eq{"ThreadMemberships.UserId": userId},
+		sq.Eq{"Threads.PostId": threadId},
+	}
+
+	var thread JoinedThread
+	query, args, _ := s.getQueryBuilder().
+		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
+		From("Threads").
+		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+		LeftJoin("Posts ON Posts.Id = Threads.PostId").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+		Where(fetchConditions).ToSql()
+	err := s.GetReplica().SelectOne(&thread, query, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !thread.Following {
+		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+	}
+
+	var users []*model.User
+	if extended {
+		var err error
+		users, err = s.User().GetProfileByIds(thread.Participants, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+		}
+	} else {
+		for _, userId := range thread.Participants {
+			users = append(users, &model.User{Id: userId})
+		}
+	}
+
+	result := &model.ThreadResponse{
+		PostId:         thread.PostId,
+		ReplyCount:     thread.ReplyCount,
+		LastReplyAt:    thread.LastReplyAt,
+		LastViewedAt:   thread.LastViewedAt,
+		UnreadReplies:  thread.UnreadReplies,
+		UnreadMentions: thread.UnreadMentions,
+		Participants:   users,
+		Post:           &thread.Post,
+	}
+
+	return result, nil
+}
 
 func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 	memberships, err := s.GetMembershipsForUser(userId, teamId)

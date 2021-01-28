@@ -3736,10 +3736,6 @@
     "translation": "Неуспешно обновяване следването на разговор"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Потребителската парола не може да се актуализира."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Невъзможно е да се актуализират failed_attempts."
   },
@@ -8469,5 +8465,45 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Заданието, което се опитвате да изтеглите, в момента не се поддържа"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "'Обновено в' трябва да е валидно време."
+  },
+  {
+    "id": "error",
+    "translation": "Грешка"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Пренасочване обратно към приложението."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Вече можете да затворите този раздел на браузъра."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Удостоверяването завърши"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Предоставен е невалиден URL адрес за пренасочване"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Предоставена е невалидна персонална URL схема"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Промяната на {{.Name}} не е разрешена поради съображения за сигурност."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Обратно към {{.SiteName}}"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "В заявката липсва параметър AuthData или AuthService."
   }
 ]
