@@ -363,3 +363,48 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 func (a *App) IsUserAway(lastActivityAt int64) bool {
 	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
 }
+
+func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.SetCustomStatus(cs)
+	_, updateErr := a.UpdateUser(user, false)
+	if updateErr != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) RemoveCustomStatus(userID string) *model.AppError {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.ClearCustomStatus()
+	_, updateErr := a.UpdateUser(user, false)
+	if updateErr != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	user.RemoveRecentCustomStatus(status)
+	_, updateErr := a.UpdateUser(user, false)
+	if updateErr != nil {
+		return err
+	}
+
+	return nil
+}

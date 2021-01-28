@@ -13,6 +13,9 @@ func (api *API) InitStatus() {
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
 	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(updateUserCustomStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status/custom", api.ApiSessionRequired(removeUserCustomStatus)).Methods("DELETE")
+	api.BaseRoutes.User.Handle("/status/custom/recent", api.ApiSessionRequired(removeUserRecentCustomStatus)).Methods("DELETE")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,4 +109,74 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	getUserStatus(c, w, r)
+}
+
+func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	customStatus := model.CustomStatusFromJson(r.Body)
+	if customStatus == nil {
+		c.SetInvalidParam("custom_status")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	if err != nil {
+		c.SetInvalidParam("custom_status")
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if err := c.App.RemoveCustomStatus(c.Params.UserId); err != nil {
+		c.SetInvalidParam("custom_status")
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	recentCustomStatus := model.CustomStatusFromJson(r.Body)
+	if recentCustomStatus == nil {
+		c.SetInvalidParam("recent_custom_status")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+		c.SetInvalidParam("custom_status")
+		return
+	}
+
+	ReturnStatusOK(w)
 }
