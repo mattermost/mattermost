@@ -186,7 +186,7 @@ func (p *HelpersImpl) shouldProcessMessage(post *model.Post, botId string, messa
 		return false, nil
 	}
 
-	if messageProcessOptions.OnlyBotDMs {
+	if len(botId) > 0 && messageProcessOptions.OnlyBotDMs {
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 		if appErr != nil {
 			return false, errors.Wrap(appErr, "unable to get channel")
