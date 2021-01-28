@@ -7467,6 +7467,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
     "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
