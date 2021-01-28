@@ -7,7 +7,7 @@ stages:
 
 include:
   - project: mattermost/ci/mattermost-server
-    ref: master
+    ref: release-5.32
     file: private.yml
 #  - local: .gitlab-ci/test.yml
 #  - local: .gitlab-ci/test-schema.yml
