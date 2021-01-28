@@ -83,7 +83,24 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
-		mockApp.On("PatchChannelModerationsForChannel", channel, mock.Anything).Return(nil, nil)
+		createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
+		createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+		updateMap := model.ChannelModeratedRolesPatch{
+			Guests:  model.NewBool(false),
+			Members: model.NewBool(false),
+		}
+
+		readonlyChannelModerations := []*model.ChannelModerationPatch{
+			{
+				Name:  &createPostPermission,
+				Roles: &updateMap,
+			},
+			{
+				Name:  &createReactionPermission,
+				Roles: &updateMap,
+			},
+		}
+		mockApp.On("PatchChannelModerationsForChannel", channel, readonlyChannelModerations).Return(nil, nil)
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
