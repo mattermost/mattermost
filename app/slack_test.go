@@ -27,7 +27,7 @@ func TestProcessSlackText(t *testing.T) {
 
 	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
-	if th.App.ProcessSlackText("<@"+userId+"> hello") != "@"+username+" hello" {
+	if th.App.ProcessSlackText("<@"+userID+"> hello") != "@"+username+" hello" {
 		t.Fail()
 	}
 }
