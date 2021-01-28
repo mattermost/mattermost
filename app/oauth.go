@@ -409,11 +409,11 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 	return accessRsp, nil
 }
 
-func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamId, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError) {
+func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = action
-	if teamId != "" {
-		stateProps["team_id"] = teamId
+	if teamID != "" {
+		stateProps["team_id"] = teamID
 	}
 
 	if redirectTo != "" {
@@ -430,11 +430,11 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 	return authUrl, nil
 }
 
-func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamId string) (string, *model.AppError) {
+func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_SIGNUP
-	if teamId != "" {
-		stateProps["team_id"] = teamId
+	if teamID != "" {
+		stateProps["team_id"] = teamID
 	}
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
@@ -544,22 +544,22 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 	return nil
 }
 
-func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	defer body.Close()
 
 	action := props["action"]
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		return a.CreateOAuthUser(service, body, teamId, tokenUser)
+		return a.CreateOAuthUser(service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_LOGIN:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAUTH_ACTION_SSO_TO_EMAIL:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	default:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	}
 }
 
@@ -580,7 +580,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.
 	return provider, nil
 }
 
-func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -606,7 +606,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
-			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId, tokenUser)
+			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
 		} else {
 			return nil, err
 		}
@@ -621,8 +621,8 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}
-		if teamId != "" {
-			err = a.AddUserToTeamByTeamId(teamId, user)
+		if teamID != "" {
+			err = a.AddUserToTeamByTeamId(teamID, user)
 		}
 	}
 
@@ -833,7 +833,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	http.SetCookie(w, httpCookie)
 
-	teamId := stateProps["team_id"]
+	teamID := stateProps["team_id"]
 
 	p := url.Values{}
 	p.Set("client_id", *sso.Id)
@@ -912,7 +912,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	// Note that resp.Body is not closed here, so it must be closed by the caller
-	return resp.Body, teamId, stateProps, userFromToken, nil
+	return resp.Body, teamID, stateProps, userFromToken, nil
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {

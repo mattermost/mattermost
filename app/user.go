@@ -273,7 +273,7 @@ func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *mod
 	if appErr != nil {
 		return nil, appErr
 	}
-	// This message goes to everyone, so the teamId, channelId and userId are irrelevant
+	// This message goes to everyone, so the teamID, channelId and userId are irrelevant
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
@@ -335,7 +335,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -393,13 +393,13 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string,
 		return nil, err
 	}
 
-	if teamId != "" {
-		err = a.AddUserToTeamByTeamId(teamId, user)
+	if teamID != "" {
+		err = a.AddUserToTeamByTeamId(teamID, user)
 		if err != nil {
 			return nil, err
 		}
 
-		err = a.AddDirectChannels(teamId, user)
+		err = a.AddDirectChannels(teamID, user)
 		if err != nil {
 			mlog.Warn("Failed to add direct channels", mlog.Err(err))
 		}
@@ -535,8 +535,8 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return users, nil
 }
 
-func (a *App) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInTeam(teamID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetProfilesNotInTeam(teamID, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInTeam", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -553,8 +553,8 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInTeam(teamId, groupConstrained, page*perPage, perPage, viewRestrictions)
+func (a *App) GetUsersNotInTeamPage(teamID string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInTeam(teamID, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -562,12 +562,12 @@ func (a *App) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page i
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersInTeamEtag(teamId string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfiles(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+func (a *App) GetUsersInTeamEtag(teamID string, restrictionsHash string) string {
+	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfiles(teamID), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) string {
-	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfilesNotInTeam(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
+func (a *App) GetUsersNotInTeamEtag(teamID string, restrictionsHash string) string {
+	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfilesNotInTeam(teamID), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
 func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
@@ -620,8 +620,8 @@ func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdm
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInChannel(teamID string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetProfilesNotInChannel(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersNotInChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -629,8 +629,8 @@ func (a *App) GetUsersNotInChannel(teamId string, channelId string, groupConstra
 	return users, nil
 }
 
-func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInChannelMap(teamID string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamID, channelId, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -645,8 +645,8 @@ func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, groupCons
 	return userMap, nil
 }
 
-func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, groupConstrained, page*perPage, perPage, viewRestrictions)
+func (a *App) GetUsersNotInChannelPage(teamID string, channelId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamID, channelId, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -1871,9 +1871,9 @@ func (a *App) SearchUsersInChannel(channelId string, term string, options *model
 	return users, nil
 }
 
-func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsersNotInChannel(teamID string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
-	users, err := a.Srv().Store.User().SearchNotInChannel(teamId, channelId, term, options)
+	users, err := a.Srv().Store.User().SearchNotInChannel(teamID, channelId, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1885,10 +1885,10 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 	return users, nil
 }
 
-func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+func (a *App) SearchUsersInTeam(teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store.User().Search(teamId, term, options)
+	users, err := a.Srv().Store.User().Search(teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("SearchUsersInTeam", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1942,10 +1942,10 @@ func (a *App) SearchUsersInGroup(groupID string, term string, options *model.Use
 	return users, nil
 }
 
-func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
+func (a *App) AutocompleteUsersInChannel(teamID string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	autocomplete, err := a.Srv().Store.User().AutocompleteUsersInChannel(teamId, channelId, term, options)
+	autocomplete, err := a.Srv().Store.User().AutocompleteUsersInChannel(teamID, channelId, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -1961,10 +1961,10 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 	return autocomplete, nil
 }
 
-func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
+func (a *App) AutocompleteUsersInTeam(teamID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	users, err := a.Srv().Store.User().Search(teamId, term, options)
+	users, err := a.Srv().Store.User().Search(teamID, term, options)
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteUsersInTeam", "app.user.search.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2151,15 +2151,15 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	teamIds, nErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
+	teamIDs, nErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
 	if nErr != nil {
 		return nil, model.NewAppError("GetViewUsersRestrictions", "app.team.get_user_team_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	teamIdsWithPermission := []string{}
-	for _, teamId := range teamIds {
-		if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
-			teamIdsWithPermission = append(teamIdsWithPermission, teamId)
+	teamIDsWithPermission := []string{}
+	for _, teamID := range teamIDs {
+		if a.HasPermissionToTeam(userId, teamID, model.PERMISSION_VIEW_MEMBERS) {
+			teamIDsWithPermission = append(teamIDsWithPermission, teamID)
 		}
 	}
 
@@ -2173,7 +2173,7 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		channelIds = append(channelIds, channelId)
 	}
 
-	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
+	return &model.ViewUsersRestrictions{Teams: teamIDsWithPermission, Channels: channelIds}, nil
 }
 
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
@@ -2359,8 +2359,8 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 	return user, nil
 }
 
-func (a *App) GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
-	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userId, teamId, options)
+func (a *App) GetThreadsForUser(userId, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userId, teamID, options)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2371,8 +2371,8 @@ func (a *App) GetThreadsForUser(userId, teamId string, options model.GetUserThre
 	return threads, nil
 }
 
-func (a *App) UpdateThreadsReadForUser(userId, teamId string) *model.AppError {
-	nErr := a.Srv().Store.Thread().MarkAllAsRead(userId, teamId)
+func (a *App) UpdateThreadsReadForUser(userId, teamID string) *model.AppError {
+	nErr := a.Srv().Store.Thread().MarkAllAsRead(userId, teamID)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -2393,7 +2393,7 @@ func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *mo
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *model.AppError {
+func (a *App) UpdateThreadReadForUser(userId, teamID, threadId string, timestamp int64) *model.AppError {
 	user, err := a.GetUser(userId)
 	if err != nil {
 		return err
@@ -2407,7 +2407,7 @@ func (a *App) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp
 		return err
 	}
 
-	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamId, timestamp)
+	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamID, timestamp)
 	if err != nil {
 		return err
 	}

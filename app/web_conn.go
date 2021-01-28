@@ -414,8 +414,8 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn
-// is a member of the given teamId or not.
-func (wc *WebConn) isMemberOfTeam(teamId string) bool {
+// is a member of the given teamID or not.
+func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 	currentSession := wc.GetSession()
 
 	if currentSession == nil || currentSession.Token == "" {
@@ -432,7 +432,7 @@ func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 		currentSession = session
 	}
 
-	return currentSession.GetTeamByTeamId(teamId) != nil
+	return currentSession.GetTeamByTeamId(teamID) != nil
 }
 
 func (wc *WebConn) logSocketErr(source string, err error) {

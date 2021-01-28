@@ -36,15 +36,15 @@ func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*mo
 	return false
 }
 
-func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
-	if teamId == "" {
+func (a *App) SessionHasPermissionToTeam(session model.Session, teamID string, permission *model.Permission) bool {
+	if teamID == "" {
 		return false
 	}
 	if session.IsUnrestricted() {
 		return true
 	}
 
-	teamMember := session.GetTeamByTeamId(teamId)
+	teamMember := session.GetTeamByTeamId(teamID)
 	if teamMember != nil {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
 			return true
@@ -104,12 +104,12 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToCategory(session model.Session, userId, teamId, categoryId string) bool {
+func (a *App) SessionHasPermissionToCategory(session model.Session, userId, teamID, categoryId string) bool {
 	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
 		return true
 	}
 	category, err := a.GetSidebarCategory(categoryId)
-	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userId && category.TeamId == teamId
+	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userId && category.TeamId == teamID
 }
 
 func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
@@ -157,11 +157,11 @@ func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission)
 	return a.RolesGrantPermission(roles, permission.Id)
 }
 
-func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool {
-	if teamId == "" || askingUserId == "" {
+func (a *App) HasPermissionToTeam(askingUserId string, teamID string, permission *model.Permission) bool {
+	if teamID == "" || askingUserId == "" {
 		return false
 	}
-	teamMember, _ := a.GetTeamMember(teamId, askingUserId)
+	teamMember, _ := a.GetTeamMember(teamID, askingUserId)
 	if teamMember != nil && teamMember.DeleteAt == 0 {
 		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
 			return true

@@ -293,10 +293,10 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(userId string, teamID string) (*[]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
-	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
+	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamID)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

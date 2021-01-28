@@ -202,9 +202,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(userId, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamID, model.PERMISSION_MANAGE_TEAM)
 
 	// check if notices for regular users are disabled
 	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {

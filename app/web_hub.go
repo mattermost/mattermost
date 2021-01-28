@@ -99,8 +99,8 @@ func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
 	a.InvalidateWebConnSessionCacheForUser(userId)
 }
 
-func (a *App) invalidateCacheForWebhook(webhookId string) {
-	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookId)
+func (a *App) invalidateCacheForWebhook(webhookID string) {
+	a.Srv().Store.Webhook().InvalidateWebhookCache(webhookID)
 }
 
 func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
@@ -254,12 +254,12 @@ func (a *App) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channel
 	a.Srv().Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
 }
 
-func (a *App) invalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
-	if teamId == "" {
-		teamId = "dm"
+func (a *App) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
+	if teamID == "" {
+		teamID = "dm"
 	}
 
-	a.Srv().Store.Channel().InvalidateChannelByName(teamId, name)
+	a.Srv().Store.Channel().InvalidateChannelByName(teamID, name)
 }
 
 func (a *App) invalidateCacheForChannelPosts(channelId string) {

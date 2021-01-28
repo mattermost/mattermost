@@ -1711,7 +1711,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	testCases := []struct {
 		description      string
-		teamId           string
+		teamID           string
 		userId           string
 		params           model.SearchParameter
 		expectedPostsLen int
@@ -1741,7 +1741,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamId, testCase.userId, testCase.params)
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamID, testCase.userId, testCase.params)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
 		})
@@ -1753,7 +1753,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+	foundCommand := func(listXCommand func(teamID string) ([]*model.Command, error)) bool {
 		cmds, appErr := listXCommand(th.BasicTeam.Id)
 		require.Nil(t, appErr)
 

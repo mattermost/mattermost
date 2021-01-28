@@ -72,7 +72,7 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 	return nil
 }
 
-func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
+func (a *App) UnregisterPluginCommand(pluginId, teamID, trigger string) {
 	trigger = strings.ToLower(trigger)
 
 	a.Srv().pluginCommandsLock.Lock()
@@ -80,7 +80,7 @@ func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
 
 	var remaining []*PluginCommand
 	for _, pc := range a.Srv().pluginCommands {
-		if pc.Command.TeamId != teamId || pc.Command.Trigger != trigger {
+		if pc.Command.TeamId != teamID || pc.Command.Trigger != trigger {
 			remaining = append(remaining, pc)
 		}
 	}
@@ -100,13 +100,13 @@ func (a *App) UnregisterPluginCommands(pluginId string) {
 	a.Srv().pluginCommands = remaining
 }
 
-func (a *App) PluginCommandsForTeam(teamId string) []*model.Command {
+func (a *App) PluginCommandsForTeam(teamID string) []*model.Command {
 	a.Srv().pluginCommandsLock.RLock()
 	defer a.Srv().pluginCommandsLock.RUnlock()
 
 	var commands []*model.Command
 	for _, pc := range a.Srv().pluginCommands {
-		if pc.Command.TeamId == "" || pc.Command.TeamId == teamId {
+		if pc.Command.TeamId == "" || pc.Command.TeamId == teamID {
 			commands = append(commands, pc.Command)
 		}
 	}

@@ -1016,7 +1016,7 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun 
 	return nil
 }
 
-func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
+func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamID string, dryRun bool) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1064,7 +1064,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamId, dryRun)
+		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamID, dryRun)
 		if err != nil {
 			return err
 		}
@@ -1112,7 +1112,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 	return nil
 }
 
-func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamID string, dryRun bool) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
 	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1145,7 +1145,7 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 			}
 		}
 	}
-	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
+	fileInfo, appErr := a.DoUploadFile(timestamp, teamID, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 	if appErr != nil {
 		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr
@@ -1197,8 +1197,8 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 	return teams, nil
 }
 
-func (a *App) getChannelsByNames(names []string, teamId string) (map[string]*model.Channel, *model.AppError) {
-	allChannels, err := a.Srv().Store.Channel().GetByNames(teamId, names, true)
+func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*model.Channel, *model.AppError) {
+	allChannels, err := a.Srv().Store.Channel().GetByNames(teamID, names, true)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1421,14 +1421,14 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) (map[string]bool, *model.AppError) {
+func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamID string, dryRun bool) (map[string]bool, *model.AppError) {
 	if attachments == nil {
 		return nil, nil
 	}
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
+		fileInfo, err := a.importAttachment(&attachment, post, teamID, dryRun)
 		if err != nil {
 			return nil, err
 		}

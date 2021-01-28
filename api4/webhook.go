@@ -213,13 +213,13 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookId := c.Params.HookId
+	hookID := c.Params.HookId
 
 	var err *model.AppError
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
-	hook, err = c.App.GetIncomingWebhook(hookId)
+	hook, err = c.App.GetIncomingWebhook(hookID)
 	if err != nil {
 		c.Err = err
 		return
@@ -264,13 +264,13 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookId := c.Params.HookId
+	hookID := c.Params.HookId
 
 	var err *model.AppError
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
-	hook, err = c.App.GetIncomingWebhook(hookId)
+	hook, err = c.App.GetIncomingWebhook(hookID)
 	if err != nil {
 		c.Err = err
 		return
@@ -303,7 +303,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.DeleteIncomingWebhook(hookId); err != nil {
+	if err = c.App.DeleteIncomingWebhook(hookID); err != nil {
 		c.Err = err
 		return
 	}

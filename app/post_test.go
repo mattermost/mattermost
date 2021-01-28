@@ -624,13 +624,13 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	defer th.TearDown()
 
 	// Create a post with a file attachment.
-	teamId := th.BasicTeam.Id
+	teamID := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 	userId := th.BasicUser.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelId, userId, filename, data)
 	require.Nil(t, err)
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)

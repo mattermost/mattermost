@@ -173,7 +173,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	go func() {
 		for i := 0; i <= broadcastQueueSize; i++ {
-			hub.Broadcast(model.NewWebSocketEvent("", "teamId", "", "", nil))
+			hub.Broadcast(model.NewWebSocketEvent("", "teamID", "", "", nil))
 		}
 		close(done)
 	}()
