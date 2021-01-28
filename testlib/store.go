@@ -64,6 +64,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	statusStore := mocks.StatusStore{}
 	statusStore.On("ResetAll").Return(nil)
+	statusStore.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 
 	channelStore := mocks.ChannelStore{}
 	channelStore.On("ClearCaches").Return(nil)
