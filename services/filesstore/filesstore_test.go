@@ -89,7 +89,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 }
 
 func (s *FileBackendTestSuite) SetupTest() {
-	backend, err := NewFileBackend(s.settings, true)
+	backend, err := NewFileBackend(s.settings)
 	require.Nil(s.T(), err)
 	s.backend = backend
 
@@ -439,7 +439,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 		AmazonS3SSE:             false,
 	}
 
-	backend, err := NewFileBackend(settings, true)
+	backend, err := NewFileBackend(settings)
 	require.Nil(b, err)
 
 	// This is needed to create the bucket if it doesn't exist.
