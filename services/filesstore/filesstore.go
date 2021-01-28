@@ -66,10 +66,10 @@ func (settings *FileBackendSettings) CheckMandatoryS3Fields() error {
 	return nil
 }
 
-func NewFileBackend(settings FileBackendSettings, enableComplianceFeatures bool) (FileBackend, error) {
+func NewFileBackend(settings FileBackendSettings) (FileBackend, error) {
 	switch settings.DriverName {
 	case DRIVER_S3:
-		backend, err := NewS3FileBackend(settings, enableComplianceFeatures)
+		backend, err := NewS3FileBackend(settings)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to connect to the s3 backend")
 		}

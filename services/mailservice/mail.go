@@ -296,7 +296,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, nErr := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
+	fileBackend, nErr := filesstore.NewFileBackend(config.FileSettings.ToFileBackendSettings(enableComplianceFeatures))
 	if nErr != nil {
 		return model.NewAppError("sendMailUsingConfigAdvanced", "api.file.no_driver.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

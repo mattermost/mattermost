@@ -65,7 +65,7 @@ func getImageMimeType(ext string) string {
 }
 
 // NewS3FileBackend returns an instance of an S3FileBackend.
-func NewS3FileBackend(settings FileBackendSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
+func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
 		endpoint:   settings.AmazonS3Endpoint,
 		accessKey:  settings.AmazonS3AccessKeyId,
@@ -75,7 +75,7 @@ func NewS3FileBackend(settings FileBackendSettings, enableComplianceFeatures boo
 		region:     settings.AmazonS3Region,
 		bucket:     settings.AmazonS3Bucket,
 		pathPrefix: settings.AmazonS3PathPrefix,
-		encrypt:    settings.AmazonS3SSE && enableComplianceFeatures,
+		encrypt:    settings.AmazonS3SSE,
 		trace:      settings.AmazonS3Trace,
 	}
 	cli, err := backend.s3New()
