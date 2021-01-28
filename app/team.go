@@ -540,8 +540,8 @@ func (a *App) AddUserToTeamByTeamId(teamID string, user *model.User) *model.AppE
 	return a.JoinUserToTeam(team, user, "")
 }
 
-func (a *App) AddUserToTeamByToken(userID string, tokenId string) (*model.Team, *model.AppError) {
-	token, err := a.Srv().Store.Token().GetByToken(tokenId)
+func (a *App) AddUserToTeamByToken(userID string, tokenID string) (*model.Team, *model.AppError) {
+	token, err := a.Srv().Store.Token().GetByToken(tokenID)
 	if err != nil {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1099,8 +1099,8 @@ func (a *App) AddTeamMembers(teamID string, userIDs []string, userRequestorId st
 	return membersWithErrors, nil
 }
 
-func (a *App) AddTeamMemberByToken(userID, tokenId string) (*model.TeamMember, *model.AppError) {
-	team, err := a.AddUserToTeamByToken(userID, tokenId)
+func (a *App) AddTeamMemberByToken(userID, tokenID string) (*model.TeamMember, *model.AppError) {
+	team, err := a.AddUserToTeamByToken(userID, tokenID)
 	if err != nil {
 		return nil, err
 	}
@@ -1837,11 +1837,11 @@ func (a *App) GetTeamStats(teamID string, restrictions *model.ViewUsersRestricti
 }
 
 func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
-	tokenId := query.Get("t")
+	tokenID := query.Get("t")
 	inviteId := query.Get("id")
 
-	if tokenId != "" {
-		token, err := a.Srv().Store.Token().GetByToken(tokenId)
+	if tokenID != "" {
+		token, err := a.Srv().Store.Token().GetByToken(tokenID)
 		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}

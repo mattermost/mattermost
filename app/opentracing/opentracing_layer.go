@@ -391,7 +391,7 @@ func (a *OpenTracingAppLayer) AddTeamMemberByInviteId(inviteId string, userID st
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) AddTeamMemberByToken(userID string, tokenId string) (*model.TeamMember, *model.AppError) {
+func (a *OpenTracingAppLayer) AddTeamMemberByToken(userID string, tokenID string) (*model.TeamMember, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddTeamMemberByToken")
 
@@ -403,7 +403,7 @@ func (a *OpenTracingAppLayer) AddTeamMemberByToken(userID string, tokenId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddTeamMemberByToken(userID, tokenId)
+	resultVar0, resultVar1 := a.app.AddTeamMemberByToken(userID, tokenID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -523,7 +523,7 @@ func (a *OpenTracingAppLayer) AddUserToTeamByTeamId(teamID string, user *model.U
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddUserToTeamByToken(userID string, tokenId string) (*model.Team, *model.AppError) {
+func (a *OpenTracingAppLayer) AddUserToTeamByToken(userID string, tokenID string) (*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddUserToTeamByToken")
 
@@ -535,7 +535,7 @@ func (a *OpenTracingAppLayer) AddUserToTeamByToken(userID string, tokenId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AddUserToTeamByToken(userID, tokenId)
+	resultVar0, resultVar1 := a.app.AddUserToTeamByToken(userID, tokenID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8661,7 +8661,7 @@ func (a *OpenTracingAppLayer) GetUser(userID string) (*model.User, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUserAccessToken")
 
@@ -8673,7 +8673,7 @@ func (a *OpenTracingAppLayer) GetUserAccessToken(tokenId string, sanitize bool) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUserAccessToken(tokenId, sanitize)
+	resultVar0, resultVar1 := a.app.GetUserAccessToken(tokenID, sanitize)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

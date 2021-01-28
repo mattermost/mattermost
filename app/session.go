@@ -603,8 +603,8 @@ func (a *App) GetUserAccessTokensForUser(userID string, page, perPage int) ([]*m
 
 }
 
-func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	token, err := a.Srv().Store.UserAccessToken().Get(tokenId)
+func (a *App) GetUserAccessToken(tokenID string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
+	token, err := a.Srv().Store.UserAccessToken().Get(tokenID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
