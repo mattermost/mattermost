@@ -84,6 +84,9 @@ jobs:
             - owasp/collect_reports:
                 persist_to_workspace: false
       - run:
+          name: Install mjml
+          command: npm install -g mjml
+      - run:
           name: Post results to Mattermost
           command: go run ../security-automation-config/dependency-check/post_results.go
 
