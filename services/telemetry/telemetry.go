@@ -474,6 +474,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
 		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
 		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
