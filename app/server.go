@@ -469,8 +469,8 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.WebSocketRouter.app = fakeApp
 
-	if err := mailservice.TestConnection(s.Config()); err != nil {
-		mlog.Error("Mail server connection test is failed: " + err.Error())
+	if nErr := mailservice.TestConnection(s.Config()); nErr != nil {
+		mlog.Error("Mail server connection test is failed: " + nErr.Error())
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
@@ -481,8 +481,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if appErr != nil {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	} else {
-		nErr := backend.TestConnection()
-		if nErr != nil {
+		if nErr := backend.TestConnection(); nErr != nil {
 			mlog.Error("Problem with file storage settings", mlog.Err(nErr))
 		}
 	}
