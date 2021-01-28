@@ -54,9 +54,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 	s.CreateCheckConstraintIfNotExists("RetentionPolicies", "PostDuration", "PostDuration > 0")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "ChannelId", "Channels", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
-	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "TeamId", "Teams", "Id", true)
 }
 
 // TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
@@ -423,5 +421,26 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 			inStrings("TeamId", teamIds),
 		})
 	_, err := builder.RunWith(s.GetMaster()).Exec()
+	return err
+}
+
+func (s *SqlRetentionPolicyStore) RemoveInvalidRows() error {
+	const rpcDeleteQuery = `
+	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
+		SELECT ChannelId FROM RetentionPoliciesChannels
+		LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
+		WHERE Channels.Id IS NULL
+	)`
+	const rptDeleteQuery = `
+	DELETE FROM RetentionPoliciesTeams WHERE TeamId IN (
+		SELECT TeamId FROM RetentionPoliciesTeams
+		LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
+		WHERE Teams.Id IS NULL
+	)`
+	_, err := s.GetMaster().Exec(rpcDeleteQuery)
+	if err != nil {
+		return err
+	}
+	_, err = s.GetMaster().Exec(rptDeleteQuery)
 	return err
 }

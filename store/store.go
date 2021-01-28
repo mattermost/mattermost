@@ -83,6 +83,7 @@ type RetentionPolicyStore interface {
 	RemoveChannels(policyId string, channelIds []string) error
 	AddTeams(policyId string, teamIds []string) error
 	RemoveTeams(policyId string, teamIds []string) error
+	RemoveInvalidRows() error
 }
 
 type TeamStore interface {

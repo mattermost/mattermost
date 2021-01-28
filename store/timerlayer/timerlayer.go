@@ -4869,6 +4869,22 @@ func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 	return result, err
 }
 
+func (s *TimerLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	start := timemodule.Now()
 
@@ -5409,6 +5425,22 @@ func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveChannels", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerRetentionPolicyStore) RemoveInvalidRows() error {
+	start := timemodule.Now()
+
+	err := s.RetentionPolicyStore.RemoveInvalidRows()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveInvalidRows", success, elapsed)
 	}
 	return err
 }

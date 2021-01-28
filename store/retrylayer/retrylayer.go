@@ -5790,6 +5790,26 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 
 }
 
+func (s *RetryLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 
 	tries := 0
@@ -6455,6 +6475,26 @@ func (s *RetryLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 	tries := 0
 	for {
 		err := s.RetentionPolicyStore.RemoveChannels(policyId, channelIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRetentionPolicyStore) RemoveInvalidRows() error {
+
+	tries := 0
+	for {
+		err := s.RetentionPolicyStore.RemoveInvalidRows()
 		if err == nil {
 			return nil
 		}

@@ -5369,6 +5369,24 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit in
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteBatchForRetentionPolicies")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteByChannel")
@@ -5973,6 +5991,24 @@ func (s *OpenTracingLayerRetentionPolicyStore) RemoveChannels(policyId string, c
 
 	defer span.Finish()
 	err := s.RetentionPolicyStore.RemoveChannels(policyId, channelIds)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerRetentionPolicyStore) RemoveInvalidRows() error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RetentionPolicyStore.RemoveInvalidRows")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.RetentionPolicyStore.RemoveInvalidRows()
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
