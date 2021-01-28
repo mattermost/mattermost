@@ -123,10 +123,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 && parentPostList != nil {
+		if post.RootId != "" && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				if profile == nil {
+					continue
+				}
+				// If this is the root post and it was posted by an OAuth bot, don't notify the user
+				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
+					continue
+				}
+				if profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
 						mentionType = CommentMention
@@ -596,7 +603,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	}
 
 	if len(outOfGroupsUsers) == 1 {
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -606,7 +613,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	} else if len(outOfGroupsUsers) > 1 {
 		preliminary, final := splitAtFinal(ogUsernames)
 
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -1084,7 +1091,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		foundWithoutSuffix := false
 		wordWithoutSuffix := word
 
-		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
 			if m.checkForMention(wordWithoutSuffix, keywords, groups) {

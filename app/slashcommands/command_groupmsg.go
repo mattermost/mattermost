@@ -122,7 +122,7 @@ func (*groupmsgProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 		}
 	}
 
-	if len(parsedMessage) > 0 {
+	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = groupChannel.Id

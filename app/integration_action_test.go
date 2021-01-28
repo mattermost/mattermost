@@ -116,7 +116,7 @@ func TestPostAction(t *testing.T) {
 					assert.Equal(t, request.TeamId, th.BasicTeam.Id)
 					assert.Equal(t, request.TeamName, th.BasicTeam.Name)
 				}
-				assert.True(t, len(request.TriggerId) > 0)
+				assert.True(t, request.TriggerId != "")
 				if request.Type == model.POST_ACTION_TYPE_SELECT {
 					assert.Equal(t, request.DataSource, "some_source")
 					assert.Equal(t, request.Context["selected_option"], "selected")

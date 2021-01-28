@@ -126,7 +126,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	}
 
 	id := props[model.SYSTEM_TELEMETRY_ID]
-	if len(id) == 0 {
+	if id == "" {
 		id = model.NewId()
 		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
 		ts.dbStore.System().Save(systemID)
