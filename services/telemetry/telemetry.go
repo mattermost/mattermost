@@ -6,7 +6,6 @@ package telemetry
 import (
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -184,14 +183,14 @@ func (ts *TelemetryService) sendTelemetry(event string, properties map[string]in
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
-	if reflect.TypeOf(setting).Kind() == reflect.Slice && reflect.TypeOf(defaultValue).Kind() == reflect.Slice {
-		settingVal := reflect.ValueOf(setting)
-		defaultValueVal := reflect.ValueOf(defaultValue)
-		if settingVal.Len() != defaultValueVal.Len() {
+	slice1, ok1 := setting.([]string)
+	slice2, ok2 := defaultValue.([]string)
+	if ok1 && ok2 {
+		if len(slice1) != len(slice2) {
 			return false
 		}
-		for i := 0; i < settingVal.Len(); i++ {
-			if settingVal.Index(i).Interface() != defaultValueVal.Index(i).Interface() {
+		for i := 0; i < len(slice1); i++ {
+			if slice1[i] != slice2[i] {
 				return false
 			}
 		}
