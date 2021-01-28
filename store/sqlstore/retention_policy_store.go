@@ -61,21 +61,89 @@ func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 
 // TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
 
-func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
+	// Strategy:
+	// 1. Insert new policy
+	// 2. Insert new channels into policy
+	// 3. Insert new teams into policy
+	var (
+		rpInsertQuery  string
+		rpInsertArgs   []interface{}
+		rpcInsertQuery string
+		rpcInsertArgs  []interface{}
+		rptInsertQuery string
+		rptInsertArgs  []interface{}
+		rpSelectQuery  string
+		rpSelectProps  map[string]string
+	)
 	policy.Id = model.NewId()
-	builder := s.getQueryBuilder().
+
+	rpInsertQuery, rpInsertArgs, _ = s.getQueryBuilder().
 		Insert("RetentionPolicies").
 		Columns("Id", "DisplayName", "PostDuration").
-		Values(policy.Id, policy.DisplayName, policy.PostDuration)
-	_, err := builder.RunWith(s.GetMaster()).Exec()
-	return policy, err
+		Values(policy.Id, policy.DisplayName, policy.PostDuration).
+		ToSql()
+
+	if len(policy.ChannelIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesChannels").
+			Columns("PolicyId", "ChannelId")
+		for _, channelId := range policy.ChannelIds {
+			builder = builder.Values(policy.Id, channelId)
+		}
+		rpcInsertQuery, rpcInsertArgs, _ = builder.ToSql()
+	}
+
+	if len(policy.TeamIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesTeams").
+			Columns("PolicyId", "TeamId")
+		for _, teamId := range policy.TeamIds {
+			builder = builder.Values(policy.Id, teamId)
+		}
+		rptInsertQuery, rptInsertArgs, _ = builder.ToSql()
+	}
+
+	rpSelectQuery, rpSelectProps = s.buildGetPoliciesQuery(policy.Id)
+
+	txn, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransaction(txn)
+	_, err = txn.Exec(rpInsertQuery, rpInsertArgs...)
+	if err != nil {
+		return nil, err
+	}
+	_, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...)
+	if err != nil {
+		return nil, err
+	}
+	_, err = txn.Exec(rptInsertQuery, rptInsertArgs...)
+	if err != nil {
+		return nil, err
+	}
+	var rows []*retentionPolicyRow
+	_, err = txn.Select(&rows, rpSelectQuery, rpSelectProps)
+	if err != nil {
+		return nil, err
+	}
+	err = txn.Commit()
+	if err != nil {
+		return nil, err
+	}
+	newPolicy, err := s.getPolicyFromRows(rows)
+	if err != nil {
+		return nil, err
+	}
+	return newPolicy, nil
 }
 
-func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	return s.Update(patch)
 }
 
-func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	// Strategy:
 	// 1. Update policy attributes
 	// 2. Delete existing channels in policy
@@ -175,11 +243,11 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*
 		return nil, err
 	}
 	txn.Commit()
-	policies := s.createPoliciesFromRows(rows)
-	if len(policies) == 0 {
-		return nil, errors.New("policy not found")
+	newPolicy, err := s.getPolicyFromRows(rows)
+	if err != nil {
+		return nil, err
 	}
-	return policies[0], nil
+	return newPolicy, nil
 }
 
 func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string) (string, map[string]string) {
@@ -208,7 +276,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string) (string, map[
 	return query, props
 }
 
-func (s *SqlRetentionPolicyStore) createPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
+func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
 	mPolicies := make(map[string]*model.RetentionPolicyEnriched)
 	for _, row := range rows {
 		policy, ok := mPolicies[row.Id]
@@ -244,6 +312,14 @@ func (s *SqlRetentionPolicyStore) createPoliciesFromRows(rows []*retentionPolicy
 	return aPolicies
 }
 
+func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow) (*model.RetentionPolicyEnriched, error) {
+	policies := s.getPoliciesFromRows(rows)
+	if len(policies) == 0 {
+		return nil, errors.New("policy not found")
+	}
+	return policies[0], nil
+}
+
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
 	query, props := s.buildGetPoliciesQuery(id)
 	var rows []*retentionPolicyRow
@@ -251,11 +327,11 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched
 	if err != nil {
 		return nil, err
 	}
-	policies := s.createPoliciesFromRows(rows)
-	if len(policies) == 0 {
-		return nil, errors.New("policy not found")
+	policy, err := s.getPolicyFromRows(rows)
+	if err != nil {
+		return nil, err
 	}
-	return policies[0], nil
+	return policy, nil
 }
 
 func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
@@ -265,7 +341,7 @@ func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, er
 	if err != nil {
 		return nil, err
 	}
-	policies := s.createPoliciesFromRows(rows)
+	policies := s.getPoliciesFromRows(rows)
 	return policies, nil
 }
 

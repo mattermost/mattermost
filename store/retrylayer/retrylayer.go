@@ -6430,7 +6430,7 @@ func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionP
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 
 	tries := 0
 	for {
@@ -6490,7 +6490,7 @@ func (s *RetryLayerRetentionPolicyStore) RemoveTeams(policyId string, teamIds []
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 
 	tries := 0
 	for {
@@ -6510,7 +6510,7 @@ func (s *RetryLayerRetentionPolicyStore) Save(policy *model.RetentionPolicy) (*m
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 
 	tries := 0
 	for {

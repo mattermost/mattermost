@@ -126,11 +126,11 @@ func (_m *RetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWith
 }
 
 // Patch provides a mock function with given fields: patch
-func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	ret := _m.Called(patch)
 
 	var r0 *model.RetentionPolicyEnriched
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.RetentionPolicyEnriched); ok {
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithApplied) *model.RetentionPolicyEnriched); ok {
 		r0 = rf(patch)
 	} else {
 		if ret.Get(0) != nil {
@@ -139,7 +139,7 @@ func (_m *RetentionPolicyStore) Patch(patch *model.RetentionPolicyUpdate) (*mode
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithApplied) error); ok {
 		r1 = rf(patch)
 	} else {
 		r1 = ret.Error(1)
@@ -177,20 +177,20 @@ func (_m *RetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) e
 }
 
 // Save provides a mock function with given fields: policy
-func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.RetentionPolicy, error) {
+func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	ret := _m.Called(policy)
 
-	var r0 *model.RetentionPolicy
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicy) *model.RetentionPolicy); ok {
+	var r0 *model.RetentionPolicyEnriched
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithApplied) *model.RetentionPolicyEnriched); ok {
 		r0 = rf(policy)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RetentionPolicy)
+			r0 = ret.Get(0).(*model.RetentionPolicyEnriched)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicy) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithApplied) error); ok {
 		r1 = rf(policy)
 	} else {
 		r1 = ret.Error(1)
@@ -200,11 +200,11 @@ func (_m *RetentionPolicyStore) Save(policy *model.RetentionPolicy) (*model.Rete
 }
 
 // Update provides a mock function with given fields: update
-func (_m *RetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*model.RetentionPolicyEnriched, error) {
+func (_m *RetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	ret := _m.Called(update)
 
 	var r0 *model.RetentionPolicyEnriched
-	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyUpdate) *model.RetentionPolicyEnriched); ok {
+	if rf, ok := ret.Get(0).(func(*model.RetentionPolicyWithApplied) *model.RetentionPolicyEnriched); ok {
 		r0 = rf(update)
 	} else {
 		if ret.Get(0) != nil {
@@ -213,7 +213,7 @@ func (_m *RetentionPolicyStore) Update(update *model.RetentionPolicyUpdate) (*mo
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyUpdate) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.RetentionPolicyWithApplied) error); ok {
 		r1 = rf(update)
 	} else {
 		r1 = ret.Error(1)

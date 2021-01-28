@@ -85,7 +85,7 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	policy, jsonErr := model.RetentionPolicyFromJson(r.Body)
+	policy, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 		return
@@ -98,20 +98,20 @@ func createPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	policy, err := c.App.CreateRetentionPolicy(policy)
+	newPolicy, err := c.App.CreateRetentionPolicy(policy)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.AddMeta("policy", policy) // overwrite meta
+	auditRec.AddMeta("policy", newPolicy) // overwrite meta
 	auditRec.Success()
 	w.WriteHeader(http.StatusCreated)
-	w.Write(policy.ToJson())
+	w.Write(newPolicy.ToJson())
 }
 
 func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	patch, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
+	patch, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}
@@ -136,7 +136,7 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	update, jsonErr := model.RetentionPolicyUpdateFromJson(r.Body)
+	update, jsonErr := model.RetentionPolicyWithAppliedFromJson(r.Body)
 	if jsonErr != nil {
 		c.SetInvalidParam("policy")
 	}

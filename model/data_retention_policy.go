@@ -38,7 +38,7 @@ type RetentionPolicyEnriched struct {
 	Channels []ChannelDisplayInfo `json:"channels"`
 }
 
-type RetentionPolicyUpdate struct {
+type RetentionPolicyWithApplied struct {
 	RetentionPolicy
 	TeamIds    []string `json:"team_ids"`
 	ChannelIds []string `json:"channel_ids"`
@@ -87,8 +87,8 @@ func RetentionPolicyFromJson(data io.Reader) (*RetentionPolicy, error) {
 	return rp, err
 }
 
-func RetentionPolicyUpdateFromJson(data io.Reader) (*RetentionPolicyUpdate, error) {
-	var rp *RetentionPolicyUpdate
+func RetentionPolicyWithAppliedFromJson(data io.Reader) (*RetentionPolicyWithApplied, error) {
+	var rp *RetentionPolicyWithApplied
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
 }
