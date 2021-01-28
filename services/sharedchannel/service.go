@@ -179,12 +179,23 @@ func (scs *Service) pause() {
 	scs.server.GetLogger().Debug("Shared Channel Service inactive")
 }
 
-// Makes the remote channel to be read only, only for guests.
+// Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
 func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
+	createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
+	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+	updateMap := model.ChannelModeratedRolesPatch{
+		Guests:  model.NewBool(false),
+		Members: model.NewBool(false),
+	}
+
 	readonlyChannelModerations := []*model.ChannelModerationPatch{
 		{
-			Name:  &model.ChannelModeratedPermissions[0],
-			Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(false)},
+			Name:  &createPostPermission,
+			Roles: &updateMap,
+		},
+		{
+			Name:  &createReactionPermission,
+			Roles: &updateMap,
 		},
 	}
 
