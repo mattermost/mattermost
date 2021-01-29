@@ -53,6 +53,10 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
 		return nil, errors.New(response.Error())
 	}
+
+	// issue the first ping right away. The goroutine will exit when ping completes or PingTimeout exceeded.
+	go rcs.pingRemote(rcSaved)
+
 	return rcSaved, nil
 }
 

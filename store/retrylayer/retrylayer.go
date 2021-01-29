@@ -7286,6 +7286,26 @@ func (s *RetryLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetFile(fileId, remoteId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 
 	tries := 0
@@ -7446,6 +7466,26 @@ func (s *RetryLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 
 }
 
+func (s *RetryLayerSharedChannelStore) SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.SaveFile(remote)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 
 	tries := 0
@@ -7501,6 +7541,26 @@ func (s *RetryLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateFileLastSyncAt(id, syncTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 

@@ -6078,6 +6078,22 @@ func (s *TimerLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetFile(fileId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetFile", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
@@ -6206,6 +6222,22 @@ func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.SaveFile(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveFile", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
@@ -6252,6 +6284,22 @@ func (s *TimerLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+	start := timemodule.Now()
+
+	err := s.SharedChannelStore.UpdateFileLastSyncAt(id, syncTime)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateFileLastSyncAt", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {

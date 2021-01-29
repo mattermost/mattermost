@@ -210,3 +210,37 @@ func (scu *SharedChannelUser) IsValid() *AppError {
 	}
 	return nil
 }
+
+// SharedChannelFile stores a lastSyncAt timestamp on behalf of a remote cluster for
+// each file attachment that has been synchronized.
+type SharedChannelFile struct {
+	Id              string `json:"id"`
+	FileId          string `json:"file_id"`
+	RemoteClusterId string `json:"remote_cluster_id"`
+	CreateAt        int64  `json:"create_at"`
+	LastSyncAt      int64  `json:"last_sync_at"`
+}
+
+func (scf *SharedChannelFile) PreSave() {
+	scf.Id = NewId()
+	scf.CreateAt = GetMillis()
+}
+
+func (scf *SharedChannelFile) IsValid() *AppError {
+	if !IsValidId(scf.Id) {
+		return NewAppError("SharedChannelFile.IsValid", "model.channel.is_valid.id.app_error", nil, "Id="+scf.Id, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scf.FileId) {
+		return NewAppError("SharedChannelFile.IsValid", "model.channel.is_valid.id.app_error", nil, "FileId="+scf.FileId, http.StatusBadRequest)
+	}
+
+	if !IsValidId(scf.RemoteClusterId) {
+		return NewAppError("SharedChannelFile.IsValid", "model.channel.is_valid.id.app_error", nil, "RemoteClusterId="+scf.RemoteClusterId, http.StatusBadRequest)
+	}
+
+	if scf.CreateAt == 0 {
+		return NewAppError("SharedChannelFile.IsValid", "model.channel.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}

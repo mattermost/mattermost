@@ -124,6 +124,29 @@ func (_m *SharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (i
 	return r0, r1
 }
 
+// GetFile provides a mock function with given fields: fileId, remoteId
+func (_m *SharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
+	ret := _m.Called(fileId, remoteId)
+
+	var r0 *model.SharedChannelFile
+	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelFile); ok {
+		r0 = rf(fileId, remoteId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelFile)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(fileId, remoteId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRemote provides a mock function with given fields: id
 func (_m *SharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(id)
@@ -304,6 +327,29 @@ func (_m *SharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChanne
 	return r0, r1
 }
 
+// SaveFile provides a mock function with given fields: remote
+func (_m *SharedChannelStore) SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error) {
+	ret := _m.Called(remote)
+
+	var r0 *model.SharedChannelFile
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelFile) *model.SharedChannelFile); ok {
+		r0 = rf(remote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelFile)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelFile) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveRemote provides a mock function with given fields: remote
 func (_m *SharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(remote)
@@ -371,6 +417,20 @@ func (_m *SharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChan
 	}
 
 	return r0, r1
+}
+
+// UpdateFileLastSyncAt provides a mock function with given fields: id, syncTime
+func (_m *SharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+	ret := _m.Called(id, syncTime)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(id, syncTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // UpdateRemote provides a mock function with given fields: remote
