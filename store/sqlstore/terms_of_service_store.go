@@ -5,9 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"net/http"
 
 	"github.com/pkg/errors"
-	sq "github.com/Maserminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -55,15 +55,17 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 
 func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService *model.TermsOfService
-	
+
 	query := s.getQueryBuilder().
 			Select("*").
 			From("TermsOfService").
 			OrderBy("CreateAt DESC").
 			Limit(uint64(1))
-	
-	queryString, args, err := query.ToSql()
 
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 	if err :=  s.GetReplica().SelectOne(&termsOfService, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
