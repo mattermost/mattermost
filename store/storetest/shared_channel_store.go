@@ -35,9 +35,9 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSharedChannelUser", func(t *testing.T) { testGetSharedChannelUser(t, ss) })
 	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, ss) })
 
-	t.Run("SaveSharedChannelFile", func(t *testing.T) { testSaveSharedChannelFile(t, ss) })
-	t.Run("GetSharedChannelFile", func(t *testing.T) { testGetSharedChannelFile(t, ss) })
-	t.Run("UpdateSharedChannelFileLastSyncAt", func(t *testing.T) { testUpdateSharedChannelFileLastSyncAt(t, ss) })
+	t.Run("SaveSharedChannelAttachment", func(t *testing.T) { testSaveSharedChannelAttachment(t, ss) })
+	t.Run("GetSharedChannelAttachment", func(t *testing.T) { testGetSharedChannelAttachment(t, ss) })
+	t.Run("UpdateSharedChannelAttachmentLastSyncAt", func(t *testing.T) { testUpdateSharedChannelAttachmentLastSyncAt(t, ss) })
 }
 
 func testSaveSharedChannel(t *testing.T, ss store.Store) {
@@ -788,89 +788,89 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	})
 }
 
-func testSaveSharedChannelFile(t *testing.T, ss store.Store) {
-	t.Run("Save shared channel file", func(t *testing.T) {
-		scFile := &model.SharedChannelFile{
+func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
+	t.Run("Save shared channel attachment", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
 			FileId:          model.NewId(),
 			RemoteClusterId: model.NewId(),
 		}
 
-		fileSaved, err := ss.SharedChannel().SaveFile(scFile)
-		require.Nil(t, err, "couldn't save shared channel file", err)
+		saved, err := ss.SharedChannel().SaveAttachment(attachment)
+		require.Nil(t, err, "couldn't save shared channel attachment", err)
 
-		require.Equal(t, scFile.FileId, fileSaved.FileId)
-		require.Equal(t, scFile.RemoteClusterId, fileSaved.RemoteClusterId)
+		require.Equal(t, attachment.FileId, saved.FileId)
+		require.Equal(t, attachment.RemoteClusterId, saved.RemoteClusterId)
 	})
 
-	t.Run("Save invalid shared channel file", func(t *testing.T) {
-		scFile := &model.SharedChannelFile{
+	t.Run("Save invalid shared channel attachment", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
 			FileId:          "",
 			RemoteClusterId: model.NewId(),
 		}
 
-		_, err := ss.SharedChannel().SaveFile(scFile)
-		require.NotNil(t, err, "should error saving invalid file", err)
+		_, err := ss.SharedChannel().SaveAttachment(attachment)
+		require.NotNil(t, err, "should error saving invalid attachment", err)
 	})
 
-	t.Run("Save shared channel file with invalid remote id", func(t *testing.T) {
-		scFile := &model.SharedChannelFile{
+	t.Run("Save shared channel attachment with invalid remote id", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
 			FileId:          model.NewId(),
 			RemoteClusterId: "bogus",
 		}
 
-		_, err := ss.SharedChannel().SaveFile(scFile)
+		_, err := ss.SharedChannel().SaveAttachment(attachment)
 		require.Error(t, err, "expected error for invalid remote id")
 	})
 }
 
-func testGetSharedChannelFile(t *testing.T, ss store.Store) {
-	scFile := &model.SharedChannelFile{
+func testGetSharedChannelAttachment(t *testing.T, ss store.Store) {
+	attachment := &model.SharedChannelAttachment{
 		FileId:          model.NewId(),
 		RemoteClusterId: model.NewId(),
 	}
 
-	fileSaved, err := ss.SharedChannel().SaveFile(scFile)
-	require.Nil(t, err, "could not save file", err)
+	saved, err := ss.SharedChannel().SaveAttachment(attachment)
+	require.Nil(t, err, "could not save attachment", err)
 
-	t.Run("Get existing shared channel file", func(t *testing.T) {
-		r, err := ss.SharedChannel().GetFile(fileSaved.FileId, fileSaved.RemoteClusterId)
-		require.Nil(t, err, "couldn't get shared channel file", err)
+	t.Run("Get existing shared channel attachment", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteClusterId)
+		require.Nil(t, err, "couldn't get shared channel attachment", err)
 
-		require.Equal(t, fileSaved.Id, r.Id)
-		require.Equal(t, fileSaved.FileId, r.FileId)
-		require.Equal(t, fileSaved.RemoteClusterId, r.RemoteClusterId)
-		require.Equal(t, fileSaved.CreateAt, r.CreateAt)
+		require.Equal(t, saved.Id, r.Id)
+		require.Equal(t, saved.FileId, r.FileId)
+		require.Equal(t, saved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, saved.CreateAt, r.CreateAt)
 	})
 
-	t.Run("Get non-existent shared channel file", func(t *testing.T) {
-		u, err := ss.SharedChannel().GetFile(model.NewId(), model.NewId())
+	t.Run("Get non-existent shared channel attachment", func(t *testing.T) {
+		u, err := ss.SharedChannel().GetAttachment(model.NewId(), model.NewId())
 		require.NotNil(t, err)
 		require.Nil(t, u)
 	})
 }
 
-func testUpdateSharedChannelFileLastSyncAt(t *testing.T, ss store.Store) {
-	scFile := &model.SharedChannelFile{
+func testUpdateSharedChannelAttachmentLastSyncAt(t *testing.T, ss store.Store) {
+	attachment := &model.SharedChannelAttachment{
 		FileId:          model.NewId(),
 		RemoteClusterId: model.NewId(),
 	}
 
-	fileSaved, err := ss.SharedChannel().SaveFile(scFile)
-	require.NoError(t, err, "couldn't save file", err)
+	saved, err := ss.SharedChannel().SaveAttachment(attachment)
+	require.NoError(t, err, "couldn't save attachment", err)
 
 	future := model.GetMillis() + 3600000 // 1 hour in the future
 
-	t.Run("Update LastSyncAt for file", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateFileLastSyncAt(fileSaved.Id, future)
+	t.Run("Update LastSyncAt for attachment", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateAttachmentLastSyncAt(saved.Id, future)
 		require.Nil(t, err, "updateLastSyncAt should not error", err)
 
-		f, err := ss.SharedChannel().GetFile(fileSaved.FileId, fileSaved.RemoteClusterId)
+		f, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteClusterId)
 		require.NoError(t, err)
 		require.Equal(t, future, f.LastSyncAt)
 	})
 
-	t.Run("Update LastSyncAt for non-existent shared channel file", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateFileLastSyncAt(model.NewId(), future)
-		require.Error(t, err, "update non-existent file should error", err)
+	t.Run("Update LastSyncAt for non-existent shared channel attachment", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateAttachmentLastSyncAt(model.NewId(), future)
+		require.Error(t, err, "update non-existent attachment should error", err)
 	})
 }
