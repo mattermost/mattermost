@@ -350,6 +350,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 			message.Add("teammate_id", otherUserId)
+			message.Add("creator_id", userId)
 			a.Publish(message)
 
 			return channel, nil

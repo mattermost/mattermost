@@ -714,6 +714,10 @@ func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
 }
 
+func (u *User) IsRemote() *bool {
+	return NewBool(false)
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	var user *User
