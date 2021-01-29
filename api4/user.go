@@ -1157,15 +1157,15 @@ func checkProviderAttributes(a app.AppIface, ouser *model.User, patch *model.Use
 	tryingToChange := func(patchValue *string, userValue *string) bool {
 		return patchValue != nil && *patchValue != *userValue
 	}
-	LS := &a.Config().LdapSettings
-	SS := &a.Config().SamlSettings
+	LdapSettings := &a.Config().LdapSettings
+	SamlSettings := &a.Config().SamlSettings
 
 	conflictField := ""
 	if a.Ldap() != nil &&
-		(ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *SS.EnableSyncWithLdap)) {
-		conflictField = a.Ldap().CheckProviderAttributes(LS, ouser, patch)
+		(ouser.IsLDAPUser() || (ouser.IsSAMLUser() && *SamlSettings.EnableSyncWithLdap)) {
+		conflictField = a.Ldap().CheckProviderAttributes(LdapSettings, ouser, patch)
 	} else if a.Saml() != nil && ouser.IsSAMLUser() {
-		conflictField = a.Saml().CheckProviderAttributes(SS, ouser, patch)
+		conflictField = a.Saml().CheckProviderAttributes(SamlSettings, ouser, patch)
 	} else if ouser.IsOAuthUser() {
 		if tryingToChange(patch.FirstName, &ouser.FirstName) ||
 			tryingToChange(patch.LastName, &ouser.LastName) {

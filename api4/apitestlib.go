@@ -517,6 +517,22 @@ func (th *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	return ruser
 }
 
+func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
+	id := model.NewId()
+	user := &model.User{
+		Email:         "success+" + id + "@simulator.amazonses.com",
+		Username:      "un_" + id,
+		Nickname:      "nn_" + id,
+		EmailVerified: true,
+		AuthService:   authService,
+	}
+	user, err := th.App.CreateUser(user)
+	if err != nil {
+		panic(err)
+	}
+	return user
+}
+
 func (th *TestHelper) CreatePublicChannel() *model.Channel {
 	return th.CreateChannelWithClient(th.Client, model.CHANNEL_OPEN)
 }

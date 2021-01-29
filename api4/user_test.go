@@ -14,9 +14,11 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
@@ -5842,5 +5844,38 @@ func TestReadThreads(t *testing.T) {
 
 		uss3, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 1, 2, nil)
 		require.Equal(t, uss3.Threads[0].LastViewedAt, timestamp)
+	})
+}
+
+func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
+	t.Run("LDAP user", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_LDAP)
+		ldapMock := &mocks.LdapInterface{}
+		ldapMock.Mock.On(
+			"CheckProviderAttributes",
+			mock.Anything, // app.AppIface
+			mock.Anything, // *model.User
+			mock.Anything, // *model.Patch
+		).Return("")
+		th.App.Srv().Ldap = ldapMock
+		th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
+		ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
+		th.SystemAdminClient.UpdateUser(user)
+		ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
+	})
+	t.Run("SAML user", func(t *testing.T) {
+		th := SetupEnterprise(t).InitBasic()
+		defer th.TearDown()
+		user := th.CreateUserWithAuth(model.USER_AUTH_SERVICE_SAML)
+		samlMock := &mocks.SamlInterface{}
+		samlMock.Mock.On("CheckProviderAttributes", mock.Anything, mock.Anything, mock.Anything).
+			Return("")
+		th.App.Srv().Saml = samlMock
+		th.SystemAdminClient.PatchUser(user.Id, &model.UserPatch{})
+		samlMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 1)
+		th.SystemAdminClient.UpdateUser(user)
+		samlMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
 	})
 }
