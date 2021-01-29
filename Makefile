@@ -74,7 +74,7 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseR
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
-MINIMUM_SUPPORTED_GO_MINOR_VERSION = 13
+MINIMUM_SUPPORTED_GO_MINOR_VERSION = 15
 GO_VERSION_VALIDATION_ERR_MSG = Golang version is not supported, please update to at least $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION).$(MINIMUM_SUPPORTED_GO_MINOR_VERSION)
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
@@ -591,11 +591,11 @@ endif
 
 gen-serialized: ## Generates serialization methods for hot structs
 	# This tool only works at a file level, not at a package level.
-	# There will be some warnings about "unresolved identifiers", 
-	# but that is because of the above problem. Since we are generating 
-	# methods for all the relevant files at a package level, all 
-	# identifiers will be resolved. An alternative to remove the warnings 
-	# would be to temporarily move all the structs to the same file, 
+	# There will be some warnings about "unresolved identifiers",
+	# but that is because of the above problem. Since we are generating
+	# methods for all the relevant files at a package level, all
+	# identifiers will be resolved. An alternative to remove the warnings
+	# would be to temporarily move all the structs to the same file,
 	# but that involves a lot of manual work.
 	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
 	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/session_serial_gen.go
