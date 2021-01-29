@@ -6078,10 +6078,10 @@ func (s *TimerLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
+func (s *TimerLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.GetFile(fileId, remoteId)
+	result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6089,7 +6089,7 @@ func (s *TimerLayerSharedChannelStore) GetFile(fileId string, remoteId string) (
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetFile", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetAttachment", success, elapsed)
 	}
 	return result, err
 }
@@ -6222,10 +6222,10 @@ func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error) {
+func (s *TimerLayerSharedChannelStore) SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.SaveFile(remote)
+	result, err := s.SharedChannelStore.SaveAttachment(remote)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6233,7 +6233,7 @@ func (s *TimerLayerSharedChannelStore) SaveFile(remote *model.SharedChannelFile)
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveFile", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveAttachment", success, elapsed)
 	}
 	return result, err
 }
@@ -6286,10 +6286,10 @@ func (s *TimerLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+func (s *TimerLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpdateFileLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateAttachmentLastSyncAt(id, syncTime)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6297,7 +6297,7 @@ func (s *TimerLayerSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime 
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateFileLastSyncAt", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateAttachmentLastSyncAt", success, elapsed)
 	}
 	return err
 }

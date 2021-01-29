@@ -49,7 +49,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannelUsers.ColMap("RemoteClusterId").SetMaxSize(26)
 		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteClusterId")
 
-		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelFile{}, "SharedChannelFiles").SetKeys(false, "Id")
+		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelAttachment{}, "SharedChannelAttachments").SetKeys(false, "Id")
 		tableSharedChannelFiles.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelFiles.ColMap("FileId").SetMaxSize(26)
 		tableSharedChannelFiles.ColMap("RemoteClusterId").SetMaxSize(26)
@@ -568,57 +568,57 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) e
 	return nil
 }
 
-// SaveFile inserts a new shared channel file attachment record to the SharedChannelFiles table.
-func (s SqlSharedChannelStore) SaveFile(scFile *model.SharedChannelFile) (*model.SharedChannelFile, error) {
-	scFile.PreSave()
-	if err := scFile.IsValid(); err != nil {
+// SaveAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table.
+func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
+	attachment.PreSave()
+	if err := attachment.IsValid(); err != nil {
 		return nil, err
 	}
 
-	if err := s.GetMaster().Insert(scFile); err != nil {
-		return nil, errors.Wrapf(err, "save_shared_channel_file: file_id=%s, remote_id=%s", scFile.FileId, scFile.RemoteClusterId)
+	if err := s.GetMaster().Insert(attachment); err != nil {
+		return nil, errors.Wrapf(err, "save_shared_channel_attachment: file_id=%s, remote_id=%s", attachment.FileId, attachment.RemoteClusterId)
 	}
-	return scFile, nil
+	return attachment, nil
 }
 
-// GetFile fetches a shared channel file attachment record based on file_id and remoteId.
-func (s SqlSharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
-	var scf model.SharedChannelFile
+// GetAttachment fetches a shared channel file attachment record based on file_id and remoteId.
+func (s SqlSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
+	var attachment model.SharedChannelAttachment
 
 	squery, args, err := s.getQueryBuilder().
 		Select("*").
-		From("SharedChannelFiles").
-		Where(sq.Eq{"SharedChannelFiles.FileId": fileId}).
-		Where(sq.Eq{"SharedChannelFiles.RemoteClusterId": remoteId}).
+		From("SharedChannelAttachments").
+		Where(sq.Eq{"SharedChannelAttachments.FileId": fileId}).
+		Where(sq.Eq{"SharedChannelAttachments.RemoteClusterId": remoteId}).
 		ToSql()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "getsharedchannelfile_tosql")
+		return nil, errors.Wrapf(err, "getsharedchannelattachment_tosql")
 	}
 
-	if err := s.GetReplica().SelectOne(&scf, squery, args...); err != nil {
+	if err := s.GetReplica().SelectOne(&attachment, squery, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("SharedChannelFile", fileId)
+			return nil, store.NewErrNotFound("SharedChannelAttachment", fileId)
 		}
-		return nil, errors.Wrapf(err, "failed to find shared channel file with FileId=%s, RemoteClusterId=%s", fileId, remoteId)
+		return nil, errors.Wrapf(err, "failed to find shared channel attachment with FileId=%s, RemoteClusterId=%s", fileId, remoteId)
 	}
-	return &scf, nil
+	return &attachment, nil
 }
 
-// UpdateFileLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelFile.
-func (s SqlSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+// UpdateAttachmentLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelAttachment.
+func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
 	squery, args, err := s.getQueryBuilder().
-		Update("SharedChannelFiles").
+		Update("SharedChannelAttachments").
 		Set("LastSyncAt", syncTime).
 		Where(sq.Eq{"Id": id}).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "update_shared_channel_file_last_sync_at_tosql")
+		return errors.Wrap(err, "update_shared_channel_attachment_last_sync_at_tosql")
 	}
 
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelFile")
+		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelAttachment")
 	}
 
 	count, err := result.RowsAffected()

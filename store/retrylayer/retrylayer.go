@@ -7286,11 +7286,11 @@ func (s *RetryLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 
 }
 
-func (s *RetryLayerSharedChannelStore) GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error) {
+func (s *RetryLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.GetFile(fileId, remoteId)
+		result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
 		if err == nil {
 			return result, nil
 		}
@@ -7466,11 +7466,11 @@ func (s *RetryLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 
 }
 
-func (s *RetryLayerSharedChannelStore) SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error) {
+func (s *RetryLayerSharedChannelStore) SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.SaveFile(remote)
+		result, err := s.SharedChannelStore.SaveAttachment(remote)
 		if err == nil {
 			return result, nil
 		}
@@ -7546,11 +7546,11 @@ func (s *RetryLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateFileLastSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateFileLastSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateAttachmentLastSyncAt(id, syncTime)
 		if err == nil {
 			return nil
 		}
