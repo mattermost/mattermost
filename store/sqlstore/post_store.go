@@ -40,7 +40,7 @@ func (s *SqlPostStore) ClearCaches() {
 }
 
 func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -63,6 +63,7 @@ func postToSlice(post *model.Post) []interface{} {
 		model.ArrayToJson(post.Filenames),
 		model.ArrayToJson(post.FileIds),
 		post.HasReactions,
+		post.RemoteId,
 	}
 }
 
@@ -87,6 +88,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
 		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
 	return s
@@ -114,7 +116,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
-		if len(post.Id) > 0 {
+		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
@@ -831,6 +833,11 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	}
 	var posts []*model.Post
 
+	order := "DESC"
+	if options.SortAscending {
+		order = "ASC"
+	}
+
 	replyCountQuery1 := ""
 	replyCountQuery2 := ""
 	if options.SkipFetchThreads {
@@ -867,7 +874,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 							  AND ChannelId = :ChannelId
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
-          ORDER BY CreateAt DESC`
+          ORDER BY CreateAt ` + order
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = `WITH cte AS (SELECT
 		       *
@@ -879,7 +886,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 		(SELECT *` + replyCountQuery2 + ` FROM cte)
 		UNION
 		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
-		ORDER BY CreateAt DESC`
+		ORDER BY CreateAt ` + order
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 

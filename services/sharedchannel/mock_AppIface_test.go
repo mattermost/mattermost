@@ -78,6 +78,47 @@ func (_m *MockAppIface) DeleteChannel(channel *model.Channel, userId string) *mo
 	return r0
 }
 
+// DeleteReactionForPost provides a mock function with given fields: reaction
+func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
+	ret := _m.Called(reaction)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.AppError); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// SaveReactionForPost provides a mock function with given fields: reaction
+func (_m *MockAppIface) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	ret := _m.Called(reaction)
+
+	var r0 *model.Reaction
+	if rf, ok := ret.Get(0).(func(*model.Reaction) *model.Reaction); ok {
+		r0 = rf(reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+		r1 = rf(reaction)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SendEphemeralPost provides a mock function with given fields: userId, post
 func (_m *MockAppIface) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	ret := _m.Called(userId, post)

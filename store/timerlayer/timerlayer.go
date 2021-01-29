@@ -5295,6 +5295,22 @@ func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	return result, err
 }
 
+func (s *TimerLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+	start := timemodule.Now()
+
+	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetForPostSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
@@ -6126,6 +6142,22 @@ func (s *TimerLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 	start := timemodule.Now()
 
@@ -6190,6 +6222,22 @@ func (s *TimerLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRem
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.SaveUser(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveUser", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	start := timemodule.Now()
 
@@ -6238,10 +6286,10 @@ func (s *TimerLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 	return err
 }
 
-func (s *TimerLayerSharedChannelStore) UpsertPost(post *model.Post) error {
+func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
 	start := timemodule.Now()
 
-	err := s.SharedChannelStore.UpsertPost(post)
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6249,23 +6297,7 @@ func (s *TimerLayerSharedChannelStore) UpsertPost(post *model.Post) error {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertPost", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerSharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-	start := timemodule.Now()
-
-	err := s.SharedChannelStore.UpsertReaction(reaction)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertReaction", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
 	}
 	return err
 }

@@ -614,6 +614,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
+	if post.RemoteId != nil && *post.RemoteId != "" {
+		oldPost.RemoteId = model.NewString(*post.RemoteId)
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()

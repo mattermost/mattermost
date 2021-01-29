@@ -96,7 +96,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 	// Ensure a panic from the callback does not exit the pool thread.
 	defer func() {
 		if r := recover(); r != nil {
-			rcs.server.GetLogger().Log(mlog.LvlPanic, "Remote Cluster sendMsg panic",
+			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster sendMsg panic",
 				mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Any("panic", r))
 		}
 	}()

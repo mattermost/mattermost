@@ -20,7 +20,7 @@ const (
 	RecvChanBuffer                = 50
 	ResultsChanBuffer             = 50
 	ResultQueueDrainTimeoutMillis = 10000
-	MaxConcurrentSends            = 5
+	MaxConcurrentSends            = 1 // TODO: increase when threading issue fixed
 	SendMsgURL                    = "api/v4/remotecluster/msg"
 	SendTimeout                   = time.Minute
 	PingURL                       = "api/v4/remotecluster/ping"
