@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -53,6 +54,7 @@ type WebConn struct {
 	send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
 	session                   atomic.Value
+	isWindows                 bool
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
@@ -74,6 +76,7 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateF
 		UserId:             session.UserId,
 		T:                  t,
 		Locale:             locale,
+		isWindows:          runtime.GOOS == "windows",
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 	}
@@ -82,16 +85,21 @@ func (a *App) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateF
 	wc.SetSessionToken(session.Token)
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
-	wc.startPoller()
+	// epoll/kqueue is not available on Windows.
+	if !wc.isWindows {
+		wc.startPoller()
+	}
 	return wc
 }
 
 // Close closes the WebConn.
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
-	// This triggers the pump exit.
-	// If the pump has already exited, this just becomes a noop.
-	close(wc.endWritePump)
+	if !wc.isWindows {
+		// This triggers the pump exit.
+		// If the pump has already exited, this just becomes a noop.
+		close(wc.endWritePump)
+	}
 	// We wait for the pump to fully exit.
 	<-wc.pumpFinished
 }
@@ -132,10 +140,28 @@ func (wc *WebConn) SetSession(v *model.Session) {
 
 // Pump starts the WebConn instance. After this, the websocket
 // is ready to send messages.
+// This is only used by *nix platforms.
 func (wc *WebConn) Pump() {
 	// writePump is blocking in nature.
 	wc.writePump()
 	// Once it exits, we close everything.
+	wc.App.HubUnregister(wc)
+	close(wc.pumpFinished)
+}
+
+// BlockingPump is the Windows alternative of Pump.
+// It creates two goroutines - one for reading, another
+// for writing.
+func (wc *WebConn) BlockingPump() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		wc.writePump()
+	}()
+	wc.readPump()
+	close(wc.endWritePump)
+	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
 }
@@ -182,8 +208,6 @@ func (s *Server) ReleaseWebConnToken() {
 
 // ReadMsg will read a single message from the websocket connection.
 func (wc *WebConn) ReadMsg() error {
-	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
-
 	r := wsutil.NewReader(wc.WebSocket, ws.StateServerSide)
 	r.MaxFrameSize = model.SOCKET_MAX_MESSAGE_SIZE_KB
 	decoder := json.NewDecoder(r)
@@ -201,8 +225,13 @@ func (wc *WebConn) ReadMsg() error {
 	switch hdr.OpCode {
 	case ws.OpClose:
 		// Return if closed.
+		// We need to return an error for Windows to let the reader exit.
+		if wc.isWindows {
+			return errors.New("connection closed")
+		}
 		return nil
 	case ws.OpPong:
+		wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
 		// Handle pongs
 		if wc.IsAuthenticated() {
 			wc.App.Srv().Go(func() {
@@ -220,6 +249,18 @@ func (wc *WebConn) ReadMsg() error {
 		wc.App.Srv().WebSocketRouter.ServeWebSocket(wc, &req)
 	}
 	return nil
+}
+
+func (wc *WebConn) readPump() {
+	defer wc.WebSocket.Close()
+	wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime))
+
+	for {
+		if err := wc.ReadMsg(); err != nil {
+			wc.logSocketErr("websocket.read", err)
+			return
+		}
+	}
 }
 
 func (wc *WebConn) writePump() {

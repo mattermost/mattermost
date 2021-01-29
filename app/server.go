@@ -226,13 +226,16 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
-	poller, err := netpoll.New(nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create a netpoll instance")
+	// epoll/kqueue is not available on Windows.
+	if runtime.GOOS != "windows" {
+		poller, err := netpoll.New(nil)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create a netpoll instance")
+		}
+		s.poller = poller
+		s.webConnSemaWg = new(sync.WaitGroup)
+		s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
 	}
-	s.poller = poller
-	s.webConnSemaWg = new(sync.WaitGroup)
-	s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
 
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
@@ -279,8 +282,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
-	if err2 := utils.TranslationsPreInit(); err2 != nil {
-		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 	model.AppErrorInit(utils.T)
 
@@ -295,10 +298,11 @@ func NewServer(options ...Option) (*Server, error) {
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
 	s.CacheProvider = cache.NewProvider()
-	if err2 := s.CacheProvider.Connect(); err2 != nil {
-		return nil, errors.Wrapf(err2, "Unable to connect to cache provider")
+	if err := s.CacheProvider.Connect(); err != nil {
+		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
+	var err error
 	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size:           model.SESSION_CACHE_SIZE,
 		Striped:        true,
