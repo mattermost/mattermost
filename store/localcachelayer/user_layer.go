@@ -165,7 +165,8 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 	// in this func is making caching of the total set not beneficial.
 	var cachedUsers []*model.User
 	var cachedUserIds []string
-	for _, id := range ids {
+	uniqIds := newSet(ids)
+	for _, id := range uniqIds {
 		var cachedUser *model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
 			if s.rootStore.metrics != nil {
@@ -180,7 +181,7 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 		}
 	}
 
-	notCachedUserIds := arrayDiff(ids, cachedUserIds)
+	notCachedUserIds := arrayDiff(uniqIds, cachedUserIds)
 	if len(notCachedUserIds) > 0 {
 		dbUsers, err := s.UserStore.GetMany(notCachedUserIds)
 		if err != nil {
@@ -193,6 +194,20 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 	}
 
 	return cachedUsers, nil
+}
+
+func newSet(elements []string) []string {
+	set := map[string]bool{}
+	var res []string
+
+	for _, element := range elements {
+		if !set[element] {
+			res = append(res, element)
+			set[element] = true
+		}
+	}
+
+	return res
 }
 
 func arrayDiff(a, b []string) []string {
