@@ -34,6 +34,10 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, ss) })
 	t.Run("GetSharedChannelUser", func(t *testing.T) { testGetSharedChannelUser(t, ss) })
 	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, ss) })
+
+	t.Run("SaveSharedChannelFile", func(t *testing.T) { testSaveSharedChannelFile(t, ss) })
+	t.Run("GetSharedChannelFile", func(t *testing.T) { testGetSharedChannelFile(t, ss) })
+	t.Run("UpdateSharedChannelFileLastSyncAt", func(t *testing.T) { testUpdateSharedChannelFileLastSyncAt(t, ss) })
 }
 
 func testSaveSharedChannel(t *testing.T, ss store.Store) {
@@ -781,5 +785,92 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	t.Run("Update LastSyncAt for non-existent shared channel user", func(t *testing.T) {
 		err := ss.SharedChannel().UpdateUserLastSyncAt(model.NewId(), future)
 		require.Error(t, err, "update non-existent user should error", err)
+	})
+}
+
+func testSaveSharedChannelFile(t *testing.T, ss store.Store) {
+	t.Run("Save shared channel file", func(t *testing.T) {
+		scFile := &model.SharedChannelFile{
+			FileId:          model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		fileSaved, err := ss.SharedChannel().SaveFile(scFile)
+		require.Nil(t, err, "couldn't save shared channel file", err)
+
+		require.Equal(t, scFile.FileId, fileSaved.FileId)
+		require.Equal(t, scFile.RemoteClusterId, fileSaved.RemoteClusterId)
+	})
+
+	t.Run("Save invalid shared channel file", func(t *testing.T) {
+		scFile := &model.SharedChannelFile{
+			FileId:          "",
+			RemoteClusterId: model.NewId(),
+		}
+
+		_, err := ss.SharedChannel().SaveFile(scFile)
+		require.NotNil(t, err, "should error saving invalid file", err)
+	})
+
+	t.Run("Save shared channel file with invalid remote id", func(t *testing.T) {
+		scFile := &model.SharedChannelFile{
+			FileId:          model.NewId(),
+			RemoteClusterId: "bogus",
+		}
+
+		_, err := ss.SharedChannel().SaveFile(scFile)
+		require.Error(t, err, "expected error for invalid remote id")
+	})
+}
+
+func testGetSharedChannelFile(t *testing.T, ss store.Store) {
+	scFile := &model.SharedChannelFile{
+		FileId:          model.NewId(),
+		RemoteClusterId: model.NewId(),
+	}
+
+	fileSaved, err := ss.SharedChannel().SaveFile(scFile)
+	require.Nil(t, err, "could not save file", err)
+
+	t.Run("Get existing shared channel file", func(t *testing.T) {
+		r, err := ss.SharedChannel().GetFile(fileSaved.FileId, fileSaved.RemoteClusterId)
+		require.Nil(t, err, "couldn't get shared channel file", err)
+
+		require.Equal(t, fileSaved.Id, r.Id)
+		require.Equal(t, fileSaved.FileId, r.FileId)
+		require.Equal(t, fileSaved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, fileSaved.CreateAt, r.CreateAt)
+	})
+
+	t.Run("Get non-existent shared channel file", func(t *testing.T) {
+		u, err := ss.SharedChannel().GetFile(model.NewId(), model.NewId())
+		require.NotNil(t, err)
+		require.Nil(t, u)
+	})
+}
+
+func testUpdateSharedChannelFileLastSyncAt(t *testing.T, ss store.Store) {
+	scFile := &model.SharedChannelFile{
+		FileId:          model.NewId(),
+		RemoteClusterId: model.NewId(),
+	}
+
+	fileSaved, err := ss.SharedChannel().SaveFile(scFile)
+	require.NoError(t, err, "couldn't save file", err)
+
+	future := model.GetMillis() + 3600000 // 1 hour in the future
+
+	t.Run("Update LastSyncAt for file", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateFileLastSyncAt(fileSaved.Id, future)
+		require.Nil(t, err, "updateLastSyncAt should not error", err)
+
+		f, err := ss.SharedChannel().GetFile(fileSaved.FileId, fileSaved.RemoteClusterId)
+		require.NoError(t, err)
+		require.Equal(t, future, f.LastSyncAt)
+	})
+
+	t.Run("Update LastSyncAt for non-existent shared channel file", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateFileLastSyncAt(model.NewId(), future)
+		require.Error(t, err, "update non-existent file should error", err)
 	})
 }

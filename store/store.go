@@ -820,6 +820,10 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
+
+	SaveFile(remote *model.SharedChannelFile) (*model.SharedChannelFile, error)
+	GetFile(fileId string, remoteId string) (*model.SharedChannelFile, error)
+	UpdateFileLastSyncAt(id string, syncTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
