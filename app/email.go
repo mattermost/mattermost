@@ -88,7 +88,7 @@ func (es *EmailService) sendChangeUsernameEmail(oldUsername, newUsername, email,
 	bodyPage.Props["Info"] = T("api.templates.username_change_body.info",
 		map[string]interface{}{"TeamDisplayName": es.srv.Config().TeamSettings.SiteName, "NewUsername": newUsername})
 	bodyPage.Props["Warning"] = T("api.templates.email_warning")
-	
+
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("sendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -154,16 +154,16 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 	subject := T("api.templates.verify_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
 
-	bodyPage := es.newEmailTemplate("verify", locale)
+	bodyPage := es.newEmailTemplate("verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.verify.title")
-	bodyPage.Props["SubTitle"] = T("api.templates.verify.info", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["Title"] = T("api.templates.verify_body.title")
+	bodyPage.Props["SubTitle"] = T("api.templates.verify_body.info", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["ButtonUrl"] = link
-	bodyPage.Props["Button"] = T("api.templates.verify.button")
-	bodyPage.Props["Info"] = T("api.templates.verify.info")
+	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
+	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
 	bodyPage.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	bodyPage.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
-  
+
 	if err := es.sendMail(userEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -204,18 +204,18 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName,
 			"ServerURL": serverURL})
 
-	bodyPage := es.newEmailTemplate("welcome", locale)
+	bodyPage := es.newEmailTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.welcome.title")
-	bodyPage.Props["SubTitle"] = T("api.templates.verify.subTitle", map[string]interface{}{"ServerURL": serverURL})
-	bodyPage.Props["Button"] = T("api.templates.verify.button")
-	bodyPage.Props["Info"] = T("api.templates.verify.info")
+	bodyPage.Props["Title"] = T("api.templates.welcome_body.title")
+	bodyPage.Props["SubTitle"] = T("api.templates.welcome_body.subTitle", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
+	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
 	bodyPage.Props["SiteURL"] = siteURL
-	
+
 	if *es.srv.Config().NativeAppSettings.AppDownloadLink != "" {
-		bodyPage.Props["AppDownloadTitle"] = T("api.templates.welcome.app_download_title")
-		bodyPage.Props["AppDownloadInfo"] = T("api.templates.welcome.app_download_info")
-		bodyPage.Props["AppDownloadButton"] = T("api.templates.welcome.app_download_button")
+		bodyPage.Props["AppDownloadTitle"] = T("api.templates.welcome_body.app_download_title")
+		bodyPage.Props["AppDownloadInfo"] = T("api.templates.welcome_body.app_download_info")
+		bodyPage.Props["AppDownloadButton"] = T("api.templates.welcome_body.app_download_button")
 		bodyPage.Props["AppDownloadLink"] = *es.srv.Config().NativeAppSettings.AppDownloadLink
 	}
 

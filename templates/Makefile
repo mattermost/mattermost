@@ -3,7 +3,6 @@ OUTPUT_DIR=.
 MJML=mjml
 
 build: ## Compile all mjml email templates
-	mkdir -p ${OUTPUT_DIR}
 	@for f in $(shell ls *.mjml); \
 	do \
 	  echo "{{define \"$${f%.*}\"}}\n" > $(OUTPUT_DIR)/$${f%.*}.html; \
