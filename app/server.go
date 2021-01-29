@@ -1713,3 +1713,15 @@ func (s *Server) GetSharedChannelSyncService() SharedChannelServiceIFace {
 func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 	return s.Metrics
 }
+
+// SetRemoteClusterService sets the `RemoteClusterService` to be used by the server.
+// For testing only.
+func (s *Server) SetRemoteClusterService(remoteClusterService *remotecluster.Service) {
+	s.remoteClusterService = remoteClusterService
+}
+
+// SetSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
+// For testing only.
+func (s *Server) SetSharedChannelSyncService(sharedChannelSyncService SharedChannelServiceIFace) {
+	s.sharedChannelSyncService = sharedChannelSyncService
+}

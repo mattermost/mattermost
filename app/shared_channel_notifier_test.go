@@ -16,7 +16,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := SetupWithStoreMock(t)
 		defer th.TearDown()
 
-		mockService := newMockRemoteClusterService(nil)
+		mockService := NewMockRemoteClusterService(nil)
 		mockService.active = false
 		th.App.srv.sharedChannelSyncService = mockService
 
@@ -28,7 +28,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := newMockRemoteClusterService(nil)
+		mockService := NewMockRemoteClusterService(nil)
 		mockService.active = true
 		th.App.srv.sharedChannelSyncService = mockService
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
@@ -43,7 +43,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := newMockRemoteClusterService(nil)
+		mockService := NewMockRemoteClusterService(nil)
 		mockService.active = true
 		th.App.srv.sharedChannelSyncService = mockService
 
@@ -57,7 +57,7 @@ func TestServerSyncSharedChannelHandler(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		mockService := newMockRemoteClusterService(nil)
+		mockService := NewMockRemoteClusterService(nil)
 		mockService.active = true
 		th.App.srv.sharedChannelSyncService = mockService
 
