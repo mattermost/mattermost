@@ -129,7 +129,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -170,7 +170,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -217,7 +217,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()

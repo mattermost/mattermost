@@ -102,7 +102,7 @@ func TestMigrate(t *testing.T) {
 
 		sourcedb, err := config.NewDatabaseStore(sourceDSN)
 		require.NoError(t, err)
-		source, err := config.NewStoreFromBacking(sourcedb, nil)
+		source, err := config.NewStoreFromBacking(sourcedb, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
@@ -112,7 +112,7 @@ func TestMigrate(t *testing.T) {
 
 		destinationfile, err := config.NewFileStore(destinationDSN, false)
 		require.NoError(t, err)
-		destination, err := config.NewStoreFromBacking(destinationfile, nil)
+		destination, err := config.NewStoreFromBacking(destinationfile, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
 
@@ -131,7 +131,7 @@ func TestMigrate(t *testing.T) {
 
 		sourcefile, err := config.NewFileStore(sourceDSN, false)
 		require.NoError(t, err)
-		source, err := config.NewStoreFromBacking(sourcefile, nil)
+		source, err := config.NewStoreFromBacking(sourcefile, nil, false)
 		require.NoError(t, err)
 		defer source.Close()
 
@@ -141,7 +141,7 @@ func TestMigrate(t *testing.T) {
 
 		destinationdb, err := config.NewDatabaseStore(destinationDSN)
 		require.NoError(t, err)
-		destination, err := config.NewStoreFromBacking(destinationdb, nil)
+		destination, err := config.NewStoreFromBacking(destinationdb, nil, false)
 		require.NoError(t, err)
 		defer destination.Close()
 

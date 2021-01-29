@@ -140,7 +140,7 @@ func TestMergeConfigs(t *testing.T) {
 func TestConfigEnvironmentOverrides(t *testing.T) {
 	memstore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil)
+	base, err := config.NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
 	originalConfig.ServiceSettings.SiteURL = newString("http://notoverriden.ca")
@@ -169,7 +169,7 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 
 	memstore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil)
+	base, err := config.NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	oldCfg := base.Get()
 	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
