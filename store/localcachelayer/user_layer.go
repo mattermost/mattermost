@@ -164,8 +164,9 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 	// we are doing a loop instead of caching the full set in the cache because the number of permutations that we can have
 	// in this func is making caching of the total set not beneficial.
 	var cachedUsers []*model.User
-	var cachedUserIds []string
+	var notCachedUserIds []string
 	uniqIds := newSet(ids)
+
 	for _, id := range uniqIds {
 		var cachedUser *model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
@@ -173,15 +174,15 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 				s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
 			}
 			cachedUsers = append(cachedUsers, cachedUser)
-			cachedUserIds = append(cachedUserIds, cachedUser.Id)
-			continue
-		}
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+		} else {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+			}
+
+			notCachedUserIds = append(notCachedUserIds, id)
 		}
 	}
 
-	notCachedUserIds := arrayDiff(uniqIds, cachedUserIds)
 	if len(notCachedUserIds) > 0 {
 		dbUsers, err := s.UserStore.GetMany(notCachedUserIds)
 		if err != nil {
@@ -204,29 +205,6 @@ func newSet(elements []string) []string {
 		if !set[element] {
 			res = append(res, element)
 			set[element] = true
-		}
-	}
-
-	return res
-}
-
-func arrayDiff(a, b []string) []string {
-	hits := map[string]bool{}
-	var res []string
-	longestArray := a
-	shortestArray := b
-	if len(a) < len(b) {
-		longestArray = b
-		shortestArray = a
-	}
-
-	for _, str := range shortestArray {
-		hits[str] = true
-	}
-
-	for _, str := range longestArray {
-		if !hits[str] {
-			res = append(res, str)
 		}
 	}
 

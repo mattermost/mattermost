@@ -305,6 +305,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		gotUsers, err = cachedStore.User().GetMany([]string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
+		mockStore.User().(*mocks.UserStore).AssertCalled(t, "GetMany", []string{"123"})
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 2)
 	})
 }
