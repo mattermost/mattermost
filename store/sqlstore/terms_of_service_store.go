@@ -7,6 +7,7 @@ import (
 	"database/sql"
 
 	"github.com/pkg/errors"
+	sq "github.com/Maserminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -54,9 +55,16 @@ func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*mod
 
 func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	var termsOfService *model.TermsOfService
+	
+	query := s.getQueryBuilder().
+			Select("*").
+			From("TermsOfService").
+			OrderBy("CreateAt DESC").
+			Limit(uint64(1))
+	
+	queryString, args, err := query.ToSql()
 
-	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
-	if err != nil {
+	if err :=  s.GetReplica().SelectOne(&termsOfService, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TermsOfService", "CreateAt=latest")
 		}
