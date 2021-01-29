@@ -1450,20 +1450,25 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+func (fs *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+	if *fs.DriverName == IMAGE_DRIVER_LOCAL {
+		return filesstore.FileBackendSettings{
+			DriverName: *fs.DriverName,
+			Directory:  *fs.Directory,
+		}
+	}
 	return filesstore.FileBackendSettings{
-		DriverName:              *s.DriverName,
-		Directory:               *s.Directory,
-		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
-		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
-		AmazonS3Bucket:          *s.AmazonS3Bucket,
-		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
-		AmazonS3Region:          *s.AmazonS3Region,
-		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
-		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
-		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
-		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
-		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
+		DriverName:              *fs.DriverName,
+		AmazonS3AccessKeyId:     *fs.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *fs.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *fs.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *fs.AmazonS3PathPrefix,
+		AmazonS3Region:          *fs.AmazonS3Region,
+		AmazonS3Endpoint:        *fs.AmazonS3Endpoint,
+		AmazonS3SSL:             fs.AmazonS3SSL == nil || *fs.AmazonS3SSL,
+		AmazonS3SignV2:          fs.AmazonS3SignV2 != nil && *fs.AmazonS3SignV2,
+		AmazonS3SSE:             fs.AmazonS3SSE != nil && *fs.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:           fs.AmazonS3Trace != nil && *fs.AmazonS3Trace,
 	}
 }
 

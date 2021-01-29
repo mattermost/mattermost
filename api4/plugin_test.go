@@ -1537,7 +1537,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 		require.NoError(t, err)
 		err = fileBackend.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
@@ -1674,7 +1674,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 		require.NoError(t, err)
 		err = fileBackend.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)

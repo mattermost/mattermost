@@ -398,6 +398,7 @@ func TestSendMail(t *testing.T) {
 		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
 		Directory:  &dir,
 	}
+	settings.SetDefaults(true)
 	mockBackend, appErr := filesstore.NewFileBackend(settings.ToFileBackendSettings(true))
 	require.Nil(t, appErr)
 	mocm := &mockMailer{}

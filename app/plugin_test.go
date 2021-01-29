@@ -745,7 +745,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 	prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
 	require.True(t, found, "failed to find prepackaged plugins directory")
 
-	fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+	fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 	require.NoError(t, err)
 	testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
 	fileErr = fileBackend.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
@@ -817,7 +817,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 		require.NoError(t, err)
 
 		// Add signature
@@ -854,7 +854,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 		require.NoError(t, err)
 
 		// Add signature
@@ -913,7 +913,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: "."})
+		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
 		require.NoError(t, err)
 
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
