@@ -155,3 +155,65 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, error) {
 	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
 	return user, nil
 }
+
+// GetMany is a cache wrapper around the SqlStore method to get a user profiles by ids.
+// It checks if the user entries are present in the cache, returning the entries from cache
+// if it is present. Otherwise, it fetches the entries from the store and stores it in the
+// cache.
+func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
+	// we are doing a loop instead of caching the full set in the cache because the number of permutations that we can have
+	// in this func is making caching of the total set not beneficial.
+	var cachedUsers []*model.User
+	var cachedUserIds []string
+	for _, id := range ids {
+		var cachedUser *model.User
+		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+			}
+			cachedUsers = append(cachedUsers, cachedUser)
+			cachedUserIds = append(cachedUserIds, cachedUser.Id)
+			continue
+		}
+		if s.rootStore.metrics != nil {
+			s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+		}
+	}
+
+	notCachedUserIds := arrayDiff(ids, cachedUserIds)
+	if len(notCachedUserIds) > 0 {
+		dbUsers, err := s.UserStore.GetMany(notCachedUserIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range dbUsers {
+			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			cachedUsers = append(cachedUsers, user)
+		}
+	}
+
+	return cachedUsers, nil
+}
+
+func arrayDiff(a, b []string) []string {
+	hits := map[string]bool{}
+	var res []string
+	longestArray := a
+	shortestArray := b
+	if len(a) < len(b) {
+		longestArray = b
+		shortestArray = a
+	}
+
+	for _, str := range shortestArray {
+		hits[str] = true
+	}
+
+	for _, str := range longestArray {
+		if !hits[str] {
+			res = append(res, str)
+		}
+	}
+
+	return res
+}

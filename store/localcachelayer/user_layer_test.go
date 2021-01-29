@@ -258,3 +258,53 @@ func TestUserStoreGetCache(t *testing.T) {
 		storedUser.NotifyProps = originalProps
 	})
 }
+
+func TestUserStoreGetManyCache(t *testing.T) {
+	fakeUser := &model.User{
+		Id:          "123",
+		AuthData:    model.NewString("authData"),
+		AuthService: "authService",
+	}
+	otherFakeUser := &model.User{
+		Id:          "456",
+		AuthData:    model.NewString("authData"),
+		AuthService: "authService",
+	}
+	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		gotUsers, err := cachedStore.User().GetMany([]string{fakeUser.Id, otherFakeUser.Id})
+		require.Nil(t, err)
+		assert.Len(t, gotUsers, 2)
+		assert.Contains(t, gotUsers, fakeUser)
+		assert.Contains(t, gotUsers, otherFakeUser)
+
+		gotUsers, err = cachedStore.User().GetMany([]string{fakeUser.Id, otherFakeUser.Id})
+		require.Nil(t, err)
+		assert.Len(t, gotUsers, 2)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 1)
+	})
+
+	t.Run("first call not cached, invalidate one user, and then check that one is cached and one is fetched from db", func(t *testing.T) {
+		mockStore := getMockStore()
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		require.NoError(t, err)
+
+		gotUsers, err := cachedStore.User().GetMany([]string{fakeUser.Id, otherFakeUser.Id})
+		require.Nil(t, err)
+		assert.Len(t, gotUsers, 2)
+		assert.Contains(t, gotUsers, fakeUser)
+		assert.Contains(t, gotUsers, otherFakeUser)
+
+		cachedStore.User().InvalidateProfileCacheForUser("123")
+
+		gotUsers, err = cachedStore.User().GetMany([]string{fakeUser.Id, otherFakeUser.Id})
+		require.NoError(t, err)
+		assert.Len(t, gotUsers, 2)
+		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 2)
+	})
+}

@@ -47,6 +47,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
+	t.Run("GetMany", func(t *testing.T) { testUserStoreGetMany(t, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
@@ -293,6 +294,43 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
 		require.Equal(t, "bot description", actual.BotDescription)
+	})
+}
+
+func testUserStoreGetMany(t *testing.T, ss store.Store) {
+	users := make([]*model.User, 2)
+	for i := 0; i < 2; i++ {
+		u := &model.User{
+			Email: MakeEmail(),
+		}
+		user, err := ss.User().Save(u)
+		require.Nil(t, err)
+		users[i] = user
+	}
+	defer func() {
+		require.Nil(t, ss.User().PermanentDelete(users[0].Id))
+		require.Nil(t, ss.User().PermanentDelete(users[1].Id))
+	}()
+
+	t.Run("fetch empty ids", func(t *testing.T) {
+		res, err := ss.User().GetMany([]string{})
+		require.Nil(t, err)
+		assert.Empty(t, res)
+	})
+
+	t.Run("fetch users", func(t *testing.T) {
+		actual, err := ss.User().GetMany([]string{users[0].Id, users[1].Id})
+		require.Nil(t, err)
+		assert.Len(t, actual, 2)
+		assert.Contains(t, actual, users[0])
+		assert.Contains(t, actual, users[1])
+	})
+
+	t.Run("fetch some users", func(t *testing.T) {
+		actual, err := ss.User().GetMany([]string{users[0].Id, "non-existent-id"})
+		require.Nil(t, err)
+		assert.Len(t, actual, 1)
+		assert.Contains(t, actual, users[0])
 	})
 }
 
