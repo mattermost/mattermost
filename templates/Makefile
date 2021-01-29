@@ -1,5 +1,5 @@
 # Directory containing mjml templates
-OUTPUT_DIR=compiled
+OUTPUT_DIR=.
 MJML=mjml
 
 build: ## Compile all mjml email templates

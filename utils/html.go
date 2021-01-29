@@ -26,7 +26,10 @@ type HTMLTemplateWatcher struct {
 	stopped   chan struct{}
 }
 
-func NewHTMLTemplateWatcher(directories ...string) (*HTMLTemplateWatcher, error) {
+func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
+	templatesDir, _ := fileutils.FindDir(directory)
+	mlog.Debug("Parsing server templates", mlog.String("templates_directory", templatesDir))
+
 	ret := &HTMLTemplateWatcher{
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
@@ -37,23 +40,11 @@ func NewHTMLTemplateWatcher(directories ...string) (*HTMLTemplateWatcher, error)
 		return nil, err
 	}
 
-	htmlFiles := []string{}
-	for _, directory := range directories {
-		templatesDir, _ := fileutils.FindDir(directory)
-		mlog.Debug("Parsing server templates", mlog.String("templates_directory", templatesDir))
-
-		if err = watcher.Add(templatesDir); err != nil {
-			return nil, err
-		}
-
-		files, err := filepath.Glob(filepath.Join(templatesDir, "*.html"))
-		if err != nil {
-			return nil, err
-		}
-		htmlFiles = append(htmlFiles, files...)
+	if err = watcher.Add(templatesDir); err != nil {
+		return nil, err
 	}
 
-	htmlTemplates, err := template.ParseFiles(htmlFiles...)
+	htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html"))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +61,7 @@ func NewHTMLTemplateWatcher(directories ...string) (*HTMLTemplateWatcher, error)
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					mlog.Info("Re-parsing templates because of modified file", mlog.String("file_name", event.Name))
-					if htmlTemplates, err := template.ParseFiles(htmlFiles...); err != nil {
+					if htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html")); err != nil {
 						mlog.Error("Failed to parse templates.", mlog.Err(err))
 					} else {
 						ret.templates.Store(htmlTemplates)

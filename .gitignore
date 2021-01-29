@@ -116,4 +116,7 @@ go.*.orig
 config.override.mk
 
 # Compiled mjml templates
-templates/compiled/
+# TODO(jp0707): After all templates are converted to mjml, generalize this
+# to templates/*.html
+templates/welcome.html
+templates/verify.html
