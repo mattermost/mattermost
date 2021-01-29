@@ -103,7 +103,7 @@ type Server struct {
 	hashSeed      maphash.Seed
 	poller        netpoll.Poller
 	webConnSema   chan struct{}
-	webConnSemaWg *sync.WaitGroup
+	webConnSemaWg sync.WaitGroup
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -233,7 +233,6 @@ func NewServer(options ...Option) (*Server, error) {
 			return nil, errors.Wrap(err, "failed to create a netpoll instance")
 		}
 		s.poller = poller
-		s.webConnSemaWg = new(sync.WaitGroup)
 		s.webConnSema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
 	}
 
@@ -249,7 +248,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
-			if err2 := sentry.Init(sentry.ClientOptions{
+			if err := sentry.Init(sentry.ClientOptions{
 				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
@@ -263,8 +262,8 @@ func NewServer(options ...Option) (*Server, error) {
 					}
 					return event
 				},
-			}); err2 != nil {
-				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err2))
+			}); err != nil {
+				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
 			}
 		}
 	}
