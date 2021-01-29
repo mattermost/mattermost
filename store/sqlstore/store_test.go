@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/searchtest"
@@ -554,6 +555,56 @@ func TestVersionString(t *testing.T) {
 	for _, v := range versions {
 		out := VersionString(v.input)
 		assert.Equal(t, v.output, out)
+	}
+}
+
+func TestReplicaLagQuery(t *testing.T) {
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+	}
+
+	for _, driver := range testDrivers {
+		settings := makeSqlSettings(driver)
+		var query string
+		var tableName string
+		// Just any random query which returns a row in (string, int) format.
+		switch driver {
+		case model.DATABASE_DRIVER_POSTGRES:
+			query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
+			tableName = "posts"
+		case model.DATABASE_DRIVER_MYSQL:
+			query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
+			tableName = "Posts"
+		}
+
+		settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
+			DataSource:       model.NewString(*settings.DataSource),
+			QueryAbsoluteLag: model.NewString(query),
+			QueryTimeLag:     model.NewString(query),
+		}}
+
+		mockMetrics := &mocks.MetricsInterface{}
+		defer mockMetrics.AssertExpectations(t)
+		mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
+		mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
+
+		store := &SqlStore{
+			rrCounter: 0,
+			srCounter: 0,
+			settings:  settings,
+			metrics:   mockMetrics,
+		}
+
+		store.initConnection()
+		store.stores.post = newSqlPostStore(store, mockMetrics)
+		err := store.GetMaster().CreateTablesIfNotExists()
+		require.NoError(t, err)
+
+		defer store.Close()
+
+		store.ReplicaLagAbs()
+		store.ReplicaLagTime()
 	}
 }
 

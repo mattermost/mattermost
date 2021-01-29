@@ -432,6 +432,16 @@ func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
 }
 
+// ReplicaLagAbs provides a mock function with given fields:
+func (_m *Store) ReplicaLagAbs() {
+	_m.Called()
+}
+
+// ReplicaLagTime provides a mock function with given fields:
+func (_m *Store) ReplicaLagTime() {
+	_m.Called()
+}
+
 // Role provides a mock function with given fields:
 func (_m *Store) Role() store.RoleStore {
 	ret := _m.Called()

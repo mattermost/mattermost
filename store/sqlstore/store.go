@@ -57,6 +57,8 @@ const (
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
+
+	replicaLagPrefix = "replica-lag"
 )
 
 const (
@@ -129,17 +131,19 @@ type SqlStoreStores struct {
 type SqlStore struct {
 	// rrCounter and srCounter should be kept first.
 	// See https://github.com/mattermost/mattermost-server/v5/pull/7281
-	rrCounter      int64
-	srCounter      int64
-	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	stores         SqlStoreStores
-	settings       *model.SqlSettings
-	lockedToMaster bool
-	context        context.Context
-	license        *model.License
-	licenseMutex   sync.RWMutex
+	rrCounter         int64
+	srCounter         int64
+	master            *gorp.DbMap
+	Replicas          []*gorp.DbMap
+	searchReplicas    []*gorp.DbMap
+	replicaLagHandles []*dbsql.DB
+	stores            SqlStoreStores
+	settings          *model.SqlSettings
+	lockedToMaster    bool
+	context           context.Context
+	license           *model.License
+	licenseMutex      sync.RWMutex
+	metrics           einterfaces.MetricsInterface
 }
 
 type TraceOnAdapter struct{}
@@ -157,6 +161,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+		metrics:   metrics,
 	}
 
 	store.initConnection()
@@ -280,8 +285,20 @@ func setupConnection(connType string, dataSource string, settings *model.SqlSett
 		}
 	}
 
-	db.SetMaxIdleConns(*settings.MaxIdleConns)
-	db.SetMaxOpenConns(*settings.MaxOpenConns)
+	if strings.HasPrefix(connType, replicaLagPrefix) {
+		// If this is a replica lag connection, we just open one connection.
+		//
+		// Arguably, if the query doesn't require a special credential, it does take up
+		// one extra connection from the replica DB. But falling back to the replica
+		// data source when the replica lag data source is null implies an ordering constraint
+		// which makes things brittle and is not a good design.
+		// If connections are an overhead, it is advised to use a connection pool.
+		db.SetMaxOpenConns(1)
+		db.SetMaxIdleConns(1)
+	} else {
+		db.SetMaxIdleConns(*settings.MaxIdleConns)
+		db.SetMaxOpenConns(*settings.MaxOpenConns)
+	}
 	db.SetConnMaxLifetime(time.Duration(*settings.ConnMaxLifetimeMilliseconds) * time.Millisecond)
 	db.SetConnMaxIdleTime(time.Duration(*settings.ConnMaxIdleTimeMilliseconds) * time.Millisecond)
 
@@ -328,6 +345,14 @@ func (ss *SqlStore) initConnection() {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
+		}
+	}
+
+	if len(ss.settings.ReplicaLagSettings) > 0 {
+		ss.replicaLagHandles = make([]*dbsql.DB, len(ss.settings.ReplicaLagSettings))
+		for i, src := range ss.settings.ReplicaLagSettings {
+			gorpConn := setupConnection(fmt.Sprintf(replicaLagPrefix+"-%d", i), *src.DataSource, ss.settings)
+			ss.replicaLagHandles[i] = gorpConn.Db
 		}
 	}
 }
@@ -401,6 +426,42 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Db.Stats().OpenConnections
+}
+
+// ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagAbs() {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if *item.QueryAbsoluteLag == "" {
+			continue
+		}
+		var binDiff int
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryAbsoluteLag).Scan(&node, &binDiff)
+		if err != nil {
+			mlog.Warn("ReplicaLagAbs Query returned an error", mlog.Err(err))
+			return
+		}
+		ss.metrics.SetReplicaLagAbsolute(node, float64(binDiff))
+	}
+}
+
+// ReplicaLagAbs queries all the replica databases to get the time-based replica lag value
+// and updates the Prometheus metric with it.
+func (ss *SqlStore) ReplicaLagTime() {
+	for i, item := range ss.settings.ReplicaLagSettings {
+		if *item.QueryTimeLag == "" {
+			continue
+		}
+		var timeDiff int
+		var node string
+		err := ss.replicaLagHandles[i].QueryRow(*item.QueryTimeLag).Scan(&node, &timeDiff)
+		if err != nil {
+			mlog.Warn("ReplicaLagTime Query returned an error", mlog.Err(err))
+			return
+		}
+		ss.metrics.SetReplicaLagTime(node, float64(timeDiff))
+	}
 }
 
 func (ss *SqlStore) TotalReadDbConnections() int {

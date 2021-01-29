@@ -65,6 +65,8 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	ReplicaLagTime()
+	ReplicaLagAbs()
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
