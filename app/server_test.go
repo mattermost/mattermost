@@ -249,6 +249,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	fileData, warning = th.App.getNotificationsLog()
 	require.NotNil(t, fileData)
 	assert.Equal(t, fileData.Filename, "notifications.log")
+	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 }
 
