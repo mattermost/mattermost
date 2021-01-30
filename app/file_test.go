@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"image"
 	"os"
 	"path/filepath"
 	"testing"
@@ -298,4 +299,33 @@ func TestCopyFileInfos(t *testing.T) {
 
 	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
 	assert.Equal(t, info2.PostId, "", "should be empty string")
+}
+
+func TestGenerateThumbnailImage(t *testing.T) {
+	t.Run("test generating thumbnail image", func(t *testing.T) {
+		// given
+		th := Setup(t)
+		defer th.TearDown()
+		img := createDummyImage()
+		dataPath, _ := fileutils.FindDir("data")
+		thumbailName := "thumb.jpg"
+		thumbnailPath := filepath.Join(dataPath, thumbailName)
+
+		// when
+		th.App.generateThumbnailImage(img, thumbailName)
+		defer os.Remove(thumbnailPath)
+
+		// then
+		outputImage, err := os.Stat(thumbnailPath)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(957), outputImage.Size())
+	})
+}
+
+func createDummyImage() *image.RGBA {
+	width := 200
+	height := 100
+	upperLeftCorner := image.Point{0, 0}
+	lowerRightCorner := image.Point{width, height}
+	return image.NewRGBA(image.Rectangle{upperLeftCorner, lowerRightCorner})
 }

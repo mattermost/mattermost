@@ -1023,13 +1023,13 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
-		img, width, height := prepareImage(fileData[i])
+		img, width, _ := prepareImage(fileData[i])
 		if img != nil {
 			wg.Add(2)
-			go func(img image.Image, path string, width int, height int) {
+			go func(img image.Image, path string) {
 				defer wg.Done()
-				a.generateThumbnailImage(img, path, width, height)
-			}(img, thumbnailPathList[i], width, height)
+				a.generateThumbnailImage(img, path)
+			}(img, thumbnailPathList[i])
 
 			go func(img image.Image, path string, width int) {
 				defer wg.Done()
@@ -1106,7 +1106,7 @@ func getImageOrientation(input io.Reader) (int, error) {
 	return orientation, nil
 }
 
-func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
+func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	buf := new(bytes.Buffer)
 	if err := jpeg.Encode(buf, genThumbnail(img), &jpeg.Options{Quality: 90}); err != nil {
 		mlog.Error("Unable to encode image as jpeg", mlog.String("path", thumbnailPath), mlog.Err(err))
