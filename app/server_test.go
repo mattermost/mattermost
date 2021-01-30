@@ -171,16 +171,16 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	})
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
-	assert.Equal(t, databaseType, "postgres")
-	assert.Equal(t, mattermostVersion, "5.31.0")
+	assert.Equal(t, "postgres", databaseType)
+	assert.Equal(t, "5.31.0", mattermostVersion)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.SqlSettings.DriverName = "mysql"
 	})
 
 	databaseType, mattermostVersion = th.Server.DatabaseTypeAndMattermostVersion()
-	assert.Equal(t, databaseType, "mysql")
-	assert.Equal(t, mattermostVersion, "5.31.0")
+	assert.Equal(t, "mysql", databaseType)
+	assert.Equal(t, "5.31.0", mattermostVersion)
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
@@ -197,7 +197,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
 	for i, fileData := range fileDatas {
 		require.NotNil(t, fileData)
-		assert.Equal(t, fileData.Filename, testFiles[i])
+		assert.Equal(t, testFiles[i], fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
 	}
 
@@ -210,7 +210,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
 	for i, fileData := range fileDatas {
 		require.NotNil(t, fileData)
-		assert.Equal(t, fileData.Filename, testFiles[i])
+		assert.Equal(t, testFiles[i], fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
 	}
 }
@@ -248,7 +248,7 @@ func TestGetNotificationsLog(t *testing.T) {
 
 	fileData, warning = th.App.getNotificationsLog()
 	require.NotNil(t, fileData)
-	assert.Equal(t, fileData.Filename, "notifications.log")
+	assert.Equal(t, "notifications.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 }
@@ -264,7 +264,7 @@ func TestGetMattermostLog(t *testing.T) {
 
 	fileData, warning := th.App.getMattermostLog()
 	assert.Nil(t, fileData)
-	assert.Equal(t, warning, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json")
+	assert.Equal(t, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json", warning)
 
 	// We enable the setting but delete any mattermost log file
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -286,7 +286,7 @@ func TestGetMattermostLog(t *testing.T) {
 
 	fileData, warning = th.App.getMattermostLog()
 	require.NotNil(t, fileData)
-	assert.Equal(t, fileData.Filename, "mattermost.log")
+	assert.Equal(t, "mattermost.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 }
@@ -298,7 +298,7 @@ func TestCreateSanitizedConfigFile(t *testing.T) {
 	// Happy path where we have a sanitized config file with no warning
 	fileData, warning := th.App.createSanitizedConfigFile()
 	require.NotNil(t, fileData)
-	assert.Equal(t, fileData.Filename, "sanitized_config.json")
+	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 }
@@ -310,7 +310,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	// Happy path where we have a plugins file with no warning
 	fileData, warning := th.App.createPluginsFile()
 	require.NotNil(t, fileData)
-	assert.Equal(t, fileData.Filename, "plugins.json")
+	assert.Equal(t, "plugins.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 
@@ -332,7 +332,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	// Happy path where we have a support packet yaml file without any warnings
 	fileData, warning := th.App.generateSupportPacketYaml()
 	require.NotNil(t, fileData)
-	assert.Equal(t, fileData.Filename, "support_packet.yaml")
+	assert.Equal(t, "support_packet.yaml", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
 	assert.Empty(t, warning)
 
