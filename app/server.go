@@ -1783,8 +1783,6 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		ElasticServerPlugins: elasticServerPlugins,
 	}
 
-	var warning string
-
 	// Marshal to a Yaml File
 	supportPacketYaml, err := yaml.Marshal(&supportPacket)
 	if err == nil {
@@ -1795,6 +1793,6 @@ func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
 		return &fileData, ""
 	}
 
-	warning = fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
+	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
 	return nil, warning
 }
