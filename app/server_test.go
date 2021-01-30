@@ -163,6 +163,9 @@ func TestStartServerTLSSuccess(t *testing.T) {
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
+
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
 	th := Setup(t)
