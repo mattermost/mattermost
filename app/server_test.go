@@ -163,22 +163,21 @@ func TestStartServerTLSSuccess(t *testing.T) {
 }
 
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
+
 	th := Setup(t)
 	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.SqlSettings.DriverName = "postgres"
-	})
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
 	assert.Equal(t, "postgres", databaseType)
 	assert.Equal(t, "5.31.0", mattermostVersion)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.SqlSettings.DriverName = "mysql"
-	})
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	databaseType, mattermostVersion = th.Server.DatabaseTypeAndMattermostVersion()
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
 	assert.Equal(t, "mysql", databaseType)
 	assert.Equal(t, "5.31.0", mattermostVersion)
 }
