@@ -99,19 +99,19 @@ func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
 
 	for _, proxyHeader := range trustedProxyIPHeader {
 		header := r.Header.Get(proxyHeader)
-		if len(header) > 0 {
+		if header != "" {
 			addresses := strings.Fields(header)
 			if len(addresses) > 0 {
 				address = strings.TrimRight(addresses[0], ",")
 			}
 		}
 
-		if len(address) > 0 {
+		if address != "" {
 			return address
 		}
 	}
 
-	if len(address) == 0 {
+	if address == "" {
 		address, _, _ = net.SplitHostPort(r.RemoteAddr)
 	}
 

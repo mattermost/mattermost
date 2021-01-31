@@ -38,7 +38,7 @@ func (*CodeProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comma
 }
 
 func (*CodeProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	rmsg := "    " + strings.Join(strings.Split(message, "\n"), "\n    ")

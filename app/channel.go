@@ -175,7 +175,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(channel.TeamId) == 0 {
+	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -839,7 +839,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -856,7 +856,7 @@ func (a *App) GetChannelModerationsForChannel(channel *model.Channel) ([]*model.
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -879,7 +879,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var higherScopedGuestRole *model.Role
-	if len(higherScopedGuestRoleName) > 0 {
+	if higherScopedGuestRoleName != "" {
 		higherScopedGuestRole, err = a.GetRoleByName(higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
@@ -904,7 +904,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 
 	var scheme *model.Scheme
 	// Channel has no scheme so create one
-	if channel.SchemeId == nil || len(*channel.SchemeId) == 0 {
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
 		scheme, err = a.CreateChannelScheme(channel)
 		if err != nil {
 			return nil, err
@@ -936,7 +936,7 @@ func (a *App) PatchChannelModerationsForChannel(channel *model.Channel, channelM
 	}
 
 	var guestRole *model.Role
-	if len(guestRoleName) > 0 {
+	if guestRoleName != "" {
 		guestRole, err = a.GetRoleByName(guestRoleName)
 		if err != nil {
 			return nil, err
@@ -2554,11 +2554,11 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 
 	channelIds := []string{}
 
-	if len(view.ChannelId) > 0 {
+	if view.ChannelId != "" {
 		channelIds = append(channelIds, view.ChannelId)
 	}
 
-	if len(view.PrevChannelId) > 0 {
+	if view.PrevChannelId != "" {
 		channelIds = append(channelIds, view.PrevChannelId)
 	}
 
