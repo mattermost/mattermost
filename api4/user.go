@@ -2880,7 +2880,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pageSizeString := r.URL.Query().Get("pageSize")
-	if len(pageSizeString) > 0 {
+	if pageSizeString != "" {
 		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("pageSize")
