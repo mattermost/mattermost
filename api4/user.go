@@ -2857,6 +2857,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		Since:    0,
 		Page:     0,
 		PageSize: 30,
+		Unread:   false,
 		Extended: false,
 		Deleted:  false,
 	}
@@ -2892,9 +2893,11 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	deletedStr := r.URL.Query().Get("deleted")
+	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
+	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)

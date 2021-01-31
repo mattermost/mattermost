@@ -48,6 +48,9 @@ type GetUserThreadsOpts struct {
 
 	// Since filters the threads based on their LastUpdateAt timestamp.
 	Since uint64
+
+	// Unread will make sure that only threads with unread replies are returned
+	Unread bool
 }
 
 func (o *ThreadResponse) ToJson() string {
