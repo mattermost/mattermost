@@ -186,7 +186,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	go func() {
 		newFetchConditions := fetchConditions
 		if opts.Since > 0 {
-			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
+			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
 		}
 		if opts.Unread {
 			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
