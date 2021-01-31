@@ -5641,8 +5641,22 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	// reply count should be 0
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
-	// the other user should also have 2
-	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, nil)
+	// mark other user's read state
+	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// get unread only, should return nothing
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 0, 0, &model.GetUserThreadsOpts{Unread: true})
+
+	// restore unread to an old date
+	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, 123)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	// should have 2 unread replies now
+	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 2, 1, &model.GetUserThreadsOpts{Unread: true})
+
 }
 
 func TestThreadCounts(t *testing.T) {
