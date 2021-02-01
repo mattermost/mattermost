@@ -64,7 +64,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 
 		// add/update users before posts
 		for _, user := range sm.Users {
-			if userSaved, err := scs.upsertSyncUser(user, rc); err != nil {
+			if userSaved, err := scs.upsertSyncUser(user, channel, rc); err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error upserting sync user",
 					mlog.String("post_id", sm.PostId),
 					mlog.String("channel_id", sm.ChannelId),
@@ -154,7 +154,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 	return nil
 }
 
-func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var userSaved *model.User
 
@@ -196,6 +196,21 @@ func (scs *Service) upsertSyncUser(user *model.User, rc *model.RemoteCluster) (*
 			return nil, fmt.Errorf("error updating sync user: %w", err)
 		}
 		userSaved = userUpdated.New
+	}
+
+	// add user to team. We do this here regardless of whether the user was
+	// just created or patched since there are three steps to adding a user
+	// (insert rec, add to team, add to channel) and any one could fail.
+	// Instead of undoing what succeeded on any failure we simply do all steps each
+	// time. AddUserToChannel & AddUserToTeamByTeamId do not error if user already
+	// added and exit quickly.
+	if err := scs.app.AddUserToTeamByTeamId(channel.TeamId, userSaved); err != nil {
+		return nil, fmt.Errorf("error adding sync user to Team: %w", err)
+	}
+
+	// add user to channel
+	if _, err := scs.app.AddUserToChannel(userSaved, channel); err != nil {
+		return nil, fmt.Errorf("error adding sync user to ChannelMembers: %w", err)
 	}
 	return userSaved, nil
 }
