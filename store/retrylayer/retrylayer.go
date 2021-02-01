@@ -6490,11 +6490,11 @@ func (s *RetryLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) RemoveInvalidRows() error {
+func (s *RetryLayerRetentionPolicyStore) RemoveStaleRows() error {
 
 	tries := 0
 	for {
-		err := s.RetentionPolicyStore.RemoveInvalidRows()
+		err := s.RetentionPolicyStore.RemoveStaleRows()
 		if err == nil {
 			return nil
 		}

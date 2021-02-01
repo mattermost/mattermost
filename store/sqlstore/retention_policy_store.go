@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"errors"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -74,6 +75,14 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied)
 		rpSelectQuery  string
 		rpSelectProps  map[string]string
 	)
+
+	if err := s.checkTeamsExist(policy.TeamIds); err != nil {
+		return nil, err
+	}
+	if err := s.checkChannelsExist(policy.ChannelIds); err != nil {
+		return nil, err
+	}
+
 	policy.Id = model.NewId()
 
 	rpInsertQuery, rpInsertArgs, _ = s.getQueryBuilder().
@@ -137,6 +146,58 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied)
 	return newPolicy, nil
 }
 
+func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIds []string) error {
+	if len(teamIds) > 0 {
+		teamIdsMap := make(map[string]bool)
+		for _, teamId := range teamIds {
+			teamIdsMap[teamId] = false
+		}
+		teamsSelectQuery, teamSelectArgs, _ := s.getQueryBuilder().
+			Select("Id").
+			From("Teams").
+			Where(inStrings("Id", teamIds)).
+			ToSql()
+		var rows []*string
+		_, err := s.GetReplica().Select(&rows, teamsSelectQuery, teamSelectArgs...)
+		if err != nil {
+			return err
+		}
+		for _, teamId := range rows {
+			delete(teamIdsMap, *teamId)
+		}
+		for teamId := range teamIdsMap {
+			return fmt.Errorf("Team with ID %s does not exist", teamId)
+		}
+	}
+	return nil
+}
+
+func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIds []string) error {
+	if len(channelIds) > 0 {
+		channelIdsMap := make(map[string]bool)
+		for _, channelId := range channelIds {
+			channelIdsMap[channelId] = false
+		}
+		channelsSelectQuery, channelSelectArgs, _ := s.getQueryBuilder().
+			Select("Id").
+			From("Channels").
+			Where(inStrings("Id", channelIds)).
+			ToSql()
+		var rows []*string
+		_, err := s.GetReplica().Select(&rows, channelsSelectQuery, channelSelectArgs...)
+		if err != nil {
+			return err
+		}
+		for _, channelId := range rows {
+			delete(channelIdsMap, *channelId)
+		}
+		for channelId := range channelIdsMap {
+			return fmt.Errorf("Channel with ID %s does not exist", channelId)
+		}
+	}
+	return nil
+}
+
 func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	return s.Update(patch)
 }
@@ -163,6 +224,14 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 		rpSelectQuery  string
 		rpSelectProps  map[string]string
 	)
+
+	if err := s.checkTeamsExist(update.TeamIds); err != nil {
+		return nil, err
+	}
+	if err := s.checkChannelsExist(update.ChannelIds); err != nil {
+		return nil, err
+	}
+
 	if update.DisplayName != "" || update.PostDuration > 0 {
 		builder := s.getQueryBuilder().Update("RetentionPolicies")
 		if update.DisplayName != "" {
@@ -215,37 +284,27 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	_, err = txn.Exec(rpUpdateQuery, rpUpdateArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rpUpdateQuery, rpUpdateArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rpcDeleteQuery, rpcDeleteArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rpcDeleteQuery, rpcDeleteArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rptDeleteQuery, rptDeleteArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rptDeleteQuery, rptDeleteArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rptInsertQuery, rptInsertArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rptInsertQuery, rptInsertArgs...); err != nil {
 		return nil, err
 	}
 	var rows []*retentionPolicyRow
-	_, err = txn.Select(&rows, rpSelectQuery, rpSelectProps)
-	if err != nil {
+	if _, err = txn.Select(&rows, rpSelectQuery, rpSelectProps); err != nil {
 		return nil, err
 	}
 	txn.Commit()
-	newPolicy, err := s.getPolicyFromRows(rows)
-	if err != nil {
-		return nil, err
-	}
-	return newPolicy, nil
+	return s.getPolicyFromRows(rows)
 }
 
 func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string) (string, map[string]string) {
@@ -381,6 +440,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
+	if err := s.checkChannelsExist(channelIds); err != nil {
+		return err
+	}
 	builder := s.getQueryBuilder().
 		Insert("RetentionPoliciesChannels").
 		Columns("policyId", "channelId")
@@ -403,6 +465,9 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 }
 
 func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
+	if err := s.checkTeamsExist(teamIds); err != nil {
+		return err
+	}
 	builder := s.getQueryBuilder().
 		Insert("RetentionPoliciesTeams").
 		Columns("PolicyId", "TeamId")
@@ -424,7 +489,7 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return err
 }
 
-func (s *SqlRetentionPolicyStore) RemoveInvalidRows() error {
+func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
 		SELECT ChannelId FROM RetentionPoliciesChannels

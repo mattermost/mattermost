@@ -5429,10 +5429,10 @@ func (s *TimerLayerRetentionPolicyStore) RemoveChannels(policyId string, channel
 	return err
 }
 
-func (s *TimerLayerRetentionPolicyStore) RemoveInvalidRows() error {
+func (s *TimerLayerRetentionPolicyStore) RemoveStaleRows() error {
 	start := timemodule.Now()
 
-	err := s.RetentionPolicyStore.RemoveInvalidRows()
+	err := s.RetentionPolicyStore.RemoveStaleRows()
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5440,7 +5440,7 @@ func (s *TimerLayerRetentionPolicyStore) RemoveInvalidRows() error {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveInvalidRows", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("RetentionPolicyStore.RemoveStaleRows", success, elapsed)
 	}
 	return err
 }

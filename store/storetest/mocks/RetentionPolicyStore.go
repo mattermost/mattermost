@@ -162,8 +162,8 @@ func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []str
 	return r0
 }
 
-// RemoveInvalidRows provides a mock function with given fields:
-func (_m *RetentionPolicyStore) RemoveInvalidRows() error {
+// RemoveStaleRows provides a mock function with given fields:
+func (_m *RetentionPolicyStore) RemoveStaleRows() error {
 	ret := _m.Called()
 
 	var r0 error
