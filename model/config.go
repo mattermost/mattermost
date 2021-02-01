@@ -814,6 +814,7 @@ type ClusterSettings struct {
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -858,6 +859,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -1091,6 +1096,7 @@ type SqlSettings struct {
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1135,6 +1141,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = NewInt(300000)
 	}
 
 	if s.Trace == nil {
@@ -3239,6 +3249,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.ConnMaxLifetimeMilliseconds < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.QueryTimeout <= 0 {

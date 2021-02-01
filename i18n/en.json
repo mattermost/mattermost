@@ -1445,6 +1445,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -5627,6 +5631,10 @@
     "translation": "Unable to get user threads"
   },
   {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "User thread doesn't exist or is not followed"
+  },
+  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
   },
@@ -7465,6 +7473,10 @@
   {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
