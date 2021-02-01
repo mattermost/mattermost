@@ -47,6 +47,8 @@ jobs:
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
+    docker:
+      - image: cimg/node:15.6.0
     steps:
       - attach_workspace:
           at: ~/mattermost/

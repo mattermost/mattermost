@@ -79,7 +79,7 @@ package:
 	OUTPUT_CONFIG=$(PWD)/$(DIST_PATH)/config/config.json go generate ./config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
-	rm -f $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
+	rm -rf $(DIST_PATH)/templates/*.mjml $(DIST_PATH)/templates/partials/
 	cp -RL i18n $(DIST_PATH)
 
 	@# Disable developer settings
