@@ -118,7 +118,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	customStatus := model.CustomStatusFromJson(r.Body)
-	if customStatus == nil {
+	if customStatus == nil || (customStatus.Text == "" && customStatus.Emoji == "") {
 		c.SetInvalidParam("custom_status")
 		return
 	}
