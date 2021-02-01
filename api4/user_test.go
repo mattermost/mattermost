@@ -3685,23 +3685,24 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("system admin and local mode can create access token", func(t *testing.T) {
+	t.Run("system admin can create access token for self", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			rtoken, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-			CheckNoError(t, resp)
+		_, resp := th.SystemAdminClient.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
+		CheckNoError(t, resp)
+	})
 
-			assert.Equal(t, th.BasicUser.Id, rtoken.UserId, "wrong user id")
-			assert.NotEmpty(t, rtoken.Token, "token should not be empty")
-			assert.NotEmpty(t, rtoken.Id, "id should not be empty")
-			assert.Equal(t, "test token", rtoken.Description, "description did not match")
-			assert.True(t, rtoken.IsActive, "token should be active")
-			assertToken(t, th, rtoken, th.BasicUser.Id)
-		})
+	t.Run("local user cannot create access token, no API", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		_, resp := th.LocalClient.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("create token for invalid user id", func(t *testing.T) {
@@ -3710,8 +3711,13 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp := client.CreateUserAccessToken("notarealuserid", "test token")
+		t.Run("Client", func(t *testing.T) {
+			_, resp := th.Client.CreateUserAccessToken("notarealuserid", "test token")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("SystemAdminClient", func(t *testing.T) {
+			_, resp := th.SystemAdminClient.CreateUserAccessToken("notarealuserid", "test token")
 			CheckBadRequestStatus(t, resp)
 		})
 	})
@@ -3722,8 +3728,13 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp := client.CreateUserAccessToken(th.BasicUser.Id, "")
+		t.Run("Client", func(t *testing.T) {
+			_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("SystemAdminClient", func(t *testing.T) {
+			_, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "")
 			CheckBadRequestStatus(t, resp)
 		})
 	})
@@ -3735,9 +3746,19 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
-		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			_, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		t.Run("Client", func(t *testing.T) {
+			_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 			CheckNotImplementedStatus(t, resp)
+		})
+
+		t.Run("SystemAdmin", func(t *testing.T) {
+			_, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("LocalClient", func(t *testing.T) {
+			_, resp := th.LocalClient.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 
@@ -3776,14 +3797,8 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		rtoken, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "test token")
-		CheckNoError(t, resp)
-		assert.Equal(t, th.BasicUser.Id, rtoken.UserId)
-
-		oldSessionToken := th.Client.AuthToken
-		defer func() { th.Client.AuthToken = oldSessionToken }()
-
-		assertToken(t, th, rtoken, th.BasicUser.Id)
+		_, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("create access token as oauth session", func(t *testing.T) {

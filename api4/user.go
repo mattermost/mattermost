@@ -2179,7 +2179,8 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("createUserAccessToken", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if user, err := c.App.GetUser(c.Params.UserId); err == nil {
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err == nil {
 		auditRec.AddMeta("user", user)
 	}
 
@@ -2212,10 +2213,15 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Params.UserId != c.App.Session().UserId && !user.IsBot {
+		c.Err = model.NewAppError("api4.createUserAccessToken", "api.user.create_token.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
 
-	accessToken, err := c.App.CreateUserAccessToken(accessToken)
+	accessToken, err = c.App.CreateUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return
