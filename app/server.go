@@ -210,7 +210,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-		configStore, err := config.NewStoreFromBacking(innerStore, nil)
+		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -1018,8 +1018,7 @@ func (s *Server) Start() error {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
-		return err
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -1456,7 +1455,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1577,7 +1576,7 @@ func (s *Server) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
 	if jobsDataRetentionJobInterface != nil {
 		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}

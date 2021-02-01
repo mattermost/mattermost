@@ -83,18 +83,19 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC().Truncate(time.Hour * 24)
+		y, m, d := time.Now().UTC().Date()
+		trunc := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
-		if !c.Check(&now) {
+		if !c.Check(&trunc) {
 			return false, nil
 		}
 	}
 
 	// check if current server version is notice range
-	if cnd.ServerVersion != nil {
+	if !isCloud && cnd.ServerVersion != nil {
 		version := cleanupVersion(model.BuildNumber)
 		serverVersion, err := semver.NewVersion(version)
 		if err != nil {

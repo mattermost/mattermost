@@ -159,6 +159,19 @@ func (a *App) FileSize(path string) (int64, *model.AppError) {
 	return size, nil
 }
 
+func (a *App) FileModTime(path string) (time.Time, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return time.Time{}, err
+	}
+	modTime, nErr := backend.FileModTime(path)
+	if nErr != nil {
+		return time.Time{}, model.NewAppError("FileModTime", "api.file.file_mod_time.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return modTime, nil
+}
+
 func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -486,7 +499,7 @@ func (a *App) UploadMultipartFiles(teamId string, channelId string, userId strin
 // the same length. clientIds should either not be provided or have the same length as files and filenames.
 // The provided files should be closed by the caller so that they are not leaked.
 func (a *App) UploadFiles(teamId string, channelId string, userId string, files []io.ReadCloser, filenames []string, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError) {
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, model.NewAppError("UploadFiles", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -691,7 +704,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		o(t)
 	}
 
-	if len(*a.Config().FileSettings.DriverName) == 0 {
+	if *a.Config().FileSettings.DriverName == "" {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error",
 			"", http.StatusNotImplemented)
 	}

@@ -20,7 +20,7 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
-const incompleteUploadSuffix = ".tmp"
+const IncompleteUploadSuffix = ".tmp"
 
 func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -112,7 +112,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	if us.Type == model.UploadTypeAttachment {
 		us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
 	} else if us.Type == model.UploadTypeImport {
-		us.Path = *a.Config().ImportSettings.Directory + "/" + us.Id + "_" + filepath.Base(us.Filename)
+		us.Path = filepath.Clean(*a.Config().ImportSettings.Directory) + "/" + us.Id + "_" + filepath.Base(us.Filename)
 	}
 	if err := us.IsValid(); err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	uploadPath := us.Path
 	if us.Type == model.UploadTypeImport {
-		uploadPath += incompleteUploadSuffix
+		uploadPath += IncompleteUploadSuffix
 	}
 
 	// make sure it's not possible to upload more data than what is expected.
