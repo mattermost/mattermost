@@ -65,6 +65,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
 	}
 
+	customStatus.TrimMessage()
 	if err := a.SetCustomStatus(args.UserId, customStatus); err != nil {
 		mlog.Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_custom_status.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

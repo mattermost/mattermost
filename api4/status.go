@@ -128,6 +128,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	customStatus.TrimMessage()
 	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
 	if err != nil {
 		c.SetInvalidParam("custom_status")

@@ -9,15 +9,23 @@ import (
 )
 
 const (
-	UserPropsKeyCustomStatus = "customStatus"
+	UserPropsKeyCustomStatus         = "customStatus"
 	UserPropsKeyRecentCustomStatuses = "recentCustomStatuses"
 
-	RecentCustomStatusesMaxLength = 5
+	CustomStatusTextMaxRunes = 250
+	MaxRecentCustomStatuses  = 5
 )
 
 type CustomStatus struct {
 	Emoji string `json:"emoji"`
 	Text  string `json:"text"`
+}
+
+func (cs *CustomStatus) TrimMessage() {
+	runes := []rune(cs.Text)
+	if len(runes) > CustomStatusTextMaxRunes {
+		cs.Text = string(runes[:CustomStatusTextMaxRunes])
+	}
 }
 
 func (cs *CustomStatus) ToJson() string {
@@ -44,8 +52,8 @@ func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
 		}
 	}
 	newRCS = append(RecentCustomStatuses{*cs}, newRCS...)
-	if len(newRCS) > RecentCustomStatusesMaxLength {
-		newRCS = newRCS[:RecentCustomStatusesMaxLength-1]
+	if len(newRCS) > MaxRecentCustomStatuses {
+		newRCS = newRCS[:MaxRecentCustomStatuses-1]
 	}
 	return &newRCS
 }
