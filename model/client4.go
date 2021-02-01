@@ -5794,8 +5794,11 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
 	}
-	if options.Page != 0 {
-		v.Set("page", fmt.Sprintf("%d", options.Page))
+	if options.Before != "" {
+		v.Set("before", options.Before)
+	}
+	if options.After != "" {
+		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
 		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
@@ -5806,7 +5809,9 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Deleted {
 		v.Set("deleted", "true")
 	}
-
+	if options.Unread {
+		v.Set("unread", "true")
+	}
 	url := c.GetUserThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -5822,6 +5827,23 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	json.NewDecoder(r.Body).Decode(&threads)
 
 	return &threads, BuildResponse(r)
+}
+
+func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response) {
+	url := c.GetUserThreadRoute(userId, teamId, threadId)
+	if extended {
+		url += "?extended=true"
+	}
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
+
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {

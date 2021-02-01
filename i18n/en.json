@@ -1445,6 +1445,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -5625,6 +5629,10 @@
   {
     "id": "app.user.get_threads_for_user.app_error",
     "translation": "Unable to get user threads"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "User thread doesn't exist or is not followed"
   },
   {
     "id": "app.user.get_total_users_count.app_error",
