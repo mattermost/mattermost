@@ -5853,11 +5853,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Licența Enterprise a expirat și unele funcții pot fi dezactivate. Vă rugăm să reînnoiți."
+    "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Reînnoirea licenței"
+    "translation": "Reînnoiți licența acum"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7892,10 +7892,6 @@
     "translation": "Imposibil de actualizat următoarea stare pentru fir"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "Nu se poate actualiza parola de utilizator."
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Imposibil de actualizat fail_attempt."
   },
@@ -8474,5 +8470,49 @@
   {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Tipul de job pe care încercați să îl descărcați nu este acceptat în acest moment"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Actualizarea la trebuie să fie o oră valabilă."
+  },
+  {
+    "id": "error",
+    "translation": "Eroare"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Solicitarea lipsește fie parametrul AuthData, fie AuthService."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecționându-vă înapoi la aplicație."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Puteți închide această filă de browser acum."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Autentificare finalizată"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "A fost furnizată o adresă URL de redirecționare invalidă"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "A fost furnizată o schemă URL nevalidă personalizată"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Schimbarea {{.Name}} nu este permisă din motive de securitate."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Înapoi la {{.SiteName}}"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Imposibil de obținut ora ultimei modificări pentru fișier."
   }
 ]

@@ -75,7 +75,7 @@ func (o *Preference) IsValid() *AppError {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)
 	}
 
-	if len(o.Category) == 0 || len(o.Category) > 32 {
+	if o.Category == "" || len(o.Category) > 32 {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.category.app_error", nil, "category="+o.Category, http.StatusBadRequest)
 	}
 

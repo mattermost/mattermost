@@ -130,6 +130,8 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
+		defer ReturnSessionToPool(session)
+
 		csrfCheckPassed := false
 
 		if err == nil && cookieAuth && r.Method != "GET" {
@@ -180,7 +182,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			csrfCheckPassed = true
 		}
 
-		if session != nil && err == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 		}

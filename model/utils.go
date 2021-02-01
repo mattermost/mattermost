@@ -340,7 +340,7 @@ func StringFromJson(data io.Reader) string {
 
 func GetServerIpAddress(iface string) string {
 	var addrs []net.Addr
-	if len(iface) == 0 {
+	if iface == "" {
 		var err error
 		addrs, err = net.InterfaceAddrs()
 		if err != nil {
@@ -500,7 +500,7 @@ func IsFileExtImage(ext string) bool {
 
 func GetImageMimeType(ext string) string {
 	ext = strings.ToLower(ext)
-	if len(IMAGE_MIME_TYPES[ext]) == 0 {
+	if IMAGE_MIME_TYPES[ext] == "" {
 		return "image"
 	}
 	return IMAGE_MIME_TYPES[ext]

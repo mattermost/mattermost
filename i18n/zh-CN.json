@@ -8254,10 +8254,6 @@
     "translation": "无法更新串的跟随状态"
   },
   {
-    "id": "app.user.update_password.app_error",
-    "translation": "无法更新用户的密码。"
-  },
-  {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "无法更新 failed_attempts。"
   },
