@@ -12,8 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	a, err := InitDBCommandContext(getConfigDSN(command, config.GetEnvironment()))
+func initDBCommandContextCobra(command *cobra.Command, readOnlyConfigStore bool) (*app.App, error) {
+	a, err := initDBCommandContext(getConfigDSN(command, config.GetEnvironment()), readOnlyConfigStore)
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
@@ -25,14 +25,22 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	return a, nil
 }
 
-func InitDBCommandContext(configDSN string) (*app.App, error) {
+func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
+	return initDBCommandContextCobra(command, true)
+}
+
+func InitDBCommandContextCobraReadWrite(command *cobra.Command) (*app.App, error) {
+	return initDBCommandContextCobra(command, false)
+}
+
+func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(utils.T)
 
 	s, err := app.NewServer(
-		app.Config(configDSN, false, nil),
+		app.Config(configDSN, false, readOnlyConfigStore, nil),
 		app.StartSearchEngine,
 	)
 	if err != nil {
