@@ -94,6 +94,31 @@ func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.A
 	return r0
 }
 
+// PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
+func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	ret := _m.Called(channel, channelModerationsPatch)
+
+	var r0 []*model.ChannelModeration
+	if rf, ok := ret.Get(0).(func(*model.Channel, []*model.ChannelModerationPatch) []*model.ChannelModeration); ok {
+		r0 = rf(channel, channelModerationsPatch)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelModeration)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Channel, []*model.ChannelModerationPatch) *model.AppError); ok {
+		r1 = rf(channel, channelModerationsPatch)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SaveReactionForPost provides a mock function with given fields: reaction
 func (_m *MockAppIface) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(reaction)

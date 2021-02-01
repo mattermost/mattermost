@@ -50,6 +50,7 @@ type AppIface interface {
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -189,4 +190,28 @@ func (scs *Service) pause() {
 	scs.done = nil
 
 	scs.server.GetLogger().Debug("Shared Channel Service inactive")
+}
+
+// Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
+func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
+	createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
+	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+	updateMap := model.ChannelModeratedRolesPatch{
+		Guests:  model.NewBool(false),
+		Members: model.NewBool(false),
+	}
+
+	readonlyChannelModerations := []*model.ChannelModerationPatch{
+		{
+			Name:  &createPostPermission,
+			Roles: &updateMap,
+		},
+		{
+			Name:  &createReactionPermission,
+			Roles: &updateMap,
+		},
+	}
+
+	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
+	return err
 }

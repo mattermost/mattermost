@@ -98,7 +98,7 @@ func combineErrors(err error, serror string) string {
 	return sb.String()
 }
 
-func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, _ remotecluster.Response) error {
 	if len(msg.Payload) == 0 {
 		return nil
 	}
@@ -135,6 +135,12 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		var appErr *model.AppError
 		if channel, appErr = scs.app.CreateChannelWithUser(channelNew, rc.CreatorId); appErr != nil {
 			return fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
+		}
+	}
+
+	if invite.ReadOnly {
+		if err := scs.makeChannelReadOnly(channel); err != nil {
+			return fmt.Errorf("cannot make channel readonly `%s`: %w", invite.ChannelId, err)
 		}
 	}
 
