@@ -99,15 +99,15 @@ func (d *Decoder) ResetDict(r io.Reader, dict []string) {
 	d.flags = 0
 	d.structTag = ""
 	d.mapDecoder = nil
-	d.SetDict(dict)
+	d.dict = dict
 }
 
-func (d *Decoder) SetDict(dict []string) {
-	if len(dict) > 0 {
-		d.dict = dict
-	} else {
-		d.dict = d.dict[:0]
-	}
+func (d *Decoder) WithDict(dict []string, fn func(*Decoder) error) error {
+	oldDict := d.dict
+	d.dict = dict
+	err := fn(d)
+	d.dict = oldDict
+	return err
 }
 
 func (d *Decoder) resetReader(r io.Reader) {

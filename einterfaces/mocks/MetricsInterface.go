@@ -24,6 +24,11 @@ func (_m *MetricsInterface) AddMemCacheMissCounter(cacheName string, amount floa
 	_m.Called(cacheName, amount)
 }
 
+// DecrementJobActive provides a mock function with given fields: jobType
+func (_m *MetricsInterface) DecrementJobActive(jobType string) {
+	_m.Called(jobType)
+}
+
 // DecrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
 func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, amount float64) {
 	_m.Called(hub, amount)
@@ -93,6 +98,11 @@ func (_m *MetricsInterface) IncrementHttpError() {
 // IncrementHttpRequest provides a mock function with given fields:
 func (_m *MetricsInterface) IncrementHttpRequest() {
 	_m.Called()
+}
+
+// IncrementJobActive provides a mock function with given fields: jobType
+func (_m *MetricsInterface) IncrementJobActive(jobType string) {
+	_m.Called(jobType)
 }
 
 // IncrementLogin provides a mock function with given fields:

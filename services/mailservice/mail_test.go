@@ -129,7 +129,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -170,7 +170,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -217,7 +217,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -424,10 +424,10 @@ func TestSendMail(t *testing.T) {
 			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, nil}
 			appErr = SendMail(mocm, mail, mockBackend, time.Now())
 			require.Nil(t, appErr)
-			if len(tc.contains) > 0 {
+			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
 			}
-			if len(tc.notContains) > 0 {
+			if tc.notContains != "" {
 				require.NotContains(t, string(mocm.data), tc.notContains)
 			}
 			mocm.data = []byte{}
