@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	CurrentSchemaVersion   = Version5310
+	CurrentSchemaVersion   = Version5320
 	Version5320            = "5.32.0"
 	Version5310            = "5.31.0"
 	Version5300            = "5.30.0"
