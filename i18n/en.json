@@ -1581,6 +1581,10 @@
     "translation": "Unable to migrate SAML."
   },
   {
+    "id": "api.no_license",
+    "translation": "E10 or E20 license required to use this endpoint."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -3049,6 +3053,18 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Error creating zip file."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Error reading file from backend"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "Error downloading support packet file."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
