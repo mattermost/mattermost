@@ -5,6 +5,7 @@ package sharedchannel
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -205,41 +206,43 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		}
 
 		//
-		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in syncResponse[ResponsePostErrors].
+		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in the Response payload.
 		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries.
 		//
 
-		// update SharedChannelRemote's LastSyncAt if send was successful
-		lastSync, rerr := resp.Int64(ResponseLastUpdateAt)
-		if rerr != nil {
-			scs.server.GetLogger().Warn("invalid last sync response after update shared channel",
-				mlog.String("remote", rc.DisplayName), mlog.Err(rerr), mlog.Any("last_update_at", resp[ResponseLastUpdateAt]))
-			return
+		var syncResp SyncResponse
+		if err2 := json.Unmarshal(resp.Payload, &syncResp); err2 != nil {
+			scs.server.GetLogger().Warn("invalid sync response after update shared channel",
+				mlog.String("remote", rc.DisplayName),
+				mlog.Err(err2),
+			)
 		}
 
 		// LastSyncAt will be zero if nothing got updated
-		if lastSync == 0 {
+		if syncResp.LastSyncAt == 0 {
 			return
 		}
 
-		// update last sync time for remote
-		if rerr = scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); rerr != nil {
-			scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
+		// update SharedChannelRemote's LastSyncAt if send was successful
+		if rerr := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, syncResp.LastSyncAt); rerr != nil {
+			scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote",
+				mlog.String("remote", rc.DisplayName),
+				mlog.Err(rerr),
+			)
 		} else {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for remote",
-				mlog.String("remote_id", rc.RemoteId), mlog.String("remote", rc.DisplayName), mlog.Int64("last_update_at", lastSync))
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("remote", rc.DisplayName),
+				mlog.Int64("last_update_at", syncResp.LastSyncAt),
+			)
 		}
 
 		// update LastSyncAt for all the users that were synchronized
-		userIds, rerr := resp.StringSlice(ResponseUsersSynced)
-		if rerr != nil {
-			scs.server.GetLogger().Warn("missing last sync response (ResponseUsersSynced) after update shared channel",
-				mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
-		} else {
-			if rerr = scs.updateSyncUsers(userIds, rc, lastSync); rerr != nil {
-				scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
-					mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
-			}
+		if rerr := scs.updateSyncUsers(syncResp.UsersSyncd, rc, syncResp.LastSyncAt); rerr != nil {
+			scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
+				mlog.String("remote", rc.DisplayName),
+				mlog.Err(rerr),
+			)
 		}
 	})
 

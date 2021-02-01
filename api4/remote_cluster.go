@@ -17,6 +17,7 @@ func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiHandler(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/upload", api.ApiHandler(uploadRemoteData)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -178,4 +179,42 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadRemoteData", "api.file.attachments.disabled.app_error",
+			nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireUploadId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("uploadRemoteData", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("upload_id", c.Params.UploadId)
+
+	us, err := c.App.GetUploadSession(c.Params.UploadId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	info, err := doUploadData(c, us, r)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	if info == nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	w.Write([]byte(info.ToJson()))
 }

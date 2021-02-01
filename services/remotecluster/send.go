@@ -59,8 +59,11 @@ func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg
 // `ctx` determines behaviour when the outbound queue is full. A timeout or deadline context will return a
 // BufferFullError if the message cannot be enqueued before the timeout. A background context will block indefinitely.
 //
-// An optional callback can be provided that receives the success or fail result of sending to the remote cluster.
-// Success or fail is regarding message delivery only.  If a callback is provided it should return quickly.
+// Nil or error return indicates success or failure of message enqueue only.
+//
+// An optional callback can be provided that receives the response from the remote cluster. The `err` provided to the
+// callback is regarding messages delivery only. The `resp` contains the decoded bytes returned from the remote.
+// If a callback is provided it should return quickly.
 func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendResultFunc) error {
 	if ctx == nil {
 		ctx = context.Background()
@@ -78,7 +81,6 @@ func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc 
 	case <-ctx.Done():
 		return NewBufferFullError(cap(rcs.send))
 	}
-
 }
 
 func (rcs *Service) sendLoop(done chan struct{}) {
@@ -109,20 +111,20 @@ func (rcs *Service) sendMsg(task sendTask) {
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
 	respJSON, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
-	response := make(Response)
+	var response Response
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
 
-		response[ResponseErrorKey] = err.Error()
+		response.Err = err.Error()
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
 			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
 
 		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
 			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster", mlog.String("remote", task.rc.DisplayName), mlog.Err(errDecode))
-			response[ResponseErrorKey] = errDecode.Error()
+			response.Err = errDecode.Error()
 		}
 	}
 

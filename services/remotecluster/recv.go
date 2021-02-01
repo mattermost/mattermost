@@ -25,8 +25,8 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	rcSanitized.Token = ""
 	rcSanitized.RemoteToken = ""
 
-	response := make(Response)
-	response[ResponseStatusKey] = ResponseStatusOK
+	var response Response
+	response.Status = ResponseStatusOK
 
 	listeners := rcs.getTopicListeners(msg.Topic)
 
@@ -35,8 +35,8 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Error from remote cluster message listener",
 				mlog.String("msgId", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
 
-			response[ResponseStatusKey] = ResponseStatusFail
-			response[ResponseErrorKey] = err.Error()
+			response.Status = ResponseStatusFail
+			response.Err = err.Error()
 		}
 	}
 	return response

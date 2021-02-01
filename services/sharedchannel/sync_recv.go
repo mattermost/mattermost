@@ -147,9 +147,13 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 		}
 	}
 
-	response[ResponseLastUpdateAt] = lastSyncAt // might be zero
-	response[ResponsePostErrors] = postErrors   // might be empty
-	response[ResponseUsersSynced] = usersSyncd  // might be empty
+	syncResp := SyncResponse{
+		LastSyncAt: lastSyncAt, // might be zero
+		PostErrors: postErrors, // might be empty
+		UsersSyncd: usersSyncd, // might be empty
+	}
+
+	response.SetPayload(syncResp)
 
 	return nil
 }

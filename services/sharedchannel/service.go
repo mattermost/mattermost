@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -18,14 +19,12 @@ import (
 const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
+	TopicUploadCreate            = "sharedchannel_upload"
 	MaxConcurrentUpdates         = 5
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 50
+	MaxPostsPerSync              = 12          // a bit more than one typical screenfull of posts
+	AsyncAttachmentSizeThreshold = 1000 * 1024 // 1MB - anything bigger is sent asynchronously
 	NotifyRemoteOfflineThreshold = time.Second * 10
-	StatusDescription            = "status_description"
-	ResponseLastUpdateAt         = "last_update_at"
-	ResponsePostErrors           = "post_errors"
-	ResponseUsersSynced          = "users_synced"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -51,6 +50,8 @@ type AppIface interface {
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
+	FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -77,6 +78,7 @@ type Service struct {
 	tasks                 map[string]syncTask
 	syncTopicListenerId   string
 	inviteTopicListenerId string
+	uploadTopicListenerId string
 	siteURL               *url.URL
 }
 
@@ -159,6 +161,7 @@ func (scs *Service) resume() {
 	}
 	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
 	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
+	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 
 	scs.active = true
 	scs.done = make(chan struct{})
