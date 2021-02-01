@@ -157,7 +157,7 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 	bodyPage := es.newEmailTemplate("verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.verify_body.title")
-	bodyPage.Props["SubTitle"] = T("api.templates.verify_body.info", map[string]interface{}{"ServerURL": serverURL})
+	bodyPage.Props["SubTitle"] = T("api.templates.verify_body.subTitle", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["ButtonUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
