@@ -119,7 +119,7 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("absolute path, already minimally configured", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
 		defer tearDown()
 
 		fs, err := config.NewFileStore(path, false)
@@ -129,11 +129,11 @@ func TestFileStoreNew(t *testing.T) {
 		defer configStore.Close()
 
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
-		assertFileEqualsConfig(t, minimalConfig, path)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
 	t.Run("absolute path, already minimally configured, with custom defaults", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, minimalConfig)
+		path, tearDown := setupConfigFile(t, minimalConfigNoFF)
 		defer tearDown()
 
 		fs, err := config.NewFileStore(path, false)
@@ -146,7 +146,7 @@ func TestFileStoreNew(t *testing.T) {
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *configStore.Get().ServiceSettings.SiteURL)
 		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *configStore.Get().DisplaySettings.ExperimentalTimezone)
-		assertFileEqualsConfig(t, minimalConfig, path)
+		assertFileEqualsConfig(t, minimalConfigNoFF, path)
 	})
 
 	t.Run("absolute path, file does not exist", func(t *testing.T) {

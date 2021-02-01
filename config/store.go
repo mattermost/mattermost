@@ -249,10 +249,17 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		return errors.Wrap(err, "failed to marshal loaded config")
 	}
 	if !s.readOnly && (len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)) {
-		if err := s.backingStore.Set(s.configNoEnv); err != nil {
-			if !errors.Is(err, ErrReadOnlyConfiguration) {
-				return errors.Wrap(err, "failed to persist")
-			}
+		featureFlags := s.configNoEnv.FeatureFlags
+		// Don't persist feature flags unless we are on MM cloud
+		// MM cloud uses config in the DB as a cache of the feature flag
+		// settings in case the management system is down when a pod starts.
+		if !s.persistFeatureFlags {
+			s.configNoEnv.FeatureFlags = nil
+		}
+		err := s.backingStore.Set(s.configNoEnv)
+		s.configNoEnv.FeatureFlags = featureFlags
+		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
+			return errors.Wrap(err, "failed to persist")
 		}
 	}
 
