@@ -837,7 +837,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
 
-	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin
 		if channel.IsGroupConstrained() {
 			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
