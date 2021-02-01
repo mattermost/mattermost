@@ -325,6 +325,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 	if nErr == nil {
 		return channel, nil
 	}
+
 	var nfErr *store.ErrNotFound
 	if !errors.As(nErr, &nfErr) {
 		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -360,29 +361,33 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 	return channel, nil
 }
 
-func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
-	users, err := a.Srv().Store.User().GetMany([]string{userId, otherUserId})
+func (a *App) createDirectChannel(userID string, otherUserID string) (*model.Channel, *model.AppError) {
+	users, err := a.Srv().Store.User().GetMany([]string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if len(users) == 0 {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userId, otherUserId), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
 
 	// We are doing this because we allow a user to create a direct channel with themselves
-	if userId == otherUserId {
+	if userID == otherUserID {
 		users = append(users, users[0])
 	}
 
 	// After we counted for direct channels with the same user, if we do not have two users then we failed to find one
 	if len(users) != 2 {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userId, otherUserId), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
 
+	// The potential swap dance bellow is necessary in order to guarantee determinism when creating a direct channel.
+	// When we query the database for some given user ids, the database result is not deterministic, meaning we can get
+	// the same results but in different order. In order to conform the contract of Channel.CreateDirectChannel method
+	// bellow we need to identify which user is who.
 	user := users[0]
 	otherUser := users[1]
-	if user.Id != userId {
+	if user.Id != userID {
 		user = users[1]
 		otherUser = users[0]
 	}
@@ -419,11 +424,11 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		}
 	}
 
-	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
+	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, model.GetMillis()); err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if userId != otherUserId {
-		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+	if userID != otherUserID {
+		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserID, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}

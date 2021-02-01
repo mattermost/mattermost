@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"sort"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -165,9 +167,9 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 	// in this func is making caching of the total set not beneficial.
 	var cachedUsers []*model.User
 	var notCachedUserIds []string
-	uniqIds := newSet(ids)
+	uniqIDs := dedup(ids)
 
-	for _, id := range uniqIds {
+	for _, id := range uniqIDs {
 		var cachedUser *model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
 			if s.rootStore.metrics != nil {
@@ -197,16 +199,24 @@ func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
 	return cachedUsers, nil
 }
 
-func newSet(elements []string) []string {
-	set := map[string]bool{}
-	var res []string
-
-	for _, element := range elements {
-		if !set[element] {
-			res = append(res, element)
-			set[element] = true
-		}
+func dedup(elements []string) []string {
+	if len(elements) == 0 {
+		return elements
 	}
 
-	return res
+	sort.Strings(elements)
+
+	j := 0
+	for i := 1; i < len(elements); i++ {
+		if elements[j] == elements[i] {
+			continue
+		}
+		j++
+		// preserve the original data
+		// in[i], in[j] = in[j], in[i]
+		// only set what is required
+		elements[j] = elements[i]
+	}
+
+	return elements[:j+1]
 }

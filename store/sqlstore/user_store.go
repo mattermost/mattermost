@@ -335,9 +335,6 @@ func (us SqlUserStore) GetMany(ids []string) ([]*model.User, error) {
 
 	var users []*model.User
 	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-		if errors.As(err, sql.ErrNoRows) {
-			return users, nil
-		}
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
