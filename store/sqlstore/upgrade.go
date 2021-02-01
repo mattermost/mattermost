@@ -1012,6 +1012,9 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 	}
 
 	if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
@@ -1045,6 +1048,18 @@ func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
 	}
 
 	if !sqlStore.DoesColumnExist("ThreadMemberships", "UnreadMentions") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("Channels", "Shared") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("Reactions", "UpdateAt") {
+		return true
+	}
+
+	if !sqlStore.DoesColumnExist("Reactions", "DeleteAt") {
 		return true
 	}
 
