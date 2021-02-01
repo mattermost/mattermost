@@ -5551,11 +5551,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "续订许可证"
+    "translation": "立刻续订许可证"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "企业许可证已过期并且部分功能已停用。请续订。"
+    "translation": "您的企业许可证已过期并且部分功能已停用。请立刻续订您的许可证。"
   },
   {
     "id": "api.user.create_password_token.error",
@@ -8384,5 +8384,33 @@
   {
     "id": "api.file.append_file.app_error",
     "translation": "无法将数据追加到文件。"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "正在重定向回应用程序。"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "你可以关闭此浏览器窗口。"
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "验证完成"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "暂不支持你要下载的任务类型"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "无法获取文件的最后更改时间。"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "因为安全原因，不允许更改{{.Name}}。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "回到{{.SiteName}}"
   }
 ]
