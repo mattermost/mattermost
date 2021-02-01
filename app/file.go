@@ -4,6 +4,7 @@
 package app
 
 import (
+	"archive/zip"
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
@@ -18,6 +19,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -1257,4 +1260,50 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	}
 
 	return newFileIds, nil
+}
+
+// This function zip's up all the files in fileDatas array and then saves it to the directory specified with the specified zip file name
+// Ensure the zip file name ends with a .zip
+func (a *App) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName, directory string) error {
+	// Create Zip File (temporarily stored on disk)
+	conglomerateZipFile, err := os.Create(zipFileName)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(zipFileName)
+
+	// Create a new zip archive.
+	zipFileWriter := zip.NewWriter(conglomerateZipFile)
+
+	// Populate Zip file with File Datas array
+	err = populateZipfile(zipFileWriter, fileDatas)
+	if err != nil {
+		return err
+	}
+
+	conglomerateZipFile.Seek(0, 0)
+	_, err = fileBackend.WriteFile(conglomerateZipFile, path.Join(directory, zipFileName))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// This is a implementation of Go's example of writing files to zip (with slight modification)
+// https://golang.org/src/archive/zip/example_test.go
+func populateZipfile(w *zip.Writer, fileDatas []model.FileData) error {
+	defer w.Close()
+	for _, fd := range fileDatas {
+		f, err := w.Create(fd.Filename)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Write(fd.Body)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
