@@ -8509,5 +8509,17 @@
   {
     "id": "api.file.file_mod_time.app_error",
     "translation": "Fout bij het ophalen van de laatste wijzigingstijd voor het bestand."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Ongeldige maximale levensduur voor verbinding voor SQL-instellingen. Moet een niet-negatief getal zijn."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Gebruikersdraadje bestaat niet of wordt niet gevolgd"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
   }
 ]
