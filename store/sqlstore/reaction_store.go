@@ -194,6 +194,30 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	return rowsAffected, nil
 }
 
+func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	// Channel-specific policies override team-specific policies
+	// Consider the case where posts have already been deleted
+	const sQuery = `
+	DELETE FROM Reactions
+	WHERE PostId IN (
+		SELECT Reactions.PostId FROM Reactions
+		INNER JOIN
+		INNER JOIN Channels AS B ON A.ChannelId = B.Id
+		INNER JOIN Teams AS C ON B.TeamId = C.Id
+		LEFT JOIN RetentionPoliciesChannels AS D ON A.ChannelId = D.ChannelId
+		LEFT JOIN RetentionPoliciesTeams AS E ON C.Id = E.TeamId
+		INNER JOIN RetentionPolicies AS F ON D.PolicyId = F.Id OR E.PolicyId = F.Id
+		WHERE (
+			D.ChannelId IS NOT NULL
+			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			E.TeamId IS NOT NULL AND D.ChannelId IS NULL
+			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+		)
+		LIMIT :Limit
+	)`
+}
+
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {
 	params := map[string]interface{}{
 		"UserId":    reaction.UserId,
