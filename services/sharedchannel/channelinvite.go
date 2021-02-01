@@ -30,6 +30,10 @@ type channelInviteMsg struct {
 // expected to create a new channel with the same channel id, and respond with status OK.
 // If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
 func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channel.Id)
+	}
 
 	sc, err := scs.server.GetStore().SharedChannel().Get(channel.Id)
 	if err != nil {
@@ -54,17 +58,12 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 
 	msg := model.NewRemoteClusterMsg(TopicChannelInvite, json)
 
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channel.Id)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
 	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
 		if err != nil || !resp.IsSuccess() {
-			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Error())))
+			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Err)))
 			return
 		}
 

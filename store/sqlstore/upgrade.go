@@ -969,12 +969,21 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 
 	// Shared channels support
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+	sqlStore.CreateColumnIfNotExists("Channels", "Shared", "tinyint(1)", "boolean", "0")
+	if _, err := sqlStore.GetMaster().Exec("UPDATE Channels SET Shared=false WHERE Shared IS NULL"); err != nil {
+		mlog.Error("Error updating Shared column in Channels table", mlog.Err(err))
+	}
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
+	sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
+	if _, err := sqlStore.GetMaster().Exec("UPDATE UploadsSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
+		mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
+	}
 	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
