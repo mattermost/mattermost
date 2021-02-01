@@ -216,6 +216,29 @@ func (_m *SharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Share
 	return r0, r1
 }
 
+// GetUser provides a mock function with given fields: userId, remoteId
+func (_m *SharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+	ret := _m.Called(userId, remoteId)
+
+	var r0 *model.SharedChannelUser
+	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelUser); ok {
+		r0 = rf(userId, remoteId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, remoteId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // HasChannel provides a mock function with given fields: channelID
 func (_m *SharedChannelStore) HasChannel(channelID string) (bool, error) {
 	ret := _m.Called(channelID)
@@ -304,6 +327,29 @@ func (_m *SharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*mo
 	return r0, r1
 }
 
+// SaveUser provides a mock function with given fields: remote
+func (_m *SharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+	ret := _m.Called(remote)
+
+	var r0 *model.SharedChannelUser
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelUser) *model.SharedChannelUser); ok {
+		r0 = rf(remote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelUser)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelUser) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: sc
 func (_m *SharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	ret := _m.Called(sc)
@@ -364,27 +410,13 @@ func (_m *SharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) 
 	return r0
 }
 
-// UpsertPost provides a mock function with given fields: post
-func (_m *SharedChannelStore) UpsertPost(post *model.Post) error {
-	ret := _m.Called(post)
+// UpdateUserLastSyncAt provides a mock function with given fields: id, syncTime
+func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
+	ret := _m.Called(id, syncTime)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Post) error); ok {
-		r0 = rf(post)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpsertReaction provides a mock function with given fields: reaction
-func (_m *SharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-	ret := _m.Called(reaction)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Reaction) error); ok {
-		r0 = rf(reaction)
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(id, syncTime)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -128,10 +128,9 @@ func (scs *Service) processTask(task syncTask) error {
 		remotes = []*model.RemoteCluster{rc}
 	}
 
-	cache := make(msgCache)
 	errs := merror.New()
 	for _, rc := range remotes {
-		if err := scs.updateForRemote(task.channelId, rc, cache); err != nil {
+		if err := scs.updateForRemote(task.channelId, rc); err != nil {
 			errs.Append(err)
 			// retry...
 			if task.retryCount < MaxRetries {
@@ -148,15 +147,21 @@ func (scs *Service) processTask(task syncTask) error {
 // channel. If many changes are found, only the oldest X changes are sent and the channel
 // is re-added to the task map. This ensures no channels are starved for updates even if some
 // channels are very active.
-func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, cache msgCache) error {
+func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+	}
+
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(channelId, rc.RemoteId)
 	if err != nil {
 		return err
 	}
 
 	opts := model.GetPostsSinceOptions{
-		ChannelId: channelId,
-		Time:      scr.LastSyncAt,
+		ChannelId:     channelId,
+		Time:          scr.LastSyncAt,
+		SortAscending: true,
 	}
 	posts, err := scs.server.GetStore().Post().GetPostsSince(opts, true)
 	if err != nil {
@@ -177,14 +182,18 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 		return nil
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max], cache)
+	msg, err := scs.postsToMsg(pSlice[:max], rc, scr.LastSyncAt)
 	if err != nil {
 		return err
 	}
 
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		return fmt.Errorf("cannot update remote cluster for channel id %s; Remote Cluster Service not enabled", channelId)
+	if len(msg.Payload) == 0 {
+		// everything was filtered out, nothing to send.
+		if repeat {
+			contTask := newSyncTask(channelId, rc.RemoteId)
+			scs.addTask(contTask)
+		}
+		return nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
@@ -195,19 +204,42 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster, c
 			return
 		}
 
-		// TODO: Any Post(s) that failed to save on remote side are included in an array of Post ids in syncResponse[ResponsePostErrors].
-		//       Write ephemeral message to post author notifying for each post that failed.
+		//
+		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in syncResponse[ResponsePostErrors].
+		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries.
+		//
 
 		// update SharedChannelRemote's LastSyncAt if send was successful
-		lastSync, err := resp.Int64(ResponseLastUpdateAt)
-		if err != nil || lastSync == 0 {
-			scs.server.GetLogger().Error("invalid last sync response after update shared channel",
-				mlog.String("remote", rc.DisplayName), mlog.Err(err), mlog.Any("last_update_at", resp[ResponseLastUpdateAt]))
+		lastSync, rerr := resp.Int64(ResponseLastUpdateAt)
+		if rerr != nil {
+			scs.server.GetLogger().Warn("invalid last sync response after update shared channel",
+				mlog.String("remote", rc.DisplayName), mlog.Err(rerr), mlog.Any("last_update_at", resp[ResponseLastUpdateAt]))
 			return
 		}
 
-		if err := scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); err != nil {
-			scs.server.GetLogger().Error("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(err))
+		// LastSyncAt will be zero if nothing got updated
+		if lastSync == 0 {
+			return
+		}
+
+		// update last sync time for remote
+		if rerr = scs.server.GetStore().SharedChannel().UpdateRemoteLastSyncAt(scr.Id, lastSync); rerr != nil {
+			scs.server.GetLogger().Warn("error updating LastSyncAt for shared channel remote", mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
+		} else {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for remote",
+				mlog.String("remote_id", rc.RemoteId), mlog.String("remote", rc.DisplayName), mlog.Int64("last_update_at", lastSync))
+		}
+
+		// update LastSyncAt for all the users that were synchronized
+		userIds, rerr := resp.StringSlice(ResponseUsersSynced)
+		if rerr != nil {
+			scs.server.GetLogger().Warn("missing last sync response (ResponseUsersSynced) after update shared channel",
+				mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
+		} else {
+			if rerr = scs.updateSyncUsers(userIds, rc, lastSync); rerr != nil {
+				scs.server.GetLogger().Warn("invalid last sync response (ResponseUsersSynced) after update shared channel",
+					mlog.String("remote", rc.DisplayName), mlog.Err(rerr))
+			}
 		}
 	})
 
@@ -245,6 +277,25 @@ func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteClu
 			notified[post.UserId] = true
 		}
 	}
+}
+
+func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, lastSyncAt int64) error {
+	merrs := merror.New()
+	for _, uid := range userIds {
+		scu, err := scs.server.GetStore().SharedChannel().GetUser(uid, rc.RemoteId)
+		if err != nil {
+			merrs.Append(err)
+			continue
+		}
+
+		if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(scu.Id, lastSyncAt); err != nil {
+			merrs.Append(err)
+		} else {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "updated lastSyncAt for user",
+				mlog.String("user_id", scu.UserId), mlog.Int64("last_update_at", lastSyncAt))
+		}
+	}
+	return merrs.ErrorOrNil()
 }
 
 func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {

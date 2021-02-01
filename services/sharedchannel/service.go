@@ -25,11 +25,12 @@ const (
 	StatusDescription            = "status_description"
 	ResponseLastUpdateAt         = "last_update_at"
 	ResponsePostErrors           = "post_errors"
+	ResponseUsersSynced          = "users_synced"
 )
 
 // Mocks can be re-generated with:
-// mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
-// mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// ./bin/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// ./bin/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
 
 type ServerIface interface {
 	Config() *model.Config
@@ -47,7 +48,19 @@ type AppIface interface {
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+}
+
+// errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
+type errNotFound interface {
+	IsErrNotFound() bool
+}
+
+// errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
+type errInvalidInput interface {
+	InvalidInputInfo() (entity string, field string, value interface{})
 }
 
 // Service provides shared channel synchronization.

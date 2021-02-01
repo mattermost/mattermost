@@ -608,6 +608,7 @@ type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error)
+	GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
@@ -816,8 +817,9 @@ type SharedChannelStore interface {
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
-	UpsertPost(post *model.Post) error
-	UpsertReaction(reaction *model.Reaction) error
+	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
+	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
+	UpdateUserLastSyncAt(id string, syncTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
