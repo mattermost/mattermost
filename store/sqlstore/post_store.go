@@ -2106,7 +2106,8 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent b
 	if rootId != "" {
 		thread, err := s.Thread().Get(rootId)
 		if err != nil {
-			if err != sql.ErrNoRows {
+			var nfErr *store.ErrNotFound
+			if !errors.As(err, &nfErr) {
 				return errors.Wrap(err, "failed to get a thread")
 			}
 		}
