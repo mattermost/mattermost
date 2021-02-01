@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
-func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	if msg.Topic != TopicSync {
 		return fmt.Errorf("wrong topic, expected `%s`, got `%s`", TopicSync, msg.Topic)
 	}
@@ -36,7 +36,7 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	return scs.processSyncMessages(syncMessages, rc, response)
 }
 
-func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 	var channel *model.Channel
 	var team *model.Team
 

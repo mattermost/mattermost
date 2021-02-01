@@ -13,7 +13,7 @@ import (
 // ReceiveIncomingMsg is called by the Rest API layer, or websocket layer (future), when a Remote Cluster
 // message is received.  Here we route the message to any topic listeners.
 // `rc` and `msg` cannot be nil.
-func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response {
+func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) *Response {
 	rcs.mux.RLock()
 	defer rcs.mux.RUnlock()
 
@@ -31,7 +31,7 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	listeners := rcs.getTopicListeners(msg.Topic)
 
 	for _, l := range listeners {
-		if err := callback(l, msg, &rcSanitized, response); err != nil {
+		if err := callback(l, msg, &rcSanitized, &response); err != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Error from remote cluster message listener",
 				mlog.String("msgId", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
 
@@ -39,10 +39,10 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 			response.Err = err.Error()
 		}
 	}
-	return response
+	return &response
 }
 
-func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) (err error) {
+func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%v", r)

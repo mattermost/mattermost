@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response, err error)
+type SendResultFunc func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response, err error)
 
 type sendTask struct {
 	rc  *model.RemoteCluster
@@ -130,7 +130,7 @@ func (rcs *Service) sendMsg(task sendTask) {
 
 	// If callback provided then call it with the results.
 	if task.f != nil {
-		task.f(task.msg, task.rc, response, err)
+		task.f(task.msg, task.rc, &response, err)
 	}
 }
 

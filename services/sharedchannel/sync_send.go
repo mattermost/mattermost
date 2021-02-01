@@ -204,7 +204,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
+	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if err != nil {
 			return
 		}
@@ -222,9 +222,9 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 			)
 		}
 
-		// LastSyncAt will be zero if nothing got updated
+		// LastSyncAt will be zero if nothing got updated; this shouldn't happen since senders filter out unnecessary updates.
 		if syncResp.LastSyncAt == 0 {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "zero lastSyncAt for remote, nothing updated",
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceWarn, "zero lastSyncAt for remote, nothing updated",
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.String("remote", rc.DisplayName),
 			)

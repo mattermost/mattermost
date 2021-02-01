@@ -91,7 +91,7 @@ func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	var respErr error
 	wg := &sync.WaitGroup{}
 
-	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
+	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		defer wg.Done()
 		if err != nil || !resp.IsSuccess() {
 			respErr = err
@@ -120,7 +120,7 @@ func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is
 // created and the id returned in the response.
-func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response remotecluster.Response) error {
+func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 
 	var us *model.UploadSession
 

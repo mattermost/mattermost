@@ -50,7 +50,7 @@ type ServerIface interface {
 
 // TopicListener is a callback signature used to listen for incoming messages for
 // a specific topic.
-type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
+type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {

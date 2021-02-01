@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -43,7 +42,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		remoteCluster := &model.RemoteCluster{}
 		msg := model.RemoteClusterMsg{}
 
-		err := scs.onReceiveChannelInvite(msg, remoteCluster, remotecluster.Response{})
+		err := scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 		mockStore.AssertNotCalled(t, "Channel")
 	})
@@ -104,7 +103,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockApp.On("PatchChannelModerationsForChannel", channel, readonlyChannelModerations).Return(nil, nil)
 		defer mockApp.AssertExpectations(t)
 
-		err = scs.onReceiveChannelInvite(msg, remoteCluster, remotecluster.Response{})
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.NoError(t, err)
 	})
 
@@ -145,7 +144,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockApp.On("PatchChannelModerationsForChannel", channel, mock.Anything).Return(nil, appErr)
 		defer mockApp.AssertExpectations(t)
 
-		err = scs.onReceiveChannelInvite(msg, remoteCluster, remotecluster.Response{})
+		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)
 		require.Error(t, err)
 		assert.Equal(t, fmt.Sprintf("cannot make channel readonly `%s`: foo: bar, boom", invitation.ChannelId), err.Error())
 	})

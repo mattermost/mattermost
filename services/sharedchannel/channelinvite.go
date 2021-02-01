@@ -61,7 +61,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
 
-	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp remotecluster.Response, err error) {
+	return rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if err != nil || !resp.IsSuccess() {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, combineErrors(err, resp.Err)))
 			return
@@ -97,7 +97,7 @@ func combineErrors(err error, serror string) string {
 	return sb.String()
 }
 
-func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, _ remotecluster.Response) error {
+func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model.RemoteCluster, _ *remotecluster.Response) error {
 	if len(msg.Payload) == 0 {
 		return nil
 	}
