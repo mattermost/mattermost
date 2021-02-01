@@ -736,8 +736,8 @@ var patchFieldSelector = map[string]func(*UserPatch) **string{
 	"Username":  func(p *UserPatch) **string { return &p.Username },
 }
 
-func (patch *UserPatch) SetField(fieldName string, fieldValue string) {
-	*patchFieldSelector[fieldName](patch) = &fieldValue
+func (u *UserPatch) SetField(fieldName string, fieldValue string) {
+	*patchFieldSelector[fieldName](u) = &fieldValue
 }
 
 // UserFromJson will decode the input and return a User
