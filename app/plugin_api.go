@@ -67,7 +67,7 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 }
 
 func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
-	api.app.UnregisterPluginCommand(api.id, teamId, trigger)
+	api.app.UnregisterPluginCommand(teamId, trigger)
 	return nil
 }
 
@@ -1003,7 +1003,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 	seen := make(map[string]bool)
 
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(api.app, utils.T); cmd != nil {
+		if cmd := value.GetCommand(api.app); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()

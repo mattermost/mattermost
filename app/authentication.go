@@ -49,7 +49,7 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -147,8 +147,8 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 	return ldapUser, nil
 }
 
-func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
+func (a *App) CheckUserAllAuthenticationCriteria(user *model.User) *model.AppError {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -159,7 +159,7 @@ func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken stri
 	return nil
 }
 
-func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User) *model.AppError {
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}

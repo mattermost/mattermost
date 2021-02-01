@@ -1036,7 +1036,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 
 			go func(img image.Image, path string, width int) {
 				defer wg.Done()
-				a.generatePreviewImage(img, path, width)
+				a.generatePreviewImage(img, path)
 			}(img, previewPathList[i], width)
 		}
 	}
@@ -1122,7 +1122,7 @@ func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string) {
 	}
 }
 
-func (a *App) generatePreviewImage(img image.Image, previewPath string, width int) {
+func (a *App) generatePreviewImage(img image.Image, previewPath string) {
 	preview := genPreview(img)
 
 	buf := new(bytes.Buffer)

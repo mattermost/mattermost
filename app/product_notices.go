@@ -50,7 +50,7 @@ func cleanupVersion(originalVersion string) string {
 	return strings.Join(versionPartsOut, ".")
 }
 
-func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion string, postCount, userCount int64, isSystemAdmin, isTeamAdmin, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -248,18 +248,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a.Config(), a.Srv().Store.Preference(),
-			userId,
-			client,
-			clientVersion,
-			locale,
-			cachedPostCount,
-			cachedUserCount,
-			isSystemAdmin,
-			isTeamAdmin,
-			isCloud,
-			sku,
-			&cachedNotices[noticeIndex])
+		result, err := noticeMatchesConditions(a.Config(), a.Srv().Store.Preference(), userId, client, clientVersion, cachedPostCount, cachedUserCount, isSystemAdmin, isTeamAdmin, isCloud, sku, &cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}

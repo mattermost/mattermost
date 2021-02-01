@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -620,7 +619,7 @@ func TestDynamicListArgsForBuiltin(t *testing.T) {
 	provider := &testProvider{}
 	RegisterCommandProvider(provider)
 
-	command := provider.GetCommand(th.App, nil)
+	command := provider.GetCommand(th.App)
 	emptyCmdArgs := &model.CommandArgs{}
 
 	t.Run("GetAutoCompleteListItems", func(t *testing.T) {
@@ -644,7 +643,7 @@ func (p *testProvider) GetTrigger() string {
 	return "bogus"
 }
 
-func (p *testProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+func (p *testProvider) GetCommand(a *App) *model.Command {
 	top := model.NewAutocompleteData(p.GetTrigger(), "[command]", "Just a test.")
 	top.AddNamedDynamicListArgument("dynaArg", "A dynamic list", "builtin:bogus", true)
 

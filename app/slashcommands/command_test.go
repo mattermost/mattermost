@@ -82,7 +82,7 @@ func TestCreateCommandPost(t *testing.T) {
 	}
 
 	skipSlackParsing := false
-	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
+	_, err := th.App.CreateCommandPost(post, resp, skipSlackParsing)
 	require.NotNil(t, err)
 	require.Equal(t, err.Id, "api.context.invalid_param.app_error")
 }

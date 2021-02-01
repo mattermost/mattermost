@@ -550,7 +550,7 @@ func TestNoticeValidation(t *testing.T) {
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
 			}
-			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)

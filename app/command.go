@@ -13,17 +13,14 @@ import (
 	"sync"
 	"unicode"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type CommandProvider interface {
 	GetTrigger() string
-	GetCommand(a *App, T goi18n.TranslateFunc) *model.Command
+	GetCommand(a *App) *model.Command
 	DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
@@ -42,8 +39,8 @@ func GetCommandProvider(name string) CommandProvider {
 	return nil
 }
 
-// @openTracingParams teamId, skipSlackParsing
-func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+// @openTracingParams skipSlackParsing
+func (a *App) CreateCommandPost(post *model.Post, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	if skipSlackParsing {
 		post.Message = response.Text
 	} else {
@@ -75,7 +72,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 
 // @openTracingParams teamId
 // previous ListCommands now ListAutocompleteCommands
-func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAutocompleteCommands(teamId string) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 
@@ -102,7 +99,7 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 	}
 
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(a, T); cmd != nil {
+		if cmd := value.GetCommand(a); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
@@ -128,11 +125,11 @@ func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError
 	return teamCmds, nil
 }
 
-func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAllCommands(teamId string) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(a, T); cmd != nil {
+		if cmd := value.GetCommand(a); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
@@ -336,7 +333,7 @@ func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, 
 		return nil, nil
 	}
 
-	cmd := provider.GetCommand(a, args.T)
+	cmd := provider.GetCommand(a)
 	if cmd == nil {
 		return nil, nil
 	}
@@ -605,7 +602,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 		response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 	}
 
-	if _, err := a.CreateCommandPost(post, args.TeamId, response, response.SkipSlackParsing); err != nil {
+	if _, err := a.CreateCommandPost(post, response, response.SkipSlackParsing); err != nil {
 		return post, err
 	}
 
@@ -635,7 +632,7 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 	}
 
 	for _, builtInProvider := range commandProviders {
-		builtInCommand := builtInProvider.GetCommand(a, utils.T)
+		builtInCommand := builtInProvider.GetCommand(a)
 		if builtInCommand != nil && cmd.Trigger == builtInCommand.Trigger {
 			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
 		}

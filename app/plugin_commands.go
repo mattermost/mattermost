@@ -72,7 +72,7 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 	return nil
 }
 
-func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
+func (a *App) UnregisterPluginCommand(teamId, trigger string) {
 	trigger = strings.ToLower(trigger)
 
 	a.Srv().pluginCommandsLock.Lock()

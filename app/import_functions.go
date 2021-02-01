@@ -808,7 +808,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(user, team, teamMemberByTeamID[team.Id], &channelsToImport); err != nil {
+		if err := a.importUserChannels(user, team, &channelsToImport); err != nil {
 			return err
 		}
 	}
@@ -816,7 +816,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	return nil
 }
 
-func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -986,7 +986,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 	return nil
 }
 
-func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
+func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.AppError {
 	if err := validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
@@ -1112,7 +1112,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 	return nil
 }
 
-func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamId string) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
 	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1403,7 +1403,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
 				reaction := reaction
-				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
+				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
@@ -1428,7 +1428,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
+		fileInfo, err := a.importAttachment(&attachment, post, teamId)
 		if err != nil {
 			return nil, err
 		}
@@ -1473,7 +1473,7 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIds, userIds[0])
+		ch, err := a.createGroupChannel(userIds)
 		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -1578,7 +1578,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			}
 			channel = ch
 		} else {
-			ch, err = a.createGroupChannel(userIds, userIds[0])
+			ch, err = a.createGroupChannel(userIds)
 			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
@@ -1697,7 +1697,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
 				reaction := reaction
-				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
+				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}

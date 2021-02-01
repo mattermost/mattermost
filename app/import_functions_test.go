@@ -1856,12 +1856,12 @@ func TestImportUserChannels(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
 			th.App.joinUserToTeam(th.BasicTeam, user)
-			teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+			_, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
 			require.Nil(t, err)
 
 			// Two times import must end with the same results
 			for x := 0; x < 2; x++ {
-				err = th.App.importUserChannels(user, th.BasicTeam, teamMember, tc.data)
+				err = th.App.importUserChannels(user, th.BasicTeam, tc.data)
 				if tc.expectedError {
 					require.NotNil(t, err)
 				} else {
@@ -3101,7 +3101,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr := th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	channel, appErr := th.App.createGroupChannel(userIds)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3402,7 +3402,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	channel, appErr = th.App.createGroupChannel(userIds)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
@@ -3893,14 +3893,14 @@ func TestImportAttachment(t *testing.T) {
 
 	userId := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team", true)
+	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
 	attachments := GetAttachments(userId, th, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
-	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team")
 	assert.NotNil(t, err, "should have failed when opening the file")
 	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
 }

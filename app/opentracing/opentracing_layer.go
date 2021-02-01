@@ -665,7 +665,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *htt
 	a.app.AttachSessionCookies(w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, cwsToken string) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
 
@@ -677,7 +677,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
+	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1137,7 +1137,7 @@ func (a *OpenTracingAppLayer) CheckRolesExist(roleNames []string) *model.AppErro
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserAllAuthenticationCriteria")
 
@@ -1149,7 +1149,7 @@ func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.Use
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(user, mfaToken)
+	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1203,7 +1203,7 @@ func (a *OpenTracingAppLayer) CheckUserPostflightAuthenticationCriteria(user *mo
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckUserPreflightAuthenticationCriteria")
 
@@ -1215,7 +1215,7 @@ func (a *OpenTracingAppLayer) CheckUserPreflightAuthenticationCriteria(user *mod
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(user, mfaToken)
+	resultVar0 := a.app.CheckUserPreflightAuthenticationCriteria(user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -1686,7 +1686,7 @@ func (a *OpenTracingAppLayer) CreateCommand(cmd *model.Command) (*model.Command,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateCommandPost(post *model.Post, teamId string, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateCommandPost(post *model.Post, response *model.CommandResponse, skipSlackParsing bool) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateCommandPost")
 
@@ -1697,12 +1697,10 @@ func (a *OpenTracingAppLayer) CreateCommandPost(post *model.Post, teamId string,
 		a.ctx = origCtx
 	}()
 
-	span.SetTag("teamId", teamId)
-
 	span.SetTag("skipSlackParsing", skipSlackParsing)
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateCommandPost(post, teamId, response, skipSlackParsing)
+	resultVar0, resultVar1 := a.app.CreateCommandPost(post, response, skipSlackParsing)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10333,7 +10331,7 @@ func (a *OpenTracingAppLayer) LimitedClientConfigWithComputed() map[string]strin
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *OpenTracingAppLayer) ListAllCommands(teamId string) ([]*model.Command, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListAllCommands")
 
@@ -10345,7 +10343,7 @@ func (a *OpenTracingAppLayer) ListAllCommands(teamId string, T goi18n.TranslateF
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ListAllCommands(teamId, T)
+	resultVar0, resultVar1 := a.app.ListAllCommands(teamId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10355,7 +10353,7 @@ func (a *OpenTracingAppLayer) ListAllCommands(teamId string, T goi18n.TranslateF
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *OpenTracingAppLayer) ListAutocompleteCommands(teamId string) ([]*model.Command, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListAutocompleteCommands")
 
@@ -10369,7 +10367,7 @@ func (a *OpenTracingAppLayer) ListAutocompleteCommands(teamId string, T goi18n.T
 	span.SetTag("teamId", teamId)
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ListAutocompleteCommands(teamId, T)
+	resultVar0, resultVar1 := a.app.ListAutocompleteCommands(teamId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10826,7 +10824,7 @@ func (a *OpenTracingAppLayer) NewWebHub() *app.Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
+func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAndSetWarnMetricAck")
 
@@ -10838,7 +10836,7 @@ func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sen
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, forceAck, isBot)
+	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, forceAck)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -12159,7 +12157,7 @@ func (a *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, n
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(warnMetricId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RequestLicenseAndAckWarnMetric")
 
@@ -12171,7 +12169,7 @@ func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(warnMetricId string
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RequestLicenseAndAckWarnMetric(warnMetricId, isBot)
+	resultVar0 := a.app.RequestLicenseAndAckWarnMetric(warnMetricId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14569,7 +14567,7 @@ func (a *OpenTracingAppLayer) TriggerWebhook(payload *model.OutgoingWebhookPaylo
 	a.app.TriggerWebhook(payload, hook, post, channel)
 }
 
-func (a *OpenTracingAppLayer) UnregisterPluginCommand(pluginId string, teamId string, trigger string) {
+func (a *OpenTracingAppLayer) UnregisterPluginCommand(teamId string, trigger string) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnregisterPluginCommand")
 
@@ -14581,7 +14579,7 @@ func (a *OpenTracingAppLayer) UnregisterPluginCommand(pluginId string, teamId st
 	}()
 
 	defer span.Finish()
-	a.app.UnregisterPluginCommand(pluginId, teamId, trigger)
+	a.app.UnregisterPluginCommand(teamId, trigger)
 }
 
 func (a *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
