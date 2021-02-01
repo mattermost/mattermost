@@ -727,6 +727,19 @@ func (u *User) ToPatch() *UserPatch {
 	}
 }
 
+var patchFieldSelector = map[string]func(*UserPatch) **string{
+	"FirstName": func(p *UserPatch) **string { return &p.FirstName },
+	"LastName":  func(p *UserPatch) **string { return &p.LastName },
+	"Nickname":  func(p *UserPatch) **string { return &p.Nickname },
+	"Email":     func(p *UserPatch) **string { return &p.Email },
+	"Position":  func(p *UserPatch) **string { return &p.Position },
+	"Username":  func(p *UserPatch) **string { return &p.Username },
+}
+
+func (patch *UserPatch) SetField(fieldName string, fieldValue string) {
+	*patchFieldSelector[fieldName](patch) = &fieldValue
+}
+
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
 	var user *User
