@@ -981,7 +981,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.CreateColumnIfNotExists("UploadSessions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)", "")
 	sqlStore.CreateColumnIfNotExists("UploadSessions", "ReqFileId", "VARCHAR(26)", "VARCHAR(26)", "")
-	if _, err := sqlStore.GetMaster().Exec("UPDATE UploadsSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
+	if _, err := sqlStore.GetMaster().Exec("UPDATE UploadSessions SET RemoteId='', ReqFileId='' WHERE RemoteId IS NULL"); err != nil {
 		mlog.Error("Error updating RemoteId,ReqFileId in UploadsSession table", mlog.Err(err))
 	}
 	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
