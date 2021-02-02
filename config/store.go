@@ -248,7 +248,10 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal loaded config")
 	}
-	if !s.readOnly && (len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)) {
+
+	var shouldStore bool
+	hasChanged := len(configBytes) == 0 || !bytes.Equal(oldCfgBytes, newCfgBytes)
+	if hasChanged {
 		featureFlags := s.configNoEnv.FeatureFlags
 		// Don't persist feature flags unless we are on MM cloud
 		// MM cloud uses config in the DB as a cache of the feature flag
@@ -256,10 +259,19 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		if !s.persistFeatureFlags {
 			s.configNoEnv.FeatureFlags = nil
 		}
-		err := s.backingStore.Set(s.configNoEnv)
-		s.configNoEnv.FeatureFlags = featureFlags
-		if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
-			return errors.Wrap(err, "failed to persist")
+		toStoreBytes, err := json.Marshal(s.configNoEnv)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal old config")
+		}
+		shouldStore = !bytes.Equal(toStoreBytes, configBytes)
+		// We write back to the backing store only if
+		// the config has changed and the store is not read-only.
+		if !s.readOnly && shouldStore {
+			err := s.backingStore.Set(s.configNoEnv)
+			s.configNoEnv.FeatureFlags = featureFlags
+			if err != nil && !errors.Is(err, ErrReadOnlyConfiguration) {
+				return errors.Wrap(err, "failed to persist")
+			}
 		}
 	}
 
@@ -267,7 +279,9 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 
 	unlockOnce.Do(s.configLock.Unlock)
 
-	s.invokeConfigListeners(oldCfg, loadedConfig)
+	if hasChanged {
+		s.invokeConfigListeners(oldCfg, loadedConfig)
+	}
 
 	return nil
 }

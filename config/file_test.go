@@ -924,11 +924,35 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		cfgData, err := config.MarshalConfig(emptyConfig)
+		cfgData, err := config.MarshalConfig(minimalConfig)
 		require.NoError(t, err)
 
 		ioutil.WriteFile(path, cfgData, 0644)
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
+	})
+
+	t.Run("no change", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+		fsInner, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		fs, err := config.NewStoreFromBacking(fsInner, nil, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		// Let the initial call to invokeConfigListeners finish.
+		time.Sleep(1 * time.Second)
+
+		called := make(chan bool, 1)
+		callback := func(oldfg, newCfg *model.Config) {
+			called <- true
+		}
+		fs.AddListener(callback)
+
+		_, err = fs.Set(minimalConfig)
+		require.NoError(t, err)
+
+		require.False(t, wasCalled(called, 1*time.Second), "callback should not have been called since no change has happened")
 	})
 }
 
