@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"bytes"
 	"net"
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"runtime/pprof"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -78,6 +80,21 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		return err
 	}
 	defer server.Shutdown()
+	// We add this after shutdown so that it can be called
+	// before server shutdown happens as it can close
+	// the advanced logger and prevent the mlog call from working properly.
+	defer func() {
+		// A panic pass-through layer which just logs it
+		// and sends it upwards.
+		if x := recover(); x != nil {
+			var buf bytes.Buffer
+			pprof.Lookup("goroutine").WriteTo(&buf, 2)
+			mlog.Critical("A panic occurred",
+				mlog.Any("error", x),
+				mlog.String("stack", buf.String()))
+			panic(x)
+		}
+	}()
 
 	if usedPlatform {
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")
