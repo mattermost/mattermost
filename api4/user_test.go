@@ -3365,9 +3365,8 @@ func TestLoginReplicationLag(t *testing.T) {
 
 		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
 
-		sessions, err := th.App.GetSessions(th.BasicUser.Id)
+		err := th.App.RevokeAllSessions(th.BasicUser.Id)
 		require.Nil(t, err)
-		require.Len(t, sessions, 0)
 
 		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(30)
 		require.Nil(t, cmdErr)

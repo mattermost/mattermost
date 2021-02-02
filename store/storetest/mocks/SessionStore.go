@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -40,13 +42,13 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	_m.Called(expiryTime, batchSize)
 }
 
-// Get provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
-	ret := _m.Called(sessionIdOrToken)
+// Get provides a mock function with given fields: ctx, sessionIdOrToken
+func (_m *SessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
+	ret := _m.Called(ctx, sessionIdOrToken)
 
 	var r0 *model.Session
-	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
-		r0 = rf(sessionIdOrToken)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Session); ok {
+		r0 = rf(ctx, sessionIdOrToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
@@ -54,8 +56,8 @@ func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(sessionIdOrToken)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, sessionIdOrToken)
 	} else {
 		r1 = ret.Error(1)
 	}

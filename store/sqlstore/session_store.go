@@ -11,6 +11,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -73,21 +74,17 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, error) {
 	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
+func (me SqlSessionStore) Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error) {
 	var sessions []*model.Session
 
-	retryUsingMasterF := func(result interface{}, err error) bool {
-		if err != nil {
-			return false
-		}
-		items, ok := result.([]*model.Session)
-		if !ok {
-			return true
-		}
-		return len(items) == 0
+	var dbMap *gorp.DbMap
+	if hasMaster(ctx) {
+		dbMap = me.GetMaster()
+	} else {
+		dbMap = me.GetReplica()
 	}
 
-	if _, err := me.SelectLazy(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", retryUsingMasterF, map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+	if _, err := dbMap.Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with sessionIdOrToken=%s", sessionIdOrToken)
 	} else if len(sessions) == 0 {
 		return nil, store.NewErrNotFound("Session", fmt.Sprintf("sessionIdOrToken=%s", sessionIdOrToken))
@@ -260,7 +257,7 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
+	oldSession, appErr := me.Get(context.Background(), session.Id)
 	if appErr != nil {
 		return appErr
 	}

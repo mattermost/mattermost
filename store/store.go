@@ -98,7 +98,7 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(teamId string, userId string) (*model.TeamMember, error)
+	GetMember(ctx context.Context, teamId string, userId string) (*model.TeamMember, error)
 	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
@@ -392,7 +392,7 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(sessionIdOrToken string) (*model.Session, error)
+	Get(ctx context.Context, sessionIdOrToken string) (*model.Session, error)
 	Save(session *model.Session) (*model.Session, error)
 	GetSessions(userId string) ([]*model.Session, error)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error)

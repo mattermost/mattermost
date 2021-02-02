@@ -397,20 +397,6 @@ func (ss *SqlStore) SelectOneLazy(holder interface{}, query string, args ...inte
 	return nil
 }
 
-// SelectLazy returns the result of (*gorp.DbMap).Select from a read replica
-// database but if shouldIRetryUsingMaster returns true then it retries against
-// the master database.
-//
-// The retry is enabled by (model.SqlSettings).ReplicaLazyReads and (model.FeatureFlags).ReplicaLazyReads.
-func (ss *SqlStore) SelectLazy(i interface{}, query string, shouldIRetryUsingMaster func(interface{}, error) bool, args ...interface{}) ([]interface{}, error) {
-	result, err := ss.GetReplica().Select(i, query, args...)
-	if shouldIRetryUsingMaster(i, err) && amIConfiguredToRetryMaster(ss) {
-		mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "SelectLazy"), mlog.String("query", query), mlog.Any("args", args))
-		return ss.GetMaster().Select(i, query, args...)
-	}
-	return result, err
-}
-
 type LazyRowScanner struct {
 	store *SqlStore
 	query string
