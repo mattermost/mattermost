@@ -70,7 +70,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.license_error", nil, "", http. StatusInternalServerError)
 		return
 	}
 
