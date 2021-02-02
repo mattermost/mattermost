@@ -445,7 +445,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 	return nil
 }
 
-func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
+func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
 		if nErr == nil && data != nil && data.Value == model.WARN_METRIC_STATUS_ACK {
@@ -572,7 +572,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 		return err
 	}
 
-	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true, isBot); appErr != nil {
+	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true); appErr != nil {
 		return appErr
 	}
 

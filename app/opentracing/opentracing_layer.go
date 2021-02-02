@@ -1149,7 +1149,7 @@ func (a *OpenTracingAppLayer) CheckUserAllAuthenticationCriteria(user *model.Use
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(user, mfaToken)
+	resultVar0 := a.app.CheckUserAllAuthenticationCriteria(user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

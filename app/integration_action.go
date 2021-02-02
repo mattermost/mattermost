@@ -464,7 +464,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck); appErr != nil {
 			if forceAck {
 				return appErr
 			}

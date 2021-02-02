@@ -399,7 +399,7 @@ type AppIface interface {
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError
 	CheckRolesExist(roleNames []string) *model.AppError
-	CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckUserAllAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserMfa(user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
