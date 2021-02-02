@@ -321,7 +321,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
-	channel, nErr := a.getChannel(userId, otherUserId)
+	channel, nErr := a.getDirectChannel(userId, otherUserId)
 	if nErr != nil {
 		return nil, nErr
 	}
@@ -2966,7 +2966,7 @@ func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([
 	return channelMemberCounts, nil
 }
 
-func (a *App) getChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
