@@ -321,14 +321,13 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
-	if nErr == nil {
-		return channel, nil
+	channel, nErr := a.getChannel(userId, otherUserId)
+	if nErr != nil {
+		return nil, nErr
 	}
 
-	var nfErr *store.ErrNotFound
-	if !errors.As(nErr, &nfErr) {
-		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	if channel != nil {
+		return channel, nil
 	}
 
 	channel, err := a.createDirectChannel(userId, otherUserId)
@@ -2965,4 +2964,18 @@ func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([
 	}
 
 	return channelMemberCounts, nil
+}
+
+func (a *App) getChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
+			return nil, nil
+		}
+
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return channel, nil
 }
