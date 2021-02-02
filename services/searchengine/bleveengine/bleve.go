@@ -250,7 +250,7 @@ func (b *BleveEngine) deleteIndexes() *model.AppError {
 		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err := os.RemoveAll(b.getIndexDir(FileIndex)); err != nil {
-		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_channel_index.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("Bleveengine.PurgeIndexes", "bleveengine.purge_file_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
