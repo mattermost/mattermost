@@ -47,8 +47,6 @@ jobs:
     environment:
       version_url: "https://jeremylong.github.io/DependencyCheck/current.txt"
       executable_url: "https://dl.bintray.com/jeremy-long/owasp/dependency-check-VERSION-release.zip"
-    docker:
-      - image: cimg/node:15.6.0
     steps:
       - attach_workspace:
           at: ~/mattermost/
@@ -85,9 +83,6 @@ jobs:
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
-      - run:
-          name: Install mjml
-          command: npm install -g mjml
       - run:
           name: Post results to Mattermost
           command: go run ../security-automation-config/dependency-check/post_results.go
