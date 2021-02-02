@@ -781,7 +781,7 @@ func (th *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T
 }
 
 // TestForSystemAdminAndClient runs a test function for both
-// SystemAdmin and User clients. 
+// SystemAdmin and User clients.
 func (th *TestHelper) TestForSystemAdminAndClient(t *testing.T, f func(*testing.T, *model.Client4, string), name ...string) {
 	var testName string
 	if len(name) > 0 {
