@@ -1160,7 +1160,7 @@
   },
   {
     "id": "api.command_remote.service_not_enabled",
-    "translation": "Remote cluster service not enabled."
+    "translation": "Remote Cluster service not enabled."
   },
   {
     "id": "api.command_remote.site_url_not_set",
