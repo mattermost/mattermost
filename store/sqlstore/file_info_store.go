@@ -625,7 +625,7 @@ func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, li
 		ToSql()
 	_, err := fs.GetSearchReplica().Select(&files, sql, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find Users")
+		return nil, errors.Wrap(err, "failed to find Files")
 	}
 
 	return files, nil
