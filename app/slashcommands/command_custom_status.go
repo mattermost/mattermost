@@ -17,10 +17,10 @@ type CustomStatusProvider struct {
 }
 
 const (
-	CMD_CUSTOM_STATUS = "status"
-	CMD_CUSTOM_STATUS_CLEAR = "clear"
+	CmdCustomStatus      = "status"
+	CmdCustomStatusClear = "clear"
 
-	DEFAULT_CUSTOM_STATUS_EMOJI = "speech_balloon"
+	DefaultCustomStatusEmoji = "speech_balloon"
 )
 
 func init() {
@@ -28,12 +28,12 @@ func init() {
 }
 
 func (*CustomStatusProvider) GetTrigger() string {
-	return CMD_CUSTOM_STATUS
+	return CmdCustomStatus
 }
 
 func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_CUSTOM_STATUS,
+		Trigger:          CmdCustomStatus,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_custom_status.desc"),
 		AutoCompleteHint: T("api.command_custom_status.hint"),
@@ -42,7 +42,7 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mod
 }
 
 func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if message == CMD_CUSTOM_STATUS_CLEAR {
+	if message == CmdCustomStatusClear {
 		if err := a.RemoveCustomStatus(args.UserId); err != nil {
 			mlog.Error(err.Error())
 			return &model.CommandResponse{Text: args.T("api.command_custom_status.clear.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
@@ -55,13 +55,13 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 	}
 
 	customStatus := &model.CustomStatus{
-		Emoji: DEFAULT_CUSTOM_STATUS_EMOJI,
+		Emoji: DefaultCustomStatusEmoji,
 		Text:  message,
 	}
 	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
 		// emoji found at starting index
-		customStatus.Emoji = message[firstEmojiLocations[0]+1:firstEmojiLocations[1]-1]
+		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
 		customStatus.Text = strings.TrimSpace(message[firstEmojiLocations[1]:])
 	}
 
@@ -73,8 +73,8 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 
 	return &model.CommandResponse{
 		ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-		Text:         args.T("api.command_custom_status.success", map[string]interface{}{
-			"EmojiName":     ":"+customStatus.Emoji+":",
+		Text: args.T("api.command_custom_status.success", map[string]interface{}{
+			"EmojiName":     ":" + customStatus.Emoji + ":",
 			"StatusMessage": customStatus.Text,
 		}),
 	}
