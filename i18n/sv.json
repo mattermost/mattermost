@@ -8505,5 +8505,21 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "Anropet saknar antingen parametern AuthData eller AuthService."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Fel när tidpunkt för senaste ändring av filen skulle hämtas."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Användartråden finns inte eller följs inte"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Felaktig värde Invalid connection maximum idle time for SQL settings. Måste vara ett positivt tal."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
   }
 ]
