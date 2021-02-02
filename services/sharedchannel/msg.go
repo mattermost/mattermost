@@ -37,10 +37,23 @@ func (sm syncMsg) String() string {
 	return string(json)
 }
 
+type userCache map[string]struct{}
+
+func (u userCache) Has(id string) bool {
+	_, ok := u[id]
+	return ok
+}
+
+func (u userCache) Add(id string) {
+	u[id] = struct{}{}
+}
+
 // postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
 func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
+
+	uCache := make(userCache)
 
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
@@ -73,7 +86,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 		}
 
 		// any users originating from the remote cluster are filtered out
-		users := scs.usersForPost(postSync, reactions, rc)
+		users := scs.usersForPost(postSync, reactions, rc, uCache)
 
 		// if everything was filtered out then don't send an empty message.
 		if postSync == nil && len(reactions) == 0 && len(users) == 0 {
@@ -105,15 +118,19 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 }
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
-func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster) []*model.User {
+func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster, uCache userCache) []*model.User {
 	userIds := make(map[string]struct{}) // avoid duplicates
 
-	if post != nil {
+	if post != nil && !uCache.Has(post.UserId) {
 		userIds[post.UserId] = struct{}{}
+		uCache.Add(post.UserId)
 	}
 
 	for _, r := range reactions {
-		userIds[r.UserId] = struct{}{}
+		if !uCache.Has(r.UserId) {
+			userIds[r.UserId] = struct{}{}
+			uCache.Add(r.UserId)
+		}
 	}
 
 	// TODO: extract @mentions to local users and sync those as well?

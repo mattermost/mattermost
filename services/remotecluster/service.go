@@ -23,6 +23,7 @@ const (
 	MaxConcurrentSends            = 1 // TODO: increase when threading issue fixed
 	SendMsgURL                    = "api/v4/remotecluster/msg"
 	SendTimeout                   = time.Minute
+	SendFileTimeout               = time.Minute * 5
 	PingURL                       = "api/v4/remotecluster/ping"
 	PingFreq                      = time.Minute
 	PingTimeout                   = time.Second * 15
@@ -57,6 +58,7 @@ type Service struct {
 	server     ServerIface
 	send       chan sendTask
 	httpClient *http.Client
+	sendFiles  []chan sendFileTask
 
 	// everything below guarded by `mux`
 	mux              sync.RWMutex
@@ -95,6 +97,12 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 		httpClient:     client,
 		topicListeners: make(map[string]map[string]TopicListener),
 	}
+
+	service.sendFiles = make([]chan sendFileTask, MaxConcurrentSends)
+	for i := range service.sendFiles {
+		service.sendFiles[i] = make(chan sendFileTask)
+	}
+
 	return service, nil
 }
 
@@ -188,6 +196,11 @@ func (rcs *Service) resume() {
 	// create thread pool for concurrent message sending.
 	for i := 0; i < MaxConcurrentSends; i++ {
 		go rcs.sendLoop(rcs.done)
+	}
+
+	// create thread pool for concurrent file sending.
+	for i := range rcs.sendFiles {
+		go rcs.sendFileLoop(i, rcs.done)
 	}
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")

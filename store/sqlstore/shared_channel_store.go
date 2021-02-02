@@ -581,6 +581,48 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 	return attachment, nil
 }
 
+// UpsertAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table or updates its
+// LastSyncAt.
+func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelAttachment) error {
+	attachment.PreSave()
+	if err := attachment.IsValid(); err != nil {
+		return err
+	}
+
+	params := map[string]interface{}{
+		"Id":         attachment.Id,
+		"FileId":     attachment.FileId,
+		"RemoteId":   attachment.RemoteClusterId,
+		"CreateAt":   attachment.CreateAt,
+		"LastSyncAt": attachment.LastSyncAt,
+	}
+
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if _, err := s.GetMaster().Exec(
+			`INSERT INTO
+				SharedChannelAttachments
+				(Id, FileId, RemoteClusterId, CreateAt, LastSyncAt)
+			VALUES
+				(:Id, :FieldId, :RemoteId, :CreateAt, :LastSyncAt)
+			ON DUPLICATE KEY UPDATE
+				LastSyncAt = :LastSyncAt`, params); err != nil {
+			return err
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if _, err := s.GetMaster().Exec(
+			`INSERT INTO
+				SharedChannelAttachments
+				(Id, FileId, RemoteClusterId, CreateAt, LastSyncAt)
+			VALUES
+				(:Id, :FieldId, :RemoteId, :CreateAt, :LastSyncAt)
+			ON CONFLICT (Id) 
+				DO UPDATE SET LastSyncAt = :LastSyncAt`, params); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // GetAttachment fetches a shared channel file attachment record based on file_id and remoteId.
 func (s SqlSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
 	var attachment model.SharedChannelAttachment

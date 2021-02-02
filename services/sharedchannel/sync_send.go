@@ -57,7 +57,7 @@ func (scs *Service) addTask(task syncTask) {
 	}
 }
 
-// syncLoop creates a pool of goroutines which wait for notifications of channel changes and
+// syncLoop is called from a pool of goroutines to wait for notifications of channel changes and
 // updates each remote based on those changes.
 func (scs *Service) syncLoop(done chan struct{}) {
 	// wait for channel changed signal and update for oldest channel id.
@@ -173,13 +173,13 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		return err
 	}
 
-	var repeat bool
+	var retry bool
 
 	pSlice := posts.ToSlice()
 	max := len(pSlice)
 	if max > MaxPostsPerSync {
 		max = MaxPostsPerSync
-		repeat = true
+		retry = true
 	}
 
 	if !rc.IsOnline() {
@@ -194,7 +194,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 
 	if len(msg.Payload) == 0 {
 		// everything was filtered out, nothing to send.
-		if repeat {
+		if retry {
 			contTask := newSyncTask(channelId, rc.RemoteId)
 			scs.addTask(contTask)
 		}
@@ -206,13 +206,13 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 
 	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if err != nil {
-			return
+			return // this means the response could not be parsed; already logged
 		}
 
 		//
 		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in the Response payload.
 		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries.
-		//
+		//		 Alternatively we can touch the post's UpdateAt field and cause the post to be synchronized again.
 
 		var syncResp SyncResponse
 		if err2 := json.Unmarshal(resp.Payload, &syncResp); err2 != nil {
@@ -254,7 +254,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		}
 	})
 
-	if err == nil && repeat {
+	if err == nil && retry {
 		contTask := newSyncTask(channelId, rc.RemoteId)
 		scs.addTask(contTask)
 	}

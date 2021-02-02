@@ -60,11 +60,11 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 	return false
 }
 
-// syncAttachmentForRemote synchronously sends a file attachment to a remote cluster.
-func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster, retries int) (*model.FileInfo, error) {
+// sendAttachmentForRemote asynchronously sends a file attachment to a remote cluster.
+func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
-		return nil, fmt.Errorf("cannot update remote cluster for remote id %s; Remote Cluster Service not enabled", rc.RemoteId)
+		return fmt.Errorf("cannot update remote cluster for remote id %s; Remote Cluster Service not enabled", rc.RemoteId)
 	}
 
 	us := &model.UploadSession{
@@ -79,7 +79,7 @@ func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 	payload, err := json.Marshal(us)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	msg := model.NewRemoteClusterMsg(TopicUploadCreate, payload)
@@ -91,6 +91,7 @@ func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	var respErr error
 	wg := &sync.WaitGroup{}
 
+	// creating the upload session on the remote server needs to be done synchronously.
 	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		defer wg.Done()
 		if err != nil || !resp.IsSuccess() {
@@ -101,21 +102,54 @@ func (scs *Service) syncAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("error sending create upload session to remote %s for post %s: %w", rc.RemoteId, post.Id, err)
+		return fmt.Errorf("error sending create upload session to remote %s for post %s: %w", rc.RemoteId, post.Id, err)
 	}
 
 	wg.Wait()
 
 	if respErr != nil {
-		return nil, fmt.Errorf("invalid create upload session response for remote %s and post %s: %w", rc.RemoteId, post.Id, respErr)
+		return fmt.Errorf("invalid create upload session response for remote %s and post %s: %w", rc.RemoteId, post.Id, respErr)
 	}
 
-	r, err := scs.app.FileReader(usResp.Path)
-	if err != nil {
-		return nil, fmt.Errorf("error opening file for sync; remote %s and post %s : %w", rc.RemoteId, post.Id, respErr)
-	}
+	ctx2, cancel2 := context.WithTimeout(context.Background(), remotecluster.SendFileTimeout)
+	defer cancel2()
+	err = rcs.SendFile(ctx2, &usResp, rc, scs.app, func(us *model.UploadSession, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		if err != nil{
+			return // this means the response could not be parsed; already logged
+		}
+		
+		if !resp.IsSuccess() {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "send file failed",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("uploadId", usResp.Id),
+				mlog.String("err", resp.Err),
+			)
 
-	return rcs.SendFile(&usResp, r, retries)
+		}
+
+		// TODO
+		// mark the file as uploaded (create SharedChannelsAttachment record)
+
+		// response payload should be a model.FileInfo.
+		var fi model.FileInfo 
+		if err2 := json.Unmarshal(resp.Payload, &fi); err2 != nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "invalid file info response after send file",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("uploadId", usResp.Id),
+				mlog.Err(err2),
+			)
+		}
+
+		// save file attachment record in SharedChannelAttachments table
+		sca, err := scs.server.GetStore().SharedChannel().
+
+
+
+
+
+	})
+
+	return fmt.Errorf("not implemented yet")
 }
 
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is

@@ -62,7 +62,7 @@ func (rcs *Service) BroadcastMsg(ctx context.Context, msg model.RemoteClusterMsg
 // Nil or error return indicates success or failure of message enqueue only.
 //
 // An optional callback can be provided that receives the response from the remote cluster. The `err` provided to the
-// callback is regarding messages delivery only. The `resp` contains the decoded bytes returned from the remote.
+// callback is regarding response decoding only. The `resp` contains the decoded bytes returned from the remote.
 // If a callback is provided it should return quickly.
 func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f SendResultFunc) error {
 	if ctx == nil {
