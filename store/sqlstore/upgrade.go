@@ -968,15 +968,18 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 
+	// Shared channels support
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Users", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Posts", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
 	uniquenessColumns := []string{"SiteUrl", "RemoteTeamId"}
 	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		uniquenessColumns = []string{"RemoteTeamId", "SiteUrl(168)"}
 	}
 	sqlStore.CreateUniqueCompositeIndexIfNotExists(RemoteClusterSiteURLUniqueIndex, "RemoteClusters", uniquenessColumns)
-
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 
 	// saveSchemaVersion(sqlStore, Version5320)
 	// }

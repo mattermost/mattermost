@@ -505,6 +505,7 @@ type AppIface interface {
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
+	FileModTime(path string) (time.Time, *model.AppError)
 	FileSize(path string) (int64, *model.AppError)
 	FillInChannelProps(channel *model.Channel) *model.AppError
 	FillInChannelsProps(channelList *model.ChannelList) *model.AppError
@@ -709,6 +710,7 @@ type AppIface interface {
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, *model.AppError)
 	GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
 	GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)

@@ -624,7 +624,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	if len(channel.Id) > 0 && !channel.IsShared() {
+	if channel.Id != "" && !channel.IsShared() {
 		return nil, store.NewErrInvalidInput("Channel", "Id", channel.Id)
 	}
 
@@ -1032,7 +1032,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
-	if len(opts.NotAssociatedToGroup) > 0 {
+	if opts.NotAssociatedToGroup != "" {
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 
@@ -1143,7 +1143,7 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 	idQuery := ""
 
 	for index, channelId := range channelIds {
-		if len(idQuery) > 0 {
+		if idQuery != "" {
 			idQuery += ", "
 		}
 
@@ -2336,7 +2336,7 @@ func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, error) {
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (int64, error) {
 	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query += " AND TeamId = :TeamId"
 	}
 
@@ -2350,7 +2350,7 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (
 func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error) {
 	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType AND DeleteAt > 0"
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query += " AND TeamId = :TeamId"
 	}
 
@@ -2682,7 +2682,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where(sq.NotEq{"c.Name": opts.ExcludeChannelNames})
 	}
 
-	if len(opts.NotAssociatedToGroup) > 0 {
+	if opts.NotAssociatedToGroup != "" {
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 

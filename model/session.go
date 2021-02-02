@@ -155,7 +155,7 @@ func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (s *Session) IsMobileApp() bool {
-	return len(s.DeviceId) > 0 || s.IsMobile()
+	return s.DeviceId != "" || s.IsMobile()
 }
 
 func (s *Session) IsMobile() bool {

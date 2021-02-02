@@ -11,12 +11,13 @@ import (
 )
 
 type Reaction struct {
-	UserId    string `json:"user_id"`
-	PostId    string `json:"post_id"`
-	EmojiName string `json:"emoji_name"`
-	CreateAt  int64  `json:"create_at"`
-	UpdateAt  int64  `json:"update_at"`
-	DeleteAt  int64  `json:"delete_at"`
+	UserId    string  `json:"user_id"`
+	PostId    string  `json:"post_id"`
+	EmojiName string  `json:"emoji_name"`
+	CreateAt  int64   `json:"create_at"`
+	UpdateAt  int64   `json:"update_at"`
+	DeleteAt  int64   `json:"delete_at"`
+	RemoteId  *string `json:"remote_id"`
 }
 
 func (o *Reaction) ToJson() string {
@@ -73,7 +74,7 @@ func (o *Reaction) IsValid() *AppError {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if len(o.EmojiName) == 0 || len(o.EmojiName) > EMOJI_NAME_MAX_LENGTH || !validName.MatchString(o.EmojiName) {
+	if o.EmojiName == "" || len(o.EmojiName) > EMOJI_NAME_MAX_LENGTH || !validName.MatchString(o.EmojiName) {
 		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.emoji_name.app_error", nil, "emoji_name="+o.EmojiName, http.StatusBadRequest)
 	}
 
@@ -94,8 +95,16 @@ func (o *Reaction) PreSave() {
 	}
 	o.UpdateAt = GetMillis()
 	o.DeleteAt = 0
+
+	if o.RemoteId == nil {
+		o.RemoteId = NewString("")
+	}
 }
 
 func (o *Reaction) PreUpdate() {
 	o.UpdateAt = GetMillis()
+
+	if o.RemoteId == nil {
+		o.RemoteId = NewString("")
+	}
 }

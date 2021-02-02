@@ -814,6 +814,7 @@ type ClusterSettings struct {
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -858,6 +859,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -1096,6 +1101,7 @@ type SqlSettings struct {
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1122,7 +1128,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure an encryption key has been specified.
-		if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
+		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1140,6 +1146,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = NewInt(300000)
 	}
 
 	if s.Trace == nil {
@@ -1388,7 +1398,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure link salt has been specified.
-		if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
+		if s.PublicLinkSalt == nil || *s.PublicLinkSalt == "" {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1421,7 +1431,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3Region = NewString("")
 	}
 
-	if s.AmazonS3Endpoint == nil || len(*s.AmazonS3Endpoint) == 0 {
+	if s.AmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		s.AmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
@@ -1534,11 +1544,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = NewString("")
 	}
 
-	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
+	if s.SMTPServer == nil || *s.SMTPServer == "" {
 		s.SMTPServer = NewString("localhost")
 	}
 
-	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
+	if s.SMTPPort == nil || *s.SMTPPort == "" {
 		s.SMTPPort = NewString("10025")
 	}
 
@@ -3119,7 +3129,7 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+	if *o.ServiceSettings.SiteURL == "" && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3127,7 +3137,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3246,11 +3256,15 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.DataSource) == 0 {
+	if *s.DataSource == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3379,47 +3393,47 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if len(*s.IdpUrl) == 0 || !IsValidHttpUrl(*s.IdpUrl) {
+		if *s.IdpUrl == "" || !IsValidHttpUrl(*s.IdpUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorUrl == "" || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpCertificateFile) == 0 {
+		if *s.IdpCertificateFile == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.UsernameAttribute) == 0 {
+		if *s.UsernameAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.ServiceProviderIdentifier) == 0 {
+		if *s.ServiceProviderIdentifier == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if *s.Verify {
-			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
 		if *s.Encrypt {
-			if len(*s.PrivateKeyFile) == 0 {
+			if *s.PrivateKeyFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if len(*s.PublicCertificateFile) == 0 {
+			if *s.PublicCertificateFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3430,7 +3444,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.GuestAttribute) > 0 {
+		if *s.GuestAttribute != "" {
 			if !(strings.Contains(*s.GuestAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3439,7 +3453,7 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 		}
 
-		if len(*s.AdminAttribute) > 0 {
+		if *s.AdminAttribute != "" {
 			if !(strings.Contains(*s.AdminAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3540,7 +3554,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 func (s *ElasticsearchSettings) isValid() *AppError {
 	if *s.EnableIndexing {
-		if len(*s.ConnectionUrl) == 0 {
+		if *s.ConnectionUrl == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -3578,7 +3592,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 func (bs *BleveSettings) isValid() *AppError {
 	if *bs.EnableIndexing {
-		if len(*bs.IndexDir) == 0 {
+		if *bs.IndexDir == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	} else {
@@ -3613,7 +3627,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 }
 
 func (s *LocalizationSettings) isValid() *AppError {
-	if len(*s.AvailableLocales) > 0 {
+	if *s.AvailableLocales != "" {
 		if !strings.Contains(*s.AvailableLocales, *s.DefaultClientLocale) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3708,33 +3722,33 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if o.LdapSettings.BindPassword != nil && len(*o.LdapSettings.BindPassword) > 0 {
+	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 
-	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
-	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if len(*o.GitLabSettings.Secret) > 0 {
+	if *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
-	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+	if o.GoogleSettings.Secret != nil && *o.GoogleSettings.Secret != "" {
 		*o.GoogleSettings.Secret = FAKE_SETTING
 	}
 
-	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+	if o.Office365Settings.Secret != nil && *o.Office365Settings.Secret != "" {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
-	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
 		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
@@ -3751,11 +3765,11 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
-	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 

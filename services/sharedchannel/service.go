@@ -25,11 +25,10 @@ const (
 	StatusDescription            = "status_description"
 	ResponseLastUpdateAt         = "last_update_at"
 	ResponsePostErrors           = "post_errors"
+	ResponseUsersSynced          = "users_synced"
 )
 
-// Mocks can be re-generated with:
-// mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
-// mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// Mocks can be re-generated with `make sharedchannel-mocks`.
 
 type ServerIface interface {
 	Config() *model.Config
@@ -45,9 +44,24 @@ type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError)
+	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
+	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
+	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+}
+
+// errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
+type errNotFound interface {
+	IsErrNotFound() bool
+}
+
+// errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
+type errInvalidInput interface {
+	InvalidInputInfo() (entity string, field string, value interface{})
 }
 
 // Service provides shared channel synchronization.
@@ -177,4 +191,28 @@ func (scs *Service) pause() {
 	scs.done = nil
 
 	scs.server.GetLogger().Debug("Shared Channel Service inactive")
+}
+
+// Makes the remote channel to be read-only(announcement mode, only admins can create posts and reactions).
+func (scs *Service) makeChannelReadOnly(channel *model.Channel) *model.AppError {
+	createPostPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_CREATE_POST.Id]
+	createReactionPermission := model.ChannelModeratedPermissionsMap[model.PERMISSION_ADD_REACTION.Id]
+	updateMap := model.ChannelModeratedRolesPatch{
+		Guests:  model.NewBool(false),
+		Members: model.NewBool(false),
+	}
+
+	readonlyChannelModerations := []*model.ChannelModerationPatch{
+		{
+			Name:  &createPostPermission,
+			Roles: &updateMap,
+		},
+		{
+			Name:  &createReactionPermission,
+			Roles: &updateMap,
+		},
+	}
+
+	_, err := scs.app.PatchChannelModerationsForChannel(channel, readonlyChannelModerations)
+	return err
 }

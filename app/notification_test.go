@@ -68,6 +68,53 @@ func TestSendNotifications(t *testing.T) {
 	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
+
+	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		testUserNotNotified := func(t *testing.T, user *model.User) {
+			rootPost := &model.Post{
+				UserId:    user.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "a message",
+				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+			}
+
+			rootPost, appErr := th.App.CreatePostMissingChannel(rootPost, false)
+			require.Nil(t, appErr)
+
+			childPost := &model.Post{
+				UserId:    th.BasicUser2.Id,
+				ChannelId: th.BasicChannel.Id,
+				RootId:    rootPost.Id,
+				Message:   "a reply",
+			}
+			childPost, appErr = th.App.CreatePostMissingChannel(childPost, false)
+			require.Nil(t, appErr)
+
+			postList := model.PostList{
+				Order: []string{rootPost.Id, childPost.Id},
+				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
+			}
+			mentions, err = th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			require.Nil(t, err)
+			require.False(t, utils.StringInSlice(user.Id, mentions))
+		}
+
+		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		th.BasicUser, err = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, err)
+		t.Run("user wants notifications on all comments", func(t *testing.T) {
+			testUserNotNotified(t, th.BasicUser)
+		})
+
+		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ROOT
+		th.BasicUser, err = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, err)
+		t.Run("user wants notifications on root comment", func(t *testing.T) {
+			testUserNotNotified(t, th.BasicUser)
+		})
+	})
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {

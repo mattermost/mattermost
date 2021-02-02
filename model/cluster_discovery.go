@@ -39,7 +39,7 @@ func (o *ClusterDiscovery) PreSave() {
 
 func (o *ClusterDiscovery) AutoFillHostname() {
 	// attempt to set the hostname from the OS
-	if len(o.Hostname) == 0 {
+	if o.Hostname == "" {
 		if hn, err := os.Hostname(); err == nil {
 			o.Hostname = hn
 		}
@@ -48,8 +48,8 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 
 func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
-	if len(o.Hostname) == 0 {
-		if len(ipAddress) > 0 {
+	if o.Hostname == "" {
+		if ipAddress != "" {
 			o.Hostname = ipAddress
 		} else {
 			o.Hostname = GetServerIpAddress(iface)
@@ -93,15 +93,15 @@ func (o *ClusterDiscovery) IsValid() *AppError {
 		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ClusterName) == 0 {
+	if o.ClusterName == "" {
 		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Type) == 0 {
+	if o.Type == "" {
 		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.Hostname) == 0 {
+	if o.Hostname == "" {
 		return NewAppError("ClusterDiscovery.IsValid", "model.cluster.is_valid.hostname.app_error", nil, "", http.StatusBadRequest)
 	}
 

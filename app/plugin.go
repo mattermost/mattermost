@@ -459,12 +459,20 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		plugins = p
 	}
 
-	appErr := a.mergePrepackagedPlugins(plugins)
-	if appErr != nil {
-		return nil, appErr
+	// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
+	// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
+	// shouldn't be shown in the Marketplace modal.
+	// This is a short term fix. The long term solution is to have a separate set of
+	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
+		appErr := a.mergePrepackagedPlugins(plugins)
+		if appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	appErr = a.mergeLocalPlugins(plugins)
+	appErr := a.mergeLocalPlugins(plugins)
 	if appErr != nil {
 		return nil, appErr
 	}

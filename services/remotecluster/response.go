@@ -25,8 +25,10 @@ func (r Response) Int64(key string) (int64, error) {
 		return 0, fmt.Errorf("%s not found", key)
 	}
 	switch v := val.(type) {
-	case int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64:
-		return v.(int64), nil
+	case int:
+		return int64(v), nil
+	case int64:
+		return v, nil
 	case float32:
 		return int64(math.Round(float64(v))), nil
 	case float64:
@@ -35,6 +37,20 @@ func (r Response) Int64(key string) (int64, error) {
 		return strconv.ParseInt(v, 10, 64)
 	}
 	return 0, fmt.Errorf("%s cannot be converted to int64", key)
+}
+
+func (r Response) StringSlice(key string) ([]string, error) {
+	val, ok := r[key]
+	if !ok {
+		return nil, fmt.Errorf("%s not found", key)
+	}
+	switch v := val.(type) {
+	case []string:
+		return v, nil
+	case []interface{}:
+		return interfaceSlicetoStringSlice(v), nil
+	}
+	return nil, fmt.Errorf("%s is not an array/slice of strings", key)
 }
 
 func (r Response) IsSuccess() bool {
@@ -48,4 +64,15 @@ func (r Response) Error() string {
 		return fmt.Sprintf("%s: %s", status, errString)
 	}
 	return ""
+}
+
+func interfaceSlicetoStringSlice(v []interface{}) []string {
+	if v == nil {
+		return nil
+	}
+	out := make([]string, 0, len(v))
+	for _, vv := range v {
+		out = append(out, fmt.Sprintf("%v", vv))
+	}
+	return out
 }

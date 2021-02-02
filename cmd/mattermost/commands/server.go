@@ -50,7 +50,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}

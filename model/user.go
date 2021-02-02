@@ -92,6 +92,7 @@ type User struct {
 	Timezone               StringMap `json:"timezone"`
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
+	RemoteId               *string   `json:"remote_id,omitempty"`
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
@@ -125,6 +126,7 @@ type UserPatch struct {
 	NotifyProps StringMap `json:"notify_props,omitempty"`
 	Locale      *string   `json:"locale"`
 	Timezone    StringMap `json:"timezone"`
+	RemoteId    *string   `json:"remote_id"`
 }
 
 //msgp:ignore UserAuth
@@ -274,7 +276,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("username", u.Id)
 	}
 
-	if len(u.Email) > USER_EMAIL_MAX_LENGTH || len(u.Email) == 0 || !IsValidEmail(u.Email) {
+	if len(u.Email) > USER_EMAIL_MAX_LENGTH || u.Email == "" || !IsValidEmail(u.Email) {
 		return InvalidUserError("email", u.Id)
 	}
 
@@ -298,11 +300,11 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("auth_data", u.Id)
 	}
 
-	if u.AuthData != nil && len(*u.AuthData) > 0 && len(u.AuthService) == 0 {
+	if u.AuthData != nil && *u.AuthData != "" && u.AuthService == "" {
 		return InvalidUserError("auth_data_type", u.Id)
 	}
 
-	if len(u.Password) > 0 && u.AuthData != nil && len(*u.AuthData) > 0 {
+	if u.Password != "" && u.AuthData != nil && *u.AuthData != "" {
 		return InvalidUserError("auth_data_pwd", u.Id)
 	}
 
@@ -381,7 +383,7 @@ func (u *User) PreSave() {
 		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
-	if len(u.Password) > 0 {
+	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
 }
@@ -414,7 +416,7 @@ func (u *User) PreUpdate() {
 		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
-			if len(key) > 0 {
+			if key != "" {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
@@ -504,6 +506,10 @@ func (u *User) Patch(patch *UserPatch) {
 
 	if patch.Timezone != nil {
 		u.Timezone = patch.Timezone
+	}
+
+	if patch.RemoteId != nil {
+		u.RemoteId = patch.RemoteId
 	}
 }
 
@@ -597,11 +603,11 @@ func (u *User) AddNotifyProp(key string, value string) {
 }
 
 func (u *User) GetFullName() string {
-	if len(u.FirstName) > 0 && len(u.LastName) > 0 {
+	if u.FirstName != "" && u.LastName != "" {
 		return u.FirstName + " " + u.LastName
-	} else if len(u.FirstName) > 0 {
+	} else if u.FirstName != "" {
 		return u.FirstName
-	} else if len(u.LastName) > 0 {
+	} else if u.LastName != "" {
 		return u.LastName
 	} else {
 		return ""
@@ -612,13 +618,13 @@ func (u *User) getDisplayName(baseName, nameFormat string) string {
 	displayName := baseName
 
 	if nameFormat == SHOW_NICKNAME_FULLNAME {
-		if len(u.Nickname) > 0 {
+		if u.Nickname != "" {
 			displayName = u.Nickname
-		} else if fullName := u.GetFullName(); len(fullName) > 0 {
+		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	} else if nameFormat == SHOW_FULLNAME {
-		if fullName := u.GetFullName(); len(fullName) > 0 {
+		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
 	}
@@ -714,8 +720,9 @@ func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
 }
 
-func (u *User) IsRemote() *bool {
-	return NewBool(false)
+// IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
+func (u *User) IsRemote() bool {
+	return u.RemoteId != nil && *u.RemoteId != ""
 }
 
 // UserFromJson will decode the input and return a User
@@ -772,7 +779,7 @@ func HashPassword(password string) string {
 // ComparePassword compares the hash
 func ComparePassword(hash string, password string) bool {
 
-	if len(password) == 0 || len(hash) == 0 {
+	if password == "" || hash == "" {
 		return false
 	}
 
@@ -885,7 +892,7 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 		return nil
 	}
 	trimmed := strings.TrimSpace(*u.GroupIDs)
-	if len(trimmed) == 0 {
+	if trimmed == "" {
 		return nil
 	}
 	return strings.Split(trimmed, ",")

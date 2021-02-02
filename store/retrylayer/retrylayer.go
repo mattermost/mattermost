@@ -6320,6 +6320,26 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 
 }
 
+func (s *RetryLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 
 	tries := 0
@@ -7346,6 +7366,26 @@ func (s *RetryLayerSharedChannelStore) GetRemotesStatus(channelId string) ([]*mo
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 
 	tries := 0
@@ -7426,6 +7466,26 @@ func (s *RetryLayerSharedChannelStore) SaveRemote(remote *model.SharedChannelRem
 
 }
 
+func (s *RetryLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.SaveUser(remote)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
 
 	tries := 0
@@ -7486,31 +7546,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTim
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpsertPost(post *model.Post) error {
+func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpsertPost(post)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
-
-}
-
-func (s *RetryLayerSharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-
-	tries := 0
-	for {
-		err := s.SharedChannelStore.UpsertReaction(reaction)
+		err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
 		if err == nil {
 			return nil
 		}
@@ -9043,6 +9083,26 @@ func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetPosts(threadId, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 		if err == nil {
 			return result, nil
 		}

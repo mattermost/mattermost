@@ -5847,6 +5847,24 @@ func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache
 	return result, err
 }
 
+func (s *OpenTracingLayerReactionStore) GetForPostSince(postId string, since int64, excludeRemoteId string, inclDeleted bool) ([]*model.Reaction, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetForPostSince")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ReactionStore.GetForPostSince(postId, since, excludeRemoteId, inclDeleted)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.PermanentDeleteBatch")
@@ -6778,6 +6796,24 @@ func (s *OpenTracingLayerSharedChannelStore) GetRemotesStatus(channelId string) 
 	return result, err
 }
 
+func (s *OpenTracingLayerSharedChannelStore) GetUser(userId string, remoteId string) (*model.SharedChannelUser, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.GetUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SharedChannelStore.GetUser(userId, remoteId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerSharedChannelStore) HasChannel(channelID string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.HasChannel")
@@ -6850,6 +6886,24 @@ func (s *OpenTracingLayerSharedChannelStore) SaveRemote(remote *model.SharedChan
 	return result, err
 }
 
+func (s *OpenTracingLayerSharedChannelStore) SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.SaveUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SharedChannelStore.SaveUser(remote)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.Update")
@@ -6904,34 +6958,16 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, s
 	return err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) UpsertPost(post *model.Post) error {
+func (s *OpenTracingLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpsertPost")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateUserLastSyncAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.SharedChannelStore.UpsertPost(post)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return err
-}
-
-func (s *OpenTracingLayerSharedChannelStore) UpsertReaction(reaction *model.Reaction) error {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpsertReaction")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	err := s.SharedChannelStore.UpsertReaction(reaction)
+	err := s.SharedChannelStore.UpdateUserLastSyncAt(id, syncTime)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8326,6 +8362,24 @@ func (s *OpenTracingLayerThreadStore) GetPosts(threadId string, since int64) ([]
 
 	defer span.Finish()
 	result, err := s.ThreadStore.GetPosts(threadId, since)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ThreadStore.GetThreadForUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
