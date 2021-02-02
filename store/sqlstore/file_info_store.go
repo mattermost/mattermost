@@ -607,7 +607,7 @@ func (fs SqlFileInfoStore) CountAll() (int64, error) {
 
 	count, err := fs.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
-		return int64(0), errors.Wrap(err, "failed to count Users")
+		return int64(0), errors.Wrap(err, "failed to count Files")
 	}
 	return count, nil
 }
