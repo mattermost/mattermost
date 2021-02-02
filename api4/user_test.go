@@ -3675,6 +3675,16 @@ func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessTok
 }
 
 func TestCreateUserAccessToken(t *testing.T) {
+	t.Run("local user cannot create access token, no API", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		_, resp := th.LocalClient.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("create token without permission", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -3695,29 +3705,14 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckNoError(t, resp)
 	})
 
-	t.Run("local user cannot create access token, no API", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
-		_, resp := th.LocalClient.CreateUserAccessToken(th.SystemAdminUser.Id, "test token")
-		CheckNotFoundStatus(t, resp)
-	})
-
 	t.Run("create token for invalid user id", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		t.Run("Client", func(t *testing.T) {
+		th.TestForSystemAdminAndClient(t, func(t *testing.T, client *model.Client4, userId string) {
 			_, resp := th.Client.CreateUserAccessToken("notarealuserid", "test token")
-			CheckBadRequestStatus(t, resp)
-		})
-
-		t.Run("SystemAdminClient", func(t *testing.T) {
-			_, resp := th.SystemAdminClient.CreateUserAccessToken("notarealuserid", "test token")
 			CheckBadRequestStatus(t, resp)
 		})
 	})
@@ -3728,13 +3723,8 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		t.Run("Client", func(t *testing.T) {
-			_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "")
-			CheckBadRequestStatus(t, resp)
-		})
-
-		t.Run("SystemAdminClient", func(t *testing.T) {
-			_, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "")
+		th.TestForSystemAdminAndClient(t, func(t *testing.T, client *model.Client4, userId string) {
+			_, resp := th.Client.CreateUserAccessToken(userId, "")
 			CheckBadRequestStatus(t, resp)
 		})
 	})
@@ -4195,10 +4185,11 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
-		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-			token, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+
+		th.TestForSystemAdminAndClient(t, func(t *testing.T, client *model.Client4, userId string) {
+			token, resp := client.CreateUserAccessToken(userId, "test token")
 			CheckNoError(t, resp)
-			assertToken(t, th, token, th.BasicUser.Id)
+			assertToken(t, th, token, userId)
 
 			ok, resp := client.RevokeUserAccessToken(token.Id)
 			CheckNoError(t, resp)
@@ -4213,13 +4204,30 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
-		token, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser2.Id, "test token")
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		CheckNoError(t, resp)
 
+		th.LoginBasic2()
 		ok, resp := th.Client.RevokeUserAccessToken(token.Id)
 		CheckForbiddenStatus(t, resp)
 		assert.False(t, ok, "should have failed")
+	})
+
+	t.Run("revoke token belonging to another user, sysadmin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNoError(t, resp)
+
+		ok, resp := th.SystemAdminClient.RevokeUserAccessToken(token.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok, "should have passed")
 	})
 
 	t.Run("revoke token for bot created by user", func(t *testing.T) {
@@ -4331,13 +4339,30 @@ func TestDisableUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
-		token, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser2.Id, "test token")
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		CheckNoError(t, resp)
 
+		th.LoginBasic2()
 		ok, resp := th.Client.DisableUserAccessToken(token.Id)
 		CheckForbiddenStatus(t, resp)
 		assert.False(t, ok, "should have failed")
+	})
+
+	t.Run("disable token belonging to another user, sysadmin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNoError(t, resp)
+
+		ok, resp := th.SystemAdminClient.DisableUserAccessToken(token.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok, "should have passed")
 	})
 
 	t.Run("disable token for bot created by user", func(t *testing.T) {
@@ -4431,8 +4456,8 @@ func TestEnableUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
 		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		CheckNoError(t, resp)
 		assertToken(t, th, token, th.BasicUser.Id)
@@ -4455,17 +4480,38 @@ func TestEnableUserAccessToken(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
-		token, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser2.Id, "test token")
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
 		CheckNoError(t, resp)
 
-		ok, resp := th.SystemAdminClient.DisableUserAccessToken(token.Id)
+		ok, resp := th.Client.DisableUserAccessToken(token.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok, "should have passed")
 
-		ok, resp = th.Client.DisableUserAccessToken(token.Id)
+		th.LoginBasic2()
+		ok, resp = th.Client.EnableUserAccessToken(token.Id)
 		CheckForbiddenStatus(t, resp)
 		assert.False(t, ok, "should have failed")
+	})
+
+	t.Run("enable token belonging to another user, sysadmin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNoError(t, resp)
+
+		ok, resp := th.Client.DisableUserAccessToken(token.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok, "should have passed")
+
+		ok, resp = th.SystemAdminClient.EnableUserAccessToken(token.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok, "should have passed")
 	})
 
 	t.Run("enable token for bot created by user", func(t *testing.T) {

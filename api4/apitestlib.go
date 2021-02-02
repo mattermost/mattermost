@@ -780,6 +780,23 @@ func (th *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T
 	})
 }
 
+// TestForSystemAdminAndClient runs a test function for both
+// SystemAdmin and User clients. 
+func (th *TestHelper) TestForSystemAdminAndClient(t *testing.T, f func(*testing.T, *model.Client4, string), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"Client", func(t *testing.T) {
+		f(t, th.Client, th.BasicUser.Id)
+	})
+
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
+		f(t, th.SystemAdminClient, th.SystemAdminUser.Id)
+	})
+}
+
 // TestForAllClients runs a test function for all the clients
 // registered in the TestHelper
 func (th *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
