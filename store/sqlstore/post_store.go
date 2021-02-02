@@ -142,7 +142,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 			}
 		}
 
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			continue
 		}
 
@@ -201,7 +201,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 
 	var unknownRepliesPosts []*model.Post
 	for _, post := range posts {
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			count, ok := rootIds[post.Id]
 			if ok {
 				post.ReplyCount += int64(count)
@@ -287,7 +287,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	time := model.GetMillis()
 	s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
-	if len(newPost.RootId) > 0 {
+	if newPost.RootId != "" {
 		s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 		s.GetMaster().Exec("UPDATE Threads SET LastReplyAt = :UpdateAt WHERE PostId = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 	}
@@ -321,7 +321,7 @@ func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, in
 
 			return nil, idx, errors.Wrap(err, "failed to update Post")
 		}
-		if len(post.RootId) > 0 {
+		if post.RootId != "" {
 			tx.Exec("UPDATE Threads SET LastReplyAt = :UpdateAt WHERE PostId = :RootId", map[string]interface{}{"UpdateAt": updateAt, "RootId": post.Id})
 		}
 	}
@@ -427,7 +427,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	return pl, nil
 }
 func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*model.PostList, error) {
-	if len(id) == 0 {
+	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
@@ -462,7 +462,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 	}
 	pl := model.NewPostList()
 
-	if len(id) == 0 {
+	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
@@ -485,7 +485,7 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 			rootId = post.Id
 		}
 
-		if len(rootId) == 0 {
+		if rootId == "" {
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
@@ -1254,7 +1254,7 @@ var specialSearchChar = []string{
 func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, queryParams map[string]interface{}) (string, map[string]interface{}) {
 	searchQuery := ""
 	// handle after: before: on: filters
-	if len(params.OnDate) > 0 {
+	if params.OnDate != "" {
 		onDateStart, onDateEnd := params.GetOnDateMillis()
 		queryParams["OnDateStart"] = strconv.FormatInt(onDateStart, 10)
 		queryParams["OnDateEnd"] = strconv.FormatInt(onDateEnd, 10)
@@ -1263,7 +1263,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 		searchQuery += "AND CreateAt BETWEEN :OnDateStart AND :OnDateEnd "
 	} else {
 
-		if len(params.ExcludedDate) > 0 {
+		if params.ExcludedDate != "" {
 			excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
 			queryParams["ExcludedDateStart"] = strconv.FormatInt(excludedDateStart, 10)
 			queryParams["ExcludedDateEnd"] = strconv.FormatInt(excludedDateEnd, 10)
@@ -1271,7 +1271,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 			searchQuery += "AND CreateAt NOT BETWEEN :ExcludedDateStart AND :ExcludedDateEnd "
 		}
 
-		if len(params.AfterDate) > 0 {
+		if params.AfterDate != "" {
 			afterDate := params.GetAfterDateMillis()
 			queryParams["AfterDate"] = strconv.FormatInt(afterDate, 10)
 
@@ -1279,7 +1279,7 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 			searchQuery += "AND CreateAt >= :AfterDate "
 		}
 
-		if len(params.BeforeDate) > 0 {
+		if params.BeforeDate != "" {
 			beforeDate := params.GetBeforeDateMillis()
 			queryParams["BeforeDate"] = strconv.FormatInt(beforeDate, 10)
 
@@ -1287,14 +1287,14 @@ func (s *SqlPostStore) buildCreateDateFilterClause(params *model.SearchParams, q
 			searchQuery += "AND CreateAt <= :BeforeDate "
 		}
 
-		if len(params.ExcludedAfterDate) > 0 {
+		if params.ExcludedAfterDate != "" {
 			afterDate := params.GetExcludedAfterDateMillis()
 			queryParams["ExcludedAfterDate"] = strconv.FormatInt(afterDate, 10)
 
 			searchQuery += "AND CreateAt < :ExcludedAfterDate "
 		}
 
-		if len(params.ExcludedBeforeDate) > 0 {
+		if params.ExcludedBeforeDate != "" {
 			beforeDate := params.GetExcludedBeforeDateMillis()
 			queryParams["ExcludedBeforeDate"] = strconv.FormatInt(beforeDate, 10)
 
@@ -1394,7 +1394,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
 		len(params.FromUsers) == 0 && len(params.ExcludedUsers) == 0 &&
-		len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
+		params.OnDate == "" && params.AfterDate == "" && params.BeforeDate == "" {
 		return list, nil
 	}
 
@@ -1583,7 +1583,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		        COUNT(DISTINCT Posts.UserId) AS Value
 		FROM Posts`
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 	} else {
 		query += " WHERE"
@@ -1600,7 +1600,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
 			FROM Posts`
 
-		if len(teamId) > 0 {
+		if teamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
@@ -1638,7 +1638,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
 	}
 
-	if len(options.TeamId) > 0 {
+	if options.TeamId != "" {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 	} else {
 		query += " WHERE"
@@ -1660,7 +1660,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
 		}
 
-		if len(options.TeamId) > 0 {
+		if options.TeamId != "" {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
@@ -1695,7 +1695,7 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 		Select("COUNT(p.Id) AS Value").
 		From("Posts p")
 
-	if len(teamId) > 0 {
+	if teamId != "" {
 		query = query.
 			Join("Channels c ON (c.Id = p.ChannelId)").
 			Where(sq.Eq{"c.TeamId": teamId})
@@ -2110,10 +2110,11 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string, permanent b
 		}
 		return nil
 	}
-	if len(rootId) > 0 {
+	if rootId != "" {
 		thread, err := s.Thread().Get(rootId)
 		if err != nil {
-			if err != sql.ErrNoRows {
+			var nfErr *store.ErrNotFound
+			if !errors.As(err, &nfErr) {
 				return errors.Wrap(err, "failed to get a thread")
 			}
 		}
@@ -2132,7 +2133,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
-		if len(post.RootId) == 0 {
+		if post.RootId == "" {
 			continue
 		}
 		rootIds = append(rootIds, post.RootId)

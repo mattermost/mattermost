@@ -28,9 +28,7 @@ const (
 	ResponseUsersSynced          = "users_synced"
 )
 
-// Mocks can be re-generated with:
-// ./bin/mockery -dir=./services/sharedchannel -name=ServerIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
-// ./bin/mockery -dir=./services/sharedchannel -name=AppIface -output=./services/sharedchannel -inpkg -outpkg=sharedchannel -testonly
+// Mocks can be re-generated with `make sharedchannel-mocks`.
 
 type ServerIface interface {
 	Config() *model.Config
@@ -45,6 +43,8 @@ type ServerIface interface {
 type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
+	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
+	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError
 	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
 	UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
