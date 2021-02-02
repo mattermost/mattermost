@@ -529,7 +529,7 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache, collapsedThread
 	}
 	sql, args, _ := q.ToSql()
 	var et etagPosts
-	err := s.GetReplica().SelectOne(&et, sql, args)
+	err := s.GetReplica().SelectOne(&et, sql, args...)
 	var result string
 	if err != nil {
 		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
