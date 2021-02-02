@@ -4,11 +4,13 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"runtime"
 	"strconv"
 	"time"
@@ -64,6 +66,64 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
+
+	api.BaseRoutes.System.Handle("/support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
+}
+
+func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
+	const FileMime = "application/zip"
+	const OutputDirectory = "support_packet"
+
+	// Checking to see if the user is a admin of any sort or not
+	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
+	if c.App.Srv().License() == nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
+		return
+	}
+
+	fileDatas := c.App.GenerateSupportPacket()
+
+	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
+	now := time.Now()
+	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
+
+	fileStorageBackend, fileBackendErr := c.App.FileBackend()
+	if fileBackendErr != nil {
+		c.Err = fileBackendErr
+		return
+	}
+
+	// We do this incase we get concurrent requests, we will always have a unique directory.
+	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
+	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
+	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
+	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+	fileBytesReader := bytes.NewReader(fileBytes)
+
+	// Send the zip file back to client
+	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+	// already sets that for us
+	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+	if writeFileResponseErr != nil {
+		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
+		return
+	}
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
