@@ -52,7 +52,7 @@ func (sp *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.C
 
 	status := model.NewAutocompleteData("status", "", T("api.command_share.channel_status.help"))
 
-	sync := model.NewAutocompleteData("sync", "", T("Forces a sync with remote instances this shared channel"))
+	sync := model.NewAutocompleteData("sync", "", T("api.command_share.sync.help"))
 
 	share.AddCommand(shareChannel)
 	share.AddCommand(unshareChannel)

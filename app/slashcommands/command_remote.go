@@ -179,7 +179,7 @@ func (rp *RemoteProvider) doAccept(a *app.App, args *model.CommandArgs, margs ma
 
 	rcs, _ := a.GetRemoteClusterService()
 	if rcs == nil {
-		return responsef(args.T("api.command_remote.service_not_enable"))
+		return responsef(args.T("api.command_remote.service_not_enabled"))
 	}
 
 	url := a.GetSiteURL()
