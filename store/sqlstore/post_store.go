@@ -881,24 +881,46 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 			}
 		}
 		rootQuery := s.getQueryBuilder().Select("p.*, 0 AS ReplyCount")
-		rootQuery = rootQuery.From("Posts p").
-			Where(sq.And{
-				sq.Eq{"Id": rootIds},
-				sq.Eq{"p.ChannelId": options.ChannelId},
-				sq.Eq{"p.DeleteAt": 0},
-			})
-
-		if !options.SkipFetchThreads {
-			byRootQuery := sq.Select("p.*, 0 AS ReplyCount").
-				From("Posts p").
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			rootQuery = rootQuery.From("Posts p").
 				Where(sq.And{
-					sq.Eq{"p.RootId": rootIds},
+					sq.Eq{"Id": rootIds},
 					sq.Eq{"p.ChannelId": options.ChannelId},
 					sq.Eq{"p.DeleteAt": 0},
-				}).Prefix("UNION ").Suffix(" ORDER BY CreateAt DESC")
-			rootQuery = rootQuery.SuffixExpr(byRootQuery)
+				})
+
+			if !options.SkipFetchThreads {
+				byRootQuery := sq.Select("p.*, 0 AS ReplyCount").
+					From("Posts p").
+					Where(sq.And{
+						sq.Eq{"p.RootId": rootIds},
+						sq.Eq{"p.ChannelId": options.ChannelId},
+						sq.Eq{"p.DeleteAt": 0},
+					}).Prefix("UNION ").Suffix(" ORDER BY CreateAt DESC")
+				rootQuery = rootQuery.SuffixExpr(byRootQuery)
+			} else {
+				rootQuery = rootQuery.OrderBy("p.CreateAt DESC")
+			}
 		} else {
-			rootQuery = rootQuery.OrderBy("p.CreateAt DESC")
+			rootQuery = rootQuery.From("cte").
+				LeftJoin("Posts p ON cte.id=p.id").
+				Where(sq.And{
+					sq.Eq{"p.ChannelId": options.ChannelId},
+					sq.Eq{"p.DeleteAt": 0},
+				}).Prefix("WITH cte AS (SELECT unnest(ARRAY['" + strings.Join(rootIds, "','") + "']) as id) ")
+
+			if !options.SkipFetchThreads {
+				byRootQuery := sq.Select("p.*, 0 AS ReplyCount").
+					From("cte").
+					LeftJoin("Posts p ON cte.id=p.rootId").
+					Where(sq.And{
+						sq.Eq{"p.ChannelId": options.ChannelId},
+						sq.Eq{"p.DeleteAt": 0},
+					}).Prefix("UNION ").Suffix(" ORDER BY CreateAt DESC")
+				rootQuery = rootQuery.SuffixExpr(byRootQuery)
+			} else {
+				rootQuery = rootQuery.OrderBy("p.CreateAt DESC")
+			}
 		}
 
 		rootQueryString, rootArgs, err := rootQuery.ToSql()
@@ -980,11 +1002,16 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
+		Limit(1)
+
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
-		Limit(1)
+		query = query.OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort)
+	} else {
+		query = query.OrderBy("CreateAt " + sort)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
