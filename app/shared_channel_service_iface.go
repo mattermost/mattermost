@@ -3,14 +3,17 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import (
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/sharedchannel"
+)
 
 // SharedChannelServiceIFace is the interface to the shared channel service
 type SharedChannelServiceIFace interface {
 	Shutdown() error
 	Start() error
 	NotifyChannelChanged(channelId string)
-	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error
+	SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
 }
 

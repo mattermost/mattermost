@@ -137,6 +137,31 @@ func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.A
 	return r0
 }
 
+// GetOrCreateDirectChannel provides a mock function with given fields: userId, otherUserId
+func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+	ret := _m.Called(userId, otherUserId)
+
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(string, string) *model.Channel); ok {
+		r0 = rf(userId, otherUserId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, otherUserId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(channel, channelModerationsPatch)

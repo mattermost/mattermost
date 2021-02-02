@@ -88,6 +88,8 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
+		ch := new(model.Channel)
+		fmt.Println(fmt.Sprintf("Header -->>> %s", ch.Header))
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
