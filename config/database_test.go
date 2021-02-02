@@ -120,7 +120,7 @@ func newTestDatabaseStore(t *testing.T, customDefaults *model.Config) (*config.S
 	dss, err := config.NewDatabaseStore(getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource))
 	require.NoError(t, err)
 
-	cStore, err := config.NewStoreFromBacking(dss, customDefaults)
+	cStore, err := config.NewStoreFromBacking(dss, customDefaults, false)
 	require.NoError(t, err)
 
 	return cStore, nil

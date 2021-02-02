@@ -153,13 +153,19 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		close(totalUnreadThreadsChan)
 	}()
 	go func() {
+		newFetchConditions := fetchConditions
+
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+
 		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
 			Select("COUNT(ThreadMemberships.PostId)").
 			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
 			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
 			From("ThreadMemberships").
-			Where(fetchConditions).ToSql()
+			Where(newFetchConditions).ToSql()
 
 		totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
 		totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
@@ -180,9 +186,25 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	go func() {
 		newFetchConditions := fetchConditions
 		if opts.Since > 0 {
-			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
+			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
 		}
-
+		order := "DESC"
+		if opts.Before != "" {
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
+			}
+		}
+		if opts.After != "" {
+			order = "ASC"
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
+			}
+		}
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
 			Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
@@ -192,9 +214,9 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
 			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 			Where(newFetchConditions).
-			OrderBy("Threads.LastReplyAt DESC").
-			Offset(pageSize * opts.Page).
+			OrderBy("Threads.LastReplyAt " + order).
 			Limit(pageSize).ToSql()
+
 		_, err := s.GetReplica().Select(&threads, query, args...)
 		threadsChan <- store.StoreResult{Data: threads, NErr: err}
 		close(threadsChan)
