@@ -3215,12 +3215,12 @@
     "translation": "Could not add user initial to default profile picture."
   },
   {
-    "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
-  },
-  {
     "id": "api.user.create_token.forbidden.app_error",
     "translation": "You cannot create an access token for another user."
+  },
+  {
+    "id": "api.user.create_user.accepted_domain.app_error",
+    "translation": "The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
