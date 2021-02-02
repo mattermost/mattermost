@@ -105,22 +105,6 @@ func (_m *MockAppIface) CreatePost(post *model.Post, channel *model.Channel, tri
 	return r0, r1
 }
 
-// DeleteChannel provides a mock function with given fields: channel, userId
-func (_m *MockAppIface) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
-	ret := _m.Called(channel, userId)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Channel, string) *model.AppError); ok {
-		r0 = rf(channel, userId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // DeleteReactionForPost provides a mock function with given fields: reaction
 func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	ret := _m.Called(reaction)
@@ -160,6 +144,22 @@ func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel
 	}
 
 	return r0, r1
+}
+
+// PermanentDeleteChannel provides a mock function with given fields: channel
+func (_m *MockAppIface) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+	ret := _m.Called(channel)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Channel) *model.AppError); ok {
+		r0 = rf(channel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // SaveReactionForPost provides a mock function with given fields: reaction
