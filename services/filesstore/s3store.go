@@ -42,18 +42,13 @@ const (
 )
 
 var (
-	imageExtensions = [7]string{".jpg", ".jpeg", ".gif", ".bmp", ".png", ".tiff", "tif"}
+	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
 	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
 )
 
 func isFileExtImage(ext string) bool {
 	ext = strings.ToLower(ext)
-	for _, imgExt := range imageExtensions {
-		if ext == imgExt {
-			return true
-		}
-	}
-	return false
+	return imageExtensions[ext]
 }
 
 func getImageMimeType(ext string) string {

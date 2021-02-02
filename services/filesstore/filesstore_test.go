@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
-func RandomString() string {
+func randomString() string {
 	return uuid.NewRandom().String()
 }
 
@@ -103,7 +103,7 @@ func (s *FileBackendTestSuite) TestConnection() {
 
 func (s *FileBackendTestSuite) TestReadWriteFile() {
 	b := []byte("test")
-	path := "tests/" + RandomString()
+	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -119,7 +119,7 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 
 func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 	b := []byte("testimage")
-	path := "tests/" + RandomString() + ".png"
+	path := "tests/" + randomString() + ".png"
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -135,7 +135,7 @@ func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 
 func (s *FileBackendTestSuite) TestFileExists() {
 	b := []byte("testimage")
-	path := "tests/" + RandomString() + ".png"
+	path := "tests/" + randomString() + ".png"
 
 	_, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -152,8 +152,8 @@ func (s *FileBackendTestSuite) TestFileExists() {
 
 func (s *FileBackendTestSuite) TestCopyFile() {
 	b := []byte("test")
-	path1 := "tests/" + RandomString()
-	path2 := "tests/" + RandomString()
+	path1 := "tests/" + randomString()
+	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -176,8 +176,8 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 	b := []byte("test")
-	path1 := "tests/" + RandomString()
-	path2 := "tests/newdirectory/" + RandomString()
+	path1 := "tests/" + randomString()
+	path2 := "tests/newdirectory/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -197,8 +197,8 @@ func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 
 func (s *FileBackendTestSuite) TestMoveFile() {
 	b := []byte("test")
-	path1 := "tests/" + RandomString()
-	path2 := "tests/" + RandomString()
+	path1 := "tests/" + randomString()
+	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -219,7 +219,7 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 
 func (s *FileBackendTestSuite) TestRemoveFile() {
 	b := []byte("test")
-	path := "tests/" + RandomString()
+	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -246,8 +246,8 @@ func (s *FileBackendTestSuite) TestRemoveFile() {
 
 func (s *FileBackendTestSuite) TestListDirectory() {
 	b := []byte("test")
-	path1 := "19700101/" + RandomString()
-	path2 := "19800101/" + RandomString()
+	path1 := "19700101/" + randomString()
+	path2 := "19800101/" + randomString()
 
 	paths, err := s.backend.ListDirectory("19700101")
 	s.Nil(err)
@@ -317,7 +317,7 @@ func (s *FileBackendTestSuite) TestRemoveDirectory() {
 
 func (s *FileBackendTestSuite) TestAppendFile() {
 	s.Run("should fail if target file is missing", func() {
-		path := "tests/" + RandomString()
+		path := "tests/" + randomString()
 		b := make([]byte, 1024)
 		written, err := s.backend.AppendFile(bytes.NewReader(b), path)
 		s.Error(err)
@@ -331,7 +331,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		for i := range b {
 			b[i] = 'A'
 		}
-		path := "tests/" + RandomString()
+		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 		s.Nil(err)
@@ -377,7 +377,7 @@ func (s *FileBackendTestSuite) TestFileSize() {
 
 	s.Run("valid file", func() {
 		data := make([]byte, rand.Intn(1024*1024)+1)
-		path := "tests/" + RandomString()
+		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
 		s.Nil(err)
@@ -398,7 +398,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 	})
 
 	s.Run("valid file", func() {
-		path := "tests/" + RandomString()
+		path := "tests/" + randomString()
 		data := []byte("some data")
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
@@ -413,7 +413,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 		// We wait 1 second so that the times will differ enough to be testable.
 		time.Sleep(1 * time.Second)
 
-		path2 := "tests/" + RandomString()
+		path2 := "tests/" + randomString()
 		written, err = s.backend.WriteFile(bytes.NewReader(data), path2)
 		s.Nil(err)
 		s.EqualValues(len(data), written)
@@ -445,7 +445,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 	// This is needed to create the bucket if it doesn't exist.
 	require.Nil(b, backend.TestConnection())
 
-	path := "tests/" + RandomString()
+	path := "tests/" + randomString()
 	size := 1 * 1024 * 1024
 	data := make([]byte, size)
 
