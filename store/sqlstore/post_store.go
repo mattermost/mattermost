@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -454,7 +455,7 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(id string, extended bool) (*m
 	return s.prepareThreadedResponse([]*postWithExtra{&post}, extended, false)
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
+func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error) {
 	if collapsedThreads {
 		return s.getPostWithCollapsedThreads(id, collapsedThreadsExtended)
 	}
@@ -464,9 +465,16 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads, collapsedThreads, collap
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
+	var dbMap *gorp.DbMap
+	if hasMaster(ctx) {
+		dbMap = s.GetMaster()
+	} else {
+		dbMap = s.GetReplica()
+	}
+
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
-	err := s.SelectOneLazy(&post, postFetchQuery, map[string]interface{}{"Id": id})
+	err := dbMap.SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)

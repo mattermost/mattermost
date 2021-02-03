@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"context"
-	"database/sql"
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
@@ -378,61 +377,6 @@ func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
-}
-
-// SelectOneLazy returns the result of (*gorp.DbMap).SelectOne from a read replica
-// database but if that results in a sql.ErrNoRows then it retries against the
-// master database.
-//
-// The retry is enabled by (model.SqlSettings).ReplicaLazyReads and (model.FeatureFlags).ReplicaLazyReads.
-func (ss *SqlStore) SelectOneLazy(holder interface{}, query string, args ...interface{}) error {
-	err := ss.GetReplica().SelectOne(holder, query, args...)
-	if err != nil {
-		if err == sql.ErrNoRows && amIConfiguredToRetryMaster(ss) {
-			mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "SelectOneLazy"), mlog.String("query", query), mlog.Any("args", args))
-			return ss.GetMaster().SelectOne(holder, query, args...)
-		}
-		return err
-	}
-	return nil
-}
-
-type LazyRowScanner struct {
-	store *SqlStore
-	query string
-	args  []interface{}
-}
-
-// GetLazyRowScanner creates a new LazyScanner.
-func (ss *SqlStore) GetLazyRowScanner(query string, args ...interface{}) *LazyRowScanner {
-	return &LazyRowScanner{
-		store: ss,
-		query: query,
-		args:  args,
-	}
-}
-
-// Scan gets a *dbsql.Row instance from a read replica database and scans the
-// result. If there's a sql.ErrNoRows error then it retries the procedure
-// against the master database.
-//
-// The retry is enabled by (model.SqlSettings).ReplicaLazyReads and (model.FeatureFlags).ReplicaLazyReads.
-func (ls *LazyRowScanner) Scan(dest ...interface{}) error {
-	row := ls.store.GetReplica().Db.QueryRow(ls.query, ls.args...)
-	err := row.Scan(dest...)
-	if err != nil {
-		if err == sql.ErrNoRows && amIConfiguredToRetryMaster(ls.store) {
-			mlog.Debug(DebugMsgReadReplicaMiss, mlog.String("method", "Scan"), mlog.String("query", ls.query), mlog.Any("args", ls.args))
-			row = ls.store.GetMaster().Db.QueryRow(ls.query, ls.args...)
-			return row.Scan(dest...)
-		}
-		return err
-	}
-	return nil
-}
-
-func amIConfiguredToRetryMaster(store *SqlStore) bool {
-	return store.settings.ReplicaLazyReads != nil && *store.settings.ReplicaLazyReads && store.featureFlags.ReplicaLazyReads && len(store.replicas) > 0
 }
 
 func (ss *SqlStore) GetReplica() *gorp.DbMap {
