@@ -20,6 +20,9 @@ type FeatureFlags struct {
 	CollapsedThreads bool
 	// Feature flags to control plugin versions
 	PluginIncidentManagement string `plugin_id:"com.mattermost.plugin-incident-management"`
+
+	// AppsEnabled toggle the Apps framework functionalities both in server and client side
+	AppsEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -27,6 +30,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
+	f.AppsEnabled = true
 	f.PluginIncidentManagement = "1.1.1"
 }
 
