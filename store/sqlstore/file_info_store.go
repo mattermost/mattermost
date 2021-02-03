@@ -147,11 +147,13 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 		From("FileInfo")
 
 	if len(opt.ChannelIds) > 0 {
+		// TODO: Migrate this to use CTE for cockroach
 		query = query.Join("Posts ON FileInfo.PostId = Posts.Id").
 			Where(sq.Eq{"Posts.ChannelId": opt.ChannelIds})
 	}
 
 	if len(opt.UserIds) > 0 {
+		// TODO: Migrate this to use CTE for cockroach
 		query = query.Where(sq.Eq{"FileInfo.CreatorId": opt.UserIds})
 	}
 

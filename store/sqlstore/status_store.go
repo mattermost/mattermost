@@ -75,6 +75,14 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 		Select("UserId, Status, Manual, LastActivityAt").
 		From("Status").
 		Where(sq.Eq{"UserId": userIds})
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = s.getQueryBuilder().
+			Select("s.UserId, s.Status, s.Manual, s.LastActivityAt").
+			From("cte").
+			LeftJoin("Status s ON (cte.id=s.UserId)").
+			Where(sq.NotEq{"s.UserId": nil}).
+			Prefix("WITH cte as (SELECT unnest(ARRAY['" + strings.Join(userIds, "','") + "']) as id) ")
+	}
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "status_tosql")

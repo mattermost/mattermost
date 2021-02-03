@@ -90,7 +90,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
-	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
+	// s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
 	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
@@ -230,6 +230,7 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 		RootId string
 		Count  int64
 	}{}
+	// TODO: Migrate this to CTE for cockroach
 	query := s.getQueryBuilder().Select("RootId, COUNT(Id) AS Count").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
@@ -775,6 +776,7 @@ func (s *SqlPostStore) addReplyCounts(posts []*model.Post, channelId string, use
 			postIds = append(postIds, post.RootId)
 		}
 	}
+	// TODO: Migrate to CTE in cockroachdb
 	query := s.getQueryBuilder().Select("PostId, ReplyCount").
 		From("Threads").
 		Where(sq.Eq{"postid": postIds})
@@ -1002,16 +1004,11 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 			sq.Eq{"ChannelId": channelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		Limit(1)
-
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
 		// See MM-23369.
-		query = query.OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort)
-	} else {
-		query = query.OrderBy("CreateAt " + sort)
-	}
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
+		Limit(1)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1691,6 +1688,7 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	keys, params := MapStringsToQueryParams(postIds, "Post")
 
+	// TODO Migrate this to cockroachdb CTE
 	query := `
 	    SELECT p.*, 0 as ReplyCount FROM Posts p
 		WHERE p.Id IN ` + keys + ` ORDER BY CreateAt DESC
@@ -1870,6 +1868,7 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 		}
 
 		keys, params := MapStringsToQueryParams(rootIds, "PostId")
+		// TODO MIGRATE THE SUBQUERY TO USE CTE
 		_, err = s.GetSearchReplica().Select(&postsForExport, `
 			SELECT
 				p1.*,
@@ -1959,6 +1958,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	for _, post := range posts {
 		channelIds = append(channelIds, post.ChannelId)
 	}
+	// TODO Migrate this to use CTE for cockroachdb
 	query = s.getQueryBuilder().
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
@@ -2108,6 +2108,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 		return nil
 	}
 	now := model.GetMillis()
+	// TODO: Migrate this query to use CTE
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
 	var threadsByRoots []*model.Thread
 	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {

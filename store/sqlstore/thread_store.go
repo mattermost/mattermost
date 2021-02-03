@@ -233,6 +233,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		}
 	}
 	var users []*model.User
+	// TODO: Migrate this to use CTE for cockroach
 	if opts.Extended {
 		query, args, _ := s.getQueryBuilder().Select("*").From("Users").Where(sq.Eq{"Id": userIds}).ToSql()
 		if _, err := s.GetReplica().Select(&users, query, args...); err != nil {
@@ -291,6 +292,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
 		membershipIds = append(membershipIds, m.PostId)
 	}
 	timestamp := model.GetMillis()
+	// TODO: Migrate this to use CTE for cockroach
 	query, args, _ := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"PostId": membershipIds}).
@@ -419,6 +421,7 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, followi
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	var changedThreads []string
+	// TODO: Migrate this to use CTE for cockroach
 	query, args, _ := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads").

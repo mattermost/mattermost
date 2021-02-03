@@ -95,6 +95,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
 
+	// TODO: Migrate this to use CTE for cockroach
 	if _, err := s.GetReplica().Select(&reactions, `SELECT
 				*
 			FROM

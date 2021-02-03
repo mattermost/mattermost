@@ -911,12 +911,23 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 		}).
 		OrderBy("u.Username ASC")
 
+	if us.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = us.getQueryBuilder().
+			Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
+				"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate").
+			From("cte").
+			LeftJoin("Users u ON (cte.id=u.id)").
+			LeftJoin("Bots b ON ( b.UserId = cte.Id )").
+			Where(sq.NotEq{"u.Id": nil}).
+			Prefix("WITH cte as (SELECT unnest(ARRAY['" + strings.Join(userIds, "','") + "']) as id) ")
+
+	}
+
 	if options.Since > 0 {
 		query = query.Where(sq.Gt(map[string]interface{}{
 			"u.UpdateAt": options.Since,
 		}))
 	}
-
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	queryString, args, err := query.ToSql()
@@ -953,6 +964,7 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
           ChannelId = cm.ChannelId
         )`, userId)
 
+	// TODO: Migrate this to use CTE for cockroach
 	query := us.getQueryBuilder().
 		Select("u.*, cm.ChannelId").
 		From("Users u").
@@ -1607,6 +1619,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		userIds = append(userIds, user.Id)
 	}
 
+	// TODO: Migrate this to use CTE for cockroach
 	var channelMembers []*model.ChannelMember
 	channelMembersQuery, args, _ := us.getQueryBuilder().
 		Select(`

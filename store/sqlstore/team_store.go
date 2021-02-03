@@ -1137,6 +1137,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 		return nil, errors.New("invalid list of user ids")
 	}
 
+	// TODO: Migrate this to use CTE for cockroach
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userIds}).
@@ -1250,6 +1251,7 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 }
 
 func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
+	// TODO: Migrate this to use CTE for cockroach
 	builder := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).
@@ -1557,6 +1559,7 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 
 //UserBelongsToTeams returns true if the user denoted by userId is a member of the teams in the teamIds string array.
 func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, error) {
+	// TODO: Migrate this to use CTE for cockroach
 	idQuery := sq.Eq{
 		"UserId":   userId,
 		"TeamId":   teamIds,

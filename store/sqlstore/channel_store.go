@@ -1151,7 +1151,7 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 	}
 
 	data := &model.ChannelList{}
-	_, err := s.GetReplica().Select(data, `
+	query := `
 		SELECT
 			Channels.*
 		FROM
@@ -1161,9 +1161,27 @@ func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds
 		WHERE
 			pc.TeamId = :teamId
 		AND pc.DeleteAt = 0
-		AND pc.Id IN (`+idQuery+`)
+		AND pc.Id IN (` + idQuery + `)
 		ORDER BY pc.DisplayName
-		`, props)
+		`
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = `
+			WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(channelIds, "','") + `']) id)
+			SELECT
+				Channels.*
+			FROM
+				cte
+			LEFT JOIN
+				Channels ON (Channels.Id = cte.Id)
+			LEFT JOIN
+				PublicChannels pc ON (pc.Id = cte.Id)
+			WHERE
+				pc.TeamId = :teamId AND pc.Id IS NOT NULL
+			AND pc.DeleteAt = 0
+			ORDER BY pc.DisplayName
+		`
+	}
+	_, err := s.GetReplica().Select(data, query, props)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels")
@@ -2008,6 +2026,7 @@ func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (i
 }
 
 func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error {
+	// TODO: Migrate this to use CTE for cockroach
 	builder := s.getQueryBuilder().
 		Delete("ChannelMembers").
 		Where(sq.Eq{"ChannelId": channelId}).
@@ -2021,6 +2040,7 @@ func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error
 		return errors.Wrap(err, "failed to delete ChannelMembers")
 	}
 
+	// TODO: Migrate this to use CTE for cockroach
 	// cleanup sidebarchannels table if the user is no longer a member of that channel
 	query, args, err = s.getQueryBuilder().
 		Delete("SidebarChannels").
@@ -2332,6 +2352,18 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 	query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
 	if !includeDeleted {
 		query = `SELECT * FROM Channels WHERE DeleteAt=0 AND Id IN ` + keys + ` ORDER BY Name`
+	}
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = `
+			WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(channelIds, "','") + `']) id)
+			SELECT Channels.* FROM cte LEFT JOIN Channels ON Channels.Id = cte.id WHERE Channels.Id IS NOT NULL ORDER BY Channels.Name
+		`
+		if !includeDeleted {
+			query = `
+				WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(channelIds, "','") + `']) id)
+				SELECT Channels.* FROM cte LEFT JOIN Channels ON Channels.Id = cte.id WHERE Channels.Id IS NOT NULL AND Channels.DeleteAt=0 ORDER BY Channels.Name
+			`
+		}
 	}
 
 	var channels []*model.Channel
@@ -3004,7 +3036,34 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*m
 	keys, props := MapStringsToQueryParams(userIds, "User")
 	props["ChannelId"] = channelId
 
-	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN "+keys, props); err != nil {
+	query := CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY + "WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN " + keys
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = `
+			WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(userIds, "','") + `']) id)
+			SELECT
+				ChannelMembers.*,
+				TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
+				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
+				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
+				ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
+				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
+				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
+			FROM cte
+		    LEFT JOIN
+			    ChannelMembers ON cte.id = ChannelMembers.UserId
+			INNER JOIN
+				Channels ON ChannelMembers.ChannelId = Channels.Id
+			LEFT JOIN
+				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
+			LEFT JOIN
+				Teams ON Channels.TeamId = Teams.Id
+			LEFT JOIN
+				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
+            WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IS NOT NULL
+			`
+	}
+
+	if _, err := s.GetReplica().Select(&dbMembers, query, props); err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers with channelId=%s and userId in %v", channelId, userIds)
 	}
 
@@ -3266,6 +3325,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 	for _, channel := range directChannelsForExport {
 		channelIds = append(channelIds, channel.Id)
 	}
+	// TODO: Migrate this to use CTE for cockroach
 	query = s.getQueryBuilder().
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
@@ -3326,6 +3386,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, l
 }
 
 func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, error) {
+	// TODO: Migrate this to use CTE for cockroach
 	query := s.getQueryBuilder().
 		Select("Count(*)").
 		From("ChannelMembers").

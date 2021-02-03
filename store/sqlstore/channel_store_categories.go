@@ -293,6 +293,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
 					AND SidebarCategories.TeamId = :TeamId`
 		} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+			// TODO: Migrate this to use CTE for cockroach
 			deleteQuery = `
 				DELETE FROM
 					SidebarChannels
@@ -931,6 +932,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transa
 			"SortOrder",
 		).
 		Select(
+			// TODO: Migrate this to use CTE for cockroach
 			sq.Select().
 				Column("? as ChannelId", preference.Name).
 				Column("SidebarCategories.Id as CategoryId").
