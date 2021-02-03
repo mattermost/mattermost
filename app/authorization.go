@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 )
 
 func (a *App) MakePermissionError(permissions []*model.Permission) *model.AppError {
@@ -61,7 +60,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return false
 	}
 
-	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(sqlstore.WithMaster(context.Background()), session.UserId, false, true)
+	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), session.UserId, true, true)
 
 	var channelRoles []string
 	if err == nil {
