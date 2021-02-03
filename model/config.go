@@ -296,6 +296,7 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
+	RestrictLinkPreviews                              *string  `access:"site"`
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -400,6 +401,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(true)
+	}
+
+	if s.RestrictLinkPreviews == nil {
+		s.RestrictLinkPreviews = NewString("")
 	}
 
 	if s.EnableTesting == nil {
