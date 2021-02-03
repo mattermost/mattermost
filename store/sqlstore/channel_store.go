@@ -563,7 +563,7 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
-	channel.Shared = model.NewBool(otherUser.IsRemote() || user.IsRemote())
+	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
 
 	cm1 := &model.ChannelMember{
 		UserId:      user.Id,

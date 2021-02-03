@@ -205,6 +205,10 @@ func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.Rem
 }
 
 func (scs *Service) createDirectChannel(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
+	if invite.DirectParticipantID == "" {
+		return nil, fmt.Errorf("cannot create direct channel `%s` without participant", invite.ChannelId)
+	}
+
 	channel, appErr := scs.app.GetOrCreateDirectChannel(rc.CreatorId, invite.DirectParticipantID)
 	if appErr != nil {
 		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, appErr)

@@ -72,11 +72,18 @@ func handleInvitation(s *Server, syncService SharedChannelServiceIFace, event *m
 		return
 	}
 
-	// TODO: Replace this with the new User.GetMany that is being on another PR.
-	participant := getUserFromEvent(s, event, "teammate_id")
 	creator := getUserFromEvent(s, event, "creator_id")
+	// This is a termination condition, since on the other end when we are processing
+	// the invite we re-triggering a model.WEBSOCKET_EVENT_DIRECT_ADDED, which will call this handler.
+	// When the creator is remote, it means that this is a DM that was not originated from the current server
+	// and therefore we do not need to do anything.
+	if creator == nil || creator.IsRemote() {
+		return
+	}
 
-	if creator == nil || participant == nil {
+	participant := getUserFromEvent(s, event, "teammate_id")
+
+	if participant == nil {
 		return
 	}
 

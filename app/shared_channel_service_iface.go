@@ -17,14 +17,27 @@ type SharedChannelServiceIFace interface {
 	Active() bool
 }
 
-func NewMockRemoteClusterService(service SharedChannelServiceIFace) *mockRemoteClusterService {
-	return &mockRemoteClusterService{service, true, []string{}}
+type MockOption func(service *mockRemoteClusterService)
+
+func WithActive(active bool) MockOption {
+	return func(mrcs *mockRemoteClusterService) {
+		mrcs.active = active
+	}
+}
+
+func NewMockRemoteClusterService(service SharedChannelServiceIFace, options ...MockOption) *mockRemoteClusterService {
+	mrcs := &mockRemoteClusterService{service, true, []string{}, 0}
+	for _, option := range options {
+		option(mrcs)
+	}
+	return mrcs
 }
 
 type mockRemoteClusterService struct {
 	SharedChannelServiceIFace
-	active        bool
-	notifications []string
+	active          bool
+	notifications   []string
+	invitationCount int
 }
 
 func (mrcs *mockRemoteClusterService) NotifyChannelChanged(channelId string) {
@@ -41,4 +54,13 @@ func (mrcs *mockRemoteClusterService) Start() error {
 
 func (mrcs *mockRemoteClusterService) Active() bool {
 	return mrcs.active
+}
+
+func (mrcs *mockRemoteClusterService) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
+	mrcs.invitationCount += 1
+	return nil
+}
+
+func (mrcs *mockRemoteClusterService) GetInvitations() int {
+	return mrcs.invitationCount
 }
