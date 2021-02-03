@@ -4,6 +4,7 @@
 package localcachelayer
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -201,12 +202,12 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().Get(fakeUserId)
+		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
-		_, _ = cachedStore.User().Get(fakeUserId)
+		_, _ = cachedStore.User().Get(context.Background(), fakeUserId)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 	})
 
@@ -216,14 +217,14 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		gotUser, err := cachedStore.User().Get(fakeUserId)
+		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
 
-		_, _ = cachedStore.User().Get(fakeUserId)
+		_, _ = cachedStore.User().Get(context.Background(), fakeUserId)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 2)
 	})
 
@@ -233,20 +234,20 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
 
-		storedUser, err := mockStore.User().Get(fakeUserId)
+		storedUser, err := mockStore.User().Get(context.Background(), fakeUserId)
 		require.Nil(t, err)
 		originalProps := storedUser.NotifyProps
 
 		storedUser.NotifyProps = map[string]string{}
 		storedUser.NotifyProps["key"] = "somevalue"
 
-		cachedUser, err := cachedStore.User().Get(fakeUserId)
+		cachedUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 
 		storedUser.Props = model.StringMap{}
 		storedUser.Timezone = model.StringMap{}
-		cachedUser, err = cachedStore.User().Get(fakeUserId)
+		cachedUser, err = cachedStore.User().Get(context.Background(), fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 		if storedUser == cachedUser {

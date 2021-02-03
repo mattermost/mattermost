@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -410,7 +411,7 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	}
 
 	for _, reaction := range reactions {
-		user, err := a.Srv().Store.User().Get(reaction.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), reaction.UserId)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			if errors.As(err, &nfErr) { // this is a valid case, the user that reacted might've been deleted by now

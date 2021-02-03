@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -325,13 +326,21 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) error {
 	return nil
 }
 
-func (us SqlUserStore) Get(id string) (*model.User, error) {
+func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.GetLazyRowScanner(queryString, args...)
+
+	var dbMap *gorp.DbMap
+	if hasMaster(ctx) {
+		dbMap = us.GetMaster()
+	} else {
+		dbMap = us.GetReplica()
+	}
+
+	row := dbMap.Db.QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -1759,7 +1768,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) error {
 	}
 	defer finalizeTransaction(transaction)
 
-	user, err := us.Get(userId)
+	user, err := us.Get(context.Background(), userId)
 	if err != nil {
 		return err
 	}
@@ -1828,7 +1837,7 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) error {
 	}
 	defer finalizeTransaction(transaction)
 
-	user, err := us.Get(userId)
+	user, err := us.Get(context.Background(), userId)
 	if err != nil {
 		return err
 	}

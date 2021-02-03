@@ -4,6 +4,7 @@
 package searchlayer
 
 import (
+	"context"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -89,7 +90,7 @@ func (s *SearchUserStore) Save(user *model.User) (*model.User, error) {
 }
 
 func (s *SearchUserStore) PermanentDelete(userId string) error {
-	user, userErr := s.UserStore.Get(userId)
+	user, userErr := s.UserStore.Get(context.Background(), userId)
 	if userErr != nil {
 		mlog.Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}

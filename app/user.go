@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/mfa"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -445,7 +446,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().Get(userId)
+	user, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -752,7 +753,7 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
-	user, err := a.Srv().Store.User().Get(userId)
+	user, err := a.Srv().Store.User().Get(context.Background(), userId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1229,7 +1230,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.Srv().Store.User().Get(user.Id)
+	prev, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2319,7 +2320,7 @@ func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 
 // ConvertBotToUser converts a bot to user.
 func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(bot.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), bot.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

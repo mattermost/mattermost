@@ -7574,10 +7574,10 @@ func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) error {
 	return err
 }
 
-func (s *TimerLayerUserStore) Get(id string) (*model.User, error) {
+func (s *TimerLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.Get(id)
+	result, err := s.UserStore.Get(ctx, id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
