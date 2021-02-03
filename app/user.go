@@ -1230,7 +1230,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), user.Id)
+	prev, err := a.Srv().Store.User().Get(context.Background(), user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {

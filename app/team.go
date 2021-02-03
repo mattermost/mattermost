@@ -567,7 +567,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()

@@ -1874,7 +1874,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 	userChan := make(chan store.StoreResult, 1)
 	memberChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), userId)
+		user, err := a.Srv().Store.User().Get(context.Background(), userId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()

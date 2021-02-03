@@ -55,7 +55,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), post.UserId)
+			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
 			if nErr != nil {
 				var nfErr *store.ErrNotFound
 				switch {
@@ -193,7 +193,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}()
 	}
 
-	user, nErr := a.Srv().Store.User().Get(sqlstore.WithMaster(context.Background()), post.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -749,7 +749,7 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postId string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	posts, err := a.Srv().Store.Post().Get(sqlstore.WithMaster(context.Background()), postId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
+	posts, err := a.Srv().Store.Post().Get(context.Background(), postId, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
