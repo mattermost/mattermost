@@ -298,7 +298,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	}
 
 	if utf8.RuneCountInString(o.Hashtags) > POST_HASHTAGS_MAX_RUNES {
-		return NewAppError("Post.IsValid", "model.post.is_valid.hashtags.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		return NewAppError("Post.IsValid", "model.post.is_valid.hashtags.app_error", map[string]interface{}{"POST_HASHTAGS_MAX_RUNES": POST_HASHTAGS_MAX_RUNES}, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	switch o.Type {
