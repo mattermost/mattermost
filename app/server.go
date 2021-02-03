@@ -184,6 +184,8 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
+
+	dndTask *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -841,6 +843,8 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
+
+	s.dndTask.Cancel()
 
 	mlog.Info("Server stopped")
 
