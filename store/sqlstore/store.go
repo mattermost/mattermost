@@ -78,7 +78,6 @@ const (
 	ExitTableExists_SQLITE       = 137
 	ExitDoesColumnExistsSqlite   = 138
 	ExitAlterPrimaryKey          = 139
-	DebugMsgReadReplicaMiss      = "replica_read_miss"
 )
 
 type SqlStoreStores struct {
@@ -128,7 +127,6 @@ type SqlStore struct {
 	searchReplicas []*gorp.DbMap
 	stores         SqlStoreStores
 	settings       *model.SqlSettings
-	featureFlags   *model.FeatureFlags
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
