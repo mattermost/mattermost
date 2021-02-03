@@ -19,6 +19,8 @@ const (
 type JobPluginAPI interface {
 	MutexPluginAPI
 	KVGet(key string) ([]byte, *model.AppError)
+	KVDelete(key string) *model.AppError
+	KVList(page, count int) ([]string, *model.AppError)
 }
 
 // JobConfig defines the configuration of a scheduled job.
