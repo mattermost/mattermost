@@ -1040,23 +1040,23 @@
   },
   {
     "id": "api.command_remote.accept_invitation",
-    "translation": "Invitation accepted and confirmed.\nSiteURL: %s"
+    "translation": "Invitation accepted and confirmed.\nSiteURL: {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.accept_invitation.error",
-    "translation": "Could not accept invitation: %v"
+    "translation": "Could not accept invitation: {{.Error}}"
   },
   {
     "id": "api.command_remote.add_remote.error",
-    "translation": "Could not add remote cluster: %v"
+    "translation": "Could not add remote cluster: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
-    "translation": "Remote cluster %s %s."
+    "translation": "Remote cluster {{.RemoteId}} {{.Result}}."
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Could not decode invitation: %v"
+    "translation": "Could not decode invitation: {{.Error}}"
   },
   {
     "id": "api.command_remote.desc",
@@ -1064,11 +1064,11 @@
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
-    "translation": "Could not encrypt invitation: %v"
+    "translation": "Could not encrypt invitation: {{.Error}}"
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Could not fetch remote clusters: %v"
+    "translation": "Could not fetch remote clusters: {{.Error}}"
   },
   {
     "id": "api.command_remote.hint",
@@ -1076,7 +1076,7 @@
   },
   {
     "id": "api.command_remote.incorrect_password.error",
-    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: %v"
+    "translation": "Could not decrypt invitation. Incorrect password or corrupt invitation: {{.Error}}"
   },
   {
     "id": "api.command_remote.invitation.help",
@@ -1087,7 +1087,7 @@
     "translation": "The encrypted invitation from a remote cluster"
   },
   {
-    "id": "api.command_remote.invitation_Created",
+    "id": "api.command_remote.invitation_created",
     "translation": "Invitation created."
   },
   {
@@ -1104,15 +1104,15 @@
   },
   {
     "id": "api.command_remote.invite_summary",
-    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `%s` slash command to accept the invitation.\n\n```\n%s\n```\n\n**Ensure the remote site can access your cluster via** %s"
+    "translation": "Send the following encrypted (AES256 + Base64) blob to the remote site administrator along with the password. They will use the `{{.Command}}` slash command to accept the invitation.\n\n```\n{{.Invitation}}\n```\n\n**Ensure the remote site can access your cluster via** {{.SiteURL}}"
   },
   {
     "id": "api.command_remote.missing_command",
-    "translation": "Missing command. Available actions:"
+    "translation": "Missing command. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_remote.missing_empty",
-    "translation": "Missing or empty `%s`"
+    "translation": "Missing or empty `{{.Arg}}`"
   },
   {
     "id": "api.command_remote.name",
@@ -1128,11 +1128,11 @@
   },
   {
     "id": "api.command_remote.permission_required",
-    "translation": "You require `%s` permission to manage remote clusters."
+    "translation": "You require `{{.Permission}}` permission to manage remote clusters."
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Add/remove remote clusters. Available actions:"
+    "translation": "Add/remove remote clusters. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_remote.remote_table_header",
@@ -1148,7 +1148,7 @@
   },
   {
     "id": "api.command_remote.remove_remote.error",
-    "translation": "Could not remove remote cluster: %v"
+    "translation": "Could not remove remote cluster: {{.Error}}"
   },
   {
     "id": "api.command_remote.remove_remote_id.help",
@@ -1172,7 +1172,7 @@
   },
   {
     "id": "api.command_remote.unknown_action",
-    "translation": "Unknown action `%s`"
+    "translation": "Unknown action `{{.Action}}`"
   },
   {
     "id": "api.command_remove.desc",
@@ -1239,8 +1239,8 @@
     "translation": "The settings command is not supported on your device."
   },
   {
-    "id": "api.command_share.available_commands",
-    "translation": "Available commands:"
+    "id": "api.command_share.available_actions",
+    "translation": "Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_share.channel_display_name.help",
@@ -1260,7 +1260,7 @@
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "Error inviting `%s` to this channel: %v"
+    "translation": "Error inviting `{{.Name}}` to this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_name.help",
@@ -1280,7 +1280,7 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "Shared channel remote id `%s` does not exist for this channel."
+    "translation": "Shared channel remote id `{{.RemoteId}}` does not exist for this channel."
   },
   {
     "id": "api.command_share.channel_shared",
@@ -1292,15 +1292,15 @@
   },
   {
     "id": "api.command_share.channel_status_id",
-    "translation": "Status for channel Id `%s`"
+    "translation": "Status for channel Id `{{.ChannelId}}`"
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error while checking if shared channel exists: %v"
+    "translation": "Error while checking if shared channel exists: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
-    "translation": "Could not uninvite `%s`: %v"
+    "translation": "Could not uninvite `{{.RemoteId}}`: {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
@@ -1316,11 +1316,11 @@
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Error fetching remote clusters: %v"
+    "translation": "Error fetching remote clusters: {{.Error}}"
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Could not fetch status for remotes: %v."
+    "translation": "Could not fetch status for remotes: {{.Error}}."
   },
   {
     "id": "api.command_share.hint",
@@ -1328,19 +1328,19 @@
   },
   {
     "id": "api.command_share.invalid_value.error",
-    "translation": "Invalid value for '%s': %v"
+    "translation": "Invalid value for '{{.Arg}}': {{.Error}}"
   },
   {
     "id": "api.command_share.invitation_sent",
-    "translation": "Channel invitation has been sent to `%s (%s)."
+    "translation": "Channel invitation has been sent to `{{.Name}} {{.SiteURL}}`."
   },
   {
     "id": "api.command_share.invite_remote.help",
     "translation": "Invites a remote instance to the current shared channel"
   },
   {
-    "id": "api.command_share.missing_command",
-    "translation": "Missing command."
+    "id": "api.command_share.missing_action",
+    "translation": "Missing action. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_share.must_specify_valid_remote",
@@ -1360,7 +1360,7 @@
   },
   {
     "id": "api.command_share.permission_required",
-    "translation": "You require `%s` permission to manage shared channels."
+    "translation": "You require `{{.Permission}}` permission to manage shared channels."
   },
   {
     "id": "api.command_share.remote_already_invited",
@@ -1372,7 +1372,7 @@
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "Remote cluster id is invalid: %v"
+    "translation": "Remote cluster id is invalid: {{.Error}}"
   },
   {
     "id": "api.command_share.remote_not_valid",
@@ -1384,7 +1384,7 @@
   },
   {
     "id": "api.command_share.remote_uninvited",
-    "translation": "Remote `%s` uninvited."
+    "translation": "Remote `{{.RemoteId}}` uninvited."
   },
   {
     "id": "api.command_share.service_disabled",
@@ -1392,7 +1392,7 @@
   },
   {
     "id": "api.command_share.share_channel.error",
-    "translation": "Cannot share this channel: %v"
+    "translation": "Cannot share this channel: {{.Error}}"
   },
   {
     "id": "api.command_share.share_current",
@@ -1408,7 +1408,7 @@
   },
   {
     "id": "api.command_share.shared_channel_not_deleted",
-    "translation": "Shared channel was not deleted: `%s` must be `%s`."
+    "translation": "Shared channel was not deleted: `{{.Arg}}` must be `{{.Expected}}`."
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -1416,7 +1416,7 @@
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
-    "translation": "Cannot unshare this channel: %v."
+    "translation": "Cannot unshare this channel: {{.Error}}."
   },
   {
     "id": "api.command_share.sync.help",
@@ -1436,7 +1436,7 @@
   },
   {
     "id": "api.command_share.unknown_action",
-    "translation": "Unknown action `%s`. %s"
+    "translation": "Unknown action `{{.Action}}`. Available actions: {{.Actions}}"
   },
   {
     "id": "api.command_share.unshare_channel.help",
