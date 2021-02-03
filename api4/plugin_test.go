@@ -93,7 +93,7 @@ func TestPlugin(t *testing.T) {
 
 			storeMock := mocks.Store{}
 			statusMock := mocks.StatusStore{}
-			statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
+			statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 			storeMock.On("Status").Return(&statusMock)
 
 			manifest, resp = client.InstallPluginFromUrl(slowTestServer.URL, true)
@@ -376,8 +376,8 @@ func TestDisableOnRemove(t *testing.T) {
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	require.NoError(t, err)
 
-	statusMock := mocks.StatusStore{}
-	statusMock.On("UpdateDNDStatusOfUsers").Return([]*model.Status{})
+	// statusMock := mocks.StatusStore{}
+	// statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 
 	testCases := []struct {
 		Description string
