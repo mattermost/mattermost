@@ -85,9 +85,6 @@ func initStores() {
 			newStoreType("LocalCache+PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 	}
 
-	featureFlags := model.FeatureFlags{}
-	featureFlags.SetDefaults()
-
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -101,7 +98,7 @@ func initStores() {
 		go func() {
 			var err error
 			defer wg.Done()
-			st.SqlStore = sqlstore.New(*st.SqlSettings, &featureFlags, nil)
+			st.SqlStore = sqlstore.New(*st.SqlSettings, nil)
 			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
 			if err != nil {
 				panic(err)

@@ -51,7 +51,7 @@ func (s *BleveEngineTestSuite) setupStore() {
 	}
 	s.SQLSettings = storetest.MakeSqlSettings(driverName)
 
-	s.SQLStore = sqlstore.New(*s.SQLSettings, s.BleveEngine.jobServer.Config().FeatureFlags, nil)
+	s.SQLStore = sqlstore.New(*s.SQLSettings, nil)
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()

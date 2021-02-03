@@ -322,7 +322,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
-			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Config().FeatureFlags, s.Metrics)
+			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
 			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				ver, err2 := s.sqlStore.GetDbVersion(true)
 				if err2 != nil {

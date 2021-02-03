@@ -145,12 +145,11 @@ func (t *TraceOnAdapter) Printf(format string, v ...interface{}) {
 	mlog.Debug(newString)
 }
 
-func New(settings model.SqlSettings, featureFlags *model.FeatureFlags, metrics einterfaces.MetricsInterface) *SqlStore {
+func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlStore {
 	store := &SqlStore{
-		rrCounter:    0,
-		srCounter:    0,
-		settings:     &settings,
-		featureFlags: featureFlags,
+		rrCounter: 0,
+		srCounter: 0,
+		settings:  &settings,
 	}
 
 	store.initConnection()

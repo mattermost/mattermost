@@ -116,11 +116,10 @@ func (h *MainHelper) setupStore() {
 	config := &model.Config{}
 	config.SetDefaults()
 
-	h.FeatureFlags = config.FeatureFlags
 	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
 
-	h.SQLStore = sqlstore.New(*h.Settings, h.FeatureFlags, nil)
+	h.SQLStore = sqlstore.New(*h.Settings, nil)
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
