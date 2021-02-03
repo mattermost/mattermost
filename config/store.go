@@ -214,6 +214,8 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		}
 	}
 
+	loadedFeatureFlags := loadedConfig.FeatureFlags
+
 	// If we have custom defaults set, the initial config is merged on
 	// top of them and we delete them not to be used again in the
 	// configuration reloads
@@ -257,7 +259,7 @@ func (s *Store) loadLockedWithOld(oldCfg *model.Config, unlockOnce *sync.Once) e
 		// MM cloud uses config in the DB as a cache of the feature flag
 		// settings in case the management system is down when a pod starts.
 		if !s.persistFeatureFlags {
-			s.configNoEnv.FeatureFlags = nil
+			s.configNoEnv.FeatureFlags = loadedFeatureFlags
 		}
 		toStoreBytes, err := json.Marshal(s.configNoEnv)
 		if err != nil {
