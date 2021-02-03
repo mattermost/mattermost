@@ -3372,13 +3372,6 @@ func TestLoginReplicationLag(t *testing.T) {
 		require.Nil(t, cmdErr)
 		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
 
-		*mainHelper.Settings.ReplicaLazyReads = true
-		mainHelper.FeatureFlags.ReplicaLazyReads = true
-		defer func() {
-			*mainHelper.Settings.ReplicaLazyReads = false
-			mainHelper.FeatureFlags.ReplicaLazyReads = false
-		}()
-
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckNoError(t, resp)
 

@@ -141,7 +141,6 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		Trace:                       model.NewBool(false),
 		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
 		QueryTimeout:                new(int),
-		ReplicaLazyReads:            model.NewBool(false),
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000

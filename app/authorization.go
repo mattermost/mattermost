@@ -61,13 +61,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return false
 	}
 
-	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(context.Background(), session.UserId, true, true)
-
-	// If no membership to the given channel is present (as expected) then try
-	// again on the master database without the cache.
-	if _, present := ids[channelId]; !present && *a.Config().SqlSettings.ReplicaLazyReads && a.Config().FeatureFlags.ReplicaLazyReads {
-		ids, err = a.Srv().Store.Channel().GetAllChannelMembersForUser(sqlstore.WithMaster(context.Background()), session.UserId, false, true)
-	}
+	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(sqlstore.WithMaster(context.Background()), session.UserId, false, true)
 
 	var channelRoles []string
 	if err == nil {

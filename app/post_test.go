@@ -1990,13 +1990,6 @@ func TestReplyToPost(t *testing.T) {
 		require.Nil(t, err)
 		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
 
-		*mainHelper.Settings.ReplicaLazyReads = true
-		mainHelper.FeatureFlags.ReplicaLazyReads = true
-		defer func() {
-			*mainHelper.Settings.ReplicaLazyReads = false
-			mainHelper.FeatureFlags.ReplicaLazyReads = false
-		}()
-
 		root, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
