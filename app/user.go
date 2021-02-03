@@ -2371,6 +2371,14 @@ func (a *App) GetThreadsForUser(userId, teamId string, options model.GetUserThre
 	return threads, nil
 }
 
+func (a *App) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *model.AppError) {
+	res, err := a.Srv().Store.Thread().GetThreadMentionsForUserPerChannel(userId, teamId)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadMentionsForUserPerChannel", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return res, nil
+}
+
 func (a *App) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {
 	thread, err := a.Srv().Store.Thread().GetThreadForUser(userId, teamId, threadId, extended)
 	if err != nil {

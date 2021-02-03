@@ -5804,6 +5804,20 @@ func (c *Client4) ListImports() ([]string, *Response) {
 	return ArrayFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *Response) {
+	url := c.GetUserThreadsRoute(userId, teamId)
+	r, appErr := c.DoApiGet(url+"/mention_counts", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var counts map[string]int64
+	json.NewDecoder(r.Body).Decode(&counts)
+
+	return counts, BuildResponse(r)
+}
+
 func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
 	v := url.Values{}
 	if options.Since != 0 {

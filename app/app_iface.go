@@ -699,6 +699,7 @@ type AppIface interface {
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
 	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, *model.AppError)
 	GetThreadMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error)
+	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *model.AppError)
 	GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError)
 	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
 	GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError)
