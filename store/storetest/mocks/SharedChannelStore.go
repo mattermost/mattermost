@@ -483,3 +483,24 @@ func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) er
 
 	return r0
 }
+
+// UpsertAttachment provides a mock function with given fields: remote
+func (_m *SharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+	ret := _m.Called(remote)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelAttachment) string); ok {
+		r0 = rf(remote)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelAttachment) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}

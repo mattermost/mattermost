@@ -6350,6 +6350,22 @@ func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime 
 	return err
 }
 
+func (s *TimerLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.UpsertAttachment(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertAttachment", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, error) {
 	start := timemodule.Now()
 

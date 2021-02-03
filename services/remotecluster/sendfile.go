@@ -98,28 +98,24 @@ func (rcs *Service) sendFile(task sendFileTask) {
 		}
 	}()
 
-	respJSON, err := rcs.sendFileToRemote(SendTimeout, task.us, task.rc, task.rp)
+	fi, err := rcs.sendFileToRemote(SendTimeout, task.us, task.rc, task.rp)
 	var response Response
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send file failed",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("uploadId", task.us.Id), mlog.Err(err),
+			mlog.String("uploadId", task.us.Id),
+			mlog.Err(err),
 		)
+		response.Status = ResponseStatusFail
 		response.Err = err.Error()
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster file sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("uploadId", task.us.Id),
 		)
-
-		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
-			rcs.server.GetLogger().Error("Invalid response sending file to remote cluster",
-				mlog.String("remote", task.rc.DisplayName),
-				mlog.Err(errDecode),
-			)
-			response.Err = errDecode.Error()
-		}
+		response.Status = ResponseStatusOK
+		response.SetPayload(fi)
 	}
 
 	// If callback provided then call it with the results.
@@ -128,7 +124,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	}
 }
 
-func (rcs *Service) sendFileToRemote(timeout time.Duration, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider) ([]byte, error) {
+func (rcs *Service) sendFileToRemote(timeout time.Duration, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider) (*model.FileInfo, error) {
 	r, appErr := rp.FileReader(us.Path) // get Reader for the file
 	if appErr != nil {
 		return nil, fmt.Errorf("error opening file while sending to remote %s: %w", rc.RemoteId, appErr)
@@ -158,12 +154,15 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, us *model.UploadSess
 		return nil, err
 	}
 
-	if resp.StatusCode == 304 { // file was already there
-		return body, nil
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return body, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+	// body should be a FileInfo
+	var fi model.FileInfo
+	if err := json.Unmarshal(body, &fi); err != nil {
+		return nil, fmt.Errorf("unexpected response body: %w", err)
 	}
-	return body, nil
+
+	return &fi, nil
 }

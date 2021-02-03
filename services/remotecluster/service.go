@@ -24,6 +24,7 @@ const (
 	SendMsgURL                    = "api/v4/remotecluster/msg"
 	SendTimeout                   = time.Minute
 	SendFileTimeout               = time.Minute * 5
+	SendFileMaxQueue              = 100
 	PingURL                       = "api/v4/remotecluster/ping"
 	PingFreq                      = time.Minute
 	PingTimeout                   = time.Second * 15
@@ -100,7 +101,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 
 	service.sendFiles = make([]chan sendFileTask, MaxConcurrentSends)
 	for i := range service.sendFiles {
-		service.sendFiles[i] = make(chan sendFileTask)
+		service.sendFiles[i] = make(chan sendFileTask, SendFileMaxQueue)
 	}
 
 	return service, nil

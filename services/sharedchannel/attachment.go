@@ -19,7 +19,7 @@ func (scs *Service) postsToAttachments(posts []*model.Post, rc *model.RemoteClus
 	infos := make([]*model.FileInfo, 0)
 
 	for _, post := range posts {
-		fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
+		fis, err := scs.postToAttachments(post, rc, lastSyncAt)
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "could not get file info for attachment",
 				mlog.String("post_id", post.Id),
@@ -28,14 +28,26 @@ func (scs *Service) postsToAttachments(posts []*model.Post, rc *model.RemoteClus
 			)
 			continue
 		}
-
-		for _, fi := range fis {
-			if scs.shouldSyncAttachment(fi, rc, lastSyncAt) {
-				infos = append(infos, fi)
-			}
-		}
+		infos = append(infos, fis...)
 	}
 	return infos
+}
+
+// postToAttachments returns the file attachments for a post that need to be synchronized.
+func (scs *Service) postToAttachments(post *model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]*model.FileInfo, error) {
+	infos := make([]*model.FileInfo, 0)
+
+	fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
+	if err != nil {
+		return nil, fmt.Errorf("could not get file info for attachment: %w", err)
+	}
+
+	for _, fi := range fis {
+		if scs.shouldSyncAttachment(fi, rc, lastSyncAt) {
+			infos = append(infos, fi)
+		}
+	}
+	return infos, nil
 }
 
 // postsToAttachments returns the file attachments for a slice of posts that need to be synchronized.
@@ -90,6 +102,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	var usResp model.UploadSession
 	var respErr error
 	wg := &sync.WaitGroup{}
+	wg.Add(1)
 
 	// creating the upload session on the remote server needs to be done synchronously.
 	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
@@ -113,43 +126,51 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 	ctx2, cancel2 := context.WithTimeout(context.Background(), remotecluster.SendFileTimeout)
 	defer cancel2()
-	err = rcs.SendFile(ctx2, &usResp, rc, scs.app, func(us *model.UploadSession, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
-		if err != nil{
+
+	return rcs.SendFile(ctx2, &usResp, rc, scs.app, func(us *model.UploadSession, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+		if err != nil {
 			return // this means the response could not be parsed; already logged
 		}
-		
+
 		if !resp.IsSuccess() {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "send file failed",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.String("err", resp.Err),
 			)
-
+			return
 		}
 
-		// TODO
-		// mark the file as uploaded (create SharedChannelsAttachment record)
-
 		// response payload should be a model.FileInfo.
-		var fi model.FileInfo 
+		var fi model.FileInfo
 		if err2 := json.Unmarshal(resp.Payload, &fi); err2 != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "invalid file info response after send file",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.Err(err2),
 			)
+			return
 		}
 
 		// save file attachment record in SharedChannelAttachments table
-		sca, err := scs.server.GetStore().SharedChannel().
+		sca := &model.SharedChannelAttachment{
+			FileId:          fi.Id,
+			RemoteClusterId: rc.RemoteId,
+		}
+		if _, err2 := scs.server.GetStore().SharedChannel().UpsertAttachment(sca); err2 != nil {
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",
+				mlog.String("remote", rc.DisplayName),
+				mlog.String("uploadId", usResp.Id),
+				mlog.Err(err2),
+			)
+			return
+		}
 
-
-
-
-
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "send file successful",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("uploadId", usResp.Id),
+		)
 	})
-
-	return fmt.Errorf("not implemented yet")
 }
 
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is

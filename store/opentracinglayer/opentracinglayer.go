@@ -7030,6 +7030,24 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syn
 	return err
 }
 
+func (s *OpenTracingLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpsertAttachment")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.SharedChannelStore.UpsertAttachment(remote)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.Get")

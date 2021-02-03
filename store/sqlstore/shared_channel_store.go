@@ -583,10 +583,10 @@ func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAtt
 
 // UpsertAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table or updates its
 // LastSyncAt.
-func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelAttachment) error {
+func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelAttachment) (string, error) {
 	attachment.PreSave()
 	if err := attachment.IsValid(); err != nil {
-		return err
+		return "", err
 	}
 
 	params := map[string]interface{}{
@@ -603,10 +603,10 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 				SharedChannelAttachments
 				(Id, FileId, RemoteClusterId, CreateAt, LastSyncAt)
 			VALUES
-				(:Id, :FieldId, :RemoteId, :CreateAt, :LastSyncAt)
+				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
 			ON DUPLICATE KEY UPDATE
 				LastSyncAt = :LastSyncAt`, params); err != nil {
-			return err
+			return "", err
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		if _, err := s.GetMaster().Exec(
@@ -614,13 +614,13 @@ func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelA
 				SharedChannelAttachments
 				(Id, FileId, RemoteClusterId, CreateAt, LastSyncAt)
 			VALUES
-				(:Id, :FieldId, :RemoteId, :CreateAt, :LastSyncAt)
+				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
 			ON CONFLICT (Id) 
 				DO UPDATE SET LastSyncAt = :LastSyncAt`, params); err != nil {
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return attachment.Id, nil
 }
 
 // GetAttachment fetches a shared channel file attachment record based on file_id and remoteId.

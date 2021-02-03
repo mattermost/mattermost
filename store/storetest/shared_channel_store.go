@@ -6,6 +6,7 @@ package storetest
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,6 +37,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("UpdateSharedChannelUserLastSyncAt", func(t *testing.T) { testUpdateSharedChannelUserLastSyncAt(t, ss) })
 
 	t.Run("SaveSharedChannelAttachment", func(t *testing.T) { testSaveSharedChannelAttachment(t, ss) })
+	t.Run("UpsertSharedChannelAttachment", func(t *testing.T) { testUpsertSharedChannelAttachment(t, ss) })
 	t.Run("GetSharedChannelAttachment", func(t *testing.T) { testGetSharedChannelAttachment(t, ss) })
 	t.Run("UpdateSharedChannelAttachmentLastSyncAt", func(t *testing.T) { testUpdateSharedChannelAttachmentLastSyncAt(t, ss) })
 }
@@ -820,6 +822,68 @@ func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 		_, err := ss.SharedChannel().SaveAttachment(attachment)
 		require.Error(t, err, "expected error for invalid remote id")
+	})
+}
+
+func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
+	t.Run("Upsert new shared channel attachment", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
+			FileId:          model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		_, err := ss.SharedChannel().UpsertAttachment(attachment)
+		require.NoError(t, err, "couldn't upsert shared channel attachment", err)
+
+		saved, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteClusterId)
+		require.NoError(t, err, "couldn't get shared channel attachment", err)
+
+		require.NotZero(t, saved.CreateAt)
+		require.Equal(t, saved.CreateAt, saved.LastSyncAt)
+	})
+
+	t.Run("Upsert existing shared channel attachment", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
+			FileId:          model.NewId(),
+			RemoteClusterId: model.NewId(),
+		}
+
+		saved, err := ss.SharedChannel().SaveAttachment(attachment)
+		require.Nil(t, err, "couldn't save shared channel attachment", err)
+
+		// make sure enough time passed that GetMillis returns a different value
+		time.Sleep(50 * time.Millisecond)
+
+		_, err = ss.SharedChannel().UpsertAttachment(saved)
+		require.NoError(t, err, "couldn't upsert shared channel attachment", err)
+
+		updated, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteClusterId)
+		require.NoError(t, err, "couldn't get shared channel attachment", err)
+
+		require.NotZero(t, updated.CreateAt)
+		require.Greater(t, updated.LastSyncAt, updated.CreateAt)
+	})
+
+	t.Run("Upsert invalid shared channel attachment", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
+			FileId:          "",
+			RemoteClusterId: model.NewId(),
+		}
+
+		id, err := ss.SharedChannel().UpsertAttachment(attachment)
+		require.NotNil(t, err, "should error upserting invalid attachment", err)
+		require.Empty(t, id)
+	})
+
+	t.Run("Upsert shared channel attachment with invalid remote id", func(t *testing.T) {
+		attachment := &model.SharedChannelAttachment{
+			FileId:          model.NewId(),
+			RemoteClusterId: "bogus",
+		}
+
+		id, err := ss.SharedChannel().UpsertAttachment(attachment)
+		require.Error(t, err, "expected error for invalid remote id")
+		require.Empty(t, id)
 	})
 }
 

@@ -14,11 +14,12 @@ import (
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
-	ChannelId string            `json:"channel_id"`
-	PostId    string            `json:"post_id"`
-	Post      *model.Post       `json:"post"`
-	Users     []*model.User     `json:"users"`
-	Reactions []*model.Reaction `json:"reactions"`
+	ChannelId   string            `json:"channel_id"`
+	PostId      string            `json:"post_id"`
+	Post        *model.Post       `json:"post"`
+	Users       []*model.User     `json:"users"`
+	Reactions   []*model.Reaction `json:"reactions"`
+	Attachments []*model.FileInfo `json:"-"`
 }
 
 func (sm syncMsg) ToJSON() ([]byte, error) {
@@ -48,9 +49,9 @@ func (u userCache) Add(id string) {
 	u[id] = struct{}{}
 }
 
-// postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
+// postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	uCache := make(userCache)
@@ -63,7 +64,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 		// any reactions originating from the remote cluster are filtered out
 		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, rc.RemoteId, true)
 		if err != nil {
-			return model.RemoteClusterMsg{}, err
+			return nil, err
 		}
 
 		postSync := p
@@ -80,9 +81,19 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 			postSync = nil
 		}
 
-		// Parse out all permalinks in the message.
+		var attachments []*model.FileInfo
 		if postSync != nil {
+			// parse out all permalinks in the message.
 			postSync.Message = scs.processPermalinkToRemote(postSync)
+
+			// get any file attachments
+			attachments, err = scs.postToAttachments(postSync, rc, lastSyncAt)
+			if err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not fetch attachments for post",
+					mlog.String("post_id", postSync.Id),
+					mlog.Err(err),
+				)
+			}
 		}
 
 		// any users originating from the remote cluster are filtered out
@@ -94,27 +105,16 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 		}
 
 		sm := syncMsg{
-			ChannelId: p.ChannelId,
-			PostId:    p.Id,
-			Post:      postSync,
-			Users:     users,
-			Reactions: reactions,
+			ChannelId:   p.ChannelId,
+			PostId:      p.Id,
+			Post:        postSync,
+			Users:       users,
+			Reactions:   reactions,
+			Attachments: attachments,
 		}
 		syncMessages = append(syncMessages, sm)
 	}
-
-	if len(syncMessages) == 0 {
-		// everything was filtered out and nothing to send.
-		return model.RemoteClusterMsg{}, nil
-	}
-
-	json, err := json.Marshal(syncMessages)
-	if err != nil {
-		return model.RemoteClusterMsg{}, err
-	}
-
-	msg := model.NewRemoteClusterMsg(TopicSync, json)
-	return msg, nil
+	return syncMessages, nil
 }
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.

@@ -187,12 +187,12 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		return nil
 	}
 
-	msg, err := scs.postsToMsg(pSlice[:max], rc, scr.LastSyncAt)
+	syncMessages, err := scs.postsToSyncMessages(pSlice[:max], rc, scr.LastSyncAt)
 	if err != nil {
 		return err
 	}
 
-	if len(msg.Payload) == 0 {
+	if len(syncMessages) == 0 {
 		// everything was filtered out, nothing to send.
 		if retry {
 			contTask := newSyncTask(channelId, rc.RemoteId)
@@ -200,6 +200,12 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		}
 		return nil
 	}
+
+	b, err := json.Marshal(syncMessages)
+	if err != nil {
+		return err
+	}
+	msg := model.NewRemoteClusterMsg(TopicSync, b)
 
 	ctx, cancel := context.WithTimeout(context.Background(), remotecluster.SendTimeout)
 	defer cancel()
@@ -211,7 +217,7 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 
 		//
 		// TODO: Any Post(s) that failed to save on remote side are included in an array of post ids in the Response payload.
-		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries.
+		//       Write ephemeral message to post author notifying for each post that failed, perhaps after X retries?
 		//		 Alternatively we can touch the post's UpdateAt field and cause the post to be synchronized again.
 
 		var syncResp SyncResponse
@@ -252,6 +258,9 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 				mlog.Err(err2),
 			)
 		}
+
+		// send any file attachments asynchronously
+		scs.sendAttachments(syncMessages, rc)
 	})
 
 	if err == nil && retry {
@@ -259,6 +268,22 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		scs.addTask(contTask)
 	}
 	return err
+}
+
+// notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.
+func (scs *Service) sendAttachments(syncMessages []syncMsg, rc *model.RemoteCluster) {
+	for _, sm := range syncMessages {
+		for _, fi := range sm.Attachments {
+			if err := scs.sendAttachmentForRemote(fi, sm.Post, rc); err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error syncing attachment for post",
+					mlog.String("remote", rc.DisplayName),
+					mlog.String("post_id", sm.Post.Id),
+					mlog.String("file_id", fi.Id),
+					mlog.Err(err),
+				)
+			}
+		}
+	}
 }
 
 // notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.

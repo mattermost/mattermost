@@ -823,6 +823,7 @@ type SharedChannelStore interface {
 	UpdateUserLastSyncAt(id string, syncTime int64) error
 
 	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
+	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
 	GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error)
 	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
 }

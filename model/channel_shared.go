@@ -222,8 +222,15 @@ type SharedChannelAttachment struct {
 }
 
 func (scf *SharedChannelAttachment) PreSave() {
-	scf.Id = NewId()
-	scf.CreateAt = GetMillis()
+	if scf.Id == "" {
+		scf.Id = NewId()
+	}
+	if scf.CreateAt == 0 {
+		scf.CreateAt = GetMillis()
+		scf.LastSyncAt = scf.CreateAt
+	} else {
+		scf.LastSyncAt = GetMillis()
+	}
 }
 
 func (scf *SharedChannelAttachment) IsValid() *AppError {
