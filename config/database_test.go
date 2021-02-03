@@ -180,7 +180,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 	})
 
 	t.Run("already minimally configured", func(t *testing.T) {
-		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		_, tearDown := setupConfigDatabase(t, minimalConfigNoFF, nil)
 		defer tearDown()
 
 		ds, err := newTestDatabaseStore(t, nil)
@@ -188,11 +188,11 @@ func TestDatabaseStoreNew(t *testing.T) {
 		defer ds.Close()
 
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-		assertDatabaseEqualsConfig(t, minimalConfig)
+		assertDatabaseEqualsConfig(t, minimalConfigNoFF)
 	})
 
 	t.Run("already minimally configured with custom defaults", func(t *testing.T) {
-		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		_, tearDown := setupConfigDatabase(t, minimalConfigNoFF, nil)
 		defer tearDown()
 
 		ds, err := newTestDatabaseStore(t, customConfigDefaults)
@@ -203,7 +203,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		// defaults should have no effect
 		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
 		assert.NotEqual(t, *customConfigDefaults.DisplaySettings.ExperimentalTimezone, *ds.Get().DisplaySettings.ExperimentalTimezone)
-		assertDatabaseEqualsConfig(t, minimalConfig)
+		assertDatabaseEqualsConfig(t, minimalConfigNoFF)
 	})
 
 	t.Run("invalid url", func(t *testing.T) {
@@ -603,6 +603,40 @@ func TestDatabaseStoreSet(t *testing.T) {
 
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
+
+	t.Run("setting config without persistent feature flag", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(t, nil)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		ds.PersistFeatures(false)
+		_, err = ds.Set(minimalConfig)
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+		assertDatabaseEqualsConfig(t, minimalConfigNoFF)
+	})
+
+	t.Run("setting config with persistent feature flags", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := newTestDatabaseStore(t, nil)
+		require.NoError(t, err)
+		defer ds.Close()
+
+		ds.PersistFeatures(true)
+
+		_, err = ds.Set(minimalConfig)
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+		assertDatabaseEqualsConfig(t, minimalConfig)
+	})
+
 }
 
 func TestDatabaseStoreLoad(t *testing.T) {
