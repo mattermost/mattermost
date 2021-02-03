@@ -1802,21 +1802,22 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 // granular (i.e. team or channel-specific) retention policy. `now` must be a Unix timestamp
 // in milliseconds.
 func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies
+	// Channel-specific policies override team-specific policies.
+	// This will not delete a Post if the Channel to which it belonged has already been deleted.
 	const sQuery = `
 	DELETE FROM Posts WHERE Id IN (
-		SELECT A.Id FROM Posts AS A
-		INNER JOIN Channels AS B ON A.ChannelId = B.Id
-		INNER JOIN Teams AS C ON B.TeamId = C.Id
-		LEFT JOIN RetentionPoliciesChannels AS D ON A.ChannelId = D.ChannelId
-		LEFT JOIN RetentionPoliciesTeams AS E ON C.Id = E.TeamId
-		INNER JOIN RetentionPolicies AS F ON D.PolicyId = F.Id OR E.PolicyId = F.Id
+		SELECT Posts.Id FROM Posts
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
+		INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 		WHERE (
-			D.ChannelId IS NOT NULL
-			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+			RetentionPoliciesChannels.ChannelId IS NOT NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
 		) OR (
-			E.TeamId IS NOT NULL AND D.ChannelId IS NULL
-			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
 		)
 		LIMIT :Limit
 	)`

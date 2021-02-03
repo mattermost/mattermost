@@ -6199,6 +6199,10 @@
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
+    "id": "ent.data_retention.threads_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of threads."
+  },
+  {
     "id": "ent.data_retention.policies.internal_error",
     "translation": "We encountered an error performing the requested operation."
   },

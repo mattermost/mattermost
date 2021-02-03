@@ -282,6 +282,8 @@ type ThreadStore interface {
 	CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error
 	CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error)
 	UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error
+	PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error)
+	PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error)
 }
 
 type PostStore interface {
@@ -543,6 +545,7 @@ type PreferenceStore interface {
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userId string) error
 	CleanupFlagsBatch(limit int64) (int64, error)
+	CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 }
 
 type LicenseStore interface {
@@ -611,6 +614,7 @@ type ReactionStore interface {
 	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error)
 	DeleteAllWithEmojiName(emojiName string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 }
 

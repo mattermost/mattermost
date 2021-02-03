@@ -5970,6 +5970,26 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 
 }
 
+func (s *RetryLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.CleanupFlagsBatchForRetentionPolicies(now, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) Delete(userId string, category string, name string) error {
 
 	tries := 0
@@ -6295,6 +6315,26 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	tries := 0
 	for {
 		result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -8823,6 +8863,46 @@ func (s *RetryLayerThreadStore) MarkAsRead(userId string, threadId string, times
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.PermanentDeleteBatchThreadsForRetentionPolicies(now, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 

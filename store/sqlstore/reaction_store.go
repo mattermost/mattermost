@@ -195,27 +195,58 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 }
 
 func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies
-	// Consider the case where posts have already been deleted
+	// Channel-specific policies override team-specific policies.
+	// A reaction will be deleted if its corresponding post was already deleted by a retention policy.
 	const sQuery = `
-	DELETE FROM Reactions
-	WHERE PostId IN (
+	DELETE FROM Reactions WHERE PostId IN (
 		SELECT Reactions.PostId FROM Reactions
-		INNER JOIN
-		INNER JOIN Channels AS B ON A.ChannelId = B.Id
-		INNER JOIN Teams AS C ON B.TeamId = C.Id
-		LEFT JOIN RetentionPoliciesChannels AS D ON A.ChannelId = D.ChannelId
-		LEFT JOIN RetentionPoliciesTeams AS E ON C.Id = E.TeamId
-		INNER JOIN RetentionPolicies AS F ON D.PolicyId = F.Id OR E.PolicyId = F.Id
+		LEFT JOIN Posts ON Reactions.PostId = Posts.Id
+		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
+		LEFT JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
 		WHERE (
-			D.ChannelId IS NOT NULL
-			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+			RetentionPoliciesChannels.ChannelId IS NOT NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
 		) OR (
-			E.TeamId IS NOT NULL AND D.ChannelId IS NULL
-			AND :Now - A.CreateAt >= F.PostDuration * 24 * 60 * 60 * 1000
+			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			Posts.Id IS NULL
 		)
 		LIMIT :Limit
 	)`
+	/*
+		`WITH T1 AS (
+			SELECT Reactions.PostId, Posts.Id, Posts.ChannelId, Posts.CreateAt, Channels.TeamId FROM Reactions
+			LEFT JOIN Posts ON Reactions.PostId = Posts.Id
+			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+		)
+		SELECT T1.PostId FROM T1
+		INNER JOIN RetentionPoliciesChannels ON T1.ChannelId = RetentionPoliciesChannels.ChannelId
+		INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+		WHERE :Now - T1.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		UNION
+		SELECT T1.PostId FROM T1
+		INNER JOIN RetentionPoliciesTeams ON T1.TeamId = RetentionPoliciesTeams.TeamId
+		INNER JOIN RetentionPolicies ON RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+		WHERE :Now - T1.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		UNION
+		SELECT T1.PostId FROM T1
+		WHERE T1.Id IS NULL
+		LIMIT :Limit`
+	*/
+	props := map[string]interface{}{"Now": now, "Limit": limit}
+	result, err := s.GetMaster().Exec(sQuery, props)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Reactions")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Reactions")
+	}
+	return rowsAffected, nil
 }
 
 func (s *SqlReactionStore) saveReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.Reaction) error {

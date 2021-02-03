@@ -489,3 +489,71 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 	}
 	return result, nil
 }
+
+func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	// Channel-specific policies override team-specific policies.
+	// This will not delete a Thread if the Channel to which it belonged has already been deleted.
+	const sQuery = `
+	DELETE FROM Threads WHERE PostId IN (
+		SELECT Threads.PostId FROM Threads
+		LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
+		LEFT JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+		WHERE (
+			RetentionPoliciesChannels.ChannelId IS NOT NULL
+			AND :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
+			AND :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		)
+		LIMIT :Limit
+	)`
+	props := map[string]interface{}{"Now": now, "Limit": limit}
+	result, err := s.GetMaster().Exec(sQuery, props)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Threads")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete Threads")
+	}
+	return rowsAffected, nil
+}
+
+func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	// Channel-specific policies override team-specific policies.
+	// This will delete a ThreadMembership if its corresponding Post has already been deleted by
+	// a retention policy.
+	const sQuery = `
+	DELETE FROM ThreadMemberships WHERE PostId IN (
+		SELECT ThreadMemberships.PostId FROM ThreadMemberships
+		LEFT JOIN Posts ON ThreadMemberships.PostId = Posts.Id
+		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
+		LEFT JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+		WHERE (
+			RetentionPoliciesChannels.ChannelId IS NOT NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
+			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		) OR (
+			Posts.Id IS NULL
+		)
+		LIMIT :Limit
+	)`
+	props := map[string]interface{}{"Now": now, "Limit": limit}
+	result, err := s.GetMaster().Exec(sQuery, props)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
+	}
+	return rowsAffected, nil
+}

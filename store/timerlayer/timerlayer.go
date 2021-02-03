@@ -5013,6 +5013,22 @@ func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 	return result, err
 }
 
+func (s *TimerLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.PreferenceStore.CleanupFlagsBatchForRetentionPolicies(now, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.CleanupFlagsBatchForRetentionPolicies", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPreferenceStore) Delete(userId string, category string, name string) error {
 	start := timemodule.Now()
 
@@ -5281,6 +5297,22 @@ func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatch", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ReactionStore.PermanentDeleteBatchForRetentionPolicies(now, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.PermanentDeleteBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, err
 }
@@ -7328,6 +7360,38 @@ func (s *TimerLayerThreadStore) MarkAsRead(userId string, threadId string, times
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.MarkAsRead", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies(now, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.PermanentDeleteBatchThreadMembershipsForRetentionPolicies", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.PermanentDeleteBatchThreadsForRetentionPolicies(now, limit)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.PermanentDeleteBatchThreadsForRetentionPolicies", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerThreadStore) Save(thread *model.Thread) (*model.Thread, error) {
