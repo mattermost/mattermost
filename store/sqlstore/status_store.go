@@ -73,15 +73,11 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	query := s.getQueryBuilder().
 		Select("UserId, Status, Manual, LastActivityAt").
-		From("Status").
-		Where(sq.Eq{"UserId": userIds})
+		From("Status")
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query = s.getQueryBuilder().
-			Select("s.UserId, s.Status, s.Manual, s.LastActivityAt").
-			From("cte").
-			LeftJoin("Status s ON (cte.id=s.UserId)").
-			Where(sq.NotEq{"s.UserId": nil}).
-			Prefix("WITH cte as (SELECT unnest(ARRAY['" + strings.Join(userIds, "','") + "']) as id) ")
+		query = cockroachdbWithIn(query, "Status s ON (cte.id=s.UserId)", sq.NotEq{"s.UserId": nil}, userIds)
+	} else {
+		query = query.Where(sq.Eq{"UserId": userIds})
 	}
 	queryString, args, err := query.ToSql()
 	if err != nil {

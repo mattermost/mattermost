@@ -1410,3 +1410,10 @@ func IsDuplicate(err error) bool {
 
 	return false
 }
+
+func cockroachdbWithIn(query sq.SelectBuilder, join string, where sq.Sqlizer, ids []string) sq.SelectBuilder {
+	// TODO: make it secure
+	newQuery := query.Prefix("WITH cte AS (SELECT unnest(ARRAY['" + strings.Join(ids, "','") + "']) as id) ")
+	newQuery = newQuery.From("cte").LeftJoin(join).Where(where)
+	return newQuery
+}
