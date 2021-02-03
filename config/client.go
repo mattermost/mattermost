@@ -222,6 +222,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
+	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
+	props["FileLevel"] = *c.LogSettings.FileLevel
 
 	props["SiteName"] = *c.TeamSettings.SiteName
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")

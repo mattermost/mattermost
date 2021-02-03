@@ -176,6 +176,20 @@ func (_m *SearchEngineInterface) DeleteUserPosts(userID string) *model.AppError 
 	return r0
 }
 
+// GetFullVersion provides a mock function with given fields:
+func (_m *SearchEngineInterface) GetFullVersion() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetName provides a mock function with given fields:
 func (_m *SearchEngineInterface) GetName() string {
 	ret := _m.Called()
@@ -185,6 +199,22 @@ func (_m *SearchEngineInterface) GetName() string {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// GetPlugins provides a mock function with given fields:
+func (_m *SearchEngineInterface) GetPlugins() []string {
+	ret := _m.Called()
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 
 	return r0
