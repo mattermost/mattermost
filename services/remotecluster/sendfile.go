@@ -125,6 +125,12 @@ func (rcs *Service) sendFile(task sendFileTask) {
 }
 
 func (rcs *Service) sendFileToRemote(timeout time.Duration, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider) (*model.FileInfo, error) {
+	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
+		mlog.String("remote", rc.DisplayName),
+		mlog.String("uploadId", us.Id),
+		mlog.String("file_path", us.Path),
+	)
+
 	r, appErr := rp.FileReader(us.Path) // get Reader for the file
 	if appErr != nil {
 		return nil, fmt.Errorf("error opening file while sending to remote %s: %w", rc.RemoteId, appErr)
