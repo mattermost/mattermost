@@ -459,12 +459,12 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
-		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
+		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId); appErr != nil {
 			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck); appErr != nil {
 			if forceAck {
 				return appErr
 			}
