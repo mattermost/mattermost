@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -186,7 +187,15 @@ func (wc *WebConn) startPoller() {
 			if err != nil {
 				mlog.Debug("Error while reading message from websocket", mlog.Err(err))
 				wc.App.Srv().Poller().Stop(desc)
-				wc.Close()
+				// net.ErrClosed is not available until Go 1.16.
+				// https://github.com/golang/go/issues/4373
+				//
+				// Sometimes, the netpoller generates a data event and a HUP event
+				// close to each other. In that case, we don't want to double-close
+				// the connection.
+				if !strings.Contains(err.Error(), "use of closed network connection") {
+					wc.Close()
+				}
 			}
 		}()
 	})
