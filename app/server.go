@@ -844,7 +844,9 @@ func (s *Server) Shutdown() {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
-	s.dndTask.Cancel()
+	if s.dndTask != nil {
+		s.dndTask.Cancel()
+	}
 
 	mlog.Info("Server stopped")
 
