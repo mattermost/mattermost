@@ -165,6 +165,8 @@ func (wc *WebConn) BlockingPump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	defer ReturnSessionToPool(wc.GetSession())
 }
 
 // startPoller adds the file descriptor of the connection
