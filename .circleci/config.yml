@@ -438,7 +438,6 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
-            - check-mocks
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -446,12 +445,10 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
-            - check-mocks
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
-            - check-mocks
 
   release-build:
     jobs:
@@ -475,19 +472,15 @@ workflows:
       - check-store-layers:
           requires:
             - setup
-      - build-api-spec:
-          requires:
-            - setup
-      - check-mocks:
-          requires:
-            - setup
+#      - build-api-spec:
+#          requires:
+#            - setup
       - build:
           context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers
-            - check-mocks
-            - build-api-spec
+#            - build-api-spec
       - test:
           name: test-mysql
           dbdriver: mysql
@@ -495,7 +488,6 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
-            - check-mocks
       - test:
           name: test-postgres
           dbdriver: postgres
