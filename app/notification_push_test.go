@@ -912,7 +912,6 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				tc.channelWideMention,
 				tc.HasFiles,
 				"user",
-				"channel",
 				tc.ChannelType,
 				tc.replyToThreadType,
 				utils.GetUserTranslations(locale),

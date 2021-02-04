@@ -134,6 +134,8 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	defer ReturnSessionToPool(wc.GetSession())
 }
 
 func (wc *WebConn) readPump() {

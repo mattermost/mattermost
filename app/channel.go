@@ -459,7 +459,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 }
 
 func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
-	channel, err := a.createGroupChannel(userIds, creatorId)
+	channel, err := a.createGroupChannel(userIds)
 	if err != nil {
 		if err.Id == store.ChannelExistsError {
 			return channel, nil
@@ -482,7 +482,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	return channel, nil
 }
 
-func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
+func (a *App) createGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1285,7 +1285,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	return nil
 }
 
-func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMember *model.TeamMember) (*model.ChannelMember, *model.AppError) {
+func (a *App) addUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
 	if channel.Type != model.CHANNEL_OPEN && channel.Type != model.CHANNEL_PRIVATE {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1359,7 +1359,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	newMember, err := a.addUserToChannel(user, channel, teamMember)
+	newMember, err := a.addUserToChannel(user, channel)
 	if err != nil {
 		return nil, err
 	}

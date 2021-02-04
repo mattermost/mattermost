@@ -252,6 +252,7 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
 

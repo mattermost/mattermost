@@ -77,6 +77,8 @@ github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20201013204121-e463fc
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20201216181404-3faa6075089a/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210103185547-4c12aa739237 h1:w6GQs7SU6abD0QXKoqwd4bpEzNaW1xKwpeftBpIX1Do=
 github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210103185547-4c12aa739237/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210122154757-d807da7d142a h1:H8g7UkbNEpYE6UD7ej8UWp2W9q0eW+7BtvUl1v+bGMc=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20210122154757-d807da7d142a/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
