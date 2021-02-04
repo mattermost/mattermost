@@ -5754,7 +5754,8 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
-	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
+
+	checkThreadList := func(client *model.Client4, userId string, expectedThreads int) (*model.Threads, *model.Response) {
 		uss, resp := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
 		})
@@ -5776,34 +5777,33 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// basic user 1 was mentioned 1 time
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 1)
 	// basic user 2 was mentioned 1 time
-	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1, 1)
+	checkThreadList(th.SystemAdminClient, th.BasicUser2.Id, 1)
 
 	// test self mention, shouldn't increase mention count
 	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
 	// count should increase
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 1)
 
 	// test DM
 	dm := th.CreateDmChannel(th.SystemAdminUser)
 	dm_root_post, _ := postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
 
 	// no changes
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
+	checkThreadList(th.Client, th.BasicUser.Id, 1)
 
 	// post reply by the same user
 	postAndCheck(t, Client, &model.Post{ChannelId: dm.Id, Message: "how are you", RootId: dm_root_post.Id})
 
 	// thread created
-	checkThreadList(th.Client, th.BasicUser.Id, 1, 2)
+	checkThreadList(th.Client, th.BasicUser.Id, 2)
 
 	// post two replies by another user, without mentions. mention count should still increase since this is a DM
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg1", RootId: dm_root_post.Id})
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
 	// expect increment by two mentions
-	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
-
+	checkThreadList(th.Client, th.BasicUser.Id, 2)
 }
 
 func TestReadThreads(t *testing.T) {
