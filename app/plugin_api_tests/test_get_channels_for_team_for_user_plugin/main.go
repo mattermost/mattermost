@@ -37,7 +37,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if len(channels) != 0 {
 		return nil, "Returned invalid number of channels"
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {

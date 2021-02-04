@@ -45,7 +45,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if !plugin_api_tests.IsEmpty(dm3) {
 		return nil, "dm3 is NOT empty"
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {

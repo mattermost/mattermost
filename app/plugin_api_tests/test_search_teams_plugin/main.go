@@ -56,7 +56,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if len(teams) != 0 {
 		return nil, fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {

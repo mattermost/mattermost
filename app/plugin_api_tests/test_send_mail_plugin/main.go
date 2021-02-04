@@ -60,7 +60,8 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if resultsEmail.Body.Text != body {
 		return nil, fmt.Sprintf("body differs: %v vs %s", resultsEmail.Body.Text, body)
 	}
-	return nil, "OK"
+
+	return &model.Post{}, "OK"
 }
 
 func main() {

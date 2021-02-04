@@ -50,7 +50,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, "Status was expected to be nil, got: " + status.Status
 	}
 
-	return nil, "OK"
+	return &model.Post{}, "OK"
 }
 
 func main() {
