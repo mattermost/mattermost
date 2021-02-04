@@ -270,7 +270,6 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 	return err
 }
 
-// notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.
 func (scs *Service) sendAttachments(syncMessages []syncMsg, rc *model.RemoteCluster) {
 	for _, sm := range syncMessages {
 		for _, fi := range sm.Attachments {
@@ -286,7 +285,8 @@ func (scs *Service) sendAttachments(syncMessages []syncMsg, rc *model.RemoteClus
 	}
 }
 
-// notifyRemoteOffline creates an ephemeral post to the author for any posts created recently.
+// notifyRemoteOffline creates an ephemeral post to the author for any posts created recently to remotes
+// that are offline.
 func (scs *Service) notifyRemoteOffline(posts []*model.Post, rc *model.RemoteCluster) {
 	// only send one ephemeral post per author.
 	notified := make(map[string]bool)

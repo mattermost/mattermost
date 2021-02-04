@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -41,51 +40,16 @@ type ReaderProvider interface {
 // callback is regarding file delivery only. The `resp` contains the decoded bytes returned from the remote.
 // If a callback is provided it should return quickly.
 func (rcs *Service) SendFile(ctx context.Context, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
 	task := sendFileTask{
 		rc: rc,
 		us: us,
 		rp: rp,
 		f:  f,
 	}
-
-	// task is placed in the channel corresponding to the remoteId.
-	h := hash(rc.RemoteId)
-	idx := h % uint32(len(rcs.sendFiles))
-
-	select {
-	case rcs.sendFiles[idx] <- task:
-		return nil
-	case <-ctx.Done():
-		return NewBufferFullError(cap(rcs.send))
-	}
+	return rcs.enqueueTask(ctx, rc.RemoteId, task)
 }
 
-func hash(s string) uint32 {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return h.Sum32()
-}
-
-// sendFileLoop is called by each goroutine created for the send file pool and waits for
-// sendFileTask's until the done channel is signalled.
-//
-// Each goroutine in the pool is assigned a specific channel, and tasks are placed in the
-// channel cooresponding to the remoteId.
-func (rcs *Service) sendFileLoop(chanNum int, done chan struct{}) {
-	for {
-		select {
-		case task := <-rcs.sendFiles[chanNum]:
-			rcs.sendFile(task)
-		case <-done:
-			return
-		}
-	}
-}
-
+// sendFile is called when a sendFileTask is popped from the send channel.
 func (rcs *Service) sendFile(task sendFileTask) {
 	// Ensure a panic from the callback does not exit the thread.
 	defer func() {
