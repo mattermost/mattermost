@@ -306,6 +306,19 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 	return a.GetMultipleEmojiByName(names)
 }
 
+func (a *App) isLinkAllowedForPreview(link string) bool {
+	domains := a.normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
+	matched := false
+	for _, d := range domains {
+		if strings.Contains(link, d) {
+			matched = true
+			break
+		}
+	}
+
+	return !matched
+}
+
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
 // images of the form ![alt text](image url). Note that this does not return Markdown links of the
 // form [text](url).
@@ -314,20 +327,28 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	images := []string{}
 
 	markdown.Inspect(str, func(blockOrInline interface{}) bool {
+		link := ""
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			if firstLink == "" {
-				firstLink = v.Destination()
-			}
+			link = v.Destination()
+			if firstLink == "" && a.isLinkAllowedForPreview(link) {
+				firstLink = link
+			} 
 		case *markdown.InlineImage:
-			images = append(images, v.Destination())
+			link = v.Destination()
+			if a.isLinkAllowedForPreview(link) {
+				images = append(images, link)
+			} 
 		case *markdown.ReferenceImage:
-			images = append(images, v.ReferenceDefinition.Destination())
+			link = v.ReferenceDefinition.Destination()
+			if a.isLinkAllowedForPreview(link) {
+				images = append(images, link)
+			} 
 		}
 
 		return true
 	})
-
+	
 	return firstLink, images
 }
 
