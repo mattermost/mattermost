@@ -6450,11 +6450,11 @@ func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyE
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
 
 	tries := 0
 	for {
-		result, err := s.RetentionPolicyStore.GetAll()
+		result, err := s.RetentionPolicyStore.GetAll(offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6470,11 +6470,11 @@ func (s *RetryLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnric
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
 
 	tries := 0
 	for {
-		result, err := s.RetentionPolicyStore.GetAllWithCounts()
+		result, err := s.RetentionPolicyStore.GetAllWithCounts(offset, limit)
 		if err == nil {
 			return result, nil
 		}

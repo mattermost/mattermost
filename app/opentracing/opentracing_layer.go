@@ -7640,7 +7640,7 @@ func (a *OpenTracingAppLayer) GetRecentlyActiveUsersForTeamPage(teamId string, p
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPolicies(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPolicies")
 
@@ -7652,7 +7652,7 @@ func (a *OpenTracingAppLayer) GetRetentionPolicies() ([]*model.RetentionPolicyEn
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRetentionPolicies()
+	resultVar0, resultVar1 := a.app.GetRetentionPolicies(offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7662,7 +7662,7 @@ func (a *OpenTracingAppLayer) GetRetentionPolicies() ([]*model.RetentionPolicyEn
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError) {
+func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRetentionPoliciesWithCounts")
 
@@ -7674,7 +7674,7 @@ func (a *OpenTracingAppLayer) GetRetentionPoliciesWithCounts() ([]*model.Retenti
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetRetentionPoliciesWithCounts()
+	resultVar0, resultVar1 := a.app.GetRetentionPoliciesWithCounts(offset, limit)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

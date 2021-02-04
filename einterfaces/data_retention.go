@@ -9,8 +9,8 @@ import (
 
 type DataRetentionInterface interface {
 	GetGlobalPolicy() (*model.GlobalRetentionPolicy, *model.AppError)
-	GetPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError)
-	GetPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError)
+	GetPolicies(offset, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError)
+	GetPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError)
 	GetPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError)
 	CreatePolicy(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError)
 	PatchPolicy(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, *model.AppError)

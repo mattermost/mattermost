@@ -76,8 +76,8 @@ type RetentionPolicyStore interface {
 	Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
 	Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
 	Get(id string) (*model.RetentionPolicyEnriched, error)
-	GetAll() ([]*model.RetentionPolicyEnriched, error)
-	GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error)
+	GetAll(offset, limit uint64) ([]*model.RetentionPolicyEnriched, error)
+	GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, error)
 	Delete(id string) error
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error

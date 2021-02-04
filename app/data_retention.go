@@ -16,18 +16,18 @@ func (a *App) GetGlobalRetentionPolicy() (*model.GlobalRetentionPolicy, *model.A
 	return a.DataRetention().GetGlobalPolicy()
 }
 
-func (a *App) GetRetentionPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
+func (a *App) GetRetentionPolicies(offset, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPolicies")
 	}
-	return a.DataRetention().GetPolicies()
+	return a.DataRetention().GetPolicies(offset, limit)
 }
 
-func (a *App) GetRetentionPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError) {
+func (a *App) GetRetentionPoliciesWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError) {
 	if !a.hasValidRetentionPolicy() {
 		return nil, newLicenseError("GetRetentionPoliciesWithCounts")
 	}
-	return a.DataRetention().GetPoliciesWithCounts()
+	return a.DataRetention().GetPoliciesWithCounts(offset, limit)
 }
 
 func (a *App) GetRetentionPolicy(id string) (*model.RetentionPolicyEnriched, *model.AppError) {

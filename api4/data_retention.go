@@ -47,28 +47,30 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	var body map[string]interface{}
+	body := make(map[string]interface{})
+	totalCount := 0
+	limit := uint64(c.Params.PerPage)
+	offset := uint64(c.Params.Page) * limit
 	countsOnly, _ := strconv.ParseBool(r.URL.Query().Get("counts_only"))
 	if countsOnly {
-		policies, err := c.App.GetRetentionPoliciesWithCounts()
+		policies, err := c.App.GetRetentionPoliciesWithCounts(offset, limit)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		body = map[string]interface{}{
-			"policies":    policies,
-			"total_count": len(policies),
-		}
+		body["policies"] = policies
+		totalCount = len(policies)
 	} else {
-		policies, err := c.App.GetRetentionPolicies()
+		policies, err := c.App.GetRetentionPolicies(offset, limit)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		body = map[string]interface{}{
-			"policies":    policies,
-			"total_count": len(policies),
-		}
+		body["policies"] = policies
+		totalCount = len(policies)
+	}
+	if c.Params.IncludeTotalCount {
+		body["total_count"] = totalCount
 	}
 	b, _ := json.Marshal(body)
 	w.Write(b)
