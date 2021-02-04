@@ -607,7 +607,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	member2.ChannelId = newChannel.Id
 
 	if member1.UserId != member2.UserId {
-		_, err = s.saveMultipleMembersT([]*model.ChannelMember{member1, member2})
+		_, err = s.saveMultipleMembers([]*model.ChannelMember{member1, member2})
 	} else {
 		_, err = s.saveMemberT(member2)
 	}
@@ -1395,7 +1395,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	}
 	defer finalizeTransaction(transaction)
 
-	newMembers, err := s.saveMultipleMembersT(members)
+	newMembers, err := s.saveMultipleMembers(members)
 	if err != nil {
 		return nil, err
 	}
@@ -1415,7 +1415,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	return newMembers[0], nil
 }
 
-func (s SqlChannelStore) saveMultipleMembersT(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	newChannelMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -1557,7 +1557,7 @@ func (s SqlChannelStore) saveMultipleMembersT(members []*model.ChannelMember) ([
 }
 
 func (s SqlChannelStore) saveMemberT(member *model.ChannelMember) (*model.ChannelMember, error) {
-	members, err := s.saveMultipleMembersT([]*model.ChannelMember{member})
+	members, err := s.saveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
 	}
