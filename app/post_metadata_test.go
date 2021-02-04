@@ -1248,6 +1248,9 @@ func TestGetCustomEmojisForPost(t *testing.T) {
 }
 
 func TestGetFirstLinkAndImages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for name, testCase := range map[string]struct {
 		Input             string
 		ExpectedFirstLink string
@@ -1304,7 +1307,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			firstLink, images := getFirstLinkAndImages(testCase.Input)
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
 
 			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
 			assert.Equal(t, images, testCase.ExpectedImages)
@@ -1313,6 +1316,9 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for _, test := range []struct {
 		Name     string
 		Post     *model.Post
@@ -1517,7 +1523,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			images := getImagesInMessageAttachments(test.Post)
+			images := th.App.getImagesInMessageAttachments(test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
 		})
