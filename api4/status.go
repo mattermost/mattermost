@@ -131,7 +131,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	customStatus.TrimMessage()
 	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
 	if err != nil {
-		c.SetInvalidParam("custom_status")
+		c.Err = err
 		return
 	}
 
@@ -150,7 +150,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.App.RemoveCustomStatus(c.Params.UserId); err != nil {
-		c.SetInvalidParam("custom_status")
+		c.Err = err
 		return
 	}
 
@@ -175,7 +175,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
-		c.SetInvalidParam("custom_status")
+		c.Err = err
 		return
 	}
 
