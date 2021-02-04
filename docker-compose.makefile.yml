@@ -8,6 +8,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: mysql
+    networks:
+      - mm-test
   postgres:
     restart: 'no'
     container_name: mattermost-postgres
@@ -16,6 +18,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
+    networks:
+      - mm-test
   minio:
     restart: 'no'
     container_name: mattermost-minio
@@ -24,6 +28,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: minio
+    networks:
+      - mm-test
   inbucket:
     restart: 'no'
     container_name: mattermost-inbucket
@@ -34,6 +40,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: inbucket
+    networks:
+      - mm-test
   openldap:
     restart: 'no'
     container_name: mattermost-openldap
@@ -43,6 +51,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: openldap
+    networks:
+      - mm-test
   elasticsearch:
     restart: 'no'
     container_name: mattermost-elasticsearch
@@ -52,6 +62,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: elasticsearch
+    networks:
+      - mm-test
   dejavu:
     restart: 'no'
     container_name: mattermost-dejavu
@@ -60,6 +72,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: dejavu
+    networks:
+      - mm-test
   keycloak:
     restart: 'no'
     container_name: mattermost-saml
@@ -68,6 +82,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: keycloak
+    networks:
+      - mm-test
   prometheus:
     restart: 'no'
     container_name: mattermost-prometheus
@@ -76,6 +92,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: prometheus
+    networks:
+      - mm-test
   grafana:
     restart: 'no'
     container_name: mattermost-grafana
@@ -84,6 +102,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: grafana
+    networks:
+      - mm-test
 
 networks:
   mm-test:

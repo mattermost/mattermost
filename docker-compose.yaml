@@ -7,6 +7,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: mysql
+    networks:
+      - mm-test
   postgres:
     container_name: mattermost-postgres
     ports:
@@ -14,6 +16,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
+    networks:
+      - mm-test
   minio:
     container_name: mattermost-minio
     ports:
@@ -21,6 +25,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: minio
+    networks:
+      - mm-test
   inbucket:
     container_name: mattermost-inbucket
     ports:
@@ -30,6 +36,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: inbucket
+    networks:
+      - mm-test
   openldap:
     container_name: mattermost-openldap
     ports:
@@ -38,6 +46,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: openldap
+    networks:
+      - mm-test
   elasticsearch:
     container_name: mattermost-elasticsearch
     ports:
@@ -46,6 +56,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: elasticsearch
+    networks:
+      - mm-test
   dejavu:
     container_name: mattermost-dejavu
     ports:
@@ -53,6 +65,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: dejavu
+    networks:
+      - mm-test
   keycloak:
     container_name: mattermost-saml
     ports:
@@ -60,6 +74,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: keycloak
+    networks:
+      - mm-test
   prometheus:
     container_name: mattermost-prometheus
     ports:
@@ -67,6 +83,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: prometheus
+    networks:
+      - mm-test
   grafana:
     container_name: mattermost-grafana
     ports:
@@ -74,6 +92,8 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: grafana
+    networks:
+      - mm-test
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+declare -a hosts=("127.0.0.1 org-a.local" "127.0.0.1 org-b.local")
+for host in "${hosts[@]}"; do
+  IFS=' '
+  read -ra entry <<< $host
+
+  if grep -q ${entry[1]} /etc/hosts > /dev/null; then
+    echo "'${entry[1]}' already exists in /etc/hosts. Skipping"
+  else
+    echo "adding '$host' entry in /etc/hosts."
+    sudo sh -c "echo $host >> /etc/hosts"
+  fi
+done

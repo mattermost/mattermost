@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
+.PHONY: build package run stop run-client run-server run-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check run-multi restart-multi stop-multi
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -170,6 +170,37 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Starting mattermost in an HA topology
 
 	docker-compose -f docker-compose.yaml up haproxy
+endif
+
+run-multi: run-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Removing possibly wrong configured default network
+	docker network rm mattermost-server_mm-test
+
+	@echo Adding necessary host alias in /etc/hosts
+
+	./scripts/update_hosts
+
+	@echo Running two multi mattermost instances
+	@echo the multi UIs will be available in
+	@echo - http://org-a.local:8065
+	@echo - http://org-b.local:8065
+	docker-compose -f docker-compose.multi.yaml up shared_proxy
+endif
+
+restart-multi: restart-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	docker-compose -f docker-compose.multi.yaml restart server_org_a
+	docker-compose -f docker-compose.multi.yaml restart server_org_b
+	docker-compose -f docker-compose.multi.yaml restart shared_proxy
+endif
+
+stop-multi: stop-client
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	docker-compose -f docker-compose.multi.yaml stop server_org_a
+	docker-compose -f docker-compose.multi.yaml stop server_org_b
+	docker-compose -f docker-compose.multi.yaml stop shared_proxy
+	docker-compose -f docker-compose.multi.yaml down
 endif
 
 stop-docker: ## Stops the docker containers for local development.

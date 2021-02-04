@@ -1,0 +1,310 @@
+version: '2.4'
+services:
+  mysql_org_a:
+    container_name: mattermost-mysql-org-a
+    expose:
+      - "3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql
+    networks:
+      - org_a
+  postgres_org_a:
+    container_name: mattermost-postgres-org-a
+    expose:
+      - "5432"
+    extends:
+        file: build/docker-compose.common.yml
+        service: postgres
+    networks:
+      - org_a
+  minio_org_a:
+    container_name: mattermost-minio-org-a
+    expose:
+      - "9000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: minio
+    networks:
+      - org_a
+  inbucket_org_a:
+    container_name: mattermost-inbucket-org-a
+    expose:
+      - "10025"
+      - "10080"
+      - "10110"
+    extends:
+        file: build/docker-compose.common.yml
+        service: inbucket
+    networks:
+      - org_a
+  openldap_org_a:
+    container_name: mattermost-openldap-org-a
+    expose:
+      - "389"
+      - "636"
+    extends:
+        file: build/docker-compose.common.yml
+        service: openldap
+    networks:
+      - org_a
+  elasticsearch_org_a:
+    container_name: mattermost-elasticsearch-org-a
+    expose:
+      - "9200"
+      - "9300"
+    extends:
+        file: build/docker-compose.common.yml
+        service: elasticsearch
+    networks:
+      - org_a
+  dejavu_org_a:
+    container_name: mattermost-dejavu-org-a
+    expose:
+      - "1358"
+    extends:
+        file: build/docker-compose.common.yml
+        service: dejavu
+    networks:
+      - org_a
+  keycloak_org_a:
+    container_name: mattermost-saml-org-a
+    expose:
+      - "8080"
+    extends:
+        file: build/docker-compose.common.yml
+        service: keycloak
+    networks:
+      - org_a
+  prometheus_org_a:
+    container_name: mattermost-prometheus-org-a
+    expose:
+      - "9090"
+    extends:
+        file: build/docker-compose.common.yml
+        service: prometheus
+    networks:
+      - org_a
+  grafana_org_a:
+    container_name: mattermost-grafana-org-a
+    expose:
+      - "3000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: grafana
+    networks:
+      - org_a
+
+  server_org_a:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    depends_on:
+      - start_dependencies_org_a
+    networks:
+      - org_a
+      - org_b
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres_org_a/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_SERVICESETTINGS_SITE_URL=http://server_org_a:8065"
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    command: ['make', 'run-server']
+    expose:
+      - "8065"
+
+  server_org_b:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile.buildenv
+    depends_on:
+      - start_dependencies_org_b
+    networks:
+      - org_b
+      - org_a
+    working_dir: '/home/mattermost-server'
+    environment:
+      - "MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@postgres_org_b/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+      - "MM_NO_DOCKER=true"
+      - "RUN_SERVER_IN_BACKGROUND=false"
+      - "MM_SERVICESETTINGS_SITE_URL=http://server_org_b:8065"
+    volumes:
+      - './:/home/mattermost-server'
+      - './../mattermost-webapp:/home/mattermost-webapp'
+      - './../enterprise:/home/enterprise'
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+    command: ['make', 'run-server']
+    expose:
+      - "8065"
+
+  mysql_org_b:
+    container_name: mattermost-mysql-org-b
+    expose:
+      - "3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql
+    networks:
+      - org_b
+  postgres_org_b:
+    container_name: mattermost-postgres-org-b
+    expose:
+      - "5432"
+    extends:
+        file: build/docker-compose.common.yml
+        service: postgres
+    networks:
+      - org_b
+  minio_org_b:
+    container_name: mattermost-minio-org-b
+    expose:
+      - "9000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: minio
+    networks:
+      - org_b
+  inbucket_org_b:
+    container_name: mattermost-inbucket-org-b
+    expose:
+      - "10025"
+      - "10080"
+      - "10110"
+    extends:
+        file: build/docker-compose.common.yml
+        service: inbucket
+    networks:
+      - org_b
+  openldap_org_b:
+    container_name: mattermost-openldap-org-b
+    expose:
+      - "389"
+      - "636"
+    extends:
+        file: build/docker-compose.common.yml
+        service: openldap
+    networks:
+      - org_b
+  elasticsearch_org_b:
+    container_name: mattermost-elasticsearc-org-b
+    expose:
+      - "9200"
+      - "9300"
+    extends:
+        file: build/docker-compose.common.yml
+        service: elasticsearch
+    networks:
+      - org_b
+  dejavu_org_b:
+    container_name: mattermost-dejavu-org-b
+    expose:
+      - "1358"
+    extends:
+        file: build/docker-compose.common.yml
+        service: dejavu
+    networks:
+      - org_b
+  keycloak_org_b:
+    container_name: mattermost-saml-org-b
+    expose:
+      - "8080"
+    extends:
+        file: build/docker-compose.common.yml
+        service: keycloak
+    networks:
+      - org_b
+  prometheus_org_b:
+    container_name: mattermost-prometheus-org-b
+    expose:
+      - "9090"
+    extends:
+        file: build/docker-compose.common.yml
+        service: prometheus
+    networks:
+      - org_b
+  grafana_org_b:
+    container_name: mattermost-grafana-org-b
+    expose:
+      - "3000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: grafana
+    networks:
+      - org_b
+
+  shared_proxy:
+    image: nginx
+    networks:
+      - org_a
+      - org_b
+    volumes:
+      - ./build/docker/nginx/shared.conf:/etc/nginx/conf.d/default.conf
+    restart: on-failure
+    depends_on:
+      - server_org_a
+      - server_org_b
+    ports:
+      - "8065:8065"
+
+  start_dependencies_org_a:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - org_a
+    depends_on:
+      - mysql_org_a
+      - postgres_org_a
+      - minio_org_a
+      - inbucket_org_a
+      - openldap_org_a
+      - elasticsearch_org_a
+      - prometheus_org_a
+      - grafana_org_a
+    command: postgres_org_a:5432 mysql_org_a:3306 minio_org_a:9000 inbucket_org_a:10080 openldap_org_a:389 elasticsearch_org_a:9200 prometheus_org_a:9090 grafana_org_a:3000
+
+  start_dependencies_org_b:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - org_b
+    depends_on:
+      - mysql_org_b
+      - postgres_org_b
+      - minio_org_b
+      - inbucket_org_b
+      - openldap_org_b
+      - elasticsearch_org_b
+      - prometheus_org_b
+      - grafana_org_b
+    command: postgres_org_b:5432 mysql_org_b:3306 minio_org_b:9000 inbucket_org_b:10080 openldap_org_b:389 elasticsearch_org_b:9200 prometheus_org_b:9090 grafana_org_b:3000
+
+networks:
+  org_a:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.128/26
+          ip-range: 192.168.254.128/26
+
+  org_b:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.192/26
+          ip-range: 192.168.254.192/26
