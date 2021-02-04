@@ -127,7 +127,7 @@ func initStores() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			st.SqlStore = New(*st.SqlSettings, &featureFlags, nil)
+			st.SqlStore = New(*st.SqlSettings, nil)
 			st.Store = st.SqlStore
 			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
@@ -172,7 +172,7 @@ func TestStoreLicenseRace(t *testing.T) {
 	featureFlags := model.FeatureFlags{}
 	featureFlags.SetDefaults()
 
-	store := New(*settings, &featureFlags, nil)
+	store := New(*settings, nil)
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
@@ -261,7 +261,7 @@ func TestGetReplica(t *testing.T) {
 			featureFlags := model.FeatureFlags{}
 			featureFlags.SetDefaults()
 
-			store := New(*settings, &featureFlags, nil)
+			store := New(*settings, nil)
 			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
@@ -322,7 +322,7 @@ func TestGetReplica(t *testing.T) {
 			featureFlags := model.FeatureFlags{}
 			featureFlags.SetDefaults()
 
-			store := New(*settings, &featureFlags, nil)
+			store := New(*settings, nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -387,7 +387,7 @@ func TestGetDbVersion(t *testing.T) {
 			featureFlags := model.FeatureFlags{}
 			featureFlags.SetDefaults()
 
-			store := New(*settings, &featureFlags, nil)
+			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
 			require.Nil(t, err)
@@ -471,7 +471,7 @@ func TestGetAllConns(t *testing.T) {
 			featureFlags := model.FeatureFlags{}
 			featureFlags.SetDefaults()
 
-			store := New(*settings, &featureFlags, nil)
+			store := New(*settings, nil)
 
 			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
 		})
