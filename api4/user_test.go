@@ -19,7 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
@@ -3356,7 +3355,7 @@ func TestLoginReplicationLag(t *testing.T) {
 
 	t.Run("with replication lag, caches cleared", func(t *testing.T) {
 		if !replicaFlag {
-			t.Skipf("requires test flag: -%s", testlib.FlagNameMySQLReplica)
+			t.Skipf("requires test flag: -mysql-replica")
 		}
 
 		if *th.App.Srv().Config().SqlSettings.DriverName != model.DATABASE_DRIVER_MYSQL {

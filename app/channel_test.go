@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1910,7 +1911,7 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
+	mockUserStore.On("Get", mock.Anything, "userID").Return(nil, model.NewAppError("SqlUserStore.Get", "app.user.get.app_error", nil, "user_id=userID", http.StatusInternalServerError))
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("Get", "channelID", true).Return(&model.Channel{}, nil)
 	mockChannelStore.On("GetMember", "channelID", "userID").Return(&model.ChannelMember{

@@ -14,7 +14,7 @@ import (
 var replicaFlag bool
 
 func TestMain(m *testing.M) {
-	flag.BoolVar(&replicaFlag, testlib.FlagNameMySQLReplica, false, testlib.FlagDescriptionMySQLReplica)
+	flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
 	flag.Parse()
 
 	var options = testlib.HelperOptions{

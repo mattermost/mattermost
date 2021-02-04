@@ -1973,7 +1973,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 
 func TestReplyToPost(t *testing.T) {
 	if !replicaFlag {
-		t.Skipf("requires test flag: -%s", testlib.FlagNameMySQLReplica)
+		t.Skipf("requires test flag -mysql-replica")
 	}
 
 	th := Setup(t).InitBasic()

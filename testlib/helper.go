@@ -24,11 +24,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const (
-	FlagNameMySQLReplica        = "mysql-replica"
-	FlagDescriptionMySQLReplica = "sets whether a mysql replicas are being tested"
-)
-
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	FeatureFlags     *model.FeatureFlags
