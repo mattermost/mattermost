@@ -1313,6 +1313,66 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			assert.Equal(t, images, testCase.ExpectedImages)
 		})
 	}
+
+	for name, testCase := range map[string]struct {
+		Input             string
+		ExpectedFirstLink string
+		ExpectedImages    []string
+	}{
+		"http link domain is restricted": {
+			Input:             "this is a http://example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"http link domain is not restricted": {
+			Input:             "this is a http://example1.com",
+			ExpectedFirstLink: "http://example1.com",
+			ExpectedImages:    []string{},
+		},
+		"www link domain is restricted": {
+			Input:             "this is a www.example.com",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"multiple images domain restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo](http://example.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"multiple images with duplicate domain is restricted": {
+			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"reference image domain is restricted": {
+			Input: `this is a ![our logo][logo]
+
+[logo]: http://example.com/logo`,
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+		"image and link domain is restricted": {
+			Input:             "this is a https://example.com and ![our logo](https://example.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{},
+		},
+	} {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"
+		})
+		
+		t.Run(name, func(t *testing.T) {
+			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
+
+			assert.Equal(t, firstLink, testCase.ExpectedFirstLink)
+			assert.Equal(t, images, testCase.ExpectedImages)
+		})
+	}
 }
 
 func TestGetImagesInMessageAttachments(t *testing.T) {
