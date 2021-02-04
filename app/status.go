@@ -371,11 +371,10 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 	}
 
 	user.SetCustomStatus(cs)
-	_, updateErr := a.UpdateUser(user, false)
+	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
 		return err
 	}
-	a.sendUpdatedUserEvent(*user)
 
 	return nil
 }
@@ -387,11 +386,10 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	}
 
 	user.ClearCustomStatus()
-	_, updateErr := a.UpdateUser(user, false)
+	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
 		return err
 	}
-	a.sendUpdatedUserEvent(*user)
 
 	return nil
 }
@@ -403,11 +401,10 @@ func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus
 	}
 
 	user.RemoveRecentCustomStatus(status)
-	_, updateErr := a.UpdateUser(user, false)
+	_, updateErr := a.UpdateUser(user, true)
 	if updateErr != nil {
 		return err
 	}
-	a.sendUpdatedUserEvent(*user)
 
 	return nil
 }
