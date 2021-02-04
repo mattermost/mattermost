@@ -333,22 +333,22 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 			link = v.Destination()
 			if firstLink == "" && a.isLinkAllowedForPreview(link) {
 				firstLink = link
-			} 
+			}
 		case *markdown.InlineImage:
 			link = v.Destination()
 			if a.isLinkAllowedForPreview(link) {
 				images = append(images, link)
-			} 
+			}
 		case *markdown.ReferenceImage:
 			link = v.ReferenceDefinition.Destination()
 			if a.isLinkAllowedForPreview(link) {
 				images = append(images, link)
-			} 
+			}
 		}
 
 		return true
 	})
-	
+
 	return firstLink, images
 }
 

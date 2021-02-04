@@ -1365,7 +1365,7 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.RestrictLinkPreviews = "example.com, test.com"
 		})
-		
+
 		t.Run(name, func(t *testing.T) {
 			firstLink, images := th.App.getFirstLinkAndImages(testCase.Input)
 
