@@ -53,7 +53,7 @@ func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
 	}
 	newRCS = append(RecentCustomStatuses{*cs}, newRCS...)
 	if len(newRCS) > MaxRecentCustomStatuses {
-		newRCS = newRCS[:MaxRecentCustomStatuses-1]
+		newRCS = newRCS[:MaxRecentCustomStatuses]
 	}
 	return &newRCS
 }
