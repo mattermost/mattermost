@@ -85,7 +85,7 @@ type Actions struct {
 	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
 	CreateDirectChannel    func(string, string) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func([]string, string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
 	GenerateThumbnailImage func(image.Image, string)
@@ -736,7 +736,7 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(members, creator.Id)
+		sc, err := si.actions.CreateGroupChannel(members)
 		if err != nil {
 			return nil
 		}

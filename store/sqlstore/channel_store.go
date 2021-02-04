@@ -110,7 +110,8 @@ func channelMemberToSlice(member *model.ChannelMember) []interface{} {
 
 type channelMemberWithSchemeRolesList []channelMemberWithSchemeRoles
 
-func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole string, roles []string) rolesInfo {
+func getChannelRoles(schemeGuest, schemeUser, schemeAdmin bool, defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole, defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole string,
+	roles []string) rolesInfo {
 	result := rolesInfo{
 		roles:         []string{},
 		explicitRoles: []string{},
@@ -607,9 +608,9 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	member2.ChannelId = newChannel.Id
 
 	if member1.UserId != member2.UserId {
-		_, err = s.saveMultipleMembersT(transaction, []*model.ChannelMember{member1, member2})
+		_, err = s.saveMultipleMembers([]*model.ChannelMember{member1, member2})
 	} else {
-		_, err = s.saveMemberT(transaction, member2)
+		_, err = s.saveMemberT(member2)
 	}
 	if err != nil {
 		return nil, err
@@ -730,6 +731,7 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 	return &unreadChannel, nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) InvalidateChannel(id string) {
 }
 
@@ -740,8 +742,9 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
+//nolint:unparam
 func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
-	return s.get(id, false, allowFromCache)
+	return s.get(id, false)
 }
 
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
@@ -759,10 +762,10 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 }
 
 func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, error) {
-	return s.get(id, true, false)
+	return s.get(id, true)
 }
 
-func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*model.Channel, error) {
+func (s SqlChannelStore) get(id string, master bool) (*model.Channel, error) {
 	var db *gorp.DbMap
 
 	if master {
@@ -1393,7 +1396,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	}
 	defer finalizeTransaction(transaction)
 
-	newMembers, err := s.saveMultipleMembersT(transaction, members)
+	newMembers, err := s.saveMultipleMembers(members)
 	if err != nil {
 		return nil, err
 	}
@@ -1413,7 +1416,7 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.Channel
 	return newMembers[0], nil
 }
 
-func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, members []*model.ChannelMember) ([]*model.ChannelMember, error) {
+func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error) {
 	newChannelMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -1554,8 +1557,8 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) saveMemberT(transaction *gorp.Transaction, member *model.ChannelMember) (*model.ChannelMember, error) {
-	members, err := s.saveMultipleMembersT(transaction, []*model.ChannelMember{member})
+func (s SqlChannelStore) saveMemberT(member *model.ChannelMember) (*model.ChannelMember, error) {
+	members, err := s.saveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
 	}
@@ -1851,6 +1854,7 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 	return props, nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) InvalidateMemberCount(channelId string) {
 }
 
@@ -1859,6 +1863,7 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	return count
 }
 
+//nolint:unparam
 func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, error) {
 	count, err := s.GetReplica().SelectInt(`
 		SELECT
@@ -1947,9 +1952,11 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	return data, nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) InvalidatePinnedPostCount(channelId string) {
 }
 
+//nolint:unparam
 func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, error) {
 	count, err := s.GetReplica().SelectInt(`
 		SELECT count(*)
@@ -1966,9 +1973,11 @@ func (s SqlChannelStore) GetPinnedPostCount(channelId string, allowFromCache boo
 	return count, nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) InvalidateGuestCount(channelId string) {
 }
 
+//nolint:unparam
 func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, error) {
 	count, err := s.GetReplica().SelectInt(`
 		SELECT

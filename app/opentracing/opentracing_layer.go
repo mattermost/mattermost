@@ -15622,7 +15622,7 @@ func (a *OpenTracingAppLayer) UpdateUserAuth(userId string, userAuth *model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userId string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserNotifyProps")
 
@@ -15634,7 +15634,7 @@ func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userId string, props map[str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUserNotifyProps(userId, props)
+	resultVar0, resultVar1 := a.app.UpdateUserNotifyProps(userId, props, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

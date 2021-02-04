@@ -998,7 +998,7 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
-func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(st model.GroupSyncableType, teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
+func (s *SqlGroupStore) getGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	query := s.getQueryBuilder().
 		Select("gc.ChannelId, ug.*, gc.SchemeAdmin AS SyncableSchemeAdmin").
 		From("UserGroups ug").
@@ -1103,7 +1103,7 @@ func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpt
 }
 
 func (s *SqlGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, error) {
-	query := s.getGroupsAssociatedToChannelsByTeam(model.GroupSyncableTypeTeam, teamId, opts)
+	query := s.getGroupsAssociatedToChannelsByTeam(teamId, opts)
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)

@@ -63,7 +63,7 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
 	})
 
 	return reaction, nil
@@ -131,11 +131,6 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		}
 	}
 
-	hasReactions := true
-	if reactions, _ := a.GetReactionsForPost(post.Id); len(reactions) <= 1 {
-		hasReactions = false
-	}
-
 	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
 		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -154,13 +149,13 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	}
 
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
 	})
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post, hasReactions bool) {
+func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())

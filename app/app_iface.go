@@ -1018,7 +1018,7 @@ type AppIface interface {
 	UpdateUserActive(userId string, active bool) *model.AppError
 	UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *model.AppError)
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
-	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
+	UpdateUserNotifyProps(userId string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
 	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError

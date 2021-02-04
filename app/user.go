@@ -1176,8 +1176,6 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedUserEvent(*updatedUser)
-
 	return updatedUser, nil
 }
 
@@ -1193,8 +1191,6 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 	if err != nil {
 		return nil, err
 	}
-
-	a.sendUpdatedUserEvent(*updatedUser)
 
 	return updatedUser, nil
 }
@@ -1308,11 +1304,12 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv().Go(func() {
-				if err := a.Srv().EmailService.sendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
+				if err := a.Srv().EmailService.sendChangeUsernameEmail(userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 					mlog.Error("Failed to send change username email", mlog.Err(err))
 				}
 			})
 		}
+		a.sendUpdatedUserEvent(*userUpdate.New)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1333,7 +1330,7 @@ func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
 	return nil
 }
 
-func (a *App) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
+func (a *App) UpdateUserNotifyProps(userId string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userId)
 	if err != nil {
 		return nil, err
@@ -1341,7 +1338,7 @@ func (a *App) UpdateUserNotifyProps(userId string, props map[string]string) (*mo
 
 	user.NotifyProps = props
 
-	ruser, err := a.UpdateUser(user, true)
+	ruser, err := a.UpdateUser(user, sendNotifications)
 	if err != nil {
 		return nil, err
 	}

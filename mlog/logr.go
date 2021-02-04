@@ -75,7 +75,7 @@ func NewLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 	if err != nil {
 		return nil, err
 	}
-	filter, err := newFilter(name, t.Levels)
+	filter, err := newFilter(t.Levels)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func NewLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 	return nil, fmt.Errorf("invalid type '%s' for target %s", t.Type, name)
 }
 
-func newFilter(name string, levels []LogLevel) (logr.Filter, error) {
+func newFilter(levels []LogLevel) (logr.Filter, error) {
 	filter := &logr.CustomFilter{}
 	for _, lvl := range levels {
 		filter.Add(logr.Level(lvl))
