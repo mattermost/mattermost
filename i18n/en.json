@@ -2344,7 +2344,7 @@
   },
   {
     "id": "api.remote_cluster.update.app_error",
-    "translation": ""
+    "translation": "We encountered an error updating the remote cluster."
   },
   {
     "id": "api.remote_cluster.update_not_unique.app_error",
