@@ -46,6 +46,9 @@ func (a *App) EnvironmentConfig() map[string]interface{} {
 }
 
 func (s *Server) UpdateConfig(f func(*model.Config)) {
+	if s.configStore.IsReadOnly() {
+		return
+	}
 	old := s.Config()
 	updated := old.Clone()
 	f(updated)

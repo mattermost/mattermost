@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -36,6 +37,19 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	return session, nil
 }
 
+func ReturnSessionToPool(session *model.Session) {
+	if session != nil {
+		session.Id = ""
+		userSessionPool.Put(session)
+	}
+}
+
+var userSessionPool = sync.Pool{
+	New: func() interface{} {
+		return &model.Session{}
+	},
+}
+
 func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 	apiKey := os.Getenv("MM_CLOUD_API_KEY")
 	if apiKey != "" && apiKey == token {
@@ -54,9 +68,10 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics()
 
-	var session *model.Session
+	var session = userSessionPool.Get().(*model.Session)
+
 	var err *model.AppError
-	if err := a.Srv().sessionCache.Get(token, &session); err == nil {
+	if err := a.Srv().sessionCache.Get(token, session); err == nil {
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
 		}
@@ -66,7 +81,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session.Id == "" {
 		var nErr error
 		if session, nErr = a.Srv().Store.Session().Get(token); nErr == nil {
 			if session != nil {
@@ -83,7 +98,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil {
+	if session == nil || session.Id == "" {
 		session, err = a.createSessionForUserAccessToken(token)
 		if err != nil {
 			detailedError := ""
@@ -98,7 +113,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		}
 	}
 
-	if session == nil || session.IsExpired() {
+	if session.Id == "" || session.IsExpired() {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "session is either nil or expired", http.StatusUnauthorized)
 	}
 
