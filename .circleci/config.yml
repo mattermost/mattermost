@@ -438,6 +438,64 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
+      - test:
+          name: test-postgres
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+      - test-schema:
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+
+  release-build:
+    jobs:
+      - setup:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
+      - check-deps:
+          context: sast-webhook
+          requires:
+            - setup
+      # - check-i18n:
+      #     requires:
+      #       - setup
+      - check-app-layers:
+          requires:
+            - setup
+      - check-store-layers:
+          requires:
+            - setup
+      - build-api-spec:
+          requires:
+            - setup
+      - check-mocks:
+          requires:
+            - setup
+      - build:
+          context: matterbuild-sentry
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - build-api-spec
+      - test:
+          name: test-mysql
+          dbdriver: mysql
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
       - test:
           name: test-postgres
           dbdriver: postgres
