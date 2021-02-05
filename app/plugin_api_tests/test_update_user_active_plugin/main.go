@@ -69,7 +69,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, "DeleteAt value is not 0"
 	}
 
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

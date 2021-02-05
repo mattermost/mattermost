@@ -37,8 +37,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if err == nil || data != nil {
 		return nil, "GetProfileImage should've returned an error"
 	}
-
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

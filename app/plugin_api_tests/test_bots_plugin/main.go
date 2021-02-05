@@ -122,7 +122,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 			return nil, "GetBot did not return the expected bot OwnerId"
 		}
 	*/
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

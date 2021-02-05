@@ -32,7 +32,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, "Invalid user id returned"
 	}
 
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

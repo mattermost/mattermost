@@ -43,8 +43,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	if !p.configuration.MyBoolSetting {
 		return nil, "MyBoolSetting has invalid value"
 	}
-
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

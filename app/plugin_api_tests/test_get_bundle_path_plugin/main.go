@@ -32,7 +32,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, fmt.Sprintf("Invalid bundle path returned: %v vs %v", bundlePathFromConfig, bundlePath)
 	}
 
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

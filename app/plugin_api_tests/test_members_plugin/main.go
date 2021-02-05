@@ -30,7 +30,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	} else if teamMembers[0].UserId != p.configuration.BasicUserId || teamMembers[0].TeamId != p.configuration.BasicTeamId {
 		return nil, "Invalid user or team id returned"
 	}
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {

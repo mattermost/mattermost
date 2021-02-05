@@ -31,7 +31,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 		return nil, "State is not running"
 	}
 
-	return &model.Post{}, "OK"
+	return nil, "OK"
 }
 
 func main() {
