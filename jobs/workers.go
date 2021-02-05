@@ -31,7 +31,7 @@ type Workers struct {
 	ImportDelete             model.Worker
 	Cloud                    model.Worker
 
-	listenerId string
+	listenerID string
 }
 
 func (srv *JobServer) InitWorkers() *Workers {
@@ -162,7 +162,7 @@ func (workers *Workers) Start() *Workers {
 		go workers.Watcher.Start()
 	})
 
-	workers.listenerId = workers.ConfigService.AddConfigListener(workers.handleConfigChange)
+	workers.listenerID = workers.ConfigService.AddConfigListener(workers.handleConfigChange)
 
 	return workers
 }
@@ -220,7 +220,7 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 }
 
 func (workers *Workers) Stop() *Workers {
-	workers.ConfigService.RemoveConfigListener(workers.listenerId)
+	workers.ConfigService.RemoveConfigListener(workers.listenerID)
 
 	workers.Watcher.Stop()
 

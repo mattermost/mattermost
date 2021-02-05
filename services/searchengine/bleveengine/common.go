@@ -11,13 +11,13 @@ import (
 )
 
 type BLVChannel struct {
-	Id          string
-	TeamId      []string
+	ID          string
+	TeamID      []string
 	NameSuggest []string
 }
 
 type BLVUser struct {
-	Id                         string
+	ID                         string
 	SuggestionsWithFullname    []string
 	SuggestionsWithoutFullname []string
 	TeamsIds                   []string
@@ -25,10 +25,10 @@ type BLVUser struct {
 }
 
 type BLVPost struct {
-	Id          string
-	TeamId      string
-	ChannelId   string
-	UserId      string
+	ID          string
+	TeamID      string
+	ChannelID   string
+	UserID      string
 	CreateAt    int64
 	Message     string
 	Type        string
@@ -38,8 +38,8 @@ type BLVPost struct {
 
 type BLVFile struct {
 	Id        string
-	CreatorId string
-	ChannelId string
+	CreatorID string
+	ChannelID string
 	CreateAt  int64
 	Name      string
 	Content   string
@@ -51,8 +51,8 @@ func BLVChannelFromChannel(channel *model.Channel) *BLVChannel {
 	nameInputs := searchengine.GetSuggestionInputsSplitByMultiple(channel.Name, []string{"-", "_"})
 
 	return &BLVChannel{
-		Id:          channel.Id,
-		TeamId:      []string{channel.TeamId},
+		ID:          channel.Id,
+		TeamID:      []string{channel.TeamId},
 		NameSuggest: append(displayNameInputs, nameInputs...),
 	}
 }
@@ -82,7 +82,7 @@ func BLVUserFromUserAndTeams(user *model.User, teamsIds, channelsIds []string) *
 	usernameAndNicknameSuggestions := append(usernameSuggestions, nicknameSuggesitons...)
 
 	return &BLVUser{
-		Id:                         user.Id,
+		ID:                         user.Id,
 		SuggestionsWithFullname:    append(usernameAndNicknameSuggestions, fullnameSuggestions...),
 		SuggestionsWithoutFullname: usernameAndNicknameSuggestions,
 		TeamsIds:                   teamsIds,
@@ -104,9 +104,9 @@ func BLVUserFromUserForIndexing(userForIndexing *model.UserForIndexing) *BLVUser
 	return BLVUserFromUserAndTeams(user, userForIndexing.TeamsIds, userForIndexing.ChannelsIds)
 }
 
-func BLVPostFromPost(post *model.Post, teamId string) *BLVPost {
+func BLVPostFromPost(post *model.Post, teamID string) *BLVPost {
 	p := &model.PostForIndexing{
-		TeamId: teamId,
+		TeamId: teamID,
 	}
 	post.ShallowCopy(&p.Post)
 	return BLVPostFromPostForIndexing(p)
@@ -114,10 +114,10 @@ func BLVPostFromPost(post *model.Post, teamId string) *BLVPost {
 
 func BLVPostFromPostForIndexing(post *model.PostForIndexing) *BLVPost {
 	return &BLVPost{
-		Id:        post.Id,
-		TeamId:    post.TeamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
+		ID:        post.Id,
+		TeamID:    post.TeamId,
+		ChannelID: post.ChannelId,
+		UserID:    post.UserId,
 		CreateAt:  post.CreateAt,
 		Message:   post.Message,
 		Type:      post.Type,
@@ -125,11 +125,11 @@ func BLVPostFromPostForIndexing(post *model.PostForIndexing) *BLVPost {
 	}
 }
 
-func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
+func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelID string) *BLVFile {
 	return &BLVFile{
 		Id:        fileInfo.Id,
-		ChannelId: channelId,
-		CreatorId: fileInfo.CreatorId,
+		ChannelID: channelID,
+		CreatorID: fileInfo.CreatorId,
 		CreateAt:  fileInfo.CreateAt,
 		Content:   fileInfo.Content,
 		Extension: fileInfo.Extension,
@@ -140,8 +140,8 @@ func BLVFileFromFileInfo(fileInfo *model.FileInfo, channelId string) *BLVFile {
 func BLVFileFromFileForIndexing(file *model.FileForIndexing) *BLVFile {
 	return &BLVFile{
 		Id:        file.Id,
-		ChannelId: file.ChannelId,
-		CreatorId: file.CreatorId,
+		ChannelID: file.ChannelId,
+		CreatorID: file.CreatorId,
 		CreateAt:  file.CreateAt,
 		Content:   file.Content,
 		Extension: file.Extension,

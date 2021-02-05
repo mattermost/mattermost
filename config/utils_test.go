@@ -278,7 +278,7 @@ func TestIsJsonMap(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsJsonMap(tt.data); got != tt.want {
+			if got := IsJSONMap(tt.data); got != tt.want {
 				t.Errorf("IsJsonMap() = %v, want %v", got, tt.want)
 			}
 		})

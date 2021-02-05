@@ -337,7 +337,7 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 	for _, post := range posts {
 		if post.DeleteAt == 0 {
 			searchPost := bleveengine.BLVPostFromPostForIndexing(post)
-			batch.Index(searchPost.Id, searchPost)
+			batch.Index(searchPost.ID, searchPost)
 		} else {
 			batch.Delete(post.Id)
 		}
@@ -439,7 +439,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 	for _, channel := range channels {
 		if channel.DeleteAt == 0 {
 			searchChannel := bleveengine.BLVChannelFromChannel(channel)
-			batch.Index(searchChannel.Id, searchChannel)
+			batch.Index(searchChannel.ID, searchChannel)
 		} else {
 			batch.Delete(channel.Id)
 		}
@@ -517,7 +517,7 @@ func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing,
 	for _, user := range users {
 		if user.DeleteAt == 0 {
 			searchUser := bleveengine.BLVUserFromUserForIndexing(user)
-			batch.Index(searchUser.Id, searchUser)
+			batch.Index(searchUser.ID, searchUser)
 		} else {
 			batch.Delete(user.Id)
 		}

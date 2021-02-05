@@ -1568,10 +1568,10 @@ func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userId string, channelI
 	return result
 }
 
-func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error) {
+func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserId string) (map[string]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
+	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2671,10 +2671,10 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorId string) error {
+func (s *TimerLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
 	start := timemodule.Now()
 
-	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorId)
+	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6377,10 +6377,10 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetMember(teamID string, userID string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetMember(teamID, userId)
+	result, err := s.TeamStore.GetMember(teamID, userID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6457,10 +6457,10 @@ func (s *TimerLayerTeamStore) GetTeamsByScheme(schemeID string, offset int, limi
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (s *TimerLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetTeamsByUserId(userId)
+	result, err := s.TeamStore.GetTeamsByUserId(userID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6473,10 +6473,10 @@ func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.GetTeamsForUser(ctx, userId)
+	result, err := s.TeamStore.GetTeamsForUser(ctx, userID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6568,10 +6568,10 @@ func (s *TimerLayerTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	}
 }
 
-func (s *TimerLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error) {
+func (s *TimerLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
 	start := timemodule.Now()
 
-	result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserId)
+	result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8291,10 +8291,10 @@ func (s *TimerLayerUserStore) SearchNotInChannel(teamID string, channelID string
 	return result, err
 }
 
-func (s *TimerLayerUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *TimerLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.SearchNotInTeam(notInTeamId, term, options)
+	result, err := s.UserStore.SearchNotInTeam(notInTeamID, term, options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

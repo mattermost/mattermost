@@ -87,7 +87,7 @@ type TeamStore interface {
 	GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error)
-	GetTeamsByUserId(userId string) ([]*model.Team, error)
+	GetTeamsByUserId(userID string) ([]*model.Team, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(includeDeleted bool) (int64, error)
@@ -97,12 +97,12 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
-	GetMember(teamID string, userId string) (*model.TeamMember, error)
+	GetMember(teamID string, userID string) (*model.TeamMember, error)
 	GetMembers(teamID string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
 	GetMembersByIds(teamID string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
 	GetTotalMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
 	GetActiveMemberCount(teamID string, restrictions *model.ViewUsersRestrictions) (int64, error)
-	GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error)
+	GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error)
 	GetChannelUnreadsForAllTeams(excludeTeamID, userId string) ([]*model.ChannelUnread, error)
 	GetChannelUnreadsForTeam(teamID, userId string) ([]*model.ChannelUnread, error)
@@ -112,7 +112,7 @@ type TeamStore interface {
 	RemoveAllMembersByUser(userId string) error
 	UpdateLastTeamIconUpdate(teamID string, curTime int64) error
 	GetTeamsByScheme(schemeID string, offset int, limit int) ([]*model.Team, error)
-	MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error)
+	MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error)
 	ResetAllTeamSchemes() error
 	ClearAllCustomRoleAssignments() error
 	AnalyticsGetTeamCountForScheme(schemeID string) (int64, error)
@@ -211,7 +211,7 @@ type ChannelStore interface {
 	GetChannelUnread(channelID, userId string) (*model.ChannelUnread, error)
 	ClearCaches()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
-	MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error)
+	MigrateChannelMembers(fromChannelID string, fromUserId string) (map[string]string, error)
 	ResetAllChannelSchemes() error
 	ClearAllCustomRoleAssignments() error
 	MigratePublicChannels() error
@@ -357,7 +357,7 @@ type UserStore interface {
 	GetRecentlyActiveUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetNewUsersForTeam(teamID string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
-	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error)
+	SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchNotInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error)
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error)
@@ -571,7 +571,7 @@ type FileInfoStore interface {
 	GetForUser(userId string) ([]*model.FileInfo, error)
 	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postID string, deleted bool)
-	AttachToPost(fileID string, postID string, creatorId string) error
+	AttachToPost(fileID string, postID string, creatorID string) error
 	DeleteForPost(postID string) (string, error)
 	PermanentDelete(fileID string) error
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)

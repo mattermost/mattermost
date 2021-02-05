@@ -1758,11 +1758,11 @@ func (s *RetryLayerChannelStore) IsUserInChannelUseCache(userId string, channelI
 
 }
 
-func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error) {
+func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserId string) (map[string]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
+		result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserId)
 		if err == nil {
 			return result, nil
 		}
@@ -3124,11 +3124,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorId string) error {
+func (s *RetryLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
 
 	tries := 0
 	for {
-		err := s.FileInfoStore.AttachToPost(fileID, postID, creatorId)
+		err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
 		if err == nil {
 			return nil
 		}
@@ -7652,11 +7652,11 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamID string, userId str
 
 }
 
-func (s *RetryLayerTeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetMember(teamID string, userID string) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetMember(teamID, userId)
+		result, err := s.TeamStore.GetMember(teamID, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -7752,11 +7752,11 @@ func (s *RetryLayerTeamStore) GetTeamsByScheme(schemeID string, offset int, limi
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
+func (s *RetryLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetTeamsByUserId(userId)
+		result, err := s.TeamStore.GetTeamsByUserId(userID)
 		if err == nil {
 			return result, nil
 		}
@@ -7772,11 +7772,11 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.GetTeamsForUser(ctx, userId)
+		result, err := s.TeamStore.GetTeamsForUser(ctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -7878,11 +7878,11 @@ func (s *RetryLayerTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 
 }
 
-func (s *RetryLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error) {
+func (s *RetryLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserId)
+		result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserID)
 		if err == nil {
 			return result, nil
 		}
@@ -9926,11 +9926,11 @@ func (s *RetryLayerUserStore) SearchNotInChannel(teamID string, channelID string
 
 }
 
-func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.SearchNotInTeam(notInTeamId, term, options)
+		result, err := s.UserStore.SearchNotInTeam(notInTeamID, term, options)
 		if err == nil {
 			return result, nil
 		}

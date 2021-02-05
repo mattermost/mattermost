@@ -93,8 +93,8 @@ func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.Channel
 	return member, err
 }
 
-func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) error {
-	err := c.ChannelStore.RemoveMember(channelId, userIdToRemove)
+func (c *SearchChannelStore) RemoveMember(channelID, userIdToRemove string) error {
+	err := c.ChannelStore.RemoveMember(channelID, userIdToRemove)
 	if err == nil {
 		c.rootStore.indexUserFromID(userIdToRemove)
 	}

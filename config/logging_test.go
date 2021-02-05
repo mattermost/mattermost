@@ -46,7 +46,7 @@ func TestNewLogConfigSrc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewLogConfigSrc(tt.dsn, IsJsonMap(tt.dsn), tt.fget)
+			got, err := NewLogConfigSrc(tt.dsn, IsJSONMap(tt.dsn), tt.fget)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

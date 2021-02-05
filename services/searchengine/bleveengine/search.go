@@ -17,12 +17,12 @@ import (
 const DeletePostsBatchSize = 500
 const DeleteFilesBatchSize = 500
 
-func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
+func (b *BleveEngine) IndexPost(post *model.Post, teamID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
-	blvPost := BLVPostFromPost(post, teamId)
-	if err := b.PostIndex.Index(blvPost.Id, blvPost); err != nil {
+	blvPost := BLVPostFromPost(post, teamID)
+	if err := b.PostIndex.Index(blvPost.ID, blvPost); err != nil {
 		return model.NewAppError("Bleveengine.IndexPost", "bleveengine.index_post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -31,9 +31,9 @@ func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError
 func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, model.PostSearchMatches, *model.AppError) {
 	channelQueries := []query.Query{}
 	for _, channel := range *channels {
-		channelIdQ := bleve.NewTermQuery(channel.Id)
-		channelIdQ.SetField("ChannelId")
-		channelQueries = append(channelQueries, channelIdQ)
+		channelIDQ := bleve.NewTermQuery(channel.Id)
+		channelIDQ.SetField("ChannelId")
+		channelQueries = append(channelQueries, channelIDQ)
 	}
 	channelDisjunctionQ := bleve.NewDisjunctionQuery(channelQueries...)
 
@@ -58,8 +58,8 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 		if i == 0 {
 			if len(params.InChannels) > 0 {
 				inChannels := []query.Query{}
-				for _, channelId := range params.InChannels {
-					channelQ := bleve.NewTermQuery(channelId)
+				for _, channelID := range params.InChannels {
+					channelQ := bleve.NewTermQuery(channelID)
 					channelQ.SetField("ChannelId")
 					inChannels = append(inChannels, channelQ)
 				}
@@ -68,8 +68,8 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 
 			if len(params.ExcludedChannels) > 0 {
 				excludedChannels := []query.Query{}
-				for _, channelId := range params.ExcludedChannels {
-					channelQ := bleve.NewTermQuery(channelId)
+				for _, channelID := range params.ExcludedChannels {
+					channelQ := bleve.NewTermQuery(channelID)
 					channelQ.SetField("ChannelId")
 					excludedChannels = append(excludedChannels, channelQ)
 				}
@@ -78,8 +78,8 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 
 			if len(params.FromUsers) > 0 {
 				fromUsers := []query.Query{}
-				for _, userId := range params.FromUsers {
-					userQ := bleve.NewTermQuery(userId)
+				for _, userID := range params.FromUsers {
+					userQ := bleve.NewTermQuery(userID)
 					userQ.SetField("UserId")
 					fromUsers = append(fromUsers, userQ)
 				}
@@ -88,8 +88,8 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 
 			if len(params.ExcludedUsers) > 0 {
 				excludedUsers := []query.Query{}
-				for _, userId := range params.ExcludedUsers {
-					userQ := bleve.NewTermQuery(userId)
+				for _, userID := range params.ExcludedUsers {
+					userQ := bleve.NewTermQuery(userID)
 					userQ.SetField("UserId")
 					excludedUsers = append(excludedUsers, userQ)
 				}
@@ -308,16 +308,16 @@ func (b *BleveEngine) IndexChannel(channel *model.Channel) *model.AppError {
 	defer b.Mutex.RUnlock()
 
 	blvChannel := BLVChannelFromChannel(channel)
-	if err := b.ChannelIndex.Index(blvChannel.Id, blvChannel); err != nil {
+	if err := b.ChannelIndex.Index(blvChannel.ID, blvChannel); err != nil {
 		return model.NewAppError("Bleveengine.IndexChannel", "bleveengine.index_channel.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppError) {
-	teamIdQ := bleve.NewTermQuery(teamId)
-	teamIdQ.SetField("TeamId")
-	queries := []query.Query{teamIdQ}
+func (b *BleveEngine) SearchChannels(teamID, term string) ([]string, *model.AppError) {
+	teamIDQ := bleve.NewTermQuery(teamID)
+	teamIDQ.SetField("TeamId")
+	queries := []query.Query{teamIDQ}
 
 	if term != "" {
 		nameSuggestQ := bleve.NewPrefixQuery(strings.ToLower(term))
@@ -355,13 +355,13 @@ func (b *BleveEngine) IndexUser(user *model.User, teamsIds, channelsIds []string
 	defer b.Mutex.RUnlock()
 
 	blvUser := BLVUserFromUserAndTeams(user, teamsIds, channelsIds)
-	if err := b.UserIndex.Index(blvUser.Id, blvUser); err != nil {
+	if err := b.UserIndex.Index(blvUser.ID, blvUser); err != nil {
 		return model.NewAppError("Bleveengine.IndexUser", "bleveengine.index_user.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
 
-func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
+func (b *BleveEngine) SearchUsersInChannel(teamID, channelId string, restrictedToChannels []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError) {
 	if restrictedToChannels != nil && len(restrictedToChannels) == 0 {
 		return []string{}, []string{}, nil
 	}
@@ -378,9 +378,9 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		queries = append(queries, termQ)
 	}
 
-	channelIdQ := bleve.NewTermQuery(channelId)
-	channelIdQ.SetField("ChannelsIds")
-	queries = append(queries, channelIdQ)
+	channelIDQ := bleve.NewTermQuery(channelId)
+	channelIDQ.SetField("ChannelsIds")
+	queries = append(queries, channelIDQ)
 
 	query := bleve.NewConjunctionQuery(queries...)
 
@@ -404,18 +404,18 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		boolQ.AddMust(termQ)
 	}
 
-	teamIdQ := bleve.NewTermQuery(teamId)
-	teamIdQ.SetField("TeamsIds")
-	boolQ.AddMust(teamIdQ)
+	teamIDQ := bleve.NewTermQuery(teamID)
+	teamIDQ.SetField("TeamsIds")
+	boolQ.AddMust(teamIDQ)
 
-	outsideChannelIdQ := bleve.NewTermQuery(channelId)
-	outsideChannelIdQ.SetField("ChannelsIds")
-	boolQ.AddMustNot(outsideChannelIdQ)
+	outsideChannelIDQ := bleve.NewTermQuery(channelId)
+	outsideChannelIDQ.SetField("ChannelsIds")
+	boolQ.AddMustNot(outsideChannelIDQ)
 
 	if len(restrictedToChannels) > 0 {
 		restrictedChannelsQ := bleve.NewDisjunctionQuery()
-		for _, channelId := range restrictedToChannels {
-			restrictedChannelQ := bleve.NewTermQuery(channelId)
+		for _, channelID := range restrictedToChannels {
+			restrictedChannelQ := bleve.NewTermQuery(channelID)
 			restrictedChannelsQ.AddQuery(restrictedChannelQ)
 		}
 		boolQ.AddMust(restrictedChannelsQ)
@@ -467,17 +467,17 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 			// can search only those matches
 			restrictedChannelsQ := []query.Query{}
 			for _, channelId := range restrictedToChannels {
-				channelIdQ := bleve.NewTermQuery(channelId)
-				channelIdQ.SetField("ChannelsIds")
-				restrictedChannelsQ = append(restrictedChannelsQ, channelIdQ)
+				channelIDQ := bleve.NewTermQuery(channelId)
+				channelIDQ.SetField("ChannelsIds")
+				restrictedChannelsQ = append(restrictedChannelsQ, channelIDQ)
 			}
 			boolQ.AddMust(bleve.NewDisjunctionQuery(restrictedChannelsQ...))
 		} else {
 			// this means that we only need to restrict by team
 			if teamId != "" {
-				teamIdQ := bleve.NewTermQuery(teamId)
-				teamIdQ.SetField("TeamsIds")
-				boolQ.AddMust(teamIdQ)
+				teamIDQ := bleve.NewTermQuery(teamId)
+				teamIDQ.SetField("TeamsIds")
+				boolQ.AddMust(teamIDQ)
 			}
 		}
 
@@ -509,11 +509,11 @@ func (b *BleveEngine) DeleteUser(user *model.User) *model.AppError {
 	return nil
 }
 
-func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.AppError {
+func (b *BleveEngine) IndexFile(file *model.FileInfo, channelID string) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
 
-	blvFile := BLVFileFromFileInfo(file, channelId)
+	blvFile := BLVFileFromFileInfo(file, channelID)
 	if err := b.FileIndex.Index(blvFile.Id, blvFile); err != nil {
 		return model.NewAppError("Bleveengine.IndexFile", "bleveengine.index_file.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -523,9 +523,9 @@ func (b *BleveEngine) IndexFile(file *model.FileInfo, channelId string) *model.A
 func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*model.SearchParams, page, perPage int) ([]string, *model.AppError) {
 	channelQueries := []query.Query{}
 	for _, channel := range *channels {
-		channelIdQ := bleve.NewTermQuery(channel.Id)
-		channelIdQ.SetField("ChannelId")
-		channelQueries = append(channelQueries, channelIdQ)
+		channelIDQ := bleve.NewTermQuery(channel.Id)
+		channelIDQ.SetField("ChannelId")
+		channelQueries = append(channelQueries, channelIDQ)
 	}
 	channelDisjunctionQ := bleve.NewDisjunctionQuery(channelQueries...)
 
@@ -566,8 +566,8 @@ func (b *BleveEngine) SearchFiles(channels *model.ChannelList, searchParams []*m
 
 			if len(params.FromUsers) > 0 {
 				fromUsers := []query.Query{}
-				for _, userId := range params.FromUsers {
-					userQ := bleve.NewTermQuery(userId)
+				for _, userID := range params.FromUsers {
+					userQ := bleve.NewTermQuery(userID)
 					userQ.SetField("CreatorId")
 					fromUsers = append(fromUsers, userQ)
 				}

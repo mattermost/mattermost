@@ -462,13 +462,13 @@ func (_m *TeamStore) GetChannelUnreadsForTeam(teamID string, userId string) ([]*
 	return r0, r1
 }
 
-// GetMember provides a mock function with given fields: teamID, userId
-func (_m *TeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
-	ret := _m.Called(teamID, userId)
+// GetMember provides a mock function with given fields: teamID, userID
+func (_m *TeamStore) GetMember(teamID string, userID string) (*model.TeamMember, error) {
+	ret := _m.Called(teamID, userID)
 
 	var r0 *model.TeamMember
 	if rf, ok := ret.Get(0).(func(string, string) *model.TeamMember); ok {
-		r0 = rf(teamID, userId)
+		r0 = rf(teamID, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
@@ -477,7 +477,7 @@ func (_m *TeamStore) GetMember(teamID string, userId string) (*model.TeamMember,
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamID, userId)
+		r1 = rf(teamID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -577,13 +577,13 @@ func (_m *TeamStore) GetTeamsByScheme(schemeID string, offset int, limit int) ([
 	return r0, r1
 }
 
-// GetTeamsByUserId provides a mock function with given fields: userId
-func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
-	ret := _m.Called(userId)
+// GetTeamsByUserId provides a mock function with given fields: userID
+func (_m *TeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
+	ret := _m.Called(userID)
 
 	var r0 []*model.Team
 	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -592,7 +592,7 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -600,13 +600,13 @@ func (_m *TeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return r0, r1
 }
 
-// GetTeamsForUser provides a mock function with given fields: ctx, userId
-func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
-	ret := _m.Called(ctx, userId)
+// GetTeamsForUser provides a mock function with given fields: ctx, userID
+func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
+	ret := _m.Called(ctx, userID)
 
 	var r0 []*model.TeamMember
 	if rf, ok := ret.Get(0).(func(context.Context, string) []*model.TeamMember); ok {
-		r0 = rf(ctx, userId)
+		r0 = rf(ctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.TeamMember)
@@ -615,7 +615,7 @@ func (_m *TeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mod
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userId)
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -716,13 +716,13 @@ func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	_m.Called(userId)
 }
 
-// MigrateTeamMembers provides a mock function with given fields: fromTeamID, fromUserId
-func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error) {
-	ret := _m.Called(fromTeamID, fromUserId)
+// MigrateTeamMembers provides a mock function with given fields: fromTeamID, fromUserID
+func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
+	ret := _m.Called(fromTeamID, fromUserID)
 
 	var r0 map[string]string
 	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
-		r0 = rf(fromTeamID, fromUserId)
+		r0 = rf(fromTeamID, fromUserID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
@@ -731,7 +731,7 @@ func (_m *TeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (m
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(fromTeamID, fromUserId)
+		r1 = rf(fromTeamID, fromUserID)
 	} else {
 		r1 = ret.Error(1)
 	}

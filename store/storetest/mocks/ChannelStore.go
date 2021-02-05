@@ -1338,13 +1338,13 @@ func (_m *ChannelStore) IsUserInChannelUseCache(userId string, channelID string)
 	return r0
 }
 
-// MigrateChannelMembers provides a mock function with given fields: fromChannelId, fromUserId
-func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error) {
-	ret := _m.Called(fromChannelId, fromUserId)
+// MigrateChannelMembers provides a mock function with given fields: fromChannelID, fromUserId
+func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserId string) (map[string]string, error) {
+	ret := _m.Called(fromChannelID, fromUserId)
 
 	var r0 map[string]string
 	if rf, ok := ret.Get(0).(func(string, string) map[string]string); ok {
-		r0 = rf(fromChannelId, fromUserId)
+		r0 = rf(fromChannelID, fromUserId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
@@ -1353,7 +1353,7 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(fromChannelId, fromUserId)
+		r1 = rf(fromChannelID, fromUserId)
 	} else {
 		r1 = ret.Error(1)
 	}

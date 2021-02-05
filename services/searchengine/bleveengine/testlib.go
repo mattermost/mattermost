@@ -9,12 +9,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func createPost(userId string, channelId string, message string) *model.Post {
+func createPost(userID string, channelId string, message string) *model.Post {
 	post := &model.Post{
 		Message:       message,
 		ChannelId:     channelId,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId:        userId,
+		UserId:        userID,
 		CreateAt:      1000000,
 	}
 	post.PreSave()
