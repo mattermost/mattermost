@@ -295,7 +295,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			}
 
 			return true
-		}, plugin.MessageWillBePostedId)
+		}, plugin.MessageWillBePostedID)
 
 		if rejectionError != nil {
 			return nil, rejectionError
@@ -328,7 +328,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rPostCopy)
 				return true
-			}, plugin.MessageHasBeenPostedId)
+			}, plugin.MessageHasBeenPostedID)
 		})
 	}
 
@@ -620,7 +620,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
-		}, plugin.MessageWillBeUpdatedId)
+		}, plugin.MessageWillBeUpdatedID)
 		if newPost == nil {
 			return nil, model.NewAppError("UpdatePost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
@@ -643,7 +643,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
-			}, plugin.MessageHasBeenUpdatedId)
+			}, plugin.MessageHasBeenUpdatedID)
 		})
 	}
 

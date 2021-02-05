@@ -316,7 +316,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
-	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
+	data, err := utils.GetURLWithCache(url, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
 	}
