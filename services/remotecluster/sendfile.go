@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -103,7 +104,7 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	}
 	defer r.Close()
 
-	url := fmt.Sprintf("%s/%s/remotecluster/upload/%s", task.rc.SiteURL, model.API_URL_SUFFIX, task.us.Id)
+	url := path.Join(task.rc.SiteURL, model.API_URL_SUFFIX, "remotecluster", "upload", task.us.Id)
 
 	req, err := http.NewRequest("POST", url, r)
 	if err != nil {
