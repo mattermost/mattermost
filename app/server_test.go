@@ -6,7 +6,9 @@ package app
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -19,13 +21,14 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-	"github.com/stretchr/testify/require"
 )
 
 func TestStartServerSuccess(t *testing.T) {
@@ -157,6 +160,184 @@ func TestStartServerTLSSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
+}
+
+func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
+	sqlDrivernameEnvironment := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	defer os.Setenv("MM_SQLSETTINGS_DRIVERNAME", sqlDrivernameEnvironment)
+
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
+
+	th := Setup(t)
+	defer th.TearDown()
+
+	databaseType, mattermostVersion := th.Server.DatabaseTypeAndMattermostVersion()
+	assert.Equal(t, "postgres", databaseType)
+	assert.Equal(t, "5.31.0", mattermostVersion)
+
+	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndMattermostVersion()
+	assert.Equal(t, "mysql", databaseType)
+	assert.Equal(t, "5.31.0", mattermostVersion)
+}
+
+func TestGenerateSupportPacket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	d1 := []byte("hello\ngo\n")
+	err := ioutil.WriteFile("mattermost.log", d1, 0777)
+	require.Nil(t, err)
+	err = ioutil.WriteFile("notifications.log", d1, 0777)
+	require.Nil(t, err)
+
+	fileDatas := th.App.GenerateSupportPacket()
+	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
+	for i, fileData := range fileDatas {
+		require.NotNil(t, fileData)
+		assert.Equal(t, testFiles[i], fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+	}
+
+	// Remove these two files and ensure that warning.txt file is generated
+	err = os.Remove("notifications.log")
+	require.Nil(t, err)
+	err = os.Remove("mattermost.log")
+	require.Nil(t, err)
+	fileDatas = th.App.GenerateSupportPacket()
+	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
+	for i, fileData := range fileDatas {
+		require.NotNil(t, fileData)
+		assert.Equal(t, testFiles[i], fileData.Filename)
+		assert.Positive(t, len(fileData.Body))
+	}
+}
+
+func TestGetNotificationsLog(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Disable notifications file to get an error
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.NotificationLogSettings.EnableFile = false
+	})
+
+	fileData, warning := th.App.getNotificationsLog()
+	assert.Nil(t, fileData)
+	assert.Equal(t, warning, "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json")
+
+	// Enable notifications file but delete any notifications file to get an error trying to read the file
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.NotificationLogSettings.EnableFile = true
+	})
+
+	// If any previous notifications.log file, lets delete it
+	os.Remove("notifications.log")
+
+	fileData, warning = th.App.getNotificationsLog()
+	assert.Nil(t, fileData)
+	assert.Contains(t, warning, "ioutil.ReadFile(notificationsLog) Error:")
+
+	// Happy path where we have file and no warning
+	d1 := []byte("hello\ngo\n")
+	err := ioutil.WriteFile("notifications.log", d1, 0777)
+	defer os.Remove("notifications.log")
+	require.Nil(t, err)
+
+	fileData, warning = th.App.getNotificationsLog()
+	require.NotNil(t, fileData)
+	assert.Equal(t, "notifications.log", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.Empty(t, warning)
+}
+
+func TestGetMattermostLog(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// disable mattermost log file setting in config so we should get an warning
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LogSettings.EnableFile = false
+	})
+
+	fileData, warning := th.App.getMattermostLog()
+	assert.Nil(t, fileData)
+	assert.Equal(t, "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json", warning)
+
+	// We enable the setting but delete any mattermost log file
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.LogSettings.EnableFile = true
+	})
+
+	// If any previous mattermost.log file, lets delete it
+	os.Remove("mattermost.log")
+
+	fileData, warning = th.App.getMattermostLog()
+	assert.Nil(t, fileData)
+	assert.Contains(t, warning, "ioutil.ReadFile(mattermostLog) Error:")
+
+	// Happy path where we get a log file and no warning
+	d1 := []byte("hello\ngo\n")
+	err := ioutil.WriteFile("mattermost.log", d1, 0777)
+	defer os.Remove("mattermost.log")
+	require.Nil(t, err)
+
+	fileData, warning = th.App.getMattermostLog()
+	require.NotNil(t, fileData)
+	assert.Equal(t, "mattermost.log", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.Empty(t, warning)
+}
+
+func TestCreateSanitizedConfigFile(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Happy path where we have a sanitized config file with no warning
+	fileData, warning := th.App.createSanitizedConfigFile()
+	require.NotNil(t, fileData)
+	assert.Equal(t, "sanitized_config.json", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.Empty(t, warning)
+}
+
+func TestCreatePluginsFile(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Happy path where we have a plugins file with no warning
+	fileData, warning := th.App.createPluginsFile()
+	require.NotNil(t, fileData)
+	assert.Equal(t, "plugins.json", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.Empty(t, warning)
+
+	// Turn off plugins so we can get an error
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = false
+	})
+
+	// Plugins off in settings so no fileData and we get a warning instead
+	fileData, warning = th.App.createPluginsFile()
+	assert.Nil(t, fileData)
+	assert.Contains(t, warning, "c.App.GetPlugins() Error:")
+}
+
+func TestGenerateSupportPacketYaml(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Happy path where we have a support packet yaml file without any warnings
+	fileData, warning := th.App.generateSupportPacketYaml()
+	require.NotNil(t, fileData)
+	assert.Equal(t, "support_packet.yaml", fileData.Filename)
+	assert.Positive(t, len(fileData.Body))
+	assert.Empty(t, warning)
+
 }
 
 func TestStartServerTLSVersion(t *testing.T) {
@@ -326,9 +507,7 @@ func TestPanicLog(t *testing.T) {
 
 	client := &http.Client{Transport: tr}
 	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-
-	err = s.Shutdown()
-	require.NoError(t, err)
+	s.Shutdown()
 
 	// Checking whether panic was logged
 	var panicLogged = false
@@ -365,93 +544,108 @@ func TestSentry(t *testing.T) {
 	client := &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}}
-	data1 := make(chan bool, 1)
-
-	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Log("Received sentry request for some reason")
-		data1 <- true
-	}))
-	defer server1.Close()
-
-	// make sure we don't report anything when sentry is disabled
-	_, port, _ := net.SplitHostPort(server1.Listener.Addr().String())
-	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
-
 	testDir, _ := fileutils.FindDir("tests")
-	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore)
-		server.configStore = store
-		server.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
-			*cfg.LogSettings.EnableSentry = false
-			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+
+	t.Run("sentry is disabled, should not receive a report", func(t *testing.T) {
+		data := make(chan bool, 1)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Log("Received sentry request for some reason")
+			data <- true
+		}))
+		defer server.Close()
+
+		// make sure we don't report anything when sentry is disabled
+		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
+		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
+		require.NoError(t, err)
+		SentryDSN = dsn.String()
+
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			store, _ := config.NewStoreFromBacking(configStore, nil, false)
+			server.configStore = store
+			server.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ListenAddress = ":0"
+				*cfg.LogSettings.EnableSentry = false
+				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+				*cfg.LogSettings.EnableDiagnostics = true
+			})
+			return nil
 		})
-		return nil
-	})
+		require.NoError(t, err)
 
-	require.NoError(t, err)
-	// Route for just panicing
-	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		panic("log this panic")
-	})
-
-	serverErr := s.Start()
-	require.NoError(t, serverErr)
-	defer s.Shutdown()
-	resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
-
-	sentry.Flush(time.Second * 1)
-	select {
-	case <-data1:
-		require.Fail(t, "Sentry received a message, even though it's disabled!")
-	case <-time.After(time.Second * 1):
-		t.Log("Sentry request didn't arrive. Good!")
-	}
-
-	// check successful report
-	data2 := make(chan bool, 1)
-	server2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		t.Log("Received sentry request!")
-		data2 <- true
-	}))
-	defer server2.Close()
-	_, port, _ = net.SplitHostPort(server2.Listener.Addr().String())
-	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
-	s2, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		store, _ := config.NewStoreFromBacking(configStore)
-		server.configStore = store
-		server.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ListenAddress = ":0"
-			*cfg.ServiceSettings.ConnectionSecurity = "TLS"
-			*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
-			*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
-			*cfg.LogSettings.EnableSentry = true
-
+		// Route for just panicing
+		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+			panic("log this panic")
 		})
-		return nil
-	})
-	require.NoError(t, err)
-	// Route for just panicing
-	s2.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
-		panic("log this panic")
+
+		require.NoError(t, s.Start())
+		defer s.Shutdown()
+
+		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+		require.Nil(t, resp)
+		require.True(t, errors.Is(err, io.EOF), fmt.Sprintf("unexpected error: %s", err))
+
+		sentry.Flush(time.Second)
+		select {
+		case <-data:
+			require.Fail(t, "Sentry received a message, even though it's disabled!")
+		case <-time.After(time.Second):
+			t.Log("Sentry request didn't arrive. Good!")
+		}
 	})
 
-	require.NoError(t, s2.Start())
-	defer s2.Shutdown()
-	resp, err = client.Get("https://localhost:" + strconv.Itoa(s2.ListenAddr.Port) + "/panic")
-	require.Nil(t, resp)
-	require.Error(t, err)
-	sentry.Flush(time.Second * 1)
-	select {
-	case <-data2:
-		t.Log("Sentry request arrived. Good!")
-	case <-time.After(time.Second * 2):
-		require.Fail(t, "Sentry report didn't arrive")
-	}
+	t.Run("sentry is enabled, report should be received", func(t *testing.T) {
+		data := make(chan bool, 1)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			t.Log("Received sentry request!")
+			data <- true
+		}))
+		defer server.Close()
+
+		_, port, _ := net.SplitHostPort(server.Listener.Addr().String())
+		dsn, err := sentry.NewDsn(fmt.Sprintf("http://test:test@localhost:%s/123", port))
+		require.NoError(t, err)
+		SentryDSN = dsn.String()
+
+		s, err := NewServer(func(server *Server) error {
+			configStore, _ := config.NewFileStore("config.json", true)
+			store, _ := config.NewStoreFromBacking(configStore, nil, false)
+			server.configStore = store
+			server.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ListenAddress = ":0"
+				*cfg.ServiceSettings.ConnectionSecurity = "TLS"
+				*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
+				*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
+				*cfg.LogSettings.EnableSentry = true
+				*cfg.LogSettings.EnableDiagnostics = true
+			})
+			return nil
+		})
+		require.NoError(t, err)
+
+		// Route for just panicing
+		s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+			panic("log this panic")
+		})
+
+		require.NoError(t, s.Start())
+		defer s.Shutdown()
+
+		resp, err := client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+		require.Nil(t, resp)
+		require.True(t, errors.Is(err, io.EOF), fmt.Sprintf("unexpected error: %s", err))
+
+		sentry.Flush(time.Second)
+		select {
+		case <-data:
+			t.Log("Sentry request arrived. Good!")
+		case <-time.After(time.Second * 10):
+			require.Fail(t, "Sentry report didn't arrive")
+		}
+	})
 }

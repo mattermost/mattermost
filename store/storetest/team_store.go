@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -25,7 +26,7 @@ func cleanupTeamStore(t *testing.T, ss store.Store) {
 }
 
 func TestTeamStore(t *testing.T, ss store.Store) {
-	createDefaultRoles(t, ss)
+	createDefaultRoles(ss)
 
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
@@ -1208,7 +1209,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m3.UserId, ms[0].UserId)
 
-	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
+	ctx := context.Background()
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
 	require.Nil(t, err)
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -1237,14 +1239,14 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
 	require.Nil(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(uid)
+	ms, err = ss.Team().GetTeamsForUser(ctx, uid)
 	require.Nil(t, err)
 	require.Len(t, ms, 2)
 
 	nErr = ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, nErr)
 
-	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
+	ms, err = ss.Team().GetTeamsForUser(ctx, m1.UserId)
 	require.Nil(t, err)
 	require.Empty(t, ms)
 }

@@ -100,13 +100,13 @@ func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error 
 	return r0
 }
 
-// Get provides a mock function with given fields: id, skipFetchThreads
-func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
-	ret := _m.Called(id, skipFetchThreads)
+// Get provides a mock function with given fields: id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended
+func (_m *PostStore) Get(id string, skipFetchThreads bool, collapsedThreads bool, collapsedThreadsExtended bool) (*model.PostList, error) {
+	ret := _m.Called(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(string, bool) *model.PostList); ok {
-		r0 = rf(id, skipFetchThreads)
+	if rf, ok := ret.Get(0).(func(string, bool, bool, bool) *model.PostList); ok {
+		r0 = rf(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -114,8 +114,8 @@ func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, err
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
-		r1 = rf(id, skipFetchThreads)
+	if rf, ok := ret.Get(1).(func(string, bool, bool, bool) error); ok {
+		r1 = rf(id, skipFetchThreads, collapsedThreads, collapsedThreadsExtended)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -146,13 +146,13 @@ func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId strin
 	return r0, r1
 }
 
-// GetEtag provides a mock function with given fields: channelId, allowFromCache
-func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) string {
-	ret := _m.Called(channelId, allowFromCache)
+// GetEtag provides a mock function with given fields: channelId, allowFromCache, collapsedThreads
+func (_m *PostStore) GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string {
+	ret := _m.Called(channelId, allowFromCache, collapsedThreads)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, bool) string); ok {
-		r0 = rf(channelId, allowFromCache)
+	if rf, ok := ret.Get(0).(func(string, bool, bool) string); ok {
+		r0 = rf(channelId, allowFromCache, collapsedThreads)
 	} else {
 		r0 = ret.Get(0).(string)
 	}

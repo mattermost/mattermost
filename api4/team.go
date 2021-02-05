@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH    = 256
-	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
-	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
+	MaxAddMembersBatch    = 256
+	MaximumBulkImportSize = 10 * 1024 * 1024
+	groupIDsParamPattern  = "[^a-zA-Z0-9,]*"
 )
 
 var groupIDsQueryParamRegex *regexp.Regexp
@@ -657,9 +657,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("invite_id", inviteId)
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session().UserId, tokenId)
-	} else if len(inviteId) > 0 {
+	} else if inviteId != "" {
 		if c.App.Session().Props[model.SESSION_PROP_IS_GUEST] == "true" {
 			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
 			return
@@ -695,7 +695,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	members := model.TeamMembersFromJson(r.Body)
 
-	if len(members) > MAX_ADD_MEMBERS_BATCH {
+	if len(members) > MaxAddMembersBatch {
 		c.SetInvalidParam("too many members in batch")
 		return
 	}
@@ -1079,6 +1079,11 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1089,7 +1094,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(MAXIMUM_BULK_IMPORT_SIZE); err != nil {
+	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -1200,7 +1205,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 {
 			subscription, subErr := c.App.Cloud().GetSubscription()
 			if subErr != nil {
 				c.Err = subErr
@@ -1407,7 +1412,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write(img)
 }

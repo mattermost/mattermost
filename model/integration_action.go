@@ -396,7 +396,7 @@ func (o *Post) StripActionIntegrations() {
 func (o *Post) GetAction(id string) *PostAction {
 	for _, attachment := range o.Attachments() {
 		for _, action := range attachment.Actions {
-			if action.Id == id {
+			if action != nil && action.Id == id {
 				return action
 			}
 		}
@@ -411,7 +411,7 @@ func (o *Post) GenerateActionIds() {
 	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
-				if action.Id == "" {
+				if action != nil && action.Id == "" {
 					action.Id = NewId()
 				}
 			}

@@ -22,6 +22,9 @@ const (
 	JOB_TYPE_EXPIRY_NOTIFY                  = "expiry_notify"
 	JOB_TYPE_PRODUCT_NOTICES                = "product_notices"
 	JOB_TYPE_ACTIVE_USERS                   = "active_users"
+	JOB_TYPE_IMPORT_PROCESS                 = "import_process"
+	JOB_TYPE_IMPORT_DELETE                  = "import_delete"
+	JOB_TYPE_CLOUD                          = "cloud"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -65,6 +68,9 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_PRODUCT_NOTICES:
 	case JOB_TYPE_EXPIRY_NOTIFY:
 	case JOB_TYPE_ACTIVE_USERS:
+	case JOB_TYPE_IMPORT_PROCESS:
+	case JOB_TYPE_IMPORT_DELETE:
+	case JOB_TYPE_CLOUD:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
@@ -92,9 +98,8 @@ func JobFromJson(data io.Reader) *Job {
 	var job Job
 	if err := json.NewDecoder(data).Decode(&job); err == nil {
 		return &job
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func JobsToJson(jobs []*Job) string {
@@ -106,9 +111,8 @@ func JobsFromJson(data io.Reader) []*Job {
 	var jobs []*Job
 	if err := json.NewDecoder(data).Decode(&jobs); err == nil {
 		return jobs
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (j *Job) DataToJson() string {

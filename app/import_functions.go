@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -51,7 +52,7 @@ func (a *App) importScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		scheme.Description = *data.Description
 	}
 
-	if len(scheme.Id) == 0 {
+	if scheme.Id == "" {
 		scheme, err = a.CreateScheme(scheme)
 	} else {
 		scheme, err = a.UpdateScheme(scheme)
@@ -145,7 +146,7 @@ func (a *App) importRole(data *RoleImportData, dryRun bool, isSchemeRole bool) *
 		role.SchemeManaged = false
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		_, err = a.CreateRole(role)
 	} else {
 		_, err = a.UpdateRole(role)
@@ -405,7 +406,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			roles = *data.Roles
 			hasUserRolesChanged = true
 		}
-	} else if len(user.Roles) == 0 {
+	} else if user.Roles == "" {
 		// Set SYSTEM_USER roles on newly created users by default.
 		if user.Roles != model.SYSTEM_USER_ROLE_ID {
 			roles = model.SYSTEM_USER_ROLE_ID
@@ -492,11 +493,11 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 		if hasNotifyPropsChanged {
-			if savedUser, err = a.UpdateUserNotifyProps(user.Id, user.NotifyProps); err != nil {
+			if savedUser, err = a.UpdateUserNotifyProps(user.Id, user.NotifyProps, false); err != nil {
 				return err
 			}
 		}
-		if len(password) > 0 {
+		if password != "" {
 			if err = a.UpdatePassword(user, password); err != nil {
 				return err
 			}
@@ -529,10 +530,13 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	if data.ProfileImage != nil {
 		file, err := os.Open(*data.ProfileImage)
 		if err != nil {
-			mlog.Error("Unable to open the profile image.", mlog.Any("err", err))
+			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
 		}
-		if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
-			mlog.Error("Unable to set the profile image from a file.", mlog.Any("err", err))
+		defer file.Close()
+		if err == nil {
+			if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
+				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
+			}
 		}
 	}
 
@@ -677,7 +681,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(user.Id)
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
 	if nErr != nil {
 		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
@@ -804,7 +808,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(user, team, teamMemberByTeamID[team.Id], &channelsToImport); err != nil {
+		if err := a.importUserChannels(user, team, &channelsToImport); err != nil {
 			return err
 		}
 	}
@@ -812,7 +816,7 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	return nil
 }
 
-func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember *model.TeamMember, data *[]UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(user *model.User, team *model.Team, data *[]UserChannelImportData) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -934,7 +938,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		case errors.As(nErr, &appErr):
 			return appErr
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("importUserChannels", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("importUserChannels", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("importUserChannels", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -982,7 +986,7 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 	return nil
 }
 
-func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
+func (a *App) importReaction(data *ReactionImportData, post *model.Post) *model.AppError {
 	if err := validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
@@ -1012,7 +1016,7 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun 
 	return nil
 }
 
-func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId string, dryRun bool) *model.AppError {
+func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamID string) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1060,7 +1064,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamId, dryRun)
+		fileIds, err := a.uploadAttachments(replyData.Attachments, reply, teamID)
 		if err != nil {
 			return err
 		}
@@ -1074,7 +1078,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 			reply.FileIds = append(reply.FileIds, fileID)
 		}
 
-		if len(reply.Id) == 0 {
+		if reply.Id == "" {
 			postsForCreateList = append(postsForCreateList, reply)
 		} else {
 			postsForOverwriteList = append(postsForOverwriteList, reply)
@@ -1108,7 +1112,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 	return nil
 }
 
-func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
+func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, teamID string) (*model.FileInfo, *model.AppError) {
 	file, err := os.Open(*data.Path)
 	if file == nil || err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -1141,7 +1145,7 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 			}
 		}
 	}
-	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
+	fileInfo, appErr := a.DoUploadFile(timestamp, teamID, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 	if appErr != nil {
 		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr
@@ -1193,8 +1197,8 @@ func (a *App) getTeamsByNames(names []string) (map[string]*model.Team, *model.Ap
 	return teams, nil
 }
 
-func (a *App) getChannelsByNames(names []string, teamId string) (map[string]*model.Channel, *model.AppError) {
-	allChannels, err := a.Srv().Store.Channel().GetByNames(teamId, names, true)
+func (a *App) getChannelsByNames(names []string, teamID string) (map[string]*model.Channel, *model.AppError) {
+	allChannels, err := a.Srv().Store.Channel().GetByNames(teamID, names, true)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_teams_by_names.some_teams_not_found.error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1206,20 +1210,24 @@ func (a *App) getChannelsByNames(names []string, teamId string) (map[string]*mod
 	return channels, nil
 }
 
-func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]*model.Channel, *model.AppError) {
-	channels := make(map[string]*model.Channel)
+// getChannelsForPosts returns map[teamName]map[channelName]*model.Channel
+func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImportData) (map[string]map[string]*model.Channel, *model.AppError) {
+	teamChannels := make(map[string]map[string]*model.Channel)
 	for _, postData := range data {
-		team := teams[*postData.Team]
-		if channel, ok := channels[*postData.Channel]; !ok || channel == nil {
+		teamName := *postData.Team
+		if _, ok := teamChannels[teamName]; !ok {
+			teamChannels[teamName] = make(map[string]*model.Channel)
+		}
+		if channel, ok := teamChannels[teamName][*postData.Channel]; !ok || channel == nil {
 			var err error
-			channel, err = a.Srv().Store.Channel().GetByName(team.Id, *postData.Channel, true)
+			channel, err = a.Srv().Store.Channel().GetByName(teams[teamName].Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
 			}
-			channels[*postData.Channel] = channel
+			teamChannels[teamName][*postData.Channel] = channel
 		}
 	}
-	return channels, nil
+	return teamChannels, nil
 }
 
 // getPostStrID returns a string ID composed of several post fields to
@@ -1280,7 +1288,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 
 	for _, line := range lines {
 		team := teams[*line.Post.Team]
-		channel := channels[*line.Post.Channel]
+		channel := channels[*line.Post.Team][*line.Post.Channel]
 		user := users[*line.Post.User]
 
 		// Check if this post already exists.
@@ -1311,7 +1319,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.Props = *line.Post.Props
 		}
 
-		fileIds, appErr := a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
+		fileIds, appErr := a.uploadAttachments(line.Post.Attachments, post, team.Id)
 		if appErr != nil {
 			return line.LineNumber, appErr
 		}
@@ -1325,7 +1333,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
-		if len(post.Id) == 0 {
+		if post.Id == "" {
 			postsForCreateList = append(postsForCreateList, post)
 			postsForCreateMap[getPostStrID(post)] = line.LineNumber
 		} else {
@@ -1395,14 +1403,14 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
 				reaction := reaction
-				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
+				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(*postWithData.postData.Replies, postWithData.post, postWithData.team.Id, dryRun)
+			err := a.importReplies(*postWithData.postData.Replies, postWithData.post, postWithData.team.Id)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -1413,14 +1421,14 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamId string, dryRun bool) (map[string]bool, *model.AppError) {
+func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
 	if attachments == nil {
 		return nil, nil
 	}
 	fileIds := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
-		fileInfo, err := a.importAttachment(&attachment, post, teamId, dryRun)
+		fileInfo, err := a.importAttachment(&attachment, post, teamID)
 		if err != nil {
 			return nil, err
 		}
@@ -1447,26 +1455,26 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		return nil
 	}
 
-	var userIds []string
+	var userIDs []string
 	userMap, err := a.getUsersByUsernames(*data.Members)
 	if err != nil {
 		return err
 	}
 	for _, user := range *data.Members {
-		userIds = append(userIds, userMap[user].Id)
+		userIDs = append(userIDs, userMap[user].Id)
 	}
 
 	var channel *model.Channel
 
-	if len(userIds) == 2 {
-		ch, err := a.createDirectChannel(userIds[0], userIds[1])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+	if len(userIDs) == 2 {
+		ch, err := a.createDirectChannel(userIDs[0], userIDs[1])
+		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
 	} else {
-		ch, err := a.createGroupChannel(userIds, userIds[0])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+		ch, err := a.createGroupChannel(userIDs)
+		if err != nil && err.Id != store.ChannelExistsError {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 		}
 		channel = ch
@@ -1474,9 +1482,9 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 	var preferences model.Preferences
 
-	for _, userId := range userIds {
+	for _, userID := range userIDs {
 		preferences = append(preferences, model.Preference{
-			UserId:   userId,
+			UserId:   userID,
 			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
 			Name:     channel.Id,
 			Value:    "true",
@@ -1554,24 +1562,24 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 	postsForOverwriteMap := map[string]int{}
 
 	for _, line := range lines {
-		var userIds []string
+		var userIDs []string
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
 			user := users[username]
-			userIds = append(userIds, user.Id)
+			userIDs = append(userIDs, user.Id)
 		}
 
 		var channel *model.Channel
 		var ch *model.Channel
-		if len(userIds) == 2 {
-			ch, err = a.GetOrCreateDirectChannel(userIds[0], userIds[1])
-			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+		if len(userIDs) == 2 {
+			ch, err = a.GetOrCreateDirectChannel(userIDs[0], userIDs[1])
+			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch
 		} else {
-			ch, err = a.createGroupChannel(userIds, userIds[0])
-			if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+			ch, err = a.createGroupChannel(userIDs)
+			if err != nil && err.Id != store.ChannelExistsError {
 				return line.LineNumber, model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			channel = ch
@@ -1607,7 +1615,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			post.Props = *line.DirectPost.Props
 		}
 
-		fileIds, err := a.uploadAttachments(line.DirectPost.Attachments, post, "noteam", dryRun)
+		fileIds, err := a.uploadAttachments(line.DirectPost.Attachments, post, "noteam")
 		if err != nil {
 			return line.LineNumber, err
 		}
@@ -1621,7 +1629,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 			post.FileIds = append(post.FileIds, fileID)
 		}
 
-		if len(post.Id) == 0 {
+		if post.Id == "" {
 			postsForCreateList = append(postsForCreateList, post)
 			postsForCreateMap[getPostStrID(post)] = line.LineNumber
 		} else {
@@ -1689,14 +1697,14 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
 				reaction := reaction
-				if err := a.importReaction(&reaction, postWithData.post, dryRun); err != nil {
+				if err := a.importReaction(&reaction, postWithData.post); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(*postWithData.directPostData.Replies, postWithData.post, "noteam", dryRun); err != nil {
+			if err := a.importReplies(*postWithData.directPostData.Replies, postWithData.post, "noteam"); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}
@@ -1739,6 +1747,7 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}
+	defer file.Close()
 
 	if _, err := a.WriteFile(file, getEmojiImagePath(emoji.Id)); err != nil {
 		return err

@@ -233,6 +233,27 @@ func (_m *LdapInterface) GetUserAttributes(id string, attributes []string) (map[
 	return r0, r1
 }
 
+// GetVendorNameAndVendorVersion provides a mock function with given fields:
+func (_m *LdapInterface) GetVendorNameAndVendorVersion() (string, string) {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 string
+	if rf, ok := ret.Get(1).(func() string); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // MigrateIDAttribute provides a mock function with given fields: toAttribute
 func (_m *LdapInterface) MigrateIDAttribute(toAttribute string) error {
 	ret := _m.Called(toAttribute)
@@ -305,6 +326,6 @@ func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword
 }
 
 // UpdateProfilePictureIfNecessary provides a mock function with given fields: _a0, _a1
-func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 model.User, _a1 *model.Session) {
+func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 model.User, _a1 model.Session) {
 	_m.Called(_a0, _a1)
 }

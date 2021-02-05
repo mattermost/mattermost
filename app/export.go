@@ -11,11 +11,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/pkg/errors"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 // We use this map to identify the exportable preferences.
@@ -256,10 +256,10 @@ func (a *App) exportAllUsers(writer io.Writer) *model.AppError {
 	return nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]UserTeamImportData, *model.AppError) {
 	var memberships []UserTeamImportData
 
-	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userId)
+	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userID)
 
 	if err != nil {
 		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -274,7 +274,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userId, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
 		if err != nil {
 			return nil, err
 		}
@@ -293,16 +293,16 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
-	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
+	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userID, teamID)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
-	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
+	preferences, err := a.GetPreferenceByCategoryForUser(userID, category)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}

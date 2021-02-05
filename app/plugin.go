@@ -16,16 +16,16 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/blang/semver"
+	svg "github.com/h2non/go-is-svg"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
-	"github.com/blang/semver"
-	svg "github.com/h2non/go-is-svg"
-	"github.com/pkg/errors"
 )
 
 const prepackagedPluginsDir = "prepackaged_plugins"
@@ -149,7 +149,7 @@ func (a *App) SyncPluginsActiveState() {
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {
-		mlog.Error("failed to notify plugin status changed", mlog.Err(err))
+		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
 }
 
@@ -198,10 +198,13 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
+	a.installFeatureFlagPlugins()
+
 	// Sync plugin active state when config changes. Also notify plugins.
 	a.Srv().PluginsLock.Lock()
 	a.RemoveConfigListener(a.Srv().PluginConfigListenerId)
 	a.Srv().PluginConfigListenerId = a.AddConfigListener(func(*model.Config, *model.Config) {
+		a.installFeatureFlagPlugins()
 		a.SyncPluginsActiveState()
 		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
@@ -456,12 +459,20 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 		plugins = p
 	}
 
-	appErr := a.mergePrepackagedPlugins(plugins)
-	if appErr != nil {
-		return nil, appErr
+	// Some plugin don't work on cloud. The remote Marketplace is aware of this fact,
+	// but prepackaged plugins are not. Hence, on a cloud installation prepackaged plugins
+	// shouldn't be shown in the Marketplace modal.
+	// This is a short term fix. The long term solution is to have a separate set of
+	// prepacked plugins for cloud: https://mattermost.atlassian.net/browse/MM-31331.
+	license := a.Srv().License()
+	if license == nil || !*license.Features.Cloud {
+		appErr := a.mergePrepackagedPlugins(plugins)
+		if appErr != nil {
+			return nil, appErr
+		}
 	}
 
-	appErr = a.mergeLocalPlugins(plugins)
+	appErr := a.mergeLocalPlugins(plugins)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -510,7 +521,8 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	}
 
 	filter := a.getBaseMarketplaceFilter()
-	filter.Filter = pluginId
+	filter.PluginId = pluginId
+	filter.ReturnAllVersions = true
 
 	plugin, err := marketplaceClient.GetPlugin(filter, version)
 	if err != nil {
@@ -791,7 +803,7 @@ func (a *App) getPluginsFromFilePaths(fileStorePaths []string) map[string]*plugi
 		if strings.HasSuffix(path, ".tar.gz.sig") {
 			id := strings.TrimSuffix(filepath.Base(path), ".tar.gz.sig")
 			if val, ok := pluginSignaturePathMap[id]; !ok {
-				mlog.Error("Unknown signature", mlog.String("path", path))
+				mlog.Warn("Unknown signature", mlog.String("path", path))
 			} else {
 				val.signaturePath = path
 			}
@@ -884,6 +896,69 @@ func (a *App) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin
 	}
 
 	return plugin, nil
+}
+
+// installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
+func (a *App) installFeatureFlagPlugins() {
+	ffControledPlugins := a.Config().FeatureFlags.Plugins()
+
+	// Respect the automatic prepackaged disable setting
+	if !*a.Config().PluginSettings.AutomaticPrepackagedPlugins {
+		return
+	}
+
+	for pluginId, version := range ffControledPlugins {
+		// Skip installing if the plugin has been previously disabled.
+		pluginState := a.Config().PluginSettings.PluginStates[pluginId]
+		if pluginState != nil && !pluginState.Enable {
+			a.Log().Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginId), mlog.String("version", version))
+			continue
+		}
+
+		// Check if we already installed this version as InstallMarketplacePlugin can't handle re-installs well.
+		pluginStatus, err := a.Srv().GetPluginStatus(pluginId)
+		pluginExists := err == nil
+		if pluginExists && pluginStatus.Version == version {
+			continue
+		}
+
+		if version != "" && version != "control" {
+			// If we are on-prem skip installation if this is a downgrade
+			license := a.Srv().License()
+			inCloud := license != nil && *license.Features.Cloud
+			if !inCloud && pluginExists {
+				parsedVersion, err := semver.Parse(version)
+				if err != nil {
+					a.Log().Debug("Bad version from feature flag", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
+					return
+				}
+				parsedExistingVersion, err := semver.Parse(pluginStatus.Version)
+				if err != nil {
+					a.Log().Debug("Bad version from plugin manifest", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					return
+				}
+
+				if parsedVersion.LTE(parsedExistingVersion) {
+					a.Log().Debug("Skip installation because given version was a downgrade and on-prem installations should not downgrade.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", pluginStatus.Version))
+					return
+				}
+			}
+
+			_, err := a.InstallMarketplacePlugin(&model.InstallMarketplacePluginRequest{
+				Id:      pluginId,
+				Version: version,
+			})
+			if err != nil {
+				a.Log().Debug("Unable to install plugin from FF manifest", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
+			} else {
+				if err := a.EnablePlugin(pluginId); err != nil {
+					a.Log().Debug("Unable to enable plugin installed from feature flag.", mlog.String("plugin_id", pluginId), mlog.Err(err), mlog.String("version", version))
+				} else {
+					a.Log().Debug("Installed and enabled plugin.", mlog.String("plugin_id", pluginId), mlog.String("version", version))
+				}
+			}
+		}
+	}
 }
 
 // getPrepackagedPlugin builds a PrepackagedPlugin from the plugin at the given path, additionally returning the directory in which it was extracted.

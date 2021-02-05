@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
-	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+	DayMilliseconds   = 24 * 60 * 60 * 1000
+	MonthMilliseconds = 31 * DayMilliseconds
 )
 
-func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *model.AppError) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
 	systemUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
@@ -46,19 +46,19 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		openChan := make(chan store.StoreResult, 1)
 		privateChan := make(chan store.StoreResult, 1)
 		go func() {
-			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_OPEN)
 			openChan <- store.StoreResult{Data: count, NErr: err2}
 			close(openChan)
 		}()
 		go func() {
-			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_PRIVATE)
 			privateChan <- store.StoreResult{Data: count, NErr: err2}
 			close(privateChan)
 		}()
 
 		var userChan chan store.StoreResult
 		var userInactiveChan chan store.StoreResult
-		if teamId == "" {
+		if teamID == "" {
 			userInactiveChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.User().AnalyticsGetInactiveUsersCount()
@@ -68,7 +68,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		} else {
 			userChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err2 := a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamId})
+				count, err2 := a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamID})
 				userChan <- store.StoreResult{Data: count, NErr: err2}
 				close(userChan)
 			}()
@@ -78,7 +78,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			postChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, false)
+				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamID, false, false)
 				postChan <- store.StoreResult{Data: count, NErr: err2}
 				close(postChan)
 			}()
@@ -93,14 +93,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			dailyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			dailyActiveChan <- store.StoreResult{Data: dailyActive, NErr: err2}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			monthlyActive, err2 := a.Srv().Store.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, NErr: err2}
 			close(monthlyActiveChan)
 		}()
@@ -199,7 +199,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
-			TeamId:        teamId,
+			TeamId:        teamID,
 			BotsOnly:      true,
 			YesterdayOnly: false,
 		})
@@ -214,7 +214,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
-			TeamId:        teamId,
+			TeamId:        teamID,
 			BotsOnly:      false,
 			YesterdayOnly: false,
 		})
@@ -229,7 +229,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
+		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsUserCountsWithPostsByDay(teamID)
 		if nErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_user_counts_posts_by_day.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -246,21 +246,21 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		iHookChan := make(chan store.StoreResult, 1)
 		go func() {
-			c, err2 := a.Srv().Store.Webhook().AnalyticsIncomingCount(teamId)
+			c, err2 := a.Srv().Store.Webhook().AnalyticsIncomingCount(teamID)
 			iHookChan <- store.StoreResult{Data: c, NErr: err2}
 			close(iHookChan)
 		}()
 
 		oHookChan := make(chan store.StoreResult, 1)
 		go func() {
-			c, err2 := a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamId)
+			c, err2 := a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamID)
 			oHookChan <- store.StoreResult{Data: c, NErr: err2}
 			close(oHookChan)
 		}()
 
 		commandChan := make(chan store.StoreResult, 1)
 		go func() {
-			c, nErr := a.Srv().Store.Command().AnalyticsCommandCount(teamId)
+			c, nErr := a.Srv().Store.Command().AnalyticsCommandCount(teamID)
 			commandChan <- store.StoreResult{Data: c, NErr: nErr}
 			close(commandChan)
 		}()
@@ -278,14 +278,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			fileChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, true, false)
+				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamID, true, false)
 				fileChan <- store.StoreResult{Data: count, NErr: err2}
 				close(fileChan)
 			}()
 
 			hashtagChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, true)
+				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamID, false, true)
 				hashtagChan <- store.StoreResult{Data: count, NErr: err2}
 				close(hashtagChan)
 			}()
@@ -341,8 +341,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 	return nil, nil
 }
 
-func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
+func (a *App) GetRecentlyActiveUsersForTeam(teamID string) (map[string]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamID, 0, 100, nil)
 	if err != nil {
 		return nil, model.NewAppError("GetRecentlyActiveUsersForTeam", "app.user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -356,8 +356,8 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 	return userMap, nil
 }
 
-func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+func (a *App) GetRecentlyActiveUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetRecentlyActiveUsersForTeam(teamID, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetRecentlyActiveUsersForTeamPage", "app.user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -365,8 +365,8 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.Srv().Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+func (a *App) GetNewUsersForTeamPage(teamID string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.Srv().Store.User().GetNewUsersForTeam(teamID, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, model.NewAppError("GetNewUsersForTeamPage", "app.user.get_new_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

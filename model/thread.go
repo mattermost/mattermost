@@ -16,23 +16,24 @@ type Thread struct {
 }
 
 type ThreadResponse struct {
-	PostId       string  `json:"id"`
-	ReplyCount   int64   `json:"reply_count"`
-	LastReplyAt  int64   `json:"last_reply_at"`
-	LastViewedAt int64   `json:"last_viewed_at"`
-	Participants []*User `json:"participants"`
-	Post         *Post   `json:"post"`
+	PostId         string  `json:"id"`
+	ReplyCount     int64   `json:"reply_count"`
+	LastReplyAt    int64   `json:"last_reply_at"`
+	LastViewedAt   int64   `json:"last_viewed_at"`
+	Participants   []*User `json:"participants"`
+	Post           *Post   `json:"post"`
+	UnreadReplies  int64   `json:"unread_replies"`
+	UnreadMentions int64   `json:"unread_mentions"`
 }
 
 type Threads struct {
-	Total   int64             `json:"total"`
-	Threads []*ThreadResponse `json:"threads"`
+	Total               int64             `json:"total"`
+	TotalUnreadThreads  int64             `json:"total_unread_threads"`
+	TotalUnreadMentions int64             `json:"total_unread_mentions"`
+	Threads             []*ThreadResponse `json:"threads"`
 }
 
 type GetUserThreadsOpts struct {
-	// Page specifies which part of the results to return, by PageSize. Default = 0
-	Page uint64
-
 	// PageSize specifies the size of the returned chunk of results. Default = 30
 	PageSize uint64
 
@@ -44,6 +45,20 @@ type GetUserThreadsOpts struct {
 
 	// Since filters the threads based on their LastUpdateAt timestamp.
 	Since uint64
+
+	// Before specifies thread id as a cursor for pagination and will return `PageSize` threads before the cursor
+	Before string
+
+	// After specifies thread id as a cursor for pagination and will return `PageSize` threads after the cursor
+	After string
+
+	// Unread will make sure that only threads with unread replies are returned
+	Unread bool
+}
+
+func (o *ThreadResponse) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Threads) ToJson() string {
@@ -56,16 +71,23 @@ func (o *Thread) ToJson() string {
 	return string(b)
 }
 
+func ThreadFromJson(s string) (*Thread, error) {
+	var t Thread
+	err := json.Unmarshal([]byte(s), &t)
+	return &t, err
+}
+
 func (o *Thread) Etag() string {
 	return Etag(o.PostId, o.LastReplyAt)
 }
 
 type ThreadMembership struct {
-	PostId      string `json:"post_id"`
-	UserId      string `json:"user_id"`
-	Following   bool   `json:"following"`
-	LastViewed  int64  `json:"last_view_at"`
-	LastUpdated int64  `json:"last_update_at"`
+	PostId         string `json:"post_id"`
+	UserId         string `json:"user_id"`
+	Following      bool   `json:"following"`
+	LastViewed     int64  `json:"last_view_at"`
+	LastUpdated    int64  `json:"last_update_at"`
+	UnreadMentions int64  `json:"unread_mentions"`
 }
 
 func (o *ThreadMembership) ToJson() string {

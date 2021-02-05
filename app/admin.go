@@ -8,12 +8,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"time"
-
-	"runtime/debug"
-
 	"net/http"
+	"os"
+	"runtime/debug"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -205,8 +203,8 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	return nil
 }
 
-func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	if len(*cfg.EmailSettings.SMTPServer) == 0 {
+func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
+	if *cfg.EmailSettings.SMTPServer == "" {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
@@ -221,7 +219,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}

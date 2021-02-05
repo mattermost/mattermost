@@ -11,14 +11,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
@@ -352,13 +353,13 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
-	userId := model.NewId()
+	userID := model.NewId()
 	channelId := model.NewId()
 
-	offline := &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	away := &model.Status{UserId: userId, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	online := &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	dnd := &model.Status{UserId: userId, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	offline := &model.Status{UserId: userID, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	away := &model.Status{UserId: userID, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	online := &model.Status{UserId: userID, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	dnd := &model.Status{UserId: userID, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	tt := []struct {
 		name              string
@@ -911,7 +912,6 @@ func TestGetPushNotificationMessage(t *testing.T) {
 				tc.channelWideMention,
 				tc.HasFiles,
 				"user",
-				"channel",
 				tc.ChannelType,
 				tc.replyToThreadType,
 				utils.GetUserTranslations(locale),
@@ -1252,7 +1252,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 	assert.Equal(t, ack.NotificationType, handler.notificationAcks()[0].NotificationType)
 }
 
-// TestAllPushNotifications is a master test which sends all verious types
+// TestAllPushNotifications is a master test which sends all various types
 // of notifications and verifies they have been properly sent.
 func TestAllPushNotifications(t *testing.T) {
 	if testing.Short() {

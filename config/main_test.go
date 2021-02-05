@@ -9,10 +9,11 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/stretchr/testify/require"
 )
 
 var mainHelper *testlib.MainHelper
@@ -34,11 +35,11 @@ func TestMain(m *testing.M) {
 func truncateTable(t *testing.T, table string) {
 	t.Helper()
 	sqlSetting := mainHelper.GetSQLSettings()
-	sqlSupplier := mainHelper.GetSQLSupplier()
+	sqlStore := mainHelper.GetSQLStore()
 
 	switch *sqlSetting.DriverName {
 	case model.DATABASE_DRIVER_MYSQL:
-		_, err := sqlSupplier.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*mysql.MySQLError); ok {
 				// Ignore if the Configurations table does not exist.
@@ -50,7 +51,7 @@ func truncateTable(t *testing.T, table string) {
 		require.NoError(t, err)
 
 	case model.DATABASE_DRIVER_POSTGRES:
-		_, err := sqlSupplier.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
+		_, err := sqlStore.GetMaster().Db.Exec(fmt.Sprintf("TRUNCATE TABLE %s", table))
 		if err != nil {
 			if driverErr, ok := err.(*pq.Error); ok {
 				// Ignore if the Configurations table does not exist.

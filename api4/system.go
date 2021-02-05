@@ -4,11 +4,13 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"runtime"
 	"strconv"
 	"time"
@@ -19,18 +21,17 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 )
 
 const (
-	REDIRECT_LOCATION_CACHE_SIZE = 10000
-	DEFAULT_SERVER_BUSY_SECONDS  = 3600
-	MAX_SERVER_BUSY_SECONDS      = 86400
+	RedirectLocationCacheSize = 10000
+	DefaultServerBusySeconds  = 3600
+	MaxServerBusySeconds      = 86400
 )
 
-var redirectLocationDataCache = cache.NewLRU(&cache.LRUOptions{
-	Size: REDIRECT_LOCATION_CACHE_SIZE,
+var redirectLocationDataCache = cache.NewLRU(cache.LRUOptions{
+	Size: RedirectLocationCacheSize,
 })
 
 func (api *API) InitSystem() {
@@ -65,6 +66,64 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
+
+	api.BaseRoutes.System.Handle("/support_packet", api.ApiSessionRequired(generateSupportPacket)).Methods("GET")
+}
+
+func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
+	const FileMime = "application/zip"
+	const OutputDirectory = "support_packet"
+
+	// Checking to see if the user is a admin of any sort or not
+	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
+	if c.App.Srv().License() == nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
+		return
+	}
+
+	fileDatas := c.App.GenerateSupportPacket()
+
+	// Constructing the ZIP file name as per spec (mattermost_support_packet_YYYY-MM-DD-HH-MM.zip)
+	now := time.Now()
+	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
+
+	fileStorageBackend, fileBackendErr := c.App.FileBackend()
+	if fileBackendErr != nil {
+		c.Err = fileBackendErr
+		return
+	}
+
+	// We do this incase we get concurrent requests, we will always have a unique directory.
+	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
+	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
+	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
+	defer fileStorageBackend.RemoveDirectory(outputDirectoryToUse)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, err.Error(), http.StatusForbidden)
+		return
+	}
+	fileBytesReader := bytes.NewReader(fileBytes)
+
+	// Send the zip file back to client
+	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+	// already sets that for us
+	writeFileResponseErr := writeFileResponse(outputZipFilename, FileMime, 0, now, *c.App.Config().ServiceSettings.WebserverMode, fileBytesReader, true, w, r)
+	if writeFileResponseErr != nil {
+		c.Err = model.NewAppError("generateSupportPacket", "api.unable_write_file_response", nil, writeFileResponseErr.Error(), http.StatusForbidden)
+		return
+	}
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -117,16 +176,8 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		license := c.App.Srv().License()
-		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
-		if appErr == nil {
-			appErr = backend.TestConnection()
-			if appErr != nil {
-				s[filestoreStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			}
-		} else {
-			mlog.Debug("Unable to get filestore for ping status.", mlog.Err(appErr))
+		appErr := c.App.TestFilesStoreConnection()
+		if appErr != nil {
 			s[filestoreStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
@@ -370,7 +421,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(supportedTimezones)
 	if err != nil {
-		c.Log.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
+		c.Logger.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -393,7 +444,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := filesstore.CheckMandatoryS3Fields(&cfg.FileSettings)
+	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if err != nil {
 		c.Err = err
 		return
@@ -403,11 +454,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	license := c.App.Srv().License()
-	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
-	if appErr == nil {
-		appErr = backend.TestConnection()
-	}
+	appErr := c.App.TestFilesStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -426,7 +473,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	url := r.URL.Query().Get("url")
-	if len(url) == 0 {
+	if url == "" {
 		c.SetInvalidParam("url")
 		return
 	}
@@ -525,12 +572,12 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 	// number of seconds to keep server marked busy
 	secs := r.URL.Query().Get("seconds")
 	if secs == "" {
-		secs = strconv.FormatInt(DEFAULT_SERVER_BUSY_SECONDS, 10)
+		secs = strconv.FormatInt(DefaultServerBusySeconds, 10)
 	}
 
 	i, err := strconv.ParseInt(secs, 10, 64)
-	if err != nil || i <= 0 || i > MAX_SERVER_BUSY_SECONDS {
-		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MAX_SERVER_BUSY_SECONDS))
+	if err != nil || i <= 0 || i > MaxServerBusySeconds {
+		c.SetInvalidUrlParam(fmt.Sprintf("seconds must be 1 - %d", MaxServerBusySeconds))
 		return
 	}
 

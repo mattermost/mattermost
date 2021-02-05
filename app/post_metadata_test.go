@@ -19,12 +19,13 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPreparePostListForClient(t *testing.T) {
@@ -559,6 +560,8 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
+
+		th.Server.ImageProxy = imageproxy.MakeImageProxy(th.Server, th.Server.HTTPService, th.Server.Log)
 
 		return th
 	}
@@ -1292,11 +1295,11 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "https://example.com",
 			ExpectedImages:    []string{"https://example.com/logo"},
 		},
-		"markdown links": {
+		"markdown links (not returned)": {
 			Input: `this is a [our page](http://example.com) and [another page][]
 
 [another page]: http://www.exaple.com/another_page`,
-			ExpectedFirstLink: "http://example.com",
+			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
 	} {

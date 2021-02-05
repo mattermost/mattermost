@@ -9,15 +9,15 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlRoleStore struct {
-	SqlStore
+	*SqlStore
 }
 
 type Role struct {
@@ -82,7 +82,7 @@ func (role Role) ToModel() *model.Role {
 	}
 }
 
-func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
+func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
 	s := &SqlRoleStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -102,7 +102,7 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
-	if len(role.Id) == 0 {
+	if role.Id == "" {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
 			return nil, errors.Wrap(err, "begin_transaction")

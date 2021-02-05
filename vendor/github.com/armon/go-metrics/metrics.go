@@ -228,12 +228,12 @@ func (m *Metrics) allowMetric(key []string, labels []Label) (bool, []Label) {
 func (m *Metrics) collectStats() {
 	for {
 		time.Sleep(m.ProfileInterval)
-		m.emitRuntimeStats()
+		m.EmitRuntimeStats()
 	}
 }
 
 // Emits various runtime statsitics
-func (m *Metrics) emitRuntimeStats() {
+func (m *Metrics) EmitRuntimeStats() {
 	// Export number of Goroutines
 	numRoutines := runtime.NumGoroutine()
 	m.SetGauge([]string{"runtime", "num_goroutines"}, float32(numRoutines))

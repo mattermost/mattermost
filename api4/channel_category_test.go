@@ -6,9 +6,10 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
@@ -250,6 +251,92 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.NotContains(t, received.Channels, channel.Id)
 		assert.Equal(t, channelsCategory.Channels, received.Channels)
+	})
+
+	t.Run("muting a category should mute all of its channels", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		categories, resp := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+		require.True(t, len(channelsCategory.Channels) > 0)
+
+		// Mute the category
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:      channelsCategory.Id,
+				UserId:  user.Id,
+				TeamId:  th.BasicTeam.Id,
+				Sorting: channelsCategory.Sorting,
+				Muted:   true,
+			},
+			Channels: channelsCategory.Channels,
+		}
+
+		received, resp := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.True(t, received.Muted)
+
+		// Check that the muted category was saved in the database
+		received, resp = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.True(t, received.Muted)
+
+		// Confirm that the channels in the category were muted
+		member, resp := client.GetChannelMember(channelsCategory.Channels[0], user.Id, "")
+		require.Nil(t, resp.Error)
+		assert.True(t, member.IsChannelMuted())
+	})
+
+	t.Run("should not be able to mute DM category", func(t *testing.T) {
+		user, client := setupUserForSubtest(t, th)
+
+		categories, resp := client.GetSidebarCategoriesForTeamForUser(user.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		dmsCategory := categories.Categories[2]
+		require.Equal(t, model.SidebarCategoryDirectMessages, dmsCategory.Type)
+		require.Len(t, dmsCategory.Channels, 0)
+
+		// Ensure a DM channel exists
+		dmChannel, resp := client.CreateDirectChannel(user.Id, th.BasicUser.Id)
+		require.Nil(t, resp.Error)
+
+		// Attempt to mute the category
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:      dmsCategory.Id,
+				UserId:  user.Id,
+				TeamId:  th.BasicTeam.Id,
+				Sorting: dmsCategory.Sorting,
+				Muted:   true,
+			},
+			Channels: []string{dmChannel.Id},
+		}
+
+		received, resp := client.UpdateSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, dmsCategory.Id, received.Id)
+		assert.False(t, received.Muted)
+
+		// Check that the muted category was not saved in the database
+		received, resp = client.GetSidebarCategoryForTeamForUser(user.Id, th.BasicTeam.Id, dmsCategory.Id, "")
+		require.Nil(t, resp.Error)
+		assert.Equal(t, dmsCategory.Id, received.Id)
+		assert.False(t, received.Muted)
+
+		// Confirm that the channels in the category were not muted
+		member, resp := client.GetChannelMember(dmChannel.Id, user.Id, "")
+		require.Nil(t, resp.Error)
+		assert.False(t, member.IsChannelMuted())
 	})
 }
 

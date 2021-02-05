@@ -18,6 +18,9 @@ const (
 	UploadTypeImport     UploadType = "import"
 )
 
+// UploadNoUserID is a "fake" user id used by the API layer when in local mode.
+const UploadNoUserID = "nouser"
+
 // UploadSession contains information used to keep track of a file upload.
 type UploadSession struct {
 	// The unique identifier for the session.
@@ -29,7 +32,7 @@ type UploadSession struct {
 	// The id of the user performing the upload.
 	UserId string `json:"user_id"`
 	// The id of the channel to upload to.
-	ChannelId string `json:"channel_id"`
+	ChannelId string `json:"channel_id,omitempty"`
 	// The name of the file to upload.
 	Filename string `json:"filename"`
 	// The path where the file is stored.
@@ -109,7 +112,7 @@ func (us *UploadSession) IsValid() *AppError {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if !IsValidId(us.UserId) {
+	if !IsValidId(us.UserId) && us.UserId != UploadNoUserID {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.user_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 

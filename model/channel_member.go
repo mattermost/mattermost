@@ -65,11 +65,11 @@ type ChannelMemberForExport struct {
 }
 
 func (o *ChannelMembers) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return "[]"
-	} else {
-		return string(b)
 	}
+	return string(b)
 }
 
 func (o *ChannelUnread) ToJson() string {
@@ -162,6 +162,18 @@ func (o *ChannelMember) PreUpdate() {
 
 func (o *ChannelMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
+}
+
+func (o *ChannelMember) SetChannelMuted(muted bool) {
+	if o.IsChannelMuted() {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_ALL
+	} else {
+		o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] = CHANNEL_MARK_UNREAD_MENTION
+	}
+}
+
+func (o *ChannelMember) IsChannelMuted() bool {
+	return o.NotifyProps[MARK_UNREAD_NOTIFY_PROP] == CHANNEL_MARK_UNREAD_MENTION
 }
 
 func IsChannelNotifyLevelValid(notifyLevel string) bool {

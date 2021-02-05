@@ -4,15 +4,16 @@
 package sqlstore
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/store/searchtest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 func TestPostStore(t *testing.T) {
-	StoreTestWithSqlSupplier(t, storetest.TestPostStore)
+	StoreTestWithSqlStore(t, storetest.TestPostStore)
 }
 
 func TestSearchPostStore(t *testing.T) {
@@ -32,7 +33,7 @@ func TestMysqlStopWords(t *testing.T) {
 			Expected: []string{"my car", "so real", "test this-and-that awesome"},
 		},
 		{
-			Name:     "Should not remove part of a word containg stop words",
+			Name:     "Should not remove part of a word containing stop words",
 			Args:     []string{"whereabouts", "wherein", "tothis", "thisorthat", "waswhen", "whowas", "inthe", "whowill", "thewww"},
 			Expected: []string{"whereabouts", "wherein", "tothis", "thisorthat", "waswhen", "whowas", "inthe", "whowill", "thewww"},
 		},
@@ -42,7 +43,7 @@ func TestMysqlStopWords(t *testing.T) {
 			Empty: true,
 		},
 		{
-			Name:     "Should not remove part of a word containg stop words separated by hyphens",
+			Name:     "Should not remove part of a word containing stop words separated by hyphens",
 			Args:     []string{"where-about", "where-in", "to-this", "this-or-that", "was-when", "who-was", "in-the", "who-will", "the-www"},
 			Expected: []string{"where-about", "where-in", "to-this", "this-or-that", "was-when", "who-was", "in-the", "who-will", "the-www"},
 		},

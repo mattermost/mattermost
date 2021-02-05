@@ -21,15 +21,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func getDefaultPluginSettingsSchema() string {
@@ -1275,10 +1275,10 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, data, actualData)
 
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	post, err := api.CreatePost(&model.Post{
 		Message:   "test",
-		UserId:    userId,
+		UserId:    userID,
 		ChannelId: channelId,
 		FileIds:   model.StringArray{fileInfo.Id},
 	})
@@ -1296,21 +1296,21 @@ func TestPluginAPIGetConfig(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	config := api.GetConfig()
-	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+	if config.LdapSettings.BindPassword != nil && *config.LdapSettings.BindPassword != "" {
 		assert.Equal(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
 	}
 
 	assert.Equal(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
 
-	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *config.FileSettings.AmazonS3SecretAccessKey != "" {
 		assert.Equal(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
 	}
 
-	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+	if config.EmailSettings.SMTPPassword != nil && *config.EmailSettings.SMTPPassword != "" {
 		assert.Equal(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
 	}
 
-	if len(*config.GitLabSettings.Secret) > 0 {
+	if *config.GitLabSettings.Secret != "" {
 		assert.Equal(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
 	}
 
@@ -1333,21 +1333,21 @@ func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	config := api.GetUnsanitizedConfig()
-	if config.LdapSettings.BindPassword != nil && len(*config.LdapSettings.BindPassword) > 0 {
+	if config.LdapSettings.BindPassword != nil && *config.LdapSettings.BindPassword != "" {
 		assert.NotEqual(t, *config.LdapSettings.BindPassword, model.FAKE_SETTING)
 	}
 
 	assert.NotEqual(t, *config.FileSettings.PublicLinkSalt, model.FAKE_SETTING)
 
-	if len(*config.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *config.FileSettings.AmazonS3SecretAccessKey != "" {
 		assert.NotEqual(t, *config.FileSettings.AmazonS3SecretAccessKey, model.FAKE_SETTING)
 	}
 
-	if config.EmailSettings.SMTPPassword != nil && len(*config.EmailSettings.SMTPPassword) > 0 {
+	if config.EmailSettings.SMTPPassword != nil && *config.EmailSettings.SMTPPassword != "" {
 		assert.NotEqual(t, *config.EmailSettings.SMTPPassword, model.FAKE_SETTING)
 	}
 
-	if len(*config.GitLabSettings.Secret) > 0 {
+	if *config.GitLabSettings.Secret != "" {
 		assert.NotEqual(t, *config.GitLabSettings.Secret, model.FAKE_SETTING)
 	}
 
@@ -1711,8 +1711,8 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	testCases := []struct {
 		description      string
-		teamId           string
-		userId           string
+		teamID           string
+		userID           string
 		params           model.SearchParameter
 		expectedPostsLen int
 	}{
@@ -1741,7 +1741,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamId, testCase.userId, testCase.params)
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamID, testCase.userID, testCase.params)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
 		})
@@ -1753,7 +1753,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+	foundCommand := func(listXCommand func(teamID string) ([]*model.Command, error)) bool {
 		cmds, appErr := listXCommand(th.BasicTeam.Id)
 		require.Nil(t, appErr)
 

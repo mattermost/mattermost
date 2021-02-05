@@ -12,13 +12,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -631,10 +632,9 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 				if test.errChecker != nil {
 					test.errChecker(t, resp)
 					return
-				} else {
-					CheckNoError(t, resp)
-					CheckOKStatus(t, resp)
 				}
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
 				require.Equal(t, test.wantType, team.Type)
 				require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
 				if test.wantInviteIdChanged {
@@ -1856,7 +1856,7 @@ func TestAddTeamMember(t *testing.T) {
 	Client.Login(otherUser.Email, otherUser.Password)
 
 	token := model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -1879,7 +1879,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, tm, "should have not returned team member")
 
 	// expired token of more than 50 hours
-	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
+	token = model.NewToken(app.TokenTypeTeamInvitation, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
 
@@ -1890,7 +1890,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	testId := GenerateTestId()
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -1932,7 +1932,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Attempt to use a token on a group-constrained team
 	token = model.NewToken(
-		app.TOKEN_TYPE_TEAM_INVITATION,
+		app.TokenTypeTeamInvitation,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
 	require.Nil(t, th.App.Srv().Store.Token().Save(token))
@@ -2360,42 +2360,42 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
-	const TEAM_MEMBER = "team_user"
-	const TEAM_ADMIN = "team_user team_admin"
+	const TeamMember = "team_user"
+	const TeamAdmin = "team_user team_admin"
 
 	// user 1 tries to promote user 2
-	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	ok, resp := Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 	require.False(t, ok, "should have returned false")
 
 	// user 1 tries to promote himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 tries to demote someone
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckForbiddenStatus(t, resp)
 
 	// system admin promotes user 1
-	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_ADMIN)
+	ok, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	CheckNoError(t, resp)
 	require.True(t, ok, "should have returned true")
 
 	// user 1 (team admin) promotes user 2
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) demotes user 2 (team admin)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to demote system admin (not member of a team)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TeamMember)
 	CheckNoError(t, resp)
 	// Note from API v3
 	// Note to anyone who thinks this (above) test is wrong:
@@ -2404,19 +2404,19 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 	// System admins should be able to manipulate permission no matter what their team level permissions are.
 	// system admin promotes user 2
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_ADMIN)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamAdmin)
 	CheckNoError(t, resp)
 
 	// system admin demotes user 2 (team admin)
-	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TEAM_MEMBER)
+	_, resp = SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser2.Id, TeamMember)
 	CheckNoError(t, resp)
 
 	// user 1 (team admin) tries to promote himself to a random team
-	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(model.NewId(), th.BasicUser.Id, TeamAdmin)
 	CheckForbiddenStatus(t, resp)
 
 	// user 1 (team admin) tries to promote a random user
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TEAM_ADMIN)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, model.NewId(), TeamAdmin)
 	CheckNotFoundStatus(t, resp)
 
 	// user 1 (team admin) tries to promote invalid team permission
@@ -2424,7 +2424,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// user 1 (team admin) demotes himself
-	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TEAM_MEMBER)
+	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, TeamMember)
 	CheckNoError(t, resp)
 }
 
@@ -2704,9 +2704,23 @@ func TestImportTeam(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
 
-		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "")
+		posts, resp := th.SystemAdminClient.GetPostsForChannel(importedChannel.Id, 0, 60, "", false)
 		CheckNoError(t, resp)
 		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
+	})
+
+	t.Run("Cloud Forbidden", func(t *testing.T) {
+		var data []byte
+		var err error
+		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
+
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		// Import the channels/users/posts
+		_, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+		th.App.Srv().SetLicense(nil)
 	})
 
 	t.Run("MissingFile", func(t *testing.T) {

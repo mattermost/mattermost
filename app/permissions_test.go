@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type testWriter struct {
@@ -68,10 +69,10 @@ func TestExportPermissions(t *testing.T) {
 	}
 
 	expectations := map[string]func(str string) string{
-		scheme.DisplayName:             func(str string) string { return row["display_name"].(string) },
-		scheme.Name:                    func(str string) string { return row["name"].(string) },
-		scheme.Description:             func(str string) string { return row["description"].(string) },
-		scheme.Scope:                   func(str string) string { return row["scope"].(string) },
+		scheme.DisplayName:             func(_ string) string { return row["display_name"].(string) },
+		scheme.Name:                    func(_ string) string { return row["name"].(string) },
+		scheme.Description:             func(_ string) string { return row["description"].(string) },
+		scheme.Scope:                   func(_ string) string { return row["scope"].(string) },
 		scheme.DefaultTeamAdminRole:    func(str string) string { return getRoleByName(str) },
 		scheme.DefaultTeamUserRole:     func(str string) string { return getRoleByName(str) },
 		scheme.DefaultTeamGuestRole:    func(str string) string { return getRoleByName(str) },

@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"database/sql"
 	"encoding/json"
 	"mime/multipart"
 	"net/http"
@@ -166,7 +165,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
-	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
+	if err != nil && err.Id != "app.group.no_rows" {
 		c.Err = err
 		return
 	}
@@ -272,7 +271,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.StringInterfaceFromJson(r.Body)
 	toAttribute, ok := props["toAttribute"].(string)
-	if !ok || len(toAttribute) == 0 {
+	if !ok || toAttribute == "" {
 		c.SetInvalidParam("toAttribute")
 		return
 	}

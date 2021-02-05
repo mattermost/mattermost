@@ -540,14 +540,6 @@
     "translation": "Режим \"Не беспокоить\" отключает настольные и мобильные push-уведомления."
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "Режим \"Не беспокоить\" отключен."
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "Ошибка получения статуса пользователя."
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "не беспокоить"
   },
@@ -1096,14 +1088,6 @@
     "translation": "Вложения отключены на этом сервере."
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Не удалось проверить, существует ли файл."
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "Не удалось проверить, существует ли файл."
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "Неправильная публичная ссылка."
   },
@@ -1124,44 +1108,12 @@
     "translation": "Не удалось получить публичную ссылку для файла. Файл должен быть прикреплен к сообщению, которое может быть прочитано текущим пользователем."
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Невозможно скопировать файл в пределах S3."
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Невозможно удалить файл из S3."
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "Не удалось локально переместить файл."
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "Не выбран файл драйвера."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Произошла ошибка при чтении из локального серверного хранилища."
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "Произошла ошибка при чтении из хранилища S3."
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища."
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "Произошла ошибка открытия читателя из хранилища S3."
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "Нет разрешения на запись по указанному локальному пути или другая ошибка."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Ошибка проверки существования bucket."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1198,18 +1150,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Не удалось загрузить файл {{.Filename}}. {{.Length}} байт превышает максимально разрешенный лимит {{.Limit}} байт."
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "Произошла ошибка при записи в S3."
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Произошла ошибка при создании директории для нового файла."
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Произошла ошибка при записи в локальное серверное хранилище."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2152,10 +2092,6 @@
     "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "Не удалось создать данные токена для проверки электронной почты"
   },
@@ -2166,10 +2102,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя."
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2214,10 +2146,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Передача аутентификации не настроена или недоступна на этом сервере."
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "Неподдерживаемый провайдер услуг OAuth."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4376,20 +4304,12 @@
     "translation": "Неверное свойство \"Создано в\" для группы."
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "Неверное свойство \"удалено в\" для группы."
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "Неверное свойство \"описание\" для группы."
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "Неверное свойство \"отображаемое имя\" для группы."
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "Неверное свойство \"идентификатор\" для группы."
   },
   {
     "id": "model.group.name.app_error",
@@ -4422,10 +4342,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "Неверный \"идентификатор синхронизации\" для синхронизации группы."
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "Неверное свойство \"тип\" для синхронизации группы."
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4641,7 +4557,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 5 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
+    "translation": "Неверные идентификаторы файлов. Обратите внимание, что загрузка ограничена максимум 10 файлами. Пожалуйста, используйте дополнительные сообщения для большего количества файлов."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4916,14 +4832,6 @@
     "translation": "Отсутствует адрес \"Кому\"."
   },
   {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "ошибка выбора"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Невозможно преобразовать StringArray в *string"
   },
@@ -4942,10 +4850,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Не удалось найти существующий канал."
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "Возникла проблема при поиске канала."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4976,22 +4880,6 @@
     "translation": "Невозможно получить команду."
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "синхронизируемая группа уже удалена"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "не найдено подходящей группы"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "Команда с таким именем уже существует"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "участник группы уже существует"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
   },
@@ -5008,36 +4896,8 @@
     "translation": "Этот e-mail уже зарегистрирован, выберите другой."
   },
   {
-    "id": "store.update_error",
-    "translation": "ошибка обновления"
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "Произошла ошибка при чтении из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Обнаружена ошибка получения списка каталогов от S3."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Обнаружена ошибка при удалении каталога из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Обнаружена ошибка удаления каталога из S3."
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Обнаружена ошибка удаления файла из локального серверного хранилища файлов."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Обнаружена ошибка удаления файла из S3."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -6300,14 +6160,6 @@
     "translation": "Скачать приложение"
   },
   {
-    "id": "store.sql_group.app_error",
-    "translation": "не удалось построить запрос."
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-  },
-  {
     "id": "web.error.unsupported_browser.browser_get_latest.safari",
     "translation": "Установите последнюю версию браузера Safari"
   },
@@ -6486,10 +6338,6 @@
   {
     "id": "api.invalid_channel",
     "translation": "Канал, указанный в запросе, не принадлежит пользователю"
-  },
-  {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "Изменено более одной строки."
   },
   {
     "id": "app.session.update_device_id.app_error",
@@ -7304,22 +7152,6 @@
     "translation": "Невозможно проанализировать тело запроса."
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "Произошла ошибка при записи в S3."
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "Произошла ошибка при дописывании в файл в S3."
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "Произошла ошибка при открытии файла."
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "Файл не существует."
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Не удалось перенести хранилище конфигурации."
   },
@@ -7382,10 +7214,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Не удалось получить участников канала."
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "Невозможно создать bucket."
   },
   {
     "id": "api.server.warn_metric.starting_trial",
@@ -7816,14 +7644,6 @@
     "translation": "Не удалось получить пробную лицензию, попробуйте еще раз или свяжитесь с support@mattermost.com. Невозможно получить количество зарегистрированных пользователей."
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "Ошибка при попытке перечислить объекты."
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "Произошла ошибка при открытии соединения с S3."
-  },
-  {
     "id": "api.cloud.request_error",
     "translation": "Ошибка обработки запроса к CWS."
   },
@@ -7838,5 +7658,21 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Ошибка синтаксического анализа многоформатного запроса"
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Невозможно загрузить на указанный канал."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
+    "translation": "Ваша пробная Корпоративная версия теперь активна. Перейдите в **Системная консоль > Аутентификация > МФА**, чтобы включить многофакторную аутентификацию."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о применении Многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nНажимая Начать пробную версию, я принимаю [Соглашение об оценке программного обеспечения Mattermost](https://mattermost.com/software-evaluation-agreement/), [Политику конфиденциальности](https://mattermost.com/privacy-policy/) и готов получать электронные письма о продуктах."
+  },
+  {
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о принудительной многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
   }
 ]

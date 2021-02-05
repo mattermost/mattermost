@@ -13,11 +13,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestOAuthComplete_AccessDenied(t *testing.T) {
@@ -90,13 +91,13 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ResponseType = model.IMPLICIT_RESPONSE_TYPE
 	ruri, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)
-	require.False(t, len(ruri) == 0, "redirect url should be set")
+	require.False(t, ruri == "", "redirect url should be set")
 
 	ru, _ = url.Parse(ruri)
 	require.NotNil(t, ru, "redirect url unparseable")
 	values, err := url.ParseQuery(ru.Fragment)
 	require.Nil(t, err)
-	assert.False(t, len(values.Get("access_token")) == 0, "access_token not returned")
+	assert.False(t, values.Get("access_token") == "", "access_token not returned")
 	assert.Equal(t, authRequest.State, values.Get("state"), "returned state doesn't match")
 
 	oldToken := ApiClient.AuthToken
@@ -127,6 +128,16 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	authRequest.ClientId = model.NewId()
 	_, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	CheckNotFoundStatus(t, resp)
+}
+
+func TestNilAuthorizeOAuthApp(t *testing.T) {
+	th := Setup(t).InitBasic()
+	th.Login(ApiClient, th.SystemAdminUser)
+	defer th.TearDown()
+
+	_, resp := ApiClient.AuthorizeOAuthApp(nil)
+	require.NotNil(t, resp.Error)
+	assert.Equal(t, "api.context.invalid_body_param.app_error", resp.Error.Id)
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
@@ -515,7 +526,7 @@ func HttpGet(url string, httpClient *http.Client, authToken string, followRedire
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
 
-	if len(authToken) > 0 {
+	if authToken != "" {
 		rq.Header.Set(model.HEADER_AUTH, authToken)
 	}
 
@@ -549,10 +560,18 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJson(data io.Reader) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJson(data io.Reader, tokenUser *model.User) (*model.User, error) {
 	user := model.UserFromJson(data)
 	user.AuthData = &user.Email
 	return user, nil
+}
+
+func (m *MattermostTestProvider) GetSSOSettings(config *model.Config, service string) (*model.SSOSettings, error) {
+	return &config.GitLabSettings, nil
+}
+
+func (m *MattermostTestProvider) GetUserFromIdToken(token string) (*model.User, error) {
+	return nil, nil
 }
 
 func GenerateTestAppName() string {

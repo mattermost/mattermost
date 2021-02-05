@@ -4,15 +4,18 @@
 package app
 
 import (
+	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -37,6 +40,7 @@ func TestNoticeValidation(t *testing.T) {
 	mockUserStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ChannelId: "", ViewRestrictions: (*model.ViewUsersRestrictions)(nil), Roles: []string(nil), ChannelRoles: []string(nil), TeamRoles: []string(nil)}).Return(int64(1), nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data").Return(&model.Preference{Value: "test2"}, nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data2").Return(&model.Preference{Value: "test"}, nil)
+	mockPreferenceStore.On("Get", "test", "Stuff", "Data3").Return(nil, errors.New("Error!"))
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -49,7 +53,6 @@ func TestNoticeValidation(t *testing.T) {
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
-		locale               string
 		sku                  string
 		postCount, userCount int64
 		cloud                bool
@@ -161,6 +164,18 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 		{
+			name: "notice with user check for property not in database",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Stuff.Data3": "stuff"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
 			name: "notice with server version check",
 			args: args{
 				notice: &model.ProductNotice{
@@ -266,6 +281,20 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  false,
+		},
+		{
+			name: "notice with server version check on cloud should ignore version",
+			args: args{
+				cloud:         true,
+				serverVersion: "cloud.54.abcdef",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0 < 100.2.2"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
 		},
 
 		{
@@ -520,7 +549,20 @@ func TestNoticeValidation(t *testing.T) {
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
 			}
-			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(
+				th.App.Config(),
+				th.App.Srv().Store.Preference(),
+				"test",
+				tt.args.client,
+				clientVersion,
+				tt.args.postCount,
+				tt.args.userCount,
+				tt.args.systemAdmin,
+				tt.args.teamAdmin,
+				tt.args.cloud,
+				tt.args.sku,
+				tt.args.notice,
+			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)

@@ -540,14 +540,6 @@
     "translation": "請勿打擾會停止桌面以及行動推播通知。"
   },
   {
-    "id": "api.command_dnd.disabled",
-    "translation": "請勿打擾已被停用。"
-  },
-  {
-    "id": "api.command_dnd.error",
-    "translation": "取得使用者狀態時錯誤。"
-  },
-  {
     "id": "api.command_dnd.name",
     "translation": "請勿打擾"
   },
@@ -1090,14 +1082,6 @@
     "translation": "此伺服器已停用檔案附件功能。"
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "無法確認檔案是否存在。"
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "無法確認檔案是否存在。"
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "此公開連結不是有效連結"
   },
@@ -1118,44 +1102,12 @@
     "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "無法在 S3 內複製檔案。"
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "無法從 S3 刪除檔案。"
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "無法移動本地端的檔案。"
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "沒有選取任何檔案驅動。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "從本地儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "從 S3 儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "從本地伺服器儲存空間開啟讀取器時遇到錯誤"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "從 S3 儲存開啟讀取器時遇到錯誤"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "沒有寫入指定本地路徑的權限或是其他錯誤。"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "檢查儲存貯體是否存在時發生錯誤。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1192,18 +1144,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "無法上傳檔案 {{.Filename}}。{{.Length}} 位元組超過最大限制 {{.Limit}} 位元組。"
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "寫入 S3 時遇到錯誤"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "建立新檔案的目錄時遇到錯誤"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "寫入本地儲存時遇到錯誤"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2142,10 +2082,6 @@
     "translation": "無法解析 {{.Service}} 使用者物件的認證資料"
   },
   {
-    "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
-  },
-  {
     "id": "api.user.create_email_token.error",
     "translation": "建立電子郵件驗證的 Token 資料失敗"
   },
@@ -2156,10 +2092,6 @@
   {
     "id": "api.user.create_oauth_user.create.app_error",
     "translation": "無法建立用於 {{.Service}} 的使用者物件"
-  },
-  {
-    "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2204,10 +2136,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "此伺服器尚未設定或不支援認證轉移。"
-  },
-  {
-    "id": "api.user.get_authorization_code.unsupported.app_error",
-    "translation": "不支援的 OAuth 服務供應者"
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4366,20 +4294,12 @@
     "translation": "無效的群組建立時間"
   },
   {
-    "id": "model.group.delete_at.app_error",
-    "translation": "無效的群組刪除時間"
-  },
-  {
     "id": "model.group.description.app_error",
     "translation": "無效的群組描述"
   },
   {
     "id": "model.group.display_name.app_error",
     "translation": "無效的群組顯示名稱"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "無效的群組 ID"
   },
   {
     "id": "model.group.name.app_error",
@@ -4412,10 +4332,6 @@
   {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "群組同步資料的同步資料 ID 無效"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "無效的群組同步資料類別"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4906,14 +4822,6 @@
     "translation": "缺少收件人位址。"
   },
   {
-    "id": "store.insert_error",
-    "translation": "插入失敗"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "選取失敗"
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: 無法將 StringArray 轉換為 *string"
   },
@@ -4932,10 +4840,6 @@
   {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "找不到現有的頻道"
-  },
-  {
-    "id": "store.sql_channel.get.find.app_error",
-    "translation": "尋找頻道時遇到錯誤"
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -4966,22 +4870,6 @@
     "translation": "無法取得指令"
   },
   {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "群組同步資料已被刪除"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "找不到對應的群組"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "已經存在相同名稱的團隊"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "群組成員已存在"
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
   },
@@ -4998,36 +4886,8 @@
     "translation": "這個電子郵件已經被使用。請選擇其他的。"
   },
   {
-    "id": "store.update_error",
-    "translation": "更新失敗"
-  },
-  {
     "id": "system.message.name",
     "translation": "系統"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "從本地伺服器儲存空間表列目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "從 S3 表列目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "從 S3 刪除目錄時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "從本地儲存刪除檔案時遇到錯誤"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "從 S3 刪除檔案時遇到錯誤"
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
@@ -5236,14 +5096,6 @@
   {
     "id": "web.error.unsupported_browser.browser_get_latest.chrome",
     "translation": "取得最新的 Chrome 瀏覽器"
-  },
-  {
-    "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-    "translation": "無法移除使用者 ID 為 \"{{.UserId}}\" 的群組成員"
-  },
-  {
-    "id": "store.sql_group.app_error",
-    "translation": "建立查詢時失敗"
   },
   {
     "id": "searchengine.bleve.disabled.error",
@@ -6506,10 +6358,6 @@
     "translation": "無法移動直接傳訊或群組頻道"
   },
   {
-    "id": "store.sql_group.more_than_one_row_changed",
-    "translation": "多於一筆資料列被改變。"
-  },
-  {
     "id": "store.sql_command.update.missing.app_error",
     "translation": "指令不存在。"
   },
@@ -7654,22 +7502,6 @@
     "translation": "無法解析要求本文。"
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "寫入 S3 時遇到錯誤"
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "在 S3 附加檔案時發生錯誤。"
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "開啟檔案時發生錯誤。"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "檔案不存在。"
-  },
-  {
     "id": "api.context.get_user.app_error",
     "translation": "無法從工作階段 UserID 取得使用者。"
   },
@@ -7756,10 +7588,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "取得頻道成員時失敗"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "無法建立儲存貯體。"
   },
   {
     "id": "api.server.warn_metric.starting_trial",

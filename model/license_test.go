@@ -33,6 +33,8 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["custom_permissions_schemes"].(bool))
 	CheckTrue(t, m["id_loaded"].(bool))
 	CheckTrue(t, m["future"].(bool))
+	CheckTrue(t, m["shared_channels"].(bool))
+	CheckTrue(t, m["remote_cluster_service"].(bool))
 }
 
 func TestLicenseFeaturesSetDefaults(t *testing.T) {
@@ -57,6 +59,8 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.CustomPermissionsSchemes)
 	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.IDLoadedPushNotifications)
+	CheckTrue(t, *f.SharedChannels)
+	CheckTrue(t, *f.RemoteClusterService)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -82,6 +86,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
 	*f.IDLoadedPushNotifications = true
+	*f.SharedChannels = true
 
 	f.SetDefaults()
 
@@ -104,6 +109,8 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.GuestAccounts)
 	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.IDLoadedPushNotifications)
+	CheckTrue(t, *f.SharedChannels)
+	CheckTrue(t, *f.RemoteClusterService)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -188,6 +195,8 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.GuestAccounts, *f.GuestAccounts)
 	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
 	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
+	CheckBool(t, *f1.SharedChannels, *f.SharedChannels)
+	CheckBool(t, *f1.RemoteClusterService, *f.RemoteClusterService)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`

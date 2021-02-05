@@ -7,18 +7,18 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestPluginStore(t *testing.T, ss store.Store, s SqlSupplier) {
-	t.Run("SaveOrUpdate", func(t *testing.T) { testPluginSaveOrUpdate(t, ss, s) })
-	t.Run("CompareAndSet", func(t *testing.T) { testPluginCompareAndSet(t, ss, s) })
-	t.Run("CompareAndDelete", func(t *testing.T) { testPluginCompareAndDelete(t, ss, s) })
-	t.Run("SetWithOptions", func(t *testing.T) { testPluginSetWithOptions(t, ss, s) })
+func TestPluginStore(t *testing.T, ss store.Store, s SqlStore) {
+	t.Run("SaveOrUpdate", func(t *testing.T) { testPluginSaveOrUpdate(t, ss) })
+	t.Run("CompareAndSet", func(t *testing.T) { testPluginCompareAndSet(t, ss) })
+	t.Run("CompareAndDelete", func(t *testing.T) { testPluginCompareAndDelete(t, ss) })
+	t.Run("SetWithOptions", func(t *testing.T) { testPluginSetWithOptions(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPluginGet(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testPluginDelete(t, ss) })
 	t.Run("DeleteAllForPlugin", func(t *testing.T) { testPluginDeleteAllForPlugin(t, ss) })
@@ -63,7 +63,7 @@ func setupKVs(t *testing.T, ss store.Store) (string, func()) {
 	}
 }
 
-func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
+func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -219,15 +219,15 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 	})
 }
 
-func testPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier) {
-	doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+func testPluginSaveOrUpdate(t *testing.T, ss store.Store) {
+	doTestPluginSaveOrUpdate(t, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 		return ss.Plugin().SaveOrUpdate(kv)
 	})
 }
 
 // doTestPluginCompareAndSet exercises the CompareAndSet functionality, but abstracts the actual
 // call to same to allow reuse with SetWithOptions
-func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
+func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -419,7 +419,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 		}
 
 		for description, setToSameValue := range testCases {
-			makeKV := func(t *testing.T, existingKV *model.PluginKeyValue) *model.PluginKeyValue {
+			makeKV := func(existingKV *model.PluginKeyValue) *model.PluginKeyValue {
 				kv := &model.PluginKeyValue{
 					PluginId: existingKV.PluginId,
 					Key:      existingKV.Key,
@@ -446,7 +446,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 							existingKV, tearDown := setup(t)
 							defer tearDown()
 
-							kv := makeKV(t, existingKV)
+							kv := makeKV(existingKV)
 							assertUnchanged(t, kv, existingKV, oldValue)
 						})
 					}
@@ -456,7 +456,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 					existingKV, tearDown := setup(t)
 					defer tearDown()
 
-					kv := makeKV(t, existingKV)
+					kv := makeKV(existingKV)
 
 					assertChanged(t, kv, existingKV.Value)
 				})
@@ -465,7 +465,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 					existingKV, tearDown := setup(t)
 					defer tearDown()
 
-					kv := makeKV(t, existingKV)
+					kv := makeKV(existingKV)
 					kv.ExpireAt = model.GetMillis() + 15*1000
 
 					assertChanged(t, kv, existingKV.Value)
@@ -475,7 +475,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 					existingKV, tearDown := setup(t)
 					defer tearDown()
 
-					kv := makeKV(t, existingKV)
+					kv := makeKV(existingKV)
 					kv.ExpireAt = model.GetMillis() - 15*1000
 
 					assertRemoved(t, kv, existingKV.Value)
@@ -484,7 +484,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 		}
 
 		t.Run("setting a nil value", func(t *testing.T) {
-			makeKV := func(t *testing.T, existingKV *model.PluginKeyValue) *model.PluginKeyValue {
+			makeKV := func(existingKV *model.PluginKeyValue) *model.PluginKeyValue {
 				kv := &model.PluginKeyValue{
 					PluginId: existingKV.PluginId,
 					Key:      existingKV.Key,
@@ -507,7 +507,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 						existingKV, tearDown := setup(t)
 						defer tearDown()
 
-						kv := makeKV(t, existingKV)
+						kv := makeKV(existingKV)
 						assertUnchanged(t, kv, existingKV, oldValue)
 					})
 				}
@@ -517,20 +517,20 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 				existingKV, tearDown := setup(t)
 				defer tearDown()
 
-				kv := makeKV(t, existingKV)
+				kv := makeKV(existingKV)
 				assertRemoved(t, kv, existingKV.Value)
 			})
 		})
 	})
 }
 
-func testPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier) {
-	doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
+func testPluginCompareAndSet(t *testing.T, ss store.Store) {
+	doTestPluginCompareAndSet(t, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 		return ss.Plugin().CompareAndSet(kv, oldValue)
 	})
 }
 
-func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -660,7 +660,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 }
 
-func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
+func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 	t.Run("invalid options", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -699,7 +699,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 
 	t.Run("atomic", func(t *testing.T) {
-		doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
+		doTestPluginCompareAndSet(t, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic:   true,
@@ -715,7 +715,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 
 	t.Run("non-atomic", func(t *testing.T) {
-		doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+		doTestPluginSaveOrUpdate(t, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic: false,
@@ -728,9 +728,8 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 			ok, err := ss.Plugin().SetWithOptions(kv.PluginId, kv.Key, kv.Value, options)
 			if !ok {
 				return nil, err
-			} else {
-				return kv, err
 			}
+			return kv, err
 		})
 	})
 }

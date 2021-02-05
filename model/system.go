@@ -14,6 +14,7 @@ const (
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
+	SYSTEM_LICENSE_RENEWAL_TOKEN                  = "LicenseRenewalToken"
 	SYSTEM_LAST_COMPLIANCE_TIME                   = "LastComplianceTime"
 	SYSTEM_ASYMMETRIC_SIGNING_KEY                 = "AsymmetricSigningKey"
 	SYSTEM_POST_ACTION_COOKIE_SECRET              = "PostActionCookieSecret"
@@ -33,6 +34,9 @@ const (
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
 	AWS_METERING_REPORT_INTERVAL                  = 1
 	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
+	USER_LIMIT_OVERAGE_CYCLE_END_DATE             = "UserLimitOverageCycleEndDate"
+	OVER_USER_LIMIT_FORGIVEN_COUNT                = "OverUserLimitForgivenCount"
+	OVER_USER_LIMIT_LAST_EMAIL_SENT               = "OverUserLimitLastEmailSent"
 )
 
 const (
@@ -81,6 +85,22 @@ type ServerBusyState struct {
 	Busy       bool   `json:"busy"`
 	Expires    int64  `json:"expires"`
 	Expires_ts string `json:"expires_ts,omitempty"`
+}
+
+type SupportPacket struct {
+	ServerOS             string   `yaml:"server_os"`
+	ServerArchitecture   string   `yaml:"server_architecture"`
+	DatabaseType         string   `yaml:"database_type"`
+	DatabaseVersion      string   `yaml:"database_version"`
+	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+}
+
+type FileData struct {
+	Filename string
+	Body     []byte
 }
 
 func (sbs *ServerBusyState) ToJson() string {
@@ -180,9 +200,8 @@ func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
 	var o WarnMetricStatus
 	if err := json.NewDecoder(data).Decode(&o); err != nil {
 		return nil
-	} else {
-		return &o
 	}
+	return &o
 }
 
 func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {

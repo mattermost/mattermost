@@ -17,7 +17,7 @@ services:
       timeout: 10s
       retries: 3
   postgres:
-    image: "postgres:9.4"
+    image: "postgres:10"
     restart: always
     networks:
       - mm-test
@@ -86,3 +86,17 @@ services:
       - mm-test
     volumes:
      - "./docker/keycloak:/setup"
+  prometheus:
+    image: "prom/prometheus"
+    volumes:
+      - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
+    networks:
+      - mm-test
+  grafana:
+    image: "grafana/grafana"
+    volumes:
+     - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
+     - "./docker/grafana/provisioning:/etc/grafana/provisioning"
+     - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+    networks:
+      - mm-test

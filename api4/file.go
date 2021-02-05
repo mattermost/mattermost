@@ -22,13 +22,13 @@ import (
 )
 
 const (
-	FILE_TEAM_ID = "noteam"
+	FileTeamId = "noteam"
 
-	PREVIEW_IMAGE_TYPE   = "image/jpeg"
-	THUMBNAIL_IMAGE_TYPE = "image/jpeg"
+	PreviewImageType   = "image/jpeg"
+	ThumbnailImageType = "image/jpeg"
 )
 
-var UNSAFE_CONTENT_TYPES = [...]string{
+var UnsafeContentTypes = [...]string{
 	"application/javascript",
 	"application/ecmascript",
 	"text/javascript",
@@ -37,7 +37,7 @@ var UNSAFE_CONTENT_TYPES = [...]string{
 	"text/html",
 }
 
-var MEDIA_CONTENT_TYPES = [...]string{
+var MediaContentTypes = [...]string{
 	"image/jpeg",
 	"image/png",
 	"image/bmp",
@@ -169,7 +169,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	auditRec.AddMeta("client_id", clientId)
 
 	info, appErr := c.App.UploadFileX(c.Params.ChannelId, c.Params.Filename, r.Body,
-		app.UploadFileSetTeamId(FILE_TEAM_ID),
+		app.UploadFileSetTeamId(FileTeamId),
 		app.UploadFileSetUserId(c.App.Session().UserId),
 		app.UploadFileSetTimestamp(timestamp),
 		app.UploadFileSetContentLength(r.ContentLength),
@@ -332,7 +332,7 @@ NEXT_PART:
 		auditRec.AddMeta("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, filename, part,
-			app.UploadFileSetTeamId(FILE_TEAM_ID),
+			app.UploadFileSetTeamId(FileTeamId),
 			app.UploadFileSetUserId(c.App.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
@@ -435,7 +435,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		auditRec.AddMeta("client_id", clientId)
 
 		info, appErr := c.App.UploadFileX(c.Params.ChannelId, fileHeader.Filename, f,
-			app.UploadFileSetTeamId(FILE_TEAM_ID),
+			app.UploadFileSetTeamId(FileTeamId),
 			app.UploadFileSetUserId(c.App.Session().UserId),
 			app.UploadFileSetTimestamp(timestamp),
 			app.UploadFileSetContentLength(-1),
@@ -532,7 +532,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	err = writeFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -565,7 +565,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(info.PostId) == 0 {
+	if info.PostId == "" {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -611,7 +611,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	err = writeFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
@@ -635,7 +635,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Write([]byte(info.ToJson()))
 }
 
@@ -658,7 +658,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hash := r.URL.Query().Get("h")
 
-	if len(hash) == 0 {
+	if hash == "" {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
@@ -701,7 +701,7 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	} else {
-		for _, unsafeContentType := range UNSAFE_CONTENT_TYPES {
+		for _, unsafeContentType := range UnsafeContentTypes {
 			if strings.HasPrefix(contentType, unsafeContentType) {
 				contentType = "text/plain"
 				break
@@ -717,7 +717,7 @@ func writeFileResponse(filename string, contentType string, contentSize int64, l
 	} else {
 		isMediaType := false
 
-		for _, mediaContentType := range MEDIA_CONTENT_TYPES {
+		for _, mediaContentType := range MediaContentTypes {
 			if strings.HasPrefix(contentType, mediaContentType) {
 				isMediaType = true
 				break

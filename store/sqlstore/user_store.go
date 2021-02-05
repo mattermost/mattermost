@@ -10,28 +10,28 @@ import (
 	"sort"
 	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 )
 
 const (
-	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
+	MaxGroupChannelsForProfiles = 50
 )
 
 var (
-	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME = []string{"Username", "Nickname"}
-	USER_SEARCH_TYPE_NAMES              = []string{"Username", "FirstName", "LastName", "Nickname"}
-	USER_SEARCH_TYPE_ALL_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
-	USER_SEARCH_TYPE_ALL                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
+	UserSearchTypeNames_NO_FULL_NAME = []string{"Username", "Nickname"}
+	UserSearchTypeNames              = []string{"Username", "FirstName", "LastName", "Nickname"}
+	UserSearchTypeAll_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
+	UserSearchTypeAll                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
-	SqlStore
+	*SqlStore
 	metrics einterfaces.MetricsInterface
 
 	// usersQuery is a starting point for all queries that return one or more Users.
@@ -42,7 +42,7 @@ func (us SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 
-func newSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
+func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -92,14 +92,14 @@ func (us SqlUserStore) createIndexesIfNotExists() {
 		us.CreateIndexIfNotExists("idx_users_lastname_lower_textpattern", "Users", "lower(LastName) text_pattern_ops")
 	}
 
-	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL_NO_FULL_NAME, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES, ", "))
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(UserSearchTypeAll, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(UserSearchTypeAll_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(UserSearchTypeNames, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(UserSearchTypeNames_NO_FULL_NAME, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
-	if len(user.Id) > 0 {
+	if user.Id != "" {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
 
@@ -286,7 +286,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 			     AuthService = :AuthService,
 			     AuthData = :AuthData`
 
-	if len(email) != 0 {
+	if email != "" {
 		query += ", Email = lower(:Email)"
 	}
 
@@ -412,6 +412,7 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, []string{}, []string{}, isPostgreSQL)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -451,118 +452,73 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
 
-func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string) sq.SelectBuilder {
-	queryString := ""
-	if len(roles) > 0 && roles[0] != "" {
-		schemeGuest := false
-		schemeAdmin := false
-		schemeUser := false
+func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRoles []string, channelRoles []string, isPostgreSQL bool) sq.SelectBuilder {
+	sqOr := sq.Or{}
 
-		for _, role := range roles {
+	if len(systemRoles) > 0 && systemRoles[0] != "" {
+		for _, role := range systemRoles {
+			queryRole := wildcardSearchTerm(role)
 			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
-				schemeAdmin = true
 			case model.SYSTEM_USER_ROLE_ID:
-				schemeUser = true
-			case model.SYSTEM_GUEST_ROLE_ID:
-				schemeGuest = true
-			}
-		}
-
-		if schemeAdmin || schemeUser || schemeGuest {
-			if schemeAdmin && schemeUser {
-				queryString += `(u.Roles LIKE '%system_user%' OR u.Roles LIKE '%system_admin%') `
-			} else if schemeAdmin {
-				queryString += `(u.Roles LIKE '%system_admin%') `
-			} else if schemeUser {
-				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
-			}
-
-			if schemeGuest {
-				if queryString != "" {
-					queryString += "OR "
+				// If querying for a `system_user` ensure that the user is only a system_user.
+				sqOr = append(sqOr, sq.Eq{"u.Roles": role})
+			case model.SYSTEM_GUEST_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_MANAGER_ROLE_ID, model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID, model.SYSTEM_MANAGER_ROLE_ID:
+				// If querying for any other roles search using a wildcard.
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.ILike{"u.Roles": queryRole})
+				} else {
+					sqOr = append(sqOr, sq.Like{"u.Roles": queryRole})
 				}
-				queryString += `(u.Roles LIKE '%system_guest%') `
 			}
+
 		}
 	}
 
 	if len(channelRoles) > 0 && channelRoles[0] != "" {
-		schemeGuest := false
-		schemeAdmin := false
-		schemeUser := false
 		for _, channelRole := range channelRoles {
 			switch channelRole {
 			case model.CHANNEL_ADMIN_ROLE_ID:
-				schemeAdmin = true
-			case model.CHANNEL_USER_ROLE_ID:
-				schemeUser = true
-			case model.CHANNEL_GUEST_ROLE_ID:
-				schemeGuest = true
-			}
-		}
-
-		if schemeAdmin || schemeUser || schemeGuest {
-			if queryString != "" {
-				queryString += "OR "
-			}
-			if schemeAdmin && schemeUser {
-				queryString += `(cm.SchemeUser = true AND u.Roles = 'system_user')`
-			} else if schemeAdmin {
-				queryString += `(cm.SchemeAdmin = true AND u.Roles = 'system_user')`
-			} else if schemeUser {
-				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false AND u.Roles = 'system_user')`
-			}
-
-			if schemeGuest {
-				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
-					queryString += "OR "
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
 				}
-				queryString += `(cm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			case model.CHANNEL_USER_ROLE_ID:
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
+			case model.CHANNEL_GUEST_ROLE_ID:
+				sqOr = append(sqOr, sq.Eq{"cm.SchemeGuest": true})
 			}
 		}
 	}
 
 	if len(teamRoles) > 0 && teamRoles[0] != "" {
-		schemeAdmin := false
-		schemeUser := false
-		schemeGuest := false
 		for _, teamRole := range teamRoles {
 			switch teamRole {
 			case model.TEAM_ADMIN_ROLE_ID:
-				schemeAdmin = true
-			case model.TEAM_USER_ROLE_ID:
-				schemeUser = true
-			case model.TEAM_GUEST_ROLE_ID:
-				schemeGuest = true
-			}
-		}
-
-		if schemeAdmin || schemeUser || schemeGuest {
-			if queryString != "" {
-				queryString += "OR "
-			}
-			if schemeAdmin && schemeUser {
-				queryString += `(tm.SchemeUser = true AND u.Roles = 'system_user')`
-			} else if schemeAdmin {
-				queryString += `(tm.SchemeAdmin = true AND u.Roles = 'system_user')`
-			} else if schemeUser {
-				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false AND u.Roles = 'system_user')`
-			}
-
-			if schemeGuest {
-				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
-					queryString += "OR "
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
 				}
-				queryString += `(tm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			case model.TEAM_USER_ROLE_ID:
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
+			case model.TEAM_GUEST_ROLE_ID:
+				sqOr = append(sqOr, sq.Eq{"tm.SchemeGuest": true})
 			}
 		}
 	}
 
-	if queryString != "" {
-		query = query.Where("(" + queryString + ")")
+	if len(sqOr) > 0 {
+		return query.Where(sqOr)
 	}
-
 	return query
 }
 
@@ -633,7 +589,7 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -980,8 +936,8 @@ type UserWithChannel struct {
 }
 
 func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, error) {
-	if len(channelIds) > MAX_GROUP_CHANNELS_FOR_PROFILES {
-		channelIds = channelIds[0:MAX_GROUP_CHANNELS_FOR_PROFILES]
+	if len(channelIds) > MaxGroupChannelsForProfiles {
+		channelIds = channelIds[0:MaxGroupChannelsForProfiles]
 	}
 
 	isMemberQuery := fmt.Sprintf(`
@@ -1228,7 +1184,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 		query = query.LeftJoin("ChannelMembers AS cm ON u.Id = cm.UserId").Where("cm.ChannelId = ?", options.ChannelId)
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
 
 	if isPostgreSQL {
 		query = query.PlaceholderFormat(sq.Dollar)
@@ -1446,22 +1402,22 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	var searchType []string
 	if options.AllowEmails {
 		if options.AllowFullNames {
-			searchType = USER_SEARCH_TYPE_ALL
+			searchType = UserSearchTypeAll
 		} else {
-			searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
+			searchType = UserSearchTypeAll_NO_FULL_NAME
 		}
 	} else {
 		if options.AllowFullNames {
-			searchType = USER_SEARCH_TYPE_NAMES
+			searchType = UserSearchTypeNames
 		} else {
-			searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
+			searchType = UserSearchTypeNames_NO_FULL_NAME
 		}
 	}
 
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")

@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
-
-	"net/http"
+	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
@@ -75,7 +75,7 @@ func (es *EmailService) setupInviteEmailRateLimiting() error {
 	return nil
 }
 
-func (es *EmailService) sendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
+func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",
@@ -188,7 +188,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -216,7 +216,7 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 	}
 
 	if !verified && *es.srv.Config().EmailSettings.RequireEmailVerification {
-		token, err := es.CreateVerifyEmailToken(userId, email)
+		token, err := es.CreateVerifyEmailToken(userID, email)
 		if err != nil {
 			return err
 		}
@@ -341,7 +341,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -358,7 +358,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
 			token := model.NewToken(
-				TOKEN_TYPE_TEAM_INVITATION,
+				TokenTypeTeamInvitation,
 				model.MapToJson(map[string]string{"teamId": team.Id, "email": invite}),
 			)
 
@@ -400,7 +400,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -428,7 +428,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			}
 
 			token := model.NewToken(
-				TOKEN_TYPE_GUEST_INVITATION,
+				TokenTypeGuestInvitation,
 				model.MapToJson(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIds, " "),
@@ -520,7 +520,14 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := es.srv.GenerateLicenseRenewalLink()
+	if err != nil {
+		return err
+	}
+
 	T := utils.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -528,7 +535,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	bodyPage := es.newEmailTemplate("remove_expired_license", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["Link"] = renewalLink
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
@@ -561,12 +568,12 @@ func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, 
 	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
 }
 
-func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string
 	}{
-		userId,
+		userID,
 		newEmail,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
@@ -575,7 +582,7 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 		return nil, model.NewAppError("CreateVerifyEmailToken", "api.user.create_email_token.error", nil, "", http.StatusInternalServerError)
 	}
 
-	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
+	token := model.NewToken(TokenTypeVerifyEmail, string(jsonData))
 
 	if err = es.srv.Store.Token().Save(token); err != nil {
 		var appErr *model.AppError
@@ -632,4 +639,183 @@ func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale strin
 	}
 
 	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_30_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_30_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_30_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_30_days_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_30_days_info2")
+	bodyPage.Props["Info2Item1"] = T("api.templates.over_limit_30_days_info2_item1")
+	bodyPage.Props["Info2Item2"] = T("api.templates.over_limit_30_days_info2_item2")
+	bodyPage.Props["Info2Item3"] = T("api.templates.over_limit_30_days_info2_item3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_90_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_90_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_90_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_90_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_90_days_info2")
+	bodyPage.Props["Info3"] = T("api.templates.over_limit_90_days_info3")
+	bodyPage.Props["Info4"] = T("api.templates.over_limit_90_days_info4")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_suspended_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_workspace_suspended_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_suspended_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_suspended_info1")
+	bodyPage.Props["Info2"] = T("api.templates.over_limit_suspended_info2")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_suspended_contact_support")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_14_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_7_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_14_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_14_days_info1", map[string]interface{}{"OverLimitDate": overLimitDate})
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.over_limit_7_days_subject")
+
+	bodyPage := es.newEmailTemplate("over_user_limit_7_days_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.over_limit_7_days_title")
+	bodyPage.Props["Info1"] = T("api.templates.over_limit_7_days_info1")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendSuspensionEmailToSupport(email string, installationID string, customerID string, subscriptionID string, siteURL string, userCount int64) (bool, *model.AppError) {
+	// Localization not needed
+
+	subject := fmt.Sprintf("Cloud Installation %s Scheduled Suspension", installationID)
+	bodyPage := es.newEmailTemplate("over_user_limit_support_body", "en")
+	bodyPage.Props["CustomerID"] = customerID
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["SubscriptionID"] = subscriptionID
+	bodyPage.Props["InstallationID"] = installationID
+	bodyPage.Props["SuspensionDate"] = time.Now().AddDate(0, 0, 61).Format("2006-01-02")
+	bodyPage.Props["UserCount"] = userCount
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed.info1", map[string]interface{}{"CardBrand": failedPayment.CardBrand, "LastFour": failedPayment.LastFour})
+	bodyPage.Props["Info2"] = T("api.templates.payment_failed.info2")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed.info3")
+	bodyPage.Props["Button"] = T("api.templates.over_limit_fix_now")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.payment_failed_no_card.subject")
+
+	bodyPage := es.newEmailTemplate("payment_failed_no_card_body", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.payment_failed_no_card.title")
+	bodyPage.Props["Info1"] = T("api.templates.payment_failed_no_card.info1")
+	bodyPage.Props["Info3"] = T("api.templates.payment_failed_no_card.info3")
+	bodyPage.Props["Button"] = T("api.templates.payment_failed_no_card.button")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return nil
 }

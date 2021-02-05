@@ -6,9 +6,12 @@ package app
 import (
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -42,7 +45,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-			gchan <- store.StoreResult{Data: groupsMap, Err: err}
+			gchan <- store.StoreResult{Data: groupsMap, NErr: err}
 			close(gchan)
 		}()
 	}
@@ -72,8 +75,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	groups := make(map[string]*model.Group)
 	if gchan != nil {
 		result = <-gchan
-		if result.Err != nil {
-			return nil, result.Err
+		if result.NErr != nil {
+			return nil, result.NErr
 		}
 		groups = result.Data.(map[string]*model.Group)
 	}
@@ -120,10 +123,17 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 && parentPostList != nil {
+		if post.RootId != "" && parentPostList != nil {
 			for _, threadPost := range parentPostList.Posts {
 				profile := profileMap[threadPost.UserId]
-				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0])) {
+				if profile == nil {
+					continue
+				}
+				// If this is the root post and it was posted by an OAuth bot, don't notify the user
+				if threadPost.Id == parentPostList.Order[0] && threadPost.IsFromOAuthBot() {
+					continue
+				}
+				if profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == model.COMMENTS_NOTIFY_ROOT && threadPost.Id == parentPostList.Order[0]) {
 					mentionType := ThreadMention
 					if threadPost.Id == parentPostList.Order[0] {
 						mentionType = CommentMention
@@ -160,31 +170,44 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentions.Mentions))
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
-
-	// for each mention, make sure to update thread autofollow
-	for id := range mentions.Mentions {
-		mac := make(chan *model.AppError, 1)
-		go func(userId string) {
-			defer close(mac)
-			if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userId, post.RootId, true)
+	threadParticipants := map[string]bool{post.UserId: true}
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
+		if parentPostList != nil {
+			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
+		}
+		for id := range mentions.Mentions {
+			threadParticipants[id] = true
+		}
+		// for each mention, make sure to update thread autofollow (if enabled) and update increment mention count
+		for id := range threadParticipants {
+			mac := make(chan *model.AppError, 1)
+			go func(userID string) {
+				defer close(mac)
+				incrementMentions := false
+				for mid := range mentions.Mentions {
+					if userID == mid {
+						incrementMentions = true
+						break
+					}
+				}
+				nErr := a.Srv().Store.Thread().CreateMembershipIfNeeded(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow)
 				if nErr != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 					return
 				}
-			}
-			mac <- nil
-		}(id)
-		mentionAutofollowChans = append(mentionAutofollowChans, mac)
-	}
 
+				mac <- nil
+			}(id)
+			mentionAutofollowChans = append(mentionAutofollowChans, mac)
+		}
+	}
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 
 		umc := make(chan *model.AppError, 1)
-		go func(userId string) {
+		go func(userID string) {
 			defer close(umc)
-			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId, *a.Config().ServiceSettings.ThreadAutoFollow)
+			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userID, *a.Config().ServiceSettings.ThreadAutoFollow)
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 				return
@@ -195,7 +218,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	notification := &PostNotification{
-		Post:       post,
+		Post:       post.Clone(),
 		Channel:    channel,
 		ProfileMap: profileMap,
 		Sender:     sender,
@@ -209,7 +232,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 			//If email verification is required and user email is not verified don't send email.
 			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
-				mlog.Error("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
+				mlog.Debug("Skipped sending notification email, address not verified.", mlog.String("user_email", profileMap[id].Email), mlog.String("user_id", id))
 				continue
 			}
 
@@ -403,6 +426,27 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	a.Publish(message)
+	// If this is a reply in a thread, notify participants
+	if a.Config().FeatureFlags.CollapsedThreads && *a.Config().ServiceSettings.CollapsedThreads != model.COLLAPSED_THREADS_DISABLED && post.RootId != "" {
+		thread, err := a.Srv().Store.Thread().Get(post.RootId)
+		if err != nil {
+			return nil, errors.Wrapf(err, "cannot get thread %q", post.RootId)
+		}
+		payload := thread.ToJson()
+		for _, uid := range thread.Participants {
+			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+			// check if a participant has overridden collapsed threads settings
+			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent, _ = strconv.ParseBool(preference.Value)
+			}
+			if sendEvent {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
+			}
+		}
+
+	}
 	return mentionedUsersList, nil
 }
 
@@ -559,7 +603,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	}
 
 	if len(outOfGroupsUsers) == 1 {
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -569,7 +613,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	} else if len(outOfGroupsUsers) > 1 {
 		preliminary, final := splitAtFinal(ogUsernames)
 
-		if len(message) > 0 {
+		if message != "" {
 			message += "\n"
 		}
 
@@ -661,16 +705,16 @@ const (
 	GroupMention
 )
 
-func (m *ExplicitMentions) addMention(userId string, mentionType MentionType) {
+func (m *ExplicitMentions) addMention(userID string, mentionType MentionType) {
 	if m.Mentions == nil {
 		m.Mentions = make(map[string]MentionType)
 	}
 
-	if currentType, ok := m.Mentions[userId]; ok && currentType >= mentionType {
+	if currentType, ok := m.Mentions[userID]; ok && currentType >= mentionType {
 		return
 	}
 
-	m.Mentions[userId] = mentionType
+	m.Mentions[userID] = mentionType
 }
 
 func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model.Group) bool {
@@ -701,14 +745,14 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 	return true
 }
 
-func (m *ExplicitMentions) addMentions(userIds []string, mentionType MentionType) {
-	for _, userId := range userIds {
-		m.addMention(userId, mentionType)
+func (m *ExplicitMentions) addMentions(userIDs []string, mentionType MentionType) {
+	for _, userID := range userIDs {
+		m.addMention(userID, mentionType)
 	}
 }
 
-func (m *ExplicitMentions) removeMention(userId string) {
-	delete(m.Mentions, userId)
+func (m *ExplicitMentions) removeMention(userID string) {
+	delete(m.Mentions, userID)
 }
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
@@ -743,10 +787,10 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret = append(ret, post.Message)
 	for _, attachment := range post.Attachments() {
 
-		if len(attachment.Pretext) != 0 {
+		if attachment.Pretext != "" {
 			ret = append(ret, attachment.Pretext)
 		}
-		if len(attachment.Text) != 0 {
+		if attachment.Text != "" {
 			ret = append(ret, attachment.Text)
 		}
 	}
@@ -788,12 +832,12 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 }
 
 // getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
-func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
-	var err *model.AppError
+func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, error) {
+	var err error
 	groupsMap := make(map[string]*model.Group)
 	opts := model.GroupSearchOpts{FilterAllowReference: true}
 
-	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+	if channel.IsGroupConstrained() || (team != nil && team.IsGroupConstrained()) {
 		var groups []*model.GroupWithSchemeAdmin
 		if channel.IsGroupConstrained() {
 			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
@@ -801,7 +845,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
 		}
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "unable to get groups")
 		}
 		for _, group := range groups {
 			if group.Group.Name != nil {
@@ -813,7 +857,7 @@ func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team
 
 	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to get groups")
 	}
 	for _, group := range groups {
 		if group.Name != nil {
@@ -845,7 +889,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
 func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *ExplicitMentions) (bool, *model.AppError) {
-	var err *model.AppError
+	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
 	isGroupOrDirect := channel.IsGroupOrDirect()
@@ -857,7 +901,7 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	if err != nil {
-		return false, err
+		return false, model.NewAppError("insertGroupMentions", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if mentions.Mentions == nil {
@@ -1047,7 +1091,7 @@ func (m *ExplicitMentions) processText(text string, keywords map[string][]string
 		foundWithoutSuffix := false
 		wordWithoutSuffix := word
 
-		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+		for wordWithoutSuffix != "" && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
 			if m.checkForMention(wordWithoutSuffix, keywords, groups) {

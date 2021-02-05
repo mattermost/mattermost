@@ -37,13 +37,14 @@ type Range struct {
 	End      int
 }
 
-func closeBlocks(blocks []Block, referenceDefinitions *[]*ReferenceDefinition) {
+func closeBlocks(blocks []Block, referenceDefinitions []*ReferenceDefinition) []*ReferenceDefinition {
 	for _, block := range blocks {
 		block.Close()
 		if p, ok := block.(*Paragraph); ok && len(p.ReferenceDefinitions) > 0 {
-			*referenceDefinitions = append(*referenceDefinitions, p.ReferenceDefinitions...)
+			referenceDefinitions = append(referenceDefinitions, p.ReferenceDefinitions...)
 		}
 	}
+	return referenceDefinitions
 }
 
 func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefinition) {
@@ -78,7 +79,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 				for i := lastMatchIndex; i >= 0; i-- {
 					if container, ok := openBlocks[i].(ContainerBlock); ok {
 						if addedBlocks := container.AddChild(newBlocks); addedBlocks != nil {
-							closeBlocks(openBlocks[i+1:], &referenceDefinitions)
+							referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
 							openBlocks = openBlocks[:i+1]
 							openBlocks = append(openBlocks, addedBlocks...)
 							didAdd = true
@@ -98,7 +99,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			continue
 		}
 
-		closeBlocks(openBlocks[lastMatchIndex+1:], &referenceDefinitions)
+		referenceDefinitions = closeBlocks(openBlocks[lastMatchIndex+1:], referenceDefinitions)
 		openBlocks = openBlocks[:lastMatchIndex+1]
 
 		if openBlocks[lastMatchIndex].AddLine(indentation, r) {
@@ -109,7 +110,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 			for i := lastMatchIndex; i >= 0; i-- {
 				if container, ok := openBlocks[i].(ContainerBlock); ok {
 					if newBlocks := container.AddChild([]Block{paragraph}); newBlocks != nil {
-						closeBlocks(openBlocks[i+1:], &referenceDefinitions)
+						referenceDefinitions = closeBlocks(openBlocks[i+1:], referenceDefinitions)
 						openBlocks = openBlocks[:i+1]
 						openBlocks = append(openBlocks, newBlocks...)
 						break
@@ -119,7 +120,7 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 		}
 	}
 
-	closeBlocks(openBlocks, &referenceDefinitions)
+	referenceDefinitions = closeBlocks(openBlocks, referenceDefinitions)
 
 	return document, referenceDefinitions
 }
@@ -129,13 +130,13 @@ func blockStart(markdown string, indentation int, r Range, matchedBlocks, unmatc
 		return nil
 	}
 
-	if start := blockQuoteStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+	if start := blockQuoteStart(markdown, indentation, r); start != nil {
 		return start
 	} else if start := listStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
 		return start
 	} else if start := indentedCodeStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
 		return start
-	} else if start := fencedCodeStart(markdown, indentation, r, matchedBlocks, unmatchedBlocks); start != nil {
+	} else if start := fencedCodeStart(markdown, indentation, r); start != nil {
 		return start
 	}
 

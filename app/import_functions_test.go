@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -1711,7 +1712,7 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(user.Id)
+				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(context.Background(), user.Id)
 				require.Nil(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
@@ -1855,16 +1856,14 @@ func TestImportUserChannels(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
 			th.App.joinUserToTeam(th.BasicTeam, user)
-			teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
-			require.Nil(t, err)
 
 			// Two times import must end with the same results
 			for x := 0; x < 2; x++ {
-				err = th.App.importUserChannels(user, th.BasicTeam, teamMember, tc.data)
+				appErr := th.App.importUserChannels(user, th.BasicTeam, tc.data)
 				if tc.expectedError {
-					require.NotNil(t, err)
+					require.NotNil(t, appErr)
 				} else {
-					require.Nil(t, err)
+					require.Nil(t, appErr)
 				}
 				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
 				require.Nil(t, err)
@@ -2402,6 +2401,63 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Equal(t, 0, errLine)
 
 	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+
+	// Create another Team.
+	teamName2 := model.NewRandomTeamName()
+	th.App.importTeam(&TeamImportData{
+		Name:        &teamName2,
+		DisplayName: ptrStr("Display Name 2"),
+		Type:        ptrStr("O"),
+	}, false)
+	team2, err := th.App.GetTeamByName(teamName2)
+	require.Nil(t, err, "Failed to get team from database.")
+
+	// Create another Channel for the another team.
+	th.App.importChannel(&ChannelImportData{
+		Team:        &teamName2,
+		Name:        &channelName,
+		DisplayName: ptrStr("Display Name"),
+		Type:        ptrStr("O"),
+	}, false)
+	_, err = th.App.GetChannelByName(channelName, team2.Id, false)
+	require.Nil(t, err, "Failed to get channel from database.")
+
+	// Count the number of posts in the team2.
+	initialPostCountForTeam2, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team2.Id, false, false)
+	require.Nil(t, nErr)
+
+	// Try adding two valid posts in apply mode.
+	data = LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName,
+				Channel:  &channelName,
+				User:     &username,
+				Message:  ptrStr("another message"),
+				CreateAt: &time,
+			},
+		},
+		1,
+	}
+	data2 := LineImportWorkerData{
+		LineImportData{
+			Post: &PostImportData{
+				Team:     &teamName2,
+				Channel:  &channelName,
+				User:     &username,
+				Message:  ptrStr("another message"),
+				CreateAt: &time,
+			},
+		},
+		1,
+	}
+	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data, data2}, false)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, errLine)
+
+	// Posts should be added to the right team
+	AssertAllPostsCount(t, th.App, initialPostCountForTeam2, 1, team2.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 12, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -3038,13 +3094,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr := th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
+	channel, appErr := th.App.createGroupChannel(userIDs)
+	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.
@@ -3339,13 +3395,13 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the channel.
 	var groupChannel *model.Channel
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
+	channel, appErr = th.App.createGroupChannel(userIDs)
+	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
 	// Get the number of posts in the system.
@@ -3833,16 +3889,16 @@ func TestImportAttachment(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	invalidPath := "some-invalid-path"
 
-	userId := model.NewId()
+	userID := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team", true)
+	_, err := th.App.importAttachment(&data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
-	attachments := GetAttachments(userId, th, t)
+	attachments := GetAttachments(userID, th, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
-	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team")
 	assert.NotNil(t, err, "should have failed when opening the file")
 	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
 }

@@ -4,9 +4,8 @@
 package sqlstore
 
 import (
-	"github.com/pkg/errors"
-
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -15,10 +14,10 @@ import (
 // SqlLicenseStore encapsulates the database writes and reads for
 // model.LicenseRecord objects.
 type SqlLicenseStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
+func newSqlLicenseStore(sqlStore *SqlStore) store.LicenseStore {
 	ls := &SqlLicenseStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

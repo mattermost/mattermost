@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  aws-s3: circleci/aws-s3@1.0.11
+  aws-s3: circleci/aws-s3@2.0.0
   owasp: entur/owasp@0.0.10
 
 executors:
@@ -60,7 +60,7 @@ jobs:
           steps:
             # Taken from https://github.com/entur/owasp-orb/blob/master/src/%40orb.yml#L349-L361
             - owasp/generate_cache_keys:
-                cache_key: commmandline-default-cache-key-v6
+                cache_key: commmandline-default-cache-key-v7
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
@@ -105,7 +105,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -118,7 +118,7 @@ jobs:
 
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -128,7 +128,18 @@ jobs:
             cd mattermost-server
             make store-layers
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the store layers using make store-layers"; exit 1; fi
-
+  check-mocks:
+    docker:
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+    working_directory: ~/mattermost
+    steps:
+      - attach_workspace:
+          at: ~/mattermost/
+      - run:
+          command: |
+            cd mattermost-server
+            make einterfaces-mocks store-mocks
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the mocks using `make einterfaces-mocks store-mocks`"; exit 1; fi
   build-api-spec:
     docker:
       - image: circleci/node:lts
@@ -150,7 +161,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
+      - image: mattermost/mattermost-build-server:20201119_golang-1.15.5
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -159,7 +170,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.31.0
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.33.2
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -224,7 +235,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make test-server BUILD_NUMBER=$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM TESTFLAGS= TESTFLAGSEE="
           no_output_timeout: 1h
       - run:
@@ -288,7 +299,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=postgres \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10' ARGS='version' run-cli"
 
             echo "Generating dump"
@@ -317,7 +328,7 @@ jobs:
               --env MM_SQLSETTINGS_DRIVERNAME=mysql \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+              mattermost/mattermost-build-server:20201119_golang-1.15.5 \
               bash -c "ulimit -n 8096; make ARGS='version' run-cli && make MM_SQLSETTINGS_DATASOURCE='mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' ARGS='version' run-cli"
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
@@ -408,6 +419,9 @@ workflows:
       - check-store-layers:
           requires:
             - setup
+      - check-mocks:
+          requires:
+            - setup
       - build-api-spec:
           requires:
             - setup
@@ -416,6 +430,7 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
             - build-api-spec
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
@@ -432,10 +447,11 @@ workflows:
       - test:
           name: test-mysql
           dbdriver: mysql
-          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
       - test:
           name: test-postgres
           dbdriver: postgres
@@ -443,7 +459,66 @@ workflows:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
       - test-schema:
           requires:
             - check-app-layers
             - check-store-layers
+            - check-mocks
+
+  release-build:
+    jobs:
+      - setup:
+          filters:
+            branches:
+              only:
+                - master
+                - /^release-.*/
+                - cloud
+      - check-deps:
+          context: sast-webhook
+          requires:
+            - setup
+      # - check-i18n:
+      #     requires:
+      #       - setup
+      - check-app-layers:
+          requires:
+            - setup
+      - check-store-layers:
+          requires:
+            - setup
+      - build-api-spec:
+          requires:
+            - setup
+      - check-mocks:
+          requires:
+            - setup
+      - build:
+          context: matterbuild-sentry
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+            - build-api-spec
+      - test:
+          name: test-mysql
+          dbdriver: mysql
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+      - test:
+          name: test-postgres
+          dbdriver: postgres
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks
+      - test-schema:
+          requires:
+            - check-app-layers
+            - check-store-layers
+            - check-mocks

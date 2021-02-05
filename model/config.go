@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
@@ -45,11 +46,12 @@ const (
 	SERVICE_GITLAB    = "gitlab"
 	SERVICE_GOOGLE    = "google"
 	SERVICE_OFFICE365 = "office365"
+	SERVICE_OPENID    = "openid"
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
-	MM_SUPPORT_ADDRESS              = "support@mattermost.com"
+	MM_SUPPORT_ADVISOR_ADDRESS      = "support-advisor@mattermost.com"
 	FULL_NOTIFICATION               = "full"
 	ID_LOADED_NOTIFICATION          = "id_loaded"
 
@@ -83,6 +85,10 @@ const (
 	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
 	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
 
+	COLLAPSED_THREADS_DISABLED    = "disabled"
+	COLLAPSED_THREADS_DEFAULT_ON  = "default_on"
+	COLLAPSED_THREADS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -112,6 +118,9 @@ const (
 	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
+
+	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
+	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -223,9 +232,14 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
 	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+	OPENID_SETTINGS_DEFAULT_SCOPE  = "profile openid email"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
+
+func GetDefaultAppCustomURLSchemes() []string {
+	return []string{"mmauth://", "mmauthbeta://"}
+}
 
 var ServerTLSSupportedCiphers = map[string]uint16{
 	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
@@ -328,8 +342,6 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
-	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
-	ExperimentalDataPrefetch                          *bool    `access:"experimental"`
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -351,7 +363,9 @@ type ServiceSettings struct {
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
+	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableLegacySidebar                               *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -690,14 +704,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
-	}
-
-	if s.ExperimentalDataPrefetch == nil {
-		s.ExperimentalDataPrefetch = NewBool(true)
-	}
-
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -786,8 +792,16 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ThreadAutoFollow = NewBool(true)
 	}
 
+	if s.CollapsedThreads == nil {
+		s.CollapsedThreads = NewString(COLLAPSED_THREADS_DISABLED)
+	}
+
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
+	}
+
+	if s.EnableLegacySidebar == nil {
+		s.EnableLegacySidebar = NewBool(false)
 	}
 }
 
@@ -800,6 +814,7 @@ type ClusterSettings struct {
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -839,11 +854,15 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -898,8 +917,8 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
-	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
-	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
@@ -953,16 +972,19 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	ButtonText        *string `access:"authentication"`
+	ButtonColor       *string `access:"authentication"`
 }
 
-func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -979,6 +1001,10 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.Scope = NewString(scope)
 	}
 
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
+	}
+
 	if s.AuthEndpoint == nil {
 		s.AuthEndpoint = NewString(authEndpoint)
 	}
@@ -990,17 +1016,26 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
+
+	if s.ButtonText == nil {
+		s.ButtonText = NewString("")
+	}
+
+	if s.ButtonColor == nil {
+		s.ButtonColor = NewString(buttonColor)
+	}
 }
 
 type Office365Settings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
-	DirectoryId     *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	DirectoryId       *string `access:"authentication"`
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1018,6 +1053,10 @@ func (s *Office365Settings) setDefaults() {
 
 	if s.Scope == nil {
 		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
 	}
 
 	if s.AuthEndpoint == nil {
@@ -1043,6 +1082,7 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.Secret = s.Secret
 	ssoSettings.Id = s.Id
 	ssoSettings.Scope = s.Scope
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
@@ -1056,6 +1096,7 @@ type SqlSettings struct {
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1082,7 +1123,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure an encryption key has been specified.
-		if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
+		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1100,6 +1141,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = NewInt(300000)
 	}
 
 	if s.Trace == nil {
@@ -1331,7 +1376,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
+		s.MaxFileSize = NewInt64(MB * 100)
 	}
 
 	if s.DriverName == nil {
@@ -1348,7 +1393,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure link salt has been specified.
-		if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
+		if s.PublicLinkSalt == nil || *s.PublicLinkSalt == "" {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1381,7 +1426,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3Region = NewString("")
 	}
 
-	if s.AmazonS3Endpoint == nil || len(*s.AmazonS3Endpoint) == 0 {
+	if s.AmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		s.AmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
@@ -1494,11 +1539,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = NewString("")
 	}
 
-	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
+	if s.SMTPServer == nil || *s.SMTPServer == "" {
 		s.SMTPServer = NewString("localhost")
 	}
 
-	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
+	if s.SMTPPort == nil || *s.SMTPPort == "" {
 		s.SMTPPort = NewString("10025")
 	}
 
@@ -2396,9 +2441,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"`
+	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2412,6 +2458,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.IosAppDownloadLink == nil {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
+	}
+
+	if s.AppCustomURLSchemes == nil {
+		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
 	}
 }
 
@@ -2669,9 +2719,14 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 
-	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
-		// Enable the incident response plugin by default
-		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
+	if s.PluginStates["com.mattermost.plugin-incident-management"] == nil && BuildEnterpriseReady == "true" {
+		// Enable the incident management plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-management"] = &PluginState{Enable: true}
+	}
+
+	if s.PluginStates["com.mattermost.plugin-channel-export"] == nil && BuildEnterpriseReady == "true" {
+		// Enable the channel export plugin by default
+		s.PluginStates["com.mattermost.plugin-channel-export"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -2734,7 +2789,7 @@ type MessageExportSettings struct {
 	DownloadExportResults *bool   `access:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelaySettings *GlobalRelayMessageExportSettings
+	GlobalRelaySettings *GlobalRelayMessageExportSettings `access:"compliance"`
 }
 
 func (s *MessageExportSettings) SetDefaults() {
@@ -2850,6 +2905,37 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	}
 }
 
+// ImportSettings defines configuration settings for file imports.
+type ImportSettings struct {
+	// The directory where to store the imported files.
+	Directory *string
+	// The number of days to retain the imported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ImportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ImportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(IMPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -2905,6 +2991,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
+	OpenIdSettings            SSOSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -2925,6 +3012,7 @@ type Config struct {
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings
 	FeatureFlags              *FeatureFlags `json:",omitempty"`
+	ImportSettings            ImportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2960,6 +3048,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
 		return o.Office365Settings.SSOSettings()
+	case SERVICE_OPENID:
+		return &o.OpenIdSettings
 	}
 
 	return nil
@@ -2995,8 +3085,10 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults("", "", "", "")
-	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults()
+	o.GitLabSettings.setDefaults("", "", "", "", "")
+	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT, "")
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "", "#145DBF")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
@@ -3028,10 +3120,11 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags = &FeatureFlags{}
 		o.FeatureFlags.SetDefaults()
 	}
+	o.ImportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+	if *o.ServiceSettings.SiteURL == "" && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3039,7 +3132,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3095,7 +3188,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+	if err := o.MessageExportSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3104,6 +3197,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ImageProxySettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ImportSettings.isValid(); err != nil {
 		return err
 	}
 	return nil
@@ -3154,11 +3251,15 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.DataSource) == 0 {
+	if *s.DataSource == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3287,47 +3388,47 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if len(*s.IdpUrl) == 0 || !IsValidHttpUrl(*s.IdpUrl) {
+		if *s.IdpUrl == "" || !IsValidHttpUrl(*s.IdpUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorUrl == "" || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpCertificateFile) == 0 {
+		if *s.IdpCertificateFile == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.UsernameAttribute) == 0 {
+		if *s.UsernameAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.ServiceProviderIdentifier) == 0 {
+		if *s.ServiceProviderIdentifier == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if *s.Verify {
-			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
 		if *s.Encrypt {
-			if len(*s.PrivateKeyFile) == 0 {
+			if *s.PrivateKeyFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if len(*s.PublicCertificateFile) == 0 {
+			if *s.PublicCertificateFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3338,7 +3439,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.GuestAttribute) > 0 {
+		if *s.GuestAttribute != "" {
 			if !(strings.Contains(*s.GuestAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3347,7 +3448,7 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 		}
 
-		if len(*s.AdminAttribute) > 0 {
+		if *s.AdminAttribute != "" {
 			if !(strings.Contains(*s.AdminAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3407,13 +3508,13 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.login_attempts.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.SiteURL) != 0 {
+	if *s.SiteURL != "" {
 		if _, err := url.ParseRequestURI(*s.SiteURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.site_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	if len(*s.WebsocketURL) != 0 {
+	if *s.WebsocketURL != "" {
 		if _, err := url.ParseRequestURI(*s.WebsocketURL); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.websocket_url.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3437,12 +3538,18 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.CollapsedThreads != COLLAPSED_THREADS_DISABLED &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_ON &&
+		*s.CollapsedThreads != COLLAPSED_THREADS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.collapsed_threads.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
 func (s *ElasticsearchSettings) isValid() *AppError {
 	if *s.EnableIndexing {
-		if len(*s.ConnectionUrl) == 0 {
+		if *s.ConnectionUrl == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -3480,7 +3587,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 func (bs *BleveSettings) isValid() *AppError {
 	if *bs.EnableIndexing {
-		if len(*bs.IndexDir) == 0 {
+		if *bs.IndexDir == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	} else {
@@ -3515,7 +3622,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 }
 
 func (s *LocalizationSettings) isValid() *AppError {
-	if len(*s.AvailableLocales) > 0 {
+	if *s.AvailableLocales != "" {
 		if !strings.Contains(*s.AvailableLocales, *s.DefaultClientLocale) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3524,7 +3631,7 @@ func (s *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-func (s *MessageExportSettings) isValid(fs FileSettings) *AppError {
+func (s *MessageExportSettings) isValid() *AppError {
 	if s.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3610,30 +3717,34 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if o.LdapSettings.BindPassword != nil && len(*o.LdapSettings.BindPassword) > 0 {
+	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 
-	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
-	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if len(*o.GitLabSettings.Secret) > 0 {
+	if *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
-	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+	if o.GoogleSettings.Secret != nil && *o.GoogleSettings.Secret != "" {
 		*o.GoogleSettings.Secret = FAKE_SETTING
 	}
 
-	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+	if o.Office365Settings.Secret != nil && *o.Office365Settings.Secret != "" {
 		*o.Office365Settings.Secret = FAKE_SETTING
+	}
+
+	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
+		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
@@ -3649,11 +3760,11 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
-	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 
@@ -3665,7 +3776,7 @@ func (o *Config) Sanitize() {
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
-			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
+			mlog.Warn("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
 		}
 	}()
 

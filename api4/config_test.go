@@ -9,10 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetConfig(t *testing.T) {
@@ -29,18 +30,18 @@ func TestGetConfig(t *testing.T) {
 
 		require.NotEqual(t, "", cfg.TeamSettings.SiteName)
 
-		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
+		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && *cfg.LdapSettings.BindPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
 		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && *cfg.FileSettings.AmazonS3SecretAccessKey != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
+		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && *cfg.EmailSettings.SMTPPassword != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
+		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && *cfg.GitLabSettings.Secret != "" {
 			require.FailNow(t, "did not sanitize properly")
 		}
 		require.Equal(t, model.FAKE_SETTING, *cfg.SqlSettings.DataSource, "did not sanitize properly")
@@ -632,9 +633,13 @@ func TestPatchConfig(t *testing.T) {
 				EnableUploads: model.NewBool(true),
 			}}
 
-			updatedConfig, _ := client.PatchConfig(&config)
-
-			assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
+			updatedConfig, resp := client.PatchConfig(&config)
+			if client == th.LocalClient {
+				CheckOKStatus(t, resp)
+				assert.Equal(t, true, *updatedConfig.PluginSettings.EnableUploads)
+			} else {
+				CheckForbiddenStatus(t, resp)
+			}
 		})
 	})
 
@@ -686,11 +691,11 @@ func TestMigrateConfig(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		f, err := config.NewStore("from.json", false)
+		f, err := config.NewStore("from.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("from.json")
 
-		_, err = config.NewStore("to.json", false)
+		_, err = config.NewStore("to.json", false, false, nil)
 		require.NoError(t, err)
 		defer f.RemoveFile("to.json")
 

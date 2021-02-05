@@ -16,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/testlib"
-
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
 // This is a file used to fuzz test the web_hub code.
@@ -73,9 +73,9 @@ func dummyWebsocketHandler() http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	if appErr != nil {
 		panic(appErr)

@@ -46,6 +46,7 @@ type SidebarCategory struct {
 	Sorting     SidebarCategorySorting `json:"sorting"`
 	Type        SidebarCategoryType    `json:"type"`
 	DisplayName string                 `json:"display_name"`
+	Muted       bool                   `json:"muted"`
 }
 
 // SidebarCategoryWithChannels combines data from SidebarCategory table with the Channel IDs that belong to that category
@@ -96,19 +97,19 @@ func (o SidebarCategoryWithChannels) ToJson() []byte {
 }
 
 func SidebarCategoriesWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return []byte("[]")
-	} else {
-		return b
 	}
+	return b
 }
 
 func (o OrderedSidebarCategories) ToJson() []byte {
-	if b, err := json.Marshal(o); err != nil {
+	b, err := json.Marshal(o)
+	if err != nil {
 		return []byte("[]")
-	} else {
-		return b
 	}
+	return b
 }
 
 var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")

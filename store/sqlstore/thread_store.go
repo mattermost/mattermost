@@ -7,22 +7,22 @@ import (
 	"database/sql"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
-
-	sq "github.com/Masterminds/squirrel"
 )
 
 type SqlThreadStore struct {
-	SqlStore
+	*SqlStore
 }
 
 func (s *SqlThreadStore) ClearCaches() {
 }
 
-func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
+func newSqlThreadStore(sqlStore *SqlStore) store.ThreadStore {
 	s := &SqlThreadStore{
 		SqlStore: sqlStore,
 	}
@@ -108,44 +108,143 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	return &thread, nil
 }
 
-func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
+func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	type JoinedThread struct {
-		PostId       string
-		ReplyCount   int64
-		LastReplyAt  int64
-		LastViewedAt int64
-		Participants model.StringArray
+		PostId         string
+		ReplyCount     int64
+		LastReplyAt    int64
+		LastViewedAt   int64
+		UnreadReplies  int64
+		UnreadMentions int64
+		Participants   model.StringArray
 		model.Post
 	}
-	var threads []*JoinedThread
 
+	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
 	fetchConditions := sq.And{
-		sq.Eq{"Posts.UserId": userId},
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
 	if !opts.Deleted {
 		fetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
 	}
-	if opts.Since > 0 {
-		fetchConditions = sq.And{fetchConditions, sq.GtOrEq{"Threads.LastReplyAt": opts.Since}}
-	}
+
 	pageSize := uint64(30)
-	if opts.PageSize == 0 {
+	if opts.PageSize != 0 {
 		pageSize = opts.PageSize
 	}
-	query, args, _ := s.getQueryBuilder().
-		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt").
-		From("Threads").
-		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
-		OrderBy("Threads.LastReplyAt DESC").
-		Offset(pageSize * opts.Page).
-		Limit(pageSize).
-		Where(fetchConditions).ToSql()
-	_, err := s.GetReplica().Select(&threads, query, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+
+	totalUnreadThreadsChan := make(chan store.StoreResult, 1)
+	totalCountChan := make(chan store.StoreResult, 1)
+	totalUnreadMentionsChan := make(chan store.StoreResult, 1)
+	threadsChan := make(chan store.StoreResult, 1)
+	go func() {
+		repliesQuery, repliesQueryArgs, _ := s.getQueryBuilder().
+			Select("COUNT(Posts.Id)").
+			From("Posts").
+			LeftJoin("ThreadMemberships ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			Where(fetchConditions).
+			Where("Posts.UpdateAt >= ThreadMemberships.LastViewed").ToSql()
+
+		totalUnreadThreads, err := s.GetMaster().SelectInt(repliesQuery, repliesQueryArgs...)
+		totalUnreadThreadsChan <- store.StoreResult{Data: totalUnreadThreads, NErr: errors.Wrapf(err, "failed to get count unread on threads for user id=%s", userId)}
+		close(totalUnreadThreadsChan)
+	}()
+	go func() {
+		newFetchConditions := fetchConditions
+
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+
+		threadsQuery, threadsQueryArgs, _ := s.getQueryBuilder().
+			Select("COUNT(ThreadMemberships.PostId)").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			From("ThreadMemberships").
+			Where(newFetchConditions).ToSql()
+
+		totalCount, err := s.GetMaster().SelectInt(threadsQuery, threadsQueryArgs...)
+		totalCountChan <- store.StoreResult{Data: totalCount, NErr: err}
+		close(totalCountChan)
+	}()
+	go func() {
+		mentionsQuery, mentionsQueryArgs, _ := s.getQueryBuilder().
+			Select("COALESCE(SUM(ThreadMemberships.UnreadMentions),0)").
+			From("ThreadMemberships").
+			LeftJoin("Threads ON Threads.PostId = ThreadMemberships.PostId").
+			LeftJoin("Posts ON Posts.Id = ThreadMemberships.PostId").
+			LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
+			Where(fetchConditions).ToSql()
+		totalUnreadMentions, err := s.GetMaster().SelectInt(mentionsQuery, mentionsQueryArgs...)
+		totalUnreadMentionsChan <- store.StoreResult{Data: totalUnreadMentions, NErr: err}
+		close(totalUnreadMentionsChan)
+	}()
+	go func() {
+		newFetchConditions := fetchConditions
+		if opts.Since > 0 {
+			newFetchConditions = sq.And{newFetchConditions, sq.GtOrEq{"ThreadMemberships.LastUpdated": opts.Since}}
+		}
+		order := "DESC"
+		if opts.Before != "" {
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt < (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.Before),
+			}
+		}
+		if opts.After != "" {
+			order = "ASC"
+			newFetchConditions = sq.And{
+				newFetchConditions,
+				sq.Expr(`LastReplyAt > (SELECT LastReplyAt FROM Threads WHERE PostId = ?)`, opts.After),
+			}
+		}
+		if opts.Unread {
+			newFetchConditions = sq.And{newFetchConditions, sq.Expr("ThreadMemberships.LastViewed < Threads.LastReplyAt")}
+		}
+		var threads []*JoinedThread
+		query, args, _ := s.getQueryBuilder().
+			Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
+			From("Threads").
+			Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+			LeftJoin("Posts ON Posts.Id = Threads.PostId").
+			LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+			Where(newFetchConditions).
+			OrderBy("Threads.LastReplyAt " + order).
+			Limit(pageSize).ToSql()
+
+		_, err := s.GetReplica().Select(&threads, query, args...)
+		threadsChan <- store.StoreResult{Data: threads, NErr: err}
+		close(threadsChan)
+	}()
+
+	threadsResult := <-threadsChan
+	if threadsResult.NErr != nil {
+		return nil, threadsResult.NErr
 	}
+	threads := threadsResult.Data.([]*JoinedThread)
+
+	totalUnreadMentionsResult := <-totalUnreadMentionsChan
+	if totalUnreadMentionsResult.NErr != nil {
+		return nil, totalUnreadMentionsResult.NErr
+	}
+	totalUnreadMentions := totalUnreadMentionsResult.Data.(int64)
+
+	totalCountResult := <-totalCountChan
+	if totalCountResult.NErr != nil {
+		return nil, totalCountResult.NErr
+	}
+	totalCount := totalCountResult.Data.(int64)
+
+	totalUnreadThreadsResult := <-totalUnreadThreadsChan
+	if totalUnreadThreadsResult.NErr != nil {
+		return nil, totalUnreadThreadsResult.NErr
+	}
+	totalUnreadThreads := totalUnreadThreadsResult.Data.(int64)
 
 	var userIds []string
 	userIdMap := map[string]bool{}
@@ -159,8 +258,8 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	}
 	var users []*model.User
 	if opts.Extended {
-		query, args, _ = s.getQueryBuilder().Select("*").From("Users").Where(sq.Eq{"Id": userIds}).ToSql()
-		_, err = s.GetReplica().Select(&users, query, args...)
+		var err error
+		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
@@ -171,8 +270,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 	}
 
 	result := &model.Threads{
-		Total:   0,
-		Threads: nil,
+		Total:               totalCount,
+		Threads:             nil,
+		TotalUnreadMentions: totalUnreadMentions,
+		TotalUnreadThreads:  totalUnreadThreads,
 	}
 
 	for _, thread := range threads {
@@ -191,20 +292,102 @@ func (s *SqlThreadStore) GetThreadsForUser(userId string, opts model.GetUserThre
 			participants = append(participants, participant)
 		}
 		result.Threads = append(result.Threads, &model.ThreadResponse{
-			PostId:       thread.PostId,
-			ReplyCount:   thread.ReplyCount,
-			LastReplyAt:  thread.LastReplyAt,
-			LastViewedAt: thread.LastViewedAt,
-			Participants: participants,
-			Post:         &thread.Post,
+			PostId:         thread.PostId,
+			ReplyCount:     thread.ReplyCount,
+			LastReplyAt:    thread.LastReplyAt,
+			LastViewedAt:   thread.LastViewedAt,
+			UnreadReplies:  thread.UnreadReplies,
+			UnreadMentions: thread.UnreadMentions,
+			Participants:   participants,
+			Post:           &thread.Post,
 		})
 	}
 
 	return result, nil
 }
+func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error) {
+	type JoinedThread struct {
+		PostId         string
+		Following      bool
+		ReplyCount     int64
+		LastReplyAt    int64
+		LastViewedAt   int64
+		UnreadReplies  int64
+		UnreadMentions int64
+		Participants   model.StringArray
+		model.Post
+	}
 
-func (s *SqlThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
-	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}).Set("LastViewed", timestamp).ToSql()
+	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
+	fetchConditions := sq.And{
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+		sq.Eq{"ThreadMemberships.UserId": userId},
+		sq.Eq{"Threads.PostId": threadId},
+	}
+
+	var thread JoinedThread
+	query, args, _ := s.getQueryBuilder().
+		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
+		From("Threads").
+		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
+		LeftJoin("Posts ON Posts.Id = Threads.PostId").
+		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
+		Where(fetchConditions).ToSql()
+	err := s.GetReplica().SelectOne(&thread, query, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !thread.Following {
+		return nil, nil // in case the thread is not followed anymore - return nil error to be interpreted as 404
+	}
+
+	var users []*model.User
+	if extended {
+		var err error
+		users, err = s.User().GetProfileByIds(thread.Participants, &store.UserGetByIdsOpts{}, true)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
+		}
+	} else {
+		for _, userId := range thread.Participants {
+			users = append(users, &model.User{Id: userId})
+		}
+	}
+
+	result := &model.ThreadResponse{
+		PostId:         thread.PostId,
+		ReplyCount:     thread.ReplyCount,
+		LastReplyAt:    thread.LastReplyAt,
+		LastViewedAt:   thread.LastViewedAt,
+		UnreadReplies:  thread.UnreadReplies,
+		UnreadMentions: thread.UnreadMentions,
+		Participants:   users,
+		Post:           &thread.Post,
+	}
+
+	return result, nil
+}
+
+func (s *SqlThreadStore) MarkAllAsRead(userId, teamId string) error {
+	memberships, err := s.GetMembershipsForUser(userId, teamId)
+	if err != nil {
+		return err
+	}
+	var membershipIds []string
+	for _, m := range memberships {
+		membershipIds = append(membershipIds, m.PostId)
+	}
+	timestamp := model.GetMillis()
+	query, args, _ := s.getQueryBuilder().
+		Update("ThreadMemberships").
+		Where(sq.Eq{"PostId": membershipIds}).
+		Where(sq.Eq{"UserId": userId}).
+		Set("LastViewed", timestamp).
+		Set("UnreadMentions", 0).
+		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s", userId)
 	}
@@ -212,7 +395,12 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, timestamp int64) error {
 }
 
 func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) error {
-	query, args, _ := s.getQueryBuilder().Update("ThreadMemberships").Where(sq.Eq{"UserId": userId}, sq.Eq{"PostId": threadId}).Set("LastViewed", timestamp).ToSql()
+	query, args, _ := s.getQueryBuilder().
+		Update("ThreadMemberships").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.Eq{"PostId": threadId}).
+		Set("LastViewed", timestamp).
+		ToSql()
 	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrapf(err, "failed to update thread read state for user id=%s thread_id=%v", userId, threadId)
 	}
@@ -244,9 +432,19 @@ func (s *SqlThreadStore) UpdateMembership(membership *model.ThreadMembership) (*
 	return membership, nil
 }
 
-func (s *SqlThreadStore) GetMembershipsForUser(userId string) ([]*model.ThreadMembership, error) {
+func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.ThreadMembership, error) {
 	var memberships []*model.ThreadMembership
-	_, err := s.GetReplica().Select(&memberships, "SELECT * from ThreadMemberships WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+
+	query, args, _ := s.getQueryBuilder().
+		Select("ThreadMemberships.*").
+		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
+		Join("Channels ON Threads.ChannelId = Channels.Id").
+		From("ThreadMemberships").
+		Where(sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}}).
+		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
+		ToSql()
+
+	_, err := s.GetReplica().Select(&memberships, query, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get thread membership with userid=%s", userId)
 	}
@@ -273,13 +471,18 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
-func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following bool) error {
+func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, following, incrementMentions, updateFollowing bool) error {
 	membership, err := s.GetMembershipForUser(userId, postId)
 	now := utils.MillisFromTime(time.Now())
 	if err == nil {
-		if !membership.Following || membership.Following != following {
-			membership.Following = following
+		if (updateFollowing && !membership.Following || membership.Following != following) || incrementMentions {
+			if updateFollowing {
+				membership.Following = following
+			}
 			membership.LastUpdated = now
+			if incrementMentions {
+				membership.UnreadMentions += 1
+			}
 			_, err = s.UpdateMembership(membership)
 		}
 		return err
@@ -290,13 +493,30 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, followi
 	if !errors.As(err, &nfErr) {
 		return errors.Wrap(err, "failed to get thread membership")
 	}
+	mentions := 0
+	if incrementMentions {
+		mentions = 1
+	}
 	_, err = s.SaveMembership(&model.ThreadMembership{
-		PostId:      postId,
-		UserId:      userId,
-		Following:   following,
-		LastViewed:  0,
-		LastUpdated: now,
+		PostId:         postId,
+		UserId:         userId,
+		Following:      following,
+		LastViewed:     0,
+		LastUpdated:    now,
+		UnreadMentions: int64(mentions),
 	})
+	if err != nil {
+		return err
+	}
+
+	thread, err := s.Get(postId)
+	if err != nil {
+		return err
+	}
+	if !thread.Participants.Contains(userId) {
+		thread.Participants = append(thread.Participants, userId)
+		_, err = s.Update(thread)
+	}
 	return err
 }
 
@@ -321,19 +541,38 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 	return changedThreads, nil
 }
 
-func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64) error {
+func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []string, timestamp int64, updateViewedTimestamp bool) error {
 	if len(changedThreads) == 0 {
 		return nil
 	}
-	updateQuery, updateArgs, _ := s.getQueryBuilder().
+
+	qb := s.getQueryBuilder().
 		Update("ThreadMemberships").
 		Where(sq.Eq{"UserId": userId, "PostId": changedThreads}).
-		Set("LastUpdated", timestamp).
-		Set("LastViewed", timestamp).
-		ToSql()
+		Set("LastUpdated", timestamp)
+
+	if updateViewedTimestamp {
+		qb = qb.Set("LastViewed", timestamp)
+	}
+	updateQuery, updateArgs, _ := qb.ToSql()
+
 	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {
 		return errors.Wrap(err, "failed to update thread membership")
 	}
 
 	return nil
+}
+
+func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+	query, args, _ := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"RootId": threadId}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.GtOrEq{"UpdateAt": since}).ToSql()
+	var result []*model.Post
+	if _, err := s.GetReplica().Select(&result, query, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to fetch thread posts")
+	}
+	return result, nil
 }

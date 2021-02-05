@@ -10,18 +10,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/pkg/errors"
 )
 
 type SqlSystemStore struct {
-	SqlStore
+	*SqlStore
 }
 
-func newSqlSystemStore(sqlStore SqlStore) store.SystemStore {
+func newSqlSystemStore(sqlStore *SqlStore) store.SystemStore {
 	s := &SqlSystemStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

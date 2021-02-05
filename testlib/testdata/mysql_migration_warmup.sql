@@ -1,0 +1,63 @@
+-- MySQL dump 10.13  Distrib 5.6.49, for Linux (x86_64)
+--
+-- Host: localhost    Database: db1ehbiiiratghukqhfuf91gzfuh
+-- ------------------------------------------------------
+-- Server version	5.6.49
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Dumping data for table `Systems`
+--
+
+LOCK TABLES `Systems` WRITE;
+/*!40000 ALTER TABLE `Systems` DISABLE KEYS */;
+INSERT INTO `Systems` VALUES ('emoji_permissions_split', 'true');
+INSERT INTO `Systems` VALUES ('webhook_permissions_split', 'true');
+INSERT INTO `Systems` VALUES ('list_join_public_private_teams', 'true');
+INSERT INTO `Systems` VALUES ('remove_permanent_delete_user', 'true');
+INSERT INTO `Systems` VALUES ('add_bot_permissions', 'true');
+INSERT INTO `Systems` VALUES ('apply_channel_manage_delete_to_channel_user', 'true');
+INSERT INTO `Systems` VALUES ('remove_channel_manage_delete_from_team_user', 'true');
+INSERT INTO `Systems` VALUES ('view_members_new_permission', 'true');
+INSERT INTO `Systems` VALUES ('add_manage_guests_permissions', 'true');
+INSERT INTO `Systems` VALUES ('channel_moderations_permissions', 'true');
+INSERT INTO `Systems` VALUES ('add_use_group_mentions_permission', 'true');
+INSERT INTO `Systems` VALUES ('add_system_console_permissions', 'true');
+INSERT INTO `Systems` VALUES ('add_convert_channel_permissions', 'true');
+INSERT INTO `Systems` VALUES ('manage_shared_channel_permissions', 'true');
+INSERT INTO `Systems` VALUES ('Version', '5.31.0');
+
+
+/*!40000 ALTER TABLE `Systems` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `Roles`
+--
+
+LOCK TABLES `Roles` WRITE;
+/*!40000 ALTER TABLE `Roles` DISABLE KEYS */;
+INSERT INTO `Roles` VALUES ('3ndsqn4sbbyjxpzccrzmzejstw','team_guest','authentication.roles.team_guest.name','authentication.roles.team_guest.description',1605167829008,1605167829300,0,' view_team',1,1),('6jaz4y4nmjnxunkmogjf95fiha','system_user_manager','authentication.roles.system_user_manager.name','authentication.roles.system_user_manager.description',1605167829006,1605167829303,0,' sysconsole_read_user_management_channels manage_channel_roles join_public_teams manage_public_channel_properties sysconsole_read_user_management_groups manage_private_channel_members sysconsole_read_user_management_permissions convert_public_channel_to_private read_public_channel_groups read_jobs sysconsole_read_authentication manage_private_channel_properties manage_public_channel_members list_private_teams read_channel read_public_channel add_user_to_team join_private_teams list_public_teams sysconsole_write_user_management_channels delete_private_channel manage_team remove_user_from_team read_private_channel_groups sysconsole_read_user_management_teams view_team sysconsole_write_user_management_groups convert_private_channel_to_public sysconsole_write_user_management_teams delete_public_channel manage_team_roles',0,1),('6pahsh5hg7rpjfhz4f5c1wsbfw','team_admin','authentication.roles.team_admin.name','authentication.roles.team_admin.description',1605167829005,1605167829305,0,' delete_post read_public_channel_groups use_group_mentions manage_slash_commands read_private_channel_groups remove_reaction manage_others_incoming_webhooks manage_incoming_webhooks manage_outgoing_webhooks add_reaction create_post manage_private_channel_members remove_user_from_team manage_others_slash_commands manage_others_outgoing_webhooks manage_team_roles import_team delete_others_posts manage_public_channel_members use_channel_mentions manage_team manage_channel_roles convert_private_channel_to_public convert_public_channel_to_private',1,1),('c7oo8yeiojfu8xjyuyxn3fhxpc','team_post_all','authentication.roles.team_post_all.name','authentication.roles.team_post_all.description',1605167829009,1605167829308,0,' create_post use_group_mentions use_channel_mentions',0,1),('cmqctq1egt877y9ua9pdsknoiw','team_post_all_public','authentication.roles.team_post_all_public.name','authentication.roles.team_post_all_public.description',1605167829004,1605167829310,0,' use_group_mentions use_channel_mentions create_post_public',0,1),('hh56iy3patffuc3h76soondcga','channel_admin','authentication.roles.channel_admin.name','authentication.roles.channel_admin.description',1605167829007,1605167829312,0,' use_group_mentions manage_public_channel_members use_channel_mentions read_private_channel_groups remove_reaction manage_channel_roles create_post manage_private_channel_members read_public_channel_groups add_reaction',1,1),('hkcrew7wttb5fbuw3ime6g7nzc','system_read_only_admin','authentication.roles.system_read_only_admin.name','authentication.roles.system_read_only_admin.description',1605167829012,1605167829315,0,' sysconsole_read_experimental read_private_channel_groups sysconsole_read_user_management_teams sysconsole_read_user_management_users read_public_channel sysconsole_read_integrations sysconsole_read_about sysconsole_read_user_management_permissions read_jobs sysconsole_read_reporting sysconsole_read_user_management_channels read_public_channel_groups sysconsole_read_environment sysconsole_read_user_management_groups sysconsole_read_site read_other_users_teams read_channel sysconsole_read_plugins sysconsole_read_authentication list_private_teams list_public_teams view_team',0,1),('jg1f1xfh3bb73pua938orwg9ie','system_guest','authentication.roles.global_guest.name','authentication.roles.global_guest.description',1605167829015,1605167829317,0,' create_direct_channel create_group_channel',1,1),('k891n5tpd3n9peue79azejjocy','system_post_all_public','authentication.roles.system_post_all_public.name','authentication.roles.system_post_all_public.description',1605167829011,1605167829319,0,' use_group_mentions use_channel_mentions create_post_public',0,1),('kb6r9i58x7dxdb3srfohd66sse','system_admin','authentication.roles.global_admin.name','authentication.roles.global_admin.description',1605167829012,1605167829322,0,' create_private_channel sysconsole_read_plugins sysconsole_write_authentication delete_others_emojis list_public_teams manage_outgoing_webhooks create_bot sysconsole_write_user_management_users create_post_ephemeral sysconsole_read_site sysconsole_read_about view_team import_team remove_others_reactions get_public_link promote_guest edit_brand assign_system_admin_role sysconsole_write_user_management_groups sysconsole_read_environment read_other_users_teams read_user_access_token sysconsole_write_user_management_teams assign_bot manage_team sysconsole_read_authentication read_bots upload_file convert_public_channel_to_private create_direct_channel create_emojis sysconsole_read_user_management_groups sysconsole_write_reporting invite_user delete_public_channel manage_others_bots edit_others_posts list_private_teams list_users_without_team create_team edit_post sysconsole_write_compliance manage_system_wide_oauth sysconsole_read_compliance read_public_channel_groups sysconsole_write_site sysconsole_read_user_management_users join_private_teams manage_private_channel_properties view_members invite_guest edit_other_users manage_bots manage_incoming_webhooks join_public_channels create_post_public manage_others_slash_commands create_group_channel delete_emojis sysconsole_write_user_management_permissions revoke_user_access_token sysconsole_read_experimental manage_channel_roles add_reaction create_user_access_token manage_public_channel_properties sysconsole_read_user_management_channels remove_reaction sysconsole_read_reporting sysconsole_write_environment sysconsole_read_user_management_permissions manage_team_roles create_post read_jobs sysconsole_write_integrations use_channel_mentions convert_private_channel_to_public read_private_channel_groups sysconsole_write_experimental manage_slash_commands read_channel manage_oauth sysconsole_write_about manage_roles demote_to_guest join_public_teams use_slash_commands manage_jobs sysconsole_write_user_management_channels use_group_mentions add_user_to_team manage_public_channel_members manage_others_outgoing_webhooks read_others_bots delete_others_posts manage_private_channel_members create_public_channel sysconsole_read_user_management_teams remove_user_from_team manage_shared_channels manage_system delete_post sysconsole_read_integrations list_team_channels delete_private_channel sysconsole_write_plugins manage_others_incoming_webhooks read_public_channel',1,1),('km7kijhdtjbajquwu36uqneyoc','system_post_all','authentication.roles.system_post_all.name','authentication.roles.system_post_all.description',1605167829002,1605167829324,0,' use_channel_mentions use_group_mentions create_post',0,1),('qo7e17c1m3rezyjqx5iq9dpmxe','system_manager','authentication.roles.system_manager.name','authentication.roles.system_manager.description',1605167829004,1605167829326,0,' remove_user_from_team manage_private_channel_members sysconsole_read_site edit_brand sysconsole_read_user_management_permissions manage_private_channel_properties delete_public_channel sysconsole_read_user_management_teams read_public_channel sysconsole_write_user_management_channels list_public_teams sysconsole_read_reporting join_private_teams manage_team_roles sysconsole_read_about read_private_channel_groups manage_public_channel_properties list_private_teams view_team sysconsole_write_user_management_permissions convert_private_channel_to_public sysconsole_read_authentication read_channel sysconsole_read_plugins read_public_channel_groups convert_public_channel_to_private sysconsole_write_integrations sysconsole_write_environment manage_public_channel_members manage_team add_user_to_team manage_channel_roles sysconsole_write_site sysconsole_read_user_management_channels sysconsole_read_user_management_groups manage_jobs read_jobs sysconsole_read_environment sysconsole_write_user_management_groups sysconsole_write_user_management_teams delete_private_channel sysconsole_read_integrations join_public_teams',0,1),('rkr97ikkh7fixy86qsoo5rqm4c','system_user_access_token','authentication.roles.system_user_access_token.name','authentication.roles.system_user_access_token.description',1605167829003,1605167829328,0,' revoke_user_access_token create_user_access_token read_user_access_token',0,1),('rxzdk5irm7rcffcfej9e33kqeo','team_user','authentication.roles.team_user.name','authentication.roles.team_user.description',1605167829008,1605167829330,0,' view_team create_public_channel create_private_channel invite_user add_user_to_team list_team_channels join_public_channels read_public_channel',1,1),('x768jnyzw3rkfx7xb66ehcac6o','channel_user','authentication.roles.channel_user.name','authentication.roles.channel_user.description',1605167829014,1605167829332,0,' read_private_channel_groups use_slash_commands add_reaction edit_post use_channel_mentions manage_private_channel_properties create_post manage_public_channel_members delete_private_channel delete_post manage_public_channel_properties read_channel get_public_link upload_file use_group_mentions remove_reaction delete_public_channel read_public_channel_groups manage_private_channel_members',1,1),('ynn8aynsn7n1trtbuq6p4cyzhe','channel_guest','authentication.roles.channel_guest.name','authentication.roles.channel_guest.description',1605167829001,1605167829333,0,' read_channel add_reaction remove_reaction upload_file edit_post create_post use_channel_mentions use_slash_commands',1,1),('zzehkfnp67bg5g1owh6eptdcxc','system_user','authentication.roles.global_user.name','authentication.roles.global_user.description',1605167829010,1605167829334,0,' list_public_teams join_public_teams create_direct_channel create_group_channel view_members create_team create_emojis delete_emojis',1,1);
+/*!40000 ALTER TABLE `Roles` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2020-11-12  8:01:35
