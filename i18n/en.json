@@ -1235,6 +1235,10 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.custom_status.disabled",
+    "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },
