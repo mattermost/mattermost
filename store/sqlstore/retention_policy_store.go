@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -56,6 +57,8 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
+	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
 	s.CreateCheckConstraintIfNotExists("RetentionPolicies", "PostDuration", "PostDuration > 0")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
@@ -287,19 +290,19 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	if _, err = txn.Exec(rpUpdateQuery, rpUpdateArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpUpdateQuery, rpUpdateArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rpcDeleteQuery, rpcDeleteArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpcDeleteQuery, rpcDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpcInsertQuery, rpcInsertArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rptDeleteQuery, rptDeleteArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rptDeleteQuery, rptDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rptInsertQuery, rptInsertArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rptInsertQuery, rptInsertArgs...); err != nil {
 		return nil, err
 	}
 	var rows []*retentionPolicyRow
@@ -350,7 +353,9 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 	LEFT JOIN RetentionPoliciesChannels ON RP.Id = RetentionPoliciesChannels.PolicyId
 	LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
 	LEFT JOIN Teams ON Channels.TeamId = Teams.Id
+
 	UNION
+
 	SELECT RP.Id,
 	       RP.DisplayName,
 	       RP.PostDuration,
@@ -362,6 +367,9 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 	FROM ` + rpTable + `
 	LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
 	LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id`
+	// We don't bother using an ORDER BY on the final result set because we will
+	// have to aggregate these rows into individual policies (see `getPoliciesFromRows`),
+	// which will cause order to be lost anyways.
 	return
 }
 
@@ -398,6 +406,10 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 		aPolicies[i] = policy
 		i++
 	}
+	// order has been lost due to the map
+	sort.Slice(aPolicies, func(i, j int) bool {
+		return aPolicies[i].DisplayName < aPolicies[j].DisplayName
+	})
 	return aPolicies
 }
 
@@ -472,9 +484,10 @@ func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*mod
 		       NULL AS ChannelId,
 		       RetentionPoliciesTeams.TeamId
 		FROM ` + rpTable + `
-		LEFT JOIN RetentionPoliciesTeams AS C ON A.Id = C.PolicyId
-	) AS D
-	GROUP BY Id, DisplayName, PostDuration`
+		LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
+	) AS A
+	GROUP BY Id, DisplayName, PostDuration
+	ORDER BY DisplayName`
 	var rows []*model.RetentionPolicyWithCounts
 	_, err := s.GetReplica().Select(&rows, query, props)
 	return rows, err
@@ -498,6 +511,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
+	if len(channelIds) == 0 {
+		return nil
+	}
 	if err := s.checkChannelsExist(channelIds); err != nil {
 		return err
 	}
@@ -512,6 +528,9 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 }
 
 func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
+	if len(channelIds) == 0 {
+		return nil
+	}
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
 		Where(sq.And{
@@ -523,6 +542,9 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 }
 
 func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
+	if len(teamIds) == 0 {
+		return nil
+	}
 	if err := s.checkTeamsExist(teamIds); err != nil {
 		return err
 	}
@@ -537,6 +559,9 @@ func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) er
 }
 
 func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
+	if len(teamIds) == 0 {
+		return nil
+	}
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
 		Where(sq.And{
@@ -547,6 +572,8 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return err
 }
 
+// RemoveStaleRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
+// where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
