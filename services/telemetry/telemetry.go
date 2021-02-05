@@ -424,6 +424,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
+		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
+		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{

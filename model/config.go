@@ -291,7 +291,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
-	EnableLinkPreviews                                *bool    `access:"site"` // telemetry: none
+	EnableLinkPreviews                                *bool    `access:"site"`
 	EnableTesting                                     *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableDeveloper                                   *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableOpenTracing                                 *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -358,7 +358,7 @@ type ServiceSettings struct {
 	SplitKey                                          *string `access:"environment,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"environment,write_restrictable"` // telemetry: none
-	ThreadAutoFollow                                  *bool   `access:"experimental"`                   // telemetry: none
+	ThreadAutoFollow                                  *bool   `access:"experimental"`
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableLegacySidebar                               *bool   `access:"experimental"`
