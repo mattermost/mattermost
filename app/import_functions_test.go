@@ -3094,12 +3094,12 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr := th.App.createGroupChannel(userIds)
+	channel, appErr := th.App.createGroupChannel(userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3395,12 +3395,12 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the channel.
 	var groupChannel *model.Channel
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIds)
+	channel, appErr = th.App.createGroupChannel(userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
@@ -3889,12 +3889,12 @@ func TestImportAttachment(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	invalidPath := "some-invalid-path"
 
-	userId := model.NewId()
+	userID := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team")
+	_, err := th.App.importAttachment(&data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
-	attachments := GetAttachments(userId, th, t)
+	attachments := GetAttachments(userID, th, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}

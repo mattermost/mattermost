@@ -188,7 +188,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -216,7 +216,7 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 	}
 
 	if !verified && *es.srv.Config().EmailSettings.RequireEmailVerification {
-		token, err := es.CreateVerifyEmailToken(userId, email)
+		token, err := es.CreateVerifyEmailToken(userID, email)
 		if err != nil {
 			return err
 		}
@@ -568,12 +568,12 @@ func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, 
 	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
 }
 
-func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string
 	}{
-		userId,
+		userID,
 		newEmail,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
