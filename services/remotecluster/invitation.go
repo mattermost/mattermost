@@ -36,7 +36,7 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
 
-	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
+	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
 		return nil, err
@@ -76,7 +76,6 @@ func makeConfirmFrame(rc *model.RemoteCluster, teamId string, siteURL string) (*
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
-		Token:    rc.RemoteToken,
 		Msg:      msg,
 	}
 	return frame, nil

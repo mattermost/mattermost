@@ -103,14 +103,15 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	}
 	defer r.Close()
 
-	url := fmt.Sprintf("%s/%s/uploads/%s", task.rc.SiteURL, model.API_URL_SUFFIX, task.us.Id)
+	url := fmt.Sprintf("%s/%s/remotecluster/upload/%s", task.rc.SiteURL, model.API_URL_SUFFIX, task.us.Id)
 
 	req, err := http.NewRequest("POST", url, r)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set(model.HEADER_AUTH, model.HEADER_BEARER+" "+task.rc.RemoteToken)
+	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, task.rc.RemoteId)
+	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, task.rc.RemoteToken)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

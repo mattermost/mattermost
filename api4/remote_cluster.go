@@ -14,10 +14,10 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiHandler(remoteClusterAcceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/upload", api.ApiHandler(uploadRemoteData)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/upload", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -41,17 +41,18 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("remoteClusterPing", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteClusterID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
 		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
-		return
-	}
 
 	ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
 	if err != nil {
@@ -101,17 +102,18 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteClusterID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
 		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
-		return
-	}
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -145,6 +147,12 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteClusterID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
 		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
@@ -154,11 +162,6 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
 		return
 	}
 

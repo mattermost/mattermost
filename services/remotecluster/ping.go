@@ -86,7 +86,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
 
-	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
+	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,6 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
-		Token:    rc.RemoteToken,
 		Msg:      msg,
 	}
 	return frame, nil

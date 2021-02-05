@@ -85,12 +85,11 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: task.rc.RemoteId,
-		Token:    task.rc.RemoteToken,
 		Msg:      task.msg,
 	}
 	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
-	respJSON, err := rcs.sendFrameToRemote(SendTimeout, frame, url)
+	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, url)
 	var response Response
 
 	if err != nil {
@@ -114,7 +113,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 	}
 }
 
-func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
+func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteCluster, frame *model.RemoteClusterFrame, url string) ([]byte, error) {
 	body, err := json.Marshal(frame)
 	if err != nil {
 		return nil, err
@@ -128,6 +127,8 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, frame *model.Remote
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(model.HEADER_REMOTECLUSTER_ID, rc.RemoteId)
+	req.Header.Set(model.HEADER_REMOTECLUSTER_TOKEN, rc.RemoteToken)
 
 	resp, err := rcs.httpClient.Do(req.WithContext(ctx))
 	if metrics := rcs.server.GetMetrics(); metrics != nil {

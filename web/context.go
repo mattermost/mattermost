@@ -130,6 +130,13 @@ func (c *Context) CloudKeyRequired() {
 	}
 }
 
+func (c *Context) RemoteClusterTokenRequired() {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.RemoteClusterService || c.App.Session().Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_REMOTECLUSTER_TOKEN {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "TokenRequired", http.StatusUnauthorized)
+		return
+	}
+}
+
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
 	if license := c.App.Srv().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
@@ -701,4 +708,8 @@ func (c *Context) RequireInvoiceId() *Context {
 	}
 
 	return c
+}
+
+func (c *Context) GetRemoteClusterID(r *http.Request) string {
+	return r.Header.Get(model.HEADER_REMOTECLUSTER_ID)
 }
