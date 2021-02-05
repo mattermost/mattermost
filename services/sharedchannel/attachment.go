@@ -86,6 +86,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	}
 
 	us := &model.UploadSession{
+		Id:        model.NewId(),
 		Type:      model.UploadTypeAttachment,
 		UserId:    post.UserId,
 		ChannelId: post.ChannelId,
@@ -137,7 +138,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	ctx2, cancel2 := context.WithTimeout(context.Background(), remotecluster.SendFileTimeout)
 	defer cancel2()
 
-	return rcs.SendFile(ctx2, &usResp, rc, scs.app, func(us *model.UploadSession, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
+	return rcs.SendFile(ctx2, &usResp, fi, rc, scs.app, func(us *model.UploadSession, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if err != nil {
 			return // this means the response could not be parsed; already logged
 		}

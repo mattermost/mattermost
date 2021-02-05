@@ -21,6 +21,7 @@ type SendFileResultFunc func(us *model.UploadSession, rc *model.RemoteCluster, r
 type sendFileTask struct {
 	rc *model.RemoteCluster
 	us *model.UploadSession
+	fi *model.FileInfo
 	rp ReaderProvider
 	f  SendFileResultFunc
 }
@@ -39,10 +40,11 @@ type ReaderProvider interface {
 // An optional callback can be provided that receives the response from the remote cluster. The `err` provided to the
 // callback is regarding file delivery only. The `resp` contains the decoded bytes returned from the remote.
 // If a callback is provided it should return quickly.
-func (rcs *Service) SendFile(ctx context.Context, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error {
+func (rcs *Service) SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp ReaderProvider, f SendFileResultFunc) error {
 	task := sendFileTask{
 		rc: rc,
 		us: us,
+		fi: fi,
 		rp: rp,
 		f:  f,
 	}
@@ -62,7 +64,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 		}
 	}()
 
-	fi, err := rcs.sendFileToRemote(SendTimeout, task.us, task.rc, task.rp)
+	fi, err := rcs.sendFileToRemote(SendTimeout, task)
 	var response Response
 
 	if err != nil {
@@ -88,27 +90,27 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	}
 }
 
-func (rcs *Service) sendFileToRemote(timeout time.Duration, us *model.UploadSession, rc *model.RemoteCluster, rp ReaderProvider) (*model.FileInfo, error) {
+func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (*model.FileInfo, error) {
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "sending file to remote...",
-		mlog.String("remote", rc.DisplayName),
-		mlog.String("uploadId", us.Id),
-		mlog.String("file_path", us.Path),
+		mlog.String("remote", task.rc.DisplayName),
+		mlog.String("uploadId", task.us.Id),
+		mlog.String("file_path", task.us.Path),
 	)
 
-	r, appErr := rp.FileReader(us.Path) // get Reader for the file
+	r, appErr := task.rp.FileReader(task.fi.Path) // get Reader for the file
 	if appErr != nil {
-		return nil, fmt.Errorf("error opening file while sending to remote %s: %w", rc.RemoteId, appErr)
+		return nil, fmt.Errorf("error opening file while sending to remote %s: %w", task.rc.RemoteId, appErr)
 	}
 	defer r.Close()
 
-	url := fmt.Sprintf("%s/%s/uploads/%s", rc.SiteURL, model.API_URL_SUFFIX, us.Id)
+	url := fmt.Sprintf("%s/%s/uploads/%s", task.rc.SiteURL, model.API_URL_SUFFIX, task.us.Id)
 
 	req, err := http.NewRequest("POST", url, r)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set(model.HEADER_AUTH, model.HEADER_BEARER+" "+rc.RemoteToken)
+	req.Header.Set(model.HEADER_AUTH, model.HEADER_BEARER+" "+task.rc.RemoteToken)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
