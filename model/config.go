@@ -2441,7 +2441,7 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"` // telemetry: none
 	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
 	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
 	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
