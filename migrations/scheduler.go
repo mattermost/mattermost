@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -33,10 +32,11 @@ func (scheduler *Scheduler) JobType() string {
 	return model.JOB_TYPE_MIGRATIONS
 }
 
-func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
+func (scheduler *Scheduler) Enabled(_ *model.Config) bool {
 	return true
 }
 
+//nolint:unparam
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
 	if scheduler.allMigrationsCompleted {
 		return nil
@@ -46,6 +46,7 @@ func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, p
 	return &nextTime
 }
 
+//nolint:unparam
 func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	mlog.Debug("Scheduling Job", mlog.String("scheduler", scheduler.Name()))
 
@@ -64,7 +65,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 				if err := scheduler.srv.Jobs.SetJobError(job, nil); err != nil {
 					mlog.Error("Worker: Failed to set job error", mlog.String("scheduler", scheduler.Name()), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 				}
-				return scheduler.createJob(key, job, scheduler.srv.Store)
+				return scheduler.createJob(key, job)
 			}
 
 			return nil, nil
@@ -77,7 +78,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 
 		if state == MigrationStateUnscheduled {
 			mlog.Debug("Scheduling a new job for migration.", mlog.String("scheduler", scheduler.Name()), mlog.String("migration_key", key))
-			return scheduler.createJob(key, job, scheduler.srv.Store)
+			return scheduler.createJob(key, job)
 		}
 
 		mlog.Error("Unknown migration state. Not doing anything.", mlog.String("migration_state", state))
@@ -91,7 +92,7 @@ func (scheduler *Scheduler) ScheduleJob(cfg *model.Config, pendingJobs bool, las
 	return nil, nil
 }
 
-func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job, store store.Store) (*model.Job, *model.AppError) {
+func (scheduler *Scheduler) createJob(migrationKey string, lastJob *model.Job) (*model.Job, *model.AppError) {
 	var lastDone string
 	if lastJob != nil {
 		lastDone = lastJob.Data[JobDataKeyMigration_LAST_DONE]

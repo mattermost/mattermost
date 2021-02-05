@@ -388,63 +388,56 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{}
 
 	// should fail fast because mes.EnableExport is not set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportFalse(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(false),
 	}
 
 	// should fail fast because message export isn't enabled
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFromTimestampInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
 
 	// should fail fast because export from timestamp isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(-1)
 
 	// should fail fast because export from timestamp isn't valid
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 
 	mes.ExportFromTimestamp = NewInt64(GetMillis() + 10000)
 
 	// should fail fast because export from timestamp is greater than current time
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidDailyRunTimeInvalid(t *testing.T) {
-	fs := &FileSettings{}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
 	}
 
 	// should fail fast because daily runtime isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 
 	mes.DailyRunTime = NewString("33:33:33")
 
 	// should fail fast because daily runtime is invalid format
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -452,13 +445,10 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	}
 
 	// should fail fast because batch size isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -467,13 +457,10 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 	}
 
 	// should fail fast because export format isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -483,13 +470,10 @@ func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T
 	}
 
 	// should fail fast because global relay email address isn't set
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidActiance(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE),
@@ -499,13 +483,10 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	}
 
 	// should pass because everything is valid
-	require.Nil(t, mes.isValid(*fs))
+	require.Nil(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -515,13 +496,10 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
 	}
 
 	// should fail because globalrelay settings are missing
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
@@ -537,14 +515,11 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 	}
 
 	// should fail because customer type is invalid
-	require.Error(t, mes.isValid(*fs))
+	require.Error(t, mes.isValid())
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
@@ -613,9 +588,9 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			}
 
 			if tt.success {
-				require.Nil(t, mes.isValid(*fs))
+				require.Nil(t, mes.isValid())
 			} else {
-				require.Error(t, mes.isValid(*fs))
+				require.Error(t, mes.isValid())
 			}
 		})
 	}
