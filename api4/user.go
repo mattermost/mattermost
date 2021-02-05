@@ -95,6 +95,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.UserThreads.Handle("", api.ApiSessionRequired(getThreadsForUser)).Methods("GET")
 	api.BaseRoutes.UserThreads.Handle("/read", api.ApiSessionRequired(updateReadStateAllThreadsByUser)).Methods("PUT")
 
+	api.BaseRoutes.UserThread.Handle("", api.ApiSessionRequired(getThreadForUser)).Methods("GET")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(followThreadByUser)).Methods("PUT")
 	api.BaseRoutes.UserThread.Handle("/following", api.ApiSessionRequired(unfollowThreadByUser)).Methods("DELETE")
 	api.BaseRoutes.UserThread.Handle("/read/{timestamp:[0-9]+}", api.ApiSessionRequired(updateReadStateThreadByUser)).Methods("PUT")
@@ -2820,6 +2821,27 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
+func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId().RequireThreadId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+	extendedStr := r.URL.Query().Get("extended")
+
+	extended, _ := strconv.ParseBool(extendedStr)
+	threads, err := c.App.GetThreadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, extended)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(threads.ToJson()))
+}
+
 func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId().RequireTeamId()
 	if c.Err != nil {
@@ -2833,8 +2855,10 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	options := model.GetUserThreadsOpts{
 		Since:    0,
-		Page:     0,
+		Before:   "",
+		After:    "",
 		PageSize: 30,
+		Unread:   false,
 		Extended: false,
 		Deleted:  false,
 	}
@@ -2849,18 +2873,15 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.Since = since
 	}
 
-	pageString := r.URL.Query().Get("page")
-	if pageString != "" {
-		page, parseError := strconv.ParseUint(pageString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("page")
-			return
-		}
-		options.Page = page
+	options.Before = r.URL.Query().Get("before")
+	options.After = r.URL.Query().Get("after")
+	// parameters are mutually exclusive
+	if options.Before != "" && options.After != "" {
+		c.Err = model.NewAppError("api.getThreadsForUser", "api.getThreadsForUser.bad_params", nil, "", http.StatusBadRequest)
+		return
 	}
-
 	pageSizeString := r.URL.Query().Get("pageSize")
-	if pageString != "" {
+	if pageSizeString != "" {
 		pageSize, parseError := strconv.ParseUint(pageSizeString, 10, 64)
 		if parseError != nil {
 			c.SetInvalidParam("pageSize")
@@ -2870,9 +2891,11 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	deletedStr := r.URL.Query().Get("deleted")
+	unreadStr := r.URL.Query().Get("unread")
 	extendedStr := r.URL.Query().Get("extended")
 
 	options.Deleted, _ = strconv.ParseBool(deletedStr)
+	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
 	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
