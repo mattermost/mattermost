@@ -126,7 +126,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	}
 
 	id := props[model.SYSTEM_TELEMETRY_ID]
-	if len(id) == 0 {
+	if id == "" {
 		id = model.NewId()
 		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
 		ts.dbStore.System().Save(systemID)
@@ -476,6 +476,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
 		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
 		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
@@ -689,6 +690,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 

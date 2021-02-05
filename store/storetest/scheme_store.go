@@ -14,7 +14,7 @@ import (
 )
 
 func TestSchemeStore(t *testing.T, ss store.Store) {
-	createDefaultRoles(t, ss)
+	createDefaultRoles(ss)
 
 	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, ss) })
 	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, ss) })
@@ -26,7 +26,7 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 	t.Run("CountWithoutPermission", func(t *testing.T) { testCountWithoutPermission(t, ss) })
 }
 
-func createDefaultRoles(t *testing.T, ss store.Store) {
+func createDefaultRoles(ss store.Store) {
 	ss.Role().Save(&model.Role{
 		Name:        model.TEAM_ADMIN_ROLE_ID,
 		DisplayName: model.TEAM_ADMIN_ROLE_ID,

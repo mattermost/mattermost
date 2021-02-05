@@ -51,7 +51,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
-		if hook.ChannelId == post.ChannelId || len(hook.ChannelId) == 0 {
+		if hook.ChannelId == post.ChannelId || hook.ChannelId == "" {
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
@@ -246,12 +246,12 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^\n<\|>]+)\|([^\n>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
-	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
+	post := &model.Post{UserId: userID, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -272,8 +272,8 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 	}
 
 	if *a.Config().ServiceSettings.EnablePostIconOverride {
-		if overrideIconUrl != "" {
-			post.AddProp("override_icon_url", overrideIconUrl)
+		if overrideIconURL != "" {
+			post.AddProp("override_icon_url", overrideIconURL)
 		}
 		if overrideIconEmoji != "" {
 			post.AddProp("override_icon_emoji", overrideIconEmoji)
@@ -373,26 +373,26 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	return newWebhook, nil
 }
 
-func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
+func (a *App) DeleteIncomingWebhook(hookID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("DeleteIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := a.Srv().Store.Webhook().DeleteIncoming(hookId, model.GetMillis()); err != nil {
+	if err := a.Srv().Store.Webhook().DeleteIncoming(hookID, model.GetMillis()); err != nil {
 		return model.NewAppError("DeleteIncomingWebhook", "app.webhooks.delete_incoming.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	a.invalidateCacheForWebhook(hookId)
+	a.invalidateCacheForWebhook(hookID)
 
 	return nil
 }
 
-func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError) {
+func (a *App) GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhook, err := a.Srv().Store.Webhook().GetIncoming(hookId, true)
+	webhook, err := a.Srv().Store.Webhook().GetIncoming(hookID, true)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -406,16 +406,16 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 	return webhook, nil
 }
 
-func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	return a.GetIncomingWebhooksForTeamPageByUser(teamId, "", page, perPage)
+func (a *App) GetIncomingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	return a.GetIncomingWebhooksForTeamPageByUser(teamID, "", page, perPage)
 }
 
-func (a *App) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) GetIncomingWebhooksForTeamPageByUser(teamID string, userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetIncomingByTeamByUser(teamId, userId, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetIncomingByTeamByUser(teamID, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "app.webhooks.get_incoming_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -423,12 +423,12 @@ func (a *App) GetIncomingWebhooksForTeamPageByUser(teamId string, userId string,
 	return webhooks, nil
 }
 
-func (a *App) GetIncomingWebhooksPageByUser(userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+func (a *App) GetIncomingWebhooksPageByUser(userID string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPageByUser", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetIncomingListByUser(userId, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetIncomingListByUser(userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetIncomingWebhooksPageByUser", "app.webhooks.get_incoming_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -503,7 +503,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(updatedHook.ChannelId) > 0 {
+	if updatedHook.ChannelId != "" {
 		channel, err := a.GetChannel(updatedHook.ChannelId)
 		if err != nil {
 			return nil, err
@@ -548,12 +548,12 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 	return webhook, nil
 }
 
-func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhook, err := a.Srv().Store.Webhook().GetOutgoing(hookId)
+	webhook, err := a.Srv().Store.Webhook().GetOutgoing(hookID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -571,12 +571,12 @@ func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebho
 	return a.GetOutgoingWebhooksPageByUser("", page, perPage)
 }
 
-func (a *App) GetOutgoingWebhooksPageByUser(userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksPageByUser(userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksPageByUser", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingListByUser(userId, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingListByUser(userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksPageByUser", "app.webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -584,12 +584,12 @@ func (a *App) GetOutgoingWebhooksPageByUser(userId string, page, perPage int) ([
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelId, userId, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByChannelByUser(channelId, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "app.webhooks.get_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -597,16 +597,16 @@ func (a *App) GetOutgoingWebhooksForChannelPageByUser(channelId string, userId s
 	return webhooks, nil
 }
 
-func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	return a.GetOutgoingWebhooksForTeamPageByUser(teamId, "", page, perPage)
+func (a *App) GetOutgoingWebhooksForTeamPage(teamID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+	return a.GetOutgoingWebhooksForTeamPageByUser(teamID, "", page, perPage)
 }
 
-func (a *App) GetOutgoingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (a *App) GetOutgoingWebhooksForTeamPageByUser(teamID string, userID string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPageByUser", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByTeamByUser(teamId, userId, page*perPage, perPage)
+	webhooks, err := a.Srv().Store.Webhook().GetOutgoingByTeamByUser(teamID, userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPageByUser", "app.webhooks.get_outgoing_by_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -614,12 +614,12 @@ func (a *App) GetOutgoingWebhooksForTeamPageByUser(teamId string, userId string,
 	return webhooks, nil
 }
 
-func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
+func (a *App) DeleteOutgoingWebhook(hookID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return model.NewAppError("DeleteOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := a.Srv().Store.Webhook().DeleteOutgoing(hookId, model.GetMillis()); err != nil {
+	if err := a.Srv().Store.Webhook().DeleteOutgoing(hookID, model.GetMillis()); err != nil {
 		return model.NewAppError("DeleteOutgoingWebhook", "app.webhooks.delete_outgoing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -641,14 +641,14 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
-func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
+func (a *App) HandleIncomingWebhook(hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	hchan := make(chan store.StoreResult, 1)
 	go func() {
-		webhook, err := a.Srv().Store.Webhook().GetIncoming(hookId, true)
+		webhook, err := a.Srv().Store.Webhook().GetIncoming(hookID, true)
 		hchan <- store.StoreResult{Data: webhook, NErr: err}
 		close(hchan)
 	}()
@@ -658,7 +658,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	text := req.Text
-	if len(text) == 0 && req.Attachments == nil {
+	if text == "" && req.Attachments == nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -775,18 +775,18 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		overrideUsername = req.Username
 	}
 
-	overrideIconUrl := hook.IconURL
+	overrideIconURL := hook.IconURL
 	if req.IconURL != "" {
-		overrideIconUrl = req.IconURL
+		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.IconEmoji, req.Props, webhookType, "")
+	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "")
 	return err
 }
 
-func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
+func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
 	hook := &model.CommandWebhook{
-		CommandId: commandId,
+		CommandId: commandID,
 		UserId:    args.UserId,
 		ChannelId: args.ChannelId,
 		RootId:    args.RootId,
@@ -810,17 +810,17 @@ func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*
 	return savedHook, nil
 }
 
-func (a *App) HandleCommandWebhook(hookId string, response *model.CommandResponse) *model.AppError {
+func (a *App) HandleCommandWebhook(hookID string, response *model.CommandResponse) *model.AppError {
 	if response == nil {
 		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.handle_command_webhook.parse", nil, "", http.StatusBadRequest)
 	}
 
-	hook, nErr := a.Srv().Store.CommandWebhook().Get(hookId)
+	hook, nErr := a.Srv().Store.CommandWebhook().Get(hookID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]interface{}{"hook_id": hookId}, nfErr.Error(), http.StatusNotFound)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]interface{}{"hook_id": hookID}, nfErr.Error(), http.StatusNotFound)
 		default:
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}

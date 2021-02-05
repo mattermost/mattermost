@@ -36,6 +36,14 @@ services:
     extends:
         file: docker-compose.common.yml
         service: keycloak
+  prometheus:
+    extends:
+        file: docker-compose.common.yml
+        service: prometheus
+  grafana:
+    extends:
+        file: docker-compose.common.yml
+        service: grafana
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
@@ -48,7 +56,9 @@ services:
       - inbucket
       - openldap
       - elasticsearch
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200
+      - prometheus
+      - grafana
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 prometheus:9090 grafana:3000
 
 networks:
   mm-test:

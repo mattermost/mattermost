@@ -172,6 +172,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.back_to_app",
+    "translation": "Back to {{.SiteName}}"
+  },
+  {
     "id": "api.bot.create_disabled",
     "translation": "Bot creation has been disabled."
   },
@@ -1139,6 +1143,10 @@
     "translation": "Site URL cannot be cleared."
   },
   {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Changing {{.Name}} is not allowed due to security reasons."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1329,6 +1337,10 @@
     "translation": "Unable to check if the file exists."
   },
   {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Unable to get last modification time for file."
+  },
+  {
     "id": "api.file.file_reader.app_error",
     "translation": "Unable to get a file reader."
   },
@@ -1433,6 +1445,10 @@
     "translation": "Unable to write the file."
   },
   {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -1447,6 +1463,14 @@
   {
     "id": "api.invalid_channel",
     "translation": "Channel listed in the request doesn't belong to the user"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Invalid custom url scheme has been provided"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "Invalid redirect url has been provided"
   },
   {
     "id": "api.io_error",
@@ -1557,6 +1581,10 @@
     "translation": "Unable to migrate SAML."
   },
   {
+    "id": "api.no_license",
+    "translation": "E10 or E20 license required to use this endpoint."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -1565,8 +1593,16 @@
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
   {
+    "id": "api.oauth.auth_complete",
+    "translation": "Authentication complete"
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "You can close this browser tab now."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -1627,6 +1663,10 @@
   {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecting you back to the app."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -2868,11 +2908,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renew License Now"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "Your Enterprise Edition license has expired and some features may be disabled. Please renew your license now."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
@@ -3013,6 +3053,18 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Error creating zip file."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Error reading file from backend"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "Error downloading support packet file."
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -3457,6 +3509,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Request is missing either AuthData or AuthService parameter."
   },
   {
     "id": "api.user.update_user_roles.license.app_error",
@@ -5591,6 +5647,10 @@
     "translation": "Unable to get user threads"
   },
   {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "User thread doesn't exist or is not followed"
+  },
+  {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
   },
@@ -5661,10 +5721,6 @@
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
     "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "Unable to update the user password."
   },
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
@@ -6699,6 +6755,10 @@
     "translation": "Unable to complete SAML login with an empty email address."
   },
   {
+    "id": "error",
+    "translation": "Error"
+  },
+  {
     "id": "group_not_associated_to_synced_team",
     "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
   },
@@ -7431,6 +7491,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
     "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
@@ -7913,6 +7977,10 @@
   {
     "id": "model.reaction.is_valid.post_id.app_error",
     "translation": "Invalid post id."
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",

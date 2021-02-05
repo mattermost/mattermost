@@ -75,7 +75,7 @@ func (es *EmailService) setupInviteEmailRateLimiting() error {
 	return nil
 }
 
-func (es *EmailService) sendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
+func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",
@@ -188,7 +188,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -216,7 +216,7 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 	}
 
 	if !verified && *es.srv.Config().EmailSettings.RequireEmailVerification {
-		token, err := es.CreateVerifyEmailToken(userId, email)
+		token, err := es.CreateVerifyEmailToken(userID, email)
 		if err != nil {
 			return err
 		}
@@ -341,7 +341,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -400,7 +400,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 	}
 
 	for _, invite := range invites {
-		if len(invite) > 0 {
+		if invite != "" {
 			subject := utils.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
@@ -520,7 +520,14 @@ func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
+// to renew the user license
+func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string) *model.AppError {
+	renewalLink, err := es.srv.GenerateLicenseRenewalLink()
+	if err != nil {
+		return err
+	}
+
 	T := utils.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -528,7 +535,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	bodyPage := es.newEmailTemplate("remove_expired_license", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["Link"] = renewalLink
 	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
@@ -561,12 +568,12 @@ func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, 
 	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
 }
 
-func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string
 	}{
-		userId,
+		userID,
 		newEmail,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
