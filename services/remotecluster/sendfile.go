@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
 	"time"
 
@@ -100,13 +101,17 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 
 	r, appErr := task.rp.FileReader(task.fi.Path) // get Reader for the file
 	if appErr != nil {
-		return nil, fmt.Errorf("error opening file while sending to remote %s: %w", task.rc.RemoteId, appErr)
+		return nil, fmt.Errorf("error opening file while sending file to remote %s: %w", task.rc.RemoteId, appErr)
 	}
 	defer r.Close()
 
-	url := path.Join(task.rc.SiteURL, model.API_URL_SUFFIX, "remotecluster", "upload", task.us.Id)
+	u, err := url.Parse(task.rc.SiteURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid siteURL while sending file to remote %s: %w", task.rc.RemoteId, err)
+	}
+	u.Path = path.Join(u.Path, model.API_URL_SUFFIX, "remotecluster", "upload", task.us.Id)
 
-	req, err := http.NewRequest("POST", url, r)
+	req, err := http.NewRequest("POST", u.String(), r)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"time"
 
 	"github.com/wiggin77/merror"
@@ -87,22 +89,39 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 		RemoteId: task.rc.RemoteId,
 		Msg:      task.msg,
 	}
-	url := fmt.Sprintf("%s/%s", task.rc.SiteURL, SendMsgURL)
 
-	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, url)
+	u, err := url.Parse(task.rc.SiteURL)
+	if err != nil {
+		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
+			mlog.String("remote", task.rc.DisplayName),
+			mlog.String("msgId", task.msg.Id),
+			mlog.Err(err),
+		)
+		return
+	}
+	u.Path = path.Join(u.Path, SendMsgURL)
+
+	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, u.String())
 	var response Response
 
 	if err != nil {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
-			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id), mlog.Err(err))
-
+			mlog.String("remote", task.rc.DisplayName),
+			mlog.String("msgId", task.msg.Id),
+			mlog.Err(err),
+		)
 		response.Err = err.Error()
 	} else {
 		rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster message sent successfully",
-			mlog.String("remote", task.rc.DisplayName), mlog.String("msgId", task.msg.Id))
+			mlog.String("remote", task.rc.DisplayName),
+			mlog.String("msgId", task.msg.Id),
+		)
 
 		if errDecode := json.Unmarshal(respJSON, &response); errDecode != nil {
-			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster", mlog.String("remote", task.rc.DisplayName), mlog.Err(errDecode))
+			rcs.server.GetLogger().Error("Invalid response sending message to remote cluster",
+				mlog.String("remote", task.rc.DisplayName),
+				mlog.Err(errDecode),
+			)
 			response.Err = errDecode.Error()
 		}
 	}
