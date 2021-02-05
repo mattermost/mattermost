@@ -3891,7 +3891,7 @@ func TestImportAttachment(t *testing.T) {
 
 	userID := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team")
+	_, err := th.App.importAttachment(&data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
 	attachments := GetAttachments(userID, th, t)
