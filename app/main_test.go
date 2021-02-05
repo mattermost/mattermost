@@ -15,8 +15,10 @@ var mainHelper *testlib.MainHelper
 var replicaFlag bool
 
 func TestMain(m *testing.M) {
-	flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
-	flag.Parse()
+	if f := flag.Lookup("mysql-replica"); f == nil {
+		flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
+		flag.Parse()
+	}
 
 	var options = testlib.HelperOptions{
 		EnableStore:     true,
