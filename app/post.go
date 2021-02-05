@@ -1343,10 +1343,6 @@ func (a *App) MaxPostSize() int {
 
 // countThreadMentions returns the number of times the user is mentioned in a specified thread after the timestamp.
 func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID string, timestamp int64) (int64, *model.AppError) {
-	team, err := a.GetTeam(teamID)
-	if err != nil {
-		return 0, err
-	}
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
 		return 0, err
@@ -1377,6 +1373,14 @@ func (a *App) countThreadMentions(user *model.User, post *model.Post, teamID str
 		}
 
 		return int64(count), nil
+	}
+
+	var team *model.Team
+	if teamID != "" {
+		team, err = a.GetTeam(teamID)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	groups, nErr := a.getGroupsAllowedForReferenceInChannel(channel, team)

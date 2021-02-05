@@ -2416,6 +2416,28 @@ func (a *OpenTracingAppLayer) CreateWebhookPost(userID string, channel *model.Ch
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateZipFileAndAddFiles(fileBackend filesstore.FileBackend, fileDatas []model.FileData, zipFileName string, directory string) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateZipFileAndAddFiles")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CreateZipFileAndAddFiles(fileBackend, fileDatas, zipFileName, directory)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) DBHealthCheckDelete() error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DBHealthCheckDelete")
@@ -3939,6 +3961,23 @@ func (a *OpenTracingAppLayer) GeneratePublicLink(siteURL string, info *model.Fil
 
 	defer span.Finish()
 	resultVar0 := a.app.GeneratePublicLink(siteURL, info)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) GenerateSupportPacket() []model.FileData {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GenerateSupportPacket")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.GenerateSupportPacket()
 
 	return resultVar0
 }
@@ -15583,7 +15622,7 @@ func (a *OpenTracingAppLayer) UpdateUserAuth(userID string, userAuth *model.User
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userID string, props map[string]string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userID string, props map[string]string, sendNotifications bool) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserNotifyProps")
 
@@ -15595,7 +15634,7 @@ func (a *OpenTracingAppLayer) UpdateUserNotifyProps(userID string, props map[str
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.UpdateUserNotifyProps(userID, props)
+	resultVar0, resultVar1 := a.app.UpdateUserNotifyProps(userID, props, sendNotifications)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

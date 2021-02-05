@@ -13,7 +13,7 @@ type Plugin struct {
 	plugin.MattermostPlugin
 }
 
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Request) {
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)

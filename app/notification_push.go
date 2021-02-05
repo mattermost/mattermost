@@ -160,8 +160,8 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	}
 }
 
-func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention, hasFiles bool,
-	senderName, channelName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
+func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
+	hasFiles bool, senderName, channelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
 
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
@@ -591,7 +591,17 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 	userLocale := utils.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	msg.Message = a.getPushNotificationMessage(contentsConfig, post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
+	msg.Message = a.getPushNotificationMessage(
+		contentsConfig,
+		post.Message,
+		explicitMention,
+		channelWideMention,
+		hasFiles,
+		msg.SenderName,
+		channel.Type,
+		replyToThreadType,
+		userLocale,
+	)
 
 	return msg
 }
