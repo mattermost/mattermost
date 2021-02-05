@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"sort"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -222,6 +221,8 @@ func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied)
 	return s.Update(patch)
 }
 
+// Update updates the policy with the same ID as `update`. For each field of `update`, if that field
+// has a zero value, then it will not be changed.
 func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	// Strategy:
 	// 1. Update policy attributes
@@ -317,6 +318,9 @@ func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, 
 	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
+// buildGetPoliciesQuery builds a query to select information for the policy with the specified
+// ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
+// policy display name.
 func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64, limit uint64) (query string, props map[string]interface{}) {
 	props = map[string]interface{}{"Offset": offset, "Limit": limit}
 	whereIdEqualsPolicyId := ""
@@ -366,18 +370,20 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 	       Teams.DisplayName AS TeamDisplayName
 	FROM ` + rpTable + `
 	LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
-	LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id`
-	// We don't bother using an ORDER BY on the final result set because we will
-	// have to aggregate these rows into individual policies (see `getPoliciesFromRows`),
-	// which will cause order to be lost anyways.
+	LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
+	
+	ORDER BY DisplayName`
 	return
 }
 
+// getPoliciesFromRows builds enriched policy objects using rows obtained by a query from `buildGetPoliciesQuery`.
+// The rows must be sorted by DisplayName.
 func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
-	mPolicies := make(map[string]*model.RetentionPolicyEnriched)
+	policies := make([]*model.RetentionPolicyEnriched, 0)
 	for _, row := range rows {
-		policy, ok := mPolicies[row.Id]
-		if !ok {
+		var policy *model.RetentionPolicyEnriched
+		size := len(policies)
+		if size == 0 || policies[size-1].Id != row.Id {
 			policy = &model.RetentionPolicyEnriched{
 				RetentionPolicy: model.RetentionPolicy{
 					Id:           row.Id,
@@ -387,7 +393,9 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 				Channels: make([]model.ChannelDisplayInfo, 0),
 				Teams:    make([]model.TeamDisplayInfo, 0),
 			}
-			mPolicies[row.Id] = policy
+			policies = append(policies, policy)
+		} else {
+			policy = policies[size-1]
 		}
 		if row.ChannelId != nil {
 			policy.Channels = append(
@@ -400,17 +408,7 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 					Id: *row.TeamId, DisplayName: *row.TeamDisplayName})
 		}
 	}
-	aPolicies := make([]*model.RetentionPolicyEnriched, len(mPolicies))
-	i := 0
-	for _, policy := range mPolicies {
-		aPolicies[i] = policy
-		i++
-	}
-	// order has been lost due to the map
-	sort.Slice(aPolicies, func(i, j int) bool {
-		return aPolicies[i].DisplayName < aPolicies[j].DisplayName
-	})
-	return aPolicies
+	return policies
 }
 
 func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow) (*model.RetentionPolicyEnriched, error) {
