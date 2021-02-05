@@ -225,7 +225,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.RemoteClusterService && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
-		if remoteId := c.GetRemoteClusterID(r); remoteId != "" {
+		if remoteId := c.GetRemoteClusterID(r); remoteId == "" {
 			c.Logger.Warn("Missing remote cluster id") //
 			c.Err = model.NewAppError("ServeHTTP", "api.context.remote_id_missing.app_error", nil, "", http.StatusUnauthorized)
 		} else {
