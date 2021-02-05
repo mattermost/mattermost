@@ -619,7 +619,7 @@ func (d *DialogElement) isValid() error {
 		}
 
 	case "checkbox":
-		if len(d.DataSource) == 0 {
+		if d.DataSource == "" {
 			return errors.New("invalid data source")
 		}
 		if len(d.Default) > 3000 {
