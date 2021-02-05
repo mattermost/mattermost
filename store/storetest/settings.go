@@ -61,8 +61,10 @@ func MySQLSettings() *model.SqlSettings {
 	mySQLSettings := databaseSettings("mysql", cfg.FormatDSN())
 
 	var replicaFlag bool
-	flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
-	flag.Parse()
+	if f := flag.Lookup("mysql-replica"); f == nil {
+		flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
+		flag.Parse()
+	}
 	if replicaFlag {
 		mySQLSettings.DataSourceReplicas = []string{getEnv("TEST_DATABASE_MYSQL_REPLICA_DSN", defaultMysqlReplicaDSN)}
 	}
