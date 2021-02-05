@@ -21,7 +21,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	uid := p.configuration.BasicUserId
 	if err := p.API.UpdateUserActive(uid, true); err != nil {
 		return nil, err.Error()
