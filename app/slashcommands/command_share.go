@@ -19,7 +19,7 @@ type ShareProvider struct {
 
 const (
 	CommandTriggerShare   = "share"
-	AvailableShareActions = "Available actions: share_channel, unshare_channel, invite_remove, uninvite_remote, status"
+	AvailableShareActions = "share_channel, unshare_channel, invite_remove, uninvite_remote, status"
 )
 
 func init() {
@@ -31,28 +31,28 @@ func (sp *ShareProvider) GetTrigger() string {
 }
 
 func (sp *ShareProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
-	share := model.NewAutocompleteData(CommandTriggerShare, "[action]", "Available commands: share_channel, unshare_channel, invite_remote, uninvite_remote, status")
+	share := model.NewAutocompleteData(CommandTriggerShare, "[action]", T("api.command_share.available_actions", map[string]interface{}{"Actions": AvailableShareActions}))
 
-	shareChannel := model.NewAutocompleteData("share_channel", "", "Share the current channel")
-	shareChannel.AddNamedTextArgument("readonly", "Channel will be shared in read-only mode", "[readonly] - 'Y' or 'N'.  Defaults to 'N'", "Y|N|y|n", false)
-	shareChannel.AddNamedTextArgument("name", "Channel name provided to remote instances", "[name] - defaults to channel name", "", false)
-	shareChannel.AddNamedTextArgument("displayname", "Channel display name provided to remote instances", "[displayname] - defaults to channel displayname", "", false)
-	shareChannel.AddNamedTextArgument("purpose", "Channel purpose provided to remote instances", "[purpose] - defaults to channel purpose", "", false)
-	shareChannel.AddNamedTextArgument("header", "Channel header provided to remote instances", "[header] - defaults to channels header", "", false)
+	shareChannel := model.NewAutocompleteData("share_channel", "", T("api.command_share.share_current"))
+	shareChannel.AddNamedTextArgument("readonly", T("api.command_share.share_read_only.help"), T("api.command_share.share_read_only.hint"), "Y|N|y|n", false)
+	shareChannel.AddNamedTextArgument("name", T("api.command_share.channel_name.help"), T("api.command_share.channel_name.hint"), "", false)
+	shareChannel.AddNamedTextArgument("displayname", T("api.command_share.channel_display_name.help"), T("api.command_share.channel_display_name.hint"), "", false)
+	shareChannel.AddNamedTextArgument("purpose", T("api.command_share.channel_purpose.help"), T("api.command_share.channel_purpose.hint"), "", false)
+	shareChannel.AddNamedTextArgument("header", T("api.command_share.channel_header.help"), T("api.command_share.channel_header.hint"), "", false)
 
-	unshareChannel := model.NewAutocompleteData("unshare_channel", "", "Unshares the current channel")
-	unshareChannel.AddNamedTextArgument("are_you_sure", "Are you sure? This channel will be unshared and all remote instances will be uninvited", "'Y' or 'N'", "Y|N|y|n", true)
+	unshareChannel := model.NewAutocompleteData("unshare_channel", "", T("api.command_share.unshare_channel.help"))
+	unshareChannel.AddNamedTextArgument("are_you_sure", T("api.command_share.unshare_confirmation.help"), T("api.command_share.unshare_confirmation.hint"), "Y|N|y|n", true)
 
-	inviteRemote := model.NewAutocompleteData("invite_remote", "", "Invites a remote instance to the current shared channel")
-	inviteRemote.AddNamedDynamicListArgument("remoteId", "Id of an existing remote instance. See `remote` command to add a remote instance.", "builtin:share", true)
-	inviteRemote.AddNamedTextArgument("description", "Description for invite", "[description] - optional", "", false)
+	inviteRemote := model.NewAutocompleteData("invite_remote", "", T("api.command_share.invite_remote.help"))
+	inviteRemote.AddNamedDynamicListArgument("remoteId", T("api.command_share.remote_id.help"), "builtin:share", true)
+	inviteRemote.AddNamedTextArgument("description", T("api.command_share.description_invite.help"), T("api.command_share.description_invite.hint"), "", false)
 
-	unInviteRemote := model.NewAutocompleteData("uninvite_remote", "", "Uninvites a remote instance from this shared channel")
-	unInviteRemote.AddNamedDynamicListArgument("remoteId", "Id of remote instance to uninvite.", "builtin:share", true)
+	unInviteRemote := model.NewAutocompleteData("uninvite_remote", "", T("api.command_share.uninvite_remote.help"))
+	unInviteRemote.AddNamedDynamicListArgument("remoteId", T("api.command_share.uninvite_remote_id.help"), "builtin:share", true)
 
-	status := model.NewAutocompleteData("status", "", "Displays status for this shared channel")
+	status := model.NewAutocompleteData("status", "", T("api.command_share.channel_status.help"))
 
-	sync := model.NewAutocompleteData("sync", "", "Forces a sync with remote instances this shared channel")
+	sync := model.NewAutocompleteData("sync", "", T("api.command_share.sync.help"))
 
 	share.AddCommand(shareChannel)
 	share.AddCommand(unshareChannel)
@@ -134,21 +134,21 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, commandArgs *
 
 func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PERMISSION_MANAGE_SHARED_CHANNELS) {
-		return responsef("You require `manage_shared_channels` permission to manage shared channels.")
+		return responsef(args.T("api.command_share.permission_required", map[string]interface{}{"Permission": "manage_shared_channels"}))
 	}
 
 	if a.Srv().GetSharedChannelSyncService() == nil {
-		return responsef("Shared Channels Service is disabled.")
+		return responsef(args.T("api.command_share.service_disabled"))
 	}
 
 	if a.Srv().GetRemoteClusterService() == nil {
-		return responsef("Remote Cluster Service is disabled.")
+		return responsef(args.T("api.command_remote.service_disabled"))
 	}
 
 	margs := parseNamedArgs(args.Command)
 	action, ok := margs[ActionKey]
 	if !ok {
-		return responsef("Missing command. " + AvailableShareActions)
+		return responsef(args.T("api.command_share.missing_action", map[string]interface{}{"Actions": AvailableShareActions}))
 	}
 
 	switch action {
@@ -165,14 +165,14 @@ func (sp *ShareProvider) DoCommand(a *app.App, args *model.CommandArgs, message 
 	case "sync":
 		return sp.doSync(a, args, margs)
 	}
-	return responsef("Unknown action `%s`. %s", action, AvailableRemoteActions)
+	return responsef(args.T("api.command_share.unknown_action", map[string]interface{}{"Action": action, "Actions": AvailableShareActions}))
 }
 
 func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	// check that channel exists.
 	channel, errApp := a.GetChannel(args.ChannelId)
 	if errApp != nil {
-		return responsef("Cannot share this channel: %v", errApp)
+		return responsef(args.T("api.command_share.share_channel.error", map[string]interface{}{"Error": errApp.Error()}))
 	}
 
 	if name := margs["name"]; name == "" {
@@ -193,7 +193,7 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 
 	readonly, err := parseBool(margs["readonly"])
 	if err != nil {
-		return responsef("Invalid value for 'readonly': %v", err)
+		return responsef(args.T("api.command_share.invalid_value.error", map[string]interface{}{"Arg": "readonly", "Error": err.Error()}))
 	}
 
 	sc := &model.SharedChannel{
@@ -209,12 +209,12 @@ func (sp *ShareProvider) doShareChannel(a *app.App, args *model.CommandArgs, mar
 	}
 
 	if _, err := a.SaveSharedChannel(sc); err != nil {
-		return responsef("Could not share this channel: %v", err)
+		return responsef(args.T("api.command_share.share_channel.error", map[string]interface{}{"Error": err.Error()}))
 	}
 
 	notifyClientsForChannelUpdate(a, sc)
 
-	return responsef("##### This channel is now shared.")
+	return responsef("##### " + args.T("api.command_share.channel_shared"))
 }
 
 func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
@@ -224,45 +224,45 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 
 	sure, err := parseBool(margs["are_you_sure"])
 	if err != nil || !sure {
-		return responsef("Shared channel was not deleted: `are_you_sure` must be `Y`.")
+		return responsef(args.T("api.command_share.shared_channel_not_deleted", map[string]interface{}{"Arg": "are_you_sure", "Expected": "Y"}))
 	}
 
 	sc, appErr := a.GetSharedChannel(args.ChannelId)
 	if appErr != nil {
-		return responsef("Cannot unshare this channel: %v", appErr)
+		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]interface{}{"Error": appErr.Error()}))
 	}
 
 	deleted, err := a.DeleteSharedChannel(args.ChannelId)
 	if err != nil {
-		return responsef("Could not unshare this channel: %v", err)
+		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]interface{}{"Error": err.Error()}))
 	}
 	if !deleted {
-		return responsef("Cannot unshare a channel that is not shared.")
+		return responsef(args.T("api.command_share.not_shared_channel_unshare"))
 	}
 
 	notifyClientsForChannelUpdate(a, sc)
 
-	return responsef("##### This channel is no longer shared.")
+	return responsef("##### " + args.T("api.command_share.shared_channel_unavailable"))
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
 	remoteId, ok := margs["remoteId"]
 	if !ok || remoteId == "" {
-		return responsef("Must specify a valid remote cluster id to invite.")
+		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
 	hasRemote, err := a.HasRemote(args.ChannelId)
 	if err != nil {
-		return responsef("Error fetching remote clusters: %v", err)
+		return responsef(args.T("api.command_share.fetch_remote.error", map[string]interface{}{"Error": err.Error()}))
 	}
 	if hasRemote {
-		return responsef("The remote cluster has already been invited")
+		return responsef(args.T("api.command_share.remote_already_invited"))
 	}
 
 	// Check if channel is shared or not.
 	hasChan, err := a.HasSharedChannel(args.ChannelId)
 	if err != nil {
-		return responsef("Error while checking if shared channel exists: %v", err)
+		return responsef(args.T("api.command_share.check_channel_exist.error", map[string]interface{}{"Error": err.Error()}))
 	}
 	if !hasChan {
 		// If it doesn't exist, then create it.
@@ -276,53 +276,53 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 
 	rc, appErr := a.GetRemoteCluster(remoteId)
 	if appErr != nil {
-		return responsef("Remote cluster id is invalid: %v", appErr)
+		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]interface{}{"Error": appErr.Error()}))
 	}
 
 	channel, errApp := a.GetChannel(args.ChannelId)
 	if errApp != nil {
-		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
+		return responsef(args.T("api.command_share.channel_invite.error", map[string]interface{}{"Name": rc.DisplayName, "Error": errApp.Error()}))
 	}
 	// send channel invite to remote cluster
 	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, args.UserId, margs["description"], rc); err != nil {
-		return responsef("Error inviting `%s` to this channel: %v", rc.DisplayName, err)
+		return responsef(args.T("api.command_share.channel_invite.error", map[string]interface{}{"Name": rc.DisplayName, "Error": err.Error()}))
 	}
 
-	return responsef("##### Channel invitation has been sent to `%s (%s)`.", rc.DisplayName, rc.SiteURL)
+	return responsef("##### " + args.T("api.command_share.invitation_sent", map[string]interface{}{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	remoteId, ok := margs["remoteId"]
 	if !ok || remoteId == "" {
-		return responsef("Must specify a valid remote cluster to uninvite.")
+		return responsef(args.T("api.command_share.remote_not_valid"))
 	}
 
 	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteId)
 	if err != nil || scr.ChannelId != args.ChannelId {
-		return responsef("Shared channel remote id `%s` does not exist for this channel.", remoteId)
+		return responsef(args.T("api.command_share.channel_remote_id_not_exists", map[string]interface{}{"RemoteId": remoteId}))
 	}
 
 	deleted, err := a.DeleteSharedChannelRemote(scr.Id)
 	if err != nil || !deleted {
-		return responsef("Could not uninvite `%s`: %v", remoteId, err)
+		return responsef(args.T("api.command_share.could_not_uninvite.error", map[string]interface{}{"RemoteId": remoteId, "Error": err.Error()}))
 	}
-	return responsef("##### Remote `%s` uninvited.", remoteId)
+	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]interface{}{"RemoteId": remoteId}))
 }
 
 func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	statuses, err := a.GetSharedChannelRemotesStatus(args.ChannelId)
 	if err != nil {
-		return responsef("Could not fetch status for remotes: %v.", err)
+		return responsef(args.T("api.command_share.fetch_remote_status.error", map[string]interface{}{"Error": err.Error()}))
 	}
 	if len(statuses) == 0 {
-		return responsef("No remotes have been invited to this shared channel.")
+		return responsef(args.T("api.command_share.no_remote_invited"))
 	}
 
 	var sb strings.Builder
 
-	fmt.Fprintf(&sb, "Status for channel Id `%s`\n\n", statuses[0].ChannelId)
+	fmt.Fprintf(&sb, args.T("api.command_share.channel_status_id", map[string]interface{}{"ChannelId": statuses[0].ChannelId})+"\n\n")
 
-	fmt.Fprintf(&sb, "| Remote | SiteURL | Description | ReadOnly | InviteAccepted | Online | Last Sync | \n")
+	fmt.Fprintf(&sb, args.T("api.command_share.remote_table_header")+" \n")
 	fmt.Fprintf(&sb, "| ------ | ------- | ----------- | -------- | -------------- | ------ | --------- | \n")
 
 	for _, status := range statuses {
@@ -346,7 +346,7 @@ func (sp *ShareProvider) doSync(a *app.App, args *model.CommandArgs, margs map[s
 
 	// TODO: send cluster message to each remote requesting a sync for this channel.
 
-	return responsef("##### Sync initiated.")
+	return responsef("##### " + args.T("api.command_share.sync_initiated"))
 }
 
 func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {

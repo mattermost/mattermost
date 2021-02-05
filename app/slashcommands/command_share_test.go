@@ -46,7 +46,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		}
 
 		response := commandProvider.DoCommand(th.App, args, "")
-		require.Equal(t, "##### This channel is now shared.", response.Text)
+		require.Equal(t, "##### "+args.T("api.command_share.channel_shared"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
@@ -81,7 +81,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		}
 
 		response := commandProvider.DoCommand(th.App, args, "")
-		require.Equal(t, "##### This channel is no longer shared.", response.Text)
+		require.Equal(t, "##### "+args.T("api.command_share.shared_channel_unavailable"), response.Text)
 
 		channelConvertedMessages := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
 			event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
