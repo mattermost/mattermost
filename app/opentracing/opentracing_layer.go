@@ -6880,7 +6880,7 @@ func (a *OpenTracingAppLayer) GetPasswordRecoveryToken(token string) (*model.Tok
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetPermalinkPost(postId string, userID string) (*model.PostList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetPermalinkPost(postID string, userID string) (*model.PostList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPermalinkPost")
 
@@ -6892,7 +6892,7 @@ func (a *OpenTracingAppLayer) GetPermalinkPost(postId string, userID string) (*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetPermalinkPost(postId, userID)
+	resultVar0, resultVar1 := a.app.GetPermalinkPost(postID, userID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12049,7 +12049,7 @@ func (a *OpenTracingAppLayer) RemoveTeamMemberFromTeam(teamMember *model.TeamMem
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
+func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, removerUserID string, channel *model.Channel) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUserFromChannel")
 
@@ -12061,7 +12061,7 @@ func (a *OpenTracingAppLayer) RemoveUserFromChannel(userIDToRemove string, remov
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.RemoveUserFromChannel(userIDToRemove, removerUserId, channel)
+	resultVar0 := a.app.RemoveUserFromChannel(userIDToRemove, removerUserID, channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
