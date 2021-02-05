@@ -33,7 +33,6 @@ var cachedPostCount int64
 var cachedUserCount int64
 
 var cachedDBMSVersion string
-var cachedDBMSName string
 
 // previously fetched notices
 var cachedNotices model.ProductNotices
@@ -149,8 +148,6 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	if cnd.DeprecatingDependency != nil {
-		mlog.Warn("Checking external dependency", mlog.String("server_dbms", dbName+"/"+dbVer), mlog.String("external_dep", cnd.DeprecatingDependency.Name), mlog.String("external_dep_ver", cnd.DeprecatingDependency.MinimumVersion))
-
 		extDepVersion, err := semver.NewVersion(cnd.DeprecatingDependency.MinimumVersion)
 		if err != nil {
 			return false, errors.Wrapf(err, "Cannot parse external dependency version %s", cnd.DeprecatingDependency.MinimumVersion)
@@ -252,6 +249,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+	dbName := *a.Srv().Config().SqlSettings.DriverName
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
@@ -289,7 +287,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 			isTeamAdmin,
 			isCloud,
 			sku,
-			cachedDBMSName,
+			dbName,
 			cachedDBMSVersion,
 			&cachedNotices[noticeIndex])
 		if err != nil {
@@ -351,7 +349,6 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	}
 
 	cachedDBMSVersion = strings.Split(cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
-	cachedDBMSName = *a.Srv().Config().SqlSettings.DriverName
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
 	if err != nil {
