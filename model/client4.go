@@ -426,6 +426,10 @@ func (c *Client4) GetDataRetentionRoute() string {
 	return "/data_retention"
 }
 
+func (c *Client4) GetDataRetentionPolicyRoute(policyID string) string {
+	return fmt.Sprintf(c.GetDataRetentionRoute()+"/policy/%v", policyID)
+}
+
 func (c *Client4) GetElasticsearchRoute() string {
 	return "/elasticsearch"
 }
@@ -4476,7 +4480,7 @@ func (c *Client4) PurgeBleveIndexes() (bool, *Response) {
 
 // Data Retention Section
 
-// GetDataRetentionPolicy will get the current server data retention policy details.
+// GetDataRetentionPolicy will get the current global data retention policy details.
 func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response) {
 	r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policy", "")
 	if err != nil {
@@ -4484,6 +4488,60 @@ func (c *Client4) GetDataRetentionPolicy() (*GlobalRetentionPolicy, *Response) {
 	}
 	defer closeBody(r)
 	return GlobalRetentionPolicyFromJson(r.Body), BuildResponse(r)
+}
+
+// GetDataRetentionPolicyByID will get the details for the granular data retention policy with the specified ID.
+func (c *Client4) GetDataRetentionPolicyByID(policyID string) (*RetentionPolicyEnriched, *Response) {
+	r, appErr := c.DoApiGet(c.GetDataRetentionPolicyRoute(policyID), "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	policy, err := RetentionPolicyEnrichedFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetDataRetentionPolicyByID", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return policy, BuildResponse(r)
+}
+
+// GetDataRetentionPolicies will get the current granular data retention policies' details.
+func (c *Client4) GetDataRetentionPolicies(page, perPage int) ([]*RetentionPolicyEnriched, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, appErr := c.DoApiGet(c.GetDataRetentionRoute()+"/policies"+query, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	policies, err := RetentionPolicyEnrichedListFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.GetDataRetentionPolicies", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return policies, BuildResponse(r)
+}
+
+// CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
+// the specified teams and channels.
+func (c *Client4) CreateDataRetentionPolicy(displayName string, postDuration int, teamIDs []string, channelIDs []string) (
+	*RetentionPolicyEnriched, *Response,
+) {
+	rp := &RetentionPolicyWithApplied{
+		RetentionPolicy: RetentionPolicy{
+			DisplayName:  displayName,
+			PostDuration: int64(postDuration),
+		},
+		TeamIds:    teamIDs,
+		ChannelIds: channelIDs,
+	}
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", rp.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	policy, err := RetentionPolicyEnrichedFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.CreateDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return policy, BuildResponse(r)
 }
 
 // Commands Section

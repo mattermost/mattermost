@@ -21,7 +21,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
 }
 
-func checkRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyEnriched) {
+func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyEnriched) {
 	require.Equal(t, p1.Id, p2.Id)
 	require.Equal(t, p1.DisplayName, p2.DisplayName)
 	require.Equal(t, p1.PostDuration, p2.PostDuration)
@@ -61,7 +61,7 @@ func checkRetentionPolicyCountsAreEqual(t *testing.T, p1, p2 *model.RetentionPol
 func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, policy *model.RetentionPolicyEnriched) {
 	newPolicy, err := ss.RetentionPolicy().Get(policy.Id)
 	require.Nil(t, err)
-	checkRetentionPolicyEnrichedAreEqual(t, policy, newPolicy)
+	CheckRetentionPolicyEnrichedAreEqual(t, policy, newPolicy)
 }
 
 func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, team model.TeamDisplayInfo,
@@ -206,7 +206,7 @@ func restoreRetentionPolicy(t *testing.T, ss store.Store, policy *model.Retentio
 	patch := retentionPolicyEnrichedToApplied(policy)
 	newPolicy, err := ss.RetentionPolicy().Patch(patch)
 	require.Nil(t, err)
-	checkRetentionPolicyEnrichedAreEqual(t, policy, newPolicy)
+	CheckRetentionPolicyEnrichedAreEqual(t, policy, newPolicy)
 }
 
 func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
@@ -218,7 +218,7 @@ func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 		newPolicy, err := ss.RetentionPolicy().Save(proposal)
 		require.Nil(t, err)
 		expected.Id = newPolicy.Id
-		checkRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
 	})
 	t.Run("teams and channels are empty", func(t *testing.T) {
 		proposal := createRetentionPolicyAppliedFromIds("Policy 2", []string{}, []string{})
@@ -227,7 +227,7 @@ func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 		newPolicy, err := ss.RetentionPolicy().Save(proposal)
 		require.Nil(t, err)
 		expected.Id = newPolicy.Id
-		checkRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
 	})
 	t.Run("some teams and channels are specified", func(t *testing.T) {
 		proposal := createRetentionPolicyAppliedFromDisplayInfo("Policy 3", teams, channels)
@@ -235,7 +235,7 @@ func testRetentionPolicyStoreSave(t *testing.T, ss store.Store, s SqlStore) {
 		newPolicy, err := ss.RetentionPolicy().Save(proposal)
 		require.Nil(t, err)
 		expected.Id = newPolicy.Id
-		checkRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, expected, newPolicy)
 	})
 	t.Run("team specified does not exist", func(t *testing.T) {
 		policy := createRetentionPolicyAppliedFromIds("Policy 4", []string{"no_such_team"}, []string{})
@@ -266,7 +266,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		require.Nil(t, err)
 		copy := copyRetentionPolicyEnriched(policy)
 		copy.DisplayName = patch.DisplayName
-		checkRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("modify PostDuration", func(t *testing.T) {
@@ -280,7 +280,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		require.Nil(t, err)
 		copy := copyRetentionPolicyEnriched(policy)
 		copy.PostDuration = patch.PostDuration
-		checkRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("clear TeamIds", func(t *testing.T) {
@@ -294,7 +294,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		require.Nil(t, err)
 		copy := copyRetentionPolicyEnriched(policy)
 		copy.Teams = make([]model.TeamDisplayInfo, 0)
-		checkRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("add team which does not exist", func(t *testing.T) {
@@ -318,7 +318,7 @@ func testRetentionPolicyStorePatch(t *testing.T, ss store.Store, s SqlStore) {
 		require.Nil(t, err)
 		copy := copyRetentionPolicyEnriched(policy)
 		copy.Channels = make([]model.ChannelDisplayInfo, 0)
-		checkRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, copy, newPolicy)
 		restoreRetentionPolicy(t, ss, policy)
 	})
 	t.Run("add channel which does not exist", func(t *testing.T) {
@@ -352,14 +352,14 @@ func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 		policy := policies[0]
 		retrievedPolicy, err := ss.RetentionPolicy().Get(policy.Id)
 		require.Nil(t, err)
-		checkRetentionPolicyEnrichedAreEqual(t, policy, retrievedPolicy)
+		CheckRetentionPolicyEnrichedAreEqual(t, policy, retrievedPolicy)
 	})
 	t.Run("get all", func(t *testing.T) {
 		retrievedPolicies, err := ss.RetentionPolicy().GetAll(0, 60)
 		require.Nil(t, err)
 		require.Equal(t, len(policies), len(retrievedPolicies))
 		for i := range policies {
-			checkRetentionPolicyEnrichedAreEqual(t, policies[i], retrievedPolicies[i])
+			CheckRetentionPolicyEnrichedAreEqual(t, policies[i], retrievedPolicies[i])
 		}
 	})
 	t.Run("get all with limit", func(t *testing.T) {
@@ -367,7 +367,7 @@ func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 			retrievedPolicies, err := ss.RetentionPolicy().GetAll(uint64(i), 1)
 			require.Nil(t, err)
 			require.Equal(t, 1, len(retrievedPolicies))
-			checkRetentionPolicyEnrichedAreEqual(t, policies[i], retrievedPolicies[0])
+			CheckRetentionPolicyEnrichedAreEqual(t, policies[i], retrievedPolicies[0])
 		}
 	})
 	t.Run("get all with counts", func(t *testing.T) {
