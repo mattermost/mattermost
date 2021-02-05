@@ -19,6 +19,11 @@ func (scs *Service) postsToAttachments(posts []*model.Post, rc *model.RemoteClus
 	infos := make([]*model.FileInfo, 0)
 
 	for _, post := range posts {
+		// posts cannot have attachments from other sites.
+		if post.IsRemote() {
+			continue
+		}
+
 		fis, err := scs.postToAttachments(post, rc, lastSyncAt)
 		if err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "could not get file info for attachment",
