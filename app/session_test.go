@@ -448,7 +448,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		RemoteId:     remoteId,
 		RemoteTeamId: model.NewId(),
 		DisplayName:  "test",
-		RemoteToken:  token,
+		Token:        token,
 		CreatorId:    model.NewId(),
 	}
 
