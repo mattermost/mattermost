@@ -38,11 +38,11 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(postId, actionId, userId, selectedOption, nil)
+func (a *App) DoPostAction(postId, actionId, userID, selectedOption string) (string, *model.AppError) {
+	return a.DoPostActionWithCookie(postId, actionId, userID, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(postId, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
@@ -63,7 +63,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	upstreamURL := ""
 	rootPostId := ""
 	upstreamRequest := &model.PostActionIntegrationRequest{
-		UserId: userId,
+		UserId: userID,
 		PostId: postId,
 	}
 
@@ -278,7 +278,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			Message:   response.EphemeralText,
 			ChannelId: upstreamRequest.ChannelId,
 			RootId:    rootPostId,
-			UserId:    userId,
+			UserId:    userID,
 		}
 
 		if !response.SkipSlackParsing {
@@ -288,7 +288,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
-		a.SendEphemeralPost(userId, ephemeralPost)
+		a.SendEphemeralPost(userID, ephemeralPost)
 	}
 
 	return clientTriggerId, nil
@@ -568,7 +568,7 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userId, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+	clientTriggerId, userID, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
 	if err != nil {
 		return err
 	}
@@ -577,7 +577,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 
 	jsonRequest, _ := json.Marshal(request)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_OPEN_DIALOG, "", "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_OPEN_DIALOG, "", "", userID, nil)
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 

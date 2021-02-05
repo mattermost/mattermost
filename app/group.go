@@ -65,8 +65,8 @@ func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, 
 	return groups, nil
 }
 
-func (a *App) GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetByUser(userId)
+func (a *App) GetGroupsByUserId(userID string) ([]*model.Group, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetByUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsByUserId", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -450,13 +450,13 @@ func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) (
 }
 
 // GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
-func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
-	groups, err := a.Srv().Store.Group().GetGroupsByTeam(teamId, opts)
+func (a *App) GetGroupsByTeam(teamID string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError) {
+	groups, err := a.Srv().Store.Group().GetGroupsByTeam(teamID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	count, err := a.Srv().Store.Group().CountGroupsByTeam(teamId, opts)
+	count, err := a.Srv().Store.Group().CountGroupsByTeam(teamID, opts)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetGroupsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -464,8 +464,8 @@ func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*mod
 	return groups, int(count), nil
 }
 
-func (a *App) GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
-	groupsAssociatedByChannelId, err := a.Srv().Store.Group().GetGroupsAssociatedToChannelsByTeam(teamId, opts)
+func (a *App) GetGroupsAssociatedToChannelsByTeam(teamID string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError) {
+	groupsAssociatedByChannelId, err := a.Srv().Store.Group().GetGroupsAssociatedToChannelsByTeam(teamID, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupsAssociatedToChannelsByTeam", "app.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
