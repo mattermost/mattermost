@@ -67,7 +67,7 @@ func (a *App) GetCloudSession(token string) (*model.Session, *model.AppError) {
 
 func (a *App) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
 	rc, appErr := a.GetRemoteCluster(remoteId)
-	if appErr == nil && rc.RemoteToken == token {
+	if appErr == nil && rc.Token == token {
 		// Need a bare-bones session object for later checks
 		session := &model.Session{
 			Token:   token,
