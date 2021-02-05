@@ -467,7 +467,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
-		c.SetInvalidParam("user_id")
+		c.SetInvalidUrlParam("user_id")
 		return
 	}
 	auditRec.AddMeta("user", user)

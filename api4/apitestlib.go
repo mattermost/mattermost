@@ -540,7 +540,6 @@ func (th *TestHelper) SetupLdapConfig() {
 		*cfg.LdapSettings.EnableSync = true
 		*cfg.LdapSettings.LdapServer = "dockerhost"
 		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
-		*cfg.LdapSettings.LdapServer = "doesn't matter"
 		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
 		*cfg.LdapSettings.BindPassword = "mostest"
 		*cfg.LdapSettings.FirstNameAttribute = "cn"
@@ -946,11 +945,6 @@ func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
 	checkHTTPStatus(t, resp, http.StatusNotFound, true)
 }
 
-func CheckConflictStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-	checkHTTPStatus(t, resp, http.StatusConflict, true)
-}
-
 func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
 	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
@@ -1008,7 +1002,7 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	return s3.New(endpoint, &opts)
 }
 
-func (th *TestHelper) CleanupTestFile(info *model.FileInfo) error {
+func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 	cfg := th.App.Config()
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := *cfg.FileSettings.AmazonS3Endpoint

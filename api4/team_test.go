@@ -3086,7 +3086,7 @@ func TestSetTeamIcon(t *testing.T) {
 	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
-	err = th.CleanupTestFile(info)
+	err = th.cleanupTestFile(info)
 	require.Nil(t, err, err)
 }
 

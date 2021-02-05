@@ -1471,7 +1471,7 @@ func TestGetProfileImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	info := &model.FileInfo{Path: "/users/" + user.Id + "/profile.png"}
-	err := th.CleanupTestFile(info)
+	err := th.cleanupTestFile(info)
 	require.NoError(t, err)
 }
 
@@ -3248,7 +3248,7 @@ func TestSetProfileImage(t *testing.T) {
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
-	err = th.CleanupTestFile(info)
+	err = th.cleanupTestFile(info)
 	require.Nil(t, err)
 }
 
@@ -3285,7 +3285,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	assert.Equal(t, int64(0), ruser.LastPictureUpdate, "Picture should have resetted to default")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
-	cleanupErr := th.CleanupTestFile(info)
+	cleanupErr := th.cleanupTestFile(info)
 	require.Nil(t, cleanupErr)
 }
 
@@ -5959,13 +5959,13 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 				CheckNoError(t, resp)
 			} else {
 				require.False(t, ok)
-				CheckConflictStatus(t, resp)
+				checkHTTPStatus(t, resp, http.StatusConflict, true)
 			}
 		})
 	}
 	doCleanup := func(t *testing.T, th *TestHelper, user *model.User) {
 		info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
-		err = th.CleanupTestFile(info)
+		err = th.cleanupTestFile(info)
 		require.Nil(t, err)
 	}
 

@@ -1274,7 +1274,7 @@ func TestSetBotIconImage(t *testing.T) {
 	require.Equal(t, goodData, actualData)
 
 	info := &model.FileInfo{Path: fpath}
-	err = th.CleanupTestFile(info)
+	err = th.cleanupTestFile(info)
 	require.Nil(t, err)
 }
 
@@ -1336,7 +1336,7 @@ func TestGetBotIconImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
-	err = th.CleanupTestFile(info)
+	err = th.cleanupTestFile(info)
 	require.Nil(t, err)
 }
 
