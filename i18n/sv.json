@@ -8521,5 +8521,21 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "Fel vid nedladdning av supportinformationsfilen."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Fel när filen lästes från servern"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Fel då zip-filen skapades."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "För att använda denna endpoint behövs en E10 eller E20-licens."
   }
 ]
