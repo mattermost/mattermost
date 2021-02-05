@@ -183,15 +183,15 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(bots.ToJson())
 }
 
-func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	updateBotActive(c, w, r, false)
+func disableBot(c *Context, w http.ResponseWriter, _ *http.Request) {
+	updateBotActive(c, w, false)
 }
 
-func enableBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	updateBotActive(c, w, r, true)
+func enableBot(c *Context, w http.ResponseWriter, _ *http.Request) {
+	updateBotActive(c, w, true)
 }
 
-func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active bool) {
+func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	c.RequireBotUserId()
 	if c.Err != nil {
 		return
@@ -220,7 +220,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active 
 	w.Write(bot.ToJson())
 }
 
-func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
+func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	c.RequireUserId()
 	c.RequireBotUserId()
 	if c.Err != nil {

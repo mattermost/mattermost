@@ -3278,6 +3278,21 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // General/System Section
 
+// GenerateSupportPacket downloads the generated support packet
+func (c *Client4) GenerateSupportPacket() ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetSystemRoute()+"/support_packet", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
 func (c *Client4) GetPing() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", "")
@@ -5737,6 +5752,18 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
+func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/stats", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var stats *SubscriptionStats
+	json.NewDecoder(r.Body).Decode(&stats)
+	return stats, BuildResponse(r)
+}
+
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
 	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
 	if appErr != nil {
@@ -5794,8 +5821,11 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
 	}
-	if options.Page != 0 {
-		v.Set("page", fmt.Sprintf("%d", options.Page))
+	if options.Before != "" {
+		v.Set("before", options.Before)
+	}
+	if options.After != "" {
+		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
 		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
@@ -5806,7 +5836,9 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Deleted {
 		v.Set("deleted", "true")
 	}
-
+	if options.Unread {
+		v.Set("unread", "true")
+	}
 	url := c.GetUserThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
