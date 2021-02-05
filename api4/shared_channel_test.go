@@ -6,12 +6,10 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -31,10 +29,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		dm, resp := Client.CreateDirectChannel(localUser.Id, remoteUser.Id)
 		CheckNoError(t, resp)
 
-		channelName := localUser.Id + "__" + remoteUser.Id
-		if localUser.Id > remoteUser.Id {
-			channelName = remoteUser.Id + "__" + localUser.Id
-		}
+		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
 		require.Equal(t, channelName, dm.Name, "dm name didn't match")
 		assert.True(t, dm.IsShared())
 	})
@@ -65,14 +60,11 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		dm, resp := Client.CreateDirectChannel(localUser.Id, remoteUser.Id)
 		CheckNoError(t, resp)
 
-		channelName := localUser.Id + "__" + remoteUser.Id
-		if localUser.Id > remoteUser.Id {
-			channelName = remoteUser.Id + "__" + localUser.Id
-		}
+		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
 		require.Equal(t, channelName, dm.Name, "dm name didn't match")
 		require.True(t, dm.IsShared())
 
-		assert.Equal(t, 1, mockService.GetInvitations())
+		assert.Equal(t, 1, mockService.NumInvitations())
 	})
 
 	t.Run("does not send a shared channel invitation to the remote when creator is remote", func(t *testing.T) {
@@ -101,13 +93,10 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		dm, resp := Client.CreateDirectChannel(remoteUser.Id, localUser.Id)
 		CheckNoError(t, resp)
 
-		channelName := localUser.Id + "__" + remoteUser.Id
-		if localUser.Id > remoteUser.Id {
-			channelName = remoteUser.Id + "__" + localUser.Id
-		}
+		channelName := model.GetDMNameFromIds(localUser.Id, remoteUser.Id)
 		require.Equal(t, channelName, dm.Name, "dm name didn't match")
 		require.True(t, dm.IsShared())
 
-		assert.Zero(t, mockService.GetInvitations())
+		assert.Zero(t, mockService.NumInvitations())
 	})
 }
