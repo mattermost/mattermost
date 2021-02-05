@@ -6,6 +6,7 @@ package sharedchannel
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -112,8 +113,12 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 	// creating the upload session on the remote server needs to be done synchronously.
 	err = rcs.SendMsg(ctx, msg, rc, func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		defer wg.Done()
-		if err != nil || !resp.IsSuccess() {
+		if err != nil {
 			respErr = err
+			return
+		}
+		if !resp.IsSuccess() {
+			respErr = errors.New(resp.Err)
 			return
 		}
 		respErr = json.Unmarshal(resp.Payload, &usResp)
@@ -182,9 +187,9 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 // created and the id returned in the response.
 func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
 
-	var us *model.UploadSession
+	var us model.UploadSession
 
-	if err := json.Unmarshal(msg.Payload, us); err != nil {
+	if err := json.Unmarshal(msg.Payload, &us); err != nil {
 		return fmt.Errorf("invalid upload session request: %w", err)
 	}
 
@@ -196,7 +201,7 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
 	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(us)
+	usSaved, appErr := scs.app.CreateUploadSession(&us)
 	if appErr != nil {
 		return appErr
 	}

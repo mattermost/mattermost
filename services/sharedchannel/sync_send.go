@@ -201,6 +201,8 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 		return nil
 	}
 
+	scs.sendAttachments(syncMessages, rc)
+
 	b, err := json.Marshal(syncMessages)
 	if err != nil {
 		return err
@@ -258,9 +260,6 @@ func (scs *Service) updateForRemote(channelId string, rc *model.RemoteCluster) e
 				mlog.Err(err2),
 			)
 		}
-
-		// send any file attachments asynchronously
-		scs.sendAttachments(syncMessages, rc)
 	})
 
 	if err == nil && retry {
