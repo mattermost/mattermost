@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"sync"
@@ -99,8 +100,16 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 
 // Start is called by the server on server start-up.
 func (scs *Service) Start() error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return errors.New("Shared Channel Service cannot activate: requires Remote Cluster Service")
+	}
+
 	scs.mux.Lock()
 	scs.leaderListenerId = scs.server.AddClusterLeaderChangedListener(scs.onClusterLeaderChange)
+	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
+	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
+	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 	scs.mux.Unlock()
 
 	scs.onClusterLeaderChange()
@@ -110,8 +119,17 @@ func (scs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return errors.New("Shared Channel Service cannot shutdown: requires Remote Cluster Service")
+	}
+
 	scs.mux.RLock()
 	id := scs.leaderListenerId
+	rcs.RemoveTopicListener(scs.syncTopicListenerId)
+	scs.syncTopicListenerId = ""
+	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
+	scs.inviteTopicListenerId = ""
 	scs.mux.RUnlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
@@ -153,15 +171,6 @@ func (scs *Service) resume() {
 		return // already active
 	}
 
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
-		return
-	}
-	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
-	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
-	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
-
 	scs.active = true
 	scs.done = make(chan struct{})
 
@@ -177,15 +186,6 @@ func (scs *Service) pause() {
 	if !scs.active {
 		return // already inactive
 	}
-
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		scs.server.GetLogger().Error("Shared Channel Service activitate: requires Remote Cluster Service")
-	}
-	rcs.RemoveTopicListener(scs.syncTopicListenerId)
-	scs.syncTopicListenerId = ""
-	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
-	scs.inviteTopicListenerId = ""
 
 	scs.active = false
 	close(scs.done)
