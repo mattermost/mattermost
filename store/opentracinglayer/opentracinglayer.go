@@ -1678,7 +1678,7 @@ func (s *OpenTracingLayerChannelStore) IsUserInChannelUseCache(userId string, ch
 	return result
 }
 
-func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserId string) (map[string]string, error) {
+func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateChannelMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -1687,7 +1687,7 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID strin
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserId)
+	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2915,7 +2915,7 @@ func (s *OpenTracingLayerEmojiStore) Search(name string, prefixOnly bool, limit 
 	return result, err
 }
 
-func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorID string) error {
+func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileID string, postID string, creatorId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.AttachToPost")
 	s.Root.Store.SetContext(newCtx)
@@ -2924,7 +2924,7 @@ func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileID string, postID strin
 	}()
 
 	defer span.Finish()
-	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorID)
+	err := s.FileInfoStore.AttachToPost(fileID, postID, creatorId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7059,7 +7059,7 @@ func (s *OpenTracingLayerTeamStore) GetChannelUnreadsForTeam(teamID string, user
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetMember(teamID string, userID string) (*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) GetMember(teamID string, userId string) (*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetMember")
 	s.Root.Store.SetContext(newCtx)
@@ -7068,7 +7068,7 @@ func (s *OpenTracingLayerTeamStore) GetMember(teamID string, userID string) (*mo
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetMember(teamID, userID)
+	result, err := s.TeamStore.GetMember(teamID, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7149,7 +7149,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByScheme(schemeID string, offset int
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Team, error) {
+func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsByUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -7158,7 +7158,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Te
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetTeamsByUserId(userID)
+	result, err := s.TeamStore.GetTeamsByUserId(userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7167,7 +7167,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userID string) ([]*model.Te
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userID string) ([]*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -7176,7 +7176,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsForUser(ctx context.Context, userID 
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.GetTeamsForUser(ctx, userID)
+	result, err := s.TeamStore.GetTeamsForUser(ctx, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7270,7 +7270,7 @@ func (s *OpenTracingLayerTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 
 }
 
-func (s *OpenTracingLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserID string) (map[string]string, error) {
+func (s *OpenTracingLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUserId string) (map[string]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.MigrateTeamMembers")
 	s.Root.Store.SetContext(newCtx)
@@ -7279,7 +7279,7 @@ func (s *OpenTracingLayerTeamStore) MigrateTeamMembers(fromTeamID string, fromUs
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserID)
+	result, err := s.TeamStore.MigrateTeamMembers(fromTeamID, fromUserId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -9174,7 +9174,7 @@ func (s *OpenTracingLayerUserStore) SearchNotInChannel(teamID string, channelID 
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.SearchNotInTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -9183,7 +9183,7 @@ func (s *OpenTracingLayerUserStore) SearchNotInTeam(notInTeamID string, term str
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.SearchNotInTeam(notInTeamID, term, options)
+	result, err := s.UserStore.SearchNotInTeam(notInTeamId, term, options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

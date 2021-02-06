@@ -32,7 +32,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for exact phrases in quotes",
 		Fn:   testSearchExactPhraseInQuotes,
-		Tags: []string{EnginePostgres, EngineMySQL, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search for email addresses with or without quotes",
@@ -92,12 +92,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to exclude messages that contain a serch term",
 		Fn:   testFilterMessagesWithATerm,
-		Tags: []string{EngineMySQL, EnginePostgres},
+		Tags: []string{EngineMySql, EnginePostgres},
 	},
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testSearchUsingBooleanOperators,
-		Tags: []string{EngineMySQL, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search with combined filters",
@@ -107,7 +107,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should support search stemming",
@@ -138,7 +138,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support terms with underscore",
 		Fn:   testSupportTermsWithUnderscore,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should search or exclude post using hashtags",
@@ -198,7 +198,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testSearchInDeletedOrArchivedChannels,
-		Tags: []string{EngineMySQL, EnginePostgres},
+		Tags: []string{EngineMySql, EnginePostgres},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
@@ -240,7 +240,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should not support slash as character separator",
 		Fn:   testSlashShouldNotBeCharSeparator,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search emails without quoting them",
@@ -255,7 +255,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms within links",
 		Fn:   testSupportSearchTermsWithinLinks,
-		Tags: []string{EngineMySQL, EngineElasticSearch},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should not return links that are embedded in markdown",

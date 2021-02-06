@@ -32,25 +32,25 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	}{
 		{
 			"nil params",
-			p.configuration.BasicTeamID,
+			p.configuration.BasicTeamId,
 			nil,
 			0,
 		},
 		{
 			"empty params",
-			p.configuration.BasicTeamID,
+			p.configuration.BasicTeamId,
 			[]*model.SearchParams{},
 			0,
 		},
 		{
 			"doesn't match any posts",
-			p.configuration.BasicTeamID,
+			p.configuration.BasicTeamId,
 			model.ParseSearchParams("bad message", 0),
 			0,
 		},
 		{
 			"matched posts",
-			p.configuration.BasicTeamID,
+			p.configuration.BasicTeamId,
 			model.ParseSearchParams(p.configuration.BasicPostMessage, 0),
 			1,
 		},

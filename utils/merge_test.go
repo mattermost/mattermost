@@ -1203,11 +1203,11 @@ type testStruct struct {
 	F        float64
 	F32      float32
 	S        string
-	UI       uint
-	UI8      uint8
-	UI16     uint32
-	UI32     uint32
-	UI64     uint64
+	Ui       uint
+	Ui8      uint8
+	Ui16     uint32
+	Ui32     uint32
+	Ui64     uint64
 	Pi       *int
 	Pi8      *int8
 	Pi16     *int16

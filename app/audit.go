@@ -143,7 +143,7 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	if !bAllowAdvancedLogging || dsn == "" {
 		return errs
 	}
-	isJson := config.IsJSONMap(dsn)
+	isJson := config.IsJsonMap(dsn)
 	cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
 	if err != nil {
 		errs = multierror.Append(fmt.Errorf("invalid config for audit, %w", err))

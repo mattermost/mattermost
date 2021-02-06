@@ -12,7 +12,7 @@ import (
 
 const (
 	EngineAll           = "all"
-	EngineMySQL         = "mysql"
+	EngineMySql         = "mysql"
 	EnginePostgres      = "postgres"
 	EngineElasticSearch = "elasticsearch"
 	EngineBleve         = "bleve"

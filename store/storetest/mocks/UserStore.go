@@ -1160,13 +1160,13 @@ func (_m *UserStore) SearchNotInChannel(teamID string, channelID string, term st
 	return r0, r1
 }
 
-// SearchNotInTeam provides a mock function with given fields: notInTeamID, term, options
-func (_m *UserStore) SearchNotInTeam(notInTeamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(notInTeamID, term, options)
+// SearchNotInTeam provides a mock function with given fields: notInTeamId, term, options
+func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(notInTeamId, term, options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(notInTeamID, term, options)
+		r0 = rf(notInTeamId, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1175,7 +1175,7 @@ func (_m *UserStore) SearchNotInTeam(notInTeamID string, term string, options *m
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(notInTeamID, term, options)
+		r1 = rf(notInTeamId, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}

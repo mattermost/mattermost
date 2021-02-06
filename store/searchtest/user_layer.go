@@ -95,12 +95,12 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search inactive users",
 		Fn:   testShouldBeAbleToSearchInactiveUsers,
-		Tags: []string{EngineMySQL, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search filtering by role",
 		Fn:   testShouldBeAbleToSearchFilteringByRole,
-		Tags: []string{EngineMySQL, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should ignore leading @ when searching users",

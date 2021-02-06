@@ -17,7 +17,7 @@ type Schedulers struct {
 	stopped              chan bool
 	configChanged        chan *model.Config
 	clusterLeaderChanged chan bool
-	listenerID           string
+	listenerId           string
 	startOnce            sync.Once
 	jobs                 *JobServer
 	isLeader             bool
@@ -87,7 +87,7 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 }
 
 func (schedulers *Schedulers) Start() *Schedulers {
-	schedulers.listenerID = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
+	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {
 		schedulers.startOnce.Do(func() {
