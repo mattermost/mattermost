@@ -271,7 +271,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := &model.Threads{
 		Total:               totalCount,
-		Threads:             nil,
+		Threads:             []*model.ThreadResponse{},
 		TotalUnreadMentions: totalUnreadMentions,
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
