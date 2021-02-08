@@ -969,10 +969,7 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 
 	// Shared channels support
-	sqlStore.CreateColumnIfNotExists("Channels", "Shared", "tinyint(1)", "boolean", "0")
-	if _, err := sqlStore.GetMaster().Exec("UPDATE Channels SET Shared=false WHERE Shared IS NULL"); err != nil {
-		mlog.Error("Error updating Shared column in Channels table", mlog.Err(err))
-	}
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "UpdateAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "DeleteAt", "bigint", "bigint")
 	sqlStore.CreateColumnIfNotExistsNoDefault("Reactions", "RemoteId", "VARCHAR(26)", "VARCHAR(26)")
