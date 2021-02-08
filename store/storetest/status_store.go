@@ -19,7 +19,7 @@ func TestStatusStore(t *testing.T, ss store.Store) {
 
 func testStatusStore(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	require.Nil(t, ss.Status().SaveOrUpdate(status))
+	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
 	status.LastActivityAt = 10
 
@@ -27,10 +27,10 @@ func testStatusStore(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	status2 := &model.Status{UserId: model.NewId(), Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	require.Nil(t, ss.Status().SaveOrUpdate(status2))
+	require.NoError(t, ss.Status().SaveOrUpdate(status2))
 
 	status3 := &model.Status{UserId: model.NewId(), Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	require.Nil(t, ss.Status().SaveOrUpdate(status3))
+	require.NoError(t, ss.Status().SaveOrUpdate(status3))
 
 	statuses, err := ss.Status().GetByIds([]string{status.UserId, "junk"})
 	require.NoError(t, err)
@@ -49,7 +49,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 
 func testActiveUserCount(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	require.Nil(t, ss.Status().SaveOrUpdate(status))
+	require.NoError(t, ss.Status().SaveOrUpdate(status))
 
 	count, err := ss.Status().GetTotalActiveUsersCount()
 	require.NoError(t, err)

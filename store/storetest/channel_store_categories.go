@@ -592,7 +592,7 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 				SidebarChannels
 			WHERE
 				CategoryId = :CategoryId`, map[string]interface{}{"CategoryId": channelsCategory.Id})
-		require.Nil(t, countErr)
+		require.NoError(t, countErr)
 		assert.Equal(t, int64(0), count)
 
 		// Ensure that the Channels are returned in alphabetical order
@@ -1051,7 +1051,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.NoError(t, err)
 
 		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.NotNil(t, nErr)
+		assert.Error(t, nErr)
 		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 	})
@@ -1116,7 +1116,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store) {
 		assert.NoError(t, err)
 
 		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
-		assert.NotNil(t, nErr)
+		assert.Error(t, nErr)
 		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 	})
@@ -1929,7 +1929,7 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 				SidebarChannels
 			WHERE
 				CategoryId = :CategoryId`, map[string]interface{}{"CategoryId": newCategory.Id})
-		require.Nil(t, countErr)
+		require.NoError(t, countErr)
 		assert.Equal(t, int64(0), count)
 	})
 

@@ -23,7 +23,7 @@ const (
 
 func cleanupStatusStore(t *testing.T, s SqlStore) {
 	_, execerr := s.GetMaster().ExecNoTimeout(` DELETE FROM Status `)
-	require.Nil(t, execerr)
+	require.NoError(t, execerr)
 }
 
 func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
@@ -941,7 +941,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 			Page:        2,
 			PerPage:     1,
 		})
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		users = append(users, users_p2...)
 		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
@@ -1063,15 +1063,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u1.Id,
 		Status: model.STATUS_DND,
 	}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u2.Id,
 		Status: model.STATUS_AWAY,
 	}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u3.Id,
 		Status: model.STATUS_ONLINE,
 	}))
@@ -2270,15 +2270,15 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
-	require.Nil(t, unreadCountErr)
+	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
-	require.Nil(t, unreadCountErr)
+	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread messages for that channel")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c2.Id)
-	require.Nil(t, unreadCountErr)
+	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(2), badge, "should have 2 unread messages for that channel")
 }
 
@@ -2363,9 +2363,9 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s 
 	u2.LastActivityAt = millis - 1
 	u1.LastActivityAt = millis - 1
 
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
@@ -3876,11 +3876,11 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 	// u0 last activity status is two months ago.
 	// u1 last activity status is two days ago.
 	// u2, u3, u4 last activity is within last day
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 
 	// Daily counts (without bots)
 	count, err := ss.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
@@ -3964,11 +3964,11 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 	// u2 last activity is one day ago
 	// u3 last activity is within last day
 	// u4 last activity is within last day
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MonthMilliseconds}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DayMilliseconds}))
-	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u0.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoMonthsAgo + MonthMilliseconds}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millisTwoDaysAgo + DayMilliseconds}))
+	require.NoError(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u4.Id, Status: model.STATUS_OFFLINE, LastActivityAt: millis}))
 
 	// Two months to two days (without bots)
 	count, nerr := ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
@@ -4223,9 +4223,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	time.Sleep(time.Millisecond)
 
 	e := ss.Team().RemoveMember(teamId, u1.Id)
-	require.Nil(t, e)
+	require.NoError(t, e)
 	e = ss.Team().RemoveMember(teamId, u2.Id)
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	u1.UpdateAt, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)
@@ -4356,22 +4356,22 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
-	require.Nil(t, ss.User().ClearAllCustomRoleAssignments())
+	require.NoError(t, ss.User().ClearAllCustomRoleAssignments())
 
 	r1, err := ss.User().GetByUsername(u1.Username)
 	require.NoError(t, err)
 	assert.Equal(t, u1.Roles, r1.Roles)
 
 	r2, err1 := ss.User().GetByUsername(u2.Username)
-	require.Nil(t, err1)
+	require.NoError(t, err1)
 	assert.Equal(t, "system_user system_admin", r2.Roles)
 
 	r3, err2 := ss.User().GetByUsername(u3.Username)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	assert.Equal(t, u3.Roles, r3.Roles)
 
 	r4, err3 := ss.User().GetByUsername(u4.Username)
-	require.Nil(t, err3)
+	require.NoError(t, err3)
 	assert.Equal(t, "", r4.Roles)
 }
 

@@ -371,7 +371,7 @@ func TestCheckParentChildIntegrity(t *testing.T) {
 				childIdAttr:  "NotValid",
 			}
 			result := checkParentChildIntegrity(store, config)
-			require.NotNil(t, result.Err)
+			require.Error(t, result.Err)
 			require.Empty(t, result.Data)
 		})
 	})

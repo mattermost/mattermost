@@ -73,7 +73,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		o1 := olist.Posts[olist.Order[0]]
 
 		newPosts = append([]*model.Post{o1}, newPosts...)
-		require.Nil(t, err3, "couldn't save item")
+		require.NoError(t, err3, "couldn't save item")
 		require.Equal(t, -1, errIdx)
 		require.Len(t, newPosts, 4)
 		require.Equal(t, int64(2), newPosts[0].ReplyCount)
@@ -235,9 +235,9 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
+		require.NoError(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.Nil(t, err1)
+		require.NoError(t, err1)
 		m.LastUpdated -= 1000
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
@@ -247,7 +247,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		assert.Eventually(t, func() bool {
 			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.Nil(t, err2)
+			require.NoError(t, err2)
 			return m2.LastUpdated > m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
 	})
@@ -255,9 +255,9 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after IncrementMentionCount", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
+		require.NoError(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.Nil(t, err1)
+		require.NoError(t, err1)
 		m.LastUpdated -= 1000
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
@@ -267,7 +267,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		assert.Eventually(t, func() bool {
 			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.Nil(t, err2)
+			require.NoError(t, err2)
 			return m2.LastUpdated > m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
 	})
@@ -275,9 +275,9 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAt", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
+		require.NoError(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.Nil(t, err1)
+		require.NoError(t, err1)
 		m.LastUpdated -= 1000
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
@@ -287,7 +287,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		assert.Eventually(t, func() bool {
 			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.Nil(t, err2)
+			require.NoError(t, err2)
 			return m2.LastUpdated > m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
 	})
@@ -295,9 +295,9 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	t.Run("Thread last updated is changed when channel is updated after UpdateLastViewedAtPost for mark unread", func(t *testing.T) {
 		newPosts := makeSomePosts()
 
-		require.Nil(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
+		require.NoError(t, ss.Thread().CreateMembershipIfNeeded(newPosts[0].UserId, newPosts[0].Id, true, false, true))
 		m, err1 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-		require.Nil(t, err1)
+		require.NoError(t, err1)
 		m.LastUpdated += 1000
 		_, err := ss.Thread().UpdateMembership(m)
 		require.NoError(t, err)
@@ -307,7 +307,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		assert.Eventually(t, func() bool {
 			m2, err2 := ss.Thread().GetMembershipForUser(newPosts[0].UserId, newPosts[0].Id)
-			require.Nil(t, err2)
+			require.NoError(t, err2)
 			return m2.LastUpdated < m.LastUpdated
 		}, time.Second, 10*time.Millisecond)
 	})

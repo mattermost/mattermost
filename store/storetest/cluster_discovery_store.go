@@ -115,14 +115,14 @@ func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
 		Hostname:    "hostname1",
 		Type:        testType1,
 	}
-	require.Nil(t, ss.ClusterDiscovery().Save(discovery1))
+	require.NoError(t, ss.ClusterDiscovery().Save(discovery1))
 
 	discovery2 := &model.ClusterDiscovery{
 		ClusterName: "cluster_name",
 		Hostname:    "hostname2",
 		Type:        testType1,
 	}
-	require.Nil(t, ss.ClusterDiscovery().Save(discovery2))
+	require.NoError(t, ss.ClusterDiscovery().Save(discovery2))
 
 	discovery3 := &model.ClusterDiscovery{
 		ClusterName: "cluster_name",
@@ -131,7 +131,7 @@ func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
 		CreateAt:    1,
 		LastPingAt:  1,
 	}
-	require.Nil(t, ss.ClusterDiscovery().Save(discovery3))
+	require.NoError(t, ss.ClusterDiscovery().Save(discovery3))
 
 	testType2 := model.NewId()
 
@@ -140,7 +140,7 @@ func testClusterDiscoveryGetStore(t *testing.T, ss store.Store) {
 		Hostname:    "hostname1",
 		Type:        testType2,
 	}
-	require.Nil(t, ss.ClusterDiscovery().Save(discovery4))
+	require.NoError(t, ss.ClusterDiscovery().Save(discovery4))
 
 	list, err := ss.ClusterDiscovery().GetAll(testType1, "cluster_name")
 	require.NoError(t, err)

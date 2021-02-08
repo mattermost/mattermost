@@ -2535,7 +2535,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, ss store.Store) {
 		Type:            model.TEAM_OPEN,
 	}
 	team1, errt := ss.Team().Save(team1)
-	require.Nil(t, errt)
+	require.NoError(t, errt)
 
 	// Create Channel1
 	channel1 := &model.Channel{

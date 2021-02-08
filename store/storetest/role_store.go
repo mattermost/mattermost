@@ -578,9 +578,9 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 
 	// blank-out the guest role to simulate an old team scheme, ensure it's blank
 	result, sqlErr := s.GetMaster().Exec(fmt.Sprintf("UPDATE Schemes SET DefaultChannelGuestRole = '' WHERE Id = '%s'", teamScheme.Id))
-	require.Nil(t, sqlErr)
+	require.NoError(t, sqlErr)
 	rows, serr := result.RowsAffected()
-	require.Nil(t, serr)
+	require.NoError(t, serr)
 	require.Equal(t, int64(1), rows)
 	teamScheme, err = ss.Scheme().Get(teamScheme.Id)
 	require.NoError(t, err)

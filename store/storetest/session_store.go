@@ -115,7 +115,7 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Id)
-	require.Nil(t, removeErr)
+	require.NoError(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
 	require.Error(t, err, "should have been removed")
@@ -133,7 +133,7 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().RemoveAllSessions()
-	require.Nil(t, removeErr)
+	require.NoError(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
 	require.Error(t, err, "should have been removed")
@@ -151,7 +151,7 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
-	require.Nil(t, deleteErr)
+	require.NoError(t, deleteErr)
 
 	_, err = ss.Session().Get(s1.Id)
 	require.Error(t, err, "should have been removed")
@@ -169,7 +169,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	require.Equal(t, session.Id, s1.Id, "should match")
 
 	removeErr := ss.Session().Remove(s1.Token)
-	require.Nil(t, removeErr)
+	require.NoError(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
 	require.Error(t, err, "should have been removed")
@@ -308,10 +308,10 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 
 	removeErr := ss.Session().Remove(s1.Id)
-	require.Nil(t, removeErr)
+	require.NoError(t, removeErr)
 
 	removeErr = ss.Session().Remove(s2.Id)
-	require.Nil(t, removeErr)
+	require.NoError(t, removeErr)
 }
 
 func testGetSessionsExpired(t *testing.T, ss store.Store) {

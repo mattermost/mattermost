@@ -841,7 +841,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 10)
-	require.Nil(t, listErr)
+	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
@@ -858,7 +858,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	teams, listErr = ss.Team().GetAllPrivateTeamPageListing(0, 4)
-	require.Nil(t, listErr)
+	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
@@ -866,7 +866,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	require.LessOrEqual(t, len(teams), 4, "should have returned max of 4 teams")
 
 	teams, listErr = ss.Team().GetAllPrivateTeamPageListing(1, 1)
-	require.Nil(t, listErr)
+	require.NoError(t, listErr)
 	for _, team := range teams {
 		require.False(t, team.AllowOpenInvite, "should have returned team with AllowOpenInvite as false")
 	}
@@ -953,7 +953,7 @@ func testDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	r1 := ss.Team().PermanentDelete(o1.Id)
-	require.Nil(t, r1)
+	require.NoError(t, r1)
 }
 
 func testPublicTeamCount(t *testing.T, ss store.Store) {
@@ -2707,13 +2707,13 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
-	require.Nil(t, errTeam)
+	require.NoError(t, errTeam)
 
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
 
 	e := ss.Team().RemoveMember(teamId1, m1.UserId)
-	require.Nil(t, e)
+	require.NoError(t, e)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.NoError(t, err)
@@ -2753,7 +2753,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, errSave)
+	require.NoError(t, errSave)
 	defer func() {
 		ss.Team().PermanentDelete(team.Id)
 	}()
@@ -2804,7 +2804,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "shouldn't be able to save member when at maximum members per team")
 
 	totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil)
-	require.Nil(t, teamErr)
+	require.NoError(t, teamErr)
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should still have 5 team members, had %v instead", totalMemberCount)
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
@@ -2813,10 +2813,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		UserId:   userIds[0],
 		DeleteAt: 1234,
 	})
-	require.Nil(t, teamErr)
+	require.NoError(t, teamErr)
 
 	totalMemberCount, teamErr = ss.Team().GetTotalMemberCount(team.Id, nil)
-	require.Nil(t, teamErr)
+	require.NoError(t, teamErr)
 	require.Equal(t, maxUsersPerTeam-1, int(totalMemberCount), "should now only have 4 team members, had %v instead", totalMemberCount)
 
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam)
@@ -2825,7 +2825,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	defer ss.Team().RemoveMember(team.Id, newUserId)
 
 	totalMemberCount, teamErr = ss.Team().GetTotalMemberCount(team.Id, nil)
-	require.Nil(t, teamErr)
+	require.NoError(t, teamErr)
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should have 5 team members again, had %v instead", totalMemberCount)
 
 	// Deactivating a user should make them stop counting against max members
@@ -3207,7 +3207,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 
 	for {
 		res, e := ss.Team().MigrateTeamMembers(lastDoneTeamId, lastDoneUserId)
-		if assert.Nil(t, e) {
+		if assert.NoError(t, e) {
 			if res == nil {
 				break
 			}
@@ -3307,7 +3307,7 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
 	require.NoError(t, nErr)
 
-	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
+	require.NoError(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
 	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.NoError(t, err)

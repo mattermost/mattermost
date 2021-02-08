@@ -135,7 +135,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, rErr)
+		require.NoError(t, rErr)
 
 		assert.Empty(t, reactions, "should've deleted reaction")
 
@@ -276,17 +276,17 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store, s SqlStore
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
-	require.Nil(t, err1)
+	require.NoError(t, err1)
 	post2, err2 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	post3, err3 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
-	require.Nil(t, err3)
+	require.NoError(t, err3)
 
 	userId := model.NewId()
 
@@ -381,7 +381,7 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
 	})
-	require.Nil(t, err1)
+	require.NoError(t, err1)
 
 	reactions := []*model.Reaction{
 		{

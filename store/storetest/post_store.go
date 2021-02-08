@@ -677,7 +677,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	err2 := ss.Post().PermanentDeleteByUser(o2.UserId)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
 	require.NoError(t, err, "Deleted id shouldn't have failed")
@@ -717,7 +717,7 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	err2 := ss.Post().PermanentDeleteByUser(o1.UserId)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
 	require.Error(t, err, "Deleted id should have failed")
@@ -761,7 +761,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	require.Len(t, pl.Posts, 3, "invalid returned post")
 
 	dErr := ss.Post().Delete(o3.Id, model.GetMillis(), "")
-	require.Nil(t, dErr)
+	require.NoError(t, dErr)
 
 	pl, err = ss.Post().Get(o1.Id, false, false, false)
 	require.NoError(t, err)
@@ -769,7 +769,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	require.Len(t, pl.Posts, 2, "invalid returned post")
 
 	dErr = ss.Post().Delete(o2.Id, model.GetMillis(), "")
-	require.Nil(t, dErr)
+	require.NoError(t, dErr)
 
 	pl, err = ss.Post().Get(o1.Id, false, false, false)
 	require.NoError(t, err)

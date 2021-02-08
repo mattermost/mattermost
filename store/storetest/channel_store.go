@@ -28,7 +28,7 @@ type SqlStore interface {
 
 func cleanupChannels(t *testing.T, ss store.Store) {
 	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
-	require.Nilf(t, err, "error cleaning all channels: %v", err)
+	require.NoErrorf(t, err, "error cleaning all channels: %v", err)
 	for _, channel := range *list {
 		err = ss.Channel().PermanentDelete(channel.Id)
 		assert.NoError(t, err)
@@ -424,7 +424,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	require.Equal(t, o2.ToJson(), c4.ToJson(), "invalid returned channel")
 
 	channels, chanErr := ss.Channel().GetAll(o1.TeamId)
-	require.Nil(t, chanErr, chanErr)
+	require.NoError(t, chanErr, chanErr)
 	require.Greater(t, len(channels), 0, "too little")
 
 	channelsTeam, err := ss.Channel().GetTeamChannels(o1.TeamId)
@@ -536,7 +536,7 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	channel, chanErr := ss.Channel().GetForPost(p1.Id)
-	require.Nil(t, chanErr, chanErr)
+	require.NoError(t, chanErr, chanErr)
 	require.Equal(t, o1.Id, channel.Id, "incorrect channel returned")
 }
 
@@ -627,7 +627,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	require.Len(t, *list, 1, "invalid number of channels")
 
 	cresult := ss.Channel().PermanentDelete(o2.Id)
-	require.Nil(t, cresult)
+	require.NoError(t, cresult)
 
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false, 0)
 	if assert.Error(t, nErr) {
@@ -3463,7 +3463,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 
 	t.Run("only o3 listed in more channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetMoreChannels(teamId, userId, 0, 100)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o3}, list)
 	})
 
@@ -3558,7 +3558,7 @@ func testChannelStoreGetPrivateChannelsForTeam(t *testing.T, ss store.Store) {
 
 	t.Run("only p1 initially listed in private channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPrivateChannelsForTeam(teamId, 0, 100)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&p1}, list)
 	})
 
@@ -3650,7 +3650,7 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 
 	t.Run("only o1 initially listed in public channels", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o1}, list)
 	})
 
@@ -3742,13 +3742,13 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 
 	t.Run("oc1 by itself should be found as a public channel in the team", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
 	t.Run("only oc1, among others, should be found as a public channel in the team", func(t *testing.T) {
 		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
@@ -4377,7 +4377,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, channelErr := ss.Channel().GetMemberCount(c1.Id, false)
-	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
+	require.NoErrorf(t, channelErr, "failed to get member count: %v", channelErr)
 	require.EqualValuesf(t, 1, count, "got incorrect member count %v", count)
 
 	u2 := model.User{
@@ -4398,7 +4398,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, channelErr = ss.Channel().GetMemberCount(c1.Id, false)
-	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
+	require.NoErrorf(t, channelErr, "failed to get member count: %v", channelErr)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 
 	// make sure members of other channels aren't counted
@@ -4420,7 +4420,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, channelErr = ss.Channel().GetMemberCount(c1.Id, false)
-	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
+	require.NoErrorf(t, channelErr, "failed to get member count: %v", channelErr)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 
 	// make sure inactive users aren't counted
@@ -4442,7 +4442,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, nErr = ss.Channel().GetMemberCount(c1.Id, false)
-	require.Nilf(t, nErr, "failed to get member count: %v", nErr)
+	require.NoErrorf(t, nErr, "failed to get member count: %v", nErr)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 }
 
@@ -4700,7 +4700,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, int64(0), count)
 	})
 
@@ -4725,7 +4725,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, int64(1), count)
 	})
 
@@ -4750,7 +4750,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, int64(1), count)
 	})
 
@@ -4775,7 +4775,7 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, int64(1), count)
 	})
 }
@@ -5225,7 +5225,7 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 
 	searchAndCheck := func(t *testing.T, term string, includeDeleted bool, expectedDisplayNames []string) {
 		res, searchErr := ss.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
-		require.Nil(t, searchErr)
+		require.NoError(t, searchErr)
 		require.Len(t, *res, len(expectedDisplayNames))
 
 		resultDisplayNames := []string{}
@@ -5859,7 +5859,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	pl, errGet := ss.Channel().GetPinnedPosts(o1.Id)
-	require.Nil(t, errGet, errGet)
+	require.NoError(t, errGet, errGet)
 	require.NotNil(t, pl.Posts[p1.Id], "didn't return relevant pinned posts")
 
 	ch2 := &model.Channel{
@@ -5880,7 +5880,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	pl, errGet = ss.Channel().GetPinnedPosts(o2.Id)
-	require.Nil(t, errGet, errGet)
+	require.NoError(t, errGet, errGet)
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
 
 	t.Run("with correct ReplyCount", func(t *testing.T) {
@@ -5953,7 +5953,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	count, errGet := ss.Channel().GetPinnedPostCount(o1.Id, true)
-	require.Nil(t, errGet, errGet)
+	require.NoError(t, errGet, errGet)
 	require.EqualValues(t, 2, count, "didn't return right count")
 
 	ch2 := &model.Channel{
@@ -5981,7 +5981,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	count, errGet = ss.Channel().GetPinnedPostCount(o2.Id, true)
-	require.Nil(t, errGet, errGet)
+	require.NoError(t, errGet, errGet)
 	require.EqualValues(t, 0, count, "should return 0")
 }
 
@@ -6225,7 +6225,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 	_, err = ss.Channel().SaveMember(m4)
 	require.NoError(t, err)
 
-	require.Nil(t, ss.Channel().ClearAllCustomRoleAssignments())
+	require.NoError(t, ss.Channel().ClearAllCustomRoleAssignments())
 
 	member, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
 	require.NoError(t, err)
@@ -6271,7 +6271,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("o1 and o2 initially listed in public channels", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
 	})
 
@@ -6279,11 +6279,11 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	o1.UpdateAt = o1.DeleteAt
 
 	e := ss.Channel().Delete(o1.Id, o1.DeleteAt)
-	require.Nil(t, e, "channel should have been deleted")
+	require.NoError(t, e, "channel should have been deleted")
 
 	t.Run("o1 still listed in public channels when marked as deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o1, &o2}, channels)
 	})
 
@@ -6291,7 +6291,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("o1 no longer listed in public channels when permanently deleted", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o2}, channels)
 	})
 
@@ -6301,7 +6301,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{}, channels)
 	})
 
@@ -6311,7 +6311,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o2}, channels)
 	})
 
@@ -6338,7 +6338,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		"Header":      o3.Header,
 		"Purpose":     o3.Purpose,
 	})
-	require.Nil(t, execerr)
+	require.NoError(t, execerr)
 
 	o3.DisplayName = "Open Channel 3 - Modified"
 
@@ -6363,11 +6363,11 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 		"ExtraUpdateAt": o3.ExtraUpdateAt,
 		"CreatorId":     o3.CreatorId,
 	})
-	require.Nil(t, execerr)
+	require.NoError(t, execerr)
 
 	t.Run("verify o3 INSERT converted to UPDATE", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
-		require.Nil(t, channelErr)
+		require.NoError(t, channelErr)
 		require.Equal(t, &model.ChannelList{&o2, &o3}, channels)
 	})
 
@@ -6390,7 +6390,7 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	`, map[string]interface{}{
 		"Id": o4.Id,
 	})
-	require.Nil(t, execerr)
+	require.NoError(t, execerr)
 
 	o4.DisplayName += " - Modified"
 	_, appErr = ss.Channel().Update(&o4)
