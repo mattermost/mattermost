@@ -102,6 +102,7 @@ var PERMISSION_EDIT_BRAND *Permission
 var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
 var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
+var PERMISSION_PURGE_BLEVE_INDEXES *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -150,6 +151,15 @@ var PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE *Permission
 
 var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL *Permission
 var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS *Permission
+
+var PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE *Permission
+var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -538,6 +548,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PERMISSION_PURGE_BLEVE_INDEXES = &Permission{
+		"purge_bleve_indexes",
+		"authentication.permissions.download_compliance_export_result.name",
+		"authentication.permissions.download_compliance_export_result.description",
+		PermissionScopeSystem,
+	}
+
 	PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT = &Permission{
 		"download_compliance_export_result",
 		"authentication.permissions.download_compliance_export_result.name",
@@ -887,16 +904,54 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL = &Permission{
 		"sysconsole_read_experimental",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL = &Permission{
 		"sysconsole_write_experimental",
 		"authentication.permissions.use_group_mentions.name",
 		"authentication.permissions.use_group_mentions.description",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES = &Permission{
+		"sysconsole_read_experimental_features",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES = &Permission{
+		"sysconsole_write_experimental_features",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS = &Permission{
+		"sysconsole_read_experimental_feature_flags",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS = &Permission{
+		"sysconsole_write_experimental_feature_flags",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE = &Permission{
+		"sysconsole_read_experimental_bleve",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE = &Permission{
+		"sysconsole_write_experimental_bleve",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 
@@ -916,7 +971,9 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_READ_PLUGINS,
 		PERMISSION_SYSCONSOLE_READ_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_READ_COMPLIANCE,
-		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURES,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_FEATURE_FLAGS,
+		PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL_BLEVE,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -935,7 +992,9 @@ func initializePermissions() {
 		PERMISSION_SYSCONSOLE_WRITE_PLUGINS,
 		PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS,
 		PERMISSION_SYSCONSOLE_WRITE_COMPLIANCE,
-		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURES,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_FEATURE_FLAGS,
+		PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -972,6 +1031,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_SHARED_CHANNELS,
 		PERMISSION_MANAGE_REMOTE_CLUSTERS,
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
+		PERMISSION_PURGE_BLEVE_INDEXES,
 	}
 
 	TeamScopedPermissions := []*Permission{
