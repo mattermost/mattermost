@@ -427,6 +427,23 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		}
 	}
 
+	if channel.IsShared() {
+		sharedChannel := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ReadOnly:         false,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			SharePurpose:     channel.Purpose,
+			ShareHeader:      channel.Header,
+			CreatorId:        channel.CreatorId,
+		}
+		if _, err := a.SaveSharedChannel(sharedChannel); err != nil {
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 	return channel, nil
 }
 
