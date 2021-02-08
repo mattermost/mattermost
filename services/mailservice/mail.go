@@ -128,12 +128,12 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 
 		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the smtp server through tls")
+			return nil, errors.Wrap(err, "unable to connect to the SMTP server through TLS")
 		}
 	} else {
 		conn, err = dialer.Dial("tcp", smtpAddress)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to connect to the smtp server")
+			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 		}
 	}
 
@@ -173,10 +173,10 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 	case <-ctx.Done():
 		err := ctx.Err()
 		if err != nil && err.Error() != "context canceled" {
-			return nil, errors.Wrap(err, "unable to connect to the smtp server")
+			return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 		}
 	case err := <-ec:
-		return nil, errors.Wrap(err, "unable to connect to the smtp server")
+		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 	}
 
 	if hostname != "" {
@@ -223,7 +223,7 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *model.Config) (*s
 
 func TestConnection(config *model.Config) error {
 	if !*config.EmailSettings.SendEmailNotifications {
-		return errors.New("disabled notifications")
+		return errors.New("SendEmailNotifications is not true")
 	}
 
 	conn, err := ConnectToSMTPServer(config)
@@ -348,37 +348,37 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 	for _, fileInfo := range mail.attachments {
 		bytes, nErr := fileBackend.ReadFile(fileInfo.Path)
 		if nErr != nil {
-			return errors.Wrap(err, "unable to read attachment")
+			return errors.Wrap(err, "failed to read attachment")
 		}
 
 		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
 			if _, nErr = writer.Write(bytes); nErr != nil {
-				return errors.Wrap(err, "unable to attach file")
+				return errors.Wrap(err, "failed to write attachment to email")
 			}
 			return nil
 		}))
 	}
 
 	if err = c.Mail(mail.from.Address); err != nil {
-		return errors.Wrap(err, "unable to set the from address")
+		return errors.Wrap(err, "failed to set the from address")
 	}
 
 	if err = c.Rcpt(mail.smtpTo); err != nil {
-		return errors.Wrap(err, "unable to set the to address")
+		return errors.Wrap(err, "failed to set the to address")
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return errors.Wrap(err, "unable to set the message writer")
+		return errors.Wrap(err, "failed to add email message data")
 	}
 
 	_, err = m.WriteTo(w)
 	if err != nil {
-		return errors.Wrap(err, "unable to set the write the message to the message writer")
+		return errors.Wrap(err, "failed to write the email message")
 	}
 	err = w.Close()
 	if err != nil {
-		return errors.Wrap(err, "unable to set the close the message writer")
+		return errors.Wrap(err, "failed to close connection to the SMTP server")
 	}
 
 	return nil

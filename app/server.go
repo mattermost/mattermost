@@ -474,7 +474,7 @@ func NewServer(options ...Option) (*Server, error) {
 	s.WebSocketRouter.app = fakeApp
 
 	if nErr := mailservice.TestConnection(s.Config()); nErr != nil {
-		mlog.Error("Mail server connection test is failed: " + nErr.Error())
+		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 
 	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
