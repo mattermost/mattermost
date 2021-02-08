@@ -427,7 +427,7 @@ func (c *Client4) GetDataRetentionRoute() string {
 }
 
 func (c *Client4) GetDataRetentionPolicyRoute(policyID string) string {
-	return fmt.Sprintf(c.GetDataRetentionRoute()+"/policy/%v", policyID)
+	return fmt.Sprintf(c.GetDataRetentionRoute()+"/policies/%v", policyID)
 }
 
 func (c *Client4) GetElasticsearchRoute() string {
@@ -560,6 +560,14 @@ func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) 
 
 func (c *Client4) DoApiPost(url string, data string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodPost, c.ApiUrl+url, data, "")
+}
+
+func (c *Client4) doApiDeleteBytes(url string, data []byte) (*http.Response, *AppError) {
+	return c.doApiRequestBytes(http.MethodDelete, c.ApiUrl+url, data, "")
+}
+
+func (c *Client4) doApiPatchBytes(url string, data []byte) (*http.Response, *AppError) {
+	return c.doApiRequestBytes(http.MethodPatch, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, *AppError) {
@@ -4520,28 +4528,107 @@ func (c *Client4) GetDataRetentionPolicies(page, perPage int) ([]*RetentionPolic
 }
 
 // CreateDataRetentionPolicy will create a new granular data retention policy which will be applied to
-// the specified teams and channels.
-func (c *Client4) CreateDataRetentionPolicy(displayName string, postDuration int, teamIDs []string, channelIDs []string) (
+// the specified teams and channels. The Id field of `policy` must be empty.
+func (c *Client4) CreateDataRetentionPolicy(policy *RetentionPolicyWithApplied) (
 	*RetentionPolicyEnriched, *Response,
 ) {
-	rp := &RetentionPolicyWithApplied{
-		RetentionPolicy: RetentionPolicy{
-			DisplayName:  displayName,
-			PostDuration: int64(postDuration),
-		},
-		TeamIds:    teamIDs,
-		ChannelIds: channelIDs,
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", policy.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
 	}
-	r, appErr := c.doApiPostBytes(c.GetDataRetentionRoute()+"/policies", rp.ToJson())
+	defer closeBody(r)
+	newPolicy, err := RetentionPolicyEnrichedFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.CreateDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return newPolicy, BuildResponse(r)
+}
+
+// DeleteDataRetentionPolicy will delete the granular data retention policy with the specified ID.
+func (c *Client4) DeleteDataRetentionPolicy(policyID string) *Response {
+	r, appErr := c.DoApiDelete(c.GetDataRetentionPolicyRoute(policyID))
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+// PatchDataRetentionPolicy will patch the granular data retention policy with the specified ID.
+// The Id field of `patch` must be non-empty.
+func (c *Client4) PatchDataRetentionPolicy(patch *RetentionPolicyWithApplied) (*RetentionPolicyEnriched, *Response) {
+	r, appErr := c.doApiPatchBytes(c.GetDataRetentionPolicyRoute(patch.Id), patch.ToJson())
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 	policy, err := RetentionPolicyEnrichedFromJson(r.Body)
 	if err != nil {
-		return nil, BuildErrorResponse(r, NewAppError("Client4.CreateDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+		return nil, BuildErrorResponse(r, NewAppError("Client4.PatchDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 	return policy, BuildResponse(r)
+}
+
+// UpdateDataRetentionPolicy will update the granular data retention policy with the specified ID.
+func (c *Client4) UpdateDataRetentionPolicy(update *RetentionPolicyWithApplied) (*RetentionPolicyEnriched, *Response) {
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(update.Id), update.ToJson())
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	policy, err := RetentionPolicyEnrichedFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateDataRetentionPolicy", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return policy, BuildResponse(r)
+}
+
+// AddTeamsToRetentionPolicy will add the specified teams to the granular data retention policy
+// with the specified ID.
+func (c *Client4) AddTeamsToRetentionPolicy(policyID string, teamIDs []string) *Response {
+	body, _ := json.Marshal(map[string]interface{}{"team_ids": teamIDs})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+// RemoveTeamsFromRetentionPolicy will remove the specified teams from the granular data retention policy
+// with the specified ID.
+func (c *Client4) RemoveTeamsFromRetentionPolicy(policyID string, teamIDs []string) *Response {
+	body, _ := json.Marshal(map[string]interface{}{"team_ids": teamIDs})
+	r, appErr := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/teams", body)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+// AddChannelsToRetentionPolicy will add the specified channels to the granular data retention policy
+// with the specified ID.
+func (c *Client4) AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *Response {
+	body, _ := json.Marshal(map[string]interface{}{"channel_ids": channelIDs})
+	r, appErr := c.doApiPostBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+// RemoveChannelsFromRetentionPolicy will remove the specified channels from the granular data retention policy
+// with the specified ID.
+func (c *Client4) RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *Response {
+	body, _ := json.Marshal(map[string]interface{}{"channel_ids": channelIDs})
+	r, appErr := c.doApiDeleteBytes(c.GetDataRetentionPolicyRoute(policyID)+"/channels", body)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
 }
 
 // Commands Section
