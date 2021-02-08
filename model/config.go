@@ -3211,7 +3211,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+	if err := o.MessageExportSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3654,7 +3654,7 @@ func (s *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-func (s *MessageExportSettings) isValid(fs FileSettings) *AppError {
+func (s *MessageExportSettings) isValid() *AppError {
 	if s.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	}
