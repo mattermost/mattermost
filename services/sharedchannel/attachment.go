@@ -47,11 +47,7 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 		return true
 	}
 
-	if sca.LastSyncAt < fi.UpdateAt {
-		return true
-	}
-
-	return false
+	return sca.LastSyncAt < fi.UpdateAt
 }
 
 // sendAttachmentForRemote asynchronously sends a file attachment to a remote cluster.
