@@ -30,10 +30,10 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, err := ss.Session().Save(s1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, nErr := ss.UserAccessToken().Save(uat)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	result, terr := ss.UserAccessToken().Get(uat.Id)
 	require.Nil(t, terr)
@@ -55,7 +55,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	require.Equal(t, 1, len(result2), "received incorrect number of tokens after save")
 
 	nErr = ss.UserAccessToken().Delete(uat.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s1.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
@@ -68,13 +68,13 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2.Token = uat.Token
 
 	s2, err = ss.Session().Save(s2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, nErr = ss.UserAccessToken().Save(uat)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	nErr = ss.UserAccessToken().DeleteAllForUser(uat.UserId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s2.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
@@ -95,13 +95,13 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, err := ss.Session().Save(s1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, nErr := ss.UserAccessToken().Save(uat)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	nErr = ss.UserAccessToken().UpdateTokenDisable(uat.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s1.Token)
 	require.NotNil(t, err, "should error - session should be deleted")
@@ -111,10 +111,10 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s2.Token = uat.Token
 
 	s2, err = ss.Session().Save(s2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	nErr = ss.UserAccessToken().UpdateTokenEnable(uat.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 }
 
 func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
@@ -123,7 +123,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 
 	_, err := ss.User().Save(&u1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	uat := &model.UserAccessToken{
 		Token:       model.NewId(),
@@ -136,21 +136,21 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, nErr := ss.Session().Save(s1)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, nErr = ss.UserAccessToken().Save(uat)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	received, nErr := ss.UserAccessToken().Search(uat.Id)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
 
 	received, nErr = ss.UserAccessToken().Search(uat.UserId)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
 
 	received, nErr = ss.UserAccessToken().Search(u1.Username)
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 	require.Equal(t, 1, len(received), "received incorrect number of tokens after search")
 }

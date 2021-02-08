@@ -23,10 +23,10 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	l1.Bytes = "junk"
 
 	_, err := ss.License().Save(&l1)
-	require.Nil(t, err, "couldn't save license record")
+	require.NoError(t, err, "couldn't save license record")
 
 	_, err = ss.License().Save(&l1)
-	require.Nil(t, err, "shouldn't fail on trying to save existing license record")
+	require.NoError(t, err, "shouldn't fail on trying to save existing license record")
 
 	l1.Id = ""
 
@@ -40,10 +40,10 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 	l1.Bytes = "junk"
 
 	_, err := ss.License().Save(&l1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	record, err := ss.License().Get(l1.Id)
-	require.Nil(t, err, "couldn't get license")
+	require.NoError(t, err, "couldn't get license")
 
 	require.Equal(t, record.Bytes, l1.Bytes, "license bytes didn't match")
 

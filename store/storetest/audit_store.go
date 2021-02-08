@@ -33,18 +33,18 @@ func testAuditStore(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	audits, err := ss.Audit().Get(audit.UserId, 0, 100)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Len(t, audits, 4)
 
 	assert.Equal(t, "extra", audits[0].ExtraInfo)
 
 	audits, err = ss.Audit().Get("missing", 0, 100)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, audits)
 
 	audits, err = ss.Audit().Get("", 0, 100)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, audits, 4, "Failed to save and retrieve 4 audit logs")
 
 	require.Nil(t, ss.Audit().PermanentDeleteByUser(audit.UserId))
