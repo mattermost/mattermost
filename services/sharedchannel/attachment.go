@@ -15,30 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 )
 
-// postsToAttachments returns the file attachments for a slice of posts that need to be synchronized.
-func (scs *Service) postsToAttachments(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) []*model.FileInfo {
-	infos := make([]*model.FileInfo, 0)
-
-	for _, post := range posts {
-		// posts cannot have attachments from other sites.
-		if post.IsRemote() {
-			continue
-		}
-
-		fis, err := scs.postToAttachments(post, rc, lastSyncAt)
-		if err != nil {
-			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "could not get file info for attachment",
-				mlog.String("post_id", post.Id),
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.Err(err),
-			)
-			continue
-		}
-		infos = append(infos, fis...)
-	}
-	return infos
-}
-
 // postToAttachments returns the file attachments for a post that need to be synchronized.
 func (scs *Service) postToAttachments(post *model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]*model.FileInfo, error) {
 	infos := make([]*model.FileInfo, 0)
