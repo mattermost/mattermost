@@ -41,37 +41,49 @@ func condenseSiteURL(siteURL string) string {
 }
 
 type EmailService struct {
-	srv              *Server
-	EmailRateLimiter *throttled.GCRARateLimiter
-	EmailBatching    *EmailBatchingJob
+	srv                    *Server
+	EmailRateLimiter       *throttled.GCRARateLimiter
+	PerDayEmailRateLimiter *throttled.GCRARateLimiter
+	EmailBatching          *EmailBatchingJob
 }
 
 func NewEmailService(srv *Server) (*EmailService, error) {
 	service := &EmailService{srv: srv}
-	if err := service.setupInviteEmailRateLimiting(); err != nil {
+	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err
 	}
 	service.InitEmailBatching()
 	return service, nil
 }
 
-func (es *EmailService) setupInviteEmailRateLimiting() error {
+func (es *EmailService) setUpRateLimiters() error {
 	store, err := memstore.New(emailRateLimitingMemstoreSize)
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
 	}
 
-	quota := throttled.RateQuota{
+	perHourQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
 		MaxBurst: emailRateLimitingMaxBurst,
 	}
 
-	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-	if err != nil || rateLimiter == nil {
+	perDayQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerDay(1),
+		MaxBurst: 0,
+	}
+
+	perHourRateLimiter, err := throttled.NewGCRARateLimiter(store, perHourQuota)
+	if err != nil || perHourRateLimiter == nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	es.EmailRateLimiter = rateLimiter
+	perDayRateLimiter, err := throttled.NewGCRARateLimiter(store, perDayQuota)
+	if err != nil || perDayRateLimiter == nil {
+		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
+	}
+
+	es.EmailRateLimiter = perHourRateLimiter
+	es.PerDayEmailRateLimiter = perDayRateLimiter
 	return nil
 }
 
@@ -614,6 +626,26 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+// SendAdminOverTheLimitAlertEmail formats an email template and sends an email to an admin specified in the email arg
+func (es *EmailService) SendAdminOverTheLimitAlertEmail(tu int64, cul int, user, email, locale, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.at_limit_title")
+
+	bodyPage := es.newEmailTemplate("user_limit_admin_notification", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.at_limit_title")
+	bodyPage.Props["Info3"] = T("api.templates.at_limit_info3", map[string]interface{}{"UserName": user})
+	bodyPage.Props["Info4"] = T("api.templates.at_limit_stats", map[string]interface{}{"TotalUsers": tu, "CloudUserLimit": cul})
+	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendAdminAlertEmail", "api.user.send_email_user_limit_admin_notification.error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
 	return true, nil

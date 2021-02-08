@@ -39,6 +39,8 @@ func (api *API) InitCloud() {
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
+
+	api.BaseRoutes.Cloud.Handle("/alert/admin", api.ApiSessionRequired(sendOverLimitAlert)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -389,6 +391,33 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = nErr
 			return
 		}
+	}
+
+	ReturnStatusOK(w)
+}
+
+func sendOverLimitAlert(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.sendOverLimitAlert", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	sub, subErr := c.App.Cloud().GetSubscription()
+	if subErr != nil {
+		c.Err = model.NewAppError("Api4.sendOverLimitAlert", "api.cloud.request_error", nil, subErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = c.App.SendAdminsOverTheLimitAlertEmail(user.Username, sub)
+	if err != nil {
+		c.Err = err
+		return
 	}
 
 	ReturnStatusOK(w)

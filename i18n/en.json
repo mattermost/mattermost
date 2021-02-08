@@ -2603,12 +2603,24 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
+    "id": "api.templates.at_limit_info3",
+    "translation": "The user, {{ .UserName }} tried to invite more users but failed because you've reached the user limit for the free tier."
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Consider upgrading to the paid tier."
+  },
+  {
     "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
   },
   {
     "id": "api.templates.at_limit_title",
     "translation": "You’ve reached the user limit for the free tier "
+  },
+  {
+    "id": "api.templates.at_limit_stats",
+    "translation": "You currently have {{ .TotalUsers}} users on the system and your free tier limit is {{ .CloudUserLimit }} users"
   },
   {
     "id": "api.templates.copyright",
@@ -3425,6 +3437,10 @@
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
+  },
+  {
+    "id": "api.user.send_email_user_limit_admin_notification.error",
+    "translation": "Failed to send email to user limit notification to admin"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -5653,6 +5669,10 @@
   {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "We could not count the users."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "No emails were successfully sent"
   },
   {
     "id": "app.user.get_unread_count.app_error",
