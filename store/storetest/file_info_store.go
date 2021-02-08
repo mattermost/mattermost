@@ -727,6 +727,7 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 		CreatorId: model.NewId(),
 		Path:      "file2.txt",
 	})
+	require.Nil(t, err)
 	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    model.NewId(),
 		CreatorId: model.NewId(),
@@ -735,9 +736,12 @@ func testFileInfoStoreCountAll(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	count, err := ss.FileInfo().CountAll()
+	require.Nil(t, err)
 	require.Equal(t, int64(3), count)
 
 	_, err = ss.FileInfo().DeleteForPost(f1.PostId)
+	require.Nil(t, err)
 	count, err = ss.FileInfo().CountAll()
+	require.Nil(t, err)
 	require.Equal(t, int64(2), count)
 }
