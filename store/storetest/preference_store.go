@@ -98,7 +98,7 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 
 	// make sure getting a missing preference fails
 	_, err = ss.Preference().Get(model.NewId(), model.NewId(), model.NewId())
-	require.NotNil(t, err, "no error on getting a missing preference")
+	require.Error(t, err, "no error on getting a missing preference")
 }
 
 func testPreferenceGetCategory(t *testing.T, ss store.Store) {
@@ -366,5 +366,5 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
-	assert.NotNil(t, nErr)
+	assert.Error(t, nErr)
 }

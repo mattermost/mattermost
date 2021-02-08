@@ -76,7 +76,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 		}
 
 		kv, err := doer(kv)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
 		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", appErr.Id)
@@ -140,7 +140,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 
 		actualKV, nErr := ss.Plugin().Get(pluginId, key)
 		_, ok := nErr.(*store.ErrNotFound)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	})
@@ -213,7 +213,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 
 		actualKV, nErr := ss.Plugin().Get(pluginId, key)
 		_, ok := nErr.(*store.ErrNotFound)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	})
@@ -240,7 +240,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 		}
 
 		ok, err := compareAndSet(kv, nil)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.False(t, ok)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -282,7 +282,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 
 		actualKV, nErr := ss.Plugin().Get(kv.PluginId, kv.Key)
 		if existingKV == nil {
-			require.NotNil(t, nErr)
+			require.Error(t, nErr)
 			_, ok := nErr.(*store.ErrNotFound)
 			assert.True(t, ok)
 			assert.Nil(t, actualKV)
@@ -302,7 +302,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 
 		actualKV, nErr := ss.Plugin().Get(kv.PluginId, kv.Key)
 		_, ok = nErr.(*store.ErrNotFound)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	}
@@ -543,7 +543,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 		}
 
 		ok, err := ss.Plugin().CompareAndDelete(kv, nil)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.False(t, ok)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -674,7 +674,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 		}
 
 		ok, err := ss.Plugin().SetWithOptions(pluginId, key, []byte(value), options)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.False(t, ok)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -691,7 +691,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 		options := model.PluginKVSetOptions{}
 
 		ok, err := ss.Plugin().SetWithOptions(pluginId, key, []byte(value), options)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.False(t, ok)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -741,7 +741,7 @@ func testPluginGet(t *testing.T, ss store.Store) {
 
 		kv, nErr := ss.Plugin().Get(pluginId, key)
 		_, ok := nErr.(*store.ErrNotFound)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -764,7 +764,7 @@ func testPluginGet(t *testing.T, ss store.Store) {
 
 		kv, err = ss.Plugin().Get(model.NewId(), key)
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -787,7 +787,7 @@ func testPluginGet(t *testing.T, ss store.Store) {
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -810,7 +810,7 @@ func testPluginGet(t *testing.T, ss store.Store) {
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -833,7 +833,7 @@ func testPluginGet(t *testing.T, ss store.Store) {
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -893,7 +893,7 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 
 		kv, err := ss.Plugin().Get(pluginId, key)
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
@@ -940,7 +940,7 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 
 			kv, err = ss.Plugin().Get(pluginId, key)
 			_, ok := err.(*store.ErrNotFound)
-			require.NotNil(t, err)
+			require.Error(t, err)
 			assert.True(t, ok)
 			assert.Nil(t, kv)
 		})
@@ -1005,12 +1005,12 @@ func testPluginDeleteAllForPlugin(t *testing.T, ss store.Store) {
 
 		_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 
 		_, err = ss.Plugin().Get(kv.PluginId, kv2.Key)
 		_, ok = err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 	})
 }
@@ -1190,7 +1190,7 @@ func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
 
 		actualKVA2, err := ss.Plugin().Get(pluginIdA, expiredKVA2.Key)
 		_, ok := err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, actualKVA2)
 
@@ -1200,7 +1200,7 @@ func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
 
 		actualKVB2, err := ss.Plugin().Get(pluginIdB, expiredKVB2.Key)
 		_, ok = err.(*store.ErrNotFound)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		assert.True(t, ok)
 		assert.Nil(t, actualKVB2)
 	})

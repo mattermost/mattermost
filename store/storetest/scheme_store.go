@@ -168,7 +168,7 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	}
 
 	_, err = ss.Scheme().Save(s3)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testSchemeStoreGet(t *testing.T, ss store.Store) {
@@ -204,7 +204,7 @@ func testSchemeStoreGet(t *testing.T, ss store.Store) {
 
 	// Get an invalid scheme
 	_, err = ss.Scheme().Get(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
@@ -240,7 +240,7 @@ func testSchemeStoreGetByName(t *testing.T, ss store.Store) {
 
 	// Get an invalid scheme
 	_, err = ss.Scheme().GetByName(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testSchemeStoreGetAllPage(t *testing.T, ss store.Store) {
@@ -398,7 +398,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 
 	// Try deleting a scheme that does not exist.
 	_, err = ss.Scheme().Delete(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Try deleting a team scheme that's in use.
 	s4 := &model.Scheme{
@@ -479,10 +479,10 @@ func testSchemeStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 
 	_, err = ss.Scheme().Get(s1.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = ss.Scheme().Get(s2.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	schemes, err := ss.Scheme().GetAllPage("", 0, 100000)
 	assert.NoError(t, err)

@@ -49,7 +49,7 @@ func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "couldn't save item")
 
 	_, err = ss.Webhook().SaveIncoming(o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	require.Error(t, err, "shouldn't be able to update from save")
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
@@ -89,13 +89,13 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
 	_, err = ss.Webhook().GetIncoming("123", false)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 
 	_, err = ss.Webhook().GetIncoming("123", true)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 
 	_, err = ss.Webhook().GetIncoming("123", true)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr), "Should have set the status as not found for missing id")
 }
@@ -227,7 +227,7 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
@@ -245,7 +245,7 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Webhook().GetIncoming(o1.Id, true)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
@@ -263,7 +263,7 @@ func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Webhook().GetIncoming(o1.Id, true)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func buildIncomingWebhook() *model.IncomingWebhook {
@@ -288,7 +288,7 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "couldn't save item")
 
 	_, err = ss.Webhook().SaveOutgoing(&o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	require.Error(t, err, "shouldn't be able to update from save")
 }
 
 func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
@@ -307,7 +307,7 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	require.Equal(t, webhook.CreateAt, o1.CreateAt, "invalid returned webhook")
 
 	_, err = ss.Webhook().GetOutgoing("123")
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreGetOutgoingListByUser(t *testing.T, ss store.Store) {
@@ -508,7 +508,7 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Webhook().GetOutgoing(o1.Id)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
@@ -528,7 +528,7 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Webhook().GetOutgoing(o1.Id)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
@@ -548,7 +548,7 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Webhook().GetOutgoing(o1.Id)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {

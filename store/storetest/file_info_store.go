@@ -55,7 +55,7 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Get(info2.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	defer func() {
 		ss.FileInfo().PermanentDelete(info2.Id)
@@ -87,7 +87,7 @@ func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.FileInfo().GetByPath(info2.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	defer func() {
 		ss.FileInfo().PermanentDelete(info2.Id)
@@ -453,7 +453,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("should not attach files owned from a different user", func(t *testing.T) {
@@ -469,7 +469,7 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 		require.Equal(t, "", info.PostId)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("should attach files uploaded by nouser", func(t *testing.T) {

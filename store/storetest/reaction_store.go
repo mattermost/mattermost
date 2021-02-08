@@ -63,7 +63,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 
 	_, nErr = ss.Reaction().Save(reaction1)
-	assert.Nil(t, nErr, "should've allowed saving a duplicate reaction")
+	assert.NoError(t, nErr, "should've allowed saving a duplicate reaction")
 
 	// different user
 	reaction2 := &model.Reaction{
@@ -105,7 +105,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId: reaction1.PostId,
 	}
 	_, nErr = ss.Reaction().Save(reaction5)
-	require.NotNil(t, nErr, "should've failed for invalid reaction")
+	require.Error(t, nErr, "should've failed for invalid reaction")
 
 }
 

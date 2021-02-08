@@ -40,12 +40,12 @@ func testOAuthStoreSaveApp(t *testing.T, ss store.Store) {
 	// Try to save an app that already has an Id
 	a1.Id = model.NewId()
 	_, err := ss.OAuth().SaveApp(&a1)
-	require.NotNil(t, err, "Should have failed, cannot add an OAuth app cannot be save with an Id, it has to be updated")
+	require.Error(t, err, "Should have failed, cannot add an OAuth app cannot be save with an Id, it has to be updated")
 
 	// Try to save an Invalid App
 	a1.Id = ""
 	_, err = ss.OAuth().SaveApp(&a1)
-	require.NotNil(t, err, "Should have failed, app should be invalid cause it doesn' have a name set")
+	require.Error(t, err, "Should have failed, app should be invalid cause it doesn' have a name set")
 
 	// Save the app
 	a1.Id = ""
@@ -65,7 +65,7 @@ func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
 
 	// Lets try to get and app that does not exists
 	_, err = ss.OAuth().GetApp("fake0123456789abcderfgret1")
-	require.NotNil(t, err, "Should have failed. App does not exists")
+	require.Error(t, err, "Should have failed. App does not exists")
 
 	_, err = ss.OAuth().GetApp(a1.Id)
 	require.NoError(t, err)
@@ -101,13 +101,13 @@ func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
 	// Lets update the app by removing the name
 	a1.Name = ""
 	_, err = ss.OAuth().UpdateApp(&a1)
-	require.NotNil(t, err, "Should have failed. App name is not set")
+	require.Error(t, err, "Should have failed. App name is not set")
 
 	// Lets not find the app that we are trying to update
 	a1.Id = "fake0123456789abcderfgret1"
 	a1.Name = "NewName"
 	_, err = ss.OAuth().UpdateApp(&a1)
-	require.NotNil(t, err, "Should have failed. Not able to find the app")
+	require.Error(t, err, "Should have failed. Not able to find the app")
 
 	a1.Id = id
 	ua, err := ss.OAuth().UpdateApp(&a1)
@@ -124,7 +124,7 @@ func testOAuthStoreSaveAccessData(t *testing.T, ss store.Store) {
 
 	// Lets try and save an incomplete access data
 	_, err := ss.OAuth().SaveAccessData(&a1)
-	require.NotNil(t, err, "Should have failed. Access data needs the token")
+	require.Error(t, err, "Should have failed. Access data needs the token")
 
 	a1.Token = model.NewId()
 	a1.RefreshToken = model.NewId()
@@ -149,13 +149,13 @@ func testOAuthUpdateAccessData(t *testing.T, ss store.Store) {
 	refreshToken := a1.RefreshToken
 	a1.RefreshToken = model.NewId() + "123"
 	_, err = ss.OAuth().UpdateAccessData(&a1)
-	require.NotNil(t, err, "Should have failed with invalid token")
+	require.Error(t, err, "Should have failed with invalid token")
 
 	//Try to update to invalid RedirectUri
 	a1.RefreshToken = model.NewId()
 	a1.RedirectUri = ""
 	_, err = ss.OAuth().UpdateAccessData(&a1)
-	require.NotNil(t, err, "Should have failed with invalid Redirect URI")
+	require.Error(t, err, "Should have failed with invalid Redirect URI")
 
 	// Should update fine
 	a1.RedirectUri = "http://example.com"
@@ -176,7 +176,7 @@ func testOAuthStoreGetAccessData(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.OAuth().GetAccessData("invalidToken")
-	require.NotNil(t, err, "Should have failed. There is no data with an invalid token")
+	require.Error(t, err, "Should have failed. There is no data with an invalid token")
 
 	ra1, err := ss.OAuth().GetAccessData(a1.Token)
 	require.NoError(t, err)
@@ -190,7 +190,7 @@ func testOAuthStoreGetAccessData(t *testing.T, ss store.Store) {
 
 	// Try to get the Access data using an invalid refresh token
 	_, err = ss.OAuth().GetAccessDataByRefreshToken(a1.Token)
-	require.NotNil(t, err, "Should have failed. There is no data with an invalid token")
+	require.Error(t, err, "Should have failed. There is no data with an invalid token")
 
 	// Get the Access Data using the refresh token
 	ra1, err = ss.OAuth().GetAccessDataByRefreshToken(a1.RefreshToken)
@@ -268,7 +268,7 @@ func testOAuthStoreRemoveAuthData(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.OAuth().GetAuthData(a1.Code)
-	require.NotNil(t, err, "should have errored - auth code removed")
+	require.Error(t, err, "should have errored - auth code removed")
 }
 
 func testOAuthStoreRemoveAuthDataByUser(t *testing.T, ss store.Store) {
@@ -385,8 +385,8 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, nErr = ss.Session().Get(s1.Token)
-	require.NotNil(t, nErr, "should error - session should be deleted")
+	require.Error(t, nErr, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
-	require.NotNil(t, err, "should error - access data should be deleted")
+	require.Error(t, err, "should error - access data should be deleted")
 }

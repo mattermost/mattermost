@@ -1373,7 +1373,7 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 		}
 		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params1, params2}, th.User.Id, th.Team.Id, 0, 20)
 		require.Nil(t, results)
-		require.NotNil(t, apperr)
+		require.Error(t, apperr)
 	})
 }
 

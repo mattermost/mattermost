@@ -44,7 +44,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	require.Equal(t, received.Token, uat.Token, "received incorrect token after save")
 
 	_, nErr = ss.UserAccessToken().GetByToken("notarealtoken")
-	require.NotNil(t, nErr, "should have failed on bad token")
+	require.Error(t, nErr, "should have failed on bad token")
 
 	received2, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100)
 	require.Nil(t, err2)
@@ -58,10 +58,10 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s1.Token)
-	require.NotNil(t, err, "should error - session should be deleted")
+	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s1.Token)
-	require.NotNil(t, nErr, "should error - access token should be deleted")
+	require.Error(t, nErr, "should error - access token should be deleted")
 
 	s2 := &model.Session{}
 	s2.UserId = uat.UserId
@@ -77,10 +77,10 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s2.Token)
-	require.NotNil(t, err, "should error - session should be deleted")
+	require.Error(t, err, "should error - session should be deleted")
 
 	_, nErr = ss.UserAccessToken().GetByToken(s2.Token)
-	require.NotNil(t, nErr, "should error - access token should be deleted")
+	require.Error(t, nErr, "should error - access token should be deleted")
 }
 
 func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
@@ -104,7 +104,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err = ss.Session().Get(s1.Token)
-	require.NotNil(t, err, "should error - session should be deleted")
+	require.Error(t, err, "should error - session should be deleted")
 
 	s2 := &model.Session{}
 	s2.UserId = uat.UserId

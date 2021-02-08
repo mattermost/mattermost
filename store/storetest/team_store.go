@@ -84,11 +84,11 @@ func testTeamStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "couldn't save item")
 
 	_, err = ss.Team().Save(&o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	require.Error(t, err, "shouldn't be able to update from save")
 
 	o1.Id = ""
 	_, err = ss.Team().Save(&o1)
-	require.NotNil(t, err, "should be unique domain")
+	require.Error(t, err, "should be unique domain")
 }
 
 func testTeamStoreUpdate(t *testing.T, ss store.Store) {
@@ -107,11 +107,11 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 
 	o1.Id = "missing"
 	_, err = ss.Team().Update(&o1)
-	require.NotNil(t, err, "Update should have failed because of missing key")
+	require.Error(t, err, "Update should have failed because of missing key")
 
 	o1.Id = model.NewId()
 	_, err = ss.Team().Update(&o1)
-	require.NotNil(t, err, "Update should have faile because id change")
+	require.Error(t, err, "Update should have faile because id change")
 }
 
 func testTeamStoreGet(t *testing.T, ss store.Store) {
@@ -128,7 +128,7 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t, r1.ToJson(), o1.ToJson())
 
 	_, err = ss.Team().Get("")
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
@@ -171,16 +171,16 @@ func testTeamStoreGetByNames(t *testing.T, ss store.Store) {
 
 	t.Run("Get existing team and one invalid team name", func(t *testing.T) {
 		_, err = ss.Team().GetByNames([]string{o1.Name, ""})
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("Get existing team and not existing team", func(t *testing.T) {
 		_, err = ss.Team().GetByNames([]string{o1.Name, "not-existing-team-name"})
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 	t.Run("Get not existing teams", func(t *testing.T) {
 		_, err = ss.Team().GetByNames([]string{"not-existing-team-name", "not-existing-team-name-2"})
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -203,12 +203,12 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 
 	t.Run("Get invalid team name", func(t *testing.T) {
 		_, err = ss.Team().GetByName("")
-		require.NotNil(t, err, "Missing id should have failed")
+		require.Error(t, err, "Missing id should have failed")
 	})
 
 	t.Run("Get not existing team", func(t *testing.T) {
 		_, err = ss.Team().GetByName("not-existing-team-name")
-		require.NotNil(t, err, "Missing id should have failed")
+		require.Error(t, err, "Missing id should have failed")
 	})
 }
 
@@ -618,7 +618,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	require.Equal(t, *r1, o1, "invalid returned team")
 
 	_, err = ss.Team().GetByInviteId("")
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testTeamStoreByUserId(t *testing.T, ss store.Store) {
@@ -1260,14 +1260,14 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 	t.Run("not valid team member", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, 0)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 1 metadata: team members limit exceeded", nErr.Error())
 	})
 
@@ -1278,7 +1278,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		_, nErr := ss.Team().SaveMember(m1, 1)
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr = ss.Team().SaveMember(m2, 1)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
 	})
 
@@ -1289,7 +1289,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, nErr = ss.Team().SaveMember(m2, -1)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
@@ -1600,7 +1600,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
@@ -1609,7 +1609,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
 	})
 
@@ -1623,7 +1623,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 
 		_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 4 metadata: team members limit exceeded", nErr.Error())
 	})
 
@@ -1636,7 +1636,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m4 := &model.TeamMember{TeamId: teamID2, UserId: u1.Id}
 		m5 := &model.TeamMember{TeamId: teamID2, UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.Equal(t, "limit exceeded: what: TeamMember count: 3 metadata: team members limit exceeded", nErr.Error())
 	})
 
@@ -1645,7 +1645,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
@@ -1972,7 +1972,7 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 	t.Run("not valid team member", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().UpdateMember(member)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
@@ -2281,7 +2281,7 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().UpdateMultipleMembers([]*model.TeamMember{m1, m2})
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
@@ -2801,7 +2801,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		TeamId: team.Id,
 		UserId: newUserId,
 	}, maxUsersPerTeam)
-	require.NotNil(t, nErr, "shouldn't be able to save member when at maximum members per team")
+	require.Error(t, nErr, "shouldn't be able to save member when at maximum members per team")
 
 	totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil)
 	require.Nil(t, teamErr)
@@ -2863,10 +2863,10 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Equal(t, rm1.UserId, m1.UserId, "bad user id")
 
 	_, err = ss.Team().GetMember(m1.TeamId, "")
-	require.NotNil(t, err, "empty user id - should have failed")
+	require.Error(t, err, "empty user id - should have failed")
 
 	_, err = ss.Team().GetMember("", m1.UserId)
-	require.NotNil(t, err, "empty team id - should have failed")
+	require.Error(t, err, "empty team id - should have failed")
 
 	// Test with a custom team scheme.
 	s2 := &model.Scheme{
@@ -2936,7 +2936,7 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	require.Len(t, rm, 2, "return wrong number of results")
 
 	_, err = ss.Team().GetMembersByIds(m1.TeamId, []string{}, nil)
-	require.NotNil(t, err, "empty user ids - should have failed")
+	require.Error(t, err, "empty user ids - should have failed")
 }
 
 func testTeamStoreMemberCount(t *testing.T, ss store.Store) {

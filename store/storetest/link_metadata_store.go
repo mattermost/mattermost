@@ -55,7 +55,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 
 		_, err := ss.LinkMetadata().Save(metadata)
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("should save with duplicate URL and different timestamp", func(t *testing.T) {
@@ -153,7 +153,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 
 		_, err = ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
 
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		assert.True(t, errors.As(err, &nfErr))
 	})
@@ -171,7 +171,7 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 
 		_, err = ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
 
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		assert.True(t, errors.As(err, &nfErr))
 	})

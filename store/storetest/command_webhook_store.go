@@ -46,7 +46,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, nErr = cws.Get(h2.Id)
-	require.NotNil(t, nErr, "Should have set the status as not found for expired webhook")
+	require.Error(t, nErr, "Should have set the status as not found for expired webhook")
 	require.True(t, errors.As(nErr, &nfErr), "Should have set the status as not found for expired webhook")
 
 	cws.Cleanup()
@@ -61,7 +61,7 @@ func testCommandWebhookStore(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr, "Should be able to use webhook once")
 
 	nErr = cws.TryUse(h1.Id, 1)
-	require.NotNil(t, nErr, "Should be able to use webhook once")
+	require.Error(t, nErr, "Should be able to use webhook once")
 	var invErr *store.ErrInvalidInput
 	require.True(t, errors.As(nErr, &invErr), "Should be able to use webhook once")
 }

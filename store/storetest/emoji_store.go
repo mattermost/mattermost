@@ -39,7 +39,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		Name:      emoji1.Name,
 	}
 	_, err = ss.Emoji().Save(&emoji2)
-	require.NotNil(t, err, "shouldn't be able to save emoji with duplicate name")
+	require.Error(t, err, "shouldn't be able to save emoji with duplicate name")
 
 	err = ss.Emoji().Delete(emoji1, time.Now().Unix())
 	require.NoError(t, err)

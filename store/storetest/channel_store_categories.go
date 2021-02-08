@@ -1944,13 +1944,13 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlStore) {
 		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[0].Id)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[1].Id)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[2].Id)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 }
 

@@ -37,7 +37,7 @@ func testCommandStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err := ss.Command().Save(&o1)
-	require.NotNil(t, err, "shouldn't be able to update from save")
+	require.Error(t, err, "shouldn't be able to update from save")
 }
 
 func testCommandStoreGet(t *testing.T, ss store.Store) {
@@ -56,7 +56,7 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t, r1.CreateAt, o1.CreateAt, "invalid returned command")
 
 	_, err := ss.Command().Get("123")
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -112,7 +112,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -136,7 +136,7 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -160,7 +160,7 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -184,7 +184,7 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err := ss.Command().Get(o1.Id)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -208,7 +208,7 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	o1.URL = "junk"
 
 	_, err := ss.Command().Update(o1)
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func testCommandCount(t *testing.T, ss store.Store) {

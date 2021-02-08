@@ -79,14 +79,14 @@ func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("get non-existent bot", func(t *testing.T) {
 		_, err := ss.Bot().Get("unknown", false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get deleted bot", func(t *testing.T) {
 		_, err := ss.Bot().Get(deletedBot.UserId, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
@@ -99,7 +99,7 @@ func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 
 	t.Run("get permanently deleted bot", func(t *testing.T) {
 		_, err := ss.Bot().Get(permanentlyDeletedBot.UserId, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
@@ -319,7 +319,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 		}
 
 		_, err := ss.Bot().Save(bot)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var appErr *model.AppError
 		require.True(t, errors.As(err, &appErr))
 		// require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
@@ -370,7 +370,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 		bot := existingBot.Clone()
 		bot.Username = "invalid username"
 		_, err := ss.Bot().Update(bot)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var appErr *model.AppError
 		require.True(t, errors.As(err, &appErr))
 		require.Equal(t, "model.bot.is_valid.username.app_error", appErr.Id)

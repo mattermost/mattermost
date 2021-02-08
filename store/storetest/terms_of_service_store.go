@@ -83,7 +83,7 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	r1, err := ss.TermsOfService().Get("an_invalid_id", true)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, r1)
 
 	receivedTermsOfService, err := ss.TermsOfService().Get(termsOfService.Id, true)

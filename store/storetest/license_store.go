@@ -31,7 +31,7 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	l1.Id = ""
 
 	_, err = ss.License().Save(&l1)
-	require.NotNil(t, err, "should fail on invalid license")
+	require.Error(t, err, "should fail on invalid license")
 }
 
 func testLicenseStoreGet(t *testing.T, ss store.Store) {
@@ -48,5 +48,5 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t, record.Bytes, l1.Bytes, "license bytes didn't match")
 
 	_, err = ss.License().Get("missing")
-	require.NotNil(t, err, "should fail on get license")
+	require.Error(t, err, "should fail on get license")
 }

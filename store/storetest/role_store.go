@@ -80,7 +80,7 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 	}
 
 	_, err = ss.Role().Save(r3)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Try saving one with a duplicate "name" field.
 	r4 := &model.Role{
@@ -96,7 +96,7 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 	}
 
 	_, err = ss.Role().Save(r4)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testRoleStoreGetAll(t *testing.T, ss store.Store) {
@@ -169,7 +169,7 @@ func testRoleStoreGet(t *testing.T, ss store.Store) {
 
 	// Get an invalid role
 	_, err = ss.Role().Get(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testRoleStoreGetByName(t *testing.T, ss store.Store) {
@@ -202,7 +202,7 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 
 	// Get an invalid role
 	_, err = ss.Role().GetByName(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
@@ -315,7 +315,7 @@ func testRoleStoreDelete(t *testing.T, ss store.Store) {
 
 	// Try and delete a role that does not exist.
 	_, err = ss.Role().Delete(model.NewId())
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {

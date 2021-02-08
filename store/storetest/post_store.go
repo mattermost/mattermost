@@ -110,7 +110,7 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 		require.NoError(t, err, "couldn't save item")
 
 		_, err = ss.Post().Save(&o1)
-		require.NotNil(t, err, "shouldn't be able to update from save")
+		require.Error(t, err, "shouldn't be able to update from save")
 	})
 
 	t.Run("Update reply should update the UpdateAt of the root post", func(t *testing.T) {
@@ -267,7 +267,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 
 	t.Run("Try to save mixed, already saved and not saved posts", func(t *testing.T) {
 		newPosts, errIdx, err := ss.Post().SaveMultiple([]*model.Post{&p4, &p3})
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, 1, errIdx)
 		require.Nil(t, newPosts)
 		storedPost, err := ss.Post().GetSingle(p3.Id)
@@ -277,7 +277,7 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		assert.Equal(t, p3.UserId, storedPost.UserId)
 
 		storedPost, err = ss.Post().GetSingle(p4.Id)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		assert.Nil(t, storedPost)
 	})
 
@@ -421,10 +421,10 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
 	_, err = ss.Post().Get("123", false, false, false)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 
 	_, err = ss.Post().Get("", false, false, false)
-	require.NotNil(t, err, "should fail for blank post ids")
+	require.Error(t, err, "should fail for blank post ids")
 }
 
 func testPostStoreGetSingle(t *testing.T, ss store.Store) {
@@ -441,7 +441,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 
 	_, err = ss.Post().GetSingle("123")
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 }
 
 func testPostStoreUpdate(t *testing.T, ss store.Store) {
@@ -570,7 +570,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	assert.Equal(t, deleteByID, actual, "Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 
 	r3, err := ss.Post().Get(o1.Id, false, false, false)
-	require.NotNil(t, err, "Missing id should have failed - PostList %v", r3)
+	require.Error(t, err, "Missing id should have failed - PostList %v", r3)
 
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
 	require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
@@ -597,10 +597,10 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o2.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 }
 
 func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
@@ -640,13 +640,13 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o2.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o4.Id, false, false, false)
 	require.NoError(t, err)
@@ -683,13 +683,13 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	require.NoError(t, err, "Deleted id shouldn't have failed")
 
 	_, err = ss.Post().Get(o2.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	err = ss.Post().PermanentDeleteByChannel(o3.ChannelId)
 	require.NoError(t, err)
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 }
 
 func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
@@ -720,10 +720,10 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	require.Nil(t, err2)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o2.Id, false, false, false)
-	require.NotNil(t, err, "Deleted id should have failed")
+	require.Error(t, err, "Deleted id should have failed")
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
 	require.NoError(t, err, "Deleted id should have failed")
@@ -2568,10 +2568,10 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Post().Get(o1.Id, false, false, false)
-	require.NotNil(t, err, "Should have not found post 1 after purge")
+	require.Error(t, err, "Should have not found post 1 after purge")
 
 	_, err = ss.Post().Get(o2.Id, false, false, false)
-	require.NotNil(t, err, "Should have not found post 2 after purge")
+	require.Error(t, err, "Should have not found post 2 after purge")
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
 	require.NoError(t, err, "Should have not found post 3 after purge")

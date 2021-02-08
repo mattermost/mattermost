@@ -108,23 +108,23 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	_, err = ss.User().Save(&u1)
-	require.NotNil(t, err, "shouldn't be able to update user from save")
+	require.Error(t, err, "shouldn't be able to update user from save")
 
 	u2 := model.User{
 		Email:    u1.Email,
 		Username: model.NewId(),
 	}
 	_, err = ss.User().Save(&u2)
-	require.NotNil(t, err, "should be unique email")
+	require.Error(t, err, "should be unique email")
 
 	u2.Email = MakeEmail()
 	u2.Username = u1.Username
 	_, err = ss.User().Save(&u1)
-	require.NotNil(t, err, "should be unique username")
+	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
 	_, err = ss.User().Save(&u1)
-	require.NotNil(t, err, "should be unique username")
+	require.Error(t, err, "should be unique username")
 
 	for i := 0; i < 49; i++ {
 		u := model.User{
@@ -149,7 +149,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, maxUsersPerTeam)
-	require.NotNil(t, nErr, "should be the limit")
+	require.Error(t, nErr, "should be the limit")
 }
 
 func testUserStoreUpdate(t *testing.T, ss store.Store) {
@@ -177,17 +177,17 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	missing := &model.User{}
 	_, err = ss.User().Update(missing, false)
-	require.NotNil(t, err, "Update should have failed because of missing key")
+	require.Error(t, err, "Update should have failed because of missing key")
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
 	_, err = ss.User().Update(newId, false)
-	require.NotNil(t, err, "Update should have failed because id change")
+	require.Error(t, err, "Update should have failed because id change")
 
 	u2.Email = MakeEmail()
 	_, err = ss.User().Update(u2, false)
-	require.NotNil(t, err, "Update should have failed because you can't modify AD/LDAP fields")
+	require.Error(t, err, "Update should have failed because you can't modify AD/LDAP fields")
 
 	u3 := &model.User{
 		Email:       MakeEmail(),
@@ -277,7 +277,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 
 	t.Run("fetch empty id", func(t *testing.T) {
 		_, err := ss.User().Get("")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("fetch user 1", func(t *testing.T) {
@@ -433,7 +433,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	t.Run("get offset 0, limit 100", func(t *testing.T) {
 		options := &model.UserGetOptions{Page: 0, PerPage: 100}
 		actual, userErr := ss.User().GetAllProfiles(options)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 
 		require.Equal(t, []*model.User{
 			sanitized(u1),
@@ -451,7 +451,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			Page:    0,
 			PerPage: 1,
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 		}, actual)
@@ -459,7 +459,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 	t.Run("get all", func(t *testing.T) {
 		actual, userErr := ss.User().GetAll()
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 
 		require.Equal(t, []*model.User{
 			u1,
@@ -478,7 +478,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		uNew := &model.User{}
 		uNew.Email = MakeEmail()
 		_, userErr := ss.User().Save(uNew)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(uNew.Id)) }()
 
 		updatedEtag := ss.User().GetEtagForAllProfiles()
@@ -491,7 +491,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Role:    "system_admin",
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u5),
 			sanitized(u6),
@@ -505,7 +505,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			Role:     "system_admin",
 			Inactive: true,
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 		}, actual)
@@ -517,7 +517,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage:  10,
 			Inactive: true,
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 			sanitized(u7),
@@ -530,7 +530,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Active:  true,
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -547,7 +547,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			Inactive: true,
 			Active:   true,
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u6),
 			sanitized(u7),
@@ -587,7 +587,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Roles:   []string{"system_user_manager"},
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u8),
 		}, actual)
@@ -599,7 +599,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Roles:   []string{"system_manager", "system_user_manager", "system_read_only_admin", "system_admin"},
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u10),
 			sanitized(u5),
@@ -615,7 +615,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			PerPage: 10,
 			Roles:   []string{"system_user"},
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -1795,7 +1795,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 
 	t.Run("all system admin profiles", func(t *testing.T) {
 		result, userError := ss.User().GetSystemAdminProfiles()
-		require.Nil(t, userError)
+		require.NoError(t, userError)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
 			u3.Id: sanitized(u3),
@@ -1861,12 +1861,12 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 
 	t.Run("get by empty email", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("unknown")
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 }
 
@@ -1928,7 +1928,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
 		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
@@ -1936,7 +1936,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
 	})
@@ -1944,7 +1944,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
 	})
@@ -2008,14 +2008,14 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 
 	t.Run("get by empty username", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("unknown")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
@@ -2083,7 +2083,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 
 	t.Run("get u1 by username, allow only email", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u1.Username, false, true)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "user not found", err.Error())
 	})
 
@@ -2101,7 +2101,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 
 	t.Run("get u1 by email, allow only username", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u1.Email, true, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "user not found", err.Error())
 	})
 
@@ -2119,7 +2119,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 
 	t.Run("get u2 by username, allow neither", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u2.Username, false, false)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, "sign in with username and email are disabled", err.Error())
 	})
 }
@@ -3972,22 +3972,22 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 
 	// Two months to two days (without bots)
 	count, nerr := ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-	require.Nil(t, nerr)
+	require.NoError(t, nerr)
 	assert.Equal(t, int64(2), count)
 
 	// Two months to two days (without bots)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoMonthsAgo, millisTwoDaysAgo, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true})
-	require.Nil(t, nerr)
+	require.NoError(t, nerr)
 	assert.Equal(t, int64(2), count)
 
 	// Two days to present - (with bots)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false})
-	require.Nil(t, nerr)
+	require.NoError(t, nerr)
 	assert.Equal(t, int64(2), count)
 
 	// Two days to present - (with bots, excluding deleted)
 	count, nerr = ss.User().AnalyticsActiveCountForPeriod(millisTwoDaysAgo, millis, model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: true})
-	require.Nil(t, nerr)
+	require.NoError(t, nerr)
 	assert.Equal(t, int64(2), count)
 }
 
@@ -4173,7 +4173,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
 			sanitized(u3),
@@ -4182,7 +4182,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 1, limit 1", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 1, 1, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
 		}, users)
@@ -4190,7 +4190,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 2, offset 0, limit 100", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId2, false, 0, 100, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u3),
@@ -4213,7 +4213,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 0, limit 100000 after update", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
 		}, users)
@@ -4240,7 +4240,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -4284,7 +4284,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained when it's not", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Empty(t, users)
 	})
 
@@ -4313,7 +4313,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
 		users, userErr := ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
@@ -4585,7 +4585,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 			LastName:  "l_" + id,
 			Password:  "Password1",
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
 	}
@@ -4705,7 +4705,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 			LastName:  "l_" + id,
 			Password:  "Password1",
 		})
-		require.Nil(t, userErr)
+		require.NoError(t, userErr)
 		require.NotNil(t, user)
 		testUsers = append(testUsers, user)
 	}

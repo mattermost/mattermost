@@ -63,7 +63,7 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	require.NoError(t, err)
 
 	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	system.Name = "warn_metric_number_of_active_users_100"
 	system.Value = model.WARN_METRIC_STATUS_RUNONCE
@@ -71,7 +71,7 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	require.NoError(t, err)
 
 	val1, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
-	assert.Nil(t, nerr)
+	assert.NoError(t, nerr)
 
 	system.Name = "warn_metric_number_of_active_users_100"
 	system.Value = model.WARN_METRIC_STATUS_ACK
@@ -79,7 +79,7 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	require.NoError(t, err)
 
 	val2, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
-	assert.Nil(t, nerr)
+	assert.NoError(t, nerr)
 	assert.Equal(t, val1, val2)
 }
 
@@ -102,7 +102,7 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 
 	_, err = ss.System().GetByName(s1.Name)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = ss.System().GetByName(s2.Name)
 	assert.NoError(t, err)
@@ -111,10 +111,10 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 
 	_, err = ss.System().GetByName(s1.Name)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = ss.System().GetByName(s2.Name)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func testInsertIfExists(t *testing.T, ss store.Store) {

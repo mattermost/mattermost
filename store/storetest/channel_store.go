@@ -125,17 +125,17 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr, "couldn't save item", nErr)
 
 	_, nErr = ss.Channel().Save(&o1, -1)
-	require.NotNil(t, nErr, "shouldn't be able to update from save")
+	require.Error(t, nErr, "shouldn't be able to update from save")
 
 	o1.Id = ""
 	_, nErr = ss.Channel().Save(&o1, -1)
-	require.NotNil(t, nErr, "should be unique name")
+	require.Error(t, nErr, "should be unique name")
 
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
 	_, nErr = ss.Channel().Save(&o1, -1)
-	require.NotNil(t, nErr, "should not be able to save direct channel")
+	require.Error(t, nErr, "should not be able to save direct channel")
 
 	o1 = model.Channel{}
 	o1.TeamId = teamId
@@ -150,7 +150,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 	o2.Id = ""
 
 	_, nErr = ss.Channel().Save(&o2, -1)
-	require.NotNil(t, nErr, "should have failed to save a duplicate channel")
+	require.Error(t, nErr, "should have failed to save a duplicate channel")
 	var cErr *store.ErrConflict
 	require.True(t, errors.As(nErr, &cErr))
 
@@ -159,7 +159,7 @@ func testChannelStoreSave(t *testing.T, ss store.Store) {
 
 	o2.Id = ""
 	_, nErr = ss.Channel().Save(&o2, -1)
-	require.NotNil(t, nErr, "should have failed to save a duplicate of an archived channel")
+	require.Error(t, nErr, "should have failed to save a duplicate of an archived channel")
 	require.True(t, errors.As(nErr, &cErr))
 }
 
@@ -206,7 +206,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	require.Len(t, *members, 2, "should have saved 2 members")
 
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	require.NotNil(t, nErr, "shoudn't be a able to update from save")
+	require.Error(t, nErr, "shoudn't be a able to update from save")
 
 	// Attempt to save a direct channel that already exists
 	o1a := model.Channel{
@@ -217,7 +217,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	}
 
 	returnedChannel, nErr := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
-	require.NotNil(t, nErr, "should've failed to save a duplicate direct channel")
+	require.Error(t, nErr, "should've failed to save a duplicate direct channel")
 	var cErr *store.ErrConflict
 	require.Truef(t, errors.As(nErr, &cErr), "should've returned ChannelExistsError")
 	require.Equal(t, o1.Id, returnedChannel.Id, "should've failed to save a duplicate direct channel")
@@ -227,7 +227,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlStore)
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	require.NotNil(t, nErr, "Should not be able to save non-direct channel")
+	require.Error(t, nErr, "Should not be able to save non-direct channel")
 
 	// Save yourself Direct Message
 	o1.Id = ""
@@ -300,16 +300,16 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 
 	o1.DeleteAt = 100
 	_, err = ss.Channel().Update(&o1)
-	require.NotNil(t, err, "update should have failed because channel is archived")
+	require.Error(t, err, "update should have failed because channel is archived")
 
 	o1.DeleteAt = 0
 	o1.Id = "missing"
 	_, err = ss.Channel().Update(&o1)
-	require.NotNil(t, err, "Update should have failed because of missing key")
+	require.Error(t, err, "Update should have failed because of missing key")
 
 	o2.Name = o1.Name
 	_, err = ss.Channel().Update(&o2)
-	require.NotNil(t, err, "update should have failed because of existing name")
+	require.Error(t, err, "update should have failed because of existing name")
 }
 
 func testGetChannelUnread(t *testing.T, ss store.Store) {
@@ -378,7 +378,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	require.Equal(t, o1.ToJson(), c1.ToJson(), "invalid returned channel")
 
 	_, err = ss.Channel().Get("", false)
-	require.NotNil(t, err, "missing id should have failed")
+	require.Error(t, err, "missing id should have failed")
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -630,7 +630,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, cresult)
 
 	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false, 0)
-	if assert.NotNil(t, nErr) {
+	if assert.Error(t, nErr) {
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(nErr, &nfErr))
 	} else {
@@ -657,20 +657,20 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	channelID := result.Id
 
 	result, err = ss.Channel().GetByName(o1.TeamId, "", true)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 
 	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NoError(t, err)
 	require.Equal(t, o1.ToJson(), result.ToJson(), "invalid returned channel")
 
 	result, err = ss.Channel().GetByName(o1.TeamId, "", false)
-	require.NotNil(t, err, "Missing id should have failed")
+	require.Error(t, err, "Missing id should have failed")
 
 	nErr = ss.Channel().Delete(channelID, model.GetMillis())
 	require.NoError(t, nErr, "channel should have been deleted")
 
 	result, err = ss.Channel().GetByName(o1.TeamId, o1.Name, false)
-	require.NotNil(t, err, "Deleted channel should not be returned by GetByName()")
+	require.Error(t, err, "Deleted channel should not be returned by GetByName()")
 }
 
 func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
@@ -748,7 +748,7 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	require.Equal(t, o1, r1)
 
 	_, nErr = ss.Channel().GetDeletedByName(o1.TeamId, "")
-	require.NotNil(t, nErr, "missing id should have failed")
+	require.Error(t, nErr, "missing id should have failed")
 }
 
 func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
@@ -891,7 +891,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	require.Equal(t, o1.ChannelId, member.ChannelId, "should have go member")
 
 	_, nErr = ss.Channel().SaveMember(&o1)
-	require.NotNil(t, nErr, "should have been a duplicate")
+	require.Error(t, nErr, "should have been a duplicate")
 
 	c1t4, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
@@ -905,7 +905,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMember(member)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
@@ -918,7 +918,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 		require.NoError(t, nErr)
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr = ss.Channel().SaveMember(m2)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
@@ -1406,7 +1406,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
@@ -1417,7 +1417,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
@@ -1943,7 +1943,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().UpdateMember(member)
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
@@ -2439,7 +2439,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
 		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
@@ -2450,7 +2450,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, nErr)
+		require.Error(t, nErr)
 		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
@@ -3783,7 +3783,7 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
 		_, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
-		require.NotNil(t, err)
+		require.Error(t, err)
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
@@ -4238,7 +4238,7 @@ func testUpdateChannelMember(t *testing.T, ss store.Store) {
 
 	m1.UserId = ""
 	_, err = ss.Channel().UpdateMember(m1)
-	require.NotNil(t, err, "bad user id - should fail")
+	require.Error(t, err, "bad user id - should fail")
 }
 
 func testGetMember(t *testing.T, ss store.Store) {
@@ -4279,10 +4279,10 @@ func testGetMember(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	_, err = ss.Channel().GetMember(model.NewId(), userId)
-	require.NotNil(t, err, "should've failed to get member for non-existent channel")
+	require.Error(t, err, "should've failed to get member for non-existent channel")
 
 	_, err = ss.Channel().GetMember(c1.Id, model.NewId())
-	require.NotNil(t, err, "should've failed to get member for non-existent user")
+	require.Error(t, err, "should've failed to get member for non-existent user")
 
 	member, err := ss.Channel().GetMember(c1.Id, userId)
 	require.NoError(t, err, "shouldn't have errored when getting member", err)
@@ -4335,7 +4335,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 	require.Equal(t, m1.ToJson(), r1.ToJson(), "invalid returned channel member")
 
 	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
-	require.NotNil(t, err, "shouldn't have returned a member")
+	require.Error(t, err, "shouldn't have returned a member")
 }
 
 func testGetMemberCount(t *testing.T, ss store.Store) {
@@ -4966,7 +4966,7 @@ func testChannelStoreSearchArchivedInTeam(t *testing.T, ss store.Store, s SqlSto
 		defer s.GetMaster().Exec("ALTER TABLE Channels_renamed RENAME TO Channels")
 
 		list, err := ss.Channel().SearchArchivedInTeam(teamId, "term", userId)
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Nil(t, list)
 	})
 }
@@ -5544,7 +5544,7 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	require.Len(t, *members, 2, "return wrong number of results")
 
 	_, nErr = ss.Channel().GetMembersByIds(m1.ChannelId, []string{})
-	require.NotNil(t, nErr, "empty user ids - should have failed")
+	require.Error(t, nErr, "empty user ids - should have failed")
 }
 
 func testChannelStoreGetMembersByChannelIds(t *testing.T, ss store.Store) {
@@ -5993,7 +5993,7 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	_, nErr := ss.Channel().Save(channel, 0)
-	assert.NotNil(t, nErr)
+	assert.Error(t, nErr)
 	var ltErr *store.ErrLimitExceeded
 	assert.True(t, errors.As(nErr, &ltErr))
 

@@ -118,7 +118,7 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	require.Nil(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
-	require.NotNil(t, err, "should have been removed")
+	require.Error(t, err, "should have been removed")
 }
 
 func testSessionRemoveAll(t *testing.T, ss store.Store) {
@@ -136,7 +136,7 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	require.Nil(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
-	require.NotNil(t, err, "should have been removed")
+	require.Error(t, err, "should have been removed")
 }
 
 func testSessionRemoveByUser(t *testing.T, ss store.Store) {
@@ -154,7 +154,7 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	require.Nil(t, deleteErr)
 
 	_, err = ss.Session().Get(s1.Id)
-	require.NotNil(t, err, "should have been removed")
+	require.Error(t, err, "should have been removed")
 }
 
 func testSessionRemoveToken(t *testing.T, ss store.Store) {
@@ -172,7 +172,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	require.Nil(t, removeErr)
 
 	_, err = ss.Session().Get(s1.Id)
-	require.NotNil(t, err, "should have been removed")
+	require.Error(t, err, "should have been removed")
 
 	data, err := ss.Session().GetSessions(s1.UserId)
 	require.NoError(t, err)
@@ -302,10 +302,10 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 
 	_, err = ss.Session().Get(s3.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	_, err = ss.Session().Get(s4.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	removeErr := ss.Session().Remove(s1.Id)
 	require.Nil(t, removeErr)

@@ -116,7 +116,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	}
 	data, err := ss.Group().Create(g2)
 	require.Nil(t, data)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var appErr *model.AppError
 	require.True(t, errors.As(err, &appErr))
 	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
@@ -214,7 +214,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 
 	// Get an invalid group
 	_, err = ss.Group().Get(model.NewId())
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -250,7 +250,7 @@ func testGroupStoreGetByName(t *testing.T, ss store.Store) {
 
 	// Get an invalid group
 	_, err = ss.Group().GetByName(model.NewId(), g1Opts)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -315,7 +315,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 
 	// Get an invalid group
 	_, err = ss.Group().GetByRemoteID(model.NewId(), model.GroupSource("fake"))
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 }
@@ -470,7 +470,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewId(),
 	})
 	require.Nil(t, data)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var appErr *model.AppError
 	require.True(t, errors.As(err, &appErr))
 	require.Equal(t, appErr.Id, "model.group.display_name.app_error")
@@ -558,7 +558,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 
 	// Try and delete a nonexistent group
 	_, err = ss.Group().Delete(model.NewId())
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 
@@ -1321,7 +1321,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Record already deleted
 	_, err = ss.Group().DeleteGroupSyncable(d1.GroupId, d1.SyncableId, d1.Type)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	var invErr *store.ErrInvalidInput
 	require.True(t, errors.As(err, &invErr))
 }

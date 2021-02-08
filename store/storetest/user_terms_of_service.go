@@ -66,6 +66,6 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 
 	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
 	var nfErr *store.ErrNotFound
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	assert.True(t, errors.As(err, &nfErr))
 }
