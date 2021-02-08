@@ -570,14 +570,16 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 
 	// Give the new subsection READ permissions to any user with READ_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
-		Add: permissionsExperimentalRead,
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id),
+		Add:    permissionsExperimentalRead,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id},
 	})
 
 	// Give the new subsection WRITE permissions to any user with WRITE_EXPERIMENTAL
 	transformations = append(transformations, permissionTransformation{
-		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
-		Add: permissionsExperimentalWrite,
+		On:     permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id),
+		Add:    permissionsExperimentalWrite,
+		Remove: []string{model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL.Id},
 	})
 
 	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
