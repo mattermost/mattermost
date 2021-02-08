@@ -73,9 +73,9 @@ func dummyWebsocketHandler() http.HandlerFunc {
 	}
 }
 
-func registerDummyWebConn(a *App, addr net.Addr, userId string) *WebConn {
+func registerDummyWebConn(a *App, addr net.Addr, userID string) *WebConn {
 	session, appErr := a.CreateSession(&model.Session{
-		UserId: userId,
+		UserId: userID,
 	})
 	if appErr != nil {
 		panic(appErr)
