@@ -717,7 +717,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
 			TokenTypeVerifyEmail,
-			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+			model.MapToJson(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.Nil(t, th.App.Srv().Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
