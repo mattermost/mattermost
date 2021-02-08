@@ -408,12 +408,13 @@ func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChan
 	return remotes, nil
 }
 
-// HasRemote returns whether a given channelID is present in the channel remotes or not.
-func (s SqlSharedChannelStore) HasRemote(channelID string) (bool, error) {
+// HasRemote returns whether a given remoteId and channelId are present in the shared channel remotes or not.
+func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	builder := s.getQueryBuilder().
 		Select("1").
 		Prefix("SELECT EXISTS (").
 		From("SharedChannelRemotes").
+		Where(sq.Eq{"RemoteClusterId": remoteId}).
 		Where(sq.Eq{"ChannelId": channelID}).
 		Suffix(")")
 

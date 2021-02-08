@@ -6850,7 +6850,7 @@ func (s *OpenTracingLayerSharedChannelStore) HasChannel(channelID string) (bool,
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+func (s *OpenTracingLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.HasRemote")
 	s.Root.Store.SetContext(newCtx)
@@ -6859,7 +6859,7 @@ func (s *OpenTracingLayerSharedChannelStore) HasRemote(channelID string) (bool, 
 	}()
 
 	defer span.Finish()
-	result, err := s.SharedChannelStore.HasRemote(channelID)
+	result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

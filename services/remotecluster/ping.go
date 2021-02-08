@@ -108,9 +108,11 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
-		mlog.String("remote", rc.DisplayName), mlog.Int64("SentAt", ping.SentAt), mlog.Int64("RecvAt", ping.RecvAt),
-		mlog.Int64("Diff", ping.RecvAt-ping.SentAt))
-
+		mlog.String("remote", rc.DisplayName),
+		mlog.Int64("SentAt", ping.SentAt),
+		mlog.Int64("RecvAt", ping.RecvAt),
+		mlog.Int64("Diff", ping.RecvAt-ping.SentAt),
+	)
 	return nil
 }
 

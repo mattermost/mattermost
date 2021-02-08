@@ -198,7 +198,7 @@ type AppIface interface {
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
-	HasRemote(channelID string) (bool, error)
+	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
 	HubRegister(webConn *WebConn)
 	// HubStart starts all the hubs.

@@ -283,20 +283,20 @@ func (_m *SharedChannelStore) HasChannel(channelID string) (bool, error) {
 	return r0, r1
 }
 
-// HasRemote provides a mock function with given fields: channelID
-func (_m *SharedChannelStore) HasRemote(channelID string) (bool, error) {
-	ret := _m.Called(channelID)
+// HasRemote provides a mock function with given fields: channelID, remoteId
+func (_m *SharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
+	ret := _m.Called(channelID, remoteId)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string) bool); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(channelID, remoteId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, remoteId)
 	} else {
 		r1 = ret.Error(1)
 	}

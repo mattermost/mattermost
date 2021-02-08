@@ -9965,7 +9965,7 @@ func (a *OpenTracingAppLayer) HasPermissionToUser(askingUserId string, userId st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) HasRemote(channelID string) (bool, error) {
+func (a *OpenTracingAppLayer) HasRemote(channelID string, remoteID string) (bool, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasRemote")
 
@@ -9977,7 +9977,7 @@ func (a *OpenTracingAppLayer) HasRemote(channelID string) (bool, error) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.HasRemote(channelID)
+	resultVar0, resultVar1 := a.app.HasRemote(channelID, remoteID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

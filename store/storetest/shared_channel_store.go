@@ -589,10 +589,13 @@ func testHasRemote(t *testing.T, ss store.Store) {
 	channel, err := createTestChannel(ss, "test_remotes_get2")
 	require.Nil(t, err)
 
+	remote1 := model.NewId()
+	remote2 := model.NewId()
+
 	creator := model.NewId()
 	data := []model.SharedChannelRemote{
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteClusterId: model.NewId()},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteClusterId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteClusterId: remote1},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteClusterId: remote2},
 	}
 
 	for _, r := range data {
@@ -600,14 +603,24 @@ func testHasRemote(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "error saving shared channel remote")
 	}
 
-	t.Run("has channel", func(t *testing.T) {
-		has, err := ss.SharedChannel().HasRemote(channel.Id)
+	t.Run("has remote", func(t *testing.T) {
+		has, err := ss.SharedChannel().HasRemote(channel.Id, remote1)
+		require.NoError(t, err)
+		assert.True(t, has)
+
+		has, err = ss.SharedChannel().HasRemote(channel.Id, remote2)
 		require.NoError(t, err)
 		assert.True(t, has)
 	})
 
-	t.Run("does not have channel", func(t *testing.T) {
-		has, err := ss.SharedChannel().HasRemote(model.NewId())
+	t.Run("wrong channel id ", func(t *testing.T) {
+		has, err := ss.SharedChannel().HasRemote(model.NewId(), remote1)
+		require.NoError(t, err)
+		assert.False(t, has)
+	})
+
+	t.Run("wrong remote id", func(t *testing.T) {
+		has, err := ss.SharedChannel().HasRemote(channel.Id, model.NewId())
 		require.NoError(t, err)
 		assert.False(t, has)
 	})

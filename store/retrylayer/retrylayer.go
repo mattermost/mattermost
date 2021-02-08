@@ -7426,11 +7426,11 @@ func (s *RetryLayerSharedChannelStore) HasChannel(channelID string) (bool, error
 
 }
 
-func (s *RetryLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+func (s *RetryLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.HasRemote(channelID)
+		result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 		if err == nil {
 			return result, nil
 		}

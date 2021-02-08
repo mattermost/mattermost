@@ -6190,10 +6190,10 @@ func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+func (s *TimerLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.HasRemote(channelID)
+	result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
