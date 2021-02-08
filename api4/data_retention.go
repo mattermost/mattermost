@@ -43,7 +43,7 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(policy.ToJson()))
+	w.Write(policy.ToJson())
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
