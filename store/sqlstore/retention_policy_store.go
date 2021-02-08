@@ -1,10 +1,12 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -53,12 +55,24 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 }
 
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
+	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
 	s.CreateCheckConstraintIfNotExists("RetentionPolicies", "PostDuration", "PostDuration > 0")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
 }
 
 // TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
+
+// executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
+// having to check for MySQL, which, unlike Postgres, does not allow empty queries.
+func executePossiblyEmptyQuery(txn *gorp.Transaction, query string, args ...interface{}) (sql.Result, error) {
+	if query == "" {
+		return nil, nil
+	}
+	return txn.Exec(query, args...)
+}
 
 func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	// Strategy:
@@ -73,7 +87,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied)
 		rptInsertQuery string
 		rptInsertArgs  []interface{}
 		rpSelectQuery  string
-		rpSelectProps  map[string]string
+		rpSelectProps  map[string]interface{}
 	)
 
 	if err := s.checkTeamsExist(policy.TeamIds); err != nil {
@@ -91,56 +105,35 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied)
 		Values(policy.Id, policy.DisplayName, policy.PostDuration).
 		ToSql()
 
-	if len(policy.ChannelIds) > 0 {
-		builder := s.getQueryBuilder().
-			Insert("RetentionPoliciesChannels").
-			Columns("PolicyId", "ChannelId")
-		for _, channelId := range policy.ChannelIds {
-			builder = builder.Values(policy.Id, channelId)
-		}
-		rpcInsertQuery, rpcInsertArgs, _ = builder.ToSql()
-	}
+	rpcInsertQuery, rpcInsertArgs = s.buildInsertRetentionPoliciesChannelsQuery(policy.Id, policy.ChannelIds)
 
-	if len(policy.TeamIds) > 0 {
-		builder := s.getQueryBuilder().
-			Insert("RetentionPoliciesTeams").
-			Columns("PolicyId", "TeamId")
-		for _, teamId := range policy.TeamIds {
-			builder = builder.Values(policy.Id, teamId)
-		}
-		rptInsertQuery, rptInsertArgs, _ = builder.ToSql()
-	}
+	rptInsertQuery, rptInsertArgs = s.buildInsertRetentionPoliciesTeamsQuery(policy.Id, policy.TeamIds)
 
-	rpSelectQuery, rpSelectProps = s.buildGetPoliciesQuery(policy.Id)
+	rpSelectQuery, rpSelectProps = s.buildGetPolicyQuery(policy.Id)
 
 	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	_, err = txn.Exec(rpInsertQuery, rpInsertArgs...)
-	if err != nil {
+	if _, err = txn.Exec(rpInsertQuery, rpInsertArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...)
-	if err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpcInsertQuery, rpcInsertArgs...); err != nil {
 		return nil, err
 	}
-	_, err = txn.Exec(rptInsertQuery, rptInsertArgs...)
-	if err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rptInsertQuery, rptInsertArgs...); err != nil {
 		return nil, err
 	}
 	var rows []*retentionPolicyRow
-	_, err = txn.Select(&rows, rpSelectQuery, rpSelectProps)
-	if err != nil {
-		return nil, err
-	}
-	err = txn.Commit()
-	if err != nil {
+	if _, err = txn.Select(&rows, rpSelectQuery, rpSelectProps); err != nil {
 		return nil, err
 	}
 	newPolicy, err := s.getPolicyFromRows(rows)
 	if err != nil {
+		return nil, err
+	}
+	if err = txn.Commit(); err != nil {
 		return nil, err
 	}
 	return newPolicy, nil
@@ -198,10 +191,38 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIds []string) error 
 	return nil
 }
 
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesChannelsQuery(policyId string, channelIds []string) (query string, args []interface{}) {
+	if len(channelIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesChannels").
+			Columns("PolicyId", "ChannelId")
+		for _, channelId := range channelIds {
+			builder = builder.Values(policyId, channelId)
+		}
+		query, args, _ = builder.ToSql()
+	}
+	return
+}
+
+func (s *SqlRetentionPolicyStore) buildInsertRetentionPoliciesTeamsQuery(policyId string, teamIds []string) (query string, args []interface{}) {
+	if len(teamIds) > 0 {
+		builder := s.getQueryBuilder().
+			Insert("RetentionPoliciesTeams").
+			Columns("PolicyId", "TeamId")
+		for _, teamId := range teamIds {
+			builder = builder.Values(policyId, teamId)
+		}
+		query, args, _ = builder.ToSql()
+	}
+	return
+}
+
 func (s *SqlRetentionPolicyStore) Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	return s.Update(patch)
 }
 
+// Update updates the policy with the same ID as `update`. For each field of `update`, if that field
+// has a zero value, then it will not be changed.
 func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error) {
 	// Strategy:
 	// 1. Update policy attributes
@@ -222,7 +243,7 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 		rptDeleteQuery string
 		rptDeleteArgs  []interface{}
 		rpSelectQuery  string
-		rpSelectProps  map[string]string
+		rpSelectProps  map[string]interface{}
 	)
 
 	if err := s.checkTeamsExist(update.TeamIds); err != nil {
@@ -250,15 +271,8 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 			Delete("RetentionPoliciesChannels").
 			Where(sq.Eq{"PolicyId": update.Id}).
 			ToSql()
-		if len(update.ChannelIds) > 0 {
-			builder := s.getQueryBuilder().
-				Insert("RetentionPoliciesChannels").
-				Columns("PolicyId", "ChannelId")
-			for _, channelId := range update.ChannelIds {
-				builder = builder.Values(update.Id, channelId)
-			}
-			rpcInsertQuery, rpcInsertArgs, _ = builder.ToSql()
-		}
+
+		rpcInsertQuery, rpcInsertArgs = s.buildInsertRetentionPoliciesChannelsQuery(update.Id, update.ChannelIds)
 	}
 
 	if update.TeamIds != nil {
@@ -266,37 +280,30 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 			Delete("RetentionPoliciesTeams").
 			Where(sq.Eq{"PolicyId": update.Id}).
 			ToSql()
-		if len(update.TeamIds) > 0 {
-			builder := s.getQueryBuilder().
-				Insert("RetentionPoliciesTeams").
-				Columns("PolicyId", "TeamId")
-			for _, teamId := range update.TeamIds {
-				builder = builder.Values(update.Id, teamId)
-			}
-			rptInsertQuery, rptInsertArgs, _ = builder.ToSql()
-		}
+
+		rptInsertQuery, rptInsertArgs = s.buildInsertRetentionPoliciesTeamsQuery(update.Id, update.TeamIds)
 	}
 
-	rpSelectQuery, rpSelectProps = s.buildGetPoliciesQuery(update.Id)
+	rpSelectQuery, rpSelectProps = s.buildGetPolicyQuery(update.Id)
 
 	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
 	defer finalizeTransaction(txn)
-	if _, err = txn.Exec(rpUpdateQuery, rpUpdateArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpUpdateQuery, rpUpdateArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rpcDeleteQuery, rpcDeleteArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpcDeleteQuery, rpcDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rpcInsertQuery, rpcInsertArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rpcInsertQuery, rpcInsertArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rptDeleteQuery, rptDeleteArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rptDeleteQuery, rptDeleteArgs...); err != nil {
 		return nil, err
 	}
-	if _, err = txn.Exec(rptInsertQuery, rptInsertArgs...); err != nil {
+	if _, err = executePossiblyEmptyQuery(txn, rptInsertQuery, rptInsertArgs...); err != nil {
 		return nil, err
 	}
 	var rows []*retentionPolicyRow
@@ -307,37 +314,76 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 	return s.getPolicyFromRows(rows)
 }
 
-func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string) (string, map[string]string) {
-	props := map[string]string{}
-	rpcBuilder := s.getQueryBuilder().
-		Select(`A.Id, A.DisplayName, A.PostDuration, B.ChannelId, C.DisplayName AS ChannelDisplayName,
-			D.DisplayName AS ChannelTeamDisplayName, NULL AS TeamId, NULL AS TeamDisplayName`).
-		From("RetentionPolicies AS A").
-		LeftJoin("RetentionPoliciesChannels AS B ON A.Id = B.PolicyId").
-		LeftJoin("Channels AS C ON B.ChannelId = C.Id").
-		LeftJoin("Teams AS D ON C.TeamId = D.Id")
-	rptBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select(`A.Id, A.DisplayName, A.PostDuration, NULL AS ChannelId, NULL AS ChannelDisplayName,
-			NULL AS ChannelTeamDisplayName, E.TeamId, F.DisplayName AS TeamDisplayName`).
-		From("RetentionPolicies AS A").
-		LeftJoin("RetentionPoliciesTeams AS E ON A.Id = E.PolicyId").
-		LeftJoin("Teams AS F ON E.TeamId = F.Id")
-	if id != "" {
-		rpcBuilder = rpcBuilder.Where("A.Id = :policyId")
-		rptBuilder = rptBuilder.Where("A.id = :policyId")
-		props["policyId"] = id
-	}
-	sChannelQuery, _, _ := rpcBuilder.ToSql()
-	sTeamQuery, _, _ := rptBuilder.ToSql()
-	query := sChannelQuery + " UNION " + sTeamQuery
-	return query, props
+func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, props map[string]interface{}) {
+	return s.buildGetPoliciesQuery(id, 0, 1)
 }
 
+// buildGetPoliciesQuery builds a query to select information for the policy with the specified
+// ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
+// policy display name.
+func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64, limit uint64) (query string, props map[string]interface{}) {
+	props = map[string]interface{}{"Offset": offset, "Limit": limit}
+	whereIdEqualsPolicyId := ""
+	if id != "" {
+		whereIdEqualsPolicyId = "WHERE Id = :PolicyId"
+		props["PolicyId"] = id
+	}
+	rpSelectQuery := `
+		SELECT Id, DisplayName, PostDuration
+		FROM RetentionPolicies
+		` + whereIdEqualsPolicyId + `
+		ORDER BY DisplayName
+		LIMIT :Limit
+		OFFSET :Offset`
+	cte := ""
+	rpTable := ""
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		cte = "WITH RP AS (" + rpSelectQuery + ")"
+		rpTable = "RP"
+	} else {
+		// For MySQL, repeat the query twice
+		rpTable = "(" + rpSelectQuery + ") AS RP"
+	}
+	query = cte + `
+	SELECT RP.Id,
+	       RP.DisplayName,
+	       RP.PostDuration,
+	       RetentionPoliciesChannels.ChannelId,
+	       Channels.DisplayName AS ChannelDisplayName,
+	       Teams.DisplayName AS ChannelTeamDisplayName,
+	       NULL AS TeamId,
+	       NULL AS TeamDisplayName
+	FROM ` + rpTable + `
+	LEFT JOIN RetentionPoliciesChannels ON RP.Id = RetentionPoliciesChannels.PolicyId
+	LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
+	LEFT JOIN Teams ON Channels.TeamId = Teams.Id
+
+	UNION
+
+	SELECT RP.Id,
+	       RP.DisplayName,
+	       RP.PostDuration,
+	       NULL AS ChannelId,
+	       NULL AS ChannelDisplayName,
+	       NULL AS ChannelTeamDisplayName,
+	       RetentionPoliciesTeams.TeamId,
+	       Teams.DisplayName AS TeamDisplayName
+	FROM ` + rpTable + `
+	LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
+	LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
+	
+	ORDER BY DisplayName`
+	return
+}
+
+// getPoliciesFromRows builds enriched policy objects using rows obtained by a query from `buildGetPoliciesQuery`.
+// The rows must be sorted by DisplayName.
 func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
-	mPolicies := make(map[string]*model.RetentionPolicyEnriched)
+	policies := make([]*model.RetentionPolicyEnriched, 0)
 	for _, row := range rows {
-		policy, ok := mPolicies[row.Id]
-		if !ok {
+		var policy *model.RetentionPolicyEnriched
+		size := len(policies)
+		if size == 0 || policies[size-1].Id != row.Id {
 			policy = &model.RetentionPolicyEnriched{
 				RetentionPolicy: model.RetentionPolicy{
 					Id:           row.Id,
@@ -347,7 +393,9 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 				Channels: make([]model.ChannelDisplayInfo, 0),
 				Teams:    make([]model.TeamDisplayInfo, 0),
 			}
-			mPolicies[row.Id] = policy
+			policies = append(policies, policy)
+		} else {
+			policy = policies[size-1]
 		}
 		if row.ChannelId != nil {
 			policy.Channels = append(
@@ -360,13 +408,7 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 					Id: *row.TeamId, DisplayName: *row.TeamDisplayName})
 		}
 	}
-	aPolicies := make([]*model.RetentionPolicyEnriched, len(mPolicies))
-	i := 0
-	for _, policy := range mPolicies {
-		aPolicies[i] = policy
-		i++
-	}
-	return aPolicies
+	return policies
 }
 
 func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow) (*model.RetentionPolicyEnriched, error) {
@@ -378,7 +420,7 @@ func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow) 
 }
 
 func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, error) {
-	query, props := s.buildGetPoliciesQuery(id)
+	query, props := s.buildGetPolicyQuery(id)
 	var rows []*retentionPolicyRow
 	_, err := s.GetReplica().Select(&rows, query, props)
 	if err != nil {
@@ -391,8 +433,8 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched
 	return policy, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
-	query, props := s.buildGetPoliciesQuery("")
+func (s *SqlRetentionPolicyStore) GetAll(offset, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
+	query, props := s.buildGetPoliciesQuery("", offset, limit)
 	var rows []*retentionPolicyRow
 	_, err := s.GetReplica().Select(&rows, query, props)
 	if err != nil {
@@ -402,30 +444,57 @@ func (s *SqlRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, er
 	return policies, nil
 }
 
-func (s *SqlRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
-	const sQuery = `
-	SELECT Id, DisplayName, PostDuration,
-		SUM(CASE WHEN ChannelId IS NOT NULL THEN 1 ELSE 0 END) AS ChannelCount,
-		SUM(CASE WHEN TeamId IS NOT NULL THEN 1 ELSE 0 END) AS TeamCount
+func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
+	props := map[string]interface{}{"Offset": offset, "Limit": limit}
+	rpSelectQuery := `
+		SELECT Id, DisplayName, PostDuration
+		FROM RetentionPolicies
+		ORDER BY DisplayName
+		LIMIT :Limit
+		OFFSET :Offset`
+	cte := ""
+	rpTable := ""
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		cte = "WITH RP AS (" + rpSelectQuery + ")"
+		rpTable = "RP"
+	} else {
+		// For MySQL, repeat the query twice
+		rpTable = "(" + rpSelectQuery + ") AS RP"
+	}
+	query := cte + `
+	SELECT Id,
+	       DisplayName,
+	       PostDuration,
+	       SUM(CASE WHEN ChannelId IS NOT NULL THEN 1 ELSE 0 END) AS ChannelCount,
+	       SUM(CASE WHEN TeamId IS NOT NULL THEN 1 ELSE 0 END) AS TeamCount
 	FROM (
-		SELECT A.Id, A.DisplayName, A.PostDuration, B.ChannelId, NULL AS TeamId
-		FROM RetentionPolicies AS A
-		LEFT JOIN RetentionPoliciesChannels AS B ON A.Id = B.PolicyId
+		SELECT RP.Id,
+		       RP.DisplayName,
+		       RP.PostDuration,
+		       RetentionPoliciesChannels.ChannelId,
+		       NULL AS TeamId
+		FROM ` + rpTable + `
+		LEFT JOIN RetentionPoliciesChannels ON RP.Id = RetentionPoliciesChannels.PolicyId
 		UNION
-		SELECT A.Id, A.DisplayName, A.PostDuration, NULL AS ChannelId, C.TeamId
-		FROM RetentionPolicies AS A
-		LEFT JOIN RetentionPoliciesTeams AS C ON A.Id = C.PolicyId
-	) AS D
-	GROUP BY Id, DisplayName, PostDuration`
+		SELECT RP.Id,
+		       RP.DisplayName,
+		       RP.PostDuration,
+		       NULL AS ChannelId,
+		       RetentionPoliciesTeams.TeamId
+		FROM ` + rpTable + `
+		LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
+	) AS A
+	GROUP BY Id, DisplayName, PostDuration
+	ORDER BY DisplayName`
 	var rows []*model.RetentionPolicyWithCounts
-	_, err := s.GetReplica().Select(&rows, sQuery)
+	_, err := s.GetReplica().Select(&rows, query, props)
 	return rows, err
 }
 
 func (s *SqlRetentionPolicyStore) Delete(id string) error {
 	builder := s.getQueryBuilder().
 		Delete("RetentionPolicies").
-		Where("Id = ?", id)
+		Where(sq.Eq{"Id": id})
 	result, err := builder.RunWith(s.GetMaster()).Exec()
 	if err != nil {
 		return err
@@ -440,6 +509,9 @@ func (s *SqlRetentionPolicyStore) Delete(id string) error {
 }
 
 func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []string) error {
+	if len(channelIds) == 0 {
+		return nil
+	}
 	if err := s.checkChannelsExist(channelIds); err != nil {
 		return err
 	}
@@ -454,6 +526,9 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 }
 
 func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []string) error {
+	if len(channelIds) == 0 {
+		return nil
+	}
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
 		Where(sq.And{
@@ -465,6 +540,9 @@ func (s *SqlRetentionPolicyStore) RemoveChannels(policyId string, channelIds []s
 }
 
 func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) error {
+	if len(teamIds) == 0 {
+		return nil
+	}
 	if err := s.checkTeamsExist(teamIds); err != nil {
 		return err
 	}
@@ -479,6 +557,9 @@ func (s *SqlRetentionPolicyStore) AddTeams(policyId string, teamIds []string) er
 }
 
 func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string) error {
+	if len(teamIds) == 0 {
+		return nil
+	}
 	builder := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
 		Where(sq.And{
@@ -489,6 +570,8 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return err
 }
 
+// RemoveStaleRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
+// where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (

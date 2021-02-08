@@ -47,31 +47,34 @@ func getGlobalPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPolicies(c *Context, w http.ResponseWriter, r *http.Request) {
-	var body map[string]interface{}
+	limit := uint64(c.Params.PerPage)
+	offset := uint64(c.Params.Page) * limit
 	countsOnly, _ := strconv.ParseBool(r.URL.Query().Get("counts_only"))
+	var body []byte
 	if countsOnly {
-		policies, err := c.App.GetRetentionPoliciesWithCounts()
+		policies, err := c.App.GetRetentionPoliciesWithCounts(offset, limit)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		body = map[string]interface{}{
-			"policies":    policies,
-			"total_count": len(policies),
+		policyList := &model.RetentionPolicyWithCountsList{Policies: policies}
+		if c.Params.IncludeTotalCount {
+			policyList.TotalCount = model.NewInt(len(policies))
 		}
+		body = policyList.ToJson()
 	} else {
-		policies, err := c.App.GetRetentionPolicies()
+		policies, err := c.App.GetRetentionPolicies(offset, limit)
 		if err != nil {
 			c.Err = err
 			return
 		}
-		body = map[string]interface{}{
-			"policies":    policies,
-			"total_count": len(policies),
+		policyList := &model.RetentionPolicyEnrichedList{Policies: policies}
+		if c.Params.IncludeTotalCount {
+			policyList.TotalCount = model.NewInt(len(policies))
 		}
+		body = policyList.ToJson()
 	}
-	b, _ := json.Marshal(body)
-	w.Write(b)
+	w.Write(body)
 }
 
 func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {

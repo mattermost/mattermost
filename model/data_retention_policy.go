@@ -16,7 +16,7 @@ type GlobalRetentionPolicy struct {
 }
 
 type RetentionPolicy struct {
-	Id           string `json:"id"`
+	Id           string `json:"id,omitempty"`
 	DisplayName  string `json:"display_name"`
 	PostDuration int64  `json:"post_duration"`
 }
@@ -60,6 +60,16 @@ type RetentionPolicyTeam struct {
 	TeamId   string
 }
 
+type RetentionPolicyEnrichedList struct {
+	Policies   []*RetentionPolicyEnriched `json:"policies"`
+	TotalCount *int                       `json:"total_count,omitempty"`
+}
+
+type RetentionPolicyWithCountsList struct {
+	Policies   []*RetentionPolicyWithCounts `json:"policies"`
+	TotalCount *int                         `json:"total_count,omitempty"`
+}
+
 func (rp *GlobalRetentionPolicy) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
@@ -71,24 +81,52 @@ func GlobalRetentionPolicyFromJson(data io.Reader) *GlobalRetentionPolicy {
 	return grp
 }
 
-func (rp *RetentionPolicy) ToJson() []byte {
-	b, _ := json.Marshal(rp)
-	return b
-}
-
 func (rp *RetentionPolicyEnriched) ToJson() []byte {
 	b, _ := json.Marshal(rp)
 	return b
 }
 
-func RetentionPolicyFromJson(data io.Reader) (*RetentionPolicy, error) {
-	var rp *RetentionPolicy
+func RetentionPolicyEnrichedFromJson(data io.Reader) (*RetentionPolicyEnriched, error) {
+	var rp *RetentionPolicyEnriched
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
+}
+
+func RetentionPolicyEnrichedListFromJson(data io.Reader) ([]*RetentionPolicyEnriched, error) {
+	var rpList *RetentionPolicyEnrichedList
+	err := json.NewDecoder(data).Decode(&rpList)
+	if err != nil {
+		return nil, err
+	}
+	return rpList.Policies, nil
+}
+
+func (rpList *RetentionPolicyEnrichedList) ToJson() []byte {
+	b, _ := json.Marshal(rpList)
+	return b
+}
+
+func RetentionPolicyWithCountsListFromJson(data io.Reader) ([]*RetentionPolicyWithCounts, error) {
+	var rpList *RetentionPolicyWithCountsList
+	err := json.NewDecoder(data).Decode(&rpList)
+	if err != nil {
+		return nil, err
+	}
+	return rpList.Policies, nil
+}
+
+func (rpList *RetentionPolicyWithCountsList) ToJson() []byte {
+	b, _ := json.Marshal(rpList)
+	return b
 }
 
 func RetentionPolicyWithAppliedFromJson(data io.Reader) (*RetentionPolicyWithApplied, error) {
 	var rp *RetentionPolicyWithApplied
 	err := json.NewDecoder(data).Decode(&rp)
 	return rp, err
+}
+
+func (rp *RetentionPolicyWithApplied) ToJson() []byte {
+	b, _ := json.Marshal(rp)
+	return b
 }

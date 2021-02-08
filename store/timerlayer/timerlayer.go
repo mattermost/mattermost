@@ -5397,10 +5397,10 @@ func (s *TimerLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyE
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+func (s *TimerLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
 	start := timemodule.Now()
 
-	result, err := s.RetentionPolicyStore.GetAll()
+	result, err := s.RetentionPolicyStore.GetAll(offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5413,10 +5413,10 @@ func (s *TimerLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnric
 	return result, err
 }
 
-func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
+func (s *TimerLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
 	start := timemodule.Now()
 
-	result, err := s.RetentionPolicyStore.GetAllWithCounts()
+	result, err := s.RetentionPolicyStore.GetAllWithCounts(offset, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7310,6 +7310,22 @@ func (s *TimerLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadForUser", success, elapsed)
 	}
 	return result, err
 }

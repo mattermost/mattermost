@@ -96,7 +96,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	memoryStore.Set(memoryConfig)
 
-	configStore, err := config.NewStoreFromBacking(memoryStore, nil)
+	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	if err != nil {
 		panic(err)
 	}

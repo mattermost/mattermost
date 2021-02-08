@@ -6450,11 +6450,11 @@ func (s *RetryLayerRetentionPolicyStore) Get(id string) (*model.RetentionPolicyE
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
 
 	tries := 0
 	for {
-		result, err := s.RetentionPolicyStore.GetAll()
+		result, err := s.RetentionPolicyStore.GetAll(offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -6470,11 +6470,11 @@ func (s *RetryLayerRetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnric
 
 }
 
-func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
+func (s *RetryLayerRetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
 
 	tries := 0
 	for {
-		result, err := s.RetentionPolicyStore.GetAllWithCounts()
+		result, err := s.RetentionPolicyStore.GetAllWithCounts(offset, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -8793,6 +8793,26 @@ func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetPosts(threadId, since)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 		if err == nil {
 			return result, nil
 		}

@@ -128,3 +128,8 @@ type FailedPayment struct {
 	LastFour       int    `json:"last_four"`
 	FailureMessage string `json:"failure_message"`
 }
+
+type SubscriptionStats struct {
+	RemainingSeats int    `json:"remaining_seats"`
+	IsPaidTier     string `json:"is_paid_tier"`
+}

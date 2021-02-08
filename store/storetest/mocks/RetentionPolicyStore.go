@@ -79,13 +79,13 @@ func (_m *RetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched, 
 	return r0, r1
 }
 
-// GetAll provides a mock function with given fields:
-func (_m *RetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, error) {
-	ret := _m.Called()
+// GetAll provides a mock function with given fields: offset, limit
+func (_m *RetentionPolicyStore) GetAll(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, error) {
+	ret := _m.Called(offset, limit)
 
 	var r0 []*model.RetentionPolicyEnriched
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyEnriched); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(uint64, uint64) []*model.RetentionPolicyEnriched); ok {
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RetentionPolicyEnriched)
@@ -93,8 +93,8 @@ func (_m *RetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, erro
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(uint64, uint64) error); ok {
+		r1 = rf(offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -102,13 +102,13 @@ func (_m *RetentionPolicyStore) GetAll() ([]*model.RetentionPolicyEnriched, erro
 	return r0, r1
 }
 
-// GetAllWithCounts provides a mock function with given fields:
-func (_m *RetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error) {
-	ret := _m.Called()
+// GetAllWithCounts provides a mock function with given fields: offset, limit
+func (_m *RetentionPolicyStore) GetAllWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, error) {
+	ret := _m.Called(offset, limit)
 
 	var r0 []*model.RetentionPolicyWithCounts
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyWithCounts); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(uint64, uint64) []*model.RetentionPolicyWithCounts); ok {
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RetentionPolicyWithCounts)
@@ -116,8 +116,8 @@ func (_m *RetentionPolicyStore) GetAllWithCounts() ([]*model.RetentionPolicyWith
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(uint64, uint64) error); ok {
+		r1 = rf(offset, limit)
 	} else {
 		r1 = ret.Error(1)
 	}

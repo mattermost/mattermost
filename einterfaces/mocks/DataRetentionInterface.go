@@ -112,13 +112,13 @@ func (_m *DataRetentionInterface) GetGlobalPolicy() (*model.GlobalRetentionPolic
 	return r0, r1
 }
 
-// GetPolicies provides a mock function with given fields:
-func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicyEnriched, *model.AppError) {
-	ret := _m.Called()
+// GetPolicies provides a mock function with given fields: offset, limit
+func (_m *DataRetentionInterface) GetPolicies(offset uint64, limit uint64) ([]*model.RetentionPolicyEnriched, *model.AppError) {
+	ret := _m.Called(offset, limit)
 
 	var r0 []*model.RetentionPolicyEnriched
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyEnriched); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(uint64, uint64) []*model.RetentionPolicyEnriched); ok {
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RetentionPolicyEnriched)
@@ -126,8 +126,8 @@ func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicyEnriche
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(uint64, uint64) *model.AppError); ok {
+		r1 = rf(offset, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -137,13 +137,13 @@ func (_m *DataRetentionInterface) GetPolicies() ([]*model.RetentionPolicyEnriche
 	return r0, r1
 }
 
-// GetPoliciesWithCounts provides a mock function with given fields:
-func (_m *DataRetentionInterface) GetPoliciesWithCounts() ([]*model.RetentionPolicyWithCounts, *model.AppError) {
-	ret := _m.Called()
+// GetPoliciesWithCounts provides a mock function with given fields: offset, limit
+func (_m *DataRetentionInterface) GetPoliciesWithCounts(offset uint64, limit uint64) ([]*model.RetentionPolicyWithCounts, *model.AppError) {
+	ret := _m.Called(offset, limit)
 
 	var r0 []*model.RetentionPolicyWithCounts
-	if rf, ok := ret.Get(0).(func() []*model.RetentionPolicyWithCounts); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(uint64, uint64) []*model.RetentionPolicyWithCounts); ok {
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.RetentionPolicyWithCounts)
@@ -151,8 +151,8 @@ func (_m *DataRetentionInterface) GetPoliciesWithCounts() ([]*model.RetentionPol
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(uint64, uint64) *model.AppError); ok {
+		r1 = rf(offset, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -76,8 +76,8 @@ type RetentionPolicyStore interface {
 	Patch(patch *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
 	Update(update *model.RetentionPolicyWithApplied) (*model.RetentionPolicyEnriched, error)
 	Get(id string) (*model.RetentionPolicyEnriched, error)
-	GetAll() ([]*model.RetentionPolicyEnriched, error)
-	GetAllWithCounts() ([]*model.RetentionPolicyWithCounts, error)
+	GetAll(offset, limit uint64) ([]*model.RetentionPolicyEnriched, error)
+	GetAllWithCounts(offset, limit uint64) ([]*model.RetentionPolicyWithCounts, error)
 	Delete(id string) error
 	AddChannels(policyId string, channelIds []string) error
 	RemoveChannels(policyId string, channelIds []string) error
@@ -268,6 +268,7 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
 
