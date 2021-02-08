@@ -126,7 +126,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	}
 
 	id := props[model.SYSTEM_TELEMETRY_ID]
-	if len(id) == 0 {
+	if id == "" {
 		id = model.NewId()
 		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
 		ts.dbStore.System().Save(systemID)
@@ -416,7 +416,6 @@ func (ts *TelemetryService) trackConfig() {
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
-		"experimental_channel_sidebar_organization":               *cfg.ServiceSettings.ExperimentalChannelSidebarOrganization,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 		"enable_svgs":                                             *cfg.ServiceSettings.EnableSVGs,
@@ -424,6 +423,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
+		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -474,6 +474,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
 		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
 		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
@@ -687,6 +688,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 

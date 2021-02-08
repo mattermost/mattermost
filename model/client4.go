@@ -383,7 +383,11 @@ func (c *Client4) GetComplianceReportsRoute() string {
 }
 
 func (c *Client4) GetComplianceReportRoute(reportId string) string {
-	return fmt.Sprintf("/compliance/reports/%v", reportId)
+	return fmt.Sprintf("%s/%s", c.GetComplianceReportsRoute(), reportId)
+}
+
+func (c *Client4) GetComplianceReportDownloadRoute(reportId string) string {
+	return fmt.Sprintf("%s/%s/download", c.GetComplianceReportsRoute(), reportId)
 }
 
 func (c *Client4) GetOutgoingWebhooksRoute() string {
@@ -584,11 +588,11 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag st
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if len(etag) > 0 {
+	if etag != "" {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
 	}
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -629,7 +633,7 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -653,7 +657,7 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -677,7 +681,7 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 	}
 	rq.Header.Set("Content-Type", contentType)
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -1490,7 +1494,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -1739,7 +1743,7 @@ func (c *Client4) SetBotIconImage(botUserId string, data []byte) (bool, *Respons
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -2273,7 +2277,7 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -2903,8 +2907,12 @@ func (c *Client4) DeletePost(postId string) (bool, *Response) {
 }
 
 // GetPostThread gets a post with all the other posts in the same thread.
-func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Response) {
-	r, err := c.DoApiGet(c.GetPostRoute(postId)+"/thread", etag)
+func (c *Client4) GetPostThread(postId string, etag string, collapsedThreads bool) (*PostList, *Response) {
+	url := c.GetPostRoute(postId) + "/thread"
+	if collapsedThreads {
+		url += "?collapsedThreads=true"
+	}
+	r, err := c.DoApiGet(url, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -2913,8 +2921,11 @@ func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Respons
 }
 
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
-func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
+func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if collapsedThreads {
+		query += "&collapsedThreads=true"
+	}
 	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2965,8 +2976,11 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId strin
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
-func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Response) {
+func (c *Client4) GetPostsSince(channelId string, time int64, collapsedThreads bool) (*PostList, *Response) {
 	query := fmt.Sprintf("?since=%v", time)
+	if collapsedThreads {
+		query += "&collapsedThreads=true"
+	}
 	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2976,8 +2990,11 @@ func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Respo
 }
 
 // GetPostsAfter gets a page of posts that were posted after the post provided.
-func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
+func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
+	if collapsedThreads {
+		query += "&collapsedThreads=true"
+	}
 	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2987,8 +3004,11 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 }
 
 // GetPostsBefore gets a page of posts that were posted before the post provided.
-func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
+func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string, collapsedThreads bool) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
+	if collapsedThreads {
+		query += "&collapsedThreads=true"
+	}
 	r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2998,8 +3018,11 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
-func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int) (*PostList, *Response) {
+func (c *Client4) GetPostsAroundLastUnread(userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response) {
 	query := fmt.Sprintf("?limit_before=%v&limit_after=%v", limitBefore, limitAfter)
+	if collapsedThreads {
+		query += "&collapsedThreads=true"
+	}
 	r, err := c.DoApiGet(c.GetUserRoute(userId)+c.GetChannelRoute(channelId)+"/posts/unread"+query, "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -3255,6 +3278,21 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // General/System Section
 
+// GenerateSupportPacket downloads the generated support packet
+func (c *Client4) GenerateSupportPacket() ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetSystemRoute()+"/support_packet", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
 func (c *Client4) GetPing() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", "")
@@ -3452,7 +3490,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -3854,12 +3892,12 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportDownloadRoute(reportId), nil)
 	if err != nil {
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
 	}
 
@@ -4229,7 +4267,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -4384,7 +4422,7 @@ func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Respon
 	}
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -5023,7 +5061,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
@@ -5714,6 +5752,18 @@ func (c *Client4) GetSubscription() (*Subscription, *Response) {
 	return subscription, BuildResponse(r)
 }
 
+func (c *Client4) GetSubscriptionStats() (*SubscriptionStats, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/stats", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var stats *SubscriptionStats
+	json.NewDecoder(r.Body).Decode(&stats)
+	return stats, BuildResponse(r)
+}
+
 func (c *Client4) GetInvoicesForSubscription() ([]*Invoice, *Response) {
 	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription/invoices", "")
 	if appErr != nil {
@@ -5771,8 +5821,11 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Since != 0 {
 		v.Set("since", fmt.Sprintf("%d", options.Since))
 	}
-	if options.Page != 0 {
-		v.Set("page", fmt.Sprintf("%d", options.Page))
+	if options.Before != "" {
+		v.Set("before", options.Before)
+	}
+	if options.After != "" {
+		v.Set("after", options.After)
 	}
 	if options.PageSize != 0 {
 		v.Set("pageSize", fmt.Sprintf("%d", options.PageSize))
@@ -5783,7 +5836,9 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	if options.Deleted {
 		v.Set("deleted", "true")
 	}
-
+	if options.Unread {
+		v.Set("unread", "true")
+	}
 	url := c.GetUserThreadsRoute(userId, teamId)
 	if len(v) > 0 {
 		url += "?" + v.Encode()
@@ -5799,6 +5854,23 @@ func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOp
 	json.NewDecoder(r.Body).Decode(&threads)
 
 	return &threads, BuildResponse(r)
+}
+
+func (c *Client4) GetUserThread(userId, teamId, threadId string, extended bool) (*ThreadResponse, *Response) {
+	url := c.GetUserThreadRoute(userId, teamId, threadId)
+	if extended {
+		url += "?extended=true"
+	}
+	r, appErr := c.DoApiGet(url, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
+
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {

@@ -85,10 +85,10 @@ type Actions struct {
 	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
 	CreateDirectChannel    func(string, string) (*model.Channel, *model.AppError)
-	CreateGroupChannel     func([]string, string) (*model.Channel, *model.AppError)
+	CreateGroupChannel     func([]string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)
-	GenerateThumbnailImage func(image.Image, string, int, int)
+	GenerateThumbnailImage func(image.Image, string)
 	GeneratePreviewImage   func(image.Image, string, int)
 	InvalidateAllCaches    func()
 	MaxPostSize            func() int
@@ -736,7 +736,7 @@ func (si *SlackImporter) oldImportChannel(channel *model.Channel, sChannel slack
 		if creator == nil {
 			return nil
 		}
-		sc, err := si.actions.CreateGroupChannel(members, creator.Id)
+		sc, err := si.actions.CreateGroupChannel(members)
 		if err != nil {
 			return nil
 		}
@@ -771,9 +771,9 @@ func (si *SlackImporter) oldImportFile(timestamp time.Time, file io.Reader, team
 	}
 
 	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
-		img, width, height := si.actions.PrepareImage(data)
+		img, width, _ := si.actions.PrepareImage(data)
 		if img != nil {
-			si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath, width, height)
+			si.actions.GenerateThumbnailImage(img, fileInfo.ThumbnailPath)
 			si.actions.GeneratePreviewImage(img, fileInfo.PreviewPath, width)
 		}
 	}

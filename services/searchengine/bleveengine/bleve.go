@@ -231,6 +231,14 @@ func (b *BleveEngine) GetVersion() int {
 	return 0
 }
 
+func (b *BleveEngine) GetFullVersion() string {
+	return "0"
+}
+
+func (b *BleveEngine) GetPlugins() []string {
+	return []string{}
+}
+
 func (b *BleveEngine) GetName() string {
 	return EngineName
 }

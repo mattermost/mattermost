@@ -476,31 +476,31 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		}
 
 		// handle after: before: on: filters
-		if len(params.OnDate) > 0 {
+		if params.OnDate != "" {
 			onDateStart, onDateEnd := params.GetOnDateMillis()
 			query = query.Where(sq.Expr("FI.CreateAt BETWEEN ? AND ?", strconv.FormatInt(onDateStart, 10), strconv.FormatInt(onDateEnd, 10)))
 		} else {
-			if len(params.ExcludedDate) > 0 {
+			if params.ExcludedDate != "" {
 				excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
 				query = query.Where(sq.Expr("FI.CreateAt NOT BETWEEN ? AND ?", strconv.FormatInt(excludedDateStart, 10), strconv.FormatInt(excludedDateEnd, 10)))
 			}
 
-			if len(params.AfterDate) > 0 {
+			if params.AfterDate != "" {
 				afterDate := params.GetAfterDateMillis()
 				query = query.Where(sq.GtOrEq{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
-			if len(params.BeforeDate) > 0 {
+			if params.BeforeDate != "" {
 				beforeDate := params.GetBeforeDateMillis()
 				query = query.Where(sq.LtOrEq{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}
 
-			if len(params.ExcludedAfterDate) > 0 {
+			if params.ExcludedAfterDate != "" {
 				afterDate := params.GetExcludedAfterDateMillis()
 				query = query.Where(sq.Lt{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
-			if len(params.ExcludedBeforeDate) > 0 {
+			if params.ExcludedBeforeDate != "" {
 				beforeDate := params.GetExcludedBeforeDateMillis()
 				query = query.Where(sq.Gt{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}

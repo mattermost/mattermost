@@ -657,9 +657,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("invite_id", inviteId)
 
-	if len(tokenId) > 0 {
+	if tokenId != "" {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session().UserId, tokenId)
-	} else if len(inviteId) > 0 {
+	} else if inviteId != "" {
 		if c.App.Session().Props[model.SESSION_PROP_IS_GUEST] == "true" {
 			c.Err = model.NewAppError("addUserToTeamFromInvite", "api.team.add_user_to_team_from_invite.guest.app_error", nil, "", http.StatusForbidden)
 			return
@@ -1205,7 +1205,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
+		if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && cloudUserLimit > 0 {
 			subscription, subErr := c.App.Cloud().GetSubscription()
 			if subErr != nil {
 				c.Err = subErr
@@ -1412,7 +1412,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write(img)
 }

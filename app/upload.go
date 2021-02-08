@@ -19,7 +19,7 @@ import (
 )
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
-const incompleteUploadSuffix = ".tmp"
+const IncompleteUploadSuffix = ".tmp"
 
 func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -69,17 +69,17 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
 
 	if err = <-errChan; err != nil {
 		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
@@ -92,7 +92,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
@@ -111,7 +111,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	if us.Type == model.UploadTypeAttachment {
 		us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
 	} else if us.Type == model.UploadTypeImport {
-		us.Path = *a.Config().ImportSettings.Directory + "/" + us.Id + "_" + filepath.Base(us.Filename)
+		us.Path = filepath.Clean(*a.Config().ImportSettings.Directory) + "/" + us.Id + "_" + filepath.Base(us.Filename)
 	}
 	if err := us.IsValid(); err != nil {
 		return nil, err
@@ -153,8 +153,8 @@ func (a *App) GetUploadSession(uploadId string) (*model.UploadSession, *model.Ap
 	return us, nil
 }
 
-func (a *App) GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError) {
-	uss, err := a.Srv().Store.UploadSession().GetForUser(userId)
+func (a *App) GetUploadSessionsForUser(userID string) ([]*model.UploadSession, *model.AppError) {
+	uss, err := a.Srv().Store.UploadSession().GetForUser(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetUploadsForUser", "app.upload.get_for_user.app_error",
 			nil, err.Error(), http.StatusInternalServerError)
@@ -194,7 +194,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	uploadPath := us.Path
 	if us.Type == model.UploadTypeImport {
-		uploadPath += incompleteUploadSuffix
+		uploadPath += IncompleteUploadSuffix
 	}
 
 	// make sure it's not possible to upload more data than what is expected.
@@ -297,7 +297,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 
 	// delete upload session
 	if storeErr := a.Srv().Store.UploadSession().Delete(us.Id); storeErr != nil {
-		mlog.Error("Failed to delete UploadSession", mlog.Err(storeErr))
+		mlog.Warn("Failed to delete UploadSession", mlog.Err(storeErr))
 	}
 
 	return info, nil
