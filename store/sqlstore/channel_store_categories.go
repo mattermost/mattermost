@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -42,6 +43,19 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			"TeamId": teamId,
 			"Type":   []model.SidebarCategoryType{model.SidebarCategoryFavorites, model.SidebarCategoryChannels, model.SidebarCategoryDirectMessages},
 		}).ToSql()
+
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		selectQuery, selectParams, _ = s.getQueryBuilder().
+			Select("SidebarCategories.Type").
+			From("cte").
+			Prefix("WITH cte AS (SELECT unnest(ARRAY['" + strings.Join([]string{string(model.SidebarCategoryFavorites), string(model.SidebarCategoryChannels), string(model.SidebarCategoryDirectMessages)}, "','") + "']) as type) ").
+			LeftJoin("SidebarCategories on SidebarCategories.Type=cte.type").
+			Where(sq.NotEq{"SidebarCategories.Type": nil}).
+			Where(sq.Eq{
+				"UserId": userId,
+				"TeamId": teamId,
+			}).ToSql()
+	}
 
 	var existingTypes []model.SidebarCategoryType
 	_, err := transaction.Select(&existingTypes, selectQuery, selectParams...)

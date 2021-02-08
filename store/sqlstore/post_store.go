@@ -1091,8 +1091,11 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
+	}
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		return s.getParentsPostsCockroach(channelId, offset, limit, skipFetchThreads)
 	}
 
 	// query parent Ids first
@@ -1130,16 +1133,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	}
 	placeholderString := strings.Join(placeholders, ", ")
 	params["ChannelId"] = channelId
-	replyCountQuery := ""
 	whereStatement := "p.Id IN (" + placeholderString + ")"
-	if skipFetchThreads {
-		replyCountQuery = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE ((Posts.RootId = p.Id AND p.RootId = '') OR Posts.RootId = p.RootId) AND Posts.DeleteAt = 0) as ReplyCount`
-	} else {
+	if !skipFetchThreads {
 		whereStatement += " OR p.RootId IN (" + placeholderString + ")"
 	}
 	var posts []*model.Post
 	_, err = s.GetReplica().Select(&posts, `
-		SELECT p.*`+replyCountQuery+`
+		SELECT p.*, 0 as ReplyCount
 		FROM
 			Posts p
 		WHERE
@@ -1151,20 +1151,24 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
+
+	if skipFetchThreads {
+		posts, err = s.addReplyCounts(posts, channelId, true)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return posts, nil
 }
 
 func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
 	var posts []*model.Post
-	replyCountQuery := ""
 	onStatement := "q1.RootId = q2.Id"
-	if skipFetchThreads {
-		replyCountQuery = ` ,(SELECT COUNT(Posts.Id) FROM Posts WHERE ((Posts.RootId = q2.Id AND q2.RootId = '') OR Posts.RootId = q2.RootId) AND Posts.DeleteAt = 0) as ReplyCount`
-	} else {
+	if !skipFetchThreads {
 		onStatement += " OR q1.RootId = q2.RootId"
 	}
 	_, err := s.GetReplica().Select(&posts,
-		`SELECT q2.*`+replyCountQuery+`
+		`SELECT q2.*, 0 as ReplyCount
         FROM
             Posts q2
                 INNER JOIN
@@ -1189,6 +1193,51 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
 		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
+	}
+	if skipFetchThreads {
+		posts, err = s.addReplyCounts(posts, channelId, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return posts, nil
+}
+
+func (s *SqlPostStore) getParentsPostsCockroach(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, error) {
+	var posts []*model.Post
+	unionSql := ""
+	if !skipFetchThreads {
+		unionSql = `
+		UNION
+		SELECT q2.*, 0 as ReplyCount
+        FROM
+            Posts q2
+		INNER JOIN cte ON cte.RootId = q2.RootId
+        WHERE
+            ChannelId = :ChannelId2
+			AND DeleteAt = 0
+`
+	}
+	_, err := s.GetReplica().Select(&posts,
+		`WITH cte as (SELECT DISTINCT q3.RootId FROM (SELECT RootId FROM Posts WHERE ChannelId = :ChannelId1 AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset) q3 WHERE q3.RootId != '')
+		SELECT q2.*, 0 as ReplyCount
+        FROM
+            Posts q2
+		INNER JOIN cte ON cte.RootId = q2.Id
+        WHERE
+            ChannelId = :ChannelId2
+			AND DeleteAt = 0
+		`+unionSql+`
+        ORDER BY CreateAt`,
+		map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
+	}
+	if skipFetchThreads {
+		posts, err = s.addReplyCounts(posts, channelId, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return posts, nil
 }
@@ -1366,7 +1415,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	searchQuery := `
 			SELECT
-				* ,(SELECT COUNT(Posts.Id) FROM Posts WHERE ((Posts.RootId = q2.Id AND q2.RootId = '') OR Posts.RootId = q2.RootId) AND Posts.DeleteAt = 0) as ReplyCount
+				* ,0 as ReplyCount
 			FROM
 				Posts q2
 			WHERE
@@ -1483,6 +1532,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		mlog.Warn("Query error searching posts.", mlog.Err(err))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
+		posts, err = s.addReplyCounts(posts, "", true)
+		if err != nil {
+			return nil, err
+		}
 		for _, p := range posts {
 			if searchType == "Hashtags" {
 				exactMatch := false

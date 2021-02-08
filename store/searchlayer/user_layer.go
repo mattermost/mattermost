@@ -46,9 +46,9 @@ func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchO
 
 			sanitizedTerm := sanitizeSearchTerm(term)
 
-			usersIds, err := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
-			if err != nil {
-				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			usersIds, appErr := engine.SearchUsersInTeam(teamId, listOfAllowedChannels, sanitizedTerm, options)
+			if appErr != nil {
+				mlog.Error("Encountered error on Search", mlog.String("search_engine", engine.GetName()), mlog.Err(appErr))
 				continue
 			}
 

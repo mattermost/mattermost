@@ -35,7 +35,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		assert.Nil(t, err)
-		assert.Len(t, res.Categories, 3)
+		require.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
@@ -55,7 +55,7 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 
 		res, err := ss.Channel().GetSidebarCategories(userId2, teamId)
 		assert.Nil(t, err)
-		assert.Len(t, res.Categories, 3)
+		require.Len(t, res.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)

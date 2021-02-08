@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -421,8 +422,7 @@ func (s *SqlThreadStore) CreateMembershipIfNeeded(userId, postId string, followi
 
 func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelIds []string, timestamp int64) ([]string, error) {
 	var changedThreads []string
-	// TODO: Migrate this to use CTE for cockroach
-	query, args, _ := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select("Threads.PostId").
 		From("Threads").
 		LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Threads.ChannelId").
@@ -433,9 +433,26 @@ func (s *SqlThreadStore) CollectThreadsWithNewerReplies(userId string, channelId
 				sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
 				sq.GtOrEq{"Threads.LastReplyAt": timestamp},
 			},
-		}).
-		ToSql()
-	if _, err := s.GetReplica().Select(&changedThreads, query, args...); err != nil {
+		})
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query = s.getQueryBuilder().
+			Select("Threads.PostId").
+			Prefix("WITH cte AS (SELECT unnest(ARRAY['" + strings.Join(channelIds, "','") + "']) as id) ").
+			From("cte").
+			Join("Threads ON Threads.ChannelId=cte.id").
+			LeftJoin("ChannelMembers ON ChannelMembers.ChannelId=Threads.ChannelId").
+			Where(sq.And{
+				sq.NotEq{"Threads.PostId": nil},
+				sq.Eq{"ChannelMembers.UserId": userId},
+				sq.Or{
+					sq.Expr("Threads.LastReplyAt >= ChannelMembers.LastViewedAt"),
+					sq.GtOrEq{"Threads.LastReplyAt": timestamp},
+				},
+			})
+	}
+
+	querySql, args, _ := query.ToSql()
+	if _, err := s.GetReplica().Select(&changedThreads, querySql, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch threads")
 	}
 	return changedThreads, nil
@@ -455,6 +472,21 @@ func (s *SqlThreadStore) UpdateUnreadsByChannel(userId string, changedThreads []
 		qb = qb.Set("LastViewed", timestamp)
 	}
 	updateQuery, updateArgs, _ := qb.ToSql()
+
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		updateViewedSql := ""
+		if updateViewedTimestamp {
+			updateViewedSql = ", LastViewed = $1"
+		}
+		updateQuery = `
+            WITH cte AS (SELECT unnest(ARRAY['` + strings.Join(changedThreads, "','") + `']) as id)
+			UPDATE ThreadMemberships
+			SET LastUpdated = $1 ` + updateViewedSql + `
+			FROM cte
+			WHERE cte.id=postid AND userid=$2
+		`
+		updateArgs = []interface{}{timestamp, userId}
+	}
 
 	if _, err := s.GetMaster().Exec(updateQuery, updateArgs...); err != nil {
 		return errors.Wrap(err, "failed to update thread membership")

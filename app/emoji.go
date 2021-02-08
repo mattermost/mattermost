@@ -226,6 +226,18 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 		return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	if len(names) == 0 {
+		return []*model.Emoji{}, nil
+	}
+
+	if len(names) == 1 {
+		emoji, err := a.GetEmojiByName(names[0])
+		if err != nil {
+			return nil, model.NewAppError("GetMultipleEmojiByName", "api.emoji.get_by_name.app_error", nil, "", http.StatusNotImplemented)
+		}
+		return []*model.Emoji{emoji}, nil
+	}
+
 	emoji, err := a.Srv().Store.Emoji().GetMultipleByName(names)
 	if err != nil {
 		return nil, model.NewAppError("GetMultipleEmojiByName", "app.emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
