@@ -1779,11 +1779,28 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
+	// Granular policies override global ones
+	const selectQuery = `
+		SELECT Posts.Id FROM Posts
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
+		WHERE RetentionPoliciesChannels.ChannelId IS NULL
+		      AND RetentionPoliciesTeams.TeamId IS NULL
+		      AND Posts.CreateAt < :EndTime
+		LIMIT :Limit`
 	var query string
-	if s.DriverName() == "postgres" {
-		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+		` + selectQuery + `
+		)`
 	} else {
-		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+		query = `
+		DELETE Posts FROM Posts INNER JOIN (
+		` + selectQuery + `
+		) AS A ON Posts.Id = A.Id`
 	}
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})

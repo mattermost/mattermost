@@ -2540,16 +2540,31 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "DisplayName",
+		Name:        "team" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err)
+	channel, err := ss.Channel().Save(&model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}, -1)
+	require.Nil(t, err)
+
 	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
+	o1.ChannelId = channel.Id
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1.CreateAt = 1000
-	o1, err := ss.Post().Save(o1)
+	o1, err = ss.Post().Save(o1)
 	require.Nil(t, err)
 
 	o2 := &model.Post{}
-	o2.ChannelId = model.NewId()
+	o2.ChannelId = channel.Id
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o2.CreateAt = 1000
@@ -2557,7 +2572,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	o3 := &model.Post{}
-	o3.ChannelId = model.NewId()
+	o3.ChannelId = channel.Id
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o3.CreateAt = 100000
@@ -2574,7 +2589,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.NotNil(t, err, "Should have not found post 2 after purge")
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
-	require.Nil(t, err, "Should have not found post 3 after purge")
+	require.Nil(t, err, "Should have found post 3 after purge")
 }
 
 func testPostStoreGetOldest(t *testing.T, ss store.Store) {
