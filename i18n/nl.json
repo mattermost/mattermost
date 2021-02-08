@@ -1916,7 +1916,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Jouw wachtwoord is bijgewerkt."
+    "translation": "[{{.SiteName}}] Jouw wachtwoord is bijgewerkt"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1956,23 +1956,23 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}]  Jouw aanmeldingsmethode is bijgewerkt."
+    "translation": "[{{ .SiteName }}] Jouw aanmeldingsmethode is bijgewerkt"
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "Een persoonlijk toegangstoken was toegevoegd aan je account op {{ .SiteURL }}. Dit kan nu gebruikt worden om toegang te krijgen tot {{.SiteName}} met je acccount."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Personal access token added to your account"
+    "translation": "Persoonlijk toegangstoken is toegevoegd aan je account."
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Personal access token added to your account"
+    "translation": "[{{ .SiteName }}] Persoonlijk toegangstoken werd toegevoegd aan je account"
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
+    "translation": "Je gebruikersnaam voor {{.TeamDisplayName}} is gewijzigd naar {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -1980,7 +1980,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{ .SiteName }}] Your username has changed"
+    "translation": "[{{.SiteName }}] Je gebruikersnaam werd gewijzigd"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2024,7 +2024,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] Je werd lid van{{ .ServerURL }}"
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -2032,7 +2032,7 @@
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
-    "translation": "Failed to add direct channel preferences for user user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
+    "translation": "Fout bij het toevoegen van de directe kanaalvoorkeuren voor gebruiker user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}}"
   },
   {
     "id": "api.user.authorize_oauth_user.bad_response.app_error",
@@ -2088,7 +2088,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Fout bij het aanmaken van een data token voor e-mailverificatie"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2096,19 +2096,19 @@
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
-    "translation": "Kan geen gebruiker creeeren voor service {{.Service}}"
+    "translation": "Kon geen gebruiker aanmaken uit {{.Service}} gebruikersobject."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
-    "translation": "Kan geen standaard profiel aanmaken"
+    "translation": "Kon geen standaard profielafbeeldingslettertype maken."
   },
   {
     "id": "api.user.create_profile_image.encode.app_error",
-    "translation": "Kan het standaard figuur voor het profiel niet coderen"
+    "translation": "Kan de standaard profielafbeelding niet encoderen."
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": "Kan geen initieel standaard figuur toevoegen bij het gebruikers profiel"
+    "translation": "Kan het initiaal van de gebruiker niet toevoegen aan de standaardprofielafbeelding."
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
