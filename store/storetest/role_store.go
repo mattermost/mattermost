@@ -361,7 +361,7 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 }
 
 func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
-	createDefaultRoles(t, ss)
+	createDefaultRoles(ss)
 
 	teamScheme1 := &model.Scheme{
 		DisplayName: model.NewId(),
