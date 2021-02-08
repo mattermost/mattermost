@@ -2590,6 +2590,36 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
 	require.Nil(t, err, "Should have found post 3 after purge")
+
+	t.Run("with data retention policies", func(t *testing.T) {
+		_, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
+			RetentionPolicy: model.RetentionPolicy{
+				DisplayName:  "DisplayName",
+				PostDuration: 30,
+			},
+			ChannelIds: []string{channel.Id},
+		})
+		require.Nil(t, err)
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   "message",
+			CreateAt:  1,
+		}
+		post, err = ss.Post().Save(post)
+		require.Nil(t, err)
+
+		_, err = ss.Post().PermanentDeleteBatch(2000, 1000)
+		require.Nil(t, err)
+		_, err = ss.Post().Get(post.Id, false, false, false)
+		require.Nil(t, err, "granular policies should override global policy")
+
+		now := time.Now().Unix() * 1000
+		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(now, 1000)
+		require.Nil(t, err)
+		_, err = ss.Post().Get(post.Id, false, false, false)
+		require.Nil(t, err, "granular policies should override global policy")
+	})
 }
 
 func testPostStoreGetOldest(t *testing.T, ss store.Store) {

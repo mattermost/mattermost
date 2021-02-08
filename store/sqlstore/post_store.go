@@ -1802,6 +1802,7 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 		` + selectQuery + `
 		)`
 	} else {
+		// MySQL does not support the LIMIT clause in a subquery with IN
 		query = `
 		DELETE Posts FROM Posts INNER JOIN (
 		` + selectQuery + `
