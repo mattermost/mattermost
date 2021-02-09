@@ -771,6 +771,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
@@ -795,6 +796,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
 		env := th.App.GetPluginsEnvironment()
@@ -813,6 +815,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
 		env := th.App.GetPluginsEnvironment()
@@ -850,6 +853,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
 		env := th.App.GetPluginsEnvironment()
@@ -909,6 +913,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.AutomaticPrepackagedPlugins = false
+			*cfg.PluginSettings.EnableRemoteMarketplace = false
 		})
 
 		env := th.App.GetPluginsEnvironment()
