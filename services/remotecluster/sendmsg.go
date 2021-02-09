@@ -77,7 +77,7 @@ func (rcs *Service) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc 
 
 // sendMsg is called when a sendMsgTask is popped from the send channel.
 func (rcs *Service) sendMsg(task sendMsgTask) {
-	// Ensure a panic from the callback does not exit the pool thread.
+	// Ensure a panic from the callback does not exit the pool goroutine.
 	defer func() {
 		if r := recover(); r != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster sendMsg panic",
