@@ -635,14 +635,16 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 func (es *EmailService) SendAdminOverTheLimitAlertEmail(tu int64, cul int, user, email, locale, siteURL string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.at_limit_title")
+	subject := T("api.templates.over_limit_subject", map[string]interface{}{"UserName": user})
 
 	bodyPage := es.newEmailTemplate("user_limit_admin_notification", locale)
-	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.at_limit_title")
-	bodyPage.Props["Info3"] = T("api.templates.at_limit_info3", map[string]interface{}{"UserName": user})
 	bodyPage.Props["Info4"] = T("api.templates.at_limit_stats", map[string]interface{}{"TotalUsers": tu, "CloudUserLimit": cul})
 	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendAdminAlertEmail", "api.user.send_email_user_limit_admin_notification.error", nil, "err="+err.Message, http.StatusInternalServerError)

@@ -2603,12 +2603,12 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
-    "id": "api.templates.at_limit_info3",
-    "translation": "The user, {{ .UserName }} tried to invite more users but failed because you've reached the user limit for the free tier."
+    "id": "api.templates.over_limit_subject",
+    "translation": "{{ .UserName }} would like to invite members to your workspace"
   },
   {
     "id": "api.templates.at_limit_info5",
-    "translation": "Consider upgrading to the paid tier."
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
   },
   {
     "id": "api.templates.at_limit_subject",
@@ -2620,7 +2620,7 @@
   },
   {
     "id": "api.templates.at_limit_stats",
-    "translation": "You currently have {{ .TotalUsers}} users on the system and your free tier limit is {{ .CloudUserLimit }} users"
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. You currently have {{ .TotalUsers}} users on the system and your free tier limit is {{ .CloudUserLimit }} users. Upgrade now to allow more users to join your workspace."
   },
   {
     "id": "api.templates.copyright",
