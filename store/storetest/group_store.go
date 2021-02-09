@@ -1890,11 +1890,11 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 
 	// add users back to groups
 	res := ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
@@ -2042,11 +2042,11 @@ func testChannelMembersToRemove(t *testing.T, ss store.Store) {
 
 	// add users back to groups
 	res := ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserB.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
-	require.Nil(t, res)
+	require.NoError(t, res)
 	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)

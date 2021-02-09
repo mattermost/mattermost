@@ -3270,7 +3270,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, s1.Id, *t2.SchemeId)
 
 	res := ss.Team().ResetAllTeamSchemes()
-	assert.Nil(t, res)
+	assert.NoError(t, res)
 
 	t1, err = ss.Team().Get(t1.Id)
 	require.NoError(t, err)

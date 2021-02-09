@@ -6562,7 +6562,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store, s
 	require.NoError(t, err)
 
 	// Remove all deactivated users from the channel.
-	assert.Nil(t, ss.Channel().RemoveAllDeactivatedMembers(c1.Id))
+	assert.NoError(t, ss.Channel().RemoveAllDeactivatedMembers(c1.Id))
 
 	// Get all the channel members. Check there is now only 1: m3.
 	d2, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
