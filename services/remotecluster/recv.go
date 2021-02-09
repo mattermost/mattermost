@@ -13,7 +13,7 @@ import (
 // ReceiveIncomingMsg is called by the Rest API layer, or websocket layer (future), when a Remote Cluster
 // message is received.  Here we route the message to any topic listeners.
 // `rc` and `msg` cannot be nil.
-func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) *Response {
+func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response {
 	rcs.mux.RLock()
 	defer rcs.mux.RUnlock()
 
@@ -39,7 +39,7 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 			response.Err = err.Error()
 		}
 	}
-	return &response
+	return response
 }
 
 func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) (err error) {

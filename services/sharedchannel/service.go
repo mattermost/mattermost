@@ -22,8 +22,7 @@ const (
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 12          // a bit more than one typical screenfull of posts
-	AsyncAttachmentSizeThreshold = 1000 * 1024 // 1MB - anything bigger is sent asynchronously
+	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
 	NotifyRemoteOfflineThreshold = time.Second * 10
 )
 
@@ -124,13 +123,13 @@ func (scs *Service) Shutdown() error {
 		return errors.New("Shared Channel Service cannot shutdown: requires Remote Cluster Service")
 	}
 
-	scs.mux.RLock()
+	scs.mux.Lock()
 	id := scs.leaderListenerId
 	rcs.RemoveTopicListener(scs.syncTopicListenerId)
 	scs.syncTopicListenerId = ""
 	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
 	scs.inviteTopicListenerId = ""
-	scs.mux.RUnlock()
+	scs.mux.Unlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()

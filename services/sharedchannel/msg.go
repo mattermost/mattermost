@@ -119,16 +119,16 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
 func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster, uCache userCache) []*model.User {
-	userIds := make(map[string]struct{}) // avoid duplicates
+	userIds := make([]string, 0)
 
 	if post != nil && !uCache.Has(post.UserId) {
-		userIds[post.UserId] = struct{}{}
+		userIds = append(userIds, post.UserId)
 		uCache.Add(post.UserId)
 	}
 
 	for _, r := range reactions {
 		if !uCache.Has(r.UserId) {
-			userIds[r.UserId] = struct{}{}
+			userIds = append(userIds, r.UserId)
 			uCache.Add(r.UserId)
 		}
 	}
@@ -137,7 +137,7 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 
 	users := make([]*model.User, 0)
 
-	for id := range userIds {
+	for _, id := range userIds {
 		user, err := scs.server.GetStore().User().Get(id)
 		if err == nil {
 			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {

@@ -84,7 +84,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 	var usResp model.UploadSession
 	var respErr error
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	wg.Add(1)
 
 	// creating the upload session on the remote server needs to be done synchronously.
