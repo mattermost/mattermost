@@ -148,6 +148,10 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		EndAtTime:    model.GetMillis(),
 	}
 
+	if !worker.jobServer.Config().FeatureFlags.FilesSearch {
+		progress.DoneFiles = true
+	}
+
 	// Extract the start and end times, if they are set.
 	if startString, ok := job.Data["start_time"]; ok {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
