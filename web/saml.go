@@ -107,7 +107,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	hasRedirectURL := false
 	if val, ok := relayProps["redirect_to"]; ok {
 		redirectURL = val
-		hasRedirectURL = len(val) > 0
+		hasRedirectURL = val != ""
 	}
 
 	handleError := func(err *model.AppError) {
