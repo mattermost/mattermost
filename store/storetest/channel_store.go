@@ -6296,8 +6296,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	})
 
 	o2.Type = model.CHANNEL_PRIVATE
-	_, appErr := ss.Channel().Update(&o2)
-	require.NoError(t, appErr)
+	_, err := ss.Channel().Update(&o2)
+	require.NoError(t, err)
 
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
@@ -6306,8 +6306,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	})
 
 	o2.Type = model.CHANNEL_OPEN
-	_, appErr = ss.Channel().Update(&o2)
-	require.NoError(t, appErr)
+	_, err = ss.Channel().Update(&o2)
+	require.NoError(t, err)
 
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		channels, channelErr := ss.Channel().SearchInTeam(teamId, "", true)
@@ -6393,8 +6393,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, execerr)
 
 	o4.DisplayName += " - Modified"
-	_, appErr = ss.Channel().Update(&o4)
-	require.NoError(t, appErr)
+	_, err = ss.Channel().Update(&o4)
+	require.NoError(t, err)
 
 	t.Run("verify o4 UPDATE converted to INSERT", func(t *testing.T) {
 		channels, err := ss.Channel().SearchInTeam(teamId, "", true)
@@ -6833,8 +6833,8 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.False(t, channel2.IsGroupConstrained())
 	defer ss.Channel().PermanentDelete(channel2.Id)
 
-	count, appErr := ss.Channel().GroupSyncedChannelCount()
-	require.NoError(t, appErr)
+	count, err := ss.Channel().GroupSyncedChannelCount()
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, count, int64(1))
 
 	channel2.GroupConstrained = model.NewBool(true)
@@ -6842,7 +6842,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.True(t, channel2.IsGroupConstrained())
 
-	countAfter, appErr := ss.Channel().GroupSyncedChannelCount()
-	require.NoError(t, appErr)
+	countAfter, err := ss.Channel().GroupSyncedChannelCount()
+	require.NoError(t, err)
 	require.GreaterOrEqual(t, countAfter, count+1)
 }

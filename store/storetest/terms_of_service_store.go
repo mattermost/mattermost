@@ -36,8 +36,8 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, appErr := ss.User().Save(&u1)
-	require.NoError(t, appErr)
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
 	savedTermsOfService, err := ss.TermsOfService().Save(termsOfService)
@@ -55,11 +55,11 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, appErr := ss.User().Save(&u1)
-	require.NoError(t, appErr)
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service 2", UserId: u1.Id}
-	_, err := ss.TermsOfService().Save(termsOfService)
+	_, err = ss.TermsOfService().Save(termsOfService)
 	require.NoError(t, err)
 
 	fetchedTermsOfService, err := ss.TermsOfService().GetLatest(true)
@@ -75,11 +75,11 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, appErr := ss.User().Save(&u1)
-	require.NoError(t, appErr)
+	_, err := ss.User().Save(&u1)
+	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
-	_, err := ss.TermsOfService().Save(termsOfService)
+	_, err = ss.TermsOfService().Save(termsOfService)
 	require.NoError(t, err)
 
 	r1, err := ss.TermsOfService().Get("an_invalid_id", true)

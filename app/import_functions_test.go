@@ -65,7 +65,7 @@ func TestImportImportScheme(t *testing.T) {
 	require.NotNil(t, err, "Should have failed to import.")
 
 	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, nErr, "Scheme should not have imported.")
+	require.Error(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
 	data.DisplayName = ptrStr("display name")
