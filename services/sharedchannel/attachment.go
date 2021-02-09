@@ -47,11 +47,7 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 		return true
 	}
 
-	if sca.LastSyncAt < fi.UpdateAt {
-		return true
-	}
-
-	return false
+	return sca.LastSyncAt < fi.UpdateAt
 }
 
 // sendAttachmentForRemote asynchronously sends a file attachment to a remote cluster.
@@ -163,7 +159,6 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 // onReceiveUploadCreate is called when a message requesting to create an upload session is received.  An upload session is
 // created and the id returned in the response.
 func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
-
 	var us model.UploadSession
 
 	if err := json.Unmarshal(msg.Payload, &us); err != nil {
