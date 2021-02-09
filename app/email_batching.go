@@ -240,8 +240,8 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if err := es.sendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
+	if nErr := es.sendNotificationMail(user.Email, subject, body.Render()); nErr != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
 

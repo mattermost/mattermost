@@ -41,7 +41,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 			ChannelId:   c.Id,
 			UserId:      u1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			MsgCount:    90,
+			MsgCount:    0,
 		})
 		require.NoError(t, err44)
 		o := model.Post{}
