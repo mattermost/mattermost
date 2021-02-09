@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 )
 
 const (
@@ -1625,6 +1626,25 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
 	}
+}
+
+func (s *EmailSettings) ToMailServiceConfig(hostname string) *mailservice.SMTPConfig {
+	cfg := mailservice.SMTPConfig{
+		Hostname:                          hostname,
+		ConnectionSecurity:                *s.ConnectionSecurity,
+		SkipServerCertificateVerification: *s.SkipServerCertificateVerification,
+		Server:                            *s.SMTPServer,
+		Port:                              *s.SMTPPort,
+		ServerTimeout:                     *s.SMTPServerTimeout,
+		Username:                          *s.SMTPUsername,
+		Password:                          *s.SMTPPassword,
+		EnableSMTPAuth:                    *s.EnableSMTPAuth,
+		SendEmailNotifications:            *s.SendEmailNotifications,
+		FeedbackName:                      *s.FeedbackName,
+		FeedbackEmail:                     *s.FeedbackEmail,
+		ReplyToAddress:                    *s.ReplyToAddress,
+	}
+	return &cfg
 }
 
 type RateLimitSettings struct {

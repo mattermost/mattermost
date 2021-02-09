@@ -558,14 +558,18 @@ func (es *EmailService) sendMail(to, subject, htmlBody string) error {
 
 func (es *EmailService) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
 	license := es.srv.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance, ccMail)
+	hostname := utils.GetHostnameFromSiteURL(*es.srv.Config().ServiceSettings.SiteURL)
+	mailConfig := es.srv.Config().EmailSettings.ToMailServiceConfig(hostname)
+
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
 }
 
 func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error {
 	license := es.srv.License()
-	config := es.srv.Config()
+	hostname := utils.GetHostnameFromSiteURL(*es.srv.Config().ServiceSettings.SiteURL)
+	mailConfig := es.srv.Config().EmailSettings.ToMailServiceConfig(hostname)
 
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
 }
 
 func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {

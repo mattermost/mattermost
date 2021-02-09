@@ -473,7 +473,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.WebSocketRouter.app = fakeApp
 
-	if nErr := mailservice.TestConnection(s.Config()); nErr != nil {
+	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	mailConfig := s.Config().EmailSettings.ToMailServiceConfig(hostname)
+
+	if nErr := mailservice.TestConnection(mailConfig); nErr != nil {
 		mlog.Error("Mail server connection test is failed", mlog.Err(nErr))
 	}
 

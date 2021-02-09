@@ -18,10 +18,28 @@ import (
 	gomail "gopkg.in/mail.v2"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+const (
+	connSecurityTls      = "TLS"
+	connSecurityStarttls = "STARTTLS"
+)
+
+type SMTPConfig struct {
+	ConnectionSecurity                string
+	SkipServerCertificateVerification bool
+	Hostname                          string
+	Server                            string
+	Port                              string
+	ServerTimeout                     int
+	Username                          string
+	Password                          string
+	EnableSMTPAuth                    bool
+	SendEmailNotifications            bool
+	FeedbackName                      string
+	FeedbackEmail                     string
+	ReplyToAddress                    string
+}
 
 type mailData struct {
 	mimeTo        string
@@ -31,7 +49,6 @@ type mailData struct {
 	replyTo       mail.Address
 	subject       string
 	htmlBody      string
-	attachments   []*model.FileInfo
 	embeddedFiles map[string]io.Reader
 	mimeHeaders   map[string]string
 }
@@ -120,7 +137,7 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 		Timeout: time.Duration(connectionInfo.SmtpServerTimeout) * time.Second,
 	}
 
-	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_TLS {
+	if connectionInfo.ConnectionSecurity == connSecurityTls {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
 			ServerName:         connectionInfo.SmtpServerName,
@@ -140,15 +157,15 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	return conn, nil
 }
 
-func ConnectToSMTPServer(config *model.Config) (net.Conn, error) {
+func ConnectToSMTPServer(config *SMTPConfig) (net.Conn, error) {
 	return ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       *config.EmailSettings.SMTPServer,
-			SmtpServerHost:       *config.EmailSettings.SMTPServer,
-			SmtpPort:             *config.EmailSettings.SMTPPort,
-			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
+			ConnectionSecurity:   config.ConnectionSecurity,
+			SkipCertVerification: config.SkipServerCertificateVerification,
+			SmtpServerName:       config.Server,
+			SmtpServerHost:       config.Server,
+			SmtpPort:             config.Port,
+			SmtpServerTimeout:    config.ServerTimeout,
 		},
 	)
 }
@@ -186,7 +203,7 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 		}
 	}
 
-	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_STARTTLS {
+	if connectionInfo.ConnectionSecurity == connSecurityStarttls {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
 			ServerName:         connectionInfo.SmtpServerName,
@@ -202,27 +219,27 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 	return c, nil
 }
 
-func NewSMTPClient(ctx context.Context, conn net.Conn, config *model.Config) (*smtp.Client, error) {
+func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smtp.Client, error) {
 	return NewSMTPClientAdvanced(
 		ctx,
 		conn,
-		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
+		config.Hostname,
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       *config.EmailSettings.SMTPServer,
-			SmtpServerHost:       *config.EmailSettings.SMTPServer,
-			SmtpPort:             *config.EmailSettings.SMTPPort,
-			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
-			Auth:                 *config.EmailSettings.EnableSMTPAuth,
-			SmtpUsername:         *config.EmailSettings.SMTPUsername,
-			SmtpPassword:         *config.EmailSettings.SMTPPassword,
+			ConnectionSecurity:   config.ConnectionSecurity,
+			SkipCertVerification: config.SkipServerCertificateVerification,
+			SmtpServerName:       config.Server,
+			SmtpServerHost:       config.Server,
+			SmtpPort:             config.Port,
+			SmtpServerTimeout:    config.ServerTimeout,
+			Auth:                 config.EnableSMTPAuth,
+			SmtpUsername:         config.Username,
+			SmtpPassword:         config.Password,
 		},
 	)
 }
 
-func TestConnection(config *model.Config) error {
-	if !*config.EmailSettings.SendEmailNotifications {
+func TestConnection(config *SMTPConfig) error {
+	if !config.SendEmailNotifications {
 		return errors.New("SendEmailNotifications is not true")
 	}
 
@@ -232,7 +249,7 @@ func TestConnection(config *model.Config) error {
 	}
 	defer conn.Close()
 
-	sec := *config.EmailSettings.SMTPServerTimeout
+	sec := config.ServerTimeout
 
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
@@ -248,9 +265,9 @@ func TestConnection(config *model.Config) error {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool, ccMail string) error {
-	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
-	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
+	fromMail := mail.Address{Name: config.FeedbackName, Address: config.FeedbackEmail}
+	replyTo := mail.Address{Name: config.FeedbackName, Address: config.ReplyToAddress}
 
 	mail := mailData{
 		mimeTo:        to,
@@ -266,13 +283,13 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool, ccMail string) error {
+func SendMailUsingConfig(to, subject, htmlBody string, config *SMTPConfig, enableComplianceFeatures bool, ccMail string) error {
 	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
 }
 
-// allows for sending an email with attachments and differing MIME/SMTP recipients
-func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComplianceFeatures bool) error {
-	if *config.EmailSettings.SMTPServer == "" {
+// allows for sending an email with differing MIME/SMTP recipients
+func sendMailUsingConfigAdvanced(mail mailData, config *SMTPConfig, enableComplianceFeatures bool) error {
+	if config.Server == "" {
 		return nil
 	}
 
@@ -282,7 +299,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	}
 	defer conn.Close()
 
-	sec := *config.EmailSettings.SMTPServerTimeout
+	sec := config.ServerTimeout
 
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
@@ -295,15 +312,10 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, nErr := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
-	if nErr != nil {
-		return errors.Wrap(nErr, "unable to initialize file backend")
-	}
-
-	return SendMail(c, mail, fileBackend, time.Now())
+	return SendMail(c, mail, time.Now())
 }
 
-func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, date time.Time) error {
+func SendMail(c smtpClient, mail mailData, date time.Time) error {
 	mlog.Debug("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := "\r\n<html><body>" + mail.htmlBody + "</body></html>"
@@ -343,20 +355,6 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 
 	for name, reader := range mail.embeddedFiles {
 		m.EmbedReader(name, reader)
-	}
-
-	for _, fileInfo := range mail.attachments {
-		bytes, nErr := fileBackend.ReadFile(fileInfo.Path)
-		if nErr != nil {
-			return errors.Wrap(err, "failed to read attachment")
-		}
-
-		m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-			if _, nErr = writer.Write(bytes); nErr != nil {
-				return errors.Wrap(err, "failed to write attachment to email")
-			}
-			return nil
-		}))
 	}
 
 	if err = c.Mail(mail.from.Address); err != nil {
