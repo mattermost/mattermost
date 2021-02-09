@@ -300,8 +300,8 @@ func testFileInfoSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("by-name", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"channel test 1 2 3\""}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -309,8 +309,8 @@ func testFileInfoSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("by-content", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"channel content test 1 2 3\""}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -331,8 +331,8 @@ func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 	t.Run("by-name", func(t *testing.T) {
 		t.Run("Should search email addresses enclosed by quotes", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "\"test@test.com\""}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -340,8 +340,8 @@ func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search email addresses without quotes", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "test@test.com"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -350,8 +350,8 @@ func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 	t.Run("by-content", func(t *testing.T) {
 		t.Run("Should search email addresses enclosed by quotes", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "\"test@content.com\""}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -359,8 +359,8 @@ func testFileInfoSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search email addresses without quotes", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "test@content.com"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -379,8 +379,8 @@ func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should search the start inside the markdown underscore", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "start"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -388,8 +388,8 @@ func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should search a word in the middle of the markdown underscore", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "middle"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -397,8 +397,8 @@ func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should search in the end of the markdown underscore", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "end"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -406,8 +406,8 @@ func testFileInfoSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should search inside markdown underscore", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "another"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -428,24 +428,24 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search one word", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "你"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 		})
 		t.Run("Should search two words", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "你好"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 		})
 		t.Run("Should search with wildcard", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "你*"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 2)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -459,16 +459,16 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search one word", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "слово"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 		})
 		t.Run("Should search using wildcard", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "слов*"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -484,8 +484,8 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search one word", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "本"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 2)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -493,16 +493,16 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 		})
 		t.Run("Should search two words", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "本木"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 		})
 		t.Run("Should search with wildcard", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "本*"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 2)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -519,24 +519,24 @@ func testFileInfoSearchNonLatinWords(t *testing.T, th *SearchTestHelper) {
 
 		t.Run("Should search one word", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "불"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 		})
 		t.Run("Should search two words", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "불다"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 1)
 			th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 		})
 		t.Run("Should search with wildcard", func(t *testing.T) {
 			params := &model.SearchParams{Terms: "불*"}
-			results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-			require.NoError(t, apperr)
+			results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, err)
 
 			require.Len(t, results.FileInfos, 2)
 			th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -557,16 +557,16 @@ func testFileInfoSearchAlternativeSpellings(t *testing.T, th *SearchTestHelper) 
 	defer th.deleteUserFileInfos(th.User.Id)
 
 	params := &model.SearchParams{Terms: "Straße"}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 2)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 	th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 
 	params = &model.SearchParams{Terms: "Strasse"}
-	results, apperr = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 2)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -585,24 +585,24 @@ func testFileInfoSearchAlternativeSpellingsAccents(t *testing.T, th *SearchTestH
 	defer th.deleteUserFileInfos(th.User.Id)
 
 	params := &model.SearchParams{Terms: "café"}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 2)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 	th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 
 	params = &model.SearchParams{Terms: "café"}
-	results, apperr = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 2)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 	th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
 
 	params = &model.SearchParams{Terms: "cafe"}
-	results, apperr = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 0)
 }
@@ -620,8 +620,8 @@ func testFileInfoSearchOrExcludeFileInfosBySpecificUser(t *testing.T, th *Search
 	defer th.deleteUserFileInfos(th.User2.Id)
 
 	params := &model.SearchParams{Terms: "fromuser", FromUsers: []string{th.User.Id}}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -643,8 +643,8 @@ func testFileInfoSearchOrExcludeFileInfosInChannel(t *testing.T, th *SearchTestH
 	defer th.deleteUserFileInfos(th.User2.Id)
 
 	params := &model.SearchParams{Terms: "fromuser", InChannels: []string{th.ChannelBasic.Id}}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -678,8 +678,8 @@ func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelp
 			Terms:      "fromuser",
 			InChannels: []string{direct.Id, group.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -691,8 +691,8 @@ func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelp
 			Terms:      "fromuser",
 			InChannels: []string{direct.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -703,8 +703,8 @@ func testFileInfoSearchOrExcludeFileInfosInDMGM(t *testing.T, th *SearchTestHelp
 			Terms:      "fromuser",
 			InChannels: []string{group.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -730,8 +730,8 @@ func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper)
 			InChannels: []string{th.ChannelBasic.Id},
 			Extensions: []string{"jpg"},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -743,8 +743,8 @@ func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper)
 			InChannels: []string{th.ChannelBasic.Id},
 			Extensions: []string{"jpg", "bmp"},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -757,8 +757,8 @@ func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper)
 			InChannels:         []string{th.ChannelBasic.Id},
 			ExcludedExtensions: []string{"jpg"},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -771,8 +771,8 @@ func testFileInfoSearchOrExcludeByExtensions(t *testing.T, th *SearchTestHelper)
 			InChannels:         []string{th.ChannelBasic.Id},
 			ExcludedExtensions: []string{"jpg", "bmp"},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -802,8 +802,8 @@ func testFileInfoFilterFilesInSpecificDate(t *testing.T, th *SearchTestHelper) {
 			Terms:  "test",
 			OnDate: "2020-03-22",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -813,8 +813,8 @@ func testFileInfoFilterFilesInSpecificDate(t *testing.T, th *SearchTestHelper) {
 			Terms:        "test",
 			ExcludedDate: "2020-03-22",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -845,8 +845,8 @@ func testFileInfoFilterFilesBeforeSpecificDate(t *testing.T, th *SearchTestHelpe
 			Terms:      "test",
 			BeforeDate: "2020-03-23",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -858,8 +858,8 @@ func testFileInfoFilterFilesBeforeSpecificDate(t *testing.T, th *SearchTestHelpe
 			Terms:              "test",
 			ExcludedBeforeDate: "2020-03-23",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
@@ -889,8 +889,8 @@ func testFileInfoFilterFilesAfterSpecificDate(t *testing.T, th *SearchTestHelper
 			Terms:     "test",
 			AfterDate: "2020-03-23",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
@@ -901,8 +901,8 @@ func testFileInfoFilterFilesAfterSpecificDate(t *testing.T, th *SearchTestHelper
 			Terms:             "test",
 			ExcludedAfterDate: "2020-03-23",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -930,8 +930,8 @@ func testFileInfoFilterFilesWithATerm(t *testing.T, th *SearchTestHelper) {
 			Terms:         "one",
 			ExcludedTerms: "five eight",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -942,8 +942,8 @@ func testFileInfoFilterFilesWithATerm(t *testing.T, th *SearchTestHelper) {
 			Terms:         "one",
 			ExcludedTerms: "\"eight nine\"",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -969,8 +969,8 @@ func testFileInfoSearchUsingBooleanOperators(t *testing.T, th *SearchTestHelper)
 			Terms:   "one two",
 			OrTerms: true,
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -982,8 +982,8 @@ func testFileInfoSearchUsingBooleanOperators(t *testing.T, th *SearchTestHelper)
 			Terms:   "one two",
 			OrTerms: false,
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1015,8 +1015,8 @@ func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) 
 			FromUsers:  []string{th.User2.Id},
 			InChannels: []string{th.ChannelPrivate.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -1028,8 +1028,8 @@ func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) 
 			ExcludedUsers: []string{th.User2.Id},
 			InChannels:    []string{th.ChannelPrivate.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1042,8 +1042,8 @@ func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) 
 			ExcludedAfterDate:  "2020-03-11",
 			InChannels:         []string{th.ChannelPrivate.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -1054,8 +1054,8 @@ func testFileInfoSearchUsingCombinedFilters(t *testing.T, th *SearchTestHelper) 
 			AfterDate:        "2020-03-11",
 			ExcludedChannels: []string{th.ChannelPrivate.Id},
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
@@ -1081,8 +1081,8 @@ func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "the search",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1092,8 +1092,8 @@ func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "a avoid",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -1103,23 +1103,23 @@ func testFileInfoSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "in where you",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
 	})
 
 	t.Run("Should avoid stop words 'where', 'is' and 'the'", func(t *testing.T) {
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the car"}}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the car"}}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p4.Id, results.FileInfos)
 	})
 
 	t.Run("Should remove all terms and return empty list", func(t *testing.T) {
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the"}}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{{Terms: "is the"}}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 		require.Empty(t, results.FileInfos)
 	})
 }
@@ -1140,8 +1140,8 @@ func testFileInfoSupportStemming(t *testing.T, th *SearchTestHelper) {
 	params := &model.SearchParams{
 		Terms: "search",
 	}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 2)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1165,8 +1165,8 @@ func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "search*",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1177,8 +1177,8 @@ func testFileInfoSupportWildcards(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "sear* post",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1201,8 +1201,8 @@ func testFileInfoNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper
 	params := &model.SearchParams{
 		Terms: "*earch",
 	}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 0)
 }
@@ -1221,8 +1221,8 @@ func testFileInfoSearchDiscardWildcardAlone(t *testing.T, th *SearchTestHelper) 
 	params := &model.SearchParams{
 		Terms: "qwerty *",
 	}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1243,8 +1243,8 @@ func testFileInfoSupportTermsWithDash(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "term-with-dash",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1254,8 +1254,8 @@ func testFileInfoSupportTermsWithDash(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{
 			Terms: "\"term-with-dash\"",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1277,8 +1277,8 @@ func testFileInfoSupportTermsWithUnderscore(t *testing.T, th *SearchTestHelper) 
 		params := &model.SearchParams{
 			Terms: "term_with_underscore",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1288,8 +1288,8 @@ func testFileInfoSupportTermsWithUnderscore(t *testing.T, th *SearchTestHelper) 
 		params := &model.SearchParams{
 			Terms: "\"term_with_underscore\"",
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1317,8 +1317,8 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 
 	t.Run("Doesn't include posts in deleted channels", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "message", IncludeDeletedChannels: false}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -1327,8 +1327,8 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 
 	t.Run("Include posts in deleted channels", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "message", IncludeDeletedChannels: true}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 3)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1338,8 +1338,8 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 
 	t.Run("Include posts in deleted channels using multiple terms", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "message channel", IncludeDeletedChannels: true}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 3)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1353,8 +1353,8 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 			IncludeDeletedChannels: true,
 			OrTerms:                true,
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 3)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1371,9 +1371,9 @@ func testFileInfoSearchInDeletedOrArchivedChannels(t *testing.T, th *SearchTestH
 			Terms:                  "#hashtag",
 			IncludeDeletedChannels: false,
 		}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params1, params2}, th.User.Id, th.Team.Id, 0, 20)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params1, params2}, th.User.Id, th.Team.Id, 0, 20)
 		require.Nil(t, results)
-		require.Error(t, apperr)
+		require.Error(t, err)
 	})
 }
 
@@ -1390,8 +1390,8 @@ func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for terms with dash", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with-dash-term"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1399,8 +1399,8 @@ func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for terms with quoted dash", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"with-dash-term\""}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1408,8 +1408,8 @@ func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for multiple terms with one having dash", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with-dash-term message"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1417,8 +1417,8 @@ func testFileInfoSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for multiple OR terms with one having dash", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with-dash-term message", OrTerms: true}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1439,8 +1439,8 @@ func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for terms with dots", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with.dots.term"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1448,8 +1448,8 @@ func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for terms with quoted dots", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"with.dots.term\""}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1457,8 +1457,8 @@ func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for multiple terms with one having dots", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with.dots.term message"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1466,8 +1466,8 @@ func testFileInfoSearchTermsWithDots(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Search for multiple OR terms with one having dots", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with.dots.term message", OrTerms: true}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1488,8 +1488,8 @@ func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) 
 
 	t.Run("Search for terms with underscores", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with_underscores_term"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1497,8 +1497,8 @@ func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) 
 
 	t.Run("Search for terms with quoted underscores", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"with_underscores_term\""}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1506,8 +1506,8 @@ func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) 
 
 	t.Run("Search for multiple terms with one having underscores", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with_underscores_term message"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1515,8 +1515,8 @@ func testFileInfoSearchTermsWithUnderscores(t *testing.T, th *SearchTestHelper) 
 
 	t.Run("Search for multiple OR terms with one having underscores", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "with_underscores_term message", OrTerms: true}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1542,8 +1542,8 @@ func testFileInfoSupportStemmingAndWildcards(t *testing.T, th *SearchTestHelper)
 
 	t.Run("Should stem appr", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "appr*"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 3)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1553,8 +1553,8 @@ func testFileInfoSupportStemmingAndWildcards(t *testing.T, th *SearchTestHelper)
 
 	t.Run("Should stem approve", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "approve*"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p3.Id, results.FileInfos)
@@ -1576,8 +1576,8 @@ func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper
 
 	t.Run("Should return results without quotes", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "hell*"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 2)
 		th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1586,8 +1586,8 @@ func testFileInfoSupportWildcardOutsideQuotes(t *testing.T, th *SearchTestHelper
 
 	t.Run("Should return just one result with quotes", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "\"hell\"*"}
-		results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, apperr)
+		results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
 
 		require.Len(t, results.FileInfos, 1)
 		th.checkFileInfoInSearchResults(t, p2.Id, results.FileInfos)
@@ -1605,22 +1605,22 @@ func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelpe
 	defer th.deleteUserFileInfos(th.User.Id)
 
 	params := &model.SearchParams{Terms: "gamma"}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 
 	params = &model.SearchParams{Terms: "beta"}
-	results, apperr = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
 
 	params = &model.SearchParams{Terms: "alpha"}
-	results, apperr = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err = th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)
@@ -1638,8 +1638,8 @@ func testFileInfoSearchEmailsWithoutQuotes(t *testing.T, th *SearchTestHelper) {
 	defer th.deleteUserFileInfos(th.User.Id)
 
 	params := &model.SearchParams{Terms: "test@test.com"}
-	results, apperr := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.NoError(t, apperr)
+	results, err := th.Store.FileInfo().Search([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
 
 	require.Len(t, results.FileInfos, 1)
 	th.checkFileInfoInSearchResults(t, p1.Id, results.FileInfos)

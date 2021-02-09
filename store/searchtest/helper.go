@@ -219,9 +219,9 @@ func (th *SearchTestHelper) deleteUser(user *model.User) error {
 }
 
 func (th *SearchTestHelper) cleanAllUsers() error {
-	users, apperr := th.Store.User().GetAll()
-	if apperr != nil {
-		return apperr
+	users, err := th.Store.User().GetAll()
+	if err != nil {
+		return err
 	}
 
 	for _, u := range users {
@@ -241,9 +241,9 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 		OwnerId:     ownerID,
 	}
 
-	user, apperr := th.Store.User().Save(model.UserFromBot(botModel))
-	if apperr != nil {
-		return nil, errors.New(apperr.Error())
+	user, err := th.Store.User().Save(model.UserFromBot(botModel))
+	if err != nil {
+		return nil, errors.New(err.Error())
 	}
 
 	botModel.UserId = user.Id
@@ -324,9 +324,9 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	channel, apperr := th.Store.Channel().Save(group, 10000)
-	if apperr != nil {
-		return nil, errors.New(apperr.Error())
+	channel, err := th.Store.Channel().Save(group, 10000)
+	if err != nil {
+		return nil, errors.New(err.Error())
 	}
 
 	for _, user := range users {
