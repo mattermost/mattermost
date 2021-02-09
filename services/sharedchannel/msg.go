@@ -76,8 +76,8 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 		//	postSync = nil
 		//}
 
-		// don't sync a post back to the remote.
-		if p.IsRemote() {
+		// don't sync a post back to the remote it came from.
+		if p.RemoteId != nil && *p.RemoteId == rc.RemoteId {
 			postSync = nil
 		}
 
