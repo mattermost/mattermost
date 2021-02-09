@@ -32,6 +32,7 @@ type JobServer struct {
 	ActiveUsers             tjobs.ActiveUsersJobInterface
 	ImportProcess           tjobs.ImportProcessInterface
 	ImportDelete            tjobs.ImportDeleteInterface
+	ExportProcess           tjobs.ExportProcessInterface
 	Cloud                   ejobs.CloudJobInterface
 }
 
