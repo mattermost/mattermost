@@ -411,7 +411,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.NoError(t, err)
 
 	t4 := &model.Team{
-		Name:        model.NewId(),
+		Name:        "xx" + model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
