@@ -8505,5 +8505,37 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "В заявката липсва параметър AuthData или AuthService."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Невалидно максимално време за неактивност на връзката в SQL настройките. Трябва да не е отрицателно число."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Разговор с потребителя не съществува или не се следва"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Неуспешно получаване времето за последна промяна на файла."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "Грешка при изтеглянето на пакетен файл за поддръжка."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Грешка при четене на файл от сървъра"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Грешка при създаването на zip файл."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Нужен е E10 или E20 лиценз за използване на тази крайна точка."
   }
 ]

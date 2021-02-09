@@ -7064,6 +7064,38 @@ func (s *TimerLayerThreadStore) GetPosts(threadId string, since int64) ([]*model
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
+	start := timemodule.Now()
+
+	result, err := s.ThreadStore.GetThreadMentionsForUserPerChannel(userId, teamId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadMentionsForUserPerChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	start := timemodule.Now()
 

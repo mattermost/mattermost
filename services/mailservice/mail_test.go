@@ -110,7 +110,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 		connInfo,
 	)
 	require.NotNil(t, err4, "Should get a timeout get while creating a new SMTP client")
-	assert.Equal(t, err4.Id, "utils.mail.connect_smtp.open_tls.app_error")
+	assert.Contains(t, err4.Error(), "unable to connect to the SMTP server")
 
 	_, err5 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -129,7 +129,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -170,7 +170,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -217,7 +217,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil)
+	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
