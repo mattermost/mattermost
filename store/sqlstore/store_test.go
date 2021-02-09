@@ -112,9 +112,6 @@ func initStores() {
 			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
 	}
 
-	featureFlags := model.FeatureFlags{}
-	featureFlags.SetDefaults()
-
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -168,10 +165,6 @@ func TestStoreLicenseRace(t *testing.T) {
 	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 	settings.DataSourceReplicas = []string{":memory:"}
 	settings.DataSourceSearchReplicas = []string{":memory:"}
-
-	featureFlags := model.FeatureFlags{}
-	featureFlags.SetDefaults()
-
 	store := New(*settings, nil)
 
 	wg := sync.WaitGroup{}
@@ -257,10 +250,6 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-
-			featureFlags := model.FeatureFlags{}
-			featureFlags.SetDefaults()
-
 			store := New(*settings, nil)
 			store.UpdateLicense(&model.License{})
 
@@ -318,10 +307,6 @@ func TestGetReplica(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-
-			featureFlags := model.FeatureFlags{}
-			featureFlags.SetDefaults()
-
 			store := New(*settings, nil)
 
 			replicas := make(map[*gorp.DbMap]bool)
@@ -383,10 +368,6 @@ func TestGetDbVersion(t *testing.T) {
 		t.Run("Should return db version for "+driver, func(t *testing.T) {
 			t.Parallel()
 			settings := makeSqlSettings(driver)
-
-			featureFlags := model.FeatureFlags{}
-			featureFlags.SetDefaults()
-
 			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
@@ -467,10 +448,6 @@ func TestGetAllConns(t *testing.T) {
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
-
-			featureFlags := model.FeatureFlags{}
-			featureFlags.SetDefaults()
-
 			store := New(*settings, nil)
 
 			assert.Len(t, store.GetAllConns(), testCase.ExpectedNumConnections)
