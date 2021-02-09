@@ -1153,7 +1153,7 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 
 	mlog.Info("Uploading file with name", mlog.String("file_name", file.Name()))
 
-	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), fileData)
+	fileInfo, appErr := a.DoUploadFile(timestamp, teamID, post.ChannelId, post.UserId, file.Name(), fileData)
 	if appErr != nil {
 		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr
