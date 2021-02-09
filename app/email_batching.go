@@ -48,7 +48,7 @@ func (es *EmailService) AddNotificationEmailToBatch(user *model.User, post *mode
 }
 
 type batchedNotification struct {
-	userId   string
+	userID   string
 	post     *model.Post
 	teamName string
 }
@@ -85,7 +85,7 @@ func (job *EmailBatchingJob) Start() {
 
 func (job *EmailBatchingJob) Add(user *model.User, post *model.Post, team *model.Team) bool {
 	notification := &batchedNotification{
-		userId:   user.Id,
+		userID:   user.Id,
 		post:     post,
 		teamName: team.Name,
 	}
@@ -116,12 +116,12 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 	for receiving {
 		select {
 		case notification := <-job.newNotifications:
-			userId := notification.userId
+			userID := notification.userID
 
-			if _, ok := job.pendingNotifications[userId]; !ok {
-				job.pendingNotifications[userId] = []*batchedNotification{notification}
+			if _, ok := job.pendingNotifications[userID]; !ok {
+				job.pendingNotifications[userID] = []*batchedNotification{notification}
 			} else {
-				job.pendingNotifications[userId] = append(job.pendingNotifications[userId], notification)
+				job.pendingNotifications[userID] = append(job.pendingNotifications[userID], notification)
 			}
 		default:
 			receiving = false
@@ -130,7 +130,7 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 }
 
 func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
-	for userId, notifications := range job.pendingNotifications {
+	for userID, notifications := range job.pendingNotifications {
 		batchStartTime := notifications[0].post.CreateAt
 		inspectedTeamNames := make(map[string]string)
 		for _, notification := range notifications {
@@ -151,7 +151,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userID)
 			if err != nil {
 				mlog.Error("Unable to find ChannelMembers for user", mlog.Err(err))
 				continue
@@ -159,8 +159,8 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			for _, channelMember := range *channelMembers {
 				if channelMember.LastViewedAt >= batchStartTime {
-					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userId))
-					delete(job.pendingNotifications, userId)
+					mlog.Debug("Deleted notifications for user", mlog.String("user_id", userID))
+					delete(job.pendingNotifications, userID)
 					break
 				}
 			}
@@ -168,7 +168,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		preference, err := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		preference, err := job.server.Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		if err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
@@ -182,19 +182,19 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		}
 
 		// send the email notification if there are notifications to send AND it's been long enough
-		if len(job.pendingNotifications[userId]) > 0 && now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
-			job.server.Go(func(userId string, notifications []*batchedNotification) func() {
+		if len(job.pendingNotifications[userID]) > 0 && now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
+			job.server.Go(func(userID string, notifications []*batchedNotification) func() {
 				return func() {
-					handler(userId, notifications)
+					handler(userID, notifications)
 				}
-			}(userId, job.pendingNotifications[userId]))
-			delete(job.pendingNotifications, userId)
+			}(userID, job.pendingNotifications[userID]))
+			delete(job.pendingNotifications, userID)
 		}
 	}
 }
 
-func (es *EmailService) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userId)
+func (es *EmailService) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
+	user, err := es.srv.Store.User().Get(userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
@@ -239,8 +239,8 @@ func (es *EmailService) sendBatchedEmailNotification(userId string, notification
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if err := es.sendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
+	if nErr := es.sendNotificationMail(user.Email, subject, body.Render()); nErr != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
 

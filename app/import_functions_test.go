@@ -1856,16 +1856,14 @@ func TestImportUserChannels(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
 			th.App.joinUserToTeam(th.BasicTeam, user)
-			teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
-			require.Nil(t, err)
 
 			// Two times import must end with the same results
 			for x := 0; x < 2; x++ {
-				err = th.App.importUserChannels(user, th.BasicTeam, teamMember, tc.data)
+				appErr := th.App.importUserChannels(user, th.BasicTeam, tc.data)
 				if tc.expectedError {
-					require.NotNil(t, err)
+					require.NotNil(t, appErr)
 				} else {
-					require.Nil(t, err)
+					require.Nil(t, appErr)
 				}
 				channelMembers, err := th.App.Srv().Store.Channel().GetMembersForUser(th.BasicTeam.Id, user.Id)
 				require.Nil(t, err)
@@ -3096,12 +3094,12 @@ func TestImportImportDirectChannel(t *testing.T) {
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr := th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	channel, appErr := th.App.createGroupChannel(userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3397,12 +3395,12 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the channel.
 	var groupChannel *model.Channel
-	userIds := []string{
+	userIDs := []string{
 		th.BasicUser.Id,
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr = th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	channel, appErr = th.App.createGroupChannel(userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	groupChannel = channel
 
@@ -3891,16 +3889,16 @@ func TestImportAttachment(t *testing.T) {
 	testImage := filepath.Join(testsDir, "test.png")
 	invalidPath := "some-invalid-path"
 
-	userId := model.NewId()
+	userID := model.NewId()
 	data := AttachmentImportData{Path: &testImage}
-	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team", true)
+	_, err := th.App.importAttachment(&data, &model.Post{UserId: userID, ChannelId: "some-channel"}, "some-team")
 	assert.Nil(t, err, "sample run without errors")
 
-	attachments := GetAttachments(userId, th, t)
+	attachments := GetAttachments(userID, th, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
-	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team", true)
+	_, err = th.App.importAttachment(&data, &model.Post{UserId: model.NewId(), ChannelId: "some-channel"}, "some-team")
 	assert.NotNil(t, err, "should have failed when opening the file")
 	assert.Equal(t, err.Id, "app.import.attachment.bad_file.error")
 }

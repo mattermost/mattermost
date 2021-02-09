@@ -8496,5 +8496,41 @@
   {
     "id": "api.back_to_app",
     "translation": "{{.SiteName}} に戻る"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL設定の最大接続アイドル時間が不正です。0以上の数にしてください。"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "ユーザースレッドが存在しないか、フォローしていません"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "リクエストにAuthDataかAuthServiceパラメータのどちらかが不足しています。"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "ファイルの最終更新日時を取得できませんでした。"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "サポートパケットファイルをダウンロードする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zipファイル作成時にエラーが発生しました。"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "このエンドポイントを使用するにはE10もしくはE20ライセンスが必要です。"
   }
 ]
