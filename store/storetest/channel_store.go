@@ -6838,7 +6838,7 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.GreaterOrEqual(t, count, int64(1))
 
 	channel2.GroupConstrained = model.NewBool(true)
-	channel2, err := ss.Channel().Update(channel2)
+	channel2, err = ss.Channel().Update(channel2)
 	require.NoError(t, err)
 	require.True(t, channel2.IsGroupConstrained())
 
