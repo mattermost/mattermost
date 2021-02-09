@@ -110,10 +110,10 @@ func TestGetSidebarCategories(t *testing.T) {
 			UserId:     th.BasicUser.Id,
 			SchemeUser: true,
 		}, 100)
-		require.NoError(t, err)
+		require.Nil(t, err)
 
-		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
-		assert.Nil(t, appErr)
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
+		assert.Nil(t, err)
 		assert.Len(t, categories.Categories, 3)
 	})
 
@@ -124,10 +124,10 @@ func TestGetSidebarCategories(t *testing.T) {
 		// Temporarily renaming a table to force a DB error.
 		sqlStore := mainHelper.GetSQLStore()
 		_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
-		require.NoError(t, err)
+		require.Nil(t, err)
 		defer func() {
 			_, err := sqlStore.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
-			require.NoError(t, err)
+			require.Nil(t, err)
 		}()
 
 		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
