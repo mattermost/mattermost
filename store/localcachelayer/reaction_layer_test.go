@@ -31,7 +31,6 @@ func TestReactionStoreCache(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, reaction, []*model.Reaction{&fakeReaction})
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		require.NoError(t, err)
 		assert.Equal(t, reaction, []*model.Reaction{&fakeReaction})
 		cachedStore.Reaction().GetForPost("123", true)
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
