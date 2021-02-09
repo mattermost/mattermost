@@ -35,7 +35,7 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
-	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiSessionRequired(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiHandler(getSubscriptionStats)).Methods("GET")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
