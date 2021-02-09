@@ -36,18 +36,18 @@ func ptrBool(b bool) *bool {
 	return &b
 }
 
-func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	preferences, err := a.Srv().Store.Preference().GetCategory(userId, category)
-	require.Nilf(t, err, "Failed to get preferences for user %v with category %v", userId, category)
+func checkPreference(t *testing.T, a *App, userID string, category string, name string, value string) {
+	preferences, err := a.Srv().Store.Preference().GetCategory(userID, category)
+	require.Nilf(t, err, "Failed to get preferences for user %v with category %v", userID, category)
 	found := false
 	for _, preference := range preferences {
 		if preference.Name == name {
 			found = true
-			require.Equal(t, preference.Value, value, "Preference for user %v in category %v with name %v has value %v, expected %v", userId, category, name, preference.Value, value)
+			require.Equal(t, preference.Value, value, "Preference for user %v in category %v with name %v has value %v, expected %v", userID, category, name, preference.Value, value)
 			break
 		}
 	}
-	require.Truef(t, found, "Did not find preference for user %v in category %v with name %v", userId, category, name)
+	require.Truef(t, found, "Did not find preference for user %v in category %v with name %v", userID, category, name)
 }
 
 func checkNotifyProp(t *testing.T, user *model.User, key string, value string) {
@@ -249,8 +249,8 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	require.NotNil(t, err, "Expected error on invalid version line.")
 }
 
-func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userId)
+func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
+	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userID)
 	require.Nil(t, err)
 	return fileInfos
 }
