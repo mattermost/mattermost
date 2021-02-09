@@ -215,8 +215,8 @@ func (c *Context) SetServerBusyError() {
 	c.Err = NewServerBusyError()
 }
 
-func (c *Context) SetInvalidRemoteClusterIdError(id string) {
-	c.Err = NewInvalidRemoteClusterIdError(id)
+func (c *Context) SetInvalidRemoteIdError(id string) {
+	c.Err = NewInvalidRemoteIdError(id)
 }
 
 func (c *Context) SetInvalidRemoteClusterTokenError() {
@@ -260,7 +260,7 @@ func NewServerBusyError() *model.AppError {
 	return err
 }
 
-func NewInvalidRemoteClusterIdError(parameter string) *model.AppError {
+func NewInvalidRemoteIdError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.remote_id_invalid.app_error", map[string]interface{}{"RemoteId": parameter}, "", http.StatusBadRequest)
 	return err
 }
@@ -710,6 +710,6 @@ func (c *Context) RequireInvoiceId() *Context {
 	return c
 }
 
-func (c *Context) GetRemoteClusterID(r *http.Request) string {
+func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HEADER_REMOTECLUSTER_ID)
 }

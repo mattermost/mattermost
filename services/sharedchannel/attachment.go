@@ -137,8 +137,8 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 		// save file attachment record in SharedChannelAttachments table
 		sca := &model.SharedChannelAttachment{
-			FileId:          fi.Id,
-			RemoteClusterId: rc.RemoteId,
+			FileId:   fi.Id,
+			RemoteId: rc.RemoteId,
 		}
 		if _, err2 := scs.server.GetStore().SharedChannel().UpsertAttachment(sca); err2 != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",

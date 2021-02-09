@@ -253,11 +253,11 @@ func testRemoteClusterGetAllInChannel(t *testing.T, ss store.Store) {
 
 	// Create some shared channel remotes
 	scrData := []*model.SharedChannelRemote{
-		{ChannelId: channel1.Id, Description: "AAA Inc Share", RemoteClusterId: rcData[0].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel1.Id, Description: "BBB Inc Share", RemoteClusterId: rcData[1].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "CCC Inc Share", RemoteClusterId: rcData[2].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "DDD Inc Share", RemoteClusterId: rcData[3].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "EEE Inc Share", RemoteClusterId: rcData[4].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "AAA Inc Share", RemoteId: rcData[0].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "BBB Inc Share", RemoteId: rcData[1].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "CCC Inc Share", RemoteId: rcData[2].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "DDD Inc Share", RemoteId: rcData[3].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "EEE Inc Share", RemoteId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
 	for _, item := range scrData {
 		_, err := ss.SharedChannel().SaveRemote(item)
@@ -360,11 +360,11 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, ss store.Store) {
 
 	// Create some shared channel remotes
 	scrData := []*model.SharedChannelRemote{
-		{ChannelId: channel1.Id, Description: "AAA Inc Share", RemoteClusterId: rcData[0].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel1.Id, Description: "BBB Inc Share", RemoteClusterId: rcData[1].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "CCC Inc Share", RemoteClusterId: rcData[2].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel2.Id, Description: "DDD Inc Share", RemoteClusterId: rcData[3].RemoteId, CreatorId: model.NewId()},
-		{ChannelId: channel3.Id, Description: "EEE Inc Share", RemoteClusterId: rcData[4].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "AAA Inc Share", RemoteId: rcData[0].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel1.Id, Description: "BBB Inc Share", RemoteId: rcData[1].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "CCC Inc Share", RemoteId: rcData[2].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel2.Id, Description: "DDD Inc Share", RemoteId: rcData[3].RemoteId, CreatorId: model.NewId()},
+		{ChannelId: channel3.Id, Description: "EEE Inc Share", RemoteId: rcData[4].RemoteId, CreatorId: model.NewId()},
 	}
 	for _, item := range scrData {
 		_, err := ss.SharedChannel().SaveRemote(item)

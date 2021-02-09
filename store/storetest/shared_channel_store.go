@@ -73,11 +73,11 @@ func testSaveSharedChannel(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		sc := &model.SharedChannel{
-			ChannelId:       channel.Id,
-			TeamId:          channel.TeamId,
-			CreatorId:       model.NewId(),
-			ShareName:       "testshare",
-			RemoteClusterId: model.NewId(),
+			ChannelId: channel.Id,
+			TeamId:    channel.TeamId,
+			CreatorId: model.NewId(),
+			ShareName: "testshare",
+			RemoteId:  model.NewId(),
 		}
 
 		scSaved, err := ss.SharedChannel().Save(sc)
@@ -108,11 +108,11 @@ func testSaveSharedChannel(t *testing.T, ss store.Store) {
 
 	t.Run("Save with invalid channel id", func(t *testing.T) {
 		sc := &model.SharedChannel{
-			ChannelId:       model.NewId(),
-			TeamId:          model.NewId(),
-			CreatorId:       model.NewId(),
-			ShareName:       "testshare",
-			RemoteClusterId: model.NewId(),
+			ChannelId: model.NewId(),
+			TeamId:    model.NewId(),
+			CreatorId: model.NewId(),
+			ShareName: "testshare",
+			RemoteId:  model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().Save(sc)
@@ -189,12 +189,12 @@ func testGetSharedChannels(t *testing.T, ss store.Store) {
 
 	data := []model.SharedChannel{
 		{CreatorId: creator, TeamId: team1, ShareName: "test1", Home: true},
-		{CreatorId: creator, TeamId: team1, ShareName: "test2", Home: false, RemoteClusterId: rid},
-		{CreatorId: creator, TeamId: team1, ShareName: "test3", Home: false, RemoteClusterId: rid},
+		{CreatorId: creator, TeamId: team1, ShareName: "test2", Home: false, RemoteId: rid},
+		{CreatorId: creator, TeamId: team1, ShareName: "test3", Home: false, RemoteId: rid},
 		{CreatorId: creator, TeamId: team1, ShareName: "test4", Home: true},
 		{CreatorId: creator, TeamId: team2, ShareName: "test5", Home: true},
-		{CreatorId: creator, TeamId: team2, ShareName: "test6", Home: false, RemoteClusterId: rid},
-		{CreatorId: creator, TeamId: team2, ShareName: "test7", Home: false, RemoteClusterId: rid},
+		{CreatorId: creator, TeamId: team2, ShareName: "test6", Home: false, RemoteId: rid},
+		{CreatorId: creator, TeamId: team2, ShareName: "test7", Home: false, RemoteId: rid},
 		{CreatorId: creator, TeamId: team2, ShareName: "test8", Home: true},
 		{CreatorId: creator, TeamId: team2, ShareName: "test9", Home: true},
 	}
@@ -307,7 +307,7 @@ func testUpdateSharedChannel(t *testing.T, ss store.Store) {
 		scMod.ShareName = "newname"
 		scMod.ShareDisplayName = "For testing"
 		scMod.ShareHeader = "This is a header."
-		scMod.RemoteClusterId = id
+		scMod.RemoteId = id
 
 		scUpdated, err := ss.SharedChannel().Update(scMod)
 		require.Nil(t, err, "couldn't update shared channel", err)
@@ -315,7 +315,7 @@ func testUpdateSharedChannel(t *testing.T, ss store.Store) {
 		require.Equal(t, "newname", scUpdated.ShareName)
 		require.Equal(t, "For testing", scUpdated.ShareDisplayName)
 		require.Equal(t, "This is a header.", scUpdated.ShareHeader)
-		require.Equal(t, id, scUpdated.RemoteClusterId)
+		require.Equal(t, id, scUpdated.RemoteId)
 	})
 
 	t.Run("Update non-existent shared channel", func(t *testing.T) {
@@ -335,11 +335,11 @@ func testDeleteSharedChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	sc := &model.SharedChannel{
-		ChannelId:       channel.Id,
-		TeamId:          channel.TeamId,
-		CreatorId:       model.NewId(),
-		ShareName:       "testshare",
-		RemoteClusterId: model.NewId(),
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		CreatorId: model.NewId(),
+		ShareName: "testshare",
+		RemoteId:  model.NewId(),
 	}
 
 	_, err = ss.SharedChannel().Save(sc)
@@ -348,10 +348,10 @@ func testDeleteSharedChannel(t *testing.T, ss store.Store) {
 	// add some remotes
 	for i := 0; i < 10; i++ {
 		remote := &model.SharedChannelRemote{
-			ChannelId:       channel.Id,
-			Description:     "remote_" + strconv.Itoa(i),
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   channel.Id,
+			Description: "remote_" + strconv.Itoa(i),
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 		_, err := ss.SharedChannel().SaveRemote(remote)
 		require.Nil(t, err, "couldn't add remote", err)
@@ -390,10 +390,10 @@ func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		remote := &model.SharedChannelRemote{
-			ChannelId:       channel.Id,
-			Description:     "test_remote",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   channel.Id,
+			Description: "test_remote",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
@@ -405,10 +405,10 @@ func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Save invalid shared channel remote", func(t *testing.T) {
 		remote := &model.SharedChannelRemote{
-			ChannelId:       "",
-			Description:     "test_remote",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   "",
+			Description: "test_remote",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().SaveRemote(remote)
@@ -417,10 +417,10 @@ func testSaveSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Save shared channel remote with invalid channel id", func(t *testing.T) {
 		remote := &model.SharedChannelRemote{
-			ChannelId:       model.NewId(),
-			Description:     "test_remote",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   model.NewId(),
+			Description: "test_remote",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().SaveRemote(remote)
@@ -434,10 +434,10 @@ func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		remote := &model.SharedChannelRemote{
-			ChannelId:       channel.Id,
-			Description:     "test_remote_update",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   channel.Id,
+			Description: "test_remote_update",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
@@ -457,10 +457,10 @@ func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Update invalid shared channel remote", func(t *testing.T) {
 		remote := &model.SharedChannelRemote{
-			ChannelId:       "",
-			Description:     "test_remote",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   "",
+			Description: "test_remote",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().UpdateRemote(remote)
@@ -469,10 +469,10 @@ func testUpdateSharedChannelRemote(t *testing.T, ss store.Store) {
 
 	t.Run("Update shared channel remote with invalid channel id", func(t *testing.T) {
 		remote := &model.SharedChannelRemote{
-			ChannelId:       model.NewId(),
-			Description:     "test_remote",
-			CreatorId:       model.NewId(),
-			RemoteClusterId: model.NewId(),
+			ChannelId:   model.NewId(),
+			Description: "test_remote",
+			CreatorId:   model.NewId(),
+			RemoteId:    model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().UpdateRemote(remote)
@@ -485,10 +485,10 @@ func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	remote := &model.SharedChannelRemote{
-		ChannelId:       channel.Id,
-		Description:     "test_remote",
-		CreatorId:       model.NewId(),
-		RemoteClusterId: model.NewId(),
+		ChannelId:   channel.Id,
+		Description: "test_remote",
+		CreatorId:   model.NewId(),
+		RemoteId:    model.NewId(),
 	}
 
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
@@ -502,7 +502,7 @@ func testGetSharedChannelRemote(t *testing.T, ss store.Store) {
 		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
 		require.Equal(t, remoteSaved.Description, r.Description)
 		require.Equal(t, remoteSaved.CreatorId, r.CreatorId)
-		require.Equal(t, remoteSaved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, remoteSaved.RemoteId, r.RemoteId)
 	})
 
 	t.Run("Get non-existent shared channel remote", func(t *testing.T) {
@@ -517,24 +517,24 @@ func testGetSharedChannelRemoteByIds(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	remote := &model.SharedChannelRemote{
-		ChannelId:       channel.Id,
-		Description:     "test_remote_by_ids",
-		CreatorId:       model.NewId(),
-		RemoteClusterId: model.NewId(),
+		ChannelId:   channel.Id,
+		Description: "test_remote_by_ids",
+		CreatorId:   model.NewId(),
+		RemoteId:    model.NewId(),
 	}
 
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
 	require.Nil(t, err, "could not save remote", err)
 
 	t.Run("Get existing shared channel remote by ids", func(t *testing.T) {
-		r, err := ss.SharedChannel().GetRemoteByIds(remoteSaved.ChannelId, remoteSaved.RemoteClusterId)
+		r, err := ss.SharedChannel().GetRemoteByIds(remoteSaved.ChannelId, remoteSaved.RemoteId)
 		require.Nil(t, err, "couldn't get shared channel remote by ids", err)
 
 		require.Equal(t, remoteSaved.Id, r.Id)
 		require.Equal(t, remoteSaved.ChannelId, r.ChannelId)
 		require.Equal(t, remoteSaved.Description, r.Description)
 		require.Equal(t, remoteSaved.CreatorId, r.CreatorId)
-		require.Equal(t, remoteSaved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, remoteSaved.RemoteId, r.RemoteId)
 	})
 
 	t.Run("Get non-existent shared channel remote by ids", func(t *testing.T) {
@@ -551,12 +551,12 @@ func testGetSharedChannelRemotes(t *testing.T, ss store.Store) {
 	creator := model.NewId()
 
 	data := []model.SharedChannelRemote{
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteClusterId: model.NewId()},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteClusterId: model.NewId()},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r3", RemoteClusterId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r4", RemoteClusterId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r5", RemoteClusterId: model.NewId()},
-		{ChannelId: "", CreatorId: creator, Description: "r6", RemoteClusterId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteId: model.NewId()},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r3", RemoteId: model.NewId()},
+		{ChannelId: "", CreatorId: creator, Description: "r4", RemoteId: model.NewId()},
+		{ChannelId: "", CreatorId: creator, Description: "r5", RemoteId: model.NewId()},
+		{ChannelId: "", CreatorId: creator, Description: "r6", RemoteId: model.NewId()},
 	}
 
 	for i, r := range data {
@@ -594,8 +594,8 @@ func testHasRemote(t *testing.T, ss store.Store) {
 
 	creator := model.NewId()
 	data := []model.SharedChannelRemote{
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteClusterId: remote1},
-		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteClusterId: remote2},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r1", RemoteId: remote1},
+		{ChannelId: channel.Id, CreatorId: creator, Description: "r2", RemoteId: remote2},
 	}
 
 	for _, r := range data {
@@ -631,10 +631,10 @@ func testUpdateSharedChannelRemoteLastSyncAt(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
-		ChannelId:       channel.Id,
-		Description:     "test_remote",
-		CreatorId:       model.NewId(),
-		RemoteClusterId: model.NewId(),
+		ChannelId:   channel.Id,
+		Description: "test_remote",
+		CreatorId:   model.NewId(),
+		RemoteId:    model.NewId(),
 	}
 
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
@@ -662,10 +662,10 @@ func testDeleteSharedChannelRemote(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
-		ChannelId:       channel.Id,
-		Description:     "test_remote",
-		CreatorId:       model.NewId(),
-		RemoteClusterId: model.NewId(),
+		ChannelId:   channel.Id,
+		Description: "test_remote",
+		CreatorId:   model.NewId(),
+		RemoteId:    model.NewId(),
 	}
 
 	remoteSaved, err := ss.SharedChannel().SaveRemote(remote)
@@ -719,21 +719,21 @@ func clearSharedChannels(ss store.Store) error {
 func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
 	t.Run("Save shared channel user", func(t *testing.T) {
 		scUser := &model.SharedChannelUser{
-			UserId:          model.NewId(),
-			RemoteClusterId: model.NewId(),
+			UserId:   model.NewId(),
+			RemoteId: model.NewId(),
 		}
 
 		userSaved, err := ss.SharedChannel().SaveUser(scUser)
 		require.Nil(t, err, "couldn't save shared channel user", err)
 
 		require.Equal(t, scUser.UserId, userSaved.UserId)
-		require.Equal(t, scUser.RemoteClusterId, userSaved.RemoteClusterId)
+		require.Equal(t, scUser.RemoteId, userSaved.RemoteId)
 	})
 
 	t.Run("Save invalid shared channel user", func(t *testing.T) {
 		scUser := &model.SharedChannelUser{
-			UserId:          "",
-			RemoteClusterId: model.NewId(),
+			UserId:   "",
+			RemoteId: model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().SaveUser(scUser)
@@ -742,8 +742,8 @@ func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
 
 	t.Run("Save shared channel user with invalid remote id", func(t *testing.T) {
 		scUser := &model.SharedChannelUser{
-			UserId:          model.NewId(),
-			RemoteClusterId: "bogus",
+			UserId:   model.NewId(),
+			RemoteId: "bogus",
 		}
 
 		_, err := ss.SharedChannel().SaveUser(scUser)
@@ -753,20 +753,20 @@ func testSaveSharedChannelUser(t *testing.T, ss store.Store) {
 
 func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 	scUser := &model.SharedChannelUser{
-		UserId:          model.NewId(),
-		RemoteClusterId: model.NewId(),
+		UserId:   model.NewId(),
+		RemoteId: model.NewId(),
 	}
 
 	userSaved, err := ss.SharedChannel().SaveUser(scUser)
 	require.Nil(t, err, "could not save user", err)
 
 	t.Run("Get existing shared channel user", func(t *testing.T) {
-		r, err := ss.SharedChannel().GetUser(userSaved.UserId, userSaved.RemoteClusterId)
+		r, err := ss.SharedChannel().GetUser(userSaved.UserId, userSaved.RemoteId)
 		require.Nil(t, err, "couldn't get shared channel user", err)
 
 		require.Equal(t, userSaved.Id, r.Id)
 		require.Equal(t, userSaved.UserId, r.UserId)
-		require.Equal(t, userSaved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, userSaved.RemoteId, r.RemoteId)
 		require.Equal(t, userSaved.CreateAt, r.CreateAt)
 	})
 
@@ -779,8 +779,8 @@ func testGetSharedChannelUser(t *testing.T, ss store.Store) {
 
 func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 	scUser := &model.SharedChannelUser{
-		UserId:          model.NewId(),
-		RemoteClusterId: model.NewId(),
+		UserId:   model.NewId(),
+		RemoteId: model.NewId(),
 	}
 
 	userSaved, err := ss.SharedChannel().SaveUser(scUser)
@@ -792,7 +792,7 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 		err := ss.SharedChannel().UpdateUserLastSyncAt(userSaved.Id, future)
 		require.Nil(t, err, "updateLastSyncAt should not error", err)
 
-		u, err := ss.SharedChannel().GetUser(userSaved.UserId, userSaved.RemoteClusterId)
+		u, err := ss.SharedChannel().GetUser(userSaved.UserId, userSaved.RemoteId)
 		require.NoError(t, err)
 		require.Equal(t, future, u.LastSyncAt)
 	})
@@ -806,21 +806,21 @@ func testUpdateSharedChannelUserLastSyncAt(t *testing.T, ss store.Store) {
 func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
 	t.Run("Save shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          model.NewId(),
-			RemoteClusterId: model.NewId(),
+			FileId:   model.NewId(),
+			RemoteId: model.NewId(),
 		}
 
 		saved, err := ss.SharedChannel().SaveAttachment(attachment)
 		require.Nil(t, err, "couldn't save shared channel attachment", err)
 
 		require.Equal(t, attachment.FileId, saved.FileId)
-		require.Equal(t, attachment.RemoteClusterId, saved.RemoteClusterId)
+		require.Equal(t, attachment.RemoteId, saved.RemoteId)
 	})
 
 	t.Run("Save invalid shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          "",
-			RemoteClusterId: model.NewId(),
+			FileId:   "",
+			RemoteId: model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().SaveAttachment(attachment)
@@ -829,8 +829,8 @@ func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 	t.Run("Save shared channel attachment with invalid remote id", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          model.NewId(),
-			RemoteClusterId: "bogus",
+			FileId:   model.NewId(),
+			RemoteId: "bogus",
 		}
 
 		_, err := ss.SharedChannel().SaveAttachment(attachment)
@@ -841,14 +841,14 @@ func testSaveSharedChannelAttachment(t *testing.T, ss store.Store) {
 func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 	t.Run("Upsert new shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          model.NewId(),
-			RemoteClusterId: model.NewId(),
+			FileId:   model.NewId(),
+			RemoteId: model.NewId(),
 		}
 
 		_, err := ss.SharedChannel().UpsertAttachment(attachment)
 		require.NoError(t, err, "couldn't upsert shared channel attachment", err)
 
-		saved, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteClusterId)
+		saved, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteId)
 		require.NoError(t, err, "couldn't get shared channel attachment", err)
 
 		require.NotZero(t, saved.CreateAt)
@@ -857,20 +857,20 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 	t.Run("Upsert existing shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          model.NewId(),
-			RemoteClusterId: model.NewId(),
+			FileId:   model.NewId(),
+			RemoteId: model.NewId(),
 		}
 
 		saved, err := ss.SharedChannel().SaveAttachment(attachment)
 		require.Nil(t, err, "couldn't save shared channel attachment", err)
 
 		// make sure enough time passed that GetMillis returns a different value
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 
 		_, err = ss.SharedChannel().UpsertAttachment(saved)
 		require.NoError(t, err, "couldn't upsert shared channel attachment", err)
 
-		updated, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteClusterId)
+		updated, err := ss.SharedChannel().GetAttachment(attachment.FileId, attachment.RemoteId)
 		require.NoError(t, err, "couldn't get shared channel attachment", err)
 
 		require.NotZero(t, updated.CreateAt)
@@ -879,8 +879,8 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 	t.Run("Upsert invalid shared channel attachment", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          "",
-			RemoteClusterId: model.NewId(),
+			FileId:   "",
+			RemoteId: model.NewId(),
 		}
 
 		id, err := ss.SharedChannel().UpsertAttachment(attachment)
@@ -890,8 +890,8 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 	t.Run("Upsert shared channel attachment with invalid remote id", func(t *testing.T) {
 		attachment := &model.SharedChannelAttachment{
-			FileId:          model.NewId(),
-			RemoteClusterId: "bogus",
+			FileId:   model.NewId(),
+			RemoteId: "bogus",
 		}
 
 		id, err := ss.SharedChannel().UpsertAttachment(attachment)
@@ -902,20 +902,20 @@ func testUpsertSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 func testGetSharedChannelAttachment(t *testing.T, ss store.Store) {
 	attachment := &model.SharedChannelAttachment{
-		FileId:          model.NewId(),
-		RemoteClusterId: model.NewId(),
+		FileId:   model.NewId(),
+		RemoteId: model.NewId(),
 	}
 
 	saved, err := ss.SharedChannel().SaveAttachment(attachment)
 	require.Nil(t, err, "could not save attachment", err)
 
 	t.Run("Get existing shared channel attachment", func(t *testing.T) {
-		r, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteClusterId)
+		r, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteId)
 		require.Nil(t, err, "couldn't get shared channel attachment", err)
 
 		require.Equal(t, saved.Id, r.Id)
 		require.Equal(t, saved.FileId, r.FileId)
-		require.Equal(t, saved.RemoteClusterId, r.RemoteClusterId)
+		require.Equal(t, saved.RemoteId, r.RemoteId)
 		require.Equal(t, saved.CreateAt, r.CreateAt)
 	})
 
@@ -928,8 +928,8 @@ func testGetSharedChannelAttachment(t *testing.T, ss store.Store) {
 
 func testUpdateSharedChannelAttachmentLastSyncAt(t *testing.T, ss store.Store) {
 	attachment := &model.SharedChannelAttachment{
-		FileId:          model.NewId(),
-		RemoteClusterId: model.NewId(),
+		FileId:   model.NewId(),
+		RemoteId: model.NewId(),
 	}
 
 	saved, err := ss.SharedChannel().SaveAttachment(attachment)
@@ -941,7 +941,7 @@ func testUpdateSharedChannelAttachmentLastSyncAt(t *testing.T, ss store.Store) {
 		err := ss.SharedChannel().UpdateAttachmentLastSyncAt(saved.Id, future)
 		require.Nil(t, err, "updateLastSyncAt should not error", err)
 
-		f, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteClusterId)
+		f, err := ss.SharedChannel().GetAttachment(saved.FileId, saved.RemoteId)
 		require.NoError(t, err)
 		require.Equal(t, future, f.LastSyncAt)
 	})

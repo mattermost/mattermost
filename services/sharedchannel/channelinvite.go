@@ -71,7 +71,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 			ChannelId:         sc.ChannelId,
 			Description:       description,
 			CreatorId:         userId,
-			RemoteClusterId:   rc.RemoteId,
+			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
 		}
@@ -153,7 +153,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		SharePurpose:     channel.Purpose,
 		ShareHeader:      channel.Header,
 		CreatorId:        rc.CreatorId,
-		RemoteClusterId:  rc.RemoteId,
+		RemoteId:         rc.RemoteId,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
@@ -168,7 +168,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		CreatorId:         channel.CreatorId,
 		IsInviteAccepted:  true,
 		IsInviteConfirmed: true,
-		RemoteClusterId:   rc.RemoteId,
+		RemoteId:          rc.RemoteId,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {

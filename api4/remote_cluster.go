@@ -41,15 +41,15 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("remoteClusterPing", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	remoteId := c.GetRemoteClusterID(r)
+	remoteId := c.GetRemoteID(r)
 	if remoteId != frame.RemoteId {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
@@ -102,15 +102,15 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	remoteId := c.GetRemoteClusterID(r)
+	remoteId := c.GetRemoteID(r)
 	if remoteId != frame.RemoteId {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
@@ -147,15 +147,15 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	remoteId := c.GetRemoteClusterID(r)
+	remoteId := c.GetRemoteID(r)
 	if remoteId != frame.RemoteId {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
@@ -203,6 +203,12 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	us, err := c.App.GetUploadSession(c.Params.UploadId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if us.RemoteId != c.GetRemoteID(r) {
+		c.Err = model.NewAppError("uploadRemoteData", "api.context.remote_id_mismatch.app_error",
+			nil, "", http.StatusUnauthorized)
 		return
 	}
 
