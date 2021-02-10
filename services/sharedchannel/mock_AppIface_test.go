@@ -137,13 +137,20 @@ func (_m *MockAppIface) DeleteReactionForPost(reaction *model.Reaction) *model.A
 	return r0
 }
 
-// GetOrCreateDirectChannel provides a mock function with given fields: userId, otherUserId
-func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
-	ret := _m.Called(userId, otherUserId)
+// GetOrCreateDirectChannel provides a mock function with given fields: userId, otherUserId, channelOptions
+func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	_va := make([]interface{}, len(channelOptions))
+	for _i := range channelOptions {
+		_va[_i] = channelOptions[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userId, otherUserId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(string, string) *model.Channel); ok {
-		r0 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(0).(func(string, string, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -151,8 +158,8 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId stri
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
-		r1 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(1).(func(string, string, ...model.ChannelOption) *model.AppError); ok {
+		r1 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

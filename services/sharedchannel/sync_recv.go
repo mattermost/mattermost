@@ -46,7 +46,6 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 	var err error
 
 	for _, sm := range syncMessages {
-
 		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 			mlog.String("post_id", sm.PostId),
 			mlog.String("channel_id", sm.ChannelId),
@@ -91,7 +90,7 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 				continue
 			}
 
-			if team == nil {
+			if channel.Type != model.CHANNEL_DIRECT && team == nil {
 				var err2 error
 				team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(sm.ChannelId)
 				if err2 != nil {
@@ -106,7 +105,9 @@ func (scs *Service) processSyncMessages(syncMessages []syncMsg, rc *model.Remote
 			}
 
 			// process perma-links for remote
-			sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
+			if team != nil {
+				sm.Post.Message = scs.processPermalinkFromRemote(sm.Post, team)
+			}
 
 			// add/update post (may be nil if only reactions changed)
 			rpost, err := scs.upsertSyncPost(sm.Post, channel, rc)

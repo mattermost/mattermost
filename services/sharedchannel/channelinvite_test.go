@@ -163,11 +163,11 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockStore := &mocks.Store{}
 		remoteCluster := &model.RemoteCluster{DisplayName: "test", CreatorId: model.NewId()}
 		invitation := channelInviteMsg{
-			ChannelId:           model.NewId(),
-			TeamId:              model.NewId(),
-			ReadOnly:            false,
-			Type:                model.CHANNEL_DIRECT,
-			DirectParticipantID: model.NewId(),
+			ChannelId:            model.NewId(),
+			TeamId:               model.NewId(),
+			ReadOnly:             false,
+			Type:                 model.CHANNEL_DIRECT,
+			DirectParticipantIDs: []string{model.NewId(), model.NewId()},
 		}
 		payload, err := json.Marshal(invitation)
 		require.NoError(t, err)
@@ -188,7 +188,7 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 		mockServer = scs.server.(*MockServerIface)
 		mockServer.On("GetStore").Return(mockStore)
 
-		mockApp.On("GetOrCreateDirectChannel", remoteCluster.CreatorId, invitation.DirectParticipantID).Return(channel, nil)
+		mockApp.On("GetOrCreateDirectChannel", invitation.DirectParticipantIDs[0], invitation.DirectParticipantIDs[1], mock.AnythingOfType("model.ChannelOption")).Return(channel, nil)
 		defer mockApp.AssertExpectations(t)
 
 		err = scs.onReceiveChannelInvite(msg, remoteCluster, nil)

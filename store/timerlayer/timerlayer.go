@@ -635,10 +635,10 @@ func (s *TimerLayerChannelStore) CountPostsAfter(channelId string, timestamp int
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
+func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	start := timemodule.Now()
 
-	result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+	result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId, channelOptions...)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

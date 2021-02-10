@@ -6776,7 +6776,7 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannel")
 
@@ -6788,7 +6788,7 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userId string, otherUserI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userId, otherUserId)
+	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userId, otherUserId, channelOptions...)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

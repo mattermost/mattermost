@@ -270,7 +270,11 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParams": func(params []methodParam) string {
 			paramsNames := make([]string, 0, len(params))
 			for _, param := range params {
-				paramsNames = append(paramsNames, param.Name)
+				tParams := ""
+				if strings.HasPrefix(param.Type, "...") {
+					tParams = "..."
+				}
+				paramsNames = append(paramsNames, param.Name+tParams)
 			}
 			return strings.Join(paramsNames, ", ")
 		},

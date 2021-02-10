@@ -319,13 +319,13 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	return sc, nil
 }
 
-func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
+func (a *App) GetOrCreateDirectChannel(userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			var err *model.AppError
-			channel, err = a.createDirectChannel(userId, otherUserId)
+			channel, err = a.createDirectChannel(userId, otherUserId, channelOptions...)
 			if err != nil {
 				if err.Id == store.ChannelExistsError {
 					return channel, nil
@@ -360,7 +360,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 	return channel, nil
 }
 
-func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+func (a *App) createDirectChannel(userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	uc1 := make(chan store.StoreResult, 1)
 	uc2 := make(chan store.StoreResult, 1)
 	go func() {
@@ -386,7 +386,7 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	}
 	otherUser := result.Data.(*model.User)
 
-	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
+	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
@@ -427,8 +427,10 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		}
 	}
 
-	if channel.IsShared() {
-		sharedChannel := &model.SharedChannel{
+	// When the newly created channel is shared and the creator is local
+	// create a local shared channel record
+	if channel.IsShared() && !user.IsRemote() {
+		sc := &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             true,
@@ -437,9 +439,11 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 			ShareDisplayName: channel.DisplayName,
 			SharePurpose:     channel.Purpose,
 			ShareHeader:      channel.Header,
-			CreatorId:        channel.CreatorId,
+			CreatorId:        user.Id,
+			Type:             channel.Type,
 		}
-		if _, err := a.SaveSharedChannel(sharedChannel); err != nil {
+
+		if _, err := a.SaveSharedChannel(sc); err != nil {
 			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}

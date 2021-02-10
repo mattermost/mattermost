@@ -84,7 +84,7 @@ type Actions struct {
 	UpdateActive           func(*model.User, bool) (*model.User, *model.AppError)
 	AddUserToChannel       func(*model.User, *model.Channel) (*model.ChannelMember, *model.AppError)
 	JoinUserToTeam         func(*model.Team, *model.User, string) *model.AppError
-	CreateDirectChannel    func(string, string) (*model.Channel, *model.AppError)
+	CreateDirectChannel    func(string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)
 	CreateGroupChannel     func([]string, string) (*model.Channel, *model.AppError)
 	CreateChannel          func(*model.Channel, bool) (*model.Channel, *model.AppError)
 	DoUploadFile           func(time.Time, string, string, string, string, []byte) (*model.FileInfo, *model.AppError)

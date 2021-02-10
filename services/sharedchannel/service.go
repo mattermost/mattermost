@@ -43,7 +43,7 @@ type ServerIface interface {
 type AppIface interface {
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
-	GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError)
+	GetOrCreateDirectChannel(userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError)
 	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	DeleteChannel(channel *model.Channel, userId string) *model.AppError

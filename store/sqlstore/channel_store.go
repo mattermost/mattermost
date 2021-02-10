@@ -555,8 +555,12 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, err
 }
 
-func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
+func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	channel := new(model.Channel)
+
+	for _, option := range channelOptions {
+		option(channel)
+	}
 
 	channel.DisplayName = ""
 	channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
@@ -564,6 +568,7 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	channel.Header = ""
 	channel.Type = model.CHANNEL_DIRECT
 	channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
+	channel.CreatorId = user.Id
 
 	cm1 := &model.ChannelMember{
 		UserId:      user.Id,
@@ -581,13 +586,13 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
-	if directchannel.DeleteAt != 0 {
-		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directchannel.DeleteAt)
+func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	if directChannel.DeleteAt != 0 {
+		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
 
-	if directchannel.Type != model.CHANNEL_DIRECT {
-		return nil, store.NewErrInvalidInput("Channel", "Type", directchannel.Type)
+	if directChannel.Type != model.CHANNEL_DIRECT {
+		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -596,8 +601,8 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	}
 	defer finalizeTransaction(transaction)
 
-	directchannel.TeamId = ""
-	newChannel, err := s.saveChannelT(transaction, directchannel, 0)
+	directChannel.TeamId = ""
+	newChannel, err := s.saveChannelT(transaction, directChannel, 0)
 	if err != nil {
 		return newChannel, err
 	}
