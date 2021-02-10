@@ -4997,10 +4997,10 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+func (s *TimerLayerPreferenceStore) PermanentDeleteFlagsBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatch(endTime, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5008,15 +5008,15 @@ func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.CleanupFlagsBatch", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.PermanentDeleteFlagsBatch", success, elapsed)
 	}
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+func (s *TimerLayerPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
-	result, err := s.PreferenceStore.CleanupFlagsBatchForRetentionPolicies(now, limit)
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies(now, limit)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -5024,7 +5024,7 @@ func (s *TimerLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now in
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.CleanupFlagsBatchForRetentionPolicies", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies", success, elapsed)
 	}
 	return result, err
 }

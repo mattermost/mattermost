@@ -1827,25 +1827,34 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
 	// This will not delete a Post if the Channel to which it belonged has already been deleted.
-	const sQuery = `
-	DELETE FROM Posts WHERE Id IN (
+	const selectQuery = `
 		SELECT Posts.Id FROM Posts
 		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		INNER JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-		WHERE (
-			RetentionPoliciesChannels.ChannelId IS NOT NULL
-			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		) OR (
-			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
-			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		)
-		LIMIT :Limit
-	)`
+		INNER JOIN RetentionPolicies ON
+			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR (
+				RetentionPoliciesChannels.PolicyId IS NULL
+				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+			)
+		WHERE :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		LIMIT :Limit`
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+		DELETE FROM Posts WHERE Id IN (
+		` + selectQuery + `
+		)`
+	} else {
+		// MySQL does not support the LIMIT clause in a subquery with IN
+		query = `
+		DELETE Posts FROM Posts INNER JOIN (
+		` + selectQuery + `
+		) AS A ON Posts.Id = A.Id`
+	}
 	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(sQuery, props)
+	result, err := s.GetMaster().Exec(query, props)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Posts")
 	}

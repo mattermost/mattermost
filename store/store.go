@@ -545,8 +545,8 @@ type PreferenceStore interface {
 	DeleteCategory(userId string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userId string) error
-	CleanupFlagsBatch(limit int64) (int64, error)
-	CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error)
+	PermanentDeleteFlagsBatch(endTime, limit int64) (int64, error)
+	PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error)
 }
 
 type LicenseStore interface {

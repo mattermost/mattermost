@@ -5513,16 +5513,16 @@ func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.P
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+func (s *OpenTracingLayerPreferenceStore) PermanentDeleteFlagsBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.CleanupFlagsBatch")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.PermanentDeleteFlagsBatch")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatch(endTime, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -5531,16 +5531,16 @@ func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64,
 	return result, err
 }
 
-func (s *OpenTracingLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+func (s *OpenTracingLayerPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.CleanupFlagsBatchForRetentionPolicies")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.PreferenceStore.CleanupFlagsBatchForRetentionPolicies(now, limit)
+	result, err := s.PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies(now, limit)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

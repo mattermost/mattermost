@@ -580,25 +580,34 @@ func (s *SqlThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, 
 func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int64, limit int64) (int64, error) {
 	// Channel-specific policies override team-specific policies.
 	// This will not delete a Thread if the Channel to which it belonged has already been deleted.
-	const sQuery = `
-	DELETE FROM Threads WHERE PostId IN (
+	const selectQuery = `
 		SELECT Threads.PostId FROM Threads
 		LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-		WHERE (
-			RetentionPoliciesChannels.ChannelId IS NOT NULL
-			AND :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		) OR (
-			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
-			AND :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		)
-		LIMIT :Limit
-	)`
+		LEFT JOIN RetentionPolicies ON
+			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR (
+				RetentionPoliciesChannels.PolicyId IS NULL
+				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+			)
+		WHERE :Now - Threads.LastReplyAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+		LIMIT :Limit`
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+		DELETE FROM Threads WHERE PostId IN (
+		` + selectQuery + `
+		)`
+	} else {
+		// MySQL does not support the LIMIT clause in a subquery with IN
+		query = `
+		DELETE Threads FROM Threads INNER JOIN (
+		` + selectQuery + `
+		) AS A ON Threads.PostId = A.PostId`
+	}
 	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(sQuery, props)
+	result, err := s.GetMaster().Exec(query, props)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Threads")
 	}
@@ -613,28 +622,37 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadMembershipsForRetentionPolici
 	// Channel-specific policies override team-specific policies.
 	// This will delete a ThreadMembership if its corresponding Post has already been deleted by
 	// a retention policy.
-	const sQuery = `
-	DELETE FROM ThreadMemberships WHERE PostId IN (
+	// We need to join on Threads instead of Posts because the root post may already have been deleted.
+	const selectQuery = `
 		SELECT ThreadMemberships.PostId FROM ThreadMemberships
-		LEFT JOIN Posts ON ThreadMemberships.PostId = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
+		LEFT JOIN Threads ON ThreadMemberships.PostId = Threads.PostId
+		LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-		WHERE (
-			RetentionPoliciesChannels.ChannelId IS NOT NULL
-			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		) OR (
-			RetentionPoliciesTeams.TeamId IS NOT NULL AND RetentionPoliciesChannels.ChannelId IS NULL
-			AND :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		) OR (
-			Posts.Id IS NULL
-		)
-		LIMIT :Limit
-	)`
+		LEFT JOIN RetentionPolicies ON
+			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
+			OR (
+				RetentionPoliciesChannels.PolicyId IS NULL
+				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
+			)
+		WHERE :Now - ThreadMemberships.LastUpdated >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
+			OR Threads.PostId IS NULL
+		LIMIT :Limit`
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = `
+		DELETE FROM ThreadMemberships WHERE PostId IN (
+		` + selectQuery + `
+		)`
+	} else {
+		// MySQL does not support the LIMIT clause in a subquery with IN
+		query = `
+		DELETE ThreadMemberships FROM ThreadMemberships INNER JOIN (
+		` + selectQuery + `
+		) AS A ON ThreadMemberships.PostId = A.PostId`
+	}
 	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(sQuery, props)
+	result, err := s.GetMaster().Exec(query, props)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete ThreadMemberships")
 	}

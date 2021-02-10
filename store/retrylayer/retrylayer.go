@@ -5950,11 +5950,11 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 
 }
 
-func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+func (s *RetryLayerPreferenceStore) PermanentDeleteFlagsBatch(endTime int64, limit int64) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
+		result, err := s.PreferenceStore.PermanentDeleteFlagsBatch(endTime, limit)
 		if err == nil {
 			return result, nil
 		}
@@ -5970,11 +5970,11 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 
 }
 
-func (s *RetryLayerPreferenceStore) CleanupFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
+func (s *RetryLayerPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.PreferenceStore.CleanupFlagsBatchForRetentionPolicies(now, limit)
+		result, err := s.PreferenceStore.PermanentDeleteFlagsBatchForRetentionPolicies(now, limit)
 		if err == nil {
 			return result, nil
 		}
