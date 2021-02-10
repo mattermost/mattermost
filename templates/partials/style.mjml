@@ -1,13 +1,95 @@
 <mj-attributes>
   <mj-text font-family="Open Sans" align="center" />
-  <mj-button background-color="#166DE0" border-radius="4px" padding="14px 24px" />
+  <mj-button font-family="Open Sans" background-color="#166DE0" border-radius="4px" padding="0px" />
   <mj-image alt="" align="center" />
-  <mj-class name="title" font-weight=600 font-size=28px line-height=36px letter-spacing=-0.02em color="#3D3C40" />
-  <mj-class name="subTitle" font-size=16px line-height=24px color="rgba(61, 60, 64, 0.64)" />
-  <mj-class name="info" font-size="14px" line-height="20px" color="#3D3C40" />
-  <mj-class name="logo" width="132px" height="21.76px" />
-  <mj-class name="appDownloadButton" background-color="#FFFFFF" border="1px solid #166DE0" color="#166DE0" />
-  <mj-class name="footerTitle" font-weight="600" font-size="16px" line-height="24px" color="#3D3C40" />
-  <mj-class name="footerInfo" font-size="14px" line-height="20px" color="#3D3C40" />
-  <mj-class name="emailFooter" font-size="12px" line-height="16px" color="rgba(61, 60, 64, 0.56)" />
+  <mj-class name="email" align="center" padding="24px" background-color="#FFFFFF" border-radius="8px" />
+  <mj-class name="logo" width="132px" height="21.76px" padding="0px" />
 </mj-attributes>
+
+<mj-style>
+
+  body {
+    background: #E5E5E5 !important;
+  }
+
+  .title div {
+    font-weight:600 !important;
+    font-size:28px !important;
+    line-height:36px !important;
+    letter-spacing:-0.02em !important;
+    color:#3D3C40 !important;
+  }
+
+  .subTitle div {
+    font-size:16px !important;
+    line-height:24px !important;
+    color:rgba(61, 60, 64, 0.64) !important;
+  }
+
+  .buttonText a {
+    font-weight:600 !important;
+    font-size:16px !important;
+    line-height:18px !important;
+    color:#FFFFFF !important;
+    padding:15px 24px !important;
+  }
+
+  .info div {
+    width:443px !important;
+    font-size:14px !important;
+    line-height:20px !important;
+    color:#3D3C40 !important;
+    padding:40px 0px !important;
+  }
+
+  .footerTitle div {
+    font-weight:600 !important;
+    font-size:16px !important;
+    line-height:24px !important;
+    color:#3D3C40 !important;
+    padding:0px 0px 4px 0px !important;
+  }
+
+  .footerInfo div {
+    font-size:14px !important;
+    line-height:20px !important;
+    color:#3D3C40 !important;
+    padding:0px !important;
+  }
+
+  .appDownloadButton a{
+    background-color:#FFFFFF !important;
+    border:1px solid #166DE0 !important;
+    color:#166DE0 !important;
+    padding:13px 20px !important;
+    font-weight:600 !important;
+    font-size:14px !important;
+    line-height:14px !important;
+  }
+
+  .emailFooter div {
+    font-size:12px !important;
+    line-height:16px !important;
+    color:rgba(61, 60, 64, 0.56) !important;
+    padding:48px 24px 8px 24px !important;
+  }
+
+  @media all and (min-width: 541px) {
+    body {
+      padding: 32px !important;
+    }
+  }
+
+  @media all and (max-width: 540px) and (min-width: 401px) {
+    body {
+      padding: 16px !important;
+    }
+  }
+
+  @media all and (max-width: 400px) {
+    body {
+      padding: 0px !important;
+    }
+  }
+
+</mj-style>

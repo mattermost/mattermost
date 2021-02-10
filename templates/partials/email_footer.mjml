@@ -1,7 +1,7 @@
-<mj-section>
+<mj-section padding="0px">
   <mj-column>
-    <mj-text mj-class="emailFooter" padding="0px">
-      {{.Props.Organization}}<br>
+    <mj-text css-class="emailFooter" padding="0px">
+      {{.Props.Organization}}
       {{.Props.FooterV2}}
     </mj-text>
   </mj-column>

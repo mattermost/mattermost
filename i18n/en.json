@@ -3008,7 +3008,7 @@
   },
   {
     "id": "api.templates.verify_body.title",
-    "translation": "Welcome to the team"
+    "translation": "Verify your email address"
   },
   {
     "id": "api.templates.verify_subject",
@@ -3068,7 +3068,7 @@
   },
   {
     "id": "api.templates.welcome_body.title",
-    "translation": "Verify your email address"
+    "translation": "Welcome to the team"
   },
   {
     "id": "api.templates.welcome_subject",

@@ -1,9 +1,9 @@
-<mj-section>
+<mj-section padding="16px 0px 0px 0px">
   <mj-column>
-    <mj-text mj-class="footerTitle">
+    <mj-text css-class="footerTitle" padding="0px">
       {{.Props.QuestionTitle}}
     </mj-text>
-    <mj-text mj-class="footerInfo">
+    <mj-text css-class="footerInfo" padding="0px">
       {{.Props.QuestionInfo}}
       <a href='mailto:{{.Props.SupportEmail}}' color="#166DE0">
       {{.Props.SupportEmail}}</a>
