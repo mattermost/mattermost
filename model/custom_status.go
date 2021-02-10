@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	UserPropsKeyCustomStatus         = "customStatus"
-	UserPropsKeyRecentCustomStatuses = "recentCustomStatuses"
+	UserPropsKeyCustomStatus = "customStatus"
 
-	CustomStatusTextMaxRunes = 250
+	CustomStatusTextMaxRunes = 100
 	MaxRecentCustomStatuses  = 5
 )
 
@@ -41,6 +40,23 @@ func CustomStatusFromJson(data io.Reader) *CustomStatus {
 }
 
 type RecentCustomStatuses []CustomStatus
+
+func (rcs *RecentCustomStatuses) Contains(cs *CustomStatus) bool {
+	var csJSON = cs.ToJson()
+
+	// status is empty
+	if cs == nil || csJSON == "" || (cs.Emoji == "" && cs.Text == "") {
+		return false
+	}
+
+	for _, status := range *rcs {
+		if status.ToJson() == csJSON {
+			return true
+		}
+	}
+
+	return false
+}
 
 func (rcs *RecentCustomStatuses) Add(cs *CustomStatus) *RecentCustomStatuses {
 	newRCS := (*rcs)[:0]

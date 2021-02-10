@@ -598,35 +598,12 @@ func (u *User) AddNotifyProp(key string, value string) {
 
 func (u *User) SetCustomStatus(cs *CustomStatus) {
 	u.MakeNonNil()
-
 	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
-
-	var newRCS *RecentCustomStatuses
-	rcsJSON, found := u.Props[UserPropsKeyRecentCustomStatuses]
-	if found {
-		existingRCS := RecentCustomStatusesFromJson(strings.NewReader(rcsJSON))
-		newRCS = existingRCS.Add(cs)
-	} else {
-		newRCS = &RecentCustomStatuses{*cs}
-	}
-	u.Props[UserPropsKeyRecentCustomStatuses] = newRCS.ToJson()
 }
 
 func (u *User) ClearCustomStatus() {
 	u.MakeNonNil()
 	u.Props[UserPropsKeyCustomStatus] = ""
-}
-
-func (u *User) RemoveRecentCustomStatus(cs *CustomStatus) {
-	u.MakeNonNil()
-	rcsJSON, found := u.Props[UserPropsKeyRecentCustomStatuses]
-	if !found {
-		return
-	}
-
-	existingRCS := RecentCustomStatusesFromJson(strings.NewReader(rcsJSON))
-	newRCS := existingRCS.Remove(cs)
-	u.Props[UserPropsKeyRecentCustomStatuses] = newRCS.ToJson()
 }
 
 func (u *User) GetFullName() string {

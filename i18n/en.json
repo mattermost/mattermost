@@ -1239,6 +1239,10 @@
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
   {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
     "id": "api.email.send_warn_metric_ack.failure.app_error",
     "translation": "Failure to send admin acknowledgment email"
   },

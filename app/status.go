@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -376,6 +377,10 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 		return err
 	}
 
+	if err := a.addRecentCustomStatus(userID, cs); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -394,15 +399,49 @@ func (a *App) RemoveCustomStatus(userID string) *model.AppError {
 	return nil
 }
 
+func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+	var newRCS *model.RecentCustomStatuses
+
+	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PREFERENCE_CATEGORY_CUSTOM_STATUS, model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES)
+	if err != nil || pref.Value == "" {
+		newRCS = &model.RecentCustomStatuses{*status}
+	} else {
+		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+		newRCS = existingRCS.Add(status)
+	}
+
+	pref = &model.Preference{
+		UserId:   userID,
+		Category: model.PREFERENCE_CATEGORY_CUSTOM_STATUS,
+		Name:     model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES,
+		Value:    newRCS.ToJson(),
+	}
+	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
-	user, err := a.GetUser(userID)
+	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PREFERENCE_CATEGORY_CUSTOM_STATUS, model.PREFERENCE_NAME_RECENT_CUSTOM_STATUSES)
 	if err != nil {
 		return err
 	}
 
-	user.RemoveRecentCustomStatus(status)
-	_, updateErr := a.UpdateUser(user, true)
-	if updateErr != nil {
+	if pref.Value == "" {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+	if !existingRCS.Contains(status) {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	newRCS := existingRCS.Remove(status)
+	pref.Value = newRCS.ToJson()
+
+	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
 		return err
 	}
 
