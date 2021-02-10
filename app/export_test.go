@@ -5,7 +5,9 @@ package app
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 
@@ -13,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -111,16 +115,6 @@ func TestExportUserChannels(t *testing.T) {
 	}
 }
 
-func TestDirCreationForEmoji(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
-
-	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
-	defer os.Remove(pathToDir)
-	_, err := os.Stat(pathToDir)
-	require.False(t, os.IsNotExist(err), "Directory exported_emoji_test should exist")
-}
-
 func TestCopyEmojiImages(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -164,11 +158,13 @@ func TestExportCustomEmoji(t *testing.T) {
 	require.Nil(t, err)
 	defer os.Remove(filePath)
 
-	pathToEmojiDir := "../data/emoji/"
 	dirNameToExportEmoji := "exported_emoji_test"
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
-	err = th.App.exportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
+	outPath, err := filepath.Abs(filePath)
+	require.Nil(t, err)
+
+	_, err = th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji, false)
 	require.Nil(t, err, "should not have failed")
 }
 
@@ -182,7 +178,7 @@ func TestExportAllUsers(t *testing.T) {
 	require.Nil(t, err)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	th2 := Setup(t)
@@ -228,7 +224,7 @@ func TestExportDMChannel(t *testing.T) {
 	th1.CreateDmChannel(th1.BasicUser2)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -264,7 +260,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	th1.CreateDmChannel(th1.BasicUser)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -302,7 +298,7 @@ func TestExportGMChannel(t *testing.T) {
 	th1.CreateGroupChannel(user1, user2)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -334,7 +330,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th1.CreateGroupChannel(user1, user2)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
@@ -417,7 +413,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	th1.TearDown()
@@ -492,7 +488,7 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NotEmpty(t, posts[1].Props)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	th1.TearDown()
@@ -530,7 +526,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th1.CreatePost(dmChannel)
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
 	require.Nil(t, err)
 
 	posts, nErr := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
@@ -556,4 +552,58 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
 	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])
+}
+
+func TestBulkExport(t *testing.T) {
+	th := Setup(t)
+	testsDir, _ := fileutils.FindDir("tests")
+
+	dir, err := ioutil.TempDir("", "import_test")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	extractImportFile := func(filePath string) *os.File {
+		importFile, err2 := os.Open(filePath)
+		require.Nil(t, err2)
+		defer importFile.Close()
+
+		info, err2 := importFile.Stat()
+		require.Nil(t, err2)
+
+		paths, err2 := utils.UnzipToPath(importFile, info.Size(), dir)
+		require.Nil(t, err2)
+		require.NotEmpty(t, paths)
+
+		jsonFile, err2 := os.Open(filepath.Join(dir, "import.jsonl"))
+		require.Nil(t, err2)
+
+		return jsonFile
+	}
+
+	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
+	defer jsonFile.Close()
+
+	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, dir)
+	require.Nil(t, err)
+
+	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
+	require.Nil(t, err)
+	defer exportFile.Close()
+
+	opts := BulkExportOpts{
+		IncludeAttachments: true,
+		CreateArchive:      true,
+	}
+	err = th.App.BulkExport(exportFile, dir, opts)
+	require.Nil(t, err)
+
+	th.TearDown()
+	th = Setup(t)
+	defer th.TearDown()
+
+	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
+	defer jsonFile.Close()
+
+	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, filepath.Join(dir, "data"))
+	require.Nil(t, err)
 }
