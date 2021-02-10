@@ -15534,7 +15534,7 @@ func (a *OpenTracingAppLayer) UpdateTeamScheme(team *model.Team) (*model.Team, *
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId string, state bool) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, teamID string, threadID string, state bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadFollowForUser")
 
@@ -15546,7 +15546,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadFollowForUser(userID, threadId, state)
+	resultVar0 := a.app.UpdateThreadFollowForUser(userID, teamID, threadID, state)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15556,7 +15556,7 @@ func (a *OpenTracingAppLayer) UpdateThreadFollowForUser(userID string, threadId 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID string, threadId string, timestamp int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID string, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateThreadReadForUser")
 
@@ -15568,14 +15568,14 @@ func (a *OpenTracingAppLayer) UpdateThreadReadForUser(userID string, teamID stri
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateThreadReadForUser(userID, teamID, threadId, timestamp)
+	resultVar0, resultVar1 := a.app.UpdateThreadReadForUser(userID, teamID, threadID, timestamp)
 
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return resultVar0, resultVar1
 }
 
 func (a *OpenTracingAppLayer) UpdateThreadsReadForUser(userID string, teamID string) *model.AppError {

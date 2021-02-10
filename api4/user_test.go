@@ -5502,7 +5502,7 @@ func TestThreadSocketEvents(t *testing.T) {
 		require.Truef(t, caught, "User should have received %s event", model.WEBSOCKET_EVENT_THREAD_FOLLOW_CHANGED)
 	})
 
-	resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, 123)
+	_, resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rpost.Id, 123)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5642,7 +5642,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 0, 1, nil)
 
 	// mark other user's read state
-	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
+	_, resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, model.GetMillis())
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5650,7 +5650,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	checkThreadListReplies(t, th, th.SystemAdminClient, th.SystemAdminUser.Id, 0, 0, &model.GetUserThreadsOpts{Unread: true})
 
 	// restore unread to an old date
-	resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, 123)
+	_, resp = th.SystemAdminClient.UpdateThreadReadForUser(th.SystemAdminUser.Id, th.BasicTeam.Id, rpost.Id, 123)
 	CheckNoError(t, resp)
 	CheckOKStatus(t, resp)
 
@@ -5868,7 +5868,7 @@ func TestReadThreads(t *testing.T) {
 
 		uss, _ := checkThreadListReplies(t, th, th.Client, th.BasicUser.Id, 2, 2, nil)
 
-		resp := th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, model.GetMillis()+10)
+		_, resp := th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, model.GetMillis()+10)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 
@@ -5876,7 +5876,7 @@ func TestReadThreads(t *testing.T) {
 		require.Greater(t, uss2.Threads[0].LastViewedAt, uss.Threads[0].LastViewedAt)
 
 		timestamp := model.GetMillis()
-		resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, timestamp)
+		_, resp = th.Client.UpdateThreadReadForUser(th.BasicUser.Id, th.BasicTeam.Id, rrpost.Id, timestamp)
 		CheckNoError(t, resp)
 		CheckOKStatus(t, resp)
 

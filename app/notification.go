@@ -440,7 +440,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				sendEvent, _ = strconv.ParseBool(preference.Value)
 			}
 			if sendEvent {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, "", "", uid, nil)
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
 				message.Add("thread", payload)
 				a.Publish(message)
 			}

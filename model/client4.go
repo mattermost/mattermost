@@ -5947,14 +5947,16 @@ func (c *Client4) UpdateThreadsReadForUser(userId, teamId string) *Response {
 	return BuildResponse(r)
 }
 
-func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *Response {
+func (c *Client4) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) (*ThreadResponse, *Response) {
 	r, appErr := c.DoApiPut(fmt.Sprintf("%s/read/%d", c.GetUserThreadRoute(userId, teamId, threadId), timestamp), "")
 	if appErr != nil {
-		return BuildErrorResponse(r, appErr)
+		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
+	var thread ThreadResponse
+	json.NewDecoder(r.Body).Decode(&thread)
 
-	return BuildResponse(r)
+	return &thread, BuildResponse(r)
 }
 
 func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, state bool) *Response {
