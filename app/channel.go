@@ -444,7 +444,7 @@ func (a *App) createDirectChannel(userId string, otherUserId string, channelOpti
 		}
 
 		if _, err := a.SaveSharedChannel(sc); err != nil {
-			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 

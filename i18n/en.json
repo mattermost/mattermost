@@ -5335,6 +5335,10 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.sharedchannel.dm_channel_creation.internal_error",
+    "translation": "Encountered an error while creating a direct shared channel."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
