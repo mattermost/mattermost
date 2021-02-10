@@ -34,7 +34,7 @@ func TestUserStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
@@ -49,7 +49,7 @@ func TestUserStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetProfileByIds", 1)
 
@@ -64,7 +64,7 @@ func TestUserStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 
 		cachedStore.User().InvalidateProfileCacheForUser("123")
@@ -80,7 +80,7 @@ func TestUserStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		storedUsers, err := mockStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		originalProps := make([]model.StringMap, len(storedUsers))
 
@@ -91,14 +91,14 @@ func TestUserStoreCache(t *testing.T) {
 		}
 
 		cachedUsers, err := cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		for i := 0; i < len(storedUsers); i++ {
 			assert.Equal(t, storedUsers[i].Id, cachedUsers[i].Id)
 		}
 
 		cachedUsers, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		for i := 0; i < len(storedUsers); i++ {
 			storedUsers[i].Props = model.StringMap{}
 			storedUsers[i].Timezone = model.StringMap{}
@@ -130,7 +130,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
@@ -145,7 +145,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
@@ -160,7 +160,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
@@ -177,7 +177,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(fakeChannelId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeMap, gotMap)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfilesInChannel", 1)
 
@@ -202,7 +202,7 @@ func TestUserStoreGetCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
@@ -217,7 +217,7 @@ func TestUserStoreGetCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUser, gotUser)
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "Get", 1)
 
@@ -234,20 +234,20 @@ func TestUserStoreGetCache(t *testing.T) {
 		require.NoError(t, err)
 
 		storedUser, err := mockStore.User().Get(fakeUserId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		originalProps := storedUser.NotifyProps
 
 		storedUser.NotifyProps = map[string]string{}
 		storedUser.NotifyProps["key"] = "somevalue"
 
 		cachedUser, err := cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 
 		storedUser.Props = model.StringMap{}
 		storedUser.Timezone = model.StringMap{}
 		cachedUser, err = cachedStore.User().Get(fakeUserId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, storedUser, cachedUser)
 		if storedUser == cachedUser {
 			assert.Fail(t, "should be different pointers")
