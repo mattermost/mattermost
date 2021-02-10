@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	storemocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -1986,9 +1987,9 @@ func TestReplyToPost(t *testing.T) {
 	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
 
 	t.Run("replication lag time great than reply time", func(t *testing.T) {
-		err := th.App.Srv().Store.SetReplicationLagForTesting(30)
+		err := testutils.SetReplicationLagForTesting(mainHelper.SQLStore, 30)
 		require.Nil(t, err)
-		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
+		defer testutils.SetReplicationLagForTesting(mainHelper.SQLStore, 0)
 
 		root, err := th.App.CreatePost(&model.Post{
 			UserId:    th.BasicUser.Id,
