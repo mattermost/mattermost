@@ -8516,5 +8516,21 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
+  },
+  {
+    "id": "api.unable_write_file_response",
+    "translation": "サポートパケットファイルをダウンロードする際にエラーが発生しました。"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zipファイル作成時にエラーが発生しました。"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "このエンドポイントを使用するにはE10もしくはE20ライセンスが必要です。"
   }
 ]
