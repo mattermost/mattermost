@@ -13154,9 +13154,9 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendAdminsOverTheLimitAlertEmail(username string, subscription *model.Subscription) *model.AppError {
+func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAdminsOverTheLimitAlertEmail")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAdminUpgradeRequestEmail")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -13166,7 +13166,7 @@ func (a *OpenTracingAppLayer) SendAdminsOverTheLimitAlertEmail(username string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendAdminsOverTheLimitAlertEmail(username, subscription)
+	resultVar0 := a.app.SendAdminUpgradeRequestEmail(username, subscription)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

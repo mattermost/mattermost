@@ -5909,7 +5909,7 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r)
 }
 
-func (c *Client4) SendOverLimitAlert() *Response {
+func (c *Client4) sendAdminUpgradeRequestEmail() *Response {
 	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/alert/admin", "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)

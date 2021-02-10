@@ -36,11 +36,10 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices", api.ApiSessionRequired(getInvoicesForSubscription)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.ApiSessionRequired(getSubscriptionInvoicePDF)).Methods("GET")
 	api.BaseRoutes.Cloud.Handle("/subscription/stats", api.ApiSessionRequired(getSubscriptionStats)).Methods("GET")
+	api.BaseRoutes.Cloud.Handle("/subscription/limitreached/invite", api.ApiSessionRequired(sendAdminUpgradeRequestEmail)).Methods("POST")
 
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudApiKeyRequired(handleCWSWebhook)).Methods("POST")
-
-	api.BaseRoutes.Cloud.Handle("/alert/admin", api.ApiSessionRequired(sendOverLimitAlert)).Methods("POST")
 }
 
 func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -396,9 +395,9 @@ func handleCWSWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func sendOverLimitAlert(c *Context, w http.ResponseWriter, r *http.Request) {
+func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.sendOverLimitAlert", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -408,13 +407,13 @@ func sendOverLimitAlert(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sub, subErr := c.App.Cloud().GetSubscription()
-	if subErr != nil {
-		c.Err = model.NewAppError("Api4.sendOverLimitAlert", "api.cloud.request_error", nil, subErr.Error(), http.StatusInternalServerError)
+	sub, err := c.App.Cloud().GetSubscription()
+	if err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = c.App.SendAdminsOverTheLimitAlertEmail(user.Username, sub)
+	err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub)
 	if err != nil {
 		c.Err = err
 		return

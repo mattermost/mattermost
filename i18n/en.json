@@ -2603,8 +2603,12 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
-    "id": "api.templates.over_limit_subject",
+    "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
   },
   {
     "id": "api.templates.at_limit_info5",
@@ -2615,12 +2619,12 @@
     "translation": "Mattermost Cloud User Limit Reached"
   },
   {
-    "id": "api.templates.at_limit_title",
-    "translation": "You’ve reached the user limit for the free tier "
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost user request upgrade of workspace"
   },
   {
-    "id": "api.templates.at_limit_stats",
-    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. You currently have {{ .TotalUsers}} users on the system and your free tier limit is {{ .CloudUserLimit }} users. Upgrade now to allow more users to join your workspace."
+    "id": "api.templates.at_limit_title",
+    "translation": "You’ve reached the user limit for the free tier "
   },
   {
     "id": "api.templates.copyright",
@@ -3440,6 +3444,10 @@
   },
   {
     "id": "api.user.send_email_user_limit_admin_notification.error",
+    "translation": "Failed to send email to user limit notification to admin"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
     "translation": "Failed to send email to user limit notification to admin"
   },
   {

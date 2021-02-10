@@ -631,15 +631,15 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 	return true, nil
 }
 
-// SendAdminOverTheLimitAlertEmail formats an email template and sends an email to an admin specified in the email arg
-func (es *EmailService) SendAdminOverTheLimitAlertEmail(tu int64, cul int, user, email, locale, siteURL string) (bool, *model.AppError) {
+// SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
+func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (bool, *model.AppError) {
 	T := utils.GetUserTranslations(locale)
 
-	subject := T("api.templates.over_limit_subject", map[string]interface{}{"UserName": user})
+	subject := T("api.templates.upgrade_request_subject")
 
-	bodyPage := es.newEmailTemplate("user_limit_admin_notification", locale)
-	bodyPage.Props["Title"] = T("api.templates.at_limit_title")
-	bodyPage.Props["Info4"] = T("api.templates.at_limit_stats", map[string]interface{}{"TotalUsers": tu, "CloudUserLimit": cul})
+	bodyPage := es.newEmailTemplate("cloud_upgrade_request_email", locale)
+	bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
+	bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
 	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
@@ -647,7 +647,7 @@ func (es *EmailService) SendAdminOverTheLimitAlertEmail(tu int64, cul int, user,
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendAdminAlertEmail", "api.user.send_email_user_limit_admin_notification.error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
 	return true, nil

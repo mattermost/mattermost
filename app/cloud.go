@@ -21,70 +21,54 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	return a.GetUsers(userOptions)
 }
 
-// SendAdminsOverTheLimitAlertEmail takes the username of user trying to alert admins and then applies rate limit of n (number of admins) emails per user per day
+// SendAdminUpgradeRequestEmail takes the username of user trying to alert admins and then applies rate limit of n (number of admins) emails per user per day
 // before sending the emails.
-func (a *App) SendAdminsOverTheLimitAlertEmail(username string, subscription *model.Subscription) *model.AppError {
+func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		return nil
-	}
-
-	if a.Srv().EmailService.PerDayEmailRateLimiter == nil {
-		return model.NewAppError("SendAdminsOverTheLimitAlertEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("username=%s", username), http.StatusInternalServerError)
-	}
-
-	// rate limit based on username as key
-	rateLimited, result, err := a.Srv().EmailService.PerDayEmailRateLimiter.RateLimit(username, 1)
-	if err != nil {
-		return model.NewAppError("SendAdminsOverTheLimitAlertEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("username=%s, error=%v", username, err), http.StatusInternalServerError)
-	}
-
-	if rateLimited {
-		return model.NewAppError("SendAdminsOverTheLimitAlertEmail",
-			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
-			fmt.Sprintf("username=%s, retry_after_secs=%f, reset_after_secs=%f",
-				username, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
-			http.StatusRequestEntityTooLarge)
 	}
 
 	if subscription != nil && subscription.IsPaidTier == "true" {
 		return nil
 	}
 
-	sysAdmins, adminsErr := a.getSysAdminsEmailRecipients()
-	if adminsErr != nil {
-		return adminsErr
+	if a.Srv().EmailService.PerDayEmailRateLimiter == nil {
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("username=%s", username), http.StatusInternalServerError)
 	}
 
-	count, e := a.Srv().Store.User().Count(model.UserCountOptions{})
+	// rate limit based on username as key
+	rateLimited, result, err := a.Srv().EmailService.PerDayEmailRateLimiter.RateLimit(username, 1)
+	if err != nil {
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("username=%s, error=%v", username, err), http.StatusInternalServerError)
+	}
+
+	if rateLimited {
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail",
+			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
+			fmt.Sprintf("username=%s, retry_after_secs=%f, reset_after_secs=%f",
+				username, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
+			http.StatusRequestEntityTooLarge)
+	}
+
+	sysAdmins, e := a.getSysAdminsEmailRecipients()
 	if e != nil {
-		return model.NewAppError("app.SendAdminsOverTheLimitAlertEmail", "app.user.get_total_users_count.app_error", nil, e.Error(), http.StatusInternalServerError)
+		return e
 	}
-
-	cloudUserLimit := *a.Config().ExperimentalSettings.CloudUserLimit
 
 	// we want to atleast have one email sent out to an admin
-	c := make(chan bool, len(sysAdmins))
-	for admin := range sysAdmins {
-		go func(admin int) {
-			ok, _ := a.Srv().EmailService.SendAdminOverTheLimitAlertEmail(count, int(cloudUserLimit), username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
-			if ok {
-				c <- ok
-			}
-		}(admin)
-	}
-
 	countNotOks := 0
 
-	for i := 0; i < len(sysAdmins); i++ {
-		ok := <-c
+	for admin := range sysAdmins {
+		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
 		if !ok {
+			a.Log().Error("Error sending upgrade request email", mlog.Err(err))
 			countNotOks++
 		}
 	}
 
 	// if not even one admin got an email, we consider that this operation errored
 	if countNotOks == len(sysAdmins) {
-		return model.NewAppError("app.SendAdminsOverTheLimitAlertEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.user.send_emails.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil
