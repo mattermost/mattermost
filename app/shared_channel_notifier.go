@@ -122,7 +122,7 @@ func handleInvitation(s *Server, syncService SharedChannelServiceIFace, event *m
 func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*model.User, error) {
 	userID, ok := event.GetData()[key].(string)
 	if !ok || userID == "" {
-		return nil, fmt.Errorf("received websocket message that is eligible for sending an invitation but message does not have teammate_id present")
+		return nil, fmt.Errorf("received websocket message that is eligible for sending an invitation but message does not have `%s` present", key)
 	}
 
 	user, err := s.Store.User().Get(userID)
