@@ -320,71 +320,76 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	return sc, nil
 }
 
-func (a *App) GetOrCreateDirectChannel(userID, otherUserId string) (*model.Channel, *model.AppError) {
-	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserId), true)
+func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := a.getDirectChannel(userID, otherUserID)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
-			var err *model.AppError
-			channel, err = a.createDirectChannel(userID, otherUserId)
-			if err != nil {
-				if err.Id == store.ChannelExistsError {
-					return channel, nil
-				}
-				return nil, err
-			}
+		return nil, nErr
+	}
 
-			a.WaitForChannelMembership(channel.Id, userID)
+	if channel != nil {
+		return channel, nil
+	}
 
-			a.InvalidateCacheForUser(userID)
-			a.InvalidateCacheForUser(otherUserId)
-
-			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-				a.Srv().Go(func() {
-					pluginContext := a.PluginContext()
-					pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-						hooks.ChannelHasBeenCreated(pluginContext, channel)
-						return true
-					}, plugin.ChannelHasBeenCreatedId)
-				})
-			}
-
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
-			message.Add("teammate_id", otherUserId)
-			a.Publish(message)
-
+	channel, err := a.createDirectChannel(userID, otherUserID)
+	if err != nil {
+		if err.Id == store.ChannelExistsError {
 			return channel, nil
 		}
-		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
+
+	a.WaitForChannelMembership(channel.Id, userID)
+
+	a.InvalidateCacheForUser(userID)
+	a.InvalidateCacheForUser(otherUserID)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ChannelHasBeenCreated(pluginContext, channel)
+				return true
+			}, plugin.ChannelHasBeenCreatedId)
+		})
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
+	message.Add("teammate_id", otherUserID)
+	a.Publish(message)
+
 	return channel, nil
 }
 
-func (a *App) createDirectChannel(userID string, otherUserId string) (*model.Channel, *model.AppError) {
-	uc1 := make(chan store.StoreResult, 1)
-	uc2 := make(chan store.StoreResult, 1)
-	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
-		uc1 <- store.StoreResult{Data: user, NErr: err}
-		close(uc1)
-	}()
-	go func() {
-		user, err := a.Srv().Store.User().Get(otherUserId)
-		uc2 <- store.StoreResult{Data: user, NErr: err}
-		close(uc2)
-	}()
-
-	result := <-uc1
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userID, http.StatusBadRequest)
+func (a *App) createDirectChannel(userID string, otherUserID string) (*model.Channel, *model.AppError) {
+	users, err := a.Srv().Store.User().GetMany([]string{userID, otherUserID})
+	if err != nil {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
-	result = <-uc2
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
+	if len(users) == 0 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
-	otherUser := result.Data.(*model.User)
+
+	// We are doing this because we allow a user to create a direct channel with themselves
+	if userID == otherUserID {
+		users = append(users, users[0])
+	}
+
+	// After we counted for direct channels with the same user, if we do not have two users then we failed to find one
+	if len(users) != 2 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
+	}
+
+	// The potential swap dance bellow is necessary in order to guarantee determinism when creating a direct channel.
+	// When we query the database for some given user ids, the database result is not deterministic, meaning we can get
+	// the same results but in different order. In order to conform the contract of Channel.CreateDirectChannel method
+	// bellow we need to identify which user is who.
+	user := users[0]
+	otherUser := users[1]
+	if user.Id != userID {
+		user = users[1]
+		otherUser = users[0]
+	}
 
 	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
 	if nErr != nil {
@@ -421,8 +426,8 @@ func (a *App) createDirectChannel(userID string, otherUserId string) (*model.Cha
 	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, model.GetMillis()); err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if userID != otherUserId {
-		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+	if userID != otherUserID {
+		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserID, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -2961,4 +2966,18 @@ func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([
 	}
 
 	return channelMemberCounts, nil
+}
+
+func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
+			return nil, nil
+		}
+
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return channel, nil
 }
