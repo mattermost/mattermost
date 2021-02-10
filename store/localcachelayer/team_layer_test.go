@@ -28,12 +28,12 @@ func TestTeamStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 
 		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 	})
@@ -45,12 +45,12 @@ func TestTeamStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 
 		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 2)
 	})
@@ -62,14 +62,14 @@ func TestTeamStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		gotUserTeamIds, err := cachedStore.Team().GetUserTeamIds(fakeUserId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 1)
 
 		cachedStore.Team().InvalidateAllTeamIdsForUser(fakeUserId)
 
 		gotUserTeamIds, err = cachedStore.Team().GetUserTeamIds(fakeUserId, true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, fakeUserTeamIds, gotUserTeamIds)
 		mockStore.Team().(*mocks.TeamStore).AssertNumberOfCalls(t, "GetUserTeamIds", 2)
 	})

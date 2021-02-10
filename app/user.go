@@ -1547,6 +1547,11 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
+	return a.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
+}
+
+func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}
@@ -1586,7 +1591,7 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 		mlog.Warn("Failed during updating user roles", mlog.Err(result.NErr))
 	}
 
-	a.InvalidateCacheForUser(userID)
+	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -2366,6 +2371,14 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 		thread.Post.SanitizeProps()
 	}
 	return threads, nil
+}
+
+func (a *App) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *model.AppError) {
+	res, err := a.Srv().Store.Thread().GetThreadMentionsForUserPerChannel(userId, teamId)
+	if err != nil {
+		return nil, model.NewAppError("GetThreadMentionsForUserPerChannel", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return res, nil
 }
 
 func (a *App) GetThreadForUser(userID, teamID, threadId string, extended bool) (*model.ThreadResponse, *model.AppError) {

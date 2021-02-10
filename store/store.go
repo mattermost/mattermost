@@ -271,6 +271,7 @@ type ThreadStore interface {
 	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
+	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamId string) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
@@ -341,6 +342,7 @@ type UserStore interface {
 	UpdateMfaSecret(userId, secret string) error
 	UpdateMfaActive(userId string, active bool) error
 	Get(id string) (*model.User, error)
+	GetMany(ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)

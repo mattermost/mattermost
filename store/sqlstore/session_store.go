@@ -249,9 +249,9 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
-	if appErr != nil {
-		return appErr
+	oldSession, err := me.Get(session.Id)
+	if err != nil {
+		return err
 	}
 	oldSession.Props = session.Props
 
