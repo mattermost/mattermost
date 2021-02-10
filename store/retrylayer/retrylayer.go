@@ -9198,6 +9198,26 @@ func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, t
 
 }
 
+func (s *RetryLayerThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadMentionsForUserPerChannel(userId, teamId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0

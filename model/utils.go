@@ -399,6 +399,7 @@ var reservedName = []string{
 	"channel",
 	"claim",
 	"error",
+	"files",
 	"help",
 	"landing",
 	"login",

@@ -1055,7 +1055,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 			query = query.OrderBy(model.USERNAME)
 		}
 
-		query = applyTeamMemberViewRestrictionsFilter(query, teamId, teamMembersGetOptions.ViewRestrictions)
+		query = applyTeamMemberViewRestrictionsFilter(query, teamMembersGetOptions.ViewRestrictions)
 	}
 
 	queryString, args, err := query.ToSql()
@@ -1082,7 +1082,7 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 		Where("TeamMembers.UserId = Users.Id").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId})
 
-	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return int64(0), errors.Wrap(err, "team_tosql")
@@ -1106,7 +1106,7 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 		Where("Users.DeleteAt = 0").
 		Where(sq.Eq{"TeamMembers.TeamId": teamId})
 
-	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilterForStats(query, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "team_tosql")
@@ -1132,7 +1132,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 		Where(sq.Eq{"TeamMembers.UserId": userIds}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0})
 
-	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilter(query, restrictions)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1408,6 +1408,7 @@ func (s SqlTeamStore) ResetAllTeamSchemes() error {
 func (s SqlTeamStore) ClearCaches() {}
 
 // InvalidateAllTeamIdsForUser does not execute anything because the store does not handle the cache.
+//nolint:unparam
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
 // ClearAllCustomRoleAssignments removes all custom role assignments from TeamMembers.
@@ -1505,6 +1506,7 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 }
 
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
+//nolint:unparam
 func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
 	var teamIds []string
 	query, args, err := s.getQueryBuilder().
@@ -1585,7 +1587,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
 	return nil
 }
 
-func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
+func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
 	if restrictions == nil {
 		return query
 	}
@@ -1615,7 +1617,7 @@ func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string
 	return resultQuery.Distinct()
 }
 
-func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, teamId string, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
+func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions) sq.SelectBuilder {
 	if restrictions == nil {
 		return query
 	}
