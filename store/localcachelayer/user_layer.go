@@ -4,6 +4,8 @@
 package localcachelayer
 
 import (
+	"sort"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -154,4 +156,67 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, error) {
 	}
 	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
 	return user, nil
+}
+
+// GetMany is a cache wrapper around the SqlStore method to get a user profiles by ids.
+// It checks if the user entries are present in the cache, returning the entries from cache
+// if it is present. Otherwise, it fetches the entries from the store and stores it in the
+// cache.
+func (s LocalCacheUserStore) GetMany(ids []string) ([]*model.User, error) {
+	// we are doing a loop instead of caching the full set in the cache because the number of permutations that we can have
+	// in this func is making caching of the total set not beneficial.
+	var cachedUsers []*model.User
+	var notCachedUserIds []string
+	uniqIDs := dedup(ids)
+
+	for _, id := range uniqIDs {
+		var cachedUser *model.User
+		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
+			}
+			cachedUsers = append(cachedUsers, cachedUser)
+		} else {
+			if s.rootStore.metrics != nil {
+				s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
+			}
+
+			notCachedUserIds = append(notCachedUserIds, id)
+		}
+	}
+
+	if len(notCachedUserIds) > 0 {
+		dbUsers, err := s.UserStore.GetMany(notCachedUserIds)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range dbUsers {
+			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			cachedUsers = append(cachedUsers, user)
+		}
+	}
+
+	return cachedUsers, nil
+}
+
+func dedup(elements []string) []string {
+	if len(elements) == 0 {
+		return elements
+	}
+
+	sort.Strings(elements)
+
+	j := 0
+	for i := 1; i < len(elements); i++ {
+		if elements[j] == elements[i] {
+			continue
+		}
+		j++
+		// preserve the original data
+		// in[i], in[j] = in[j], in[i]
+		// only set what is required
+		elements[j] = elements[i]
+	}
+
+	return elements[:j+1]
 }

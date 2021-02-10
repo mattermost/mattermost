@@ -15,16 +15,16 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 	cfg := model.FileSettings{}
 
 	err := CheckMandatoryS3Fields(&cfg)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Equal(t, err.Error(), "missing s3 bucket settings", "should've failed with missing s3 bucket")
 
 	cfg.AmazonS3Bucket = model.NewString("test-mm")
 	err = CheckMandatoryS3Fields(&cfg)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	cfg.AmazonS3Endpoint = model.NewString("")
 	err = CheckMandatoryS3Fields(&cfg)
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, *cfg.AmazonS3Endpoint, "s3.amazonaws.com", "should've set the endpoint to the default")
 }

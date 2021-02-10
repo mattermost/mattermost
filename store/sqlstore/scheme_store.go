@@ -85,9 +85,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
-	roles, appErr := s.SqlStore.Role().GetByNames(defaultRoleNames)
-	if appErr != nil {
-		return nil, appErr
+	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, role := range roles {

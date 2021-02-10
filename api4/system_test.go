@@ -187,6 +187,34 @@ func TestEmailTest(t *testing.T) {
 	})
 }
 
+func TestGenerateSupportPacket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("As a System Administrator", func(t *testing.T) {
+		l := model.NewTestLicense()
+		th.App.Srv().SetLicense(l)
+
+		file, resp := th.SystemAdminClient.GenerateSupportPacket()
+		require.Nil(t, resp.Error)
+		require.NotZero(t, len(file))
+	})
+
+	t.Run("As a Regular User", func(t *testing.T) {
+		_, resp := th.Client.GenerateSupportPacket()
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Server with no License", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		require.True(t, ok)
+
+		_, resp = th.SystemAdminClient.GenerateSupportPacket()
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestSiteURLTest(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

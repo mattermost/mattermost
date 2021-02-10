@@ -371,7 +371,7 @@ func TestGetDbVersion(t *testing.T) {
 			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
 	}
@@ -515,6 +515,7 @@ func makeSqliteSettings() *model.SqlSettings {
 	dataSource := ":memory:"
 	maxIdleConns := 1
 	connMaxLifetimeMilliseconds := 3600000
+	connMaxIdleTimeMilliseconds := 300000
 	maxOpenConns := 1
 	queryTimeout := 5
 
@@ -523,6 +524,7 @@ func makeSqliteSettings() *model.SqlSettings {
 		DataSource:                  &dataSource,
 		MaxIdleConns:                &maxIdleConns,
 		ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+		ConnMaxIdleTimeMilliseconds: &connMaxIdleTimeMilliseconds,
 		MaxOpenConns:                &maxOpenConns,
 		QueryTimeout:                &queryTimeout,
 	}
