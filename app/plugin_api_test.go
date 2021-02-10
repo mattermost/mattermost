@@ -98,7 +98,7 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifests[i]), 0600)
 		manifest, activated, reterr := env.Activate(pluginId)
-		require.Nil(t, reterr)
+		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
 
@@ -772,7 +772,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)
 
-		require.Nil(t, reterr)
+		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
 		pluginManifests = append(pluginManifests, manifest)
@@ -785,7 +785,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 
 	// check existing user first
 	plugins, err := api.GetPlugins()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotEmpty(t, plugins)
 	assert.Equal(t, pluginManifests, plugins)
 }
@@ -800,7 +800,7 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = api.InstallPlugin(bytes.NewReader(tarData), true)
-	assert.NotNil(t, err, "should not allow upload if upload disabled")
+	assert.Error(t, err, "should not allow upload if upload disabled")
 	assert.Equal(t, err.Error(), "installPlugin: Plugins and/or plugin uploads have been disabled., ")
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -810,12 +810,12 @@ func TestPluginAPIInstallPlugin(t *testing.T) {
 
 	manifest, err := api.InstallPlugin(bytes.NewReader(tarData), true)
 	defer os.RemoveAll("plugins/testplugin")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "testplugin", manifest.Id)
 
 	// Successfully installed
 	pluginsResp, err := api.GetPlugins()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	found := false
 	for _, m := range pluginsResp {
@@ -854,7 +854,7 @@ func TestInstallPlugin(t *testing.T) {
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)
-		require.Nil(t, reterr)
+		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
 
@@ -960,23 +960,23 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 	buf := new(bytes.Buffer)
 	err := png.Encode(buf, img)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	dataBytes := buf.Bytes()
 	fileReader := bytes.NewReader(dataBytes)
 
 	// Set the Team Icon
 	err = th.App.SetTeamIconFromFile(th.BasicTeam, fileReader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Get the team icon to check
 	teamIcon, err := api.GetTeamIcon(th.BasicTeam.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, teamIcon)
 
 	colorful := color.NRGBA{255, 0, 0, 255}
 	byteReader := bytes.NewReader(teamIcon)
 	img2, _, err2 := image.Decode(byteReader)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	require.Equal(t, img2.At(2, 3), colorful)
 }
 
@@ -991,22 +991,22 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 	buf := new(bytes.Buffer)
 	err := png.Encode(buf, img)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	dataBytes := buf.Bytes()
 
 	// Set the user profile image
 	err = api.SetTeamIcon(th.BasicTeam.Id, dataBytes)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Get the user profile image to check
 	teamIcon, err := api.GetTeamIcon(th.BasicTeam.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, teamIcon)
 
 	colorful := color.NRGBA{255, 0, 0, 255}
 	byteReader := bytes.NewReader(teamIcon)
 	img2, _, err2 := image.Decode(byteReader)
-	require.Nil(t, err2)
+	require.NoError(t, err2)
 	require.Equal(t, img2.At(2, 3), colorful)
 }
 
@@ -1022,7 +1022,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	img.Set(2, 3, color.RGBA{255, 0, 0, 255})
 	buf := new(bytes.Buffer)
 	err1 := png.Encode(buf, img)
-	require.Nil(t, err1)
+	require.NoError(t, err1)
 	dataBytes := buf.Bytes()
 	fileReader := bytes.NewReader(dataBytes)
 
@@ -1657,7 +1657,7 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 
 	reqURL := fmt.Sprintf("ws://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
 	wsc, err := model.NewWebSocketClient(reqURL, "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, wsc)
 
 	wsc.Listen()
@@ -1755,7 +1755,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 
 	foundCommand := func(listXCommand func(teamID string) ([]*model.Command, error)) bool {
 		cmds, appErr := listXCommand(th.BasicTeam.Id)
-		require.Nil(t, appErr)
+		require.NoError(t, appErr)
 
 		for _, cmd := range cmds {
 			if cmd.Trigger == "testcmd" {
@@ -1775,10 +1775,10 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	}
 
 	cmd, appErr := api.CreateCommand(cmd)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	newCmd, appErr := api.GetCommand(cmd.Id)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
 	require.True(t, foundCommand(api.ListCommands))
@@ -1799,17 +1799,17 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	}
 
 	cmd, appErr := api.CreateCommand(cmd)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	newCmd, appErr := api.GetCommand(cmd.Id)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
 
 	newCmd.Trigger = "NewTrigger"
 	newCmd.PluginId = "CannotChangeMe"
 	newCmd2, appErr := api.UpdateCommand(newCmd.Id, newCmd)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, "pluginid", newCmd2.PluginId)
 	require.Equal(t, "newtrigger", newCmd2.Trigger)
 
@@ -1819,7 +1819,7 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	newCmd2.Trigger = "anotherNewTrigger"
 	newCmd2.TeamId = team1.Id
 	newCmd3, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, "pluginid", newCmd3.PluginId)
 	require.Equal(t, "anothernewtrigger", newCmd3.Trigger)
 	require.Equal(t, team1.Id, newCmd3.TeamId)
@@ -1827,7 +1827,7 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	newCmd3.Trigger = "anotherNewTriggerAgain"
 	newCmd3.TeamId = ""
 	newCmd4, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
 

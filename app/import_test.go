@@ -66,14 +66,14 @@ func checkNoError(t *testing.T, err *model.AppError) {
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
 	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
 	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
-	require.Nil(t, err, "Failed to get channel count.")
+	require.NoError(t, err, "Failed to get channel count.")
 }
 
 func TestImportImportLine(t *testing.T) {
@@ -251,7 +251,7 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 
 func GetAttachments(userID string, th *TestHelper, t *testing.T) []*model.FileInfo {
 	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	return fileInfos
 }
 
@@ -260,7 +260,7 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	require.NotNil(t, postId)
 
 	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Len(t, posts, 1)
 	for _, file := range files {
@@ -364,21 +364,21 @@ func BenchmarkBulkImport(b *testing.B) {
 	testsDir, _ := fileutils.FindDir("tests")
 
 	importFile, err := os.Open(testsDir + "/import_test.zip")
-	require.Nil(b, err)
+	require.NoError(b, err)
 	defer importFile.Close()
 
 	info, err := importFile.Stat()
-	require.Nil(b, err)
+	require.NoError(b, err)
 
 	dir, err := ioutil.TempDir("", "testimport")
-	require.Nil(b, err)
+	require.NoError(b, err)
 	defer os.RemoveAll(dir)
 
 	_, err = utils.UnzipToPath(importFile, info.Size(), dir)
-	require.Nil(b, err)
+	require.NoError(b, err)
 
 	jsonFile, err := os.Open(dir + "/import.jsonl")
-	require.Nil(b, err)
+	require.NoError(b, err)
 	defer jsonFile.Close()
 
 	b.ResetTimer()

@@ -107,7 +107,7 @@ func TestUploadData(t *testing.T) {
 
 	var err error
 	us, err = th.App.CreateUploadSession(us)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
@@ -177,7 +177,7 @@ func TestUploadData(t *testing.T) {
 	t.Run("all at once success", func(t *testing.T) {
 		us.Id = model.NewId()
 		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, us)
 
 		info, err := th.App.UploadData(us, bytes.NewReader(data))
@@ -193,7 +193,7 @@ func TestUploadData(t *testing.T) {
 		us.Id = model.NewId()
 		us.FileSize = 1024 * 1024
 		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, us)
 
 		rd := &io.LimitedReader{
@@ -212,18 +212,18 @@ func TestUploadData(t *testing.T) {
 	t.Run("image processing", func(t *testing.T) {
 		testDir, _ := fileutils.FindDir("tests")
 		data, err := ioutil.ReadFile(filepath.Join(testDir, "test.png"))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, data)
 
 		us.Id = model.NewId()
 		us.Filename = "test.png"
 		us.FileSize = int64(len(data))
 		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, us)
 
 		info, err := th.App.UploadData(us, bytes.NewReader(data))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, info)
 		require.NotZero(t, info.Width)
 		require.NotZero(t, info.Height)
@@ -247,7 +247,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 
 	var err error
 	us, err = th.App.CreateUploadSession(us)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
@@ -304,6 +304,6 @@ func TestUploadDataConcurrent(t *testing.T) {
 	require.Equal(t, int32(n-1), nErrs)
 
 	d, err := th.App.ReadFile(us.Path)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, data, d)
 }

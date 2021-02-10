@@ -620,25 +620,25 @@ func TestNoticeFetch(t *testing.T) {
 
 	// fetch fake notices
 	appErr = th.App.UpdateProductNotices()
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	// get them for specified user
 	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Len(t, messages, 1)
 
 	// mark notices as viewed
 	appErr = th.App.UpdateViewedProductNotices(th.BasicUser.Id, []string{messages[0].ID})
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	// get them again, see that none are returned
 	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Len(t, messages, 0)
 
 	// validate views table
 	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 1)
 
 	// fetch another set
@@ -648,15 +648,15 @@ func TestNoticeFetch(t *testing.T) {
 
 	// fetch fake notices
 	appErr = th.App.UpdateProductNotices()
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
 	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.Len(t, messages, 0)
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
 	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 0)
 }
