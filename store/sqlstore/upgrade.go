@@ -1008,8 +1008,6 @@ func upgradeDatabaseToVersion531(sqlStore *SqlStore) {
 
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	if hasMissingMigrationsVersion532(sqlStore) {
-		// allow 10 files per post
-		sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "Shared", "tinyint(1)", "boolean")
 		sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 	}
@@ -1020,26 +1018,6 @@ func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 }
 
 func hasMissingMigrationsVersion532(sqlStore *SqlStore) bool {
-	scIdInfo, err := sqlStore.GetColumnInfo("Posts", "FileIds")
-	if err != nil {
-		mlog.Error("Error getting column info for migration check",
-			mlog.String("table", "Posts"),
-			mlog.String("column", "FileIds"),
-			mlog.Err(err),
-		)
-		return true
-	}
-
-	if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		if !sqlStore.IsVarchar(scIdInfo.DataType) || scIdInfo.CharMaximumLength != 300 {
-			return true
-		}
-	} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		if scIdInfo.DataType != "text" {
-			return true
-		}
-	}
-
 	if !sqlStore.DoesColumnExist("Channels", "Shared") {
 		return true
 	}
