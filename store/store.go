@@ -811,7 +811,7 @@ type SharedChannelStore interface {
 	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	GetRemote(id string) (*model.SharedChannelRemote, error)
-	HasRemote(channelID string) (bool, error)
+	HasRemote(channelID string, remoteId string) (bool, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteLastSyncAt(id string, syncTime int64) error
@@ -821,6 +821,11 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
+
+	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
+	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
+	GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error)
+	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

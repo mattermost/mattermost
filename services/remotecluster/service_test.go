@@ -16,15 +16,15 @@ import (
 func TestService_AddTopicListener(t *testing.T) {
 	var count int32
 
-	l1 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error {
+	l1 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
 		atomic.AddInt32(&count, 1)
 		return nil
 	}
-	l2 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error {
+	l2 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
 		atomic.AddInt32(&count, 1)
 		return nil
 	}
-	l3 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error {
+	l3 := func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error {
 		atomic.AddInt32(&count, 1)
 		return nil
 	}

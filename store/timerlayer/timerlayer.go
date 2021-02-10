@@ -6078,6 +6078,22 @@ func (s *TimerLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.GetAttachment", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
@@ -6174,10 +6190,10 @@ func (s *TimerLayerSharedChannelStore) HasChannel(channelID string) (bool, error
 	return result, err
 }
 
-func (s *TimerLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+func (s *TimerLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	start := timemodule.Now()
 
-	result, err := s.SharedChannelStore.HasRemote(channelID)
+	result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6202,6 +6218,22 @@ func (s *TimerLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelStore) SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.SaveAttachment(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.SaveAttachment", success, elapsed)
 	}
 	return result, err
 }
@@ -6254,6 +6286,22 @@ func (s *TimerLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
+	start := timemodule.Now()
+
+	err := s.SharedChannelStore.UpdateAttachmentLastSyncAt(id, syncTime)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateAttachmentLastSyncAt", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	start := timemodule.Now()
 
@@ -6300,6 +6348,22 @@ func (s *TimerLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime 
 		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpdateUserLastSyncAt", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+	start := timemodule.Now()
+
+	result, err := s.SharedChannelStore.UpsertAttachment(remote)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelStore.UpsertAttachment", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, error) {

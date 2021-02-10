@@ -198,7 +198,7 @@ type AppIface interface {
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
 	// HasRemote returns whether a given channelID is present in the channel remotes or not.
-	HasRemote(channelID string) (bool, error)
+	HasRemote(channelID string, remoteID string) (bool, error)
 	// HubRegister registers a connection to a hub.
 	HubRegister(webConn *WebConn)
 	// HubStart starts all the hubs.
@@ -662,6 +662,7 @@ type AppIface interface {
 	GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetRemoteCluster(remoteClusterId string) (*model.RemoteCluster, *model.AppError)
 	GetRemoteClusterService() (*remotecluster.Service, *model.AppError)
+	GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError)
 	GetRole(id string) (*model.Role, *model.AppError)
 	GetRoleByName(name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)

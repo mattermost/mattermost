@@ -273,7 +273,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string, option
 			ShareName:        "shared-" + id,
 			ShareDisplayName: "shared-" + id,
 			CreatorId:        th.BasicUser.Id,
-			RemoteClusterId:  model.NewId(),
+			RemoteId:         model.NewId(),
 		})
 		if err != nil {
 			panic(err)

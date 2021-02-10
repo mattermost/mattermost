@@ -1544,7 +1544,15 @@
   },
   {
     "id": "api.context.remote_id_invalid.app_error",
-    "translation": "Unable to find remote id {{.RemoteId}}."
+    "translation": "Unable to find remote cluster id {{.RemoteId}}."
+  },
+  {
+    "id": "api.context.remote_id_mismatch.app_error",
+    "translation": "Remote cluster id mismatch."
+  },
+  {
+    "id": "api.context.remote_id_missing.app_error",
+    "translation": "Remote cluster id missing."
   },
   {
     "id": "api.context.server_busy.app_error",

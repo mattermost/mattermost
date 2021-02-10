@@ -14,9 +14,10 @@ import (
 )
 
 func (api *API) InitRemoteCluster() {
-	api.BaseRoutes.RemoteCluster.Handle("/ping", api.ApiHandler(remoteClusterPing)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/msg", api.ApiHandler(remoteClusterAcceptMessage)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.ApiHandler(remoteClusterConfirmInvite)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -40,17 +41,18 @@ func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("remoteClusterPing", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
-		return
-	}
 
 	ping, err := model.RemoteClusterPingFromRawJSON(frame.Msg.Payload)
 	if err != nil {
@@ -100,17 +102,18 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptMessage", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
-		return
-	}
 
 	// pass message to Remote Cluster Service and write response
 	resp := service.ReceiveIncomingMsg(rc, frame.Msg)
@@ -144,20 +147,21 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec := c.MakeAuditRecord("remoteClusterAcceptInvite", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	remoteId := c.GetRemoteID(r)
+	if remoteId != frame.RemoteId {
+		c.SetInvalidRemoteIdError(frame.RemoteId)
+		return
+	}
+
 	rc, err := c.App.GetRemoteCluster(frame.RemoteId)
 	if err != nil {
-		c.SetInvalidRemoteClusterIdError(frame.RemoteId)
+		c.SetInvalidRemoteIdError(frame.RemoteId)
 		return
 	}
 	auditRec.AddMeta("remoteCluster", rc)
 
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if rc.Token != frame.Token {
-		c.SetInvalidRemoteClusterTokenError()
 		return
 	}
 
@@ -178,4 +182,48 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().FileSettings.EnableFileAttachments {
+		c.Err = model.NewAppError("uploadRemoteData", "api.file.attachments.disabled.app_error",
+			nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	c.RequireUploadId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("uploadRemoteData", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("upload_id", c.Params.UploadId)
+
+	us, err := c.App.GetUploadSession(c.Params.UploadId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if us.RemoteId != c.GetRemoteID(r) {
+		c.Err = model.NewAppError("uploadRemoteData", "api.context.remote_id_mismatch.app_error",
+			nil, "", http.StatusUnauthorized)
+		return
+	}
+
+	info, err := doUploadData(c, us, r)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	if info == nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	w.Write([]byte(info.ToJson()))
 }

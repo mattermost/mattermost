@@ -7707,6 +7707,28 @@ func (a *OpenTracingAppLayer) GetRemoteClusterService() (*remotecluster.Service,
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetRemoteClusterSession(token string, remoteId string) (*model.Session, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRemoteClusterSession")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetRemoteClusterSession(token, remoteId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetRole(id string) (*model.Role, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetRole")
@@ -9943,7 +9965,7 @@ func (a *OpenTracingAppLayer) HasPermissionToUser(askingUserId string, userId st
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) HasRemote(channelID string) (bool, error) {
+func (a *OpenTracingAppLayer) HasRemote(channelID string, remoteID string) (bool, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HasRemote")
 
@@ -9955,7 +9977,7 @@ func (a *OpenTracingAppLayer) HasRemote(channelID string) (bool, error) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.HasRemote(channelID)
+	resultVar0, resultVar1 := a.app.HasRemote(channelID, remoteID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

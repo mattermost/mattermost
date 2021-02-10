@@ -25,24 +25,24 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 	rcSanitized.Token = ""
 	rcSanitized.RemoteToken = ""
 
-	response := make(Response)
-	response[ResponseStatusKey] = ResponseStatusOK
+	var response Response
+	response.Status = ResponseStatusOK
 
 	listeners := rcs.getTopicListeners(msg.Topic)
 
 	for _, l := range listeners {
-		if err := callback(l, msg, &rcSanitized, response); err != nil {
+		if err := callback(l, msg, &rcSanitized, &response); err != nil {
 			rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Error from remote cluster message listener",
 				mlog.String("msgId", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
 
-			response[ResponseStatusKey] = ResponseStatusFail
-			response[ResponseErrorKey] = err.Error()
+			response.Status = ResponseStatusFail
+			response.Err = err.Error()
 		}
 	}
 	return response
 }
 
-func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) (err error) {
+func callback(listener TopicListener, msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%v", r)

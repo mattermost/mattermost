@@ -7286,6 +7286,26 @@ func (s *RetryLayerSharedChannelStore) GetAllCount(opts store.SharedChannelFilte
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetAttachment(fileId, remoteId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 
 	tries := 0
@@ -7406,11 +7426,11 @@ func (s *RetryLayerSharedChannelStore) HasChannel(channelID string) (bool, error
 
 }
 
-func (s *RetryLayerSharedChannelStore) HasRemote(channelID string) (bool, error) {
+func (s *RetryLayerSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 
 	tries := 0
 	for {
-		result, err := s.SharedChannelStore.HasRemote(channelID)
+		result, err := s.SharedChannelStore.HasRemote(channelID, remoteId)
 		if err == nil {
 			return result, nil
 		}
@@ -7431,6 +7451,26 @@ func (s *RetryLayerSharedChannelStore) Save(sc *model.SharedChannel) (*model.Sha
 	tries := 0
 	for {
 		result, err := s.SharedChannelStore.Save(sc)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.SaveAttachment(remote)
 		if err == nil {
 			return result, nil
 		}
@@ -7506,6 +7546,26 @@ func (s *RetryLayerSharedChannelStore) Update(sc *model.SharedChannel) (*model.S
 
 }
 
+func (s *RetryLayerSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelStore.UpdateAttachmentLastSyncAt(id, syncTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 
 	tries := 0
@@ -7561,6 +7621,26 @@ func (s *RetryLayerSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime 
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.UpsertAttachment(remote)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 

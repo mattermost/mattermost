@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"sync"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/remotecluster"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -18,14 +20,10 @@ import (
 const (
 	TopicSync                    = "sharedchannel_sync"
 	TopicChannelInvite           = "sharedchannel_invite"
-	MaxConcurrentUpdates         = 5
+	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 50
+	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
 	NotifyRemoteOfflineThreshold = time.Second * 10
-	StatusDescription            = "status_description"
-	ResponseLastUpdateAt         = "last_update_at"
-	ResponsePostErrors           = "post_errors"
-	ResponseUsersSynced          = "users_synced"
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.
@@ -51,6 +49,8 @@ type AppIface interface {
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
+	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
+	FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -77,6 +77,7 @@ type Service struct {
 	tasks                 map[string]syncTask
 	syncTopicListenerId   string
 	inviteTopicListenerId string
+	uploadTopicListenerId string
 	siteURL               *url.URL
 }
 
@@ -98,8 +99,16 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 
 // Start is called by the server on server start-up.
 func (scs *Service) Start() error {
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return errors.New("Shared Channel Service cannot activate: requires Remote Cluster Service")
+	}
+
 	scs.mux.Lock()
 	scs.leaderListenerId = scs.server.AddClusterLeaderChangedListener(scs.onClusterLeaderChange)
+	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
+	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
+	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 	scs.mux.Unlock()
 
 	scs.onClusterLeaderChange()
@@ -109,9 +118,18 @@ func (scs *Service) Start() error {
 
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
-	scs.mux.RLock()
+	rcs := scs.server.GetRemoteClusterService()
+	if rcs == nil {
+		return errors.New("Shared Channel Service cannot shutdown: requires Remote Cluster Service")
+	}
+
+	scs.mux.Lock()
 	id := scs.leaderListenerId
-	scs.mux.RUnlock()
+	rcs.RemoveTopicListener(scs.syncTopicListenerId)
+	scs.syncTopicListenerId = ""
+	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
+	scs.inviteTopicListenerId = ""
+	scs.mux.Unlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()
@@ -152,14 +170,6 @@ func (scs *Service) resume() {
 		return // already active
 	}
 
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		scs.server.GetLogger().Error("Shared Channel Service cannot activate: requires Remote Cluster Service")
-		return
-	}
-	scs.syncTopicListenerId = rcs.AddTopicListener(TopicSync, scs.onReceiveSyncMessage)
-	scs.inviteTopicListenerId = rcs.AddTopicListener(TopicChannelInvite, scs.onReceiveChannelInvite)
-
 	scs.active = true
 	scs.done = make(chan struct{})
 
@@ -175,15 +185,6 @@ func (scs *Service) pause() {
 	if !scs.active {
 		return // already inactive
 	}
-
-	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
-		scs.server.GetLogger().Error("Shared Channel Service activitate: requires Remote Cluster Service")
-	}
-	rcs.RemoveTopicListener(scs.syncTopicListenerId)
-	scs.syncTopicListenerId = ""
-	rcs.RemoveTopicListener(scs.inviteTopicListenerId)
-	scs.inviteTopicListenerId = ""
 
 	scs.active = false
 	close(scs.done)

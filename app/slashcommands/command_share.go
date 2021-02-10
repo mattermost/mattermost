@@ -251,7 +251,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, args *model.CommandArgs, mar
 		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
-	hasRemote, err := a.HasRemote(args.ChannelId)
+	hasRemote, err := a.HasRemote(args.ChannelId, remoteId)
 	if err != nil {
 		return responsef(args.T("api.command_share.fetch_remote.error", map[string]interface{}{"Error": err.Error()}))
 	}

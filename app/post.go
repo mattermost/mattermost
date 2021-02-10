@@ -614,7 +614,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
-	if post.RemoteId != nil && *post.RemoteId != "" {
+	if post.IsRemote() {
 		oldPost.RemoteId = model.NewString(*post.RemoteId)
 	}
 
