@@ -35,7 +35,7 @@ func TestPlugin(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		statesJson, err := json.Marshal(th.App.Config().PluginSettings.PluginStates)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		states := map[string]*model.PluginState{}
 		json.Unmarshal(statesJson, &states)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -70,7 +70,7 @@ func TestPlugin(t *testing.T) {
 
 		// Stored in File Store: Install Plugin from URL case
 		pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, pluginStored)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
@@ -129,7 +129,7 @@ func TestPlugin(t *testing.T) {
 
 		// Stored in File Store: Upload Plugin case
 		pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, pluginStored)
 
 		// Upload error cases
@@ -298,7 +298,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	// Stored in File Store: Upload Plugin case
 	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
 	pluginStored, err := th.App.FileExists(expectedPath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.True(t, pluginStored)
 
 	messages := testCluster.GetMessages()
@@ -322,7 +322,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	// Successful remove
 	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	webSocketClient.Listen()
 	defer webSocketClient.Close()
 	done := make(chan bool)
@@ -361,7 +361,7 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, actualMessages)
 
 	pluginStored, err = th.App.FileExists(expectedPath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.False(t, pluginStored)
 }
 
@@ -1256,9 +1256,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	path, _ := fileutils.FindDir("tests")
 	signatureFilename := "testplugin2.tar.gz.sig"
 	signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	sigFile, err := ioutil.ReadAll(signatureFileReader)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	pluginSignature := base64.StdEncoding.EncodeToString(sigFile)
 
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin2.tar.gz"))
@@ -1422,14 +1422,14 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		filePath := filepath.Join("plugins", "testplugin2.tar.gz.sig")
 		savedSigFile, err := th.App.ReadFile(filePath)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.EqualValues(t, sigFile, savedSigFile)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 		exists, err := th.App.FileExists(filePath)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.False(t, exists)
 
 		appErr = th.App.DeletePublicKey("pub_key")
@@ -1565,9 +1565,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		th2.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			pluginSignatureFile, err := os.Open(filepath.Join(path, "testplugin.tar.gz.asc"))
-			require.Nil(t, err)
+			require.NoError(t, err)
 			pluginSignatureData, err := ioutil.ReadAll(pluginSignatureFile)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			key, err := os.Open(filepath.Join(path, "development-private-key.asc"))
 			require.NoError(t, err)

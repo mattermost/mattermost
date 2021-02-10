@@ -1231,10 +1231,10 @@ func TestSetBotIconImage(t *testing.T) {
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
 	badData, err := testutils.ReadTestFile("test.png")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	goodData, err := testutils.ReadTestFile("test.svg")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// SetBotIconImage only allowed for bots
 	_, resp = th.SystemAdminClient.SetBotIconImage(user.Id, goodData)
@@ -1269,13 +1269,13 @@ func TestSetBotIconImage(t *testing.T) {
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
 	actualData, err := th.App.ReadFile(fpath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, actualData)
 	require.Equal(t, goodData, actualData)
 
 	info := &model.FileInfo{Path: fpath}
 	err = th.cleanupTestFile(info)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestGetBotIconImage(t *testing.T) {
@@ -1316,7 +1316,7 @@ func TestGetBotIconImage(t *testing.T) {
 	svgFile.Seek(0, 0)
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
 	_, err = th.App.WriteFile(svgFile, fpath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	data, resp = th.Client.GetBotIconImage(bot.UserId)
 	CheckNoError(t, resp)
@@ -1337,7 +1337,7 @@ func TestGetBotIconImage(t *testing.T) {
 
 	info := &model.FileInfo{Path: "/bots/" + bot.UserId + "/icon.svg"}
 	err = th.cleanupTestFile(info)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestDeleteBotIconImage(t *testing.T) {
@@ -1368,14 +1368,14 @@ func TestDeleteBotIconImage(t *testing.T) {
 
 	// Set an icon image
 	svgData, err := testutils.ReadTestFile("test.svg")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, resp = th.Client.SetBotIconImage(bot.UserId, svgData)
 	CheckNoError(t, resp)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
 	exists, err := th.App.FileExists(fpath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.True(t, exists, "icon.svg needs to exist for the user")
 
 	data, resp = th.Client.GetBotIconImage(bot.UserId)
@@ -1400,7 +1400,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 	require.False(t, success)
 
 	exists, err = th.App.FileExists(fpath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.False(t, exists, "icon.svg should not for the user")
 }
 
