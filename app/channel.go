@@ -338,7 +338,7 @@ func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Chann
 		return nil, err
 	}
 
-	a.WaitForChannelMembership(channel.Id, userId)
+	a.WaitForChannelMembership(channel.Id, userID)
 
 	a.InvalidateCacheForUser(userID)
 	a.InvalidateCacheForUser(otherUserID)
