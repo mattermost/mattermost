@@ -100,7 +100,7 @@ func fixConfig(cfg *model.Config) {
 		}
 	}
 
-	_ = FixInvalidLocales(cfg)
+	FixInvalidLocales(cfg)
 }
 
 // FixInvalidLocales checks and corrects the given config for invalid locale-related settings.
