@@ -321,52 +321,52 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			var err *model.AppError
-			channel, err = a.createDirectChannel(userID, otherUserID)
-			if err != nil {
-				if err.Id == store.ChannelExistsError {
-					return channel, nil
-				}
-				return nil, err
-			}
+	channel, nErr := a.getDirectChannel(userID, otherUserID)
+	if nErr != nil {
+		return nil, nErr
+	}
 
-			a.WaitForChannelMembership(channel.Id, userID)
-			a.handleChannelCreationEvent(userID, otherUserID, channel)
+	if channel != nil {
+		return channel, nil
+	}
+
+	channel, err := a.createDirectChannel(userID, otherUserID)
+	if err != nil {
+		if err.Id == store.ChannelExistsError {
 			return channel, nil
 		}
-		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
+
+	a.WaitForChannelMembership(channel.Id, userID)
+	a.handleCreationEvent(userID, otherUserID, channel)
 	return channel, nil
 }
 
 func (a *App) getOrCreateDirectChannelWithUser(user, otherUser *model.User) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(user.Id, otherUser.Id), true)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			var err *model.AppError
-			channel, err = a.createDirectChannelWithUser(user, otherUser)
-			if err != nil {
-				if err.Id == store.ChannelExistsError {
-					return channel, nil
-				}
-				return nil, err
-			}
+	channel, nErr := a.getDirectChannel(user.Id, otherUser.Id)
+	if nErr != nil {
+		return nil, nErr
+	}
 
-			a.WaitForChannelMembership(channel.Id, user.Id)
-			a.handleChannelCreationEvent(user.Id, otherUser.Id, channel)
+	if channel != nil {
+		return channel, nil
+	}
+
+	channel, err := a.createDirectChannelWithUser(user, otherUser)
+	if err != nil {
+		if err.Id == store.ChannelExistsError {
 			return channel, nil
 		}
-		return nil, model.NewAppError("getOrCreateDirectChannelWithUser", "web.incoming_webhook.channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
+
+	a.WaitForChannelMembership(channel.Id, user.Id)
+	a.handleCreationEvent(user.Id, otherUser.Id, channel)
 	return channel, nil
 }
 
-func (a *App) handleChannelCreationEvent(userID, otherUserID string, channel *model.Channel) {
+func (a *App) handleCreationEvent(userID, otherUserID string, channel *model.Channel) {
 	a.InvalidateCacheForUser(userID)
 	a.InvalidateCacheForUser(otherUserID)
 
@@ -386,43 +386,47 @@ func (a *App) handleChannelCreationEvent(userID, otherUserID string, channel *mo
 }
 
 func (a *App) createDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
-	uc1 := make(chan store.StoreResult, 1)
-	uc2 := make(chan store.StoreResult, 1)
-	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
-		uc1 <- store.StoreResult{Data: user, NErr: err}
-		close(uc1)
-	}()
-	go func() {
-		user, err := a.Srv().Store.User().Get(otherUserID)
-		uc2 <- store.StoreResult{Data: user, NErr: err}
-		close(uc2)
-	}()
-
-	result := <-uc1
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, userID, http.StatusBadRequest)
+	users, err := a.Srv().Store.User().GetMany([]string{userID, otherUserID})
+	if err != nil {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	user := result.Data.(*model.User)
 
-	result = <-uc2
-	if result.NErr != nil {
-		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserID, http.StatusBadRequest)
+	if len(users) == 0 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
 	}
-	otherUser := result.Data.(*model.User)
 
+	// We are doing this because we allow a user to create a direct channel with themselves
+	if userID == otherUserID {
+		users = append(users, users[0])
+	}
+
+	// After we counted for direct channels with the same user, if we do not have two users then we failed to find one
+	if len(users) != 2 {
+		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, fmt.Sprintf("No users found for ids: %s. %s", userID, otherUserID), http.StatusBadRequest)
+	}
+
+	// The potential swap dance bellow is necessary in order to guarantee determinism when creating a direct channel.
+	// When we query the database for some given user ids, the database result is not deterministic, meaning we can get
+	// the same results but in different order. In order to conform the contract of Channel.CreateDirectChannel method
+	// bellow we need to identify which user is who.
+	user := users[0]
+	otherUser := users[1]
+	if user.Id != userID {
+		user = users[1]
+		otherUser = users[0]
+	}
 	return a.createDirectChannelWithUser(user, otherUser)
 }
 
 func (a *App) createDirectChannelWithUser(user, otherUser *model.User) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
-	if err != nil {
+	channel, nErr := a.Srv().Store.Channel().CreateDirectChannel(user, otherUser)
+	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		var cErr *store.ErrConflict
 		var ltErr *store.ErrLimitExceeded
 		var appErr *model.AppError
 		switch {
-		case errors.As(err, &invErr):
+		case errors.As(nErr, &invErr):
 			switch {
 			case invErr.Entity == "Channel" && invErr.Field == "DeleteAt":
 				return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
@@ -431,19 +435,19 @@ func (a *App) createDirectChannelWithUser(user, otherUser *model.User) (*model.C
 			case invErr.Entity == "Channel" && invErr.Field == "Id":
 				return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.existing.app_error", nil, "id="+invErr.Value.(string), http.StatusBadRequest)
 			}
-		case errors.As(err, &cErr):
+		case errors.As(nErr, &cErr):
 			switch cErr.Resource {
 			case "Channel":
 				return channel, model.NewAppError("createDirectChannelWithUser", store.ChannelExistsError, nil, cErr.Error(), http.StatusBadRequest)
 			case "ChannelMembers":
 				return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
 			}
-		case errors.As(err, &ltErr):
+		case errors.As(nErr, &ltErr):
 			return nil, model.NewAppError("createDirectChannelWithUser", "store.sql_channel.save_channel.limit.app_error", nil, ltErr.Error(), http.StatusBadRequest)
-		case errors.As(err, &appErr): // in case we haven't converted to plain error.
+		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return nil, appErr
 		default: // last fallback in case it doesn't map to an existing app error.
-			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.create_direct_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("createDirectChannelWithUser", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -2988,4 +2992,18 @@ func (a *App) GetMemberCountsByGroup(channelID string, includeTimezones bool) ([
 	}
 
 	return channelMemberCounts, nil
+}
+
+func (a *App) getDirectChannel(userID, otherUserID string) (*model.Channel, *model.AppError) {
+	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
+			return nil, nil
+		}
+
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return channel, nil
 }

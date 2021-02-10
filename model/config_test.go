@@ -1439,3 +1439,31 @@ func TestConfigImportSettingsIsValid(t *testing.T) {
 	require.NotNil(t, err)
 	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", err.Id)
 }
+
+func TestConfigExportSettingsDefaults(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.Equal(t, "./export", *cfg.ExportSettings.Directory)
+	require.Equal(t, 30, *cfg.ExportSettings.RetentionDays)
+}
+
+func TestConfigExportSettingsIsValid(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	err := cfg.ExportSettings.isValid()
+	require.Nil(t, err)
+
+	*cfg.ExportSettings.Directory = ""
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.directory.app_error", err.Id)
+
+	cfg.SetDefaults()
+
+	*cfg.ExportSettings.RetentionDays = 0
+	err = cfg.ExportSettings.isValid()
+	require.NotNil(t, err)
+	require.Equal(t, "model.config.is_valid.export.retention_days_too_low.app_error", err.Id)
+}
