@@ -626,7 +626,7 @@ CREATE TABLE `Posts` (
   `Props` text,
   `Hashtags` text,
   `Filenames` text,
-  `FileIds` varchar(300) DEFAULT NULL,
+  `FileIds` varchar(150) DEFAULT NULL,
   `HasReactions` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `idx_posts_update_at` (`UpdateAt`),

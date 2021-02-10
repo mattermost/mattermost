@@ -142,6 +142,16 @@ func getMockStore() *mocks.Store {
 	mockUserStore.On("GetAllProfilesInChannel", "123", false).Return(fakeProfilesInChannelMap, nil)
 
 	mockUserStore.On("Get", mock.Anything, "123").Return(fakeUser[0], nil)
+	users := []*model.User{
+		fakeUser[0],
+		{
+			Id:          "456",
+			AuthData:    model.NewString("authData"),
+			AuthService: "authService",
+		},
+	}
+	mockUserStore.On("GetMany", []string{"123", "456"}).Return(users, nil)
+	mockUserStore.On("GetMany", []string{"123"}).Return(users[0:1], nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}

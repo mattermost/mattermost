@@ -606,6 +606,29 @@ func (_m *UserStore) GetKnownUsers(userID string) ([]string, error) {
 	return r0, r1
 }
 
+// GetMany provides a mock function with given fields: ids
+func (_m *UserStore) GetMany(ids []string) ([]*model.User, error) {
+	ret := _m.Called(ids)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func([]string) []*model.User); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetNewUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
 func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	ret := _m.Called(teamId, offset, limit, viewRestrictions)
