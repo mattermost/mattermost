@@ -20,13 +20,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMailConnectionFromConfig(t *testing.T) {
-	cfg := &SMTPConfig{
+func getConfig() *SMTPConfig {
+	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
+	if server == "" {
+		server = "localhost"
+	}
+	port := os.Getenv("MM_EMAILSETTINGS_SMTPPORT")
+	if port == "" {
+		port = "10025"
+	}
+
+	return &SMTPConfig{
 		ConnectionSecurity:                "",
 		SkipServerCertificateVerification: false,
 		Hostname:                          "localhost",
-		Server:                            "localhost",
-		Port:                              "10025",
+		Server:                            server,
+		Port:                              port,
 		ServerTimeout:                     10,
 		Username:                          "",
 		Password:                          "",
@@ -36,6 +45,10 @@ func TestMailConnectionFromConfig(t *testing.T) {
 		FeedbackEmail:                     "test@example.com",
 		ReplyToAddress:                    "test@example.com",
 	}
+}
+
+func TestMailConnectionFromConfig(t *testing.T) {
+	cfg := getConfig()
 
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
@@ -53,21 +66,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg := &SMTPConfig{
-		ConnectionSecurity:                "",
-		SkipServerCertificateVerification: false,
-		Hostname:                          "localhost",
-		Server:                            "localhost",
-		Port:                              "10025",
-		ServerTimeout:                     10,
-		Username:                          "",
-		Password:                          "",
-		EnableSMTPAuth:                    false,
-		SendEmailNotifications:            true,
-		FeedbackName:                      "",
-		FeedbackEmail:                     "test@example.com",
-		ReplyToAddress:                    "test@example.com",
-	}
+	cfg := getConfig()
 
 	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -145,21 +144,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg := &SMTPConfig{
-		ConnectionSecurity:                "",
-		SkipServerCertificateVerification: false,
-		Hostname:                          "localhost",
-		Server:                            "localhost",
-		Port:                              "10025",
-		ServerTimeout:                     10,
-		Username:                          "",
-		Password:                          "",
-		EnableSMTPAuth:                    false,
-		SendEmailNotifications:            true,
-		FeedbackName:                      "",
-		FeedbackEmail:                     "test@example.com",
-		ReplyToAddress:                    "test@example.com",
-	}
+	cfg := getConfig()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -193,21 +178,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
-	cfg := &SMTPConfig{
-		ConnectionSecurity:                "",
-		SkipServerCertificateVerification: false,
-		Hostname:                          "localhost",
-		Server:                            "localhost",
-		Port:                              "10025",
-		ServerTimeout:                     10,
-		Username:                          "",
-		Password:                          "",
-		EnableSMTPAuth:                    false,
-		SendEmailNotifications:            true,
-		FeedbackName:                      "",
-		FeedbackEmail:                     "test@example.com",
-		ReplyToAddress:                    "test@example.com",
-	}
+	cfg := getConfig()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -247,21 +218,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg := &SMTPConfig{
-		ConnectionSecurity:                "",
-		SkipServerCertificateVerification: false,
-		Hostname:                          "localhost",
-		Server:                            "localhost",
-		Port:                              "10025",
-		ServerTimeout:                     10,
-		Username:                          "",
-		Password:                          "",
-		EnableSMTPAuth:                    false,
-		SendEmailNotifications:            true,
-		FeedbackName:                      "",
-		FeedbackEmail:                     "test@example.com",
-		ReplyToAddress:                    "test@example.com",
-	}
+	cfg := getConfig()
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
