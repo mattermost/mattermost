@@ -28,7 +28,7 @@ type SqlStore interface {
 
 func cleanupChannels(t *testing.T, ss store.Store) {
 	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
-	require.NoErrorf(t, err, "error cleaning all channels: %v", err)
+	require.NoError(t, err, "error cleaning all channels", err)
 	for _, channel := range *list {
 		err = ss.Channel().PermanentDelete(channel.Id)
 		assert.NoError(t, err)
@@ -4377,7 +4377,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, channelErr := ss.Channel().GetMemberCount(c1.Id, false)
-	require.NoErrorf(t, channelErr, "failed to get member count: %v", channelErr)
+	require.NoError(t, channelErr, "failed to get member count", channelErr)
 	require.EqualValuesf(t, 1, count, "got incorrect member count %v", count)
 
 	u2 := model.User{
@@ -4442,7 +4442,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	count, nErr = ss.Channel().GetMemberCount(c1.Id, false)
-	require.NoErrorf(t, nErr, "failed to get member count: %v", nErr)
+	require.NoError(t, nErr, "failed to get member count", nErr)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 }
 

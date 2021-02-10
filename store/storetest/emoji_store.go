@@ -154,7 +154,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	t.Run("one emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name})
-		require.NoErrorf(t, err, "could not get emoji")
+		require.NoError(t, err, "could not get emoji")
 		require.Len(t, received, 1, "got incorrect emoji")
 		require.Equal(t, *received[0], emojis[0], "got incorrect emoji")
 	})
@@ -167,7 +167,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	t.Run("one nonexistent emoji", func(t *testing.T) {
 		received, err := ss.Emoji().GetMultipleByName([]string{"ab"})
-		require.NoErrorf(t, err, "%v, could not get emoji", err)
+		require.NoError(t, err, "could not get emoji", err)
 		require.Empty(t, received, "got incorrect emoji")
 	})
 

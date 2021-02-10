@@ -18,7 +18,7 @@ import (
 func cleanupStoreState(t *testing.T, ss store.Store) {
 	//remove existing users
 	allUsers, err := ss.User().GetAll()
-	require.NoErrorf(t, err, "error cleaning all test users: %v", err)
+	require.NoError(t, err, "error cleaning all test users", err)
 	for _, u := range allUsers {
 		err = ss.User().PermanentDelete(u.Id)
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
@@ -30,7 +30,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 
 	//remove existing channels
 	allChannels, nErr := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
-	require.NoErrorf(t, nErr, "error cleaning all test channels: %v", nErr)
+	require.NoError(t, nErr, "error cleaning all test channels", nErr)
 	for _, channel := range *allChannels {
 		nErr = ss.Channel().PermanentDelete(channel.Id)
 		require.NoError(t, nErr, "failed cleaning up test channel %s", channel.Id)
@@ -38,7 +38,7 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 
 	//remove existing teams
 	allTeams, nErr := ss.Team().GetAll()
-	require.NoErrorf(t, nErr, "error cleaning all test teams: %v", nErr)
+	require.NoError(t, nErr, "error cleaning all test teams", nErr)
 	for _, team := range allTeams {
 		err := ss.Team().PermanentDelete(team.Id)
 		require.NoError(t, err, "failed cleaning up test team %s", team.Id)
