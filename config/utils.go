@@ -86,7 +86,7 @@ func desanitize(actual, target *model.Config) {
 	}
 }
 
-// fixConfig patches invalid or missing data in the configuration, returning true if changed.
+// fixConfig patches invalid or missing data in the configuration.
 func fixConfig(cfg *model.Config) {
 	// Ensure SiteURL has no trailing slash.
 	if strings.HasSuffix(*cfg.ServiceSettings.SiteURL, "/") {
