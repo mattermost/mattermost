@@ -371,7 +371,7 @@ func TestGetDbVersion(t *testing.T) {
 			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
 	}
