@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -67,7 +68,7 @@ func (a *App) JoinDefaultChannels(teamID string, user *model.User, shouldBeAdmin
 	var requestor *model.User
 	var nErr error
 	if userRequestorId != "" {
-		requestor, nErr = a.Srv().Store.User().Get(userRequestorId)
+		requestor, nErr = a.Srv().Store.User().Get(context.Background(), userRequestorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -264,7 +265,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	}
 
 	if addMember {
-		user, nErr := a.Srv().Store.User().Get(channel.CreatorId)
+		user, nErr := a.Srv().Store.User().Get(context.Background(), channel.CreatorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -361,7 +362,7 @@ func (a *App) GetOrCreateDirectChannel(userID, otherUserID string) (*model.Chann
 }
 
 func (a *App) createDirectChannel(userID string, otherUserID string) (*model.Channel, *model.AppError) {
-	users, err := a.Srv().Store.User().GetMany([]string{userID, otherUserID})
+	users, err := a.Srv().Store.User().GetMany(context.Background(), []string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -492,7 +493,7 @@ func (a *App) createGroupChannel(userIDs []string) (*model.Channel, *model.AppEr
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store.User().GetProfileByIds(userIDs, nil, true)
+	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, nil, true)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -571,7 +572,7 @@ func (a *App) GetGroupChannel(userIDs []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store.User().GetProfileByIds(userIDs, nil, true)
+	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, nil, true)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupChannel", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -717,7 +718,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userID string) (*model.Chan
 	message.Add("channel_id", channel.Id)
 	a.Publish(message)
 
-	user, nErr := a.Srv().Store.User().Get(userID)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), userID)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1208,7 +1209,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userID string) *model.AppErr
 	var user *model.User
 	if userID != "" {
 		var nErr error
-		user, nErr = a.Srv().Store.User().Get(userID)
+		user, nErr = a.Srv().Store.User().Get(context.Background(), userID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1464,7 +1465,7 @@ func (a *App) AddDirectChannels(teamID string, user *model.User) *model.AppError
 }
 
 func (a *App) PostUpdateChannelHeaderMessage(userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
-	user, err := a.Srv().Store.User().Get(userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1498,7 +1499,7 @@ func (a *App) PostUpdateChannelHeaderMessage(userID string, channel *model.Chann
 }
 
 func (a *App) PostUpdateChannelPurposeMessage(userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
-	user, err := a.Srv().Store.User().Get(userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1531,7 +1532,7 @@ func (a *App) PostUpdateChannelPurposeMessage(userID string, channel *model.Chan
 }
 
 func (a *App) PostUpdateChannelDisplayNameMessage(userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
-	user, err := a.Srv().Store.User().Get(userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -1877,7 +1878,7 @@ func (a *App) JoinChannel(channel *model.Channel, userID string) *model.AppError
 	userChan := make(chan store.StoreResult, 1)
 	memberChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -1986,7 +1987,7 @@ func (a *App) LeaveChannel(channelId string, userID string) *model.AppError {
 
 	uc := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(userID)
+		user, err := a.Srv().Store.User().Get(context.Background(), userID)
 		uc <- store.StoreResult{Data: user, NErr: err}
 		close(uc)
 	}()
@@ -2148,7 +2149,7 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 }
 
 func (a *App) removeUserFromChannel(userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	user, nErr := a.Srv().Store.User().Get(userIDToRemove)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
