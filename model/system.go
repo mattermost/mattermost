@@ -87,6 +87,22 @@ type ServerBusyState struct {
 	Expires_ts string `json:"expires_ts,omitempty"`
 }
 
+type SupportPacket struct {
+	ServerOS             string   `yaml:"server_os"`
+	ServerArchitecture   string   `yaml:"server_architecture"`
+	DatabaseType         string   `yaml:"database_type"`
+	DatabaseVersion      string   `yaml:"database_version"`
+	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+}
+
+type FileData struct {
+	Filename string
+	Body     []byte
+}
+
 func (sbs *ServerBusyState) ToJson() string {
 	b, _ := json.Marshal(sbs)
 	return string(b)

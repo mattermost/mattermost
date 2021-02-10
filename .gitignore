@@ -22,6 +22,10 @@ config/config.json
 # Enterprise imports file
 imports/imports.go
 
+#license files
+*.license
+*.mattermost-license
+
 # Build Targets
 .prebuild
 .npminstall

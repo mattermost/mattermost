@@ -34,7 +34,7 @@ func (b *BlockQuote) AddChild(openBlocks []Block) []Block {
 	return openBlocks
 }
 
-func blockQuoteStart(markdown string, indent int, r Range, matchedBlocks, unmatchedBlocks []Block) []Block {
+func blockQuoteStart(markdown string, indent int, r Range) []Block {
 	if indent > 3 {
 		return nil
 	}

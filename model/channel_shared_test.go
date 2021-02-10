@@ -40,10 +40,10 @@ func TestSharedChannelIsValid(t *testing.T) {
 			ShareName: strings.Repeat("01234567890", 100)}, valid: false},
 		{name: "Missing creator_id", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
 			ShareName: "test"}, valid: false},
-		{name: "Missing remote_cluster_id", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
+		{name: "Missing remote_id", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
 			ShareName: "test", CreatorId: id}, valid: false},
 		{name: "Valid shared channel", sc: &SharedChannel{ChannelId: id, TeamId: id, CreateAt: now, UpdateAt: now,
-			ShareName: "test", CreatorId: id, RemoteClusterId: id}, valid: true},
+			ShareName: "test", CreatorId: id, RemoteId: id}, valid: true},
 	}
 
 	for _, item := range data {

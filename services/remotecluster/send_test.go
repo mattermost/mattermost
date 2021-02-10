@@ -87,7 +87,7 @@ func TestBroadcastMsg(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 		defer cancel()
 
-		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp Response, err error) {
+		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp *Response, err error) {
 			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 
@@ -140,7 +140,7 @@ func TestBroadcastMsg(t *testing.T) {
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
-		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp Response, err error) {
+		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp *Response, err error) {
 			defer wg.Done()
 			atomic.AddInt32(&countCallbacks, 1)
 			if err != nil {

@@ -36,13 +36,13 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	url := fmt.Sprintf("%s/%s", rcSaved.SiteURL, ConfirmInviteURL)
 
-	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
+	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
 		return nil, err
 	}
 
-	response := make(Response)
+	var response Response
 	err = json.Unmarshal(resp, &response)
 	if err != nil {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
@@ -51,8 +51,12 @@ func (rcs *Service) AcceptInvitation(invite *model.RemoteClusterInvite, name str
 
 	if !response.IsSuccess() {
 		rcs.server.GetStore().RemoteCluster().Delete(rcSaved.RemoteId)
-		return nil, errors.New(response.Error())
+		return nil, errors.New(response.Err)
 	}
+
+	// issue the first ping right away. The goroutine will exit when ping completes or PingTimeout exceeded.
+	go rcs.pingRemote(rcSaved)
+
 	return rcSaved, nil
 }
 
@@ -72,7 +76,6 @@ func makeConfirmFrame(rc *model.RemoteCluster, teamId string, siteURL string) (*
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
-		Token:    rc.RemoteToken,
 		Msg:      msg,
 	}
 	return frame, nil

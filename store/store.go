@@ -261,6 +261,7 @@ type ThreadStore interface {
 	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
+	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamId string) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
@@ -328,6 +329,7 @@ type UserStore interface {
 	UpdateMfaSecret(userId, secret string) error
 	UpdateMfaActive(userId string, active bool) error
 	Get(id string) (*model.User, error)
+	GetMany(ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
@@ -811,7 +813,7 @@ type SharedChannelStore interface {
 	SaveRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	GetRemote(id string) (*model.SharedChannelRemote, error)
-	HasRemote(channelID string) (bool, error)
+	HasRemote(channelID string, remoteId string) (bool, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
 	UpdateRemoteLastSyncAt(id string, syncTime int64) error
@@ -821,6 +823,11 @@ type SharedChannelStore interface {
 	SaveUser(remote *model.SharedChannelUser) (*model.SharedChannelUser, error)
 	GetUser(userId string, remoteId string) (*model.SharedChannelUser, error)
 	UpdateUserLastSyncAt(id string, syncTime int64) error
+
+	SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error)
+	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
+	GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error)
+	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

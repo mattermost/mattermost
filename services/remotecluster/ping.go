@@ -71,7 +71,7 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 				return
 			}
 			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceError, "Remote cluster ping failed", mlog.Err(err))
+				rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed", mlog.Err(err))
 			}
 		case <-done:
 			return
@@ -86,7 +86,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 	url := fmt.Sprintf("%s/%s", rc.SiteURL, PingURL)
 
-	resp, err := rcs.sendFrameToRemote(PingTimeout, frame, url)
+	resp, err := rcs.sendFrameToRemote(PingTimeout, rc, frame, url)
 	if err != nil {
 		return err
 	}
@@ -108,9 +108,11 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	}
 
 	rcs.server.GetLogger().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
-		mlog.String("remote", rc.DisplayName), mlog.Int64("SentAt", ping.SentAt), mlog.Int64("RecvAt", ping.RecvAt),
-		mlog.Int64("Diff", ping.RecvAt-ping.SentAt))
-
+		mlog.String("remote", rc.DisplayName),
+		mlog.Int64("SentAt", ping.SentAt),
+		mlog.Int64("RecvAt", ping.RecvAt),
+		mlog.Int64("Diff", ping.RecvAt-ping.SentAt),
+	)
 	return nil
 }
 
@@ -127,7 +129,6 @@ func makePingFrame(rc *model.RemoteCluster) (*model.RemoteClusterFrame, error) {
 
 	frame := &model.RemoteClusterFrame{
 		RemoteId: rc.RemoteId,
-		Token:    rc.RemoteToken,
 		Msg:      msg,
 	}
 	return frame, nil

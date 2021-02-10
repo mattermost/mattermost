@@ -14,11 +14,12 @@ import (
 // syncMsg represents a change in content (post add/edit/delete, reaction add/remove, users).
 // It is sent to remote clusters as the payload of a `RemoteClusterMsg`.
 type syncMsg struct {
-	ChannelId string            `json:"channel_id"`
-	PostId    string            `json:"post_id"`
-	Post      *model.Post       `json:"post"`
-	Users     []*model.User     `json:"users"`
-	Reactions []*model.Reaction `json:"reactions"`
+	ChannelId   string            `json:"channel_id"`
+	PostId      string            `json:"post_id"`
+	Post        *model.Post       `json:"post"`
+	Users       []*model.User     `json:"users"`
+	Reactions   []*model.Reaction `json:"reactions"`
+	Attachments []*model.FileInfo `json:"-"`
 }
 
 func (sm syncMsg) ToJSON() ([]byte, error) {
@@ -37,10 +38,23 @@ func (sm syncMsg) String() string {
 	return string(json)
 }
 
-// postsToMsg takes a slice of posts and converts to a `RemoteClusterMsg` which can be
+type userCache map[string]struct{}
+
+func (u userCache) Has(id string) bool {
+	_, ok := u[id]
+	return ok
+}
+
+func (u userCache) Add(id string) {
+	u[id] = struct{}{}
+}
+
+// postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) (model.RemoteClusterMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
+
+	uCache := make(userCache)
 
 	for _, p := range posts {
 		if p.IsSystemMessage() { // don't sync system messages
@@ -50,7 +64,7 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 		// any reactions originating from the remote cluster are filtered out
 		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, rc.RemoteId, true)
 		if err != nil {
-			return model.RemoteClusterMsg{}, err
+			return nil, err
 		}
 
 		postSync := p
@@ -67,13 +81,23 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 			postSync = nil
 		}
 
-		// Parse out all permalinks in the message.
+		var attachments []*model.FileInfo
 		if postSync != nil {
+			// parse out all permalinks in the message.
 			postSync.Message = scs.processPermalinkToRemote(postSync)
+
+			// get any file attachments
+			attachments, err = scs.postToAttachments(postSync, rc, lastSyncAt)
+			if err != nil {
+				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not fetch attachments for post",
+					mlog.String("post_id", postSync.Id),
+					mlog.Err(err),
+				)
+			}
 		}
 
 		// any users originating from the remote cluster are filtered out
-		users := scs.usersForPost(postSync, reactions, rc)
+		users := scs.usersForPost(postSync, reactions, rc, uCache)
 
 		// if everything was filtered out then don't send an empty message.
 		if postSync == nil && len(reactions) == 0 && len(users) == 0 {
@@ -81,46 +105,39 @@ func (scs *Service) postsToMsg(posts []*model.Post, rc *model.RemoteCluster, las
 		}
 
 		sm := syncMsg{
-			ChannelId: p.ChannelId,
-			PostId:    p.Id,
-			Post:      postSync,
-			Users:     users,
-			Reactions: reactions,
+			ChannelId:   p.ChannelId,
+			PostId:      p.Id,
+			Post:        postSync,
+			Users:       users,
+			Reactions:   reactions,
+			Attachments: attachments,
 		}
 		syncMessages = append(syncMessages, sm)
 	}
-
-	if len(syncMessages) == 0 {
-		// everything was filtered out and nothing to send.
-		return model.RemoteClusterMsg{}, nil
-	}
-
-	json, err := json.Marshal(syncMessages)
-	if err != nil {
-		return model.RemoteClusterMsg{}, err
-	}
-
-	msg := model.NewRemoteClusterMsg(TopicSync, json)
-	return msg, nil
+	return syncMessages, nil
 }
 
 // usersForPost provides a list of Users associated with the post that need to be synchronized.
-func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster) []*model.User {
-	userIds := make(map[string]struct{}) // avoid duplicates
+func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, rc *model.RemoteCluster, uCache userCache) []*model.User {
+	userIds := make([]string, 0)
 
-	if post != nil {
-		userIds[post.UserId] = struct{}{}
+	if post != nil && !uCache.Has(post.UserId) {
+		userIds = append(userIds, post.UserId)
+		uCache.Add(post.UserId)
 	}
 
 	for _, r := range reactions {
-		userIds[r.UserId] = struct{}{}
+		if !uCache.Has(r.UserId) {
+			userIds = append(userIds, r.UserId)
+			uCache.Add(r.UserId)
+		}
 	}
 
 	// TODO: extract @mentions to local users and sync those as well?
 
 	users := make([]*model.User, 0)
 
-	for id := range userIds {
+	for _, id := range userIds {
 		user, err := scs.server.GetStore().User().Get(id)
 		if err == nil {
 			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {
@@ -174,8 +191,8 @@ func (scs *Service) shouldUserSync(user *model.User, rc *model.RemoteCluster) (b
 
 		// user not in the SharedChannelUsers table, so we must add them.
 		scu = &model.SharedChannelUser{
-			UserId:          user.Id,
-			RemoteClusterId: rc.RemoteId,
+			UserId:   user.Id,
+			RemoteId: rc.RemoteId,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveUser(scu); err != nil {
 			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Error adding user to shared channel users",

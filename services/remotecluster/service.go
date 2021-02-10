@@ -20,17 +20,16 @@ const (
 	RecvChanBuffer                = 50
 	ResultsChanBuffer             = 50
 	ResultQueueDrainTimeoutMillis = 10000
-	MaxConcurrentSends            = 1 // TODO: increase when threading issue fixed
+	MaxConcurrentSends            = 10
 	SendMsgURL                    = "api/v4/remotecluster/msg"
 	SendTimeout                   = time.Minute
+	SendFileTimeout               = time.Minute * 5
 	PingURL                       = "api/v4/remotecluster/ping"
 	PingFreq                      = time.Minute
 	PingTimeout                   = time.Second * 15
 	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
 	InvitationTopic               = "invitation"
 	PingTopic                     = "ping"
-	ResponseStatusKey             = model.STATUS
-	ResponseErrorKey              = "err"
 	ResponseStatusOK              = model.STATUS_OK
 	ResponseStatusFail            = model.STATUS_FAIL
 	InviteExpiresAfter            = time.Hour * 48
@@ -52,13 +51,13 @@ type ServerIface interface {
 
 // TopicListener is a callback signature used to listen for incoming messages for
 // a specific topic.
-type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp Response) error
+type TopicListener func(msg model.RemoteClusterMsg, rc *model.RemoteCluster, resp *Response) error
 
 // Service provides inter-cluster communication via topic based messages.
 type Service struct {
 	server     ServerIface
-	send       chan sendTask
 	httpClient *http.Client
+	send       []chan interface{}
 
 	// everything below guarded by `mux`
 	mux              sync.RWMutex
@@ -93,10 +92,15 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 
 	service := &Service{
 		server:         server,
-		send:           make(chan sendTask, SendChanBuffer),
 		httpClient:     client,
 		topicListeners: make(map[string]map[string]TopicListener),
 	}
+
+	service.send = make([]chan interface{}, MaxConcurrentSends)
+	for i := range service.send {
+		service.send[i] = make(chan interface{}, SendChanBuffer)
+	}
+
 	return service, nil
 }
 
@@ -188,8 +192,8 @@ func (rcs *Service) resume() {
 	}
 
 	// create thread pool for concurrent message sending.
-	for i := 0; i < MaxConcurrentSends; i++ {
-		go rcs.sendLoop(rcs.done)
+	for i := range rcs.send {
+		go rcs.sendLoop(i, rcs.done)
 	}
 
 	rcs.server.GetLogger().Debug("Remote Cluster Service active")

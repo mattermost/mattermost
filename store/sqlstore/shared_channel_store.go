@@ -33,21 +33,27 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 		tableSharedChannels.ColMap("ShareDisplayName").SetMaxSize(64)
 		tableSharedChannels.ColMap("SharePurpose").SetMaxSize(250)
 		tableSharedChannels.ColMap("ShareHeader").SetMaxSize(1024)
-		tableSharedChannels.ColMap("RemoteClusterId").SetMaxSize(26)
+		tableSharedChannels.ColMap("RemoteId").SetMaxSize(26)
 
 		tableSharedChannelRemotes := db.AddTableWithName(model.SharedChannelRemote{}, "SharedChannelRemotes").SetKeys(false, "Id", "ChannelId")
 		tableSharedChannelRemotes.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("ChannelId").SetMaxSize(26)
 		tableSharedChannelRemotes.ColMap("Description").SetMaxSize(64)
 		tableSharedChannelRemotes.ColMap("CreatorId").SetMaxSize(26)
-		tableSharedChannelRemotes.ColMap("RemoteClusterId").SetMaxSize(26)
-		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteClusterId")
+		tableSharedChannelRemotes.ColMap("RemoteId").SetMaxSize(26)
+		tableSharedChannelRemotes.SetUniqueTogether("ChannelId", "RemoteId")
 
 		tableSharedChannelUsers := db.AddTableWithName(model.SharedChannelUser{}, "SharedChannelUsers").SetKeys(false, "Id")
 		tableSharedChannelUsers.ColMap("Id").SetMaxSize(26)
 		tableSharedChannelUsers.ColMap("UserId").SetMaxSize(26)
-		tableSharedChannelUsers.ColMap("RemoteClusterId").SetMaxSize(26)
-		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteClusterId")
+		tableSharedChannelUsers.ColMap("RemoteId").SetMaxSize(26)
+		tableSharedChannelUsers.SetUniqueTogether("UserId", "RemoteId")
+
+		tableSharedChannelFiles := db.AddTableWithName(model.SharedChannelAttachment{}, "SharedChannelAttachments").SetKeys(false, "Id")
+		tableSharedChannelFiles.ColMap("Id").SetMaxSize(26)
+		tableSharedChannelFiles.ColMap("FileId").SetMaxSize(26)
+		tableSharedChannelFiles.ColMap("RemoteId").SetMaxSize(26)
+		tableSharedChannelFiles.SetUniqueTogether("FileId", "RemoteId")
 	}
 
 	return s
@@ -55,7 +61,7 @@ func newSqlSharedChannelStore(sqlStore *SqlStore) store.SharedChannelStore {
 
 func (s SqlSharedChannelStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_sharedchannelusers_user_id", "SharedChannelUsers", "UserId")
-	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_cluster_id", "SharedChannelUsers", "RemoteClusterId")
+	s.CreateIndexIfNotExists("idx_sharedchannelusers_remote_id", "SharedChannelUsers", "RemoteId")
 }
 
 // Save inserts a new shared channel record.
@@ -363,7 +369,7 @@ func (s SqlSharedChannelStore) GetRemoteByIds(channelId string, remoteId string)
 		Select("*").
 		From("SharedChannelRemotes").
 		Where(sq.Eq{"SharedChannelRemotes.ChannelId": channelId}).
-		Where(sq.Eq{"SharedChannelRemotes.RemoteClusterId": remoteId})
+		Where(sq.Eq{"SharedChannelRemotes.RemoteId": remoteId})
 
 	squery, args, err := query.ToSql()
 	if err != nil {
@@ -402,12 +408,13 @@ func (s SqlSharedChannelStore) GetRemotes(channelId string) ([]*model.SharedChan
 	return remotes, nil
 }
 
-// HasRemote returns whether a given channelID is present in the channel remotes or not.
-func (s SqlSharedChannelStore) HasRemote(channelID string) (bool, error) {
+// HasRemote returns whether a given remoteId and channelId are present in the shared channel remotes or not.
+func (s SqlSharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
 	builder := s.getQueryBuilder().
 		Select("1").
 		Prefix("SELECT EXISTS (").
 		From("SharedChannelRemotes").
+		Where(sq.Eq{"RemoteId": remoteId}).
 		Where(sq.Eq{"ChannelId": channelID}).
 		Suffix(")")
 
@@ -481,7 +488,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	query := s.getQueryBuilder().
 		Select("scr.ChannelId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, scr.LastSyncAt, scr.Description, sc.ReadOnly, scr.IsInviteAccepted").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
-		Where("scr.RemoteClusterId=rc.RemoteId").
+		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.ChannelId = sc.ChannelId").
 		Where(sq.Eq{"scr.ChannelId": channelId})
 
@@ -507,7 +514,7 @@ func (s SqlSharedChannelStore) SaveUser(scUser *model.SharedChannelUser) (*model
 	}
 
 	if err := s.GetMaster().Insert(scUser); err != nil {
-		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteClusterId)
+		return nil, errors.Wrapf(err, "save_shared_channel_user: user_id=%s, remote_id=%s", scUser.UserId, scUser.RemoteId)
 	}
 	return scUser, nil
 }
@@ -520,7 +527,7 @@ func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.S
 		Select("*").
 		From("SharedChannelUsers").
 		Where(sq.Eq{"SharedChannelUsers.UserId": userId}).
-		Where(sq.Eq{"SharedChannelUsers.RemoteClusterId": remoteId}).
+		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteId}).
 		ToSql()
 
 	if err != nil {
@@ -531,7 +538,7 @@ func (s SqlSharedChannelStore) GetUser(userId string, remoteId string) (*model.S
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelUser", userId)
 		}
-		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, RemoteClusterId=%s", userId, remoteId)
+		return nil, errors.Wrapf(err, "failed to find shared channel user with UserId=%s, RemoteId=%s", userId, remoteId)
 	}
 	return &scu, nil
 }
@@ -550,6 +557,111 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) e
 	result, err := s.GetMaster().Exec(squery, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelUser")
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to determine rows affected")
+	}
+	if count == 0 {
+		return fmt.Errorf("id not found: %s", id)
+	}
+	return nil
+}
+
+// SaveAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table.
+func (s SqlSharedChannelStore) SaveAttachment(attachment *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
+	attachment.PreSave()
+	if err := attachment.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(attachment); err != nil {
+		return nil, errors.Wrapf(err, "save_shared_channel_attachment: file_id=%s, remote_id=%s", attachment.FileId, attachment.RemoteId)
+	}
+	return attachment, nil
+}
+
+// UpsertAttachment inserts a new shared channel file attachment record to the SharedChannelFiles table or updates its
+// LastSyncAt.
+func (s SqlSharedChannelStore) UpsertAttachment(attachment *model.SharedChannelAttachment) (string, error) {
+	attachment.PreSave()
+	if err := attachment.IsValid(); err != nil {
+		return "", err
+	}
+
+	params := map[string]interface{}{
+		"Id":         attachment.Id,
+		"FileId":     attachment.FileId,
+		"RemoteId":   attachment.RemoteId,
+		"CreateAt":   attachment.CreateAt,
+		"LastSyncAt": attachment.LastSyncAt,
+	}
+
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if _, err := s.GetMaster().Exec(
+			`INSERT INTO
+				SharedChannelAttachments
+				(Id, FileId, RemoteId, CreateAt, LastSyncAt)
+			VALUES
+				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
+			ON DUPLICATE KEY UPDATE
+				LastSyncAt = :LastSyncAt`, params); err != nil {
+			return "", err
+		}
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if _, err := s.GetMaster().Exec(
+			`INSERT INTO
+				SharedChannelAttachments
+				(Id, FileId, RemoteId, CreateAt, LastSyncAt)
+			VALUES
+				(:Id, :FileId, :RemoteId, :CreateAt, :LastSyncAt)
+			ON CONFLICT (Id) 
+				DO UPDATE SET LastSyncAt = :LastSyncAt`, params); err != nil {
+			return "", err
+		}
+	}
+	return attachment.Id, nil
+}
+
+// GetAttachment fetches a shared channel file attachment record based on file_id and remoteId.
+func (s SqlSharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
+	var attachment model.SharedChannelAttachment
+
+	squery, args, err := s.getQueryBuilder().
+		Select("*").
+		From("SharedChannelAttachments").
+		Where(sq.Eq{"SharedChannelAttachments.FileId": fileId}).
+		Where(sq.Eq{"SharedChannelAttachments.RemoteId": remoteId}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "getsharedchannelattachment_tosql")
+	}
+
+	if err := s.GetReplica().SelectOne(&attachment, squery, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("SharedChannelAttachment", fileId)
+		}
+		return nil, errors.Wrapf(err, "failed to find shared channel attachment with FileId=%s, RemoteId=%s", fileId, remoteId)
+	}
+	return &attachment, nil
+}
+
+// UpdateAttachmentLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelAttachment.
+func (s SqlSharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
+	squery, args, err := s.getQueryBuilder().
+		Update("SharedChannelAttachments").
+		Set("LastSyncAt", syncTime).
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+	if err != nil {
+		return errors.Wrap(err, "update_shared_channel_attachment_last_sync_at_tosql")
+	}
+
+	result, err := s.GetMaster().Exec(squery, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to update LastSycnAt for SharedChannelAttachment")
 	}
 
 	count, err := result.RowsAffected()

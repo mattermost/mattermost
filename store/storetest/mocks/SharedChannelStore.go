@@ -124,6 +124,29 @@ func (_m *SharedChannelStore) GetAllCount(opts store.SharedChannelFilterOpts) (i
 	return r0, r1
 }
 
+// GetAttachment provides a mock function with given fields: fileId, remoteId
+func (_m *SharedChannelStore) GetAttachment(fileId string, remoteId string) (*model.SharedChannelAttachment, error) {
+	ret := _m.Called(fileId, remoteId)
+
+	var r0 *model.SharedChannelAttachment
+	if rf, ok := ret.Get(0).(func(string, string) *model.SharedChannelAttachment); ok {
+		r0 = rf(fileId, remoteId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelAttachment)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(fileId, remoteId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetRemote provides a mock function with given fields: id
 func (_m *SharedChannelStore) GetRemote(id string) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(id)
@@ -260,20 +283,20 @@ func (_m *SharedChannelStore) HasChannel(channelID string) (bool, error) {
 	return r0, r1
 }
 
-// HasRemote provides a mock function with given fields: channelID
-func (_m *SharedChannelStore) HasRemote(channelID string) (bool, error) {
-	ret := _m.Called(channelID)
+// HasRemote provides a mock function with given fields: channelID, remoteId
+func (_m *SharedChannelStore) HasRemote(channelID string, remoteId string) (bool, error) {
+	ret := _m.Called(channelID, remoteId)
 
 	var r0 bool
-	if rf, ok := ret.Get(0).(func(string) bool); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(channelID, remoteId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(channelID, remoteId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -297,6 +320,29 @@ func (_m *SharedChannelStore) Save(sc *model.SharedChannel) (*model.SharedChanne
 	var r1 error
 	if rf, ok := ret.Get(1).(func(*model.SharedChannel) error); ok {
 		r1 = rf(sc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveAttachment provides a mock function with given fields: remote
+func (_m *SharedChannelStore) SaveAttachment(remote *model.SharedChannelAttachment) (*model.SharedChannelAttachment, error) {
+	ret := _m.Called(remote)
+
+	var r0 *model.SharedChannelAttachment
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelAttachment) *model.SharedChannelAttachment); ok {
+		r0 = rf(remote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SharedChannelAttachment)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelAttachment) error); ok {
+		r1 = rf(remote)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -373,6 +419,20 @@ func (_m *SharedChannelStore) Update(sc *model.SharedChannel) (*model.SharedChan
 	return r0, r1
 }
 
+// UpdateAttachmentLastSyncAt provides a mock function with given fields: id, syncTime
+func (_m *SharedChannelStore) UpdateAttachmentLastSyncAt(id string, syncTime int64) error {
+	ret := _m.Called(id, syncTime)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(id, syncTime)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateRemote provides a mock function with given fields: remote
 func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
 	ret := _m.Called(remote)
@@ -422,4 +482,25 @@ func (_m *SharedChannelStore) UpdateUserLastSyncAt(id string, syncTime int64) er
 	}
 
 	return r0
+}
+
+// UpsertAttachment provides a mock function with given fields: remote
+func (_m *SharedChannelStore) UpsertAttachment(remote *model.SharedChannelAttachment) (string, error) {
+	ret := _m.Called(remote)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*model.SharedChannelAttachment) string); ok {
+		r0 = rf(remote)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.SharedChannelAttachment) error); ok {
+		r1 = rf(remote)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }

@@ -273,7 +273,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string, option
 			ShareName:        "shared-" + id,
 			ShareDisplayName: "shared-" + id,
 			CreatorId:        th.BasicUser.Id,
-			RemoteClusterId:  model.NewId(),
+			RemoteId:         model.NewId(),
 		})
 		if err != nil {
 			panic(err)
@@ -283,7 +283,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string, option
 	return channel
 }
 
-func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
+func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userID string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
@@ -291,7 +291,7 @@ func (th *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 		Name:        "name_" + id,
 		Type:        channelType,
 		TeamId:      team.Id,
-		CreatorId:   userId,
+		CreatorId:   userID,
 	}
 
 	utils.DisableDebugLogForTest()
