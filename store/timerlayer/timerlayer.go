@@ -8410,6 +8410,22 @@ func (s *TimerLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetMany(ids []string) ([]*model.User, error) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.GetMany(ids)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetMany", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 	start := timemodule.Now()
 

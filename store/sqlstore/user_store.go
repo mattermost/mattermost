@@ -326,6 +326,22 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) error {
 	return nil
 }
 
+// GetMany returns a list of users for the provided list of ids
+func (us SqlUserStore) GetMany(ids []string) ([]*model.User, error) {
+	query := us.usersQuery.Where(sq.Eq{"Id": ids})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "users_get_many_tosql")
+	}
+
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "users_get_many_select")
+	}
+
+	return users, nil
+}
+
 func (us SqlUserStore) Get(id string) (*model.User, error) {
 	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
