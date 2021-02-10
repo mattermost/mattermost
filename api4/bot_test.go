@@ -1268,8 +1268,8 @@ func TestSetBotIconImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	actualData, err := th.App.ReadFile(fpath)
-	require.NoError(t, err)
+	actualData, appErr := th.App.ReadFile(fpath)
+	require.Nil(t, appErr)
 	require.NotNil(t, actualData)
 	require.Equal(t, goodData, actualData)
 
@@ -1315,8 +1315,8 @@ func TestGetBotIconImage(t *testing.T) {
 
 	svgFile.Seek(0, 0)
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	_, err = th.App.WriteFile(svgFile, fpath)
-	require.NoError(t, err)
+	_, appErr := th.App.WriteFile(svgFile, fpath)
+	require.Nil(t, appErr)
 
 	data, resp = th.Client.GetBotIconImage(bot.UserId)
 	CheckNoError(t, resp)
@@ -1374,8 +1374,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	fpath := fmt.Sprintf("/bots/%v/icon.svg", bot.UserId)
-	exists, err := th.App.FileExists(fpath)
-	require.NoError(t, err)
+	exists, appErr := th.App.FileExists(fpath)
+	require.Nil(t, appErr)
 	require.True(t, exists, "icon.svg needs to exist for the user")
 
 	data, resp = th.Client.GetBotIconImage(bot.UserId)
@@ -1399,8 +1399,8 @@ func TestDeleteBotIconImage(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 	require.False(t, success)
 
-	exists, err = th.App.FileExists(fpath)
-	require.NoError(t, err)
+	exists, appErr = th.App.FileExists(fpath)
+	require.Nil(t, appErr)
 	require.False(t, exists, "icon.svg should not for the user")
 }
 

@@ -69,8 +69,8 @@ func TestPlugin(t *testing.T) {
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		// Stored in File Store: Install Plugin from URL case
-		pluginStored, err := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.NoError(t, err)
+		pluginStored, appErr := th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
@@ -297,8 +297,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 
 	// Stored in File Store: Upload Plugin case
 	expectedPath := filepath.Join("./plugins", manifest.Id) + ".tar.gz"
-	pluginStored, err := th.App.FileExists(expectedPath)
-	require.NoError(t, err)
+	pluginStored, appErr := th.App.FileExists(expectedPath)
+	require.Nil(t, appErr)
 	require.True(t, pluginStored)
 
 	messages := testCluster.GetMessages()
@@ -321,8 +321,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	require.Equal(t, "testplugin", manifest.Id)
 
 	// Successful remove
-	webSocketClient, err := th.CreateWebSocketSystemAdminClient()
-	require.NoError(t, err)
+	webSocketClient, appErr := th.CreateWebSocketSystemAdminClient()
+	require.Nil(t, appErr)
 	webSocketClient.Listen()
 	defer webSocketClient.Close()
 	done := make(chan bool)
@@ -360,8 +360,8 @@ func TestNotifyClusterPluginEvent(t *testing.T) {
 	actualMessages = findClusterMessages(model.CLUSTER_EVENT_REMOVE_PLUGIN, messages)
 	require.Equal(t, []*model.ClusterMessage{expectedRemoveMessage}, actualMessages)
 
-	pluginStored, err = th.App.FileExists(expectedPath)
-	require.NoError(t, err)
+	pluginStored, appErr = th.App.FileExists(expectedPath)
+	require.Nil(t, appErr)
 	require.False(t, pluginStored)
 }
 
