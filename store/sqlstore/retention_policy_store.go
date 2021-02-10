@@ -3,9 +3,10 @@ package sqlstore
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -55,15 +56,14 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 }
 
 func (s *SqlRetentionPolicyStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("IDX_RetentionPolicies_DisplayName", "RetentionPolicies", "DisplayName")
+	s.CreateCompositeIndexIfNotExists("IDX_RetentionPolicies_DisplayName_Id", "RetentionPolicies",
+		[]string{"DisplayName", "Id"})
 	s.CreateIndexIfNotExists("IDX_RetentionPoliciesChannels_PolicyId", "RetentionPoliciesChannels", "PolicyId")
 	s.CreateIndexIfNotExists("IDX_RetentionPoliciesTeams_PolicyId", "RetentionPoliciesTeams", "PolicyId")
 	s.CreateCheckConstraintIfNotExists("RetentionPolicies", "PostDuration", "PostDuration > 0")
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesChannels", "PolicyId", "RetentionPolicies", "Id", true)
 	s.CreateForeignKeyIfNotExists("RetentionPoliciesTeams", "PolicyId", "RetentionPolicies", "Id", true)
 }
-
-// TODO: check whether the raw queries work with MySQL and SQLite (only tested with PostgreSQL)
 
 // executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
 // having to check for MySQL, which, unlike Postgres, does not allow empty queries.
@@ -129,7 +129,7 @@ func (s *SqlRetentionPolicyStore) Save(policy *model.RetentionPolicyWithApplied)
 	if _, err = txn.Select(&rows, rpSelectQuery, rpSelectProps); err != nil {
 		return nil, err
 	}
-	newPolicy, err := s.getPolicyFromRows(rows)
+	newPolicy, err := s.getPolicyFromRows(rows, policy.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (s *SqlRetentionPolicyStore) checkTeamsExist(teamIds []string) error {
 			delete(teamIdsMap, *teamId)
 		}
 		for teamId := range teamIdsMap {
-			return fmt.Errorf("Team with ID %s does not exist", teamId)
+			return store.NewErrNotFound("Team", teamId)
 		}
 	}
 	return nil
@@ -171,13 +171,13 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIds []string) error 
 		for _, channelId := range channelIds {
 			channelIdsMap[channelId] = false
 		}
-		channelsSelectQuery, channelSelectArgs, _ := s.getQueryBuilder().
+		channelSelectQuery, channelSelectArgs, _ := s.getQueryBuilder().
 			Select("Id").
 			From("Channels").
 			Where(inStrings("Id", channelIds)).
 			ToSql()
 		var rows []*string
-		_, err := s.GetReplica().Select(&rows, channelsSelectQuery, channelSelectArgs...)
+		_, err := s.GetReplica().Select(&rows, channelSelectQuery, channelSelectArgs...)
 		if err != nil {
 			return err
 		}
@@ -185,7 +185,7 @@ func (s *SqlRetentionPolicyStore) checkChannelsExist(channelIds []string) error 
 			delete(channelIdsMap, *channelId)
 		}
 		for channelId := range channelIdsMap {
-			return fmt.Errorf("Channel with ID %s does not exist", channelId)
+			return store.NewErrNotFound("Channel", channelId)
 		}
 	}
 	return nil
@@ -311,7 +311,7 @@ func (s *SqlRetentionPolicyStore) Update(update *model.RetentionPolicyWithApplie
 		return nil, err
 	}
 	txn.Commit()
-	return s.getPolicyFromRows(rows)
+	return s.getPolicyFromRows(rows, update.Id)
 }
 
 func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, props map[string]interface{}) {
@@ -320,7 +320,7 @@ func (s *SqlRetentionPolicyStore) buildGetPolicyQuery(id string) (query string, 
 
 // buildGetPoliciesQuery builds a query to select information for the policy with the specified
 // ID, or, if `id` is the empty string, from all policies. The results returned will be sorted by
-// policy display name.
+// policy display name and ID.
 func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64, limit uint64) (query string, props map[string]interface{}) {
 	props = map[string]interface{}{"Offset": offset, "Limit": limit}
 	whereIdEqualsPolicyId := ""
@@ -332,7 +332,7 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 		SELECT Id, DisplayName, PostDuration
 		FROM RetentionPolicies
 		` + whereIdEqualsPolicyId + `
-		ORDER BY DisplayName
+		ORDER BY DisplayName, Id
 		LIMIT :Limit
 		OFFSET :Offset`
 	cte := ""
@@ -372,12 +372,12 @@ func (s *SqlRetentionPolicyStore) buildGetPoliciesQuery(id string, offset uint64
 	LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
 	LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
 	
-	ORDER BY DisplayName`
+	ORDER BY DisplayName, Id`
 	return
 }
 
 // getPoliciesFromRows builds enriched policy objects using rows obtained by a query from `buildGetPoliciesQuery`.
-// The rows must be sorted by DisplayName.
+// The rows must be sorted by (DisplayName, Id).
 func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow) []*model.RetentionPolicyEnriched {
 	policies := make([]*model.RetentionPolicyEnriched, 0)
 	for _, row := range rows {
@@ -411,10 +411,10 @@ func (s *SqlRetentionPolicyStore) getPoliciesFromRows(rows []*retentionPolicyRow
 	return policies
 }
 
-func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow) (*model.RetentionPolicyEnriched, error) {
+func (s *SqlRetentionPolicyStore) getPolicyFromRows(rows []*retentionPolicyRow, policyID string) (*model.RetentionPolicyEnriched, error) {
 	policies := s.getPoliciesFromRows(rows)
 	if len(policies) == 0 {
-		return nil, errors.New("policy not found")
+		return nil, store.NewErrNotFound("RetentionPolicy", policyID)
 	}
 	return policies[0], nil
 }
@@ -426,7 +426,7 @@ func (s *SqlRetentionPolicyStore) Get(id string) (*model.RetentionPolicyEnriched
 	if err != nil {
 		return nil, err
 	}
-	policy, err := s.getPolicyFromRows(rows)
+	policy, err := s.getPolicyFromRows(rows, id)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*mod
 	rpSelectQuery := `
 		SELECT Id, DisplayName, PostDuration
 		FROM RetentionPolicies
-		ORDER BY DisplayName
+		ORDER BY DisplayName, Id
 		LIMIT :Limit
 		OFFSET :Offset`
 	cte := ""
@@ -485,7 +485,7 @@ func (s *SqlRetentionPolicyStore) GetAllWithCounts(offset, limit uint64) ([]*mod
 		LEFT JOIN RetentionPoliciesTeams ON RP.Id = RetentionPoliciesTeams.PolicyId
 	) AS A
 	GROUP BY Id, DisplayName, PostDuration
-	ORDER BY DisplayName`
+	ORDER BY DisplayName, Id`
 	var rows []*model.RetentionPolicyWithCounts
 	_, err := s.GetReplica().Select(&rows, query, props)
 	return rows, err
@@ -522,6 +522,14 @@ func (s *SqlRetentionPolicyStore) AddChannels(policyId string, channelIds []stri
 		builder = builder.Values(policyId, channelId)
 	}
 	_, err := builder.RunWith(s.GetMaster()).Exec()
+	if err != nil {
+		// check FK constraint violation
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {
+			return store.NewErrNotFound("RetentionPolicy", policyId)
+		} else if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 0x5ac {
+			return store.NewErrNotFound("RetentionPolicy", policyId)
+		}
+	}
 	return err
 }
 
@@ -573,17 +581,22 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 // RemoveStaleRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
+	// We need the extra level of nesting to deal with MySQL's locking
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
-		SELECT ChannelId FROM RetentionPoliciesChannels
-		LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
-		WHERE Channels.Id IS NULL
+		SELECT * FROM (
+			SELECT ChannelId FROM RetentionPoliciesChannels
+			LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+		) AS A
 	)`
 	const rptDeleteQuery = `
 	DELETE FROM RetentionPoliciesTeams WHERE TeamId IN (
-		SELECT TeamId FROM RetentionPoliciesTeams
-		LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
-		WHERE Teams.Id IS NULL
+		SELECT * FROM (
+			SELECT TeamId FROM RetentionPoliciesTeams
+			LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
+			WHERE Teams.Id IS NULL
+		) AS A
 	)`
 	_, err := s.GetMaster().Exec(rpcDeleteQuery)
 	if err != nil {

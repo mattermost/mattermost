@@ -19,6 +19,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("RemoveChannels", func(t *testing.T) { testRetentionPolicyStoreRemoveChannels(t, ss, s) })
 	t.Run("AddTeams", func(t *testing.T) { testRetentionPolicyStoreAddTeams(t, ss, s) })
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
+	t.Run("RemoveStaleRows", func(t *testing.T) { testRetentionPolicyStoreRemoveStaleRows(t, ss, s) })
 }
 
 func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyEnriched) {
@@ -67,7 +68,7 @@ func checkRetentionPolicyLikeThisExists(t *testing.T, ss store.Store, policy *mo
 func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, team model.TeamDisplayInfo,
 	numChannels int) []model.ChannelDisplayInfo {
 	channels := make([]model.ChannelDisplayInfo, numChannels)
-	for i := 0; i < numChannels; i++ {
+	for i := range channels {
 		name := "channel" + model.NewId()
 		channel := &model.Channel{
 			TeamId:      team.Id,
@@ -86,7 +87,7 @@ func createChannelsForRetentionPolicy(t *testing.T, ss store.Store, team model.T
 
 func createTeamsForRetentionPolicy(t *testing.T, ss store.Store, numTeams int) []model.TeamDisplayInfo {
 	teams := make([]model.TeamDisplayInfo, numTeams)
-	for i := 0; i < numTeams; i++ {
+	for i := range teams {
 		name := "team" + model.NewId()
 		team := &model.Team{
 			DisplayName: "Team " + name,
@@ -386,6 +387,26 @@ func testRetentionPolicyStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 			checkRetentionPolicyCountsAreEqual(t, policyCounts[i], retrievedPolicyCounts[0])
 		}
 	})
+	t.Run("get all with same display name", func(t *testing.T) {
+		policies := make([]*model.RetentionPolicyEnriched, 0)
+		for i := 0; i < 5; i++ {
+			teams, channels := createTeamsAndChannelsForRetentionPolicy(t, ss)
+			proposal := createRetentionPolicyAppliedFromDisplayInfo(
+				"Policy Name", teams, channels)
+			policy, err := ss.RetentionPolicy().Save(proposal)
+			require.Nil(t, err)
+			policies = append(policies, policy)
+		}
+		policies, err := ss.RetentionPolicy().GetAll(0, 60)
+		require.Nil(t, err)
+		for i := 1; i < len(policies); i++ {
+			require.True(t,
+				policies[i-1].DisplayName < policies[i].DisplayName ||
+					(policies[i-1].DisplayName == policies[i].DisplayName &&
+						policies[i-1].Id < policies[i].Id),
+				"policies with the same display name should be sorted by ID")
+		}
+	})
 	cleanupRetentionPolicyTest(s)
 }
 
@@ -416,8 +437,7 @@ func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStor
 		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
 	t.Run("add new channels", func(t *testing.T) {
-		team := teams[0]
-		channels := createChannelsForRetentionPolicy(t, ss, team, 2)
+		channels := createChannelsForRetentionPolicy(t, ss, teams[0], 2)
 		channelIds := getChannelIdsFromDisplayInfo(channels)
 		err := ss.RetentionPolicy().AddChannels(policy.Id, channelIds)
 		require.Nil(t, err)
@@ -429,6 +449,12 @@ func testRetentionPolicyStoreAddChannels(t *testing.T, ss store.Store, s SqlStor
 	})
 	t.Run("add channel which does not exist", func(t *testing.T) {
 		err := ss.RetentionPolicy().AddChannels(policy.Id, []string{"no_such_channel"})
+		require.NotNil(t, err)
+	})
+	t.Run("add channel to policy which does not exist", func(t *testing.T) {
+		channels := createChannelsForRetentionPolicy(t, ss, teams[0], 1)
+		channelIds := getChannelIdsFromDisplayInfo(channels)
+		err := ss.RetentionPolicy().AddChannels("no_such_policy", channelIds)
 		require.NotNil(t, err)
 	})
 	cleanupRetentionPolicyTest(s)
@@ -494,6 +520,12 @@ func testRetentionPolicyStoreAddTeams(t *testing.T, ss store.Store, s SqlStore) 
 		err := ss.RetentionPolicy().AddTeams(policy.Id, []string{"no_such_team"})
 		require.NotNil(t, err)
 	})
+	t.Run("add team to policy which does not exist", func(t *testing.T) {
+		team := createTeamsForRetentionPolicy(t, ss, 1)[0]
+		teamIds := []string{team.Id}
+		err := ss.RetentionPolicy().AddTeams("no_such_policy", teamIds)
+		require.NotNil(t, err)
+	})
 	cleanupRetentionPolicyTest(s)
 }
 
@@ -530,4 +562,25 @@ func testRetentionPolicyStoreRemoveTeams(t *testing.T, ss store.Store, s SqlStor
 		checkRetentionPolicyLikeThisExists(t, ss, policy)
 	})
 	cleanupRetentionPolicyTest(s)
+}
+
+func testRetentionPolicyStoreRemoveStaleRows(t *testing.T, ss store.Store, s SqlStore) {
+	team := createTeamsForRetentionPolicy(t, ss, 1)[0]
+	channel := createChannelsForRetentionPolicy(t, ss, team, 1)[0]
+	proposal := createRetentionPolicyAppliedFromDisplayInfo("Policy 1",
+		[]model.TeamDisplayInfo{team}, []model.ChannelDisplayInfo{channel})
+	policy, err := ss.RetentionPolicy().Save(proposal)
+	require.Nil(t, err)
+
+	err = ss.Channel().PermanentDelete(channel.Id)
+	require.Nil(t, err)
+	err = ss.Team().PermanentDelete(team.Id)
+	require.Nil(t, err)
+	err = ss.RetentionPolicy().RemoveStaleRows()
+	require.Nil(t, err)
+
+	policy, err = ss.RetentionPolicy().Get(policy.Id)
+	require.Nil(t, err)
+	require.Len(t, policy.Teams, 0)
+	require.Len(t, policy.Channels, 0)
 }
