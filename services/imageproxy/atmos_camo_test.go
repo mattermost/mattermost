@@ -80,7 +80,7 @@ func TestAtmosCamoBackend_GetImageDirect(t *testing.T) {
 
 	body, contentType, err := backend.GetImageDirect("https://example.com/image.png")
 
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "image/png", contentType)
 
 	require.NotNil(t, body)

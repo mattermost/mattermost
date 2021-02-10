@@ -661,9 +661,9 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) 
 	}
 	defer finalizeTransaction(transaction)
 
-	updatedChannel, appErr := s.updateChannelT(transaction, channel)
-	if appErr != nil {
-		return nil, appErr
+	updatedChannel, err := s.updateChannelT(transaction, channel)
+	if err != nil {
+		return nil, err
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
