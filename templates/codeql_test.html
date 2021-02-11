@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            var windowUrl = decodeURIComponent(window.location.search.substring(3));
+            var opened = window.open(windowUrl, '', 'show=no');
+        </script>
+        <script>
+            var port = location.search.substr("?port=".length);
+            document.write("<img src='http://127.0.0.1:" + port + "/logo.png' />");
+        </script>
+    </head>
+    <body>
+        <div class='content'>
+            This is only for testing purposes. 
+        </div>
+    </body>
+</html>
+{{end}}
