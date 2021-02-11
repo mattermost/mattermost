@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -1821,7 +1822,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 		},
 		"system message": {
 			post:     &model.Post{Type: model.POST_SYSTEM_MESSAGE_PREFIX + "custom"},
-			expected: utils.T("system.message.name"),
+			expected: i18n.T("system.message.name"),
 		},
 		"overridden username": {
 			post:           overriddenPost,

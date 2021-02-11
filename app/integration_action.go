@@ -456,12 +456,12 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, utils.T, isE0Edition)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, i18n.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
 		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
+			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.start_trial_failure.message")
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
@@ -470,12 +470,12 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 				return appErr
 			}
 			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
-			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.notification_failure.message")
+			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.notification_failure.message")
 			actions := []*model.PostAction{}
 			actions = append(actions,
 				&model.PostAction{
 					Id:   "emailUs",
-					Name: utils.T("api.server.warn_metric.email_us"),
+					Name: i18n.T("api.server.warn_metric.email_us"),
 					Type: model.POST_ACTION_TYPE_BUTTON,
 					Options: []*model.PostActionOptions{
 						{
@@ -500,7 +500,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 				AuthorName: "",
 				Title:      "",
 				Actions:    actions,
-				Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
+				Text:       i18n.T("api.server.warn_metric.bot_response.notification_failure.body"),
 			}}
 			model.ParseSlackAttachment(botPost, attachements)
 		}
@@ -540,7 +540,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	if err != nil {
 		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
-		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
+		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
 	}
 

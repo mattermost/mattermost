@@ -126,7 +126,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	utils.T = i18n.GetUserTranslations("en")
+	i18n.T = i18n.GetUserTranslations("en")
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.NoError(t, err)
@@ -167,7 +167,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
-	utils.T = i18n.GetUserTranslations("en")
+	i18n.T = i18n.GetUserTranslations("en")
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.NoError(t, err)
@@ -214,7 +214,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	utils.T = i18n.GetUserTranslations("en")
+	i18n.T = i18n.GetUserTranslations("en")
 
 	fsInner, err := config.NewFileStore("config.json", false)
 	require.NoError(t, err)

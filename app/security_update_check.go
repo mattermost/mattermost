@@ -10,10 +10,10 @@ import (
 	"runtime"
 	"strconv"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -115,7 +115,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 					for _, user := range users {
 						mlog.Info("Sending security bulletin", mlog.String("bulletin_id", bulletin.Id), mlog.String("user_email", user.Email))
 						license := s.License()
-						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance, "")
+						mailservice.SendMailUsingConfig(user.Email, i18n.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance, "")
 					}
 
 					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}

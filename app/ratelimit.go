@@ -13,6 +13,7 @@ import (
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -29,7 +30,7 @@ type RateLimiter struct {
 func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []string) (*RateLimiter, error) {
 	store, err := memstore.New(*settings.MemoryStoreSize)
 	if err != nil {
-		return nil, errors.Wrap(err, utils.T("api.server.start_server.rate_limiting_memory_store"))
+		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_memory_store"))
 	}
 
 	quota := throttled.RateQuota{
@@ -39,7 +40,7 @@ func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []st
 
 	throttledRateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
 	if err != nil {
-		return nil, errors.Wrap(err, utils.T("api.server.start_server.rate_limiting_rate_limiter"))
+		return nil, errors.Wrap(err, i18n.T("api.server.start_server.rate_limiting_rate_limiter"))
 	}
 
 	return &RateLimiter{

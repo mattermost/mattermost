@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -37,7 +38,7 @@ func initDBCommandContext(configDSN string, readOnlyConfigStore bool) (*app.App,
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	s, err := app.NewServer(
 		app.Config(configDSN, false, readOnlyConfigStore, nil),

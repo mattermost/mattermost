@@ -18,8 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var T = i18n.T
-
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	origin := r.Header.Get("Origin")
 	if origin == "" {
@@ -83,9 +81,9 @@ func RenderMobileAuthComplete(w http.ResponseWriter, redirectUrl string) {
 		<div class="icon text-success" style="font-size: 4em">
 			<i class="fa fa-check-circle" title="Success Icon"></i>
 		</div>
-		<h2> `+T("api.oauth.auth_complete")+` </h2>
-		<p id="redirecting-message"> `+T("api.oauth.redirecting_back")+` </p>
-		<p id="close-tab-message" style="display: none"> `+T("api.oauth.close_browser")+` </p>
+		<h2> `+i18n.T("api.oauth.auth_complete")+` </h2>
+		<p id="redirecting-message"> `+i18n.T("api.oauth.redirecting_back")+` </p>
+		<p id="close-tab-message" style="display: none"> `+i18n.T("api.oauth.close_browser")+` </p>
 		<noscript><meta http-equiv="refresh" content="2; url=`+template.HTMLEscapeString(redirectUrl)+`"></noscript>
 		<script>
 			window.onload = function() {
@@ -104,10 +102,10 @@ func RenderMobileError(config *model.Config, w http.ResponseWriter, err *model.A
 		<div class="icon" style="color: #ccc; font-size: 4em">
 			<span class="fa fa-warning"></span>
 		</div>
-		<h2> `+T("error")+` </h2>
+		<h2> `+i18n.T("error")+` </h2>
 		<p> `+err.Message+` </p>
 		<a href="`+redirectURL+`">
-			`+T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
+			`+i18n.T("api.back_to_app", map[string]interface{}{"SiteName": config.TeamSettings.SiteName})+`
 		</a>
 	`)
 }

@@ -342,18 +342,18 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 
 	for _, invite := range invites {
 		if invite != "" {
-			subject := utils.T("api.templates.invite_subject",
+			subject := i18n.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
+			bodyPage.Html["Info"] = i18n.TranslateAsHtml(i18n.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
-			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
+			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(i18n.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -401,24 +401,24 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 
 	for _, invite := range invites {
 		if invite != "" {
-			subject := utils.T("api.templates.invite_guest_subject",
+			subject := i18n.T("api.templates.invite_guest_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
-			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
+			bodyPage.Props["Title"] = i18n.T("api.templates.invite_body.title")
+			bodyPage.Html["Info"] = i18n.TranslateAsHtml(i18n.T, "api.templates.invite_body_guest.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
+			bodyPage.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
 			bodyPage.Props["SenderId"] = senderUserId
 			bodyPage.Props["Message"] = ""
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(i18n.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -477,7 +477,7 @@ func (es *EmailService) newEmailTemplate(name, locale string) *utils.HTMLTemplat
 	if locale != "" {
 		localT = i18n.GetUserTranslations(locale)
 	} else {
-		localT = utils.T
+		localT = i18n.T
 	}
 
 	t.Props["Footer"] = localT("api.templates.email_footer")

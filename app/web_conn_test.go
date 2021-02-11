@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestWebConnShouldSendEvent(t *testing.T) {
@@ -28,7 +28,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUserWc := &WebConn{
 		App:    th.App,
 		UserId: th.BasicUser.Id,
-		T:      utils.T,
+		T:      i18n.T,
 	}
 
 	basicUserWc.SetSession(session)
@@ -47,7 +47,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	basicUser2Wc := &WebConn{
 		App:    th.App,
 		UserId: th.BasicUser2.Id,
-		T:      utils.T,
+		T:      i18n.T,
 	}
 
 	basicUser2Wc.SetSession(session2)
@@ -60,7 +60,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	adminUserWc := &WebConn{
 		App:    th.App,
 		UserId: th.SystemAdminUser.Id,
-		T:      utils.T,
+		T:      i18n.T,
 	}
 
 	adminUserWc.SetSession(session3)

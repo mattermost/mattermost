@@ -1028,7 +1028,7 @@ func (s *Server) Start() error {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -1044,7 +1044,7 @@ func (s *Server) Start() error {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
 			mlog.Error("Unable to setup forwarding", mlog.Err(err))
 		} else if port != "443" {
-			return fmt.Errorf(utils.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
+			return fmt.Errorf(i18n.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
@@ -1073,7 +1073,7 @@ func (s *Server) Start() error {
 			}
 		}
 	} else if *s.Config().ServiceSettings.UseLetsEncrypt {
-		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
+		return errors.New(i18n.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
 	s.didFinishListen = make(chan struct{})
@@ -1169,10 +1169,10 @@ func (s *Server) startLocalModeServer() error {
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
-		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 	if err = os.Chmod(socket, 0600); err != nil {
-		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return errors.Wrapf(err, i18n.T("api.server.start_server.starting.critical"), err)
 	}
 
 	go func() {

@@ -6,7 +6,6 @@ import (
 	"github.com/mattermost/go-i18n/i18n/bundle"
 	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/mattermost/go-i18n/i18n/translation"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,6 +27,7 @@ func TestTranslateAsHtml(t *testing.T) {
 }
 
 func TestEscapeForHtml(t *testing.T) {
+	stringForPointer := "<b>abc</b>"
 	for name, tc := range map[string]struct {
 		In       interface{}
 		Expected interface{}
@@ -41,7 +41,7 @@ func TestEscapeForHtml(t *testing.T) {
 			Expected: "&lt;b&gt;abc&lt;/b&gt;",
 		},
 		"StringPointer": {
-			In:       model.NewString("<b>abc</b>"),
+			In:       &stringForPointer,
 			Expected: "&lt;b&gt;abc&lt;/b&gt;",
 		},
 		"Map": {

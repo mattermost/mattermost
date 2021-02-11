@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PluginAPI struct {
@@ -1008,7 +1007,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 	seen := make(map[string]bool)
 
 	for _, value := range commandProviders {
-		if cmd := value.GetCommand(api.app, utils.T); cmd != nil {
+		if cmd := value.GetCommand(api.app, i18n.T); cmd != nil {
 			cpy := *cmd
 			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
