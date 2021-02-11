@@ -19,15 +19,20 @@ import (
 
 const defaultLocale = "en"
 
+// TranslateFunc is the type of the translate functions
 type TranslateFunc func(translationID string, args ...interface{}) string
 
+// T is the translate function using the default server language as fallback language
 var T TranslateFunc
+
+// TDefault is the translate function using english as fallback language
 var TDefault TranslateFunc
+
 var locales map[string]string = make(map[string]string)
 var defaultServerLocale string
 var defaultClientLocale string
 
-// this functions loads translations from filesystem if they are not
+// TranslationsPreInit loads translations from filesystem if they are not
 // loaded already and assigns english while loading server config
 func TranslationsPreInit(translationsDir string) error {
 	if T != nil {
@@ -42,12 +47,14 @@ func TranslationsPreInit(translationsDir string) error {
 	return initTranslationsWithDir(translationsDir)
 }
 
+// InitTranslations set the defaults configured in the server and initialize
+// the T function using the server default as fallback language
 func InitTranslations(serverLocale, clientLocale string) error {
 	defaultServerLocale = serverLocale
 	defaultClientLocale = clientLocale
 
 	var err error
-	T, err = GetTranslationsBySystemLocale()
+	T, err = getTranslationsBySystemLocale()
 	return err
 }
 
@@ -67,7 +74,7 @@ func initTranslationsWithDir(dir string) error {
 	return nil
 }
 
-func GetTranslationsBySystemLocale() (TranslateFunc, error) {
+func getTranslationsBySystemLocale() (TranslateFunc, error) {
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
 		mlog.Warn("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", defaultLocale))
@@ -87,6 +94,7 @@ func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 	return translations, nil
 }
 
+// GetUserTranslations get the translation function for an specific locale
 func GetUserTranslations(locale string) TranslateFunc {
 	if _, ok := locales[locale]; !ok {
 		locale = defaultLocale
@@ -96,7 +104,9 @@ func GetUserTranslations(locale string) TranslateFunc {
 	return translations
 }
 
-func GetTranslationsAndLocale(r *http.Request) (TranslateFunc, string) {
+// GetTranslationsAndLocaleFromRequest return the translation function and the
+// locale based on a request headers
+func GetTranslationsAndLocaleFromRequest(r *http.Request) (TranslateFunc, string) {
 	// This is for checking against locales like pt_BR or zn_CN
 	headerLocaleFull := strings.Split(r.Header.Get("Accept-Language"), ",")[0]
 	// This is for checking against locales like en, es
@@ -117,6 +127,8 @@ func GetTranslationsAndLocale(r *http.Request) (TranslateFunc, string) {
 	return translations, defaultLocale
 }
 
+// GetSupportedLocales return a map of locale code and the file path with the
+// translations
 func GetSupportedLocales() map[string]string {
 	return locales
 }
@@ -133,6 +145,8 @@ func tfuncWithFallback(pref string) TranslateFunc {
 	}
 }
 
+// TranslateAsHtml translates the translationID provided and return a
+// template.HTML object
 func TranslateAsHtml(t TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
 	message := t(translationID, escapeForHtml(args))
 	message = strings.Replace(message, "[[", "<strong>", -1)
@@ -162,6 +176,8 @@ func escapeForHtml(arg interface{}) interface{} {
 	}
 }
 
+// IdentityTfunc returns a translation function that don't translate, only
+// returns the same id
 func IdentityTfunc() TranslateFunc {
 	return func(translationID string, args ...interface{}) string {
 		return translationID
