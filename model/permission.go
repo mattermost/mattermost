@@ -538,7 +538,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
-	PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT = &Permission{
+	PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESUL = &Permission{
 		"download_compliance_export_result",
 		"authentication.permissions.download_compliance_export_result.name",
 		"authentication.permissions.download_compliance_export_result.description",
