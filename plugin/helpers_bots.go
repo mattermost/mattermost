@@ -154,11 +154,11 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		if kvGetErr != nil {
 			return false, errors.Wrap(kvGetErr, "failed to get bot")
 		}
+	}
 
-		if botIDBytes != nil {
-			if post.UserId == string(botIDBytes) {
-				return false, nil
-			}
+	if botIDBytes != nil {
+		if post.UserId == string(botIDBytes) {
+			return false, nil
 		}
 	}
 
