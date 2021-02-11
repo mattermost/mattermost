@@ -137,14 +137,14 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			var err error
-			post, err = th.App.CreatePostAsUser(&model.Post{
+			var appErr *model.AppError
+			post, appErr = th.App.CreatePostAsUser(&model.Post{
 				UserId:        th.BasicUser.Id,
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
 				PendingPostId: pendingPostId,
 			}, "", true)
-			require.NoError(t, err)
+			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
 		}()
 
@@ -211,11 +211,11 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.NoError(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.NoError(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
 
@@ -239,16 +239,16 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.NoError(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.NoError(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, err := th.App.GetSinglePost(post.Id)
-		require.NoError(t, err)
+		updated, appErr := th.App.GetSinglePost(post.Id)
+		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
 	})
@@ -854,15 +854,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.NoError(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
-		require.NoError(t, appErr)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
+		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.NoError(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -878,15 +878,15 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp("from_webhook", "true")
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.NoError(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
-		require.NoError(t, appErr)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
+		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.NoError(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})

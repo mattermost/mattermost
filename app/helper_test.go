@@ -572,7 +572,7 @@ func (th *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 
 func (th *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
 	count, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	require.Nilf(t, err, "Failed to get channel count.")
+	require.NoError(t, err, "Failed to get channel count.")
 	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
 }
 

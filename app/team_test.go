@@ -319,8 +319,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		th.App.InvalidateCacheForUser(rguest.Id)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
-		require.NoError(t, err)
+		_, appErr := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, appErr)
 		rguest.Email = guestEmail
 		_, err = th.App.Srv().Store.User().Update(rguest, false)
 		require.NoError(t, err)
@@ -342,8 +342,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, err = th.App.Srv().Store.User().Update(rguest, false)
 		require.NoError(t, err)
 		require.NoError(t, th.App.Srv().Store.Token().Save(token))
-		_, err = th.App.AddUserToTeamByToken(rguest.Id, token.Token)
-		require.NoError(t, err)
+		_, appErr := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
+		require.Nil(t, appErr)
 		th.BasicTeam.AllowedDomains = ""
 		_, err = th.Server.Store.Team().Update(th.BasicTeam)
 		require.NoError(t, err)
@@ -1127,8 +1127,8 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	err = th.App.Srv().Store.Token().Save(&t3)
 	require.NoError(t, err)
 
-	err = th.App.InvalidateAllEmailInvites()
-	require.NoError(t, err)
+	appErr := th.App.InvalidateAllEmailInvites()
+	require.Nil(t, appErr)
 
 	_, err = th.App.Srv().Store.Token().GetByToken(t1.Token)
 	require.Error(t, err)

@@ -1725,8 +1725,8 @@ func TestPluginExecuteSlashCommand(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 			ChannelId: th.BasicChannel.Id,
 		}
-		_, appErr := api.ExecuteSlashCommand(args)
-		require.Nil(t, appErr)
+		_, err := api.ExecuteSlashCommand(args)
+		require.NoError(t, err)
 		require.Equal(t, args, slashCommandMock.Args)
 		require.Equal(t, "@"+newUser.Username, slashCommandMock.Message)
 	})
