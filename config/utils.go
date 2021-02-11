@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -118,7 +119,7 @@ func fixConfig(cfg *model.Config) bool {
 func FixInvalidLocales(cfg *model.Config) bool {
 	var changed bool
 
-	locales := utils.GetSupportedLocales()
+	locales := i18n.GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
 		mlog.Warn("DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value.")

@@ -13,8 +13,7 @@ import (
 	"sync"
 	"unicode"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -23,7 +22,7 @@ import (
 
 type CommandProvider interface {
 	GetTrigger() string
-	GetCommand(a *App, T goi18n.TranslateFunc) *model.Command
+	GetCommand(a *App, T i18n.TranslateFunc) *model.Command
 	DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
@@ -75,7 +74,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamID string, response *model
 
 // @openTracingParams teamID
 // previous ListCommands now ListAutocompleteCommands
-func (a *App) ListAutocompleteCommands(teamID string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 
@@ -128,7 +127,7 @@ func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError
 	return teamCmds, nil
 }
 
-func (a *App) ListAllCommands(teamID string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {

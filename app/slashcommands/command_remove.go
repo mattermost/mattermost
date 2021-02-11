@@ -6,9 +6,8 @@ package slashcommands
 import (
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -37,7 +36,7 @@ func (*KickProvider) GetTrigger() string {
 	return CmdKick
 }
 
-func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*RemoveProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdRemove,
 		AutoComplete:     true,
@@ -47,7 +46,7 @@ func (*RemoveProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*KickProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*KickProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdKick,
 		AutoComplete:     true,

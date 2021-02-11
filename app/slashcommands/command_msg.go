@@ -7,9 +7,8 @@ import (
 	"errors"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -30,7 +29,7 @@ func (*msgProvider) GetTrigger() string {
 	return CmdMsg
 }
 
-func (*msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdMsg,
 		AutoComplete:     true,

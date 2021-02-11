@@ -10,10 +10,10 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // CreateBot creates the given bot and corresponding user.
@@ -71,7 +71,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 			return nil, err
 		}
 
-		T := utils.GetUserTranslations(ownerUser.Locale)
+		T := i18n.GetUserTranslations(ownerUser.Locale)
 		botAddPost := &model.Post{
 			Type:      model.POST_ADD_BOT_TEAMS_CHANNELS,
 			UserId:    savedBot.UserId,
@@ -470,7 +470,7 @@ func (a *App) getDisableBotSysadminMessage(user *model.User, userBots model.BotL
 		botList += fmt.Sprintf("* %v\n", bot.Username)
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 	message = T("app.bot.get_disable_bot_sysadmin_message",
 		map[string]interface{}{
 			"UserName":           user.Username,

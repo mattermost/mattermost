@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
 )
 
@@ -52,7 +52,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	utils.InitTranslations(a.Config().LocalizationSettings)
+	i18n.InitTranslations(*a.Config().LocalizationSettings.DefaultServerLocale, *a.Config().LocalizationSettings.DefaultClientLocale)
 	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr
@@ -73,7 +73,7 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	utils.InitTranslations(a.Config().LocalizationSettings)
+	i18n.InitTranslations(*a.Config().LocalizationSettings.DefaultServerLocale, *a.Config().LocalizationSettings.DefaultClientLocale)
 	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr

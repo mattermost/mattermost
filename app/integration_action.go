@@ -31,6 +31,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -526,7 +527,7 @@ func (mlc *MailToLinkContent) ToJson() string {
 }
 
 func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody

@@ -13,6 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -244,7 +245,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// Check for channel-wide mentions in channels that have too many members for those to work
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		T := utils.GetUserTranslations(sender.Locale)
+		T := i18n.GetUserTranslations(sender.Locale)
 
 		if mentions.HereMentioned {
 			a.SendEphemeralPost(
@@ -485,7 +486,7 @@ func (a *App) userAllowsEmail(user *model.User, channelMemberNotificationProps m
 }
 
 func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *model.Post, channel *model.Channel, group *model.Group) {
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 	ephemeralPost := &model.Post{
 		UserId:    sender.Id,
 		RootId:    post.RootId,
@@ -585,7 +586,7 @@ func makeOutOfChannelMentionPost(sender *model.User, post *model.Post, outOfChan
 	ogUsers := model.UserSlice(outOfGroupsUsers)
 	ogUsernames := ogUsers.Usernames()
 
-	T := utils.GetUserTranslations(sender.Locale)
+	T := i18n.GetUserTranslations(sender.Locale)
 
 	ephemeralPostId := model.NewId()
 	var message string

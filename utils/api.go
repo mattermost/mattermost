@@ -14,8 +14,11 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+var T = i18n.T
 
 func CheckOrigin(r *http.Request, allowedOrigins string) bool {
 	origin := r.Header.Get("Origin")

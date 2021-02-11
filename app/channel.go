@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -27,7 +28,7 @@ func (a *App) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.App
 	channels := []*model.Channel{}
 	defaultChannelNames := a.DefaultChannelNames()
 	for _, name := range defaultChannelNames {
-		displayName := utils.TDefault(displayNames[name], name)
+		displayName := i18n.TDefault(displayNames[name], name)
 		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.CHANNEL_OPEN, TeamId: teamID}
 		if _, err := a.CreateChannel(channel, false); err != nil {
 			return nil, err
@@ -757,7 +758,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userID string) (*model.Chan
 	}
 
 	if user != nil {
-		T := utils.GetUserTranslations(user.Locale)
+		T := i18n.GetUserTranslations(user.Locale)
 
 		post := &model.Post{
 			ChannelId: channel.Id,
@@ -1272,7 +1273,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userID string) *model.AppErr
 	}
 
 	if user != nil {
-		T := utils.GetUserTranslations(user.Locale)
+		T := i18n.GetUserTranslations(user.Locale)
 
 		post := &model.Post{
 			ChannelId: channel.Id,

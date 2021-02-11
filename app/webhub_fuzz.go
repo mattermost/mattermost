@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
@@ -87,7 +87,7 @@ func registerDummyWebConn(a *App, addr net.Addr, userID string) *WebConn {
 		panic(err)
 	}
 
-	wc := a.NewWebConn(c, *session, goi18n.IdentityTfunc(), "en")
+	wc := a.NewWebConn(c, *session, i18n.IdentityTfunc(), "en")
 	a.HubRegister(wc)
 	go wc.Pump()
 	return wc

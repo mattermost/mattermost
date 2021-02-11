@@ -6,9 +6,8 @@ package slashcommands
 import (
 	"strconv"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -36,7 +35,7 @@ func (*CollapseProvider) GetTrigger() string {
 	return CmdCollapse
 }
 
-func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*ExpandProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdExpand,
 		AutoComplete:     true,
@@ -45,7 +44,7 @@ func (*ExpandProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Com
 	}
 }
 
-func (*CollapseProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*CollapseProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdCollapse,
 		AutoComplete:     true,

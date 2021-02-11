@@ -4,9 +4,8 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -25,7 +24,7 @@ func (search *SearchProvider) GetTrigger() string {
 	return CmdSearch
 }
 
-func (search *SearchProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (search *SearchProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdSearch,
 		AutoComplete:     true,

@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	goi18n "github.com/mattermost/go-i18n/i18n"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -37,7 +37,7 @@ type WebConn struct {
 	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App              *App
 	WebSocket        *websocket.Conn
-	T                goi18n.TranslateFunc
+	T                i18n.TranslateFunc
 	Locale           string
 	Sequence         int64
 	UserId           string
@@ -53,7 +53,7 @@ type WebConn struct {
 }
 
 // NewWebConn returns a new WebConn instance.
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
 	if session.UserId != "" {
 		a.Srv().Go(func() {
 			a.SetStatusOnline(session.UserId, false)

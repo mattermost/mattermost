@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
@@ -76,7 +76,7 @@ func (es *EmailService) setupInviteEmailRateLimiting() error {
 }
 
 func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName,
@@ -97,7 +97,7 @@ func (es *EmailService) sendChangeUsernameEmail(newUsername, email, locale, site
 }
 
 func (es *EmailService) sendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(newUserEmail))
 
@@ -121,7 +121,7 @@ func (es *EmailService) sendEmailChangeVerifyEmail(newUserEmail, locale, siteURL
 }
 
 func (es *EmailService) sendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.email_change_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName,
@@ -142,7 +142,7 @@ func (es *EmailService) sendEmailChangeEmail(oldEmail, newEmail, locale, siteURL
 }
 
 func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redirect string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
 	if redirect != "" {
@@ -169,7 +169,7 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 }
 
 func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.signin_change_email.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -193,7 +193,7 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
 
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
 
@@ -235,7 +235,7 @@ func (es *EmailService) sendWelcomeEmail(userID string, email string, verified b
 }
 
 func (es *EmailService) sendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.password_change_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName,
@@ -256,7 +256,7 @@ func (es *EmailService) sendPasswordChangeEmail(email, method, locale, siteURL s
 }
 
 func (es *EmailService) sendUserAccessTokenAddedEmail(email, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.user_access_token_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -276,7 +276,7 @@ func (es *EmailService) sendUserAccessTokenAddedEmail(email, locale, siteURL str
 }
 
 func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/reset_password_complete?token=%s", siteURL, url.QueryEscape(token.Token))
 
@@ -286,7 +286,7 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	bodyPage := es.newEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.reset_body.title")
-	bodyPage.Props["Info1"] = utils.TranslateAsHtml(T, "api.templates.reset_body.info1", nil)
+	bodyPage.Props["Info1"] = i18n.TranslateAsHtml(T, "api.templates.reset_body.info1", nil)
 	bodyPage.Props["Info2"] = T("api.templates.reset_body.info2")
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
@@ -299,7 +299,7 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 }
 
 func (es *EmailService) sendMfaChangeEmail(email string, activated bool, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.mfa_change_subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
@@ -350,10 +350,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
+			bodyPage.Html["Info"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
-			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -409,7 +409,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
-			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
+			bodyPage.Html["Info"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
 				map[string]interface{}{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Props["SenderName"] = senderName
@@ -418,7 +418,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			if message != "" {
 				bodyPage.Props["Message"] = message
 			}
-			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
+			bodyPage.Html["ExtraInfo"] = i18n.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
 			bodyPage.Props["TeamURL"] = siteURL + "/" + team.Name
 
@@ -475,7 +475,7 @@ func (es *EmailService) newEmailTemplate(name, locale string) *utils.HTMLTemplat
 
 	var localT i18n.TranslateFunc
 	if locale != "" {
-		localT = utils.GetUserTranslations(locale)
+		localT = i18n.GetUserTranslations(locale)
 	} else {
 		localT = utils.T
 	}
@@ -498,7 +498,7 @@ func (es *EmailService) newEmailTemplate(name, locale string) *utils.HTMLTemplat
 }
 
 func (es *EmailService) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	serverURL := condenseSiteURL(siteURL)
 
@@ -528,7 +528,7 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 		return err
 	}
 
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 	subject := T("api.templates.remove_expired_license.subject",
 		map[string]interface{}{"SiteName": es.srv.Config().TeamSettings.SiteName})
 
@@ -598,7 +598,7 @@ func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (
 }
 
 func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.at_limit_subject")
 
@@ -620,7 +620,7 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 }
 
 func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_subject")
 
@@ -642,7 +642,7 @@ func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale strin
 }
 
 func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_30_days_subject")
 
@@ -667,7 +667,7 @@ func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, loc
 }
 
 func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_90_days_subject")
 
@@ -691,7 +691,7 @@ func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, loc
 }
 
 func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_suspended_subject")
 
@@ -713,7 +713,7 @@ func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email st
 }
 
 func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale string, siteURL string, overLimitDate string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_14_days_subject")
 
@@ -734,7 +734,7 @@ func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale
 }
 
 func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale string, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.over_limit_7_days_subject")
 
@@ -774,7 +774,7 @@ func (es *EmailService) SendSuspensionEmailToSupport(email string, installationI
 }
 
 func (es *EmailService) SendPaymentFailedEmail(email string, locale string, failedPayment *model.FailedPayment, siteURL string) (bool, *model.AppError) {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.payment_failed.subject")
 
@@ -799,7 +799,7 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 }
 
 func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) *model.AppError {
-	T := utils.GetUserTranslations(locale)
+	T := i18n.GetUserTranslations(locale)
 
 	subject := T("api.templates.payment_failed_no_card.subject")
 

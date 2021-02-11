@@ -11,12 +11,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type notificationType string
@@ -533,7 +532,7 @@ func (a *App) BuildPushNotificationMessage(contentsConfig string, post *model.Po
 }
 
 func (a *App) buildIdLoadedPushNotificationMessage(post *model.Post, user *model.User) *model.PushNotification {
-	userLocale := utils.GetUserTranslations(user.Locale)
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	msg := &model.PushNotification{
 		PostId:     post.Id,
 		ChannelId:  post.ChannelId,
@@ -588,7 +587,7 @@ func (a *App) buildFullPushNotificationMessage(contentsConfig string, post *mode
 		}
 	}
 
-	userLocale := utils.GetUserTranslations(user.Locale)
+	userLocale := i18n.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
 	msg.Message = a.getPushNotificationMessage(

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -76,7 +77,7 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	if appErr != nil {
 		return nil, appErr
 	}
-	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.T = i18n.GetUserTranslations(user.Locale)
 	commandArgs.SiteURL = api.app.GetSiteURL()
 	response, appErr := api.app.ExecuteCommand(commandArgs)
 	if appErr != nil {

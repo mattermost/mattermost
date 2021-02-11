@@ -13,6 +13,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
@@ -224,7 +225,7 @@ func (a *App) TestEmail(userID string, cfg *model.Config) *model.AppError {
 		return err
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
 	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance, ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)

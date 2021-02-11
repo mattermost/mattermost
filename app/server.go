@@ -36,6 +36,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -274,7 +275,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(i18n.T)
 
 	searchEngine := searchengine.NewBroker(s.Config(), s.Jobs)
 	bleveEngine := bleveengine.NewBleveEngine(s.Config(), s.Jobs)
@@ -314,7 +315,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub()
 
-	if err2 := utils.InitTranslations(s.Config().LocalizationSettings); err2 != nil {
+	if err2 := i18n.InitTranslations(*s.Config().LocalizationSettings.DefaultServerLocale, *s.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 

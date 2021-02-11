@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 

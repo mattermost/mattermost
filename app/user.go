@@ -28,13 +28,13 @@ import (
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 
+	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/mfa"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -265,7 +265,7 @@ func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *mod
 		user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
 	}
 
-	if _, ok := utils.GetSupportedLocales()[user.Locale]; !ok {
+	if _, ok := i18n.GetSupportedLocales()[user.Locale]; !ok {
 		user.Locale = *a.Config().LocalizationSettings.DefaultClientLocale
 	}
 
@@ -1043,7 +1043,7 @@ func (a *App) UpdatePasswordAsUser(userID, currentPassword, newPassword string) 
 		return err
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
@@ -1460,7 +1460,7 @@ func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	T := utils.GetUserTranslations(user.Locale)
+	T := i18n.GetUserTranslations(user.Locale)
 
 	if err := a.UpdatePasswordSendEmail(user, newPassword, T("api.user.reset_password.method")); err != nil {
 		return err
