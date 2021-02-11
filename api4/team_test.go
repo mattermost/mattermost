@@ -3075,14 +3075,14 @@ func TestSetTeamIcon(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	teamBefore, err := th.App.GetTeam(team.Id)
-	require.NoError(t, err)
+	teamBefore, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.SetTeamIcon(team.Id, data)
 	CheckNoError(t, resp)
 
-	teamAfter, err := th.App.GetTeam(team.Id)
-	require.NoError(t, err)
+	teamAfter, appErr := th.App.GetTeam(team.Id)
+	require.Nil(t, appErr)
 	assert.True(t, teamBefore.LastTeamIconUpdate < teamAfter.LastTeamIconUpdate, "LastTeamIconUpdate should have been updated for team")
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}

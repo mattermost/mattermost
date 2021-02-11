@@ -212,8 +212,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after being used")
 
-		teams, err := th.App.GetTeamsForUser(ruser.Id)
-		require.NoError(t, err)
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, teams, "The user must have teams")
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	})
@@ -237,8 +237,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
 		require.Error(t, err, "The token must be deleted after being used")
 
-		teams, err := th.App.GetTeamsForUser(ruser.Id)
-		require.NoError(t, err)
+		teams, appErr := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, teams, "The user must have teams")
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	}, "CreateWithTokenHappyPath")
@@ -3235,14 +3235,14 @@ func TestSetProfileImage(t *testing.T) {
 		require.Fail(t, "Should have failed either forbidden or unauthorized")
 	}
 
-	buser, err := th.App.GetUser(user.Id)
-	require.NoError(t, err)
+	buser, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
 	CheckNoError(t, resp)
 
-	ruser, err := th.App.GetUser(user.Id)
-	require.NoError(t, err)
+	ruser, appErr := th.App.GetUser(user.Id)
+	require.Nil(t, appErr)
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}

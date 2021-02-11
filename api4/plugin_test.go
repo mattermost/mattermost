@@ -128,8 +128,8 @@ func TestPlugin(t *testing.T) {
 		assert.Equal(t, "testplugin", manifest.Id)
 
 		// Stored in File Store: Upload Plugin case
-		pluginStored, err = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
-		assert.NoError(t, err)
+		pluginStored, appErr = th.App.FileExists("./plugins/" + manifest.Id + ".tar.gz")
+		assert.Nil(t, appErr)
 		assert.True(t, pluginStored)
 
 		// Upload error cases
@@ -1421,15 +1421,15 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		require.Equal(t, "1.2.3", manifest.Version)
 
 		filePath := filepath.Join("plugins", "testplugin2.tar.gz.sig")
-		savedSigFile, err := th.App.ReadFile(filePath)
-		require.NoError(t, err)
+		savedSigFile, appErr := th.App.ReadFile(filePath)
+		require.Nil(t, appErr)
 		require.EqualValues(t, sigFile, savedSigFile)
 
 		ok, resp := client.RemovePlugin(manifest.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
-		exists, err := th.App.FileExists(filePath)
-		require.NoError(t, err)
+		exists, appErr := th.App.FileExists(filePath)
+		require.Nil(t, appErr)
 		require.False(t, exists)
 
 		appErr = th.App.DeletePublicKey("pub_key")

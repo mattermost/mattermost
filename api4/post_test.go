@@ -671,13 +671,13 @@ func TestUpdatePost(t *testing.T) {
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
-	rpost, err := th.App.CreatePost(&model.Post{
+	rpost, appErr := th.App.CreatePost(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
 	}, channel, false, true)
-	require.NoError(t, err)
+	require.Nil(t, appErr)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
 	assert.EqualValues(t, 0, rpost.EditAt, "Newly created post shouldn't have EditAt set")
@@ -744,12 +744,12 @@ func TestUpdatePost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	rpost3, err := th.App.CreatePost(&model.Post{
+	rpost3, appErr := th.App.CreatePost(&model.Post{
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
 	}, channel, false, true)
-	require.NoError(t, err)
+	require.Nil(t, appErr)
 
 	t.Run("new message, add files", func(t *testing.T) {
 		up3 := &model.Post{
