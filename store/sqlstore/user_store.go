@@ -39,7 +39,7 @@ type SqlUserStore struct {
 	usersQuery sq.SelectBuilder
 }
 
-func (us SqlUserStore) ClearCaches() {}
+func (us *SqlUserStore) ClearCaches() {}
 
 func (us SqlUserStore) InvalidateProfileCacheForUser(userId string) {}
 

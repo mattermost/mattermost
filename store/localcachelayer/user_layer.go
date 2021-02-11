@@ -56,7 +56,7 @@ func (s *LocalCacheUserStore) ClearCaches() {
 
 func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 	s.userProfileByIdsMut.Lock()
-	s.userProfileByIdsInvalidations[msg.Data] = true
+	s.userProfileByIdsInvalidations[userId] = true
 	s.userProfileByIdsMut.Unlock()
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
 
@@ -87,7 +87,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
 	s.profilesInChannelMut.Lock()
-	s.profilesInChannelInvalidations[key] = true
+	s.profilesInChannelInvalidations[channelID] = true
 	s.profilesInChannelMut.Unlock()
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID)
 	if s.rootStore.metrics != nil {
