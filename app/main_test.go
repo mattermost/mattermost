@@ -23,6 +23,7 @@ func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore:     true,
 		EnableResources: true,
+		WithReadReplica: replicaFlag,
 	}
 
 	mlog.DisableZap()

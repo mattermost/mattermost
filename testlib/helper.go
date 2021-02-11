@@ -38,6 +38,7 @@ type MainHelper struct {
 type HelperOptions struct {
 	EnableStore     bool
 	EnableResources bool
+	WithReadReplica bool
 }
 
 func NewMainHelper() *MainHelper {
@@ -65,7 +66,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 
 	if options != nil {
 		if options.EnableStore && !testing.Short() {
-			mainHelper.setupStore()
+			mainHelper.setupStore(options.WithReadReplica)
 		}
 
 		if options.EnableResources {
@@ -99,13 +100,13 @@ func (h *MainHelper) Main(m *testing.M) {
 	h.status = m.Run()
 }
 
-func (h *MainHelper) setupStore() {
+func (h *MainHelper) setupStore(withReadReplica bool) {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 
-	h.Settings = storetest.MakeSqlSettings(driverName)
+	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
 
 	config := &model.Config{}
 	config.SetDefaults()

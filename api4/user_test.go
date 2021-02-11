@@ -3367,7 +3367,7 @@ func TestLoginReplicationLag(t *testing.T) {
 		err := th.App.RevokeAllSessions(th.BasicUser.Id)
 		require.Nil(t, err)
 
-		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(30)
+		cmdErr := th.App.Srv().Store.SetReplicationLagForTesting(5)
 		require.Nil(t, cmdErr)
 		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
 

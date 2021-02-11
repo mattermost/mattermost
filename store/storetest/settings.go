@@ -49,7 +49,7 @@ func log(message string) {
 
 // MySQLSettings returns the database settings to connect to the MySQL unittesting database.
 // The database name is generated randomly and must be created before use.
-func MySQLSettings() *model.SqlSettings {
+func MySQLSettings(withReplica bool) *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_MYSQL_DSN", defaultMysqlDSN)
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
@@ -60,12 +60,7 @@ func MySQLSettings() *model.SqlSettings {
 
 	mySQLSettings := databaseSettings("mysql", cfg.FormatDSN())
 
-	var replicaFlag bool
-	if f := flag.Lookup("mysql-replica"); f == nil {
-		flag.BoolVar(&replicaFlag, "mysql-replica", false, "")
-		flag.Parse()
-	}
-	if replicaFlag {
+	if withReplica {
 		mySQLSettings.DataSourceReplicas = []string{getEnv("TEST_DATABASE_MYSQL_REPLICA_DSN", defaultMysqlReplicaDSN)}
 	}
 
@@ -196,13 +191,13 @@ func replaceMySQLDatabaseName(dsn, newDBName string) string {
 }
 
 // MakeSqlSettings creates a randomly named database and returns the corresponding sql settings
-func MakeSqlSettings(driver string) *model.SqlSettings {
+func MakeSqlSettings(driver string, withReplica bool) *model.SqlSettings {
 	var settings *model.SqlSettings
 	var dbName string
 
 	switch driver {
 	case model.DATABASE_DRIVER_MYSQL:
-		settings = MySQLSettings()
+		settings = MySQLSettings(withReplica)
 		dbName = mySQLDSNDatabase(*settings.DataSource)
 		newDSRs := []string{}
 		for _, dataSource := range settings.DataSourceReplicas {

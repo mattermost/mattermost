@@ -1986,7 +1986,7 @@ func TestReplyToPost(t *testing.T) {
 	mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("somelicense"))
 
 	t.Run("replication lag time great than reply time", func(t *testing.T) {
-		err := th.App.Srv().Store.SetReplicationLagForTesting(30)
+		err := th.App.Srv().Store.SetReplicationLagForTesting(5)
 		require.Nil(t, err)
 		defer th.App.Srv().Store.SetReplicationLagForTesting(0)
 
