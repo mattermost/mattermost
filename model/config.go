@@ -20,7 +20,7 @@ import (
 
 	"github.com/mattermost/ldap"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/corelibs/mlog"
 )
 
 const (
