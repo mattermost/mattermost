@@ -1,4 +1,4 @@
-<mj-section padding="16px 0px 0px 0px">
+<mj-section padding="16px 0px 40px 0px">
   <mj-column>
     <mj-text css-class="footerTitle" padding="0px">
       {{.Props.QuestionTitle}}

@@ -3000,7 +3000,11 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "This email address was used to create an account with Mattermost. If it was not you, you can safely ignore this email."
+    "translation": "This email address was used to create an account with Mattermost."
+  },
+  {
+    "id": "api.templates.verify_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
   },
   {
     "id": "api.templates.verify_body.subTitle",
@@ -3060,7 +3064,11 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "This email address was used to create an account with Mattermost. If it was not you, you can safely ignore this email."
+    "translation": "This email address was used to create an account with Mattermost."
+  },
+  {
+    "id": "api.templates.welcome_body.info1",
+    "translation": "If it was not you, you can safely ignore this email."
   },
   {
     "id": "api.templates.welcome_body.subTitle",

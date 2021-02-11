@@ -161,6 +161,7 @@ func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redir
 	bodyPage.Props["ButtonUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
+	bodyPage.Props["Info1"] = T("api.templates.verify_body.info1")
 	bodyPage.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
 	bodyPage.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
 
@@ -210,6 +211,7 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 	bodyPage.Props["SubTitle"] = T("api.templates.welcome_body.subTitle", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
 	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
+	bodyPage.Props["Info1"] = T("api.templates.welcome_body.info1")
 	bodyPage.Props["SiteURL"] = siteURL
 
 	if *es.srv.Config().NativeAppSettings.AppDownloadLink != "" {

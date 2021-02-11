@@ -6,7 +6,7 @@
 <mj-section padding="0px">
   <mj-column>
     <mj-text css-class="info" padding="0px">
-      {{.Props.Info}}
+      {{.Props.Info}}<br>{{.Props.Info1}}
     </mj-text>
   </mj-column>
 </mj-section>

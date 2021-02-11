@@ -6,7 +6,7 @@
     <mj-wrapper mj-class="email">
       <mj-include path="./partials/header.mjml" />
       <mj-include path="./partials/verify.mjml" />
-      <mj-section padding="16px 0px 16px 0px">
+      <mj-section padding="16px 0px 40px 0px">
         <mj-column padding="0px 24px 0px 24px">
           <mj-raw>{{if .Props.AppDownloadLink}}</mj-raw>
           <mj-image width="150px" height="25.5px" padding="0px 0px 12px 0px" src="{{.Props.SiteURL}}/static/images/appIcons.png" />
@@ -20,9 +20,9 @@
             {{.Props.AppDownloadButton}}
           </mj-button>
           <mj-raw>{{end}}</mj-raw>
-          <mj-include path="./partials/email_footer.mjml" />
         </mj-column> 
       </mj-section>
+      <mj-include path="./partials/email_footer.mjml" />
     </mj-wrapper>
   </mj-body>
 </mjml>

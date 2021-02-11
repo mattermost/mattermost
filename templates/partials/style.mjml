@@ -1,4 +1,5 @@
 <mj-attributes>
+  <mj-raw><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700" rel="stylesheet" type="text/css"></link></mj-raw>
   <mj-text font-family="Open Sans" align="center" />
   <mj-button font-family="Open Sans" background-color="#166DE0" border-radius="4px" padding="0px" />
   <mj-image alt="" align="center" />
@@ -7,9 +8,10 @@
 </mj-attributes>
 
 <mj-style>
-
+  @import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700);
+  
   body {
-    background: #E5E5E5 !important;
+    background: #F3F3F3 !important;
   }
 
   .title div {
@@ -35,7 +37,6 @@
   }
 
   .info div {
-    width:443px !important;
     font-size:14px !important;
     line-height:20px !important;
     color:#3D3C40 !important;
@@ -71,24 +72,27 @@
     font-size:12px !important;
     line-height:16px !important;
     color:rgba(61, 60, 64, 0.56) !important;
-    padding:48px 24px 8px 24px !important;
+    padding:8px 24px 8px 24px !important;
   }
 
   @media all and (min-width: 541px) {
     body {
-      padding: 32px !important;
+      padding:32px !important;
     }
   }
 
   @media all and (max-width: 540px) and (min-width: 401px) {
     body {
-      padding: 16px !important;
+      padding:16px !important;
     }
   }
 
   @media all and (max-width: 400px) {
     body {
-      padding: 0px !important;
+      padding:0px !important;
+    }
+    .info div {
+      padding:0px !important;
     }
   }
 
