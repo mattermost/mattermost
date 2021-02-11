@@ -34,9 +34,6 @@ type Threads struct {
 }
 
 type GetUserThreadsOpts struct {
-	// Page specifies which part of the results to return, by PageSize. Default = 0
-	Page uint64
-
 	// PageSize specifies the size of the returned chunk of results. Default = 30
 	PageSize uint64
 
@@ -48,6 +45,15 @@ type GetUserThreadsOpts struct {
 
 	// Since filters the threads based on their LastUpdateAt timestamp.
 	Since uint64
+
+	// Before specifies thread id as a cursor for pagination and will return `PageSize` threads before the cursor
+	Before string
+
+	// After specifies thread id as a cursor for pagination and will return `PageSize` threads after the cursor
+	After string
+
+	// Unread will make sure that only threads with unread replies are returned
+	Unread bool
 }
 
 func (o *ThreadResponse) ToJson() string {

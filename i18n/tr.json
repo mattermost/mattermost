@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8505,5 +8505,29 @@
   {
     "id": "api.user.update_user_auth.invalid_request",
     "translation": "İstekte AuthData ya da AuthService parametresi eksik."
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL ayarlarında bağlantının en fazla boşta kalma süresi geçersiz. Negatif olmayan bir sayı olmalıdır."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Dosyanın en son değişiklik zamanı alınamadı."
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Kullanıcı işlemi bulunamadı ya da izlenmiyor"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Dosya arka bölümden okunurken sorun çıktı"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zip dosyası oluşurulurken sorun çıktı."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Bu uç noktayı kullanabilmek için E10 ya da E20 lisansı gereklidir."
   }
 ]

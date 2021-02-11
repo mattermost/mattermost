@@ -101,8 +101,8 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv().Go(func() {
-		if err := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
-			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
+		if nErr := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); nErr != nil {
+			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 		}
 	})
 
