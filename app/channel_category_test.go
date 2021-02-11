@@ -112,8 +112,8 @@ func TestGetSidebarCategories(t *testing.T) {
 		}, 100)
 		require.NoError(t, err)
 
-		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
-		assert.NoError(t, err)
+		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
+		assert.Nil(t, appErr)
 		assert.Len(t, categories.Categories, 3)
 	})
 

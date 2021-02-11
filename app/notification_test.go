@@ -102,15 +102,15 @@ func TestSendNotifications(t *testing.T) {
 		}
 
 		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
-		th.BasicUser, err = th.App.UpdateUser(th.BasicUser, false)
-		require.NoError(t, err)
+		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, appErr)
 		t.Run("user wants notifications on all comments", func(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
 		})
 
 		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ROOT
-		th.BasicUser, err = th.App.UpdateUser(th.BasicUser, false)
-		require.NoError(t, err)
+		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, appErr)
 		t.Run("user wants notifications on root comment", func(t *testing.T) {
 			testUserNotNotified(t, th.BasicUser)
 		})

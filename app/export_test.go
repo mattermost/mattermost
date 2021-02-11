@@ -97,8 +97,8 @@ func TestExportUserChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
-	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
-	require.NoError(t, err)
+	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
 		if *data.Name == channelName {
@@ -164,8 +164,8 @@ func TestExportCustomEmoji(t *testing.T) {
 	outPath, err := filepath.Abs(filePath)
 	require.NoError(t, err)
 
-	_, err = th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji, false)
-	require.NoError(t, err, "should not have failed")
+	_, appErr := th.App.exportCustomEmoji(fileWriter, outPath, dirNameToExportEmoji, false)
+	require.Nil(t, appErr, "should not have failed")
 }
 
 func TestExportAllUsers(t *testing.T) {
@@ -413,8 +413,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
-	require.NoError(t, err)
+	appErr := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	require.Nil(t, appErr)
 
 	th1.TearDown()
 
@@ -426,8 +426,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
-	err, i := th2.App.BulkImport(&b, false, 5)
-	assert.NoError(t, err)
+	appErr, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
 	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
@@ -488,8 +488,8 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NotEmpty(t, posts[1].Props)
 
 	var b bytes.Buffer
-	err = th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
-	require.NoError(t, err)
+	appErr := th1.App.BulkExport(&b, "somePath", BulkExportOpts{})
+	require.Nil(t, appErr)
 
 	th1.TearDown()
 
@@ -501,8 +501,8 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Len(t, posts, 0)
 
 	// import the exported posts
-	err, i := th2.App.BulkImport(&b, false, 5)
-	assert.NoError(t, err)
+	appErr, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
 	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
@@ -583,8 +583,8 @@ func TestBulkExport(t *testing.T) {
 	jsonFile := extractImportFile(filepath.Join(testsDir, "import_test.zip"))
 	defer jsonFile.Close()
 
-	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, dir)
-	require.NoError(t, err)
+	appErr, _ := th.App.BulkImportWithPath(jsonFile, false, 1, dir)
+	require.Nil(t, appErr)
 
 	exportFile, err := os.Create(filepath.Join(dir, "export.zip"))
 	require.NoError(t, err)
@@ -594,8 +594,8 @@ func TestBulkExport(t *testing.T) {
 		IncludeAttachments: true,
 		CreateArchive:      true,
 	}
-	err = th.App.BulkExport(exportFile, dir, opts)
-	require.NoError(t, err)
+	appErr = th.App.BulkExport(exportFile, dir, opts)
+	require.Nil(t, appErr)
 
 	th.TearDown()
 	th = Setup(t)
@@ -604,6 +604,6 @@ func TestBulkExport(t *testing.T) {
 	jsonFile = extractImportFile(filepath.Join(dir, "export.zip"))
 	defer jsonFile.Close()
 
-	err, _ = th.App.BulkImportWithPath(jsonFile, false, 1, filepath.Join(dir, "data"))
-	require.NoError(t, err)
+	appErr, _ = th.App.BulkImportWithPath(jsonFile, false, 1, filepath.Join(dir, "data"))
+	require.Nil(t, appErr)
 }

@@ -24,8 +24,8 @@ func TestGetJob(t *testing.T) {
 
 	defer th.App.Srv().Store.Job().Delete(status.Id)
 
-	received, err := th.App.GetJob(status.Id)
-	require.NoError(t, err)
+	received, appErr := th.App.GetJob(status.Id)
+	require.Nil(t, appErr)
 	require.Equal(t, status, received, "incorrect job status received")
 }
 

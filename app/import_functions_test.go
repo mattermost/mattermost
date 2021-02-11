@@ -523,8 +523,8 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do a valid team in dry-run mode.
 	data.Type = ptrStr("O")
-	err = th.App.importTeam(&data, true)
-	require.NoError(t, err, "Received an error validating valid team.")
+	appErr := th.App.importTeam(&data, true)
+	require.Nil(t, appErr, "Received an error validating valid team.")
 
 	// Check that no more teams are in the DB.
 	th.CheckTeamCount(t, teamsCount)
@@ -539,15 +539,15 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do a valid team in apply mode, check db changes.
 	data.Type = ptrStr("O")
-	err = th.App.importTeam(&data, false)
-	require.NoError(t, err, "Received an error importing valid team: %v", err)
+	appErr = th.App.importTeam(&data, false)
+	require.Nil(t, appErr, "Received an error importing valid team: %v", err)
 
 	// Check that one more team is in the DB.
 	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all the fields are correct.
-	team, err := th.App.GetTeamByName(*data.Name)
-	require.NoError(t, err, "Failed to get team from database.")
+	team, appErr := th.App.GetTeamByName(*data.Name)
+	require.Nil(t, appErr, "Failed to get team from database.")
 
 	assert.Equal(t, *data.DisplayName, team.DisplayName)
 	assert.Equal(t, *data.Type, team.Type)
@@ -564,14 +564,14 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
 	data.Type = ptrStr("O")
-	err = th.App.importTeam(&data, false)
-	require.NoError(t, err, "Received an error importing updated valid team.")
+	appErr = th.App.importTeam(&data, false)
+	require.Nil(t, appErr, "Received an error importing updated valid team.")
 
 	th.CheckTeamCount(t, teamsCount+1)
 
 	// Get the team and check that all fields are correct.
-	team, err = th.App.GetTeamByName(*data.Name)
-	require.NoError(t, err, "Failed to get team from database.")
+	team, appErr = th.App.GetTeamByName(*data.Name)
+	require.Nil(t, appErr, "Failed to get team from database.")
 
 	assert.Equal(t, *data.DisplayName, team.DisplayName)
 	assert.Equal(t, *data.Type, team.Type)
@@ -731,8 +731,8 @@ func TestImportImportUser(t *testing.T) {
 		Username: ptrStr(model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
-	err = th.App.importUser(&data, true)
-	require.NoError(t, err, "Should have succeeded to import valid user.")
+	appErr := th.App.importUser(&data, true)
+	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that no more users are in the DB.
 	userCount3, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
@@ -769,8 +769,8 @@ func TestImportImportUser(t *testing.T) {
 		LastName:     ptrStr(model.NewId()),
 		Position:     ptrStr(model.NewId()),
 	}
-	err = th.App.importUser(&data, false)
-	require.NoError(t, err, "Should have succeeded to import valid user.")
+	appErr = th.App.importUser(&data, false)
+	require.Nil(t, appErr, "Should have succeeded to import valid user.")
 
 	// Check that one more user is in the DB.
 	userCount5, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
@@ -812,8 +812,8 @@ func TestImportImportUser(t *testing.T) {
 	data.Roles = ptrStr("system_admin system_user")
 	data.Locale = ptrStr("zh_CN")
 
-	err = th.App.importUser(&data, false)
-	require.NoError(t, err, "Should have succeeded to update valid user %v", err)
+	appErr = th.App.importUser(&data, false)
+	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 	// Check user count the same.
 	userCount6, err := th.App.Srv().Store.User().Count(model.UserCountOptions{
@@ -844,21 +844,21 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check Password and AuthData together.
 	data.Password = ptrStr("PasswordTest")
-	err = th.App.importUser(&data, false)
-	require.Error(t, err, "Should have failed to import invalid user.")
+	appErr = th.App.importUser(&data, false)
+	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.AuthData = nil
 	data.AuthService = nil
-	err = th.App.importUser(&data, false)
-	require.NoError(t, err, "Should have succeeded to update valid user %v", err)
+	appErr = th.App.importUser(&data, false)
+	require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
 
 	data.Password = ptrStr("")
-	err = th.App.importUser(&data, false)
-	require.Error(t, err, "Should have failed to import invalid user.")
+	appErr = th.App.importUser(&data, false)
+	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.Password = ptrStr(strings.Repeat("0123456789", 10))
-	err = th.App.importUser(&data, false)
-	require.Error(t, err, "Should have failed to import invalid user.")
+	appErr = th.App.importUser(&data, false)
+	require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
 	data.Password = ptrStr("TestPassword")
 
@@ -869,8 +869,8 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := th.App.GetTeamByName(teamName)
-	require.NoError(t, err, "Failed to get team from database.")
+	team, appErr := th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
 
 	channelName := model.NewId()
 	th.App.importChannel(&ChannelImportData{
@@ -879,8 +879,8 @@ func TestImportImportUser(t *testing.T) {
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := th.App.GetChannelByName(channelName, team.Id, false)
-	require.NoError(t, err, "Failed to get channel from database.")
+	channel, appErr := th.App.GetChannelByName(channelName, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database.")
 
 	username = model.NewId()
 	data = UserImportData{
@@ -892,12 +892,12 @@ func TestImportImportUser(t *testing.T) {
 		Position:  ptrStr(model.NewId()),
 	}
 
-	teamMembers, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get team member count")
+	teamMembers, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get team member count")
 	teamMemberCount := len(teamMembers)
 
-	channelMemberCount, err := th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get channel member count")
+	channelMemberCount, appErr := th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get channel member count")
 
 	// Test with an invalid team & channel membership in dry-run mode.
 	data.Teams = &[]UserTeamImportData{
@@ -910,8 +910,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, true)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, true)
+	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in dry-run mode.
 	data.Teams = &[]UserTeamImportData{
@@ -924,8 +924,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, true)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, true)
+	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in dry-run mode.
 	data.Teams = &[]UserTeamImportData{
@@ -938,8 +938,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, true)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, true)
+	assert.NotNil(t, appErr)
 
 	// Test with a valid team & unknown channel name in dry-run mode.
 	data.Teams = &[]UserTeamImportData{
@@ -952,8 +952,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, true)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, true)
+	assert.Nil(t, appErr)
 
 	// Test with a valid team & valid channel name in dry-run mode.
 	data.Teams = &[]UserTeamImportData{
@@ -966,16 +966,16 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, true)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, true)
+	assert.Nil(t, appErr)
 
 	// Check no new member objects were created because dry run mode.
-	tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get Team Member Count")
+	tmc, appErr := th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
-	cmc, err := th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get Channel Member Count")
+	cmc, appErr := th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc, "Number of channel members not as expected")
 
 	// Test with an invalid team & channel membership in apply mode.
@@ -989,8 +989,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.NotNil(t, appErr)
 
 	// Test with an unknown team name & invalid channel membership in apply mode.
 	data.Teams = &[]UserTeamImportData{
@@ -1003,8 +1003,8 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.NotNil(t, appErr)
 
 	// Test with a valid team & invalid channel membership in apply mode.
 	data.Teams = &[]UserTeamImportData{
@@ -1017,16 +1017,16 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.NotNil(t, appErr)
 
 	// Check no new member objects were created because all tests should have failed so far.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get Team Member Count")
+	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount)
 
-	cmc, err = th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get Channel Member Count")
+	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
 	// Test with a valid team & unknown channel name in apply mode.
@@ -1040,24 +1040,24 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.Error(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.NotNil(t, appErr)
 
 	// Check only new team member object created because dry run mode.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get Team Member Count")
+	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1)
 
-	cmc, err = th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get Channel Member Count")
+	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount, cmc)
 
 	// Check team member properties.
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, err := th.App.GetTeamMember(team.Id, user.Id)
-	require.NoError(t, err, "Failed to get team member from database.")
+	teamMember, appErr := th.App.GetTeamMember(team.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user", teamMember.Roles)
 
 	// Test with a valid team & valid channel name in apply mode.
@@ -1071,21 +1071,21 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
 	// Check only new channel member object created because dry run mode.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get Team Member Count")
+	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, err = th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get Channel Member Count")
+	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Check channel member properties.
-	channelMember, err := th.App.GetChannelMember(channel.Id, user.Id)
-	require.NoError(t, err, "Failed to get channel member from database.")
+	channelMember, appErr := th.App.GetChannelMember(channel.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get channel member from database.")
 	assert.Equal(t, "channel_user", channelMember.Roles)
 	assert.Equal(t, "default", channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
 	assert.Equal(t, "default", channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
@@ -1111,16 +1111,16 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
 	// Check both member properties.
-	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
-	require.NoError(t, err, "Failed to get team member from database.")
+	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
-	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
-	require.NoError(t, err, "Failed to get channel member Desktop from database.")
+	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get channel member Desktop from database.")
 	assert.Equal(t, "channel_user channel_admin", channelMember.Roles)
 	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP])
 	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
@@ -1130,12 +1130,12 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, team.Id, *(*data.Teams)[0].Theme)
 
 	// No more new member objects.
-	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
-	require.NoError(t, err, "Failed to get Team Member Count")
+	tmc, appErr = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
+	require.Nil(t, appErr, "Failed to get Team Member Count")
 	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
-	cmc, err = th.App.GetChannelMemberCount(channel.Id)
-	require.NoError(t, err, "Failed to get Channel Member Count")
+	cmc, appErr = th.App.GetChannelMemberCount(channel.Id)
+	require.Nil(t, appErr, "Failed to get Channel Member Count")
 	require.Equal(t, channelMemberCount+1, cmc, "Number of channel members not as expected")
 
 	// Add a user with some preferences.
@@ -1154,12 +1154,12 @@ func TestImportImportUser(t *testing.T) {
 		ShowUnreadSection:  ptrStr("true"),
 		EmailInterval:      ptrStr("immediately"),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
 	// Check their values.
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
@@ -1184,8 +1184,8 @@ func TestImportImportUser(t *testing.T) {
 		TutorialStep:       ptrStr("2"),
 		EmailInterval:      ptrStr("hour"),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
 	// Check their values again.
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
@@ -1206,11 +1206,11 @@ func TestImportImportUser(t *testing.T) {
 		ChannelTrigger:   ptrStr("true"),
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
@@ -1232,11 +1232,11 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
 		MentionKeys:      ptrStr("valid,misc"),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
@@ -1258,11 +1258,11 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
 		MentionKeys:      ptrStr("misc"),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
@@ -1283,11 +1283,11 @@ func TestImportImportUser(t *testing.T) {
 		ChannelTrigger:   ptrStr("false"),
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
 	}
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
@@ -1315,11 +1315,11 @@ func TestImportImportUser(t *testing.T) {
 		MentionKeys:      ptrStr("misc"),
 	}
 
-	err = th.App.importUser(&data, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(&data, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
 	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
 	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
@@ -1372,8 +1372,8 @@ func TestImportImportUser(t *testing.T) {
 		Description: ptrStr("description"),
 	}
 
-	err = th.App.importScheme(teamSchemeData, false)
-	assert.NoError(t, err)
+	appErr = th.App.importScheme(teamSchemeData, false)
+	assert.Nil(t, appErr)
 
 	teamScheme, nErr := th.App.Srv().Store.Scheme().GetByName(*teamSchemeData.Name)
 	require.NoError(t, nErr, "Failed to import scheme")
@@ -1386,10 +1386,10 @@ func TestImportImportUser(t *testing.T) {
 		AllowOpenInvite: ptrBool(true),
 		Scheme:          &teamScheme.Name,
 	}
-	err = th.App.importTeam(teamData, false)
-	assert.NoError(t, err)
-	team, err = th.App.GetTeamByName(teamName)
-	require.NoError(t, err, "Failed to get team from database.")
+	appErr = th.App.importTeam(teamData, false)
+	assert.Nil(t, appErr)
+	team, appErr = th.App.GetTeamByName(teamName)
+	require.Nil(t, appErr, "Failed to get team from database.")
 
 	channelData := &ChannelImportData{
 		Team:        &teamName,
@@ -1399,10 +1399,10 @@ func TestImportImportUser(t *testing.T) {
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 	}
-	err = th.App.importChannel(channelData, false)
-	assert.NoError(t, err)
-	channel, err = th.App.GetChannelByName(*channelData.Name, team.Id, false)
-	require.NoError(t, err, "Failed to get channel from database")
+	appErr = th.App.importChannel(channelData, false)
+	assert.Nil(t, appErr)
+	channel, appErr = th.App.GetChannelByName(*channelData.Name, team.Id, false)
+	require.Nil(t, appErr, "Failed to get channel from database")
 
 	// Test with a valid team & valid channel name in apply mode.
 	userData := &UserImportData{
@@ -1421,22 +1421,22 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(userData, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(userData, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(*userData.Username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(*userData.Username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
-	require.NoError(t, err, "Failed to get the team member")
+	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.True(t, teamMember.SchemeAdmin)
 	assert.True(t, teamMember.SchemeUser)
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
-	require.NoError(t, err, "Failed to get the channel member")
+	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.True(t, channelMember.SchemeAdmin)
 	assert.True(t, channelMember.SchemeUser)
@@ -1463,22 +1463,22 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(deletedUserData, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(deletedUserData, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(*deletedUserData.Username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(*deletedUserData.Username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
-	require.NoError(t, err, "Failed to get the team member")
+	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
 	assert.True(t, teamMember.SchemeUser)
 	assert.False(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
-	require.NoError(t, err, "Failed to get the channel member")
+	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
 	assert.True(t, channelMember.SchemeUser)
@@ -1505,22 +1505,22 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	err = th.App.importUser(deletedGuestData, false)
-	assert.NoError(t, err)
+	appErr = th.App.importUser(deletedGuestData, false)
+	assert.Nil(t, appErr)
 
-	user, err = th.App.GetUserByUsername(*deletedGuestData.Username)
-	require.NoError(t, err, "Failed to get user from database.")
+	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
+	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
-	require.NoError(t, err, "Failed to get the team member")
+	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
 	assert.False(t, teamMember.SchemeUser)
 	assert.True(t, teamMember.SchemeGuest)
 	assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
-	require.NoError(t, err, "Failed to get the channel member")
+	channelMember, appErr = th.App.GetChannelMember(channel.Id, user.Id)
+	require.Nil(t, appErr, "Failed to get the channel member")
 
 	assert.False(t, teamMember.SchemeAdmin)
 	assert.False(t, channelMember.SchemeUser)
@@ -2983,8 +2983,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	err = th.App.importDirectChannel(&data, true)
-	require.NoError(t, err)
+	appErr := th.App.importDirectChannel(&data, true)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -2996,8 +2996,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	err = th.App.importDirectChannel(&data, true)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, true)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
@@ -3019,16 +3019,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that one more DIRECT channel is in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do the same DIRECT channel again.
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -3036,16 +3036,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
-	channel, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
-	require.NoError(t, err)
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Do a GROUP channel with an extra invalid member.
@@ -3056,8 +3056,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Username,
 		model.NewId(),
 	}
-	err = th.App.importDirectChannel(&data, false)
-	require.Error(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.NotNil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -3069,16 +3069,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Username,
 		user3.Username,
 	}
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that one more GROUP channel is in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
 	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -3086,8 +3086,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
 	// Check that no more channels are in the DB.
 	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
@@ -3099,7 +3099,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, appErr := th.App.createGroupChannel(userIDs)
+	channel, appErr = th.App.createGroupChannel(userIDs)
 	require.Equal(t, appErr.Id, store.ChannelExistsError)
 	require.Equal(t, channel.Header, *data.Header)
 
@@ -3112,11 +3112,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	err = th.App.importDirectChannel(&data, false)
-	require.NoError(t, err)
+	appErr = th.App.importDirectChannel(&data, false)
+	require.Nil(t, appErr)
 
-	channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
-	require.NoError(t, err)
+	channel, appErr = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
 	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 }
