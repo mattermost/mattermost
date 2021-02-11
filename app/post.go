@@ -181,16 +181,6 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.SanitizeProps()
 
-	var pchan chan store.StoreResult
-	if post.RootId != "" {
-		pchan = make(chan store.StoreResult, 1)
-		go func() {
-			r, pErr := a.Srv().Store.Post().Get(post.RootId, false, false, false)
-			pchan <- store.StoreResult{Data: r, NErr: pErr}
-			close(pchan)
-		}()
-	}
-
 	user, nErr := a.Srv().Store.User().Get(post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -231,12 +221,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
-	if pchan != nil {
-		result := <-pchan
-		if result.NErr != nil {
+	if post.RootId != "" {
+		parentPostList, nErr = a.Srv().Store.Post().Get(post.RootId, false, false, false)
+		if nErr != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
-		parentPostList = result.Data.(*model.PostList)
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
