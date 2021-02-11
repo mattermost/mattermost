@@ -63,7 +63,11 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
 		// to a team and channel after it's created
-		channel, err := a.GetOrCreateDirectChannel(savedBot.UserId, bot.OwnerId)
+		botOwner, err := a.GetUser(bot.OwnerId)
+		if err != nil {
+			return nil, err
+		}
+		channel, err := a.getOrCreateDirectChannelWithUser(user, botOwner)
 		if err != nil {
 			return nil, err
 		}
