@@ -68,6 +68,7 @@ type Store interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	SetReplicationLagForTesting(seconds int) error
 }
 
 type TeamStore interface {

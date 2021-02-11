@@ -5,7 +5,6 @@ package testutils
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -15,8 +14,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -74,37 +71,4 @@ func GetInterface(port int) string {
 		return ""
 	}
 	return string(out)
-}
-
-func SetReplicationLagForTesting(ss *sqlstore.SqlStore, seconds int) error {
-	if dn := ss.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
-		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
-	}
-
-	err := execOnEachReplica(ss, "STOP SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	err = execOnEachReplica(ss, fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
-	if err != nil {
-		return err
-	}
-
-	err = execOnEachReplica(ss, "START SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func execOnEachReplica(ss *sqlstore.SqlStore, query string, args ...interface{}) error {
-	for _, replica := range ss.Replicas {
-		_, err := replica.Exec(query, args...)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

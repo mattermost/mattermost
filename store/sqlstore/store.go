@@ -123,7 +123,7 @@ type SqlStore struct {
 	rrCounter      int64
 	srCounter      int64
 	master         *gorp.DbMap
-	Replicas       []*gorp.DbMap
+	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
 	stores         SqlStoreStores
 	settings       *model.SqlSettings
@@ -305,9 +305,9 @@ func (ss *SqlStore) initConnection() {
 	ss.master = setupConnection("master", *ss.settings.DataSource, ss.settings)
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
-		ss.Replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
-			ss.Replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
+			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 		}
 	}
 
@@ -384,8 +384,8 @@ func (ss *SqlStore) GetReplica() *gorp.DbMap {
 		return ss.GetMaster()
 	}
 
-	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.Replicas))
-	return ss.Replicas[rrNum]
+	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
+	return ss.replicas[rrNum]
 }
 
 func (ss *SqlStore) TotalMasterDbConnections() int {
@@ -398,7 +398,7 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	count := 0
-	for _, db := range ss.Replicas {
+	for _, db := range ss.replicas {
 		count = count + db.Db.Stats().OpenConnections
 	}
 
@@ -1047,9 +1047,9 @@ func IsUniqueConstraintError(err error, indexName []string) bool {
 }
 
 func (ss *SqlStore) GetAllConns() []*gorp.DbMap {
-	all := make([]*gorp.DbMap, len(ss.Replicas)+1)
-	copy(all, ss.Replicas)
-	all[len(ss.Replicas)] = ss.master
+	all := make([]*gorp.DbMap, len(ss.replicas)+1)
+	copy(all, ss.replicas)
+	all[len(ss.replicas)] = ss.master
 	return all
 }
 
@@ -1072,7 +1072,7 @@ func (ss *SqlStore) RecycleDBConnections(d time.Duration) {
 
 func (ss *SqlStore) Close() {
 	ss.master.Db.Close()
-	for _, replica := range ss.Replicas {
+	for _, replica := range ss.replicas {
 		replica.Db.Close()
 	}
 }
@@ -1370,4 +1370,37 @@ func VersionString(v int) string {
 	minor := v % 10000
 	major := v / 10000
 	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+}
+
+func (ss *SqlStore) SetReplicationLagForTesting(seconds int) error {
+	if dn := ss.DriverName(); dn != model.DATABASE_DRIVER_MYSQL {
+		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DATABASE_DRIVER_MYSQL)
+	}
+
+	err := ss.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	err = ss.execOnEachReplica(fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
+	if err != nil {
+		return err
+	}
+
+	err = ss.execOnEachReplica("START SLAVE SQL_THREAD FOR CHANNEL ''")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ss *SqlStore) execOnEachReplica(query string, args ...interface{}) error {
+	for _, replica := range ss.replicas {
+		_, err := replica.Exec(query, args...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
