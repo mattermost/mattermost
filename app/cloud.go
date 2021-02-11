@@ -60,7 +60,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 
 	for admin := range sysAdmins {
 		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
-		if !ok {
+		if !ok || err != nil {
 			a.Log().Error("Error sending upgrade request email", mlog.Err(err))
 			countNotOks++
 		}
