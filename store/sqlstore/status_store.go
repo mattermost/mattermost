@@ -104,13 +104,16 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 
 // MySql doesn't has support for RETURNING clause or any euivalent so use transaction
 func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Status, error) {
+	currUnixTime := time.Now().UTC().Unix()
 	selectQuery, selectParams, _ := s.getQueryBuilder().
 		Select("UserId, Status").
 		From("Status").
 		Where(
-			sq.Eq{"Status": model.STATUS_DND},
-			sq.Gt{"DNDEndTimeUnix": -1},
-			sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTimeUnix": 0},
+				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
+			},
 		).ToSql()
 	var selectedStatuses []*model.Status
 	_, err := t.Select(&selectedStatuses, selectQuery, selectParams...)
@@ -120,15 +123,18 @@ func (s SqlStatusStore) updateExpiredStatuses(t *gorp.Transaction) ([]*model.Sta
 	updateQuery, args, _ := s.getQueryBuilder().
 		Update("Status").
 		Where(
-			sq.Eq{"Status": model.STATUS_DND},
-			sq.Gt{"DNDEndTimeUnix": 1},
-			sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTimeUnix": 0},
+				sq.LtOrEq{"DNDEndTimeUnix": currUnixTime},
+			},
 		).
-		Set("Status", "PrevStatus").
+		Set("Status", sq.Expr("PrevStatus")).
 		Set("PrevStatus", model.STATUS_DND).
-		Set("DNDEndTimeUnix", -1).
+		Set("DNDEndTimeUnix", 0).
 		Set("Manual", false).
 		ToSql()
+
 	if _, err := t.Exec(updateQuery, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to update statuses")
 	}
@@ -153,20 +159,23 @@ func (s SqlStatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 		return statuses, nil
 	}
 
-	queryString := fmt.Sprintf(`
-		UPDATE
-			Status
-		SET
-			DNDEndTimeUnix = %v, Manual = %v,
-			PrevStatus = '%v', Status = PrevStatus
-		WHERE
-			(Status = '%v' AND DNDEndTimeUnix <= %v AND DNDEndTimeUnix > %v)
-		RETURNING
-			UserId, Status`,
-		-1, false, model.STATUS_DND, model.STATUS_DND, time.Now().UTC().Unix(), 1,
-	)
+	queryString, args, _ := s.getQueryBuilder().
+		Update("Status").
+		Where(
+			sq.And{
+				sq.Eq{"Status": model.STATUS_DND},
+				sq.Gt{"DNDEndTimeUnix": 0},
+				sq.LtOrEq{"DNDEndTimeUnix": time.Now().UTC().Unix()},
+			},
+		).
+		Set("Status", sq.Expr("PrevStatus")).
+		Set("PrevStatus", model.STATUS_DND).
+		Set("DNDEndTimeUnix", 0).
+		Set("Manual", false).
+		Suffix("RETURNING userId, Status").
+		ToSql()
 
-	rows, err := s.GetMaster().Query(queryString)
+	rows, err := s.GetMaster().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
