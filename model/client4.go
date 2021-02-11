@@ -34,6 +34,7 @@ const (
 	HEADER_CLOUD_TOKEN        = "X-Cloud-Token"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
 	HEADER_REQUESTED_WITH_XML = "XMLHttpRequest"
+	HEADER_RANGE              = "Range"
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
@@ -550,6 +551,14 @@ func (c *Client4) GetImportsRoute() string {
 	return "/imports"
 }
 
+func (c *Client4) GetExportsRoute() string {
+	return "/exports"
+}
+
+func (c *Client4) GetExportRoute(name string) string {
+	return fmt.Sprintf(c.GetExportsRoute()+"/%v", name)
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -575,21 +584,25 @@ func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 }
 
 func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, strings.NewReader(data), etag)
+	return c.doApiRequestReader(method, url, strings.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
+}
+
+func (c *Client4) DoApiRequestWithHeaders(method, url, data string, headers map[string]string) (*http.Response, *AppError) {
+	return c.doApiRequestReader(method, url, strings.NewReader(data), headers)
 }
 
 func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string) (*http.Response, *AppError) {
-	return c.doApiRequestReader(method, url, bytes.NewReader(data), etag)
+	return c.doApiRequestReader(method, url, bytes.NewReader(data), map[string]string{HEADER_ETAG_CLIENT: etag})
 }
 
-func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag string) (*http.Response, *AppError) {
+func (c *Client4) doApiRequestReader(method, url string, data io.Reader, headers map[string]string) (*http.Response, *AppError) {
 	rq, err := http.NewRequest(method, url, data)
 	if err != nil {
 		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if etag != "" {
-		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
+	for k, v := range headers {
+		rq.Header.Set(k, v)
 	}
 
 	if c.AuthToken != "" {
@@ -5668,7 +5681,7 @@ func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response)
 // a FileInfo object.
 func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
 	url := c.GetUploadRoute(uploadId)
-	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, "")
+	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, nil)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -5814,6 +5827,57 @@ func (c *Client4) ListImports() ([]string, *Response) {
 	}
 	defer closeBody(r)
 	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) ListExports() ([]string, *Response) {
+	r, err := c.DoApiGet(c.GetExportsRoute(), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ArrayFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) DeleteExport(name string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetExportRoute(name))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+func (c *Client4) DownloadExport(name string, wr io.Writer, offset int64) (int64, *Response) {
+	var headers map[string]string
+	if offset > 0 {
+		headers = map[string]string{
+			HEADER_RANGE: fmt.Sprintf("bytes=%d-", offset),
+		}
+	}
+	r, appErr := c.DoApiRequestWithHeaders(http.MethodGet, c.ApiUrl+c.GetExportRoute(name), "", headers)
+	if appErr != nil {
+		return 0, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	n, err := io.Copy(wr, r.Body)
+	if err != nil {
+		return n, BuildErrorResponse(r, NewAppError("DownloadExport", "model.client.copy.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return n, BuildResponse(r)
+}
+
+func (c *Client4) GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, *Response) {
+	url := c.GetUserThreadsRoute(userId, teamId)
+	r, appErr := c.DoApiGet(url+"/mention_counts", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var counts map[string]int64
+	json.NewDecoder(r.Body).Decode(&counts)
+
+	return counts, BuildResponse(r)
 }
 
 func (c *Client4) GetUserThreads(userId, teamId string, options GetUserThreadsOpts) (*Threads, *Response) {
