@@ -23,7 +23,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	uid := p.configuration.BasicUserId
 
 	statuses := []string{model.STATUS_ONLINE, model.STATUS_AWAY, model.STATUS_DND, model.STATUS_OFFLINE}

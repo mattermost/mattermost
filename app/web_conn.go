@@ -134,6 +134,8 @@ func (wc *WebConn) Pump() {
 	wg.Wait()
 	wc.App.HubUnregister(wc)
 	close(wc.pumpFinished)
+
+	defer ReturnSessionToPool(wc.GetSession())
 }
 
 func (wc *WebConn) readPump() {
@@ -309,7 +311,7 @@ func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 }
 
 func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
-	var userId string
+	var userID string
 	var canSee bool
 
 	switch msg.EventType() {
@@ -319,14 +321,14 @@ func (wc *WebConn) shouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 			mlog.Debug("webhub.shouldSendEvent: user not found in message", mlog.Any("user", msg.GetData()["user"]))
 			return false
 		}
-		userId = user.Id
+		userID = user.Id
 	case model.WEBSOCKET_EVENT_NEW_USER:
-		userId = msg.GetData()["user_id"].(string)
+		userID = msg.GetData()["user_id"].(string)
 	default:
 		return true
 	}
 
-	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userId)
+	canSee, err := wc.App.UserCanSeeOtherUser(wc.UserId, userID)
 	if err != nil {
 		mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
 		return false
@@ -412,8 +414,8 @@ func (wc *WebConn) shouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 // IsMemberOfTeam returns whether the user of the WebConn
-// is a member of the given teamId or not.
-func (wc *WebConn) isMemberOfTeam(teamId string) bool {
+// is a member of the given teamID or not.
+func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 	currentSession := wc.GetSession()
 
 	if currentSession == nil || currentSession.Token == "" {
@@ -430,7 +432,7 @@ func (wc *WebConn) isMemberOfTeam(teamId string) bool {
 		currentSession = session
 	}
 
-	return currentSession.GetTeamByTeamId(teamId) != nil
+	return currentSession.GetTeamByTeamId(teamID) != nil
 }
 
 func (wc *WebConn) logSocketErr(source string, err error) {

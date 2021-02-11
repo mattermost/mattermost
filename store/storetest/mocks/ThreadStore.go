@@ -171,6 +171,52 @@ func (_m *ThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
+// GetThreadForUser provides a mock function with given fields: userId, teamId, threadId, extended
+func (_m *ThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(userId, teamId, threadId, extended)
+
+	var r0 *model.ThreadResponse
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ThreadResponse); ok {
+		r0 = rf(userId, teamId, threadId, extended)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ThreadResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
+		r1 = rf(userId, teamId, threadId, extended)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetThreadMentionsForUserPerChannel provides a mock function with given fields: userId, teamId
+func (_m *ThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
+	ret := _m.Called(userId, teamId)
+
+	var r0 map[string]int64
+	if rf, ok := ret.Get(0).(func(string, string) map[string]int64); ok {
+		r0 = rf(userId, teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]int64)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, teamId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadsForUser provides a mock function with given fields: userId, teamId, opts
 func (_m *ThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 	ret := _m.Called(userId, teamId, opts)

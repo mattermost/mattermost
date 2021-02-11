@@ -182,6 +182,18 @@ func (ts *TelemetryService) sendTelemetry(event string, properties map[string]in
 	}
 }
 
+func isDefaultArray(setting, defaultValue []string) bool {
+	if len(setting) != len(defaultValue) {
+		return false
+	}
+	for i := 0; i < len(setting); i++ {
+		if setting[i] != defaultValue[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func isDefault(setting interface{}, defaultValue interface{}) bool {
 	return setting == defaultValue
 }
@@ -474,6 +486,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
 		"conn_max_lifetime_milliseconds": *cfg.SqlSettings.ConnMaxLifetimeMilliseconds,
+		"conn_max_idletime_milliseconds": *cfg.SqlSettings.ConnMaxIdleTimeMilliseconds,
 		"max_open_conns":                 *cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
@@ -687,6 +700,7 @@ func (ts *TelemetryService) trackConfig() {
 		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
 		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"enable_gossip_compression":             *cfg.ClusterSettings.EnableGossipCompression,
 		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
@@ -696,6 +710,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigNativeApp, map[string]interface{}{
+		"isdefault_app_custom_url_schemes":    isDefaultArray(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
