@@ -70,6 +70,7 @@ type shouldProcessMessageOptions struct {
 	FilterChannelIDs    []string
 	FilterUserIDs       []string
 	OnlyBotDMs          bool
+	BotID               string
 }
 
 // AllowSystemMessages configures a call to ShouldProcessMessage to return true for system messages.
@@ -126,14 +127,13 @@ func OnlyBotDMs() ShouldProcessMessageOption {
 	}
 }
 
-// ShouldProcessMessageNoBotCheck implements Helpers.ShouldProcessMessageNoBotCheck
-func (p *HelpersImpl) ShouldProcessMessageNoBotCheck(post *model.Post, botId string, options ...ShouldProcessMessageOption) (bool, error) {
-	messageProcessOptions := &shouldProcessMessageOptions{}
-	for _, option := range options {
-		option(messageProcessOptions)
+// If provided, BotID configures ShouldProcessMessage to skip its retrieval from the store.
+//
+// By default, posts from all non-bot users are allowed.
+func BotID(botID string) ShouldProcessMessageOption {
+	return func(options *shouldProcessMessageOptions) {
+		options.BotID = botID
 	}
-
-	return p.shouldProcessMessage(post, botId, messageProcessOptions)
 }
 
 // ShouldProcessMessage implements Helpers.ShouldProcessMessage
@@ -143,21 +143,24 @@ func (p *HelpersImpl) ShouldProcessMessage(post *model.Post, options ...ShouldPr
 		option(messageProcessOptions)
 	}
 
-	botIDBytes, kvGetErr := p.API.KVGet(BotUserKey)
-	if kvGetErr != nil {
-		return false, errors.Wrap(kvGetErr, "failed to get bot")
-	}
+	var botIDBytes []byte
+	var kvGetErr *model.AppError
 
-	if botIDBytes != nil {
-		if post.UserId == string(botIDBytes) {
-			return false, nil
+	if messageProcessOptions.BotID != "" {
+		botIDBytes = []byte(messageProcessOptions.BotID)
+	} else {
+		botIDBytes, kvGetErr = p.API.KVGet(BotUserKey)
+
+		if kvGetErr != nil {
+			return false, errors.Wrap(kvGetErr, "failed to get bot")
+		}
+
+		if botIDBytes != nil {
+			if post.UserId == string(botIDBytes) {
+				return false, nil
+			}
 		}
 	}
-
-	return p.shouldProcessMessage(post, string(botIDBytes), messageProcessOptions)
-}
-
-func (p *HelpersImpl) shouldProcessMessage(post *model.Post, botId string, messageProcessOptions *shouldProcessMessageOptions) (bool, error) {
 
 	if post.IsSystemMessage() && !messageProcessOptions.AllowSystemMessages {
 		return false, nil
@@ -186,13 +189,13 @@ func (p *HelpersImpl) shouldProcessMessage(post *model.Post, botId string, messa
 		return false, nil
 	}
 
-	if len(botId) > 0 && messageProcessOptions.OnlyBotDMs {
+	if botIDBytes != nil && messageProcessOptions.OnlyBotDMs {
 		channel, appErr := p.API.GetChannel(post.ChannelId)
 		if appErr != nil {
 			return false, errors.Wrap(appErr, "unable to get channel")
 		}
 
-		if !model.IsBotDMChannel(channel, botId) {
+		if !model.IsBotDMChannel(channel, string(botIDBytes)) {
 			return false, nil
 		}
 	}
