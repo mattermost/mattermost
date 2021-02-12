@@ -372,7 +372,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(post.ToJson()))
 }
 
-func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
+func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -639,7 +639,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(patchedPost.ToJson()))
 }
 
-func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
+func setPostUnread(c *Context, w http.ResponseWriter, _ *http.Request) {
 	c.RequirePostId().RequireUserId()
 	if c.Err != nil {
 		return
@@ -661,7 +661,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(state.ToJson()))
 }
 
-func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinned bool) {
+func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	c.RequirePostId()
 	if c.Err != nil {
 		return
@@ -717,12 +717,12 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 	ReturnStatusOK(w)
 }
 
-func pinPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	saveIsPinnedPost(c, w, r, true)
+func pinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
+	saveIsPinnedPost(c, w, true)
 }
 
-func unpinPost(c *Context, w http.ResponseWriter, r *http.Request) {
-	saveIsPinnedPost(c, w, r, false)
+func unpinPost(c *Context, w http.ResponseWriter, _ *http.Request) {
+	saveIsPinnedPost(c, w, false)
 }
 
 func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {

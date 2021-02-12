@@ -8518,6 +8518,26 @@ func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, t
 
 }
 
+func (s *RetryLayerThreadStore) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadMentionsForUserPerChannel(userId, teamId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error) {
 
 	tries := 0
@@ -9393,6 +9413,26 @@ func (s *RetryLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 	tries := 0
 	for {
 		result, err := s.UserStore.GetKnownUsers(userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerUserStore) GetMany(ids []string) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetMany(ids)
 		if err == nil {
 			return result, nil
 		}
