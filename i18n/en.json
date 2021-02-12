@@ -3067,10 +3067,6 @@
     "translation": "Error reading file from backend"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Error downloading support packet file."
-  },
-  {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
@@ -6671,6 +6667,10 @@
     "translation": "Unable to set the email To address."
   },
   {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Unable to connect to the smtp server"
+  },
+  {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
     "translation": "Unable to get the information of the export temporary file."
   },
@@ -7936,7 +7936,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8393,46 +8393,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Failed to open TLS connection."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Failed to authenticate on SMTP server."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Failed to close connection to SMTP server."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email message data."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\"."
   },
   {
     "id": "web.command_webhook.command.app_error",

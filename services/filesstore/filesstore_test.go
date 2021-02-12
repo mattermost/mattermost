@@ -90,7 +90,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 
 func (s *FileBackendTestSuite) SetupTest() {
 	backend, err := NewFileBackend(s.settings)
-	require.Nil(s.T(), err)
+	require.NoError(s.T(), err)
 	s.backend = backend
 
 	// This is needed to create the bucket if it doesn't exist.
@@ -440,10 +440,10 @@ func BenchmarkS3WriteFile(b *testing.B) {
 	}
 
 	backend, err := NewFileBackend(settings)
-	require.Nil(b, err)
+	require.NoError(b, err)
 
 	// This is needed to create the bucket if it doesn't exist.
-	require.Nil(b, backend.TestConnection())
+	require.NoError(b, backend.TestConnection())
 
 	path := "tests/" + randomString()
 	size := 1 * 1024 * 1024
@@ -454,7 +454,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		written, err := backend.WriteFile(bytes.NewReader(data), path)
 		defer backend.RemoveFile(path)
-		require.Nil(b, err)
+		require.NoError(b, err)
 		require.Equal(b, len(data), int(written))
 	}
 

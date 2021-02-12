@@ -6726,7 +6726,7 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserId string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannel")
 
@@ -6738,7 +6738,7 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userID, otherUserId)
+	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userID, otherUserID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -15723,6 +15723,28 @@ func (a *OpenTracingAppLayer) UpdateUserRoles(userID string, newRoles string, se
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UpdateUserRoles(userID, newRoles, sendWebSocketEvent)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserRolesWithUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
