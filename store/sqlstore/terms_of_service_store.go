@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/pkg/errors"
 
@@ -64,7 +63,7 @@ func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfSe
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "could not build sql query to get latest TOS")
 	}
 
 	if err := s.GetReplica().SelectOne(&termsOfService, queryString, args...); err != nil {
