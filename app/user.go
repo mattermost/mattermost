@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
@@ -432,7 +433,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.Srv().Store.User().Get(userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -683,7 +684,7 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
 	allowFromCache := options.ViewRestrictions == nil
 
-	users, err := a.Srv().Store.User().GetProfileByIds(userIDs, options, allowFromCache)
+	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, options, allowFromCache)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByIds", "app.user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -739,7 +740,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userID, token string) *model.AppError {
-	user, err := a.Srv().Store.User().Get(userID)
+	user, err := a.Srv().Store.User().Get(context.Background(), userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1212,7 +1213,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.Srv().Store.User().Get(user.Id)
+	prev, err := a.Srv().Store.User().Get(context.Background(), user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2058,7 +2059,7 @@ func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Chan
 // and returns the list of normal users present in userIDs but not in groupUsers.
 func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([]string, error) {
 	nonMemberIds := []string{}
-	users, err := a.Srv().Store.User().GetProfileByIds(userIDs, nil, false)
+	users, err := a.Srv().Store.User().GetProfileByIds(context.Background(), userIDs, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2223,19 +2224,14 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 // DemoteUserToGuest Convert user's roles and all his mermbership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
-	nErr := a.Srv().Store.User().DemoteUserToGuest(user.Id)
+	demotedUser, nErr := a.Srv().Store.User().DemoteUserToGuest(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	demotedUser, err := a.GetUser(user.Id)
-	if err != nil {
-		mlog.Warn("Failed to get user on demote user to guest", mlog.Err(err))
-	} else {
-		a.sendUpdatedUserEvent(*demotedUser)
-		a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
-	}
+	a.sendUpdatedUserEvent(*demotedUser)
+	a.UpdateSessionsIsGuest(demotedUser.Id, demotedUser.IsGuest())
 
 	teamMembers, err := a.GetTeamMembersForUser(user.Id)
 	if err != nil {
@@ -2248,6 +2244,7 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 		channelMembers, err := a.GetChannelMembersForUser(member.TeamId, user.Id)
 		if err != nil {
 			mlog.Warn("Failed to get channel members for users on demote user to guest", mlog.Err(err))
+			continue
 		}
 
 		for _, member := range *channelMembers {
@@ -2260,7 +2257,6 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
-
 	return nil
 }
 
@@ -2308,7 +2304,7 @@ func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 
 // ConvertBotToUser converts a bot to user.
 func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
-	user, nErr := a.Srv().Store.User().Get(bot.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), bot.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
