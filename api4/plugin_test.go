@@ -24,7 +24,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -1552,11 +1551,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
-		err = fileBackend.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
-		require.NoError(t, err)
-		err = fileBackend.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		th2 := SetupConfig(t, func(cfg *model.Config) {
@@ -1689,9 +1686,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
-		require.NoError(t, err)
-		err = fileBackend.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {

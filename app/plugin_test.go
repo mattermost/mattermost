@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -745,10 +744,8 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 	prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsPath)
 	require.True(t, found, "failed to find prepackaged plugins directory")
 
-	fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
-	require.NoError(t, err)
 	testPluginPath := filepath.Join(testsPath, "testplugin.tar.gz")
-	fileErr = fileBackend.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+	fileErr = testlib.CopyFile(testPluginPath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 	require.NoError(t, fileErr)
 
 	t.Run("automatic, enabled plugin, no signature", func(t *testing.T) {
@@ -820,21 +817,18 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
-		require.NoError(t, err)
-
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = fileBackend.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err := testlib.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		// Add second plugin
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = fileBackend.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		err = testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = fileBackend.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
+		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
@@ -858,12 +852,9 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
-		require.NoError(t, err)
-
 		// Add signature
 		testPluginSignaturePath := filepath.Join(testsPath, "testplugin.tar.gz.sig")
-		err = fileBackend.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err := testlib.CopyFile(testPluginSignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		// Install first plugin and enable
@@ -882,11 +873,11 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		// Add second plugin
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = fileBackend.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		err = testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = fileBackend.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
+		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
@@ -918,15 +909,12 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		env := th.App.GetPluginsEnvironment()
 
-		fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
-		require.NoError(t, err)
-
 		testPlugin2Path := filepath.Join(testsPath, "testplugin2.tar.gz")
-		err = fileBackend.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
+		err := testlib.CopyFile(testPlugin2Path, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz"))
 		require.NoError(t, err)
 
 		testPlugin2SignaturePath := filepath.Join(testsPath, "testplugin2.tar.gz.sig")
-		err = fileBackend.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
+		err = testlib.CopyFile(testPlugin2SignaturePath, filepath.Join(prepackagedPluginsDir, "testplugin2.tar.gz.sig"))
 		require.NoError(t, err)
 
 		plugins := th.App.processPrepackagedPlugins(prepackagedPluginsDir)
