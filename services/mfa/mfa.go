@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/rsc/qr"
@@ -100,18 +101,28 @@ func Activate(storeFunc StoreActive, userMfaSecret, userID string, token string)
 
 // Deactivate set the mfa as deactive, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
 func Deactivate(storeSecretFunc StoreSecret, storeActiveFunc StoreActive, userId string) *model.AppError {
-	schan := make(chan error, 1)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	var secretErr error
+	var activeErr error
 	go func() {
-		schan <- storeSecretFunc(userId, "")
-		close(schan)
+		defer wg.Done()
+		secretErr = storeSecretFunc(userId, "")
 	}()
 
-	if err := storeActiveFunc(userId, false); err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+	go func() {
+		defer wg.Done()
+		activeErr = storeActiveFunc(userId, false)
+	}()
+	wg.Wait()
+
+	if activeErr != nil {
+		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, activeErr.Error(), http.StatusInternalServerError)
 	}
 
-	if err := <-schan; err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if secretErr != nil {
+		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, secretErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
