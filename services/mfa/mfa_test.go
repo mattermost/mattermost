@@ -4,6 +4,7 @@
 package mfa
 
 import (
+	"encoding/base32"
 	"errors"
 	"fmt"
 	"net/url"
@@ -12,58 +13,39 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
+	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 func TestGenerateSecret(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
 
-	config := model.Config{}
-	config.SetDefaults()
-	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
-	configService := testutils.StaticConfigService{Cfg: &config}
-
-	t.Run("fail on disabled mfa", func(t *testing.T) {
-		wrongConfig := model.Config{}
-		wrongConfig.SetDefaults()
-		wrongConfig.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
-		wrongConfigService := testutils.StaticConfigService{Cfg: &wrongConfig}
-		mfa := New(wrongConfigService, nil)
-		_, _, err := mfa.GenerateSecret(user)
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.mfa_disabled.app_error", err.Id)
-	})
+	siteURL := "http://localhost:8065"
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
 			return errors.New("failed to update mfa secret")
 		})
-		storeMock.On("User").Return(&userStoreMock)
 
-		mfa := New(configService, &storeMock)
-		_, _, err := mfa.GenerateSecret(user)
+		mfa := New(siteURL, &userStoreMock)
+		_, _, err := mfa.GenerateSecret(user.Email, user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.generate_qr_code.save_secret.app_error", err.Id)
 	})
 
 	t.Run("Successful generate secret", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
 			return nil
 		})
-		storeMock.On("User").Return(&userStoreMock)
 
-		mfa := New(configService, &storeMock)
+		mfa := New(siteURL, &userStoreMock)
 
-		secret, img, err := mfa.GenerateSecret(user)
+		secret, img, err := mfa.GenerateSecret(user.Email, user.Id)
 		require.Nil(t, err)
 		assert.Len(t, secret, 32)
 		require.NotEmpty(t, img, "no image set")
@@ -93,64 +75,46 @@ func TestGetIssuerFromUrl(t *testing.T) {
 
 func TestActivate(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-	user.MfaSecret = model.NewRandomBase32String(MFASecretSize)
+	user.MfaSecret = newRandomBase32String(MFASecretSize)
 
 	token := dgoogauth.ComputeCode(user.MfaSecret, time.Now().UTC().Unix()/30)
 
-	config := model.Config{}
-	config.SetDefaults()
-	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
-	configService := testutils.StaticConfigService{Cfg: &config}
-
-	t.Run("fail on disabled mfa", func(t *testing.T) {
-		wrongConfig := model.Config{}
-		wrongConfig.SetDefaults()
-		wrongConfig.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
-		wrongConfigService := testutils.StaticConfigService{Cfg: &wrongConfig}
-		mfa := New(wrongConfigService, nil)
-		err := mfa.Activate(user, "not-important")
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.mfa_disabled.app_error", err.Id)
-	})
+	siteURL := "http://localhost:8065"
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		mfa := New(configService, nil)
-		err := mfa.Activate(user, "invalid-token")
+		mfa := New(siteURL, nil)
+		err := mfa.Activate(user.MfaSecret, user.Id, "invalid-token")
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.authenticate.app_error", err.Id)
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		mfa := New(configService, nil)
-		err := mfa.Activate(user, "000000")
+		mfa := New(siteURL, nil)
+		err := mfa.Activate(user.MfaSecret, user.Id, "000000")
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.bad_token.app_error", err.Id)
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
 			return errors.New("failed to update mfa active")
 		})
-		storeMock.On("User").Return(&userStoreMock)
 
-		mfa := New(configService, &storeMock)
-		err := mfa.Activate(user, fmt.Sprintf("%06d", token))
+		mfa := New(siteURL, &userStoreMock)
+		err := mfa.Activate(user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.save_active.app_error", err.Id)
 	})
 
 	t.Run("Successful activate", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
 			return nil
 		})
-		storeMock.On("User").Return(&userStoreMock)
-		mfa := New(configService, &storeMock)
+		mfa := New(siteURL, &userStoreMock)
 
-		err := mfa.Activate(user, fmt.Sprintf("%06d", token))
+		err := mfa.Activate(user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
 		require.Nil(t, err)
 	})
 }
@@ -158,24 +122,9 @@ func TestActivate(t *testing.T) {
 func TestDeactivate(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
 
-	config := model.Config{}
-	config.SetDefaults()
-	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
-	configService := testutils.StaticConfigService{Cfg: &config}
-
-	t.Run("fail on disabled mfa", func(t *testing.T) {
-		wrongConfig := model.Config{}
-		wrongConfig.SetDefaults()
-		wrongConfig.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
-		wrongConfigService := testutils.StaticConfigService{Cfg: &wrongConfig}
-		mfa := New(wrongConfigService, nil)
-		err := mfa.Deactivate(user.Id)
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.mfa_disabled.app_error", err.Id)
-	})
+	siteURL := "http://localhost:8065"
 
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
 			return errors.New("failed to update mfa active")
@@ -183,16 +132,14 @@ func TestDeactivate(t *testing.T) {
 		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
 			return errors.New("failed to update mfa secret")
 		})
-		storeMock.On("User").Return(&userStoreMock)
 
-		mfa := New(configService, &storeMock)
+		mfa := New(siteURL, &userStoreMock)
 		err := mfa.Deactivate(user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.deactivate.save_active.app_error", err.Id)
 	})
 
 	t.Run("fail on store UpdateMfaSecret action fail", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
 			return nil
@@ -200,16 +147,14 @@ func TestDeactivate(t *testing.T) {
 		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
 			return errors.New("failed to update mfa secret")
 		})
-		storeMock.On("User").Return(&userStoreMock)
 
-		mfa := New(configService, &storeMock)
+		mfa := New(siteURL, &userStoreMock)
 		err := mfa.Deactivate(user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.deactivate.save_secret.app_error", err.Id)
 	})
 
 	t.Run("Successful deactivate", func(t *testing.T) {
-		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
 		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
 			return nil
@@ -217,8 +162,7 @@ func TestDeactivate(t *testing.T) {
 		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
 			return nil
 		})
-		storeMock.On("User").Return(&userStoreMock)
-		mfa := New(configService, &storeMock)
+		mfa := New(siteURL, &userStoreMock)
 
 		err := mfa.Deactivate(user.Id)
 		require.Nil(t, err)
@@ -226,28 +170,13 @@ func TestDeactivate(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	secret := model.NewRandomBase32String(MFASecretSize)
+	secret := newRandomBase32String(MFASecretSize)
 	token := dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30)
 
-	config := model.Config{}
-	config.SetDefaults()
-	config.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(true)
-	configService := testutils.StaticConfigService{Cfg: &config}
-
-	t.Run("fail on disabled mfa", func(t *testing.T) {
-		wrongConfig := model.Config{}
-		wrongConfig.SetDefaults()
-		wrongConfig.ServiceSettings.EnableMultifactorAuthentication = model.NewBool(false)
-		wrongConfigService := testutils.StaticConfigService{Cfg: &wrongConfig}
-		mfa := New(wrongConfigService, nil)
-		ok, err := mfa.ValidateToken(secret, fmt.Sprintf("%06d", token))
-		require.NotNil(t, err)
-		require.False(t, ok)
-		require.Equal(t, "mfa.mfa_disabled.app_error", err.Id)
-	})
+	siteURL := "http://localhost:8065"
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		mfa := New(configService, nil)
+		mfa := New(siteURL, nil)
 		ok, err := mfa.ValidateToken(secret, "invalid-token")
 		require.NotNil(t, err)
 		require.False(t, ok)
@@ -255,16 +184,23 @@ func TestValidateToken(t *testing.T) {
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		mfa := New(configService, nil)
+		mfa := New(siteURL, nil)
 		ok, err := mfa.ValidateToken(secret, "000000")
 		require.Nil(t, err)
 		require.False(t, ok)
 	})
 
 	t.Run("valid token", func(t *testing.T) {
-		mfa := New(configService, nil)
+		mfa := New(siteURL, nil)
 		ok, err := mfa.ValidateToken(secret, fmt.Sprintf("%06d", token))
 		require.Nil(t, err)
 		require.True(t, ok)
 	})
+}
+
+func TestRandomBase32String(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		str := newRandomBase32String(i)
+		require.Len(t, str, base32.StdEncoding.EncodedLen(i))
+	}
 }

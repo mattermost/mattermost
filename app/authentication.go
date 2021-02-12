@@ -188,7 +188,11 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return nil
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
 	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return err

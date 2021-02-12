@@ -4,6 +4,8 @@
 package mfa
 
 import (
+	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,8 +15,6 @@ import (
 	"github.com/mattermost/rsc/qr"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/configservice"
-	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -22,21 +22,26 @@ const (
 	MFASecretSize = 20
 )
 
+// newRandomBase32String returns a base32 encoded string of a random slice
+// of bytes of the given size. The resulting entropy will be (8 * size) bits.
+func newRandomBase32String(size int) string {
+	data := make([]byte, size)
+	rand.Read(data)
+	return base32.StdEncoding.EncodeToString(data)
+}
+
+type UpdateMfa interface {
+	UpdateMfaActive(userId string, active bool) error
+	UpdateMfaSecret(userId, secret string) error
+}
+
 type Mfa struct {
-	ConfigService configservice.ConfigService
-	Store         store.Store
+	siteURL string
+	store   UpdateMfa
 }
 
-func New(configService configservice.ConfigService, store store.Store) Mfa {
-	return Mfa{configService, store}
-}
-
-func (m *Mfa) checkConfig() *model.AppError {
-	if !*m.ConfigService.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("checkConfig", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	return nil
+func New(siteUrl string, store UpdateMfa) Mfa {
+	return Mfa{siteUrl, store}
 }
 
 func getIssuerFromUrl(uri string) string {
@@ -52,16 +57,12 @@ func getIssuerFromUrl(uri string) string {
 	return url.QueryEscape(issuer)
 }
 
-func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError) {
-	if err := m.checkConfig(); err != nil {
-		return "", nil, err
-	}
+func (m *Mfa) GenerateSecret(userEmail, userID string) (string, []byte, *model.AppError) {
+	issuer := getIssuerFromUrl(m.siteURL)
 
-	issuer := getIssuerFromUrl(*m.ConfigService.Config().ServiceSettings.SiteURL)
+	secret := newRandomBase32String(MFASecretSize)
 
-	secret := model.NewRandomBase32String(MFASecretSize)
-
-	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, user.Email, secret, issuer)
+	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, userEmail, secret, issuer)
 
 	code, err := qr.Encode(authLink, qr.H)
 
@@ -71,20 +72,16 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 
 	img := code.PNG()
 
-	if err := m.Store.User().UpdateMfaSecret(user.Id, secret); err != nil {
+	if err := m.store.UpdateMfaSecret(userID, secret); err != nil {
 		return "", nil, model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return secret, img, nil
 }
 
-func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
-	if err := m.checkConfig(); err != nil {
-		return err
-	}
-
+func (m *Mfa) Activate(userMfaSecret, userID string, token string) *model.AppError {
 	otpConfig := &dgoogauth.OTPConfig{
-		Secret:      user.MfaSecret,
+		Secret:      userMfaSecret,
 		WindowSize:  3,
 		HotpCounter: 0,
 	}
@@ -100,7 +97,7 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 		return model.NewAppError("Activate", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
 	}
 
-	if appErr := m.Store.User().UpdateMfaActive(user.Id, true); appErr != nil {
+	if appErr := m.store.UpdateMfaActive(userID, true); appErr != nil {
 		return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
@@ -108,17 +105,13 @@ func (m *Mfa) Activate(user *model.User, token string) *model.AppError {
 }
 
 func (m *Mfa) Deactivate(userId string) *model.AppError {
-	if err := m.checkConfig(); err != nil {
-		return err
-	}
-
 	schan := make(chan error, 1)
 	go func() {
-		schan <- m.Store.User().UpdateMfaSecret(userId, "")
+		schan <- m.store.UpdateMfaSecret(userId, "")
 		close(schan)
 	}()
 
-	if err := m.Store.User().UpdateMfaActive(userId, false); err != nil {
+	if err := m.store.UpdateMfaActive(userId, false); err != nil {
 		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -130,10 +123,6 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 }
 
 func (m *Mfa) ValidateToken(secret, token string) (bool, *model.AppError) {
-	if err := m.checkConfig(); err != nil {
-		return false, err
-	}
-
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      secret,
 		WindowSize:  3,

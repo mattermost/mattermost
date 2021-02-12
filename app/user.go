@@ -726,8 +726,12 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 		return nil, err
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
-	secret, img, err := mfaService.GenerateSecret(user)
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return nil, model.NewAppError("GenerateMfaSecret", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
+	secret, img, err := mfaService.GenerateSecret(user.Email, user.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -755,8 +759,12 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	mfaService := mfa.New(a, a.Srv().Store)
-	if err := mfaService.Activate(user, token); err != nil {
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("ActivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
+	if err := mfaService.Activate(user.MfaSecret, user.Id, token); err != nil {
 		return err
 	}
 
@@ -767,7 +775,11 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userID string) *model.AppError {
-	mfaService := mfa.New(a, a.Srv().Store)
+	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
 	if err := mfaService.Deactivate(userID); err != nil {
 		return err
 	}
