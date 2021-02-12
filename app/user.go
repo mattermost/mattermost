@@ -721,9 +721,9 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 }
 
 func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppError) {
-	user, err := a.GetUser(userID)
-	if err != nil {
-		return nil, err
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
@@ -737,7 +737,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 		user.Id,
 	)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GenerateMfaSecret", "mfa.generate_qr_code.create_code.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Make sure the old secret is not cached on any cluster nodes.
@@ -768,7 +768,13 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 	}
 
 	if err := mfa.Activate(a.Srv().Store.User().UpdateMfaActive, user.MfaSecret, user.Id, token); err != nil {
-		return err
+		var iErr *mfa.InvalidToken
+		switch {
+		case errors.As(err, &iErr):
+			return model.NewAppError("ActivateMfa", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
+		default:
+			return model.NewAppError("ActivateMfa", "mfa.activate.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.
@@ -783,7 +789,7 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 	}
 
 	if err := mfa.Deactivate(a.Srv().Store.User().UpdateMfaSecret, a.Srv().Store.User().UpdateMfaActive, userID); err != nil {
-		return err
+		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Make sure old MFA status is not cached locally or in cluster nodes.

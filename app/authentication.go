@@ -194,7 +194,7 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 
 	ok, err := mfa.ValidateToken(user.MfaSecret, token)
 	if err != nil {
-		return err
+		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if !ok {
