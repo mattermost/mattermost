@@ -142,10 +142,10 @@ ifeq ($(findstring minio,$(ENABLED_DOCKER_SERVICES)),true)
   TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
 endif
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-  ifeq ($(findstring openldap,$(ENABLED_DOCKER_SERVICES)),true)
+  ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
   endif
-  ifeq ($(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)),true)
+  ifneq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
     TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
   endif
 endif
