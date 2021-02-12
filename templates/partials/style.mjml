@@ -1,7 +1,7 @@
 <mj-attributes>
   <mj-raw><link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600,700" rel="stylesheet" type="text/css"></link></mj-raw>
   <mj-text font-family="Open Sans" align="center" />
-  <mj-button font-family="Open Sans" background-color="#166DE0" border-radius="4px" padding="0px" />
+  <mj-button font-family="Open Sans" background-color="#FFFFFF" border-radius="4px" padding="0px" />
   <mj-image alt="" align="center" />
   <mj-class name="email" align="center" padding="24px" background-color="#FFFFFF" border-radius="8px" />
   <mj-class name="logo" width="132px" height="21.76px" padding="0px" />
@@ -28,7 +28,8 @@
     color:rgba(61, 60, 64, 0.64) !important;
   }
 
-  .buttonText a {
+  .button a {
+    background-color:#166DE0 !important;
     font-weight:600 !important;
     font-size:16px !important;
     line-height:18px !important;
@@ -61,6 +62,7 @@
   .appDownloadButton a{
     background-color:#FFFFFF !important;
     border:1px solid #166DE0 !important;
+    box-sizing: border-box !important;
     color:#166DE0 !important;
     padding:13px 20px !important;
     font-weight:600 !important;
@@ -89,9 +91,6 @@
 
   @media all and (max-width: 400px) {
     body {
-      padding:0px !important;
-    }
-    .info div {
       padding:0px !important;
     }
   }

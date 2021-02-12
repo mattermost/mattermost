@@ -104,7 +104,8 @@
       color: rgba(61, 60, 64, 0.64) !important;
     }
 
-    .buttonText a {
+    .button a {
+      background-color: #166DE0 !important;
       font-weight: 600 !important;
       font-size: 16px !important;
       line-height: 18px !important;
@@ -137,6 +138,7 @@
     .appDownloadButton a {
       background-color: #FFFFFF !important;
       border: 1px solid #166DE0 !important;
+      box-sizing: border-box !important;
       color: #166DE0 !important;
       padding: 13px 20px !important;
       font-weight: 600 !important;
@@ -165,10 +167,6 @@
 
     @media all and (max-width: 400px) {
       body {
-        padding: 0px !important;
-      }
-
-      .info div {
         padding: 0px !important;
       }
     }
@@ -236,11 +234,11 @@
                                 </td>
                               </tr>
                               <tr>
-                                <td align="center" vertical-align="middle" class="buttonText" style="font-size:0px;padding:0px;word-break:break-word;">
+                                <td align="center" vertical-align="middle" class="button" style="font-size:0px;padding:0px;word-break:break-word;">
                                   <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
                                     <tr>
-                                      <td align="center" bgcolor="#166DE0" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#166DE0;" valign="middle">
-                                        <a href="{{.Props.ButtonUrl}}" style="display:inline-block;background:#166DE0;color:#ffffff;font-family:Open Sans;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
+                                      <td align="center" bgcolor="#FFFFFF" role="presentation" style="border:none;border-radius:4px;cursor:auto;mso-padding-alt:10px 25px;background:#FFFFFF;" valign="middle">
+                                        <a href="{{.Props.ButtonUrl}}" style="display:inline-block;background:#FFFFFF;color:#ffffff;font-family:Open Sans;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:4px;" target="_blank">
                                           {{.Props.Button}}
                                         </a>
                                       </td>

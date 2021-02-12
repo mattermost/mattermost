@@ -11,6 +11,6 @@
     <mj-text css-class="subTitle" padding="16px 24px 16px 24px">
       {{.Props.SubTitle}}
     </mj-text>
-    <mj-button href="{{.Props.ButtonUrl}}" padding="0px" css-class="buttonText">{{.Props.Button}}</mj-button>
+    <mj-button href="{{.Props.ButtonUrl}}" padding="0px" css-class="button">{{.Props.Button}}</mj-button>
   </mj-column>
 </mj-section>
