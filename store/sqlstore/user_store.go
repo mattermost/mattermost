@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -1942,35 +1943,36 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 }
 
 func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	autocomplete := &model.UserAutocompleteInChannel{}
-	uchan := make(chan store.StoreResult, 1)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	var usersInChannel []*model.User
+	var usersInChannelErr error
+	var usersNotInChannel []*model.User
+	var usersNotInChannelErr error
+
 	go func() {
-		users, err := us.SearchInChannel(channelId, term, options)
-		uchan <- store.StoreResult{Data: users, NErr: err}
-		close(uchan)
+		defer wg.Done()
+		usersInChannel, usersInChannelErr = us.SearchInChannel(channelId, term, options)
 	}()
 
-	nuchan := make(chan store.StoreResult, 1)
 	go func() {
-		users, err := us.SearchNotInChannel(teamId, channelId, term, options)
-		nuchan <- store.StoreResult{Data: users, NErr: err}
-		close(nuchan)
+		defer wg.Done()
+		usersNotInChannel, usersNotInChannelErr = us.SearchNotInChannel(teamId, channelId, term, options)
 	}()
 
-	result := <-uchan
-	if result.NErr != nil {
-		return nil, result.NErr
-	}
-	users := result.Data.([]*model.User)
-	autocomplete.InChannel = users
+	wg.Wait()
 
-	result = <-nuchan
-	if result.NErr != nil {
-		return nil, result.NErr
+	if usersInChannelErr != nil {
+		return nil, usersInChannelErr
 	}
-	users = result.Data.([]*model.User)
-	autocomplete.OutOfChannel = users
-	return autocomplete, nil
+	if usersNotInChannelErr != nil {
+		return nil, usersNotInChannelErr
+	}
+
+	return &model.UserAutocompleteInChannel{
+		InChannel:    usersInChannel,
+		OutOfChannel: usersNotInChannel,
+	}, nil
 }
 
 // GetKnownUsers returns the list of user ids of users with any direct
