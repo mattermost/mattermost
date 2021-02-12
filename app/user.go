@@ -1548,6 +1548,11 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
+	return a.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
+}
+
+func (a *App) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+
 	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}
@@ -1587,7 +1592,7 @@ func (a *App) UpdateUserRoles(userID string, newRoles string, sendWebSocketEvent
 		mlog.Warn("Failed during updating user roles", mlog.Err(result.NErr))
 	}
 
-	a.InvalidateCacheForUser(userID)
+	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
