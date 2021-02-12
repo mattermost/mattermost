@@ -6243,6 +6243,14 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "We encountered an error performing the requested operation."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Policy is invalid."
+  },
+  {
     "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
   },
@@ -6253,14 +6261,6 @@
   {
     "id": "ent.data_retention.threads_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of threads."
-  },
-  {
-    "id": "ent.data_retention.policies.internal_error",
-    "translation": "We encountered an error performing the requested operation."
-  },
-  {
-    "id": "ent.data_retention.policies.invalid_policy",
-    "translation": "Policy is invalid."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
