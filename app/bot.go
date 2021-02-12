@@ -62,7 +62,11 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	} else if ownerUser != nil {
 		// Send a message to the bot's creator to inform them that the bot needs to be added
 		// to a team and channel after it's created
-		channel, err := a.GetOrCreateDirectChannel(savedBot.UserId, bot.OwnerId)
+		botOwner, err := a.GetUser(bot.OwnerId)
+		if err != nil {
+			return nil, err
+		}
+		channel, err := a.getOrCreateDirectChannelWithUser(user, botOwner)
 		if err != nil {
 			return nil, err
 		}
@@ -335,11 +339,11 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 }
 
 // disableUserBots disables all bots owned by the given user.
-func (a *App) disableUserBots(userId string) *model.AppError {
+func (a *App) disableUserBots(userID string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
-			OwnerId:        userId,
+			OwnerId:        userID,
 			IncludeDeleted: false,
 			OnlyOrphaned:   false,
 			Page:           0,
@@ -368,10 +372,10 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	return nil
 }
 
-func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError {
+func (a *App) notifySysadminsBotOwnerDeactivated(userID string) *model.AppError {
 	perPage := 25
 	botOptions := &model.BotGetOptions{
-		OwnerId:        userId,
+		OwnerId:        userID,
 		IncludeDeleted: false,
 		OnlyOrphaned:   false,
 		Page:           0,
@@ -423,7 +427,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 	}
 
 	// user being disabled
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}

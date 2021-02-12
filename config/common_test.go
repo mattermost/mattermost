@@ -14,7 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
+var emptyConfig, readOnlyConfig, minimalConfig, minimalConfigNoFF, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
 
 func init() {
 	emptyConfig = &model.Config{}
@@ -39,7 +39,12 @@ func init() {
 			DefaultClientLocale: sToP("en"),
 		},
 	}
+
 	minimalConfig.SetDefaults()
+
+	minimalConfigNoFF = minimalConfig.Clone()
+	minimalConfigNoFF.FeatureFlags = nil
+
 	invalidConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: sToP("invalid"),
