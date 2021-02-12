@@ -2278,7 +2278,9 @@ func (a *App) RemoveUserFromChannel(userIDToRemove string, removerUserId string,
 	}
 
 	if userIDToRemove == removerUserId {
-		a.postLeaveChannelMessage(user, channel)
+		if err := a.postLeaveChannelMessage(user, channel); err != nil {
+			return err
+		}
 	} else {
 		a.Srv().Go(func() {
 			a.postRemoveFromChannelMessage(removerUserId, user, channel)

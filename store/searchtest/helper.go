@@ -92,17 +92,17 @@ func (th *SearchTestHelper) SetupBasicFixtures() error {
 		return err
 	}
 
-	_, err = th.addUserToChannels(user, []string{channelBasic.Id, channelPrivate.Id, channelDeleted.Id})
+	err = th.addUserToChannels(user, []string{channelBasic.Id, channelPrivate.Id, channelDeleted.Id})
 	if err != nil {
 		return err
 	}
 
-	_, err = th.addUserToChannels(user2, []string{channelPrivate.Id, channelDeleted.Id})
+	err = th.addUserToChannels(user2, []string{channelPrivate.Id, channelDeleted.Id})
 	if err != nil {
 		return err
 	}
 
-	_, err = th.addUserToChannels(useranother, []string{channelAnotherTeam.Id})
+	err = th.addUserToChannels(useranother, []string{channelAnotherTeam.Id})
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 	}
 
 	for _, user := range users {
-		_, err := th.addUserToChannels(user, []string{channel.Id})
+		err := th.addUserToChannels(user, []string{channel.Id})
 		if err != nil {
 			return nil, err
 		}
@@ -415,22 +415,19 @@ func (th *SearchTestHelper) addUserToTeams(user *model.User, teamIDS []string) e
 	return nil
 }
 
-func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []string) ([]*model.ChannelMember, error) {
-
-	channelMembers := make([]*model.ChannelMember, len(channelIDS))
+func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []string) error {
 	for _, channelID := range channelIDS {
-		cm, err := th.Store.Channel().SaveMember(&model.ChannelMember{
+		_, err := th.Store.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channelID,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		if err != nil {
-			return nil, errors.New(err.Error())
+			return errors.New(err.Error())
 		}
-		channelMembers = append(channelMembers, cm)
 	}
 
-	return channelMembers, nil
+	return nil
 }
 
 func (th *SearchTestHelper) assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
