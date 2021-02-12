@@ -68,11 +68,6 @@ const (
 	ImagePreviewWidth    = 1920
 
 	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
-
-	// Deprecated
-	ImageThumbnailPixelWidth  = 120
-	ImageThumbnailPixelHeight = 100
-	ImagePreviewPixelWidth    = 1920
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
@@ -487,11 +482,10 @@ func (a *App) UploadMultipartFiles(teamID string, channelId string, userID strin
 				map[string]interface{}{"Filename": fileHeader.Filename}, fileErr.Error(), http.StatusBadRequest)
 		}
 
-		// Will be closed after UploadFiles returns
-		defer file.Close()
-
 		files[i] = file
 		filenames[i] = fileHeader.Filename
+
+		file.Close()
 	}
 
 	return a.UploadFiles(teamID, channelId, userID, files, filenames, clientIds, now)

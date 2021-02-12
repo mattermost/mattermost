@@ -880,7 +880,7 @@ func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *m
 func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
 	bots, err := api.app.GetBots(options)
 
-	return []*model.Bot(bots), err
+	return bots, err
 }
 
 func (api *PluginAPI) UpdateBotActive(userID string, active bool) (*model.Bot, *model.AppError) {

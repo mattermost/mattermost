@@ -278,7 +278,7 @@ func TestCreateZipFileAndAddFiles(t *testing.T) {
 	defer th.TearDown()
 
 	mockBackend := mocks.FileBackend{}
-	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("Only those who dare to fail greatly can ever achieve greatly"))
+	mockBackend.On("WriteFile", mock.Anything, "directory-to-heaven/zip-file-name-to-heaven.zip").Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
 
 	err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, "zip-file-name-to-heaven.zip", "directory-to-heaven")
 	require.NotNil(t, err)

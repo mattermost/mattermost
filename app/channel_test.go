@@ -1040,10 +1040,10 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 		rchannel, err = th.App.CreateChannel(&channel, false)
 		require.Nil(t, err)
 		require.NotNil(t, rchannel)
-		defer th.App.PermanentDeleteChannel(rchannel)
 
 		// Store the user ids for comparison later
 		expectedChannels = append(expectedChannels, rchannel)
+		th.App.PermanentDeleteChannel(rchannel)
 	}
 
 	// Fetch public channels multipile times
@@ -1073,10 +1073,10 @@ func TestGetPrivateChannelsForTeam(t *testing.T) {
 		rchannel, err := th.App.CreateChannel(&channel, false)
 		require.Nil(t, err)
 		require.NotNil(t, rchannel)
-		defer th.App.PermanentDeleteChannel(rchannel)
 
 		// Store the user ids for comparison later
 		expectedChannels = append(expectedChannels, rchannel)
+		th.App.PermanentDeleteChannel(rchannel)
 	}
 
 	// Fetch private channels multipile times

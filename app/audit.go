@@ -18,13 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
-const (
-	RestLevelID        = 240
-	RestContentLevelID = 241
-	RestPermsLevelID   = 242
-	CLILevelID         = 243
-)
-
 var (
 	LevelAPI     = mlog.LvlAuditAPI
 	LevelContent = mlog.LvlAuditContent
