@@ -103,6 +103,16 @@ func (a *App) InitServer() {
 		if a.IsLeader() {
 			a.srv.dndTask = model.CreateRecurringTask("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 300*time.Second)
 		}
+		a.srv.AddClusterLeaderChangedListener(func() {
+			mlog.Info("Cluster leader changed. Determining if unset dnd status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+			if a.IsLeader() {
+				a.srv.dndTask = model.CreateRecurringTask("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 300*time.Second)
+			} else {
+				if a.srv.dndTask != nil {
+					a.srv.dndTask.Cancel()
+				}
+			}
+		})
 	})
 }
 
