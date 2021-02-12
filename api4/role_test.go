@@ -26,7 +26,7 @@ func TestGetRole(t *testing.T) {
 	}
 
 	role, err := th.App.Srv().Store.Role().Save(role)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {

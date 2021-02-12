@@ -3087,7 +3087,7 @@ func TestSetTeamIcon(t *testing.T) {
 
 	info := &model.FileInfo{Path: "teams/" + team.Id + "/teamIcon.png"}
 	err = th.cleanupTestFile(info)
-	require.NoError(t, err, err)
+	require.NoError(t, err)
 }
 
 func TestGetTeamIcon(t *testing.T) {

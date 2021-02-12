@@ -1720,7 +1720,7 @@ func TestPatchUser(t *testing.T) {
 	require.Empty(t, ruser.Timezone["manualTimezone"], "manualTimezone should update properly")
 
 	err := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
-	assert.NotNil(t, err, "Password should not match")
+	require.NotNil(t, err, "Password should not match")
 
 	currentPassword := user.Password
 	user, err = th.App.GetUser(ruser.Id)

@@ -238,7 +238,6 @@ func TestSubmitDialog(t *testing.T) {
 		var request model.SubmitDialogRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
 		require.NoError(t, err)
-		assert.NotNil(t, request)
 
 		assert.Equal(t, request.URL, "")
 		assert.Equal(t, request.UserId, submit.UserId)
