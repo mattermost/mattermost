@@ -138,7 +138,7 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 endif
 
 start-docker-check:
-ifeq ($(findstring minio,$(ENABLED_DOCKER_SERVICES)),true)
+ifneq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
   TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
 endif
 ifeq ($(BUILD_ENTERPRISE_READY),true)
