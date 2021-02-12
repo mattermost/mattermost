@@ -117,39 +117,52 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if openChannelsCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, openChannelsCountErr.Error(), http.StatusInternalServerError)
 		}
-		rows[0].Value = float64(openChannelsCount)
 
 		if privateChannelsCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, privateChannelsCountErr.Error(), http.StatusInternalServerError)
 		}
-		rows[1].Value = float64(privateChannelsCount)
 
-		if skipIntensiveQueries {
-			rows[2].Value = -1
-		} else {
-			if postsCountErr != nil {
-				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, postsCountErr.Error(), http.StatusInternalServerError)
-			}
-			rows[2].Value = float64(postsCount)
+		if postsCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, postsCountErr.Error(), http.StatusInternalServerError)
 		}
 
-		if teamID == "" {
-			rows[3].Value = float64(systemUserCount)
-			if inactiveUsersCountErr != nil {
-				return nil, model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, inactiveUsersCountErr.Error(), http.StatusInternalServerError)
-			}
-			rows[10].Value = float64(inactiveUsersCount)
-		} else {
-			rows[10].Value = -1
-			if usersCountErr != nil {
-				return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, usersCountErr.Error(), http.StatusInternalServerError)
-			}
-			rows[3].Value = float64(usersCount)
+		if inactiveUsersCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, inactiveUsersCountErr.Error(), http.StatusInternalServerError)
+		}
+
+		if usersCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, usersCountErr.Error(), http.StatusInternalServerError)
 		}
 
 		if teamsCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.team.analytics_team_count.app_error", nil, teamsCountErr.Error(), http.StatusInternalServerError)
 		}
+
+		if dailyActiveUsersCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, dailyActiveUsersCountErr.Error(), http.StatusInternalServerError)
+		}
+
+		if monthlyActiveUsersCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, monthlyActiveUsersCountErr.Error(), http.StatusInternalServerError)
+		}
+
+		rows[0].Value = float64(openChannelsCount)
+		rows[1].Value = float64(privateChannelsCount)
+
+		if skipIntensiveQueries {
+			rows[2].Value = -1
+		} else {
+			rows[2].Value = float64(postsCount)
+		}
+
+		if teamID == "" {
+			rows[3].Value = float64(systemUserCount)
+			rows[10].Value = float64(inactiveUsersCount)
+		} else {
+			rows[10].Value = -1
+			rows[3].Value = float64(usersCount)
+		}
+
 		rows[4].Value = float64(teamsCount)
 
 		// If in HA mode then aggregate all the stats
@@ -179,14 +192,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 			rows[7].Value = float64(a.Srv().Store.TotalReadDbConnections())
 		}
 
-		if dailyActiveUsersCountErr != nil {
-			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, dailyActiveUsersCountErr.Error(), http.StatusInternalServerError)
-		}
 		rows[8].Value = float64(dailyActiveUsersCount)
-
-		if monthlyActiveUsersCountErr != nil {
-			return nil, model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, monthlyActiveUsersCountErr.Error(), http.StatusInternalServerError)
-		}
 		rows[9].Value = float64(monthlyActiveUsersCount)
 
 		return rows, nil
@@ -295,39 +301,41 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 
 		wg.Wait()
 
-		if skipIntensiveQueries {
-			rows[0].Value = -1
-			rows[1].Value = -1
-		} else {
-			if filesCountErr != nil {
-				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, filesCountErr.Error(), http.StatusInternalServerError)
-			}
-			rows[0].Value = float64(filesCount)
+		if filesCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, filesCountErr.Error(), http.StatusInternalServerError)
+		}
 
-			if hashtagsCountErr != nil {
-				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, hashtagsCountErr.Error(), http.StatusInternalServerError)
-			}
-			rows[1].Value = float64(hashtagsCount)
+		if hashtagsCountErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, hashtagsCountErr.Error(), http.StatusInternalServerError)
 		}
 
 		if incomingWebhookCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, incomingWebhookCountErr.Error(), http.StatusInternalServerError)
 		}
-		rows[2].Value = float64(incomingWebhookCount)
 
 		if outgoingWebhookCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, outgoingWebhookCountErr.Error(), http.StatusInternalServerError)
 		}
-		rows[3].Value = float64(outgoingWebhookCount)
 
 		if commandsCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, commandsCountErr.Error(), http.StatusInternalServerError)
 		}
-		rows[4].Value = float64(commandsCount)
 
 		if sessionsCountErr != nil {
 			return nil, model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, sessionsCountErr.Error(), http.StatusInternalServerError)
 		}
+
+		if skipIntensiveQueries {
+			rows[0].Value = -1
+			rows[1].Value = -1
+		} else {
+			rows[0].Value = float64(filesCount)
+			rows[1].Value = float64(hashtagsCount)
+		}
+
+		rows[2].Value = float64(incomingWebhookCount)
+		rows[3].Value = float64(outgoingWebhookCount)
+		rows[4].Value = float64(commandsCount)
 		rows[5].Value = float64(sessionsCount)
 
 		return rows, nil
