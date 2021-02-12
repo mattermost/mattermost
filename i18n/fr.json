@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 10 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
+    "translation": "Identifiants de fichier invalide. Notez que les envois sont limités à 5 fichiers maximum. Veuillez utiliser d'autres messages pour envoyer plus de fichiers."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",

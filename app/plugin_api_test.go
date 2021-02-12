@@ -1280,10 +1280,10 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, data, actualData)
 
-	userId := th.BasicUser.Id
+	userID := th.BasicUser.Id
 	post, err := api.CreatePost(&model.Post{
 		Message:   "test",
-		UserId:    userId,
+		UserId:    userID,
 		ChannelId: channelId,
 		FileIds:   model.StringArray{fileInfo.Id},
 	})
@@ -1716,8 +1716,8 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	testCases := []struct {
 		description      string
-		teamId           string
-		userId           string
+		teamID           string
+		userID           string
 		params           model.SearchParameter
 		expectedPostsLen int
 	}{
@@ -1746,7 +1746,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamId, testCase.userId, testCase.params)
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamID, testCase.userID, testCase.params)
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
 		})
@@ -1758,7 +1758,7 @@ func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+	foundCommand := func(listXCommand func(teamID string) ([]*model.Command, error)) bool {
 		cmds, appErr := listXCommand(th.BasicTeam.Id)
 		require.Nil(t, appErr)
 
