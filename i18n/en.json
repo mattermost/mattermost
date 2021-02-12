@@ -6023,6 +6023,10 @@
     "translation": "Failed to purge channel indexes."
   },
   {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Failed to purge file indexes."
+  },
+  {
     "id": "bleveengine.purge_post_index.error",
     "translation": "Failed to purge post indexes."
   },
