@@ -13,37 +13,31 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/stretchr/testify/assert"
-	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestGenerateSecret(t *testing.T) {
-	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-
+	userID := "user-id"
+	userEmail := "sample@sample.com"
 	siteURL := "http://localhost:8065"
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
+		updateSecretFunc := func(userId string, secret string) error {
 			return errors.New("failed to update mfa secret")
-		})
+		}
 
-		_, _, err := GenerateSecret(userStoreMock.UpdateMfaSecret, siteURL, user.Email, user.Id)
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.generate_qr_code.save_secret.app_error", err.Id)
+		_, _, err := GenerateSecret(updateSecretFunc, siteURL, userEmail, userID)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to store mfa secret")
 	})
 
 	t.Run("Successful generate secret", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
+		updateSecretFunc := func(userId string, secret string) error {
 			return nil
-		})
+		}
 
-		secret, img, err := GenerateSecret(userStoreMock.UpdateMfaSecret, siteURL, user.Email, user.Id)
-		require.Nil(t, err)
+		secret, img, err := GenerateSecret(updateSecretFunc, siteURL, userEmail, userID)
+		require.NoError(t, err)
 		assert.Len(t, secret, 32)
 		require.NotEmpty(t, img, "no image set")
 	})
@@ -71,87 +65,82 @@ func TestGetIssuerFromUrl(t *testing.T) {
 }
 
 func TestActivate(t *testing.T) {
-	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-	user.MfaSecret = newRandomBase32String(mfaSecretSize)
+	userID := "user-id"
+	userMfaSecret := newRandomBase32String(mfaSecretSize)
 
-	token := dgoogauth.ComputeCode(user.MfaSecret, time.Now().UTC().Unix()/30)
+	token := dgoogauth.ComputeCode(userMfaSecret, time.Now().UTC().Unix()/30)
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		err := Activate(nil, user.MfaSecret, user.Id, "invalid-token")
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.activate.authenticate.app_error", err.Id)
+		err := Activate(nil, userMfaSecret, userID, "invalid-token")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to parse the token")
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		err := Activate(nil, user.MfaSecret, user.Id, "000000")
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.activate.bad_token.app_error", err.Id)
+		err := Activate(nil, userMfaSecret, userID, "000000")
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid mfa token")
 	})
 
 	t.Run("fail on store action fail", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
+		updateActiveFunc := func(userId string, active bool) error {
 			return errors.New("failed to update mfa active")
-		})
+		}
 
-		err := Activate(userStoreMock.UpdateMfaActive, user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.activate.save_active.app_error", err.Id)
+		err := Activate(updateActiveFunc, userMfaSecret, userID, fmt.Sprintf("%06d", token))
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to store mfa active")
 	})
 
 	t.Run("Successful activate", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
+		updateActiveFunc := func(userId string, active bool) error {
 			return nil
-		})
+		}
 
-		err := Activate(userStoreMock.UpdateMfaActive, user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
-		require.Nil(t, err)
+		err := Activate(updateActiveFunc, userMfaSecret, userID, fmt.Sprintf("%06d", token))
+		require.NoError(t, err)
 	})
 }
 
 func TestDeactivate(t *testing.T) {
-	user := &model.User{Id: model.NewId(), Roles: "system_user"}
+	userID := "user-id"
 
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
+		updateActiveFunc := func(userId string, active bool) error {
 			return errors.New("failed to update mfa active")
-		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
-			return errors.New("failed to update mfa secret")
-		})
+		}
+		updateSecretFunc := func(userId string, secret string) error {
+			return nil
+		}
 
-		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.deactivate.save_active.app_error", err.Id)
+		err := Deactivate(updateSecretFunc, updateActiveFunc, userID)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to store mfa active")
 	})
 
 	t.Run("fail on store UpdateMfaSecret action fail", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
+		updateActiveFunc := func(userId string, active bool) error {
 			return nil
-		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
+		}
+		updateSecretFunc := func(userId string, secret string) error {
 			return errors.New("failed to update mfa secret")
-		})
+		}
 
-		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
-		require.NotNil(t, err)
-		require.Equal(t, "mfa.deactivate.save_secret.app_error", err.Id)
+		err := Deactivate(updateSecretFunc, updateActiveFunc, userID)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unable to store mfa secret")
 	})
 
 	t.Run("Successful deactivate", func(t *testing.T) {
-		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, false).Return(func(userId string, active bool) error {
+		updateActiveFunc := func(userId string, active bool) error {
 			return nil
-		})
-		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
+		}
+		updateSecretFunc := func(userId string, secret string) error {
 			return nil
-		})
+		}
 
-		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
-		require.Nil(t, err)
+		err := Deactivate(updateSecretFunc, updateActiveFunc, userID)
+		require.NoError(t, err)
 	})
 }
 
@@ -161,20 +150,20 @@ func TestValidateToken(t *testing.T) {
 
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
 		ok, err := ValidateToken(secret, "invalid-token")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.False(t, ok)
-		require.Equal(t, "mfa.validate_token.authenticate.app_error", err.Id)
+		require.Contains(t, err.Error(), "unable to parse the token")
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
 		ok, err := ValidateToken(secret, "000000")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.False(t, ok)
 	})
 
 	t.Run("valid token", func(t *testing.T) {
 		ok, err := ValidateToken(secret, fmt.Sprintf("%06d", token))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.True(t, ok)
 	})
 }

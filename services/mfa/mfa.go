@@ -127,7 +127,7 @@ func Deactivate(storeSecretFunc StoreSecret, storeActiveFunc StoreActive, userId
 	}
 
 	if secretErr != nil {
-		return errors.Wrap(activeErr, "unable to store mfa secret")
+		return errors.Wrap(secretErr, "unable to store mfa secret")
 	}
 
 	return nil
