@@ -73,7 +73,7 @@ func handleContentSync(s *Server, syncService SharedChannelServiceIFace, event *
 		return err
 	}
 
-	if channel != nil || channel.IsShared() {
+	if channel != nil && channel.IsShared() {
 		syncService.NotifyChannelChanged(channel.Id)
 	}
 
