@@ -352,19 +352,6 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamID string,
 		user.AuthService = service
 	}
 
-	suchan := make(chan store.StoreResult, 1)
-	euchan := make(chan store.StoreResult, 1)
-	go func() {
-		userByAuth, err := a.Srv().Store.User().GetByAuth(user.AuthData, service)
-		suchan <- store.StoreResult{Data: userByAuth, NErr: err}
-		close(suchan)
-	}()
-	go func() {
-		userByEmail, err := a.Srv().Store.User().GetByEmail(user.Email)
-		euchan <- store.StoreResult{Data: userByEmail, NErr: err}
-		close(euchan)
-	}()
-
 	found := true
 	count := 0
 	for found {
@@ -374,16 +361,17 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamID string,
 		}
 	}
 
-	if result := <-suchan; result.NErr == nil {
-		return result.Data.(*model.User), nil
+	userByAuth, _ := a.Srv().Store.User().GetByAuth(user.AuthData, service)
+	if userByAuth != nil {
+		return userByAuth, nil
 	}
 
-	if result := <-euchan; result.NErr == nil {
-		authService := result.Data.(*model.User).AuthService
-		if authService == "" {
+	userByEmail, _ := a.Srv().Store.User().GetByEmail(user.Email)
+	if userByEmail != nil {
+		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email, http.StatusBadRequest)
 		}
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": authService}, "email="+user.Email, http.StatusBadRequest)
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": userByEmail.AuthService}, "email="+user.Email, http.StatusBadRequest)
 	}
 
 	user.EmailVerified = true
