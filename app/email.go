@@ -647,7 +647,7 @@ func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (b
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
