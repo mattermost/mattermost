@@ -105,9 +105,8 @@ func TestUploadData(t *testing.T) {
 		FileSize:  8 * 1024 * 1024,
 	}
 
-	var appErr *model.AppError
-	us, appErr = th.App.CreateUploadSession(us)
-	require.Nil(t, appErr)
+	us, uploadSessionAppErr := th.App.CreateUploadSession(us)
+	require.Nil(t, uploadSessionAppErr)
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
@@ -176,6 +175,7 @@ func TestUploadData(t *testing.T) {
 
 	t.Run("all at once success", func(t *testing.T) {
 		us.Id = model.NewId()
+		var appErr *model.AppError
 		us, appErr = th.App.CreateUploadSession(us)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
@@ -192,6 +192,7 @@ func TestUploadData(t *testing.T) {
 	t.Run("small file success", func(t *testing.T) {
 		us.Id = model.NewId()
 		us.FileSize = 1024 * 1024
+		var appErr *model.AppError
 		us, appErr = th.App.CreateUploadSession(us)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
@@ -218,7 +219,8 @@ func TestUploadData(t *testing.T) {
 		us.Id = model.NewId()
 		us.Filename = "test.png"
 		us.FileSize = int64(len(data))
-		us, appErr := th.App.CreateUploadSession(us)
+		var appErr *model.AppError
+		us, appErr = th.App.CreateUploadSession(us)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 

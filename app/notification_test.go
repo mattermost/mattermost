@@ -80,7 +80,7 @@ func TestSendNotifications(t *testing.T) {
 				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
 			}
 
-			rootPost, appErr := th.App.CreatePostMissingChannel(rootPost, false)
+			rootPost, appErr = th.App.CreatePostMissingChannel(rootPost, false)
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
