@@ -31,8 +31,7 @@ func TestGenerateSecret(t *testing.T) {
 			return errors.New("failed to update mfa secret")
 		})
 
-		mfa := New(siteURL, &userStoreMock)
-		_, _, err := mfa.GenerateSecret(user.Email, user.Id)
+		_, _, err := GenerateSecret(userStoreMock.UpdateMfaSecret, siteURL, user.Email, user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.generate_qr_code.save_secret.app_error", err.Id)
 	})
@@ -43,9 +42,7 @@ func TestGenerateSecret(t *testing.T) {
 			return nil
 		})
 
-		mfa := New(siteURL, &userStoreMock)
-
-		secret, img, err := mfa.GenerateSecret(user.Email, user.Id)
+		secret, img, err := GenerateSecret(userStoreMock.UpdateMfaSecret, siteURL, user.Email, user.Id)
 		require.Nil(t, err)
 		assert.Len(t, secret, 32)
 		require.NotEmpty(t, img, "no image set")
@@ -75,22 +72,18 @@ func TestGetIssuerFromUrl(t *testing.T) {
 
 func TestActivate(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-	user.MfaSecret = newRandomBase32String(MFASecretSize)
+	user.MfaSecret = newRandomBase32String(mfaSecretSize)
 
 	token := dgoogauth.ComputeCode(user.MfaSecret, time.Now().UTC().Unix()/30)
 
-	siteURL := "http://localhost:8065"
-
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		mfa := New(siteURL, nil)
-		err := mfa.Activate(user.MfaSecret, user.Id, "invalid-token")
+		err := Activate(nil, user.MfaSecret, user.Id, "invalid-token")
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.authenticate.app_error", err.Id)
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		mfa := New(siteURL, nil)
-		err := mfa.Activate(user.MfaSecret, user.Id, "000000")
+		err := Activate(nil, user.MfaSecret, user.Id, "000000")
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.bad_token.app_error", err.Id)
 	})
@@ -101,8 +94,7 @@ func TestActivate(t *testing.T) {
 			return errors.New("failed to update mfa active")
 		})
 
-		mfa := New(siteURL, &userStoreMock)
-		err := mfa.Activate(user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
+		err := Activate(userStoreMock.UpdateMfaActive, user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.activate.save_active.app_error", err.Id)
 	})
@@ -112,17 +104,14 @@ func TestActivate(t *testing.T) {
 		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
 			return nil
 		})
-		mfa := New(siteURL, &userStoreMock)
 
-		err := mfa.Activate(user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
+		err := Activate(userStoreMock.UpdateMfaActive, user.MfaSecret, user.Id, fmt.Sprintf("%06d", token))
 		require.Nil(t, err)
 	})
 }
 
 func TestDeactivate(t *testing.T) {
 	user := &model.User{Id: model.NewId(), Roles: "system_user"}
-
-	siteURL := "http://localhost:8065"
 
 	t.Run("fail on store UpdateMfaActive action fail", func(t *testing.T) {
 		userStoreMock := mocks.UserStore{}
@@ -133,8 +122,7 @@ func TestDeactivate(t *testing.T) {
 			return errors.New("failed to update mfa secret")
 		})
 
-		mfa := New(siteURL, &userStoreMock)
-		err := mfa.Deactivate(user.Id)
+		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.deactivate.save_active.app_error", err.Id)
 	})
@@ -148,8 +136,7 @@ func TestDeactivate(t *testing.T) {
 			return errors.New("failed to update mfa secret")
 		})
 
-		mfa := New(siteURL, &userStoreMock)
-		err := mfa.Deactivate(user.Id)
+		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
 		require.NotNil(t, err)
 		require.Equal(t, "mfa.deactivate.save_secret.app_error", err.Id)
 	})
@@ -162,37 +149,31 @@ func TestDeactivate(t *testing.T) {
 		userStoreMock.On("UpdateMfaSecret", user.Id, "").Return(func(userId string, secret string) error {
 			return nil
 		})
-		mfa := New(siteURL, &userStoreMock)
 
-		err := mfa.Deactivate(user.Id)
+		err := Deactivate(userStoreMock.UpdateMfaSecret, userStoreMock.UpdateMfaActive, user.Id)
 		require.Nil(t, err)
 	})
 }
 
 func TestValidateToken(t *testing.T) {
-	secret := newRandomBase32String(MFASecretSize)
+	secret := newRandomBase32String(mfaSecretSize)
 	token := dgoogauth.ComputeCode(secret, time.Now().UTC().Unix()/30)
 
-	siteURL := "http://localhost:8065"
-
 	t.Run("fail on wrongly formatted token", func(t *testing.T) {
-		mfa := New(siteURL, nil)
-		ok, err := mfa.ValidateToken(secret, "invalid-token")
+		ok, err := ValidateToken(secret, "invalid-token")
 		require.NotNil(t, err)
 		require.False(t, ok)
 		require.Equal(t, "mfa.validate_token.authenticate.app_error", err.Id)
 	})
 
 	t.Run("fail on invalid token", func(t *testing.T) {
-		mfa := New(siteURL, nil)
-		ok, err := mfa.ValidateToken(secret, "000000")
+		ok, err := ValidateToken(secret, "000000")
 		require.Nil(t, err)
 		require.False(t, ok)
 	})
 
 	t.Run("valid token", func(t *testing.T) {
-		mfa := New(siteURL, nil)
-		ok, err := mfa.ValidateToken(secret, fmt.Sprintf("%06d", token))
+		ok, err := ValidateToken(secret, fmt.Sprintf("%06d", token))
 		require.Nil(t, err)
 		require.True(t, ok)
 	})

@@ -730,8 +730,12 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 		return nil, model.NewAppError("GenerateMfaSecret", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
-	secret, img, err := mfaService.GenerateSecret(user.Email, user.Id)
+	secret, img, err := mfa.GenerateSecret(
+		a.Srv().Store.User().UpdateMfaSecret,
+		*a.Config().ServiceSettings.SiteURL,
+		user.Email,
+		user.Id,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -763,8 +767,7 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
-	if err := mfaService.Activate(user.MfaSecret, user.Id, token); err != nil {
+	if err := mfa.Activate(a.Srv().Store.User().UpdateMfaActive, user.MfaSecret, user.Id, token); err != nil {
 		return err
 	}
 
@@ -779,8 +782,7 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	mfaService := mfa.New(*a.Config().ServiceSettings.SiteURL, a.Srv().Store.User())
-	if err := mfaService.Deactivate(userID); err != nil {
+	if err := mfa.Deactivate(a.Srv().Store.User().UpdateMfaSecret, a.Srv().Store.User().UpdateMfaActive, userID); err != nil {
 		return err
 	}
 
