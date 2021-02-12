@@ -5754,27 +5754,37 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.COLLAPSED_THREADS_DEFAULT_ON
 	})
+	checkMentionCounts := func(client *model.Client4, userId string, expected map[string]int64) {
+		actual, resp2 := client.GetThreadMentionsForUserPerChannel(userId, th.BasicTeam.Id)
+		CheckNoError(t, resp2)
+		require.EqualValues(t, expected, actual)
+	}
 	checkThreadList := func(client *model.Client4, userId string, expectedMentions, expectedThreads int) (*model.Threads, *model.Response) {
 		uss, resp := client.GetUserThreads(userId, th.BasicTeam.Id, model.GetUserThreadsOpts{
 			Deleted: false,
 		})
 		CheckNoError(t, resp)
+
 		require.Len(t, uss.Threads, expectedThreads)
 		sum := int64(0)
 		for _, thr := range uss.Threads {
 			sum += thr.UnreadMentions
 		}
 		require.Equal(t, sum, uss.TotalUnreadMentions)
+		require.EqualValues(t, expectedMentions, uss.TotalUnreadMentions)
+
 		return uss, resp
 	}
+
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
+	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
 	// create regular post
 	rpost, _ := postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 	// create reply and mention the original poster and another user
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username + " and @" + th.BasicUser2.Username, RootId: rpost.Id})
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.BasicUser.Id)
-	defer th.App.Srv().Store.Post().PermanentDeleteByUser(th.SystemAdminUser.Id)
 
+	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1})
 	// basic user 1 was mentioned 1 time
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
 	// basic user 2 was mentioned 1 time
@@ -5782,7 +5792,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 
 	// test self mention, shouldn't increase mention count
 	postAndCheck(t, Client, &model.Post{ChannelId: th.BasicChannel.Id, Message: "testReply @" + th.BasicUser.Username, RootId: rpost.Id})
-	// count should increase
+	// count shouldn't increase
 	checkThreadList(th.Client, th.BasicUser.Id, 1, 1)
 
 	// test DM
@@ -5803,7 +5813,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	postAndCheck(t, th.SystemAdminClient, &model.Post{ChannelId: dm.Id, Message: "msg2", RootId: dm_root_post.Id})
 	// expect increment by two mentions
 	checkThreadList(th.Client, th.BasicUser.Id, 3, 2)
-
+	checkMentionCounts(Client, th.BasicUser.Id, map[string]int64{th.BasicChannel.Id: 1, dm.Id: 2})
 }
 
 func TestReadThreads(t *testing.T) {
