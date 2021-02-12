@@ -611,10 +611,10 @@ func (s *SqlThreadStore) PermanentDeleteBatchThreadsForRetentionPolicies(now int
 	// This will not delete a Thread if the Channel to which it belonged has already been deleted.
 	const selectQuery = `
 		SELECT Threads.PostId FROM Threads
-		LEFT JOIN Channels ON Threads.ChannelId = Channels.Id
+		INNER JOIN Channels ON Threads.ChannelId = Channels.Id
 		LEFT JOIN RetentionPoliciesChannels ON Threads.ChannelId = RetentionPoliciesChannels.ChannelId
 		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
+		INNER JOIN RetentionPolicies ON
 			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
 			OR (
 				RetentionPoliciesChannels.PolicyId IS NULL

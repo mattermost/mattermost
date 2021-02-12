@@ -261,6 +261,7 @@ type ChannelMemberHistoryStore interface {
 	LogLeaveEvent(userId string, channelId string, leaveTime int64) error
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteBatchForRetentionPolicies(now, limit int64) (int64, error)
 }
 type ThreadStore interface {
 	SaveMultiple(thread []*model.Thread) ([]*model.Thread, int, error)
