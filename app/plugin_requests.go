@@ -91,22 +91,17 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 
 	pluginsEnv := a.GetPluginsEnvironment()
 
-	a.srv.PluginsLock.Lock()
-
-	// Check if someone has nullify the pluginsEnv
+	// Check if someone has nullify the pluginsEnv in the meantime
 	if pluginsEnv == nil {
 		http.NotFound(w, r)
-		a.srv.PluginsLock.Unlock()
 		return
 	}
 
 	publicFilesPath, err := pluginsEnv.PublicFilesPath(pluginID)
 	if err != nil {
 		http.NotFound(w, r)
-		a.srv.PluginsLock.Unlock()
 		return
 	}
-	a.srv.PluginsLock.Unlock()
 
 	publicFilePath := path.Clean(r.URL.Path)
 	prefix := fmt.Sprintf("/plugins/%s/public/", pluginID)
