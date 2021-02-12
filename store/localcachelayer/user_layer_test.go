@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -306,7 +307,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 		gotUsers, err = cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
 		require.NoError(t, err)
 		assert.Len(t, gotUsers, 2)
-		mockStore.User().(*mocks.UserStore).AssertCalled(t, "GetMany", []string{"123"})
+		mockStore.User().(*mocks.UserStore).AssertCalled(t, "GetMany", mock.Anything, []string{"123"})
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetMany", 2)
 	})
 }
