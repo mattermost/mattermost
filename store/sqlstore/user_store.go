@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
@@ -1944,17 +1945,19 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var wg sync.WaitGroup
-	wg.Add(2)
+
 	var usersInChannel []*model.User
 	var usersInChannelErr error
 	var usersNotInChannel []*model.User
 	var usersNotInChannelErr error
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		usersInChannel, usersInChannelErr = us.SearchInChannel(channelId, term, options)
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		usersNotInChannel, usersNotInChannelErr = us.SearchNotInChannel(teamId, channelId, term, options)
@@ -1962,11 +1965,16 @@ func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string
 
 	wg.Wait()
 
+	var errors error
 	if usersInChannelErr != nil {
-		return nil, usersInChannelErr
+		errors = multierror.Append(errors, usersInChannelErr)
 	}
 	if usersNotInChannelErr != nil {
-		return nil, usersNotInChannelErr
+		errors = multierror.Append(errors, usersNotInChannelErr)
+	}
+
+	if errors != nil {
+		return nil, errors
 	}
 
 	return &model.UserAutocompleteInChannel{
