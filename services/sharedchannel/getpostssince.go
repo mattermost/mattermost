@@ -38,10 +38,9 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 		return sinceResult{}, nil
 	}
 
-	posts = posts[:MaxPostsPerSync] // trim the peeked at record
-
 	var hasMore bool
 	if countPosts > MaxPostsPerSync {
+		posts = posts[:MaxPostsPerSync] // trim the peeked at record
 		hasMore = true
 
 		// If the last post to be synchronized has the same Update value as the first post in the next batch
