@@ -58,7 +58,7 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 		}
 		posts = append(posts, morePosts...)
 	}
-	return sinceResult{posts: posts, hasMore: hasMore, nextSince: posts[len(posts)].UpdateAt + 1}, nil
+	return sinceResult{posts: posts, hasMore: hasMore, nextSince: posts[len(posts)-1].UpdateAt + 1}, nil
 }
 
 func countPostsAtMillisecond(posts []*model.Post, milli int64) int {
