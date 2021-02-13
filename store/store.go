@@ -310,6 +310,7 @@ type PostStore interface {
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, error)
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
+	GetPostsByUserInChannelSince(options model.GetPostsSinceOptions, userId string) (*model.PostList, error)
 }
 
 type UserStore interface {
