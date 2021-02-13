@@ -911,6 +911,56 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
+func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, _ /* allowFromCache */ bool) ([]*model.Post, error) {
+	if options.Limit < 0 || options.Limit > 1000 {
+		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
+	}
+
+	var posts []*model.Post
+
+	order := "ASC"
+	if options.SortDescending {
+		order = "DESC"
+	}
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Gt{"UpdateAt": options.Since}).
+		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		Limit(uint64(options.Limit)).
+		OrderBy("UpdateAt" + order)
+
+	if options.Until > 0 {
+		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
+	}
+
+	if !options.IncludeDeleted {
+		query = query.Where(sq.NotEq{"Delete": 0})
+	}
+
+	if options.ExcludeRemoteId != "" {
+		query = query.Where(sq.NotEq{"COALESCE(Posts.RemoteId,'')": options.ExcludeRemoteId})
+	}
+
+	if options.Offset > 0 {
+		query = query.Offset(uint64(options.Offset))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
+	}
+
+	_, err = s.GetReplica().Select(&posts, queryString, args)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	return s.getPostsAround(true, options)
 }
