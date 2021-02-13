@@ -917,11 +917,9 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		return nil, store.NewErrInvalidInput("Post", "<options.Limit>", options.Limit)
 	}
 
-	var posts []*model.Post
-
-	order := "ASC"
+	order := " ASC"
 	if options.SortDescending {
-		order = "DESC"
+		order = " DESC"
 	}
 
 	query := s.getQueryBuilder().
@@ -930,7 +928,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		Where(sq.Gt{"UpdateAt": options.Since}).
 		Where(sq.Eq{"ChannelId": options.ChannelId}).
 		Limit(uint64(options.Limit)).
-		OrderBy("UpdateAt " + order)
+		OrderBy("UpdateAt" + order)
 
 	if options.Until > 0 {
 		query = query.Where(sq.LtOrEq{"UpdateAt": options.Until})
@@ -958,7 +956,9 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 		mlog.Any("args", args),
 	)
 
-	_, err = s.GetReplica().Select(&posts, queryString, args)
+	var posts []*model.Post
+
+	_, err = s.GetReplica().Select(&posts, queryString, args...)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
