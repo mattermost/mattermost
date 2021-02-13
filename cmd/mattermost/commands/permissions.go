@@ -71,12 +71,12 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 		CommandPrettyPrintln("Are you sure you want to reset the permissions system? All data related to the permissions system will be permanently deleted and all users will revert to having the default permissions. (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 	}
 

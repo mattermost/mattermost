@@ -60,7 +60,7 @@ func TestForUnsupportedHijack(t *testing.T) {
 	handler := TestHandler{func(w http.ResponseWriter, r *http.Request) {
 		_, _, err := w.(*responseWriterWrapper).Hijack()
 		assert.NotNil(t, err)
-		assert.Equal(t, "Hijacker interface not supported by the wrapped ResponseWriter", err.Error())
+		assert.Equal(t, "hijacker interface not supported by the wrapped ResponseWriter", err.Error())
 	}}
 	handler.ServeHTTP(resp, req)
 }

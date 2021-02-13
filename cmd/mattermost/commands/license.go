@@ -38,7 +38,7 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	defer a.Srv().Shutdown()
 
 	if len(args) != 1 {
-		return errors.New("Enter one license file to upload")
+		return errors.New("enter one license file to upload")
 	}
 
 	var fileBytes []byte
