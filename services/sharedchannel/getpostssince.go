@@ -22,11 +22,11 @@ type sinceResult struct {
 // A boolean is also returned to indicate if there are more posts to be synchronized (true) or not (false).
 func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, since int64) (sinceResult, error) {
 	opts := model.GetPostsSinceForSyncOptions{
-		ChannelId:       channelId,
-		Since:           since,
-		ExcludeRemoteId: rc.RemoteId,
-		IncludeDeleted:  true,
-		Limit:           MaxPostsPerSync + 1, // ask for 1 more than needed to peek at first post in next batch
+		ChannelId: channelId,
+		Since:     since,
+		//ExcludeRemoteId: rc.RemoteId,
+		IncludeDeleted: true,
+		Limit:          MaxPostsPerSync + 1, // ask for 1 more than needed to peek at first post in next batch
 	}
 	posts, err := scs.server.GetStore().Post().GetPostsSinceForSync(opts, true)
 	if err != nil {
