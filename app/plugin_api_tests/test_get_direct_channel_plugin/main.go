@@ -21,7 +21,7 @@ func (p *MyPlugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
 	dm1, err := p.API.GetDirectChannel(p.configuration.BasicUserId, p.configuration.BasicUser2Id)
 	if err != nil {
 		return nil, err.Error()

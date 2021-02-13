@@ -1971,51 +1971,51 @@ func TestAddMention(t *testing.T) {
 	t.Run("should initialize Mentions and store new mentions", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMention(userID1, KeywordMention)
+		m.addMention(userID2, CommentMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: KeywordMention,
-			userId2: CommentMention,
+			userID1: KeywordMention,
+			userID2: CommentMention,
 		}, m.Mentions)
 	})
 
 	t.Run("should replace existing mentions with higher priority ones", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, ThreadMention)
-		m.addMention(userId2, DMMention)
+		m.addMention(userID1, ThreadMention)
+		m.addMention(userID2, DMMention)
 
-		m.addMention(userId1, ChannelMention)
-		m.addMention(userId2, KeywordMention)
+		m.addMention(userID1, ChannelMention)
+		m.addMention(userID2, KeywordMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: ChannelMention,
-			userId2: KeywordMention,
+			userID1: ChannelMention,
+			userID2: KeywordMention,
 		}, m.Mentions)
 	})
 
 	t.Run("should not replace high priority mentions with low priority ones", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMention(userID1, KeywordMention)
+		m.addMention(userID2, CommentMention)
 
-		m.addMention(userId1, DMMention)
-		m.addMention(userId2, ThreadMention)
+		m.addMention(userID1, DMMention)
+		m.addMention(userID2, ThreadMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: KeywordMention,
-			userId2: CommentMention,
+			userID1: KeywordMention,
+			userID2: CommentMention,
 		}, m.Mentions)
 	})
 }

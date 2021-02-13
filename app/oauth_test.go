@@ -175,7 +175,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		return token
 	}
 
-	makeRequest := func(t *testing.T, cookie string) *http.Request {
+	makeRequest := func(cookie string) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
 
 		if cookie != "" {
@@ -264,7 +264,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, "")
+		request := makeRequest("")
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
@@ -281,7 +281,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		token, err := th.App.CreateOAuthStateToken(model.NewId())
 		require.Nil(t, err)
 
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(token)
 
 		_, _, _, _, err = th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
@@ -294,7 +294,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -312,7 +312,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -331,7 +331,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -353,7 +353,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -374,7 +374,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -395,7 +395,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -423,7 +423,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -452,7 +452,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(t, cookie)
+		request := makeRequest(cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -496,7 +496,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				})
 
 				cookie := model.NewId()
-				request := makeRequest(t, cookie)
+				request := makeRequest(cookie)
 
 				stateProps := map[string]string{
 					"team_id": model.NewId(),

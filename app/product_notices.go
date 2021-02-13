@@ -50,7 +50,9 @@ func cleanupVersion(originalVersion string) string {
 	return strings.Join(versionPartsOut, ".")
 }
 
-func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
+	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
+	isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -151,7 +153,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if user's config matches the notice
 	for k, v := range cnd.UserConfig {
-		res, err := validateUserConfigEntry(preferences, userId, k, v)
+		res, err := validateUserConfigEntry(preferences, userID, k, v)
 		if err != nil {
 			return false, err
 		}
@@ -170,7 +172,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	return true, nil
 }
 
-func validateUserConfigEntry(preferences store.PreferenceStore, userId string, key string, expectedValue interface{}) (bool, error) {
+func validateUserConfigEntry(preferences store.PreferenceStore, userID string, key string, expectedValue interface{}) (bool, error) {
 	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
 		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
@@ -178,7 +180,7 @@ func validateUserConfigEntry(preferences store.PreferenceStore, userId string, k
 	if _, ok := expectedValue.(string); !ok {
 		return false, errors.New("Invalid format of user config. Value should be string")
 	}
-	pref, err := preferences.Get(userId, parts[0], parts[1])
+	pref, err := preferences.Get(userID, parts[0], parts[1])
 	if err != nil {
 		return false, nil
 	}
@@ -202,9 +204,9 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 }
 
 // GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
-func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamID, model.PERMISSION_MANAGE_TEAM)
 
 	// check if notices for regular users are disabled
 	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isSystemAdmin {
@@ -216,7 +218,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 		return []model.NoticeMessage{}, nil
 	}
 
-	views, err := a.Srv().Store.ProductNotices().GetViews(userId)
+	views, err := a.Srv().Store.ProductNotices().GetViews(userID)
 	if err != nil {
 		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -248,11 +250,12 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a.Config(), a.Srv().Store.Preference(),
-			userId,
+		result, err := noticeMatchesConditions(
+			a.Config(),
+			a.Srv().Store.Preference(),
+			userID,
 			client,
 			clientVersion,
-			locale,
 			cachedPostCount,
 			cachedUserCount,
 			isSystemAdmin,
@@ -278,8 +281,8 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 }
 
 // UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
-func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
-	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
+func (a *App) UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError {
+	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
 		return model.NewAppError("UpdateViewedProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
@@ -287,13 +290,13 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 
 // UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
 // user as viewed in order to avoid showing them imminently on first login
-func (a *App) UpdateViewedProductNoticesForNewUser(userId string) {
+func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 	var noticeIds []string
 	for _, notice := range cachedNotices {
 		noticeIds = append(noticeIds, notice.ID)
 	}
-	if err := a.Srv().Store.ProductNotices().View(userId, noticeIds); err != nil {
-		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userId))
+	if err := a.Srv().Store.ProductNotices().View(userID, noticeIds); err != nil {
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
 	}
 }
 
