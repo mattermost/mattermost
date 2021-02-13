@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -165,7 +166,7 @@ func (scs *Service) upsertSyncUser(user *model.User, channel *model.Channel, rc 
 	user.RemoteId = model.NewString(rc.RemoteId)
 
 	// does the user already exist?
-	euser, err := scs.server.GetStore().User().Get(user.Id)
+	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync user: %w", err)

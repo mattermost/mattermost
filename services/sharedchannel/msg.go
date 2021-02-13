@@ -4,6 +4,7 @@
 package sharedchannel
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -138,7 +139,7 @@ func (scs *Service) usersForPost(post *model.Post, reactions []*model.Reaction, 
 	users := make([]*model.User, 0)
 
 	for _, id := range userIds {
-		user, err := scs.server.GetStore().User().Get(id)
+		user, err := scs.server.GetStore().User().Get(context.Background(), id)
 		if err == nil {
 			if sync, err2 := scs.shouldUserSync(user, rc); err2 != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not find user for post",

@@ -387,7 +387,7 @@ func (scs *Service) updateSyncUsers(userIds []string, rc *model.RemoteCluster, l
 
 func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	var locale string
-	user, err := scs.server.GetStore().User().Get(userId)
+	user, err := scs.server.GetStore().User().Get(context.Background(), userId)
 	if err == nil {
 		locale = user.Locale
 	}

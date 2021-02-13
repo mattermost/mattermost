@@ -9810,31 +9810,31 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, error) {
 
 }
 
-func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) error {
+func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 	tries := 0
 	for {
-		err := s.UserStore.DemoteUserToGuest(userID)
+		result, err := s.UserStore.DemoteUserToGuest(userID)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 	}
 
 }
 
-func (s *RetryLayerUserStore) Get(id string) (*model.User, error) {
+func (s *RetryLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Get(id)
+		result, err := s.UserStore.Get(ctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -9930,11 +9930,11 @@ func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 }
 
-func (s *RetryLayerUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *RetryLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
+		result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -10128,11 +10128,11 @@ func (s *RetryLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 
 }
 
-func (s *RetryLayerUserStore) GetMany(ids []string) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetMany(ids)
+		result, err := s.UserStore.GetMany(ctx, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -10188,11 +10188,11 @@ func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userId string, 
 
 }
 
-func (s *RetryLayerUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
+		result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
 		if err == nil {
 			return result, nil
 		}

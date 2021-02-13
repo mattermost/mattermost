@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -87,7 +88,7 @@ func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Hashtags").SetMaxSize(1000)
 		table.ColMap("Props").SetMaxSize(8000)
 		table.ColMap("Filenames").SetMaxSize(model.POST_FILENAMES_MAX_RUNES)
-		table.ColMap("FileIds").SetMaxSize(300)
+		table.ColMap("FileIds").SetMaxSize(150)
 		table.ColMap("RemoteId").SetMaxSize(26)
 	}
 
@@ -679,7 +680,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	var users []*model.User
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, err
 		}

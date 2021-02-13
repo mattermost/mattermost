@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -226,7 +227,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	_, err = ss.User().UpdateUpdateAt(u1.Id)
 	require.NoError(t, err)
 
-	user, err := ss.User().Get(u1.Id)
+	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Less(t, u1.UpdateAt, user.UpdateAt, "UpdateAt not updated correctly")
 }
@@ -243,7 +244,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	err = ss.User().UpdateFailedPasswordAttempts(u1.Id, 3)
 	require.NoError(t, err)
 
-	user, err := ss.User().Get(u1.Id)
+	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, 3, user.FailedAttempts, "FailedAttempts not updated correctly")
 }
@@ -276,19 +277,19 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("fetch empty id", func(t *testing.T) {
-		_, err := ss.User().Get("")
+		_, err := ss.User().Get(context.Background(), "")
 		require.Error(t, err)
 	})
 
 	t.Run("fetch user 1", func(t *testing.T) {
-		actual, err := ss.User().Get(u1.Id)
+		actual, err := ss.User().Get(context.Background(), u1.Id)
 		require.NoError(t, err)
 		require.Equal(t, u1, actual)
 		require.False(t, actual.IsBot)
 	})
 
 	t.Run("fetch user 2, also a bot", func(t *testing.T) {
-		actual, err := ss.User().Get(u2.Id)
+		actual, err := ss.User().Get(context.Background(), u2.Id)
 		require.NoError(t, err)
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
@@ -1272,7 +1273,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 
 	t.Run("all profiles in channel 1, no caching", func(t *testing.T) {
 		var profiles map[string]*model.User
-		profiles, err = ss.User().GetAllProfilesInChannel(c1.Id, false)
+		profiles, err = ss.User().GetAllProfilesInChannel(context.Background(), c1.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
@@ -1283,7 +1284,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 
 	t.Run("all profiles in channel 2, no caching", func(t *testing.T) {
 		var profiles map[string]*model.User
-		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, false)
+		profiles, err = ss.User().GetAllProfilesInChannel(context.Background(), c2.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
@@ -1292,7 +1293,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 
 	t.Run("all profiles in channel 2, caching", func(t *testing.T) {
 		var profiles map[string]*model.User
-		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
+		profiles, err = ss.User().GetAllProfilesInChannel(context.Background(), c2.Id, true)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
@@ -1301,7 +1302,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 
 	t.Run("all profiles in channel 2, caching [repeated]", func(t *testing.T) {
 		var profiles map[string]*model.User
-		profiles, err = ss.User().GetAllProfilesInChannel(c2.Id, true)
+		profiles, err = ss.User().GetAllProfilesInChannel(context.Background(), c2.Id, true)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
@@ -1521,37 +1522,37 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id}, nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id}, nil, false)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{u1, u2, u3}, users)
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{"123"}, nil, true)
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{"123"}, nil, true)
 		require.NoError(t, err)
 		assert.Equal(t, []*model.User{}, users)
 	})
 
 	t.Run("should only return users with UpdateAt greater than the since time", func(t *testing.T) {
-		users, err := ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
+		users, err := ss.User().GetProfileByIds(context.Background(), []string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
 			Since: u2.CreateAt,
 		}, true)
 		require.NoError(t, err)
@@ -4835,7 +4836,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
@@ -4881,7 +4882,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
@@ -4912,7 +4913,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 	})
@@ -4937,7 +4938,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
@@ -4977,7 +4978,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
@@ -5022,7 +5023,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
@@ -5088,7 +5089,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 
 		err = ss.User().PromoteGuestToUser(user1.Id)
 		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user1.Id)
+		updatedUser, err := ss.User().Get(context.Background(), user1.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
@@ -5102,7 +5103,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedChannelMember.SchemeGuest)
 		require.True(t, updatedChannelMember.SchemeUser)
 
-		notUpdatedUser, err := ss.User().Get(user2.Id)
+		notUpdatedUser, err := ss.User().Get(context.Background(), user2.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
@@ -5148,19 +5149,17 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
-		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, user.Id)
+		updatedChannelMember, nErr := ss.Channel().GetMember(channel.Id, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
@@ -5194,9 +5193,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -5225,9 +5222,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(user.Id)) }()
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 	})
@@ -5250,9 +5245,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -5290,9 +5283,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -5335,9 +5326,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
 
@@ -5401,9 +5390,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		err = ss.User().DemoteUserToGuest(user1.Id)
-		require.NoError(t, err)
-		updatedUser, err := ss.User().Get(user1.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(user1.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -5417,7 +5404,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
 
-		notUpdatedUser, err := ss.User().Get(user2.Id)
+		notUpdatedUser, err := ss.User().Get(context.Background(), user2.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
@@ -5493,19 +5480,19 @@ func testDeactivateGuests(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{guest1.Id, guest2.Id}, ids)
 
-		u, err := ss.User().Get(guest1.Id)
+		u, err := ss.User().Get(context.Background(), guest1.Id)
 		require.NoError(t, err)
 		assert.NotEqual(t, u.DeleteAt, int64(0))
 
-		u, err = ss.User().Get(guest2.Id)
+		u, err = ss.User().Get(context.Background(), guest2.Id)
 		require.NoError(t, err)
 		assert.NotEqual(t, u.DeleteAt, int64(0))
 
-		u, err = ss.User().Get(guest3.Id)
+		u, err = ss.User().Get(context.Background(), guest3.Id)
 		require.NoError(t, err)
 		assert.Equal(t, u.DeleteAt, int64(10))
 
-		u, err = ss.User().Get(regularUser.Id)
+		u, err = ss.User().Get(context.Background(), regularUser.Id)
 		require.NoError(t, err)
 		assert.Equal(t, u.DeleteAt, int64(0))
 	})
@@ -5523,7 +5510,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	err = ss.User().UpdateLastPictureUpdate(u1.Id)
 	require.NoError(t, err)
 
-	user, err := ss.User().Get(u1.Id)
+	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
 	assert.NotZero(t, user.LastPictureUpdate)
@@ -5537,7 +5524,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	ss.User().InvalidateProfileCacheForUser(u1.Id)
 
-	user2, err := ss.User().Get(u1.Id)
+	user2, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 
 	assert.True(t, user2.UpdateAt > user.UpdateAt)
