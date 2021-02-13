@@ -685,7 +685,7 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	var users []*model.User
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, err
 		}

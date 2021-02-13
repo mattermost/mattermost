@@ -98,7 +98,7 @@ type LocalCacheStore struct {
 	postLastPostsCache cache.Cache
 	lastPostTimeCache  cache.Cache
 
-	user                   LocalCacheUserStore
+	user                   *LocalCacheUserStore
 	userProfileByIdsCache  cache.Cache
 	profilesInChannelCache cache.Cache
 
@@ -283,7 +283,12 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	localCacheStore.user = LocalCacheUserStore{UserStore: baseStore.User(), rootStore: &localCacheStore}
+	localCacheStore.user = &LocalCacheUserStore{
+		UserStore:                      baseStore.User(),
+		rootStore:                      &localCacheStore,
+		userProfileByIdsInvalidations:  make(map[string]bool),
+		profilesInChannelInvalidations: make(map[string]bool),
+	}
 
 	// Teams
 	if localCacheStore.teamAllTeamIdsForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{

@@ -8394,7 +8394,7 @@ func (s *OpenTracingLayerUserStore) DeactivateGuests() ([]string, error) {
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) DemoteUserToGuest(userID string) error {
+func (s *OpenTracingLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.DemoteUserToGuest")
 	s.Root.Store.SetContext(newCtx)
@@ -8403,13 +8403,13 @@ func (s *OpenTracingLayerUserStore) DemoteUserToGuest(userID string) error {
 	}()
 
 	defer span.Finish()
-	err := s.UserStore.DemoteUserToGuest(userID)
+	result, err := s.UserStore.DemoteUserToGuest(userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return err
+	return result, err
 }
 
 func (s *OpenTracingLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
@@ -8502,7 +8502,7 @@ func (s *OpenTracingLayerUserStore) GetAllProfiles(options *model.UserGetOptions
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetAllProfilesInChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -8511,7 +8511,7 @@ func (s *OpenTracingLayerUserStore) GetAllProfilesInChannel(channelId string, al
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
+	result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8703,7 +8703,7 @@ func (s *OpenTracingLayerUserStore) GetKnownUsers(userID string) ([]string, erro
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetMany(ids []string) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetMany")
 	s.Root.Store.SetContext(newCtx)
@@ -8712,7 +8712,7 @@ func (s *OpenTracingLayerUserStore) GetMany(ids []string) ([]*model.User, error)
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetMany(ids)
+	result, err := s.UserStore.GetMany(ctx, ids)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8757,7 +8757,7 @@ func (s *OpenTracingLayerUserStore) GetProfileByGroupChannelIdsForUser(userId st
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetProfileByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -8766,7 +8766,7 @@ func (s *OpenTracingLayerUserStore) GetProfileByIds(userIds []string, options *s
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
+	result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

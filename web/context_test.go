@@ -4,6 +4,7 @@
 package web
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -55,7 +56,7 @@ func TestMfaRequired(t *testing.T) {
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("Get", mock.Anything, "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
+	mockUserStore.On("Get", context.Background(), "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
