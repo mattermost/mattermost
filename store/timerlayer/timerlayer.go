@@ -8122,10 +8122,10 @@ func (s *TimerLayerUserStore) DeactivateGuests() ([]string, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) error {
+func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 	start := timemodule.Now()
 
-	err := s.UserStore.DemoteUserToGuest(userID)
+	result, err := s.UserStore.DemoteUserToGuest(userID)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8135,13 +8135,13 @@ func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) error {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DemoteUserToGuest", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
-func (s *TimerLayerUserStore) Get(id string) (*model.User, error) {
+func (s *TimerLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.Get(id)
+	result, err := s.UserStore.Get(ctx, id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8218,10 +8218,10 @@ func (s *TimerLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *TimerLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
+	result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8410,10 +8410,10 @@ func (s *TimerLayerUserStore) GetKnownUsers(userID string) ([]string, error) {
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetMany(ids []string) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetMany(ids)
+	result, err := s.UserStore.GetMany(ctx, ids)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8458,10 +8458,10 @@ func (s *TimerLayerUserStore) GetProfileByGroupChannelIdsForUser(userId string, 
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
+	result, err := s.UserStore.GetProfileByIds(ctx, userIds, options, allowFromCache)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
