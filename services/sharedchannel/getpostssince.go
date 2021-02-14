@@ -3,7 +3,10 @@
 
 package sharedchannel
 
-import "github.com/mattermost/mattermost-server/v5/model"
+import (
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+)
 
 type sinceResult struct {
 	posts     []*model.Post
@@ -42,6 +45,10 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 	if countPosts > MaxPostsPerSync {
 		hasMore = true
 
+		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "getPostsSince will repeat",
+			mlog.String("remote", rc.DisplayName),
+		)
+
 		peekUpdateAt := posts[countPosts-1].UpdateAt
 		posts = posts[:MaxPostsPerSync] // trim the peeked at record
 
@@ -53,12 +60,19 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 			opts.Until = opts.Since
 			opts.Limit = 1000
 			opts.Offset = countPostsAtMillisecond(posts, peekUpdateAt)
+
+			scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "getPostsSince handling updateAt collision",
+				mlog.String("remote", rc.DisplayName),
+				mlog.Int64("update_at", peekUpdateAt),
+				mlog.Int("offset", opts.Offset),
+			)
+
+			morePosts, err := scs.server.GetStore().Post().GetPostsSinceForSync(opts, true)
+			if err != nil {
+				return sinceResult{}, err
+			}
+			posts = append(posts, morePosts...)
 		}
-		morePosts, err := scs.server.GetStore().Post().GetPostsSinceForSync(opts, true)
-		if err != nil {
-			return sinceResult{}, err
-		}
-		posts = append(posts, morePosts...)
 	}
 	return sinceResult{posts: posts, hasMore: hasMore, nextSince: posts[len(posts)-1].UpdateAt + 1}, nil
 }
