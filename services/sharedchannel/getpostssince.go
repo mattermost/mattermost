@@ -48,11 +48,11 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 		// If the last post to be synchronized has the same Update value as the first post in the next batch
 		// then we need to grab the rest of the posts for that millisecond to ensure the next call can have an
 		// incremented `since`.
-		if peekUpdateAt == posts[countPosts-1].UpdateAt {
-			opts.Since = posts[countPosts].UpdateAt
+		if peekUpdateAt == posts[len(posts)-1].UpdateAt {
+			opts.Since = peekUpdateAt
 			opts.Until = opts.Since
 			opts.Limit = 1000
-			opts.Offset = countPostsAtMillisecond(posts, posts[countPosts].UpdateAt)
+			opts.Offset = countPostsAtMillisecond(posts, peekUpdateAt)
 		}
 		morePosts, err := scs.server.GetStore().Post().GetPostsSinceForSync(opts, true)
 		if err != nil {
