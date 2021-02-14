@@ -84,7 +84,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	session := sessions[0]
 
 	tempMembers, err := me.Team().GetTeamsForUser(
-		withMaster(context.Background()),
+		WithMaster(context.Background()),
 		session.UserId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers for Session with userId=%s", session.UserId)
@@ -249,9 +249,9 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 }
 
 func (me SqlSessionStore) UpdateProps(session *model.Session) error {
-	oldSession, appErr := me.Get(session.Id)
-	if appErr != nil {
-		return appErr
+	oldSession, err := me.Get(session.Id)
+	if err != nil {
+		return err
 	}
 	oldSession.Props = session.Props
 

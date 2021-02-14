@@ -53,7 +53,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 		}
 
 		err := ss.Preference().Save(&features)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		ss.Preference().(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -63,7 +63,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                     WHERE Category = :Category
                     AND Value = :Val
                     AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "false"}); err != nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 		} else if val != 0 {
 			require.Fail(t, "Found %d features with value 'false', expected all to be deleted", val)
 		}
@@ -74,7 +74,7 @@ func TestDeleteUnusedFeatures(t *testing.T) {
                     WHERE Category = :Category
                     AND Value = :Val
                     AND Name LIKE '`+store.FeatureTogglePrefix+`%'`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Val": "true"}); err != nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 		} else if val == 0 {
 			require.Fail(t, "Found %d features with value 'true', expected to find at least %d features", val, 2)
 		}
