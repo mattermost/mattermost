@@ -142,11 +142,11 @@ type ChannelMemberCountByGroup struct {
 }
 
 func (o *Channel) DeepCopy() *Channel {
-	copy := *o
-	if copy.SchemeId != nil {
-		copy.SchemeId = NewString(*o.SchemeId)
+	cp := *o
+	if cp.SchemeId != nil {
+		cp.SchemeId = NewString(*o.SchemeId)
 	}
-	return &copy
+	return &cp
 }
 
 func (o *Channel) ToJson() string {

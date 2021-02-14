@@ -20,8 +20,8 @@ func toObjects(strings []string) []interface{} {
 		return nil
 	}
 	objects := make([]interface{}, len(strings))
-	for i, string := range strings {
-		objects[i] = string
+	for i, val := range strings {
+		objects[i] = val
 	}
 	return objects
 }

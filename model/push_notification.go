@@ -76,8 +76,8 @@ func (pn *PushNotification) ToJson() string {
 }
 
 func (pn *PushNotification) DeepCopy() *PushNotification {
-	copy := *pn
-	return &copy
+	cp := *pn
+	return &cp
 }
 
 func (pn *PushNotification) SetDeviceIdAndPlatform(deviceId string) {

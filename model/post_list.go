@@ -34,12 +34,12 @@ func (o *PostList) ToSlice() []*Post {
 }
 
 func (o *PostList) WithRewrittenImageURLs(f func(string) string) *PostList {
-	copy := *o
-	copy.Posts = make(map[string]*Post)
+	cp := *o
+	cp.Posts = make(map[string]*Post)
 	for id, post := range o.Posts {
-		copy.Posts[id] = post.WithRewrittenImageURLs(f)
+		cp.Posts[id] = post.WithRewrittenImageURLs(f)
 	}
-	return &copy
+	return &cp
 }
 
 func (o *PostList) StripActionIntegrations() {
@@ -53,9 +53,9 @@ func (o *PostList) StripActionIntegrations() {
 }
 
 func (o *PostList) ToJson() string {
-	copy := *o
-	copy.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
+	cp := *o
+	cp.StripActionIntegrations()
+	b, err := json.Marshal(&cp)
 	if err != nil {
 		return ""
 	}

@@ -60,8 +60,8 @@ func (b *Bot) Trace() map[string]interface{} {
 
 // Clone returns a shallow copy of the bot.
 func (b *Bot) Clone() *Bot {
-	copy := *b
-	return &copy
+	cp := *b
+	return &cp
 }
 
 // IsValid validates the bot and returns an error if it isn't configured correctly.

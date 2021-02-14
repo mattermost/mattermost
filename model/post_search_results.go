@@ -23,9 +23,9 @@ func MakePostSearchResults(posts *PostList, matches PostSearchMatches) *PostSear
 }
 
 func (o *PostSearchResults) ToJson() string {
-	copy := *o
-	copy.PostList.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
+	cp := *o
+	cp.PostList.StripActionIntegrations()
+	b, err := json.Marshal(&cp)
 	if err != nil {
 		return ""
 	}

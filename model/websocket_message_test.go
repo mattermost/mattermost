@@ -31,48 +31,48 @@ func TestWebSocketEvent(t *testing.T) {
 func TestWebSocketEventImmutable(t *testing.T) {
 	m := NewWebSocketEvent("some_event", NewId(), NewId(), NewId(), nil)
 
-	new := m.SetEvent("new_event")
-	if new == m {
+	e := m.SetEvent("new_event")
+	if e == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Event, new.Event)
-	require.Equal(t, new.Event, "new_event")
-	require.Equal(t, new.Event, new.EventType())
+	require.NotEqual(t, m.Event, e.Event)
+	require.Equal(t, e.Event, "new_event")
+	require.Equal(t, e.Event, e.EventType())
 
-	new = m.SetSequence(45)
-	if new == m {
+	e = m.SetSequence(45)
+	if e == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Sequence, new.Sequence)
-	require.Equal(t, new.Sequence, int64(45))
-	require.Equal(t, new.Sequence, new.GetSequence())
+	require.NotEqual(t, m.Sequence, e.Sequence)
+	require.Equal(t, e.Sequence, int64(45))
+	require.Equal(t, e.Sequence, e.GetSequence())
 
 	broadcast := &WebsocketBroadcast{}
-	new = m.SetBroadcast(broadcast)
-	if new == m {
+	e = m.SetBroadcast(broadcast)
+	if e == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m.Broadcast, new.Broadcast)
-	require.Equal(t, new.Broadcast, broadcast)
-	require.Equal(t, new.Broadcast, new.GetBroadcast())
+	require.NotEqual(t, m.Broadcast, e.Broadcast)
+	require.Equal(t, e.Broadcast, broadcast)
+	require.Equal(t, e.Broadcast, e.GetBroadcast())
 
 	data := map[string]interface{}{
 		"key":  "val",
 		"key2": "val2",
 	}
-	new = m.SetData(data)
-	if new == m {
+	e = m.SetData(data)
+	if e == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.NotEqual(t, m, new)
-	require.Equal(t, new.Data, data)
-	require.Equal(t, new.Data, new.GetData())
+	require.NotEqual(t, m, e)
+	require.Equal(t, e.Data, data)
+	require.Equal(t, e.Data, e.GetData())
 
-	copy := m.Copy()
-	if copy == m {
+	cp := m.Copy()
+	if cp == m {
 		require.Fail(t, "pointers should not be the same")
 	}
-	require.Equal(t, m, copy)
+	require.Equal(t, m, cp)
 }
 
 func TestWebSocketEventFromJson(t *testing.T) {

@@ -133,11 +133,11 @@ type AnalyticsPostCountsOptions struct {
 }
 
 func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
-	copy := *o
-	if copy.Message != nil {
-		*copy.Message = RewriteImageURLs(*o.Message, f)
+	cp := *o
+	if cp.Message != nil {
+		*cp.Message = RewriteImageURLs(*o.Message, f)
 	}
-	return &copy
+	return &cp
 }
 
 type PostForExport struct {
@@ -210,15 +210,15 @@ func (o *Post) ShallowCopy(dst *Post) error {
 
 // Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := &Post{}
-	o.ShallowCopy(copy)
-	return copy
+	cp := &Post{}
+	o.ShallowCopy(cp)
+	return cp
 }
 
 func (o *Post) ToJson() string {
-	copy := o.Clone()
-	copy.StripActionIntegrations()
-	b, _ := json.Marshal(copy)
+	cp := o.Clone()
+	cp.StripActionIntegrations()
+	b, _ := json.Marshal(cp)
 	return string(b)
 }
 
@@ -613,12 +613,12 @@ var markdownDestinationEscaper = strings.NewReplacer(
 // WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
 // rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
-	copy := o.Clone()
-	copy.Message = RewriteImageURLs(o.Message, f)
-	if copy.MessageSource == "" && copy.Message != o.Message {
-		copy.MessageSource = o.Message
+	cp := o.Clone()
+	cp.Message = RewriteImageURLs(o.Message, f)
+	if cp.MessageSource == "" && cp.Message != o.Message {
+		cp.MessageSource = o.Message
 	}
-	return copy
+	return cp
 }
 
 func (o *PostEphemeral) ToUnsanitizedJson() string {

@@ -525,9 +525,9 @@ func TestSanitizeTeam(t *testing.T) {
 	}
 
 	copyTeam := func() *model.Team {
-		copy := &model.Team{}
-		*copy = *team
-		return copy
+		cp := &model.Team{}
+		*cp = *team
+		return cp
 	}
 
 	t.Run("not a user of the team", func(t *testing.T) {

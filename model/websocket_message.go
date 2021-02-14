@@ -117,16 +117,16 @@ type WebSocketEvent struct {
 // PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
 // This makes ToJson much more efficient when sending the same event to multiple connections.
 func (ev *WebSocketEvent) PrecomputeJSON() *WebSocketEvent {
-	copy := ev.Copy()
-	event, _ := json.Marshal(copy.Event)
-	data, _ := json.Marshal(copy.Data)
-	broadcast, _ := json.Marshal(copy.Broadcast)
-	copy.precomputedJSON = &precomputedWebSocketEventJSON{
+	cp := ev.Copy()
+	event, _ := json.Marshal(cp.Event)
+	data, _ := json.Marshal(cp.Data)
+	broadcast, _ := json.Marshal(cp.Broadcast)
+	cp.precomputedJSON = &precomputedWebSocketEventJSON{
 		Event:     json.RawMessage(event),
 		Data:      json.RawMessage(data),
 		Broadcast: json.RawMessage(broadcast),
 	}
-	return copy
+	return cp
 }
 
 func (ev *WebSocketEvent) Add(key string, value interface{}) {
@@ -139,14 +139,14 @@ func NewWebSocketEvent(event, teamId, channelId, userId string, omitUsers map[st
 }
 
 func (ev *WebSocketEvent) Copy() *WebSocketEvent {
-	copy := &WebSocketEvent{
+	cp := &WebSocketEvent{
 		Event:           ev.Event,
 		Data:            ev.Data,
 		Broadcast:       ev.Broadcast,
 		Sequence:        ev.Sequence,
 		precomputedJSON: ev.precomputedJSON,
 	}
-	return copy
+	return cp
 }
 
 func (ev *WebSocketEvent) GetData() map[string]interface{} {
@@ -162,27 +162,27 @@ func (ev *WebSocketEvent) GetSequence() int64 {
 }
 
 func (ev *WebSocketEvent) SetEvent(event string) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.Event = event
-	return copy
+	cp := ev.Copy()
+	cp.Event = event
+	return cp
 }
 
 func (ev *WebSocketEvent) SetData(data map[string]interface{}) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.Data = data
-	return copy
+	cp := ev.Copy()
+	cp.Data = data
+	return cp
 }
 
 func (ev *WebSocketEvent) SetBroadcast(broadcast *WebsocketBroadcast) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.Broadcast = broadcast
-	return copy
+	cp := ev.Copy()
+	cp.Broadcast = broadcast
+	return cp
 }
 
 func (ev *WebSocketEvent) SetSequence(seq int64) *WebSocketEvent {
-	copy := ev.Copy()
-	copy.Sequence = seq
-	return copy
+	cp := ev.Copy()
+	cp.Sequence = seq
+	return cp
 }
 
 func (ev *WebSocketEvent) IsValid() bool {

@@ -37,10 +37,10 @@ func PossibleAtMentions(message string) []string {
 // is a special character for usernames (dot, dash or underscore). If not, it
 // returns the same string.
 func TrimUsernameSpecialChar(word string) (string, bool) {
-	len := len(word)
+	length := len(word)
 
-	if len > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (len-1) {
-		return word[:len-1], true
+	if length > 0 && strings.LastIndexAny(word, usernameSpecialChars) == (length-1) {
+		return word[:length-1], true
 	}
 
 	return word, false
