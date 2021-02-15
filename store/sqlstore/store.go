@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
@@ -15,10 +16,20 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/db/migrations"
+
+	bindata "github.com/golang-migrate/migrate/v4/source/go_bindata"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database"
+
+	mysqlmigrate "github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
@@ -151,6 +162,15 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	}
 
 	store.initConnection()
+
+	for _, conn := range store.GetAllConns() {
+		err := store.migrate(conn.Db)
+		if err != nil {
+			mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(ExitGenericFailure)
+		}
+	}
 
 	store.stores.team = newSqlTeamStore(store)
 	store.stores.channel = newSqlChannelStore(store, metrics)
@@ -1243,6 +1263,50 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.licenseMutex.Lock()
 	defer ss.licenseMutex.Unlock()
 	ss.license = license
+}
+
+func (ss *SqlStore) migrate(conn *sql.DB) error {
+	var driver database.Driver
+	var err error
+
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		driver, err = mysqlmigrate.WithInstance(conn, &mysqlmigrate.Config{})
+		if err != nil {
+			return err
+		}
+	} else {
+		driver, err = postgres.WithInstance(conn, &postgres.Config{})
+		if err != nil {
+			return err
+		}
+	}
+
+	var assetNamesForDriver []string
+	for _, assetName := range migrations.AssetNames() {
+		if strings.HasPrefix(assetName, ss.DriverName()) {
+			assetNamesForDriver = append(assetNamesForDriver, strings.TrimPrefix(assetName, ss.DriverName()+"/"))
+		}
+	}
+
+	source := bindata.Resource(assetNamesForDriver, func(name string) ([]byte, error) {
+		return migrations.Asset(ss.DriverName() + "/" + name)
+	})
+
+	sourceDriver, err := bindata.WithInstance(source)
+	if err != nil {
+		return err
+	}
+
+	migrations, err := migrate.NewWithInstance("go-bindata",
+		sourceDriver,
+		ss.DriverName(),
+		driver)
+
+	if err != nil {
+		return err
+	}
+
+	return migrations.Up()
 }
 
 type mattermConverter struct{}
