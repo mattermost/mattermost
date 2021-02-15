@@ -5429,6 +5429,14 @@ func TestGetThreadsForUser(t *testing.T) {
 
 		require.Equal(t, uss2.Threads[0].PostId, rootIdAfter)
 
+		uss3, resp3 := th.Client.GetUserThreads(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{
+			Deleted:  false,
+			PageSize: 10,
+			After:    rootId + "__bad",
+		})
+		require.Nil(t, resp3.Error)
+		require.NotNil(t, uss3.Threads)
+		require.Len(t, uss3.Threads, 0)
 	})
 }
 
