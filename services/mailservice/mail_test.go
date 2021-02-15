@@ -68,53 +68,21 @@ func TestMailConnectionFromConfig(t *testing.T) {
 func TestMailConnectionAdvanced(t *testing.T) {
 	cfg := getConfig()
 
-	conn, err := ConnectToSMTPServerAdvanced(
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   cfg.ConnectionSecurity,
-			SkipCertVerification: cfg.SkipServerCertificateVerification,
-			SmtpServerName:       cfg.Server,
-			SmtpServerHost:       cfg.Server,
-			SmtpPort:             cfg.Port,
-		},
-	)
+	conn, err := ConnectToSMTPServerAdvanced(cfg)
 	require.NoError(t, err, "Should connect to the SMTP Server")
 	defer conn.Close()
 
-	_, err2 := NewSMTPClientAdvanced(
-		context.Background(),
-		conn,
-		cfg.Hostname,
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   cfg.ConnectionSecurity,
-			SkipCertVerification: cfg.SkipServerCertificateVerification,
-			SmtpServerName:       cfg.Server,
-			SmtpServerHost:       cfg.Server,
-			SmtpPort:             cfg.Port,
-			Auth:                 cfg.EnableSMTPAuth,
-			SmtpUsername:         cfg.Username,
-			SmtpPassword:         cfg.Password,
-			SmtpServerTimeout:    1,
-		},
-	)
+	_, err2 := NewSMTPClientAdvanced(context.Background(), conn, cfg)
 	require.NoError(t, err2, "Should get new SMTP client")
 
 	l, err3 := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
 	require.NoError(t, err3, "Should've open a network socket and listen")
 	defer l.Close()
+	cfg.Server = strings.Split(l.Addr().String(), ":")[0]
+	cfg.Port = strings.Split(l.Addr().String(), ":")[1]
+	cfg.ServerTimeout = 1
 
-	connInfo := &SmtpConnectionInfo{
-		ConnectionSecurity:   cfg.ConnectionSecurity,
-		SkipCertVerification: cfg.SkipServerCertificateVerification,
-		SmtpServerName:       cfg.Server,
-		SmtpServerHost:       strings.Split(l.Addr().String(), ":")[0],
-		SmtpPort:             strings.Split(l.Addr().String(), ":")[1],
-		Auth:                 cfg.EnableSMTPAuth,
-		SmtpUsername:         cfg.Username,
-		SmtpPassword:         cfg.Password,
-		SmtpServerTimeout:    1,
-	}
-
-	conn2, err := ConnectToSMTPServerAdvanced(connInfo)
+	conn2, err := ConnectToSMTPServerAdvanced(cfg)
 	require.NoError(t, err, "Should connect to the SMTP Server")
 	defer conn2.Close()
 
@@ -125,21 +93,15 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	_, err4 := NewSMTPClientAdvanced(
 		ctx,
 		conn2,
-		cfg.Hostname,
-		connInfo,
+		cfg,
 	)
 	require.Error(t, err4, "Should get a timeout get while creating a new SMTP client")
 	assert.Contains(t, err4.Error(), "unable to connect to the SMTP server")
 
-	_, err5 := ConnectToSMTPServerAdvanced(
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   cfg.ConnectionSecurity,
-			SkipCertVerification: cfg.SkipServerCertificateVerification,
-			SmtpServerName:       "wrongServer",
-			SmtpServerHost:       "wrongServer",
-			SmtpPort:             "553",
-		},
-	)
+	cfg.Server = "wrongServer"
+	cfg.Port = "553"
+
+	_, err5 := ConnectToSMTPServerAdvanced(cfg)
 	require.Error(t, err5, "Should not connect to the SMTP Server")
 }
 
@@ -286,12 +248,11 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
-		connectionInfo: &SmtpConnectionInfo{
-			SmtpUsername:   "test",
-			SmtpPassword:   "fakepass",
-			SmtpServerName: "fakeserver",
-			SmtpServerHost: "fakeserver",
-			SmtpPort:       "25",
+		config: &SMTPConfig{
+			Username: "test",
+			Password: "fakepass",
+			Server:   "fakeserver",
+			Port:     "25",
 		},
 	}
 	tests := []struct {

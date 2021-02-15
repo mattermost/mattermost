@@ -558,16 +558,14 @@ func (es *EmailService) sendMail(to, subject, htmlBody string) error {
 
 func (es *EmailService) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
 	license := es.srv.License()
-	hostname := utils.GetHostnameFromSiteURL(*es.srv.Config().ServiceSettings.SiteURL)
-	mailConfig := es.srv.Config().EmailSettings.ToMailServiceConfig(hostname)
+	mailConfig := es.srv.MailServiceConfig()
 
 	return mailservice.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
 }
 
 func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error {
 	license := es.srv.License()
-	hostname := utils.GetHostnameFromSiteURL(*es.srv.Config().ServiceSettings.SiteURL)
-	mailConfig := es.srv.Config().EmailSettings.ToMailServiceConfig(hostname)
+	mailConfig := es.srv.MailServiceConfig()
 
 	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
 }

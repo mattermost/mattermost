@@ -29,6 +29,7 @@ type SMTPConfig struct {
 	ConnectionSecurity                string
 	SkipServerCertificateVerification bool
 	Hostname                          string
+	ServerName                        string
 	Server                            string
 	Port                              string
 	ServerTimeout                     int
@@ -79,15 +80,15 @@ type SmtpConnectionInfo struct {
 
 type authChooser struct {
 	smtp.Auth
-	connectionInfo *SmtpConnectionInfo
+	config *SMTPConfig
 }
 
 func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
-	smtpAddress := a.connectionInfo.SmtpServerName + ":" + a.connectionInfo.SmtpPort
-	a.Auth = LoginAuth(a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, smtpAddress)
+	smtpAddress := a.config.ServerName + ":" + a.config.Port
+	a.Auth = LoginAuth(a.config.Username, a.config.Password, smtpAddress)
 	for _, method := range server.Auth {
 		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.connectionInfo.SmtpUsername, a.connectionInfo.SmtpPassword, a.connectionInfo.SmtpServerName+":"+a.connectionInfo.SmtpPort)
+			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.Server+":"+a.config.Port)
 			break
 		}
 	}
@@ -128,19 +129,19 @@ func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 	return nil, nil
 }
 
-func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, error) {
+func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 	var conn net.Conn
 	var err error
 
-	smtpAddress := connectionInfo.SmtpServerHost + ":" + connectionInfo.SmtpPort
+	smtpAddress := config.Server + ":" + config.Port
 	dialer := &net.Dialer{
-		Timeout: time.Duration(connectionInfo.SmtpServerTimeout) * time.Second,
+		Timeout: time.Duration(config.ServerTimeout) * time.Second,
 	}
 
-	if connectionInfo.ConnectionSecurity == connSecurityTls {
+	if config.ConnectionSecurity == connSecurityTls {
 		tlsconfig := &tls.Config{
-			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServerName,
+			InsecureSkipVerify: config.SkipServerCertificateVerification,
+			ServerName:         config.ServerName,
 		}
 
 		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
@@ -158,19 +159,10 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 }
 
 func ConnectToSMTPServer(config *SMTPConfig) (net.Conn, error) {
-	return ConnectToSMTPServerAdvanced(
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.ConnectionSecurity,
-			SkipCertVerification: config.SkipServerCertificateVerification,
-			SmtpServerName:       config.Server,
-			SmtpServerHost:       config.Server,
-			SmtpPort:             config.Port,
-			SmtpServerTimeout:    config.ServerTimeout,
-		},
-	)
+	return ConnectToSMTPServerAdvanced(config)
 }
 
-func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, error) {
+func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smtp.Client, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -178,7 +170,7 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 	ec := make(chan error)
 	go func() {
 		var err error
-		c, err = smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
+		c, err = smtp.NewClient(conn, config.ServerName+":"+config.Port)
 		if err != nil {
 			ec <- err
 			return
@@ -196,23 +188,23 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, 
 		return nil, errors.Wrap(err, "unable to connect to the SMTP server")
 	}
 
-	if hostname != "" {
-		err := c.Hello(hostname)
+	if config.Hostname != "" {
+		err := c.Hello(config.Hostname)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to send hello message")
 		}
 	}
 
-	if connectionInfo.ConnectionSecurity == connSecurityStarttls {
+	if config.ConnectionSecurity == connSecurityStarttls {
 		tlsconfig := &tls.Config{
-			InsecureSkipVerify: connectionInfo.SkipCertVerification,
-			ServerName:         connectionInfo.SmtpServerName,
+			InsecureSkipVerify: config.SkipServerCertificateVerification,
+			ServerName:         config.ServerName,
 		}
 		c.StartTLS(tlsconfig)
 	}
 
-	if connectionInfo.Auth {
-		if err := c.Auth(&authChooser{connectionInfo: connectionInfo}); err != nil {
+	if config.EnableSMTPAuth {
+		if err := c.Auth(&authChooser{config: config}); err != nil {
 			return nil, errors.Wrap(err, "authentication failed")
 		}
 	}
@@ -223,18 +215,7 @@ func NewSMTPClient(ctx context.Context, conn net.Conn, config *SMTPConfig) (*smt
 	return NewSMTPClientAdvanced(
 		ctx,
 		conn,
-		config.Hostname,
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.ConnectionSecurity,
-			SkipCertVerification: config.SkipServerCertificateVerification,
-			SmtpServerName:       config.Server,
-			SmtpServerHost:       config.Server,
-			SmtpPort:             config.Port,
-			SmtpServerTimeout:    config.ServerTimeout,
-			Auth:                 config.EnableSMTPAuth,
-			SmtpUsername:         config.Username,
-			SmtpPassword:         config.Password,
-		},
+		config,
 	)
 }
 
