@@ -132,16 +132,16 @@ func getMockStore() *mocks.Store {
 		AuthService: "authService",
 	}}
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
-	mockUserStore.On("GetProfileByIds", []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", mock.Anything, []string{"123"}, &store.UserGetByIdsOpts{}, true).Return(fakeUser, nil)
+	mockUserStore.On("GetProfileByIds", mock.Anything, []string{"123"}, &store.UserGetByIdsOpts{}, false).Return(fakeUser, nil)
 
 	fakeProfilesInChannelMap := map[string]*model.User{
 		"456": {Id: "456"},
 	}
-	mockUserStore.On("GetAllProfilesInChannel", "123", true).Return(fakeProfilesInChannelMap, nil)
-	mockUserStore.On("GetAllProfilesInChannel", "123", false).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", true).Return(fakeProfilesInChannelMap, nil)
+	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, "123", false).Return(fakeProfilesInChannelMap, nil)
 
-	mockUserStore.On("Get", "123").Return(fakeUser[0], nil)
+	mockUserStore.On("Get", mock.Anything, "123").Return(fakeUser[0], nil)
 	users := []*model.User{
 		fakeUser[0],
 		{
@@ -150,8 +150,8 @@ func getMockStore() *mocks.Store {
 			AuthService: "authService",
 		},
 	}
-	mockUserStore.On("GetMany", []string{"123", "456"}).Return(users, nil)
-	mockUserStore.On("GetMany", []string{"123"}).Return(users[0:1], nil)
+	mockUserStore.On("GetMany", mock.Anything, []string{"123", "456"}).Return(users, nil)
+	mockUserStore.On("GetMany", mock.Anything, []string{"123"}).Return(users[0:1], nil)
 	mockStore.On("User").Return(&mockUserStore)
 
 	fakeUserTeamIds := []string{"1", "2", "3"}
