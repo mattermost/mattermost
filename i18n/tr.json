@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz. Bir iletide en çok 10 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
+    "translation": "Dosya kodları geçersiz. Bir iletide en çok 5 dosya yüklenebileceğini unutmayın. Daha fazla dosya yüklemek için ek iletiler gönderin."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
