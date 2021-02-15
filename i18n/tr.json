@@ -4895,40 +4895,20 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELO ayarlanamadı."
-  },
-  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Bağlantı açılamadı."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLS bağlantısı açılamadı."
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı."
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Ek dosya e-postaya eklenemedi"
-  },
-  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "SMTP sunucu bağlantısı kapatılamadı."
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "\"Kimden\" adresi ayarlanırken sorun çıktı"
-  },
-  {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "E-posta ileti verileri eklenemedi."
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",

@@ -4900,40 +4900,20 @@
     "translation": "Система"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Не удалось установить HELO."
-  },
-  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Не удалось открыть соединение."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Не удалось открыть TLS соединение."
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Не удалось авторизоваться на SMTP сервере."
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Не удалось записать вложение в электронное письмо"
-  },
-  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Не удалось закрыть соединение с SMTP сервером."
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Ошибка установки адреса «От кого»"
-  },
-  {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "Не удалось записать почтовое сообщение."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Не удалось добавить данные почтового сообщения."
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",

@@ -4890,40 +4890,20 @@
     "translation": "系统"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "设置 HELO 失败。"
-  },
-  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "打开连接失败。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "未能打开 TLS 连接。"
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "无法验证 SMTP 服务器。"
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "给邮件添加附件失败"
-  },
-  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "未能关闭 SMTP 服务器的连接。"
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "设定 \"From Address\" 错误"
-  },
-  {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "撰写电子邮件失败。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "添加电子邮件消息数据失败。"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",

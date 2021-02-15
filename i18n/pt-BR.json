@@ -4895,40 +4895,20 @@
     "translation": "Sistema"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Falha ao definir HELO"
-  },
-  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Falha ao abrir conexão"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Falha ao abrir a conexão TLS"
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Falha ao autenticar no servidor de SMTP"
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Falha ao escrever o anexo para o e-mail"
-  },
-  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Falha ao fechar a conexão com servidor SMTP"
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Erro em configurar \"From Address\""
-  },
-  {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "Falha ao escrever a mensagem de email"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Falha ao adicionar os dados a mensagem de email"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",

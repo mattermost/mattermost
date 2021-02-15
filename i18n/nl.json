@@ -4895,40 +4895,20 @@
     "translation": "Systeem"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
-  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Fout bij het openen van de sql verbinding"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Fout bij het openen van TLS verbinding"
   },
   {
     "id": "utils.mail.new_client.auth.app_error",
     "translation": "Kan niet authenticeren bij de SMTP server"
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Er is een probleem opgetreden bij het afsluiten van de verbinding naar de SMTP server"
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
     "id": "utils.mail.send_mail.msg.app_error",
     "translation": "Kan het e-mail bericht niet schrijven"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Kan geen e-mail bericht toevoegen"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",

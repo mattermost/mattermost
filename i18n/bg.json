@@ -144,40 +144,20 @@
     "translation": "Не можах да намеря командата."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Грешка при настройка „До адрес“."
-  },
-  {
     "id": "utils.mail.send_mail.msg_data.app_error",
     "translation": "Неуспешно добавяне на данни за съобщения по ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Неуспешно писане на съобщение за ел.поща."
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
     "translation": "Грешка при настройка „От адрес“"
   },
   {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Неуспешна връзка с SMTP сървъра."
-  },
-  {
     "id": "utils.mail.sendMail.attachments.write_error",
     "translation": "Неуспешен запис на прикачен файл към ел.поща"
   },
   {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Неуспешно удостоверяване на SMTP сървър."
-  },
-  {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
     "translation": "Връзката с TLS не бе успешна."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Неуспешно отваряне на връзката."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",

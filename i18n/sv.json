@@ -144,40 +144,20 @@
     "translation": "Kan inte hitta kommandot."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fel när \"To Address\" skulle sättas."
-  },
-  {
     "id": "utils.mail.send_mail.msg_data.app_error",
     "translation": "Misslyckades att tillföra meddelandedatat till mejlet."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Misslyckades skriva mejl-meddelandet."
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
     "translation": "Fel då \"From Address\" skulle anges"
   },
   {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Misslyckades avsluta kommunikationen med SMTP-servern."
-  },
-  {
     "id": "utils.mail.sendMail.attachments.write_error",
     "translation": "Misslyckades att bifoga fil till e-postmeddelandet"
   },
   {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Misslyckad autentisering på SMTP-servern."
-  },
-  {
     "id": "utils.mail.connect_smtp.open_tls.app_error",
     "translation": "Misslyckades att starta TLS-kommunikationen."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Misslyckades att starta kommunikationen."
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
