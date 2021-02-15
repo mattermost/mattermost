@@ -10,12 +10,11 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1944,37 +1943,19 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 }
 
 func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	var wg sync.WaitGroup
-
-	var usersInChannel []*model.User
-	var usersInChannelErr error
-	var usersNotInChannel []*model.User
-	var usersNotInChannelErr error
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		usersInChannel, usersInChannelErr = us.SearchInChannel(channelId, term, options)
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		usersNotInChannel, usersNotInChannelErr = us.SearchNotInChannel(teamId, channelId, term, options)
-	}()
-
-	wg.Wait()
-
-	var errors error
-	if usersInChannelErr != nil {
-		errors = multierror.Append(errors, usersInChannelErr)
-	}
-	if usersNotInChannelErr != nil {
-		errors = multierror.Append(errors, usersNotInChannelErr)
-	}
-
-	if errors != nil {
-		return nil, errors
+	var usersInChannel, usersNotInChannel []*model.User
+	g := errgroup.Group{}
+	g.Go(func() (err error) {
+		usersInChannel, err = us.SearchInChannel(channelId, term, options)
+		return err
+	})
+	g.Go(func() (err error) {
+		usersNotInChannel, err = us.SearchNotInChannel(teamId, channelId, term, options)
+		return err
+	})
+	err := g.Wait()
+	if err != nil {
+		return nil, err
 	}
 
 	return &model.UserAutocompleteInChannel{
