@@ -33,7 +33,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	}
 
 	if a.Srv().EmailService.PerDayEmailRateLimiter == nil {
-		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("username=%s", username), http.StatusInternalServerError)
+		return model.NewAppError("app.SendAdminUpgradeRequestEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("for username=%s", username), http.StatusInternalServerError)
 	}
 
 	// rate limit based on username as key
@@ -47,7 +47,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
 			fmt.Sprintf("username=%s, retry_after_secs=%f, reset_after_secs=%f",
 				username, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
-			http.StatusRequestEntityTooLarge)
+			http.StatusTooManyRequests)
 	}
 
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
@@ -55,7 +55,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 		return e
 	}
 
-	// we want to atleast have one email sent out to an admin
+	// we want to at least have one email sent out to an admin
 	countNotOks := 0
 
 	for admin := range sysAdmins {

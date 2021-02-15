@@ -399,7 +399,7 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 
 	user, err := c.App.GetUser(c.App.Session().UserId)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
 		return
 	}
 
@@ -409,9 +409,8 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub)
-	if err != nil {
-		c.Err = err
+	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub); err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
 		return
 	}
 

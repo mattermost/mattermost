@@ -41,10 +41,10 @@ func condenseSiteURL(siteURL string) string {
 }
 
 type EmailService struct {
-	srv                    *Server
-	EmailRateLimiter       *throttled.GCRARateLimiter
-	PerDayEmailRateLimiter *throttled.GCRARateLimiter
-	EmailBatching          *EmailBatchingJob
+	srv                     *Server
+	PerHourEmailRateLimiter *throttled.GCRARateLimiter
+	PerDayEmailRateLimiter  *throttled.GCRARateLimiter
+	EmailBatching           *EmailBatchingJob
 }
 
 func NewEmailService(srv *Server) (*EmailService, error) {
@@ -82,7 +82,7 @@ func (es *EmailService) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
 	}
 
-	es.EmailRateLimiter = perHourRateLimiter
+	es.PerHourEmailRateLimiter = perHourRateLimiter
 	es.PerDayEmailRateLimiter = perDayRateLimiter
 	return nil
 }
@@ -336,10 +336,10 @@ func (es *EmailService) sendMfaChangeEmail(email string, activated bool, locale,
 }
 
 func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) *model.AppError {
-	if es.EmailRateLimiter == nil {
+	if es.PerHourEmailRateLimiter == nil {
 		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
-	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
@@ -395,10 +395,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 }
 
 func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) *model.AppError {
-	if es.EmailRateLimiter == nil {
+	if es.PerHourEmailRateLimiter == nil {
 		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
-	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
@@ -641,13 +641,14 @@ func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (b
 	bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
 	bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
 	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
+	bodyPage.Props["BillingPath"] = "admin_console/billing/subscription"
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
 	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
