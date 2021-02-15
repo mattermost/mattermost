@@ -125,6 +125,7 @@ require (
 	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
 	golang.org/x/mod v0.4.1 // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/text v0.3.5
 	golang.org/x/tools v0.1.0
 	google.golang.org/genproto v0.0.0-20210119180700-e258113e47cc // indirect
