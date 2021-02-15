@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/mattermost/rsc/qr"
@@ -17,16 +16,25 @@ import (
 )
 
 // InvalidToken indicates the case where the token validation has failed.
-type InvalidToken struct{}
-
-func (*InvalidToken) Error() string {
-	return "invalid mfa token"
-}
+var InvalidToken = errors.New("invalid mfa token")
 
 const (
 	// This will result in 160 bits of entropy (base32 encoded), as recommended by rfc4226.
 	mfaSecretSize = 20
 )
+
+type Store interface {
+	UpdateMfaActive(userId string, active bool) error
+	UpdateMfaSecret(userId, secret string) error
+}
+
+type MFA struct {
+	store Store
+}
+
+func New(store Store) *MFA {
+	return &MFA{store}
+}
 
 // newRandomBase32String returns a base32 encoded string of a random slice
 // of bytes of the given size. The resulting entropy will be (8 * size) bits.
@@ -35,12 +43,6 @@ func newRandomBase32String(size int) string {
 	rand.Read(data)
 	return base32.StdEncoding.EncodeToString(data)
 }
-
-// StoreActive defines the function needed to store the active state of the mfa
-type StoreActive func(userId string, active bool) error
-
-// StoreActive defines the function needed to store the secret of the mfa
-type StoreSecret func(userId, secret string) error
 
 func getIssuerFromUrl(uri string) string {
 	issuer := "Mattermost"
@@ -56,7 +58,7 @@ func getIssuerFromUrl(uri string) string {
 }
 
 // GenerateSecret generates a new user mfa secret and store it with the StoreSecret function provided
-func GenerateSecret(storeFunc StoreSecret, siteURL, userEmail, userID string) (string, []byte, error) {
+func (m *MFA) GenerateSecret(siteURL, userEmail, userID string) (string, []byte, error) {
 	issuer := getIssuerFromUrl(siteURL)
 
 	secret := newRandomBase32String(mfaSecretSize)
@@ -71,7 +73,7 @@ func GenerateSecret(storeFunc StoreSecret, siteURL, userEmail, userID string) (s
 
 	img := code.PNG()
 
-	if err := storeFunc(userID, secret); err != nil {
+	if err := m.store.UpdateMfaSecret(userID, secret); err != nil {
 		return "", nil, errors.Wrap(err, "unable to store mfa secret")
 	}
 
@@ -79,7 +81,7 @@ func GenerateSecret(storeFunc StoreSecret, siteURL, userEmail, userID string) (s
 }
 
 // Activate set the mfa as active and store it with the StoreActive function provided
-func Activate(storeFunc StoreActive, userMfaSecret, userID string, token string) error {
+func (m *MFA) Activate(userMfaSecret, userID string, token string) error {
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      userMfaSecret,
 		WindowSize:  3,
@@ -94,10 +96,10 @@ func Activate(storeFunc StoreActive, userMfaSecret, userID string, token string)
 	}
 
 	if !ok {
-		return &InvalidToken{}
+		return InvalidToken
 	}
 
-	if err := storeFunc(userID, true); err != nil {
+	if err := m.store.UpdateMfaActive(userID, true); err != nil {
 		return errors.Wrap(err, "unable to store mfa active")
 	}
 
@@ -105,36 +107,20 @@ func Activate(storeFunc StoreActive, userMfaSecret, userID string, token string)
 }
 
 // Deactivate set the mfa as deactive, remove the mfa secret, store it with the StoreActive and StoreSecret functions provided
-func Deactivate(storeSecretFunc StoreSecret, storeActiveFunc StoreActive, userId string) error {
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	var secretErr error
-	var activeErr error
-	go func() {
-		defer wg.Done()
-		secretErr = storeSecretFunc(userId, "")
-	}()
-
-	go func() {
-		defer wg.Done()
-		activeErr = storeActiveFunc(userId, false)
-	}()
-	wg.Wait()
-
-	if activeErr != nil {
-		return errors.Wrap(activeErr, "unable to store mfa active")
+func (m *MFA) Deactivate(userId string) error {
+	if err := m.store.UpdateMfaActive(userId, false); err != nil {
+		return errors.Wrap(err, "unable to store mfa active")
 	}
 
-	if secretErr != nil {
-		return errors.Wrap(secretErr, "unable to store mfa secret")
+	if err := m.store.UpdateMfaSecret(userId, ""); err != nil {
+		return errors.Wrap(err, "unable to store mfa secret")
 	}
 
 	return nil
 }
 
 // Validate the provide token using the secret provided
-func ValidateToken(secret, token string) (bool, error) {
+func (m *MFA) ValidateToken(secret, token string) (bool, error) {
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      secret,
 		WindowSize:  3,

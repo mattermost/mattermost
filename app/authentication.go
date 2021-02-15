@@ -192,7 +192,7 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return model.NewAppError("CheckUserMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	ok, err := mfa.ValidateToken(user.MfaSecret, token)
+	ok, err := mfa.New(a.Srv().Store.User()).ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return model.NewAppError("CheckUserMfa", "mfa.validate_token.authenticate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}

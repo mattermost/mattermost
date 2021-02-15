@@ -730,12 +730,7 @@ func (a *App) GenerateMfaSecret(userID string) (*model.MfaSecret, *model.AppErro
 		return nil, model.NewAppError("GenerateMfaSecret", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	secret, img, err := mfa.GenerateSecret(
-		a.Srv().Store.User().UpdateMfaSecret,
-		*a.Config().ServiceSettings.SiteURL,
-		user.Email,
-		user.Id,
-	)
+	secret, img, err := mfa.New(a.Srv().Store.User()).GenerateSecret(*a.Config().ServiceSettings.SiteURL, user.Email, user.Id)
 	if err != nil {
 		return nil, model.NewAppError("GenerateMfaSecret", "mfa.generate_qr_code.create_code.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -767,10 +762,9 @@ func (a *App) ActivateMfa(userID, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := mfa.Activate(a.Srv().Store.User().UpdateMfaActive, user.MfaSecret, user.Id, token); err != nil {
-		var iErr *mfa.InvalidToken
+	if err := mfa.New(a.Srv().Store.User()).Activate(user.MfaSecret, user.Id, token); err != nil {
 		switch {
-		case errors.As(err, &iErr):
+		case errors.Is(err, mfa.InvalidToken):
 			return model.NewAppError("ActivateMfa", "mfa.activate.bad_token.app_error", nil, "", http.StatusUnauthorized)
 		default:
 			return model.NewAppError("ActivateMfa", "mfa.activate.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -788,7 +782,7 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 		return model.NewAppError("DeactivateMfa", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := mfa.Deactivate(a.Srv().Store.User().UpdateMfaSecret, a.Srv().Store.User().UpdateMfaActive, userID); err != nil {
+	if err := mfa.New(a.Srv().Store.User()).Deactivate(userID); err != nil {
 		return model.NewAppError("DeactivateMfa", "mfa.deactivate.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
