@@ -295,7 +295,7 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	defer c.Quit()
 	defer c.Close()
 
-	fileBackend, nErr := filesstore.NewFileBackend(&config.FileSettings, enableComplianceFeatures)
+	fileBackend, nErr := filesstore.NewFileBackend(config.FileSettings.ToFileBackendSettings(enableComplianceFeatures))
 	if nErr != nil {
 		return errors.Wrap(nErr, "unable to initialize file backend")
 	}
