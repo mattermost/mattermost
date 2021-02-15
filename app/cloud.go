@@ -47,7 +47,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
 			fmt.Sprintf("username=%s, retry_after_secs=%f, reset_after_secs=%f",
 				username, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
-			http.StatusTooManyRequests)
+			http.StatusRequestEntityTooLarge)
 	}
 
 	sysAdmins, e := a.getSysAdminsEmailRecipients()
