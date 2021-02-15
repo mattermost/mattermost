@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -366,7 +367,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv().Store.User().Get(args.UserId)
+		user, err := a.Srv().Store.User().Get(context.Background(), args.UserId)
 		userChan <- store.StoreResult{Data: user, NErr: err}
 		close(userChan)
 	}()

@@ -226,7 +226,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
 
-	fileBackend, err := filesstore.NewFileBackend(&cfg.FileSettings, true)
+	fileBackend, err := filesstore.NewFileBackend(cfg.FileSettings.ToFileBackendSettings(true))
 	assert.NoError(t, err)
 
 	// create two files with the same name that will both be attached to the email
@@ -399,7 +399,8 @@ func TestSendMail(t *testing.T) {
 		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
 		Directory:  &dir,
 	}
-	mockBackend, err := filesstore.NewFileBackend(&settings, true)
+	settings.SetDefaults(true)
+	mockBackend, err := filesstore.NewFileBackend(settings.ToFileBackendSettings(true))
 	require.NoError(t, err)
 	mocm := &mockMailer{}
 
