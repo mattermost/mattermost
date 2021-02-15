@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
 const (
@@ -1449,6 +1450,28 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
+	}
+}
+
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+	if *s.DriverName == IMAGE_DRIVER_LOCAL {
+		return filesstore.FileBackendSettings{
+			DriverName: *s.DriverName,
+			Directory:  *s.Directory,
+		}
+	}
+	return filesstore.FileBackendSettings{
+		DriverName:              *s.DriverName,
+		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
+		AmazonS3Region:          *s.AmazonS3Region,
+		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
+		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
 	}
 }
 
