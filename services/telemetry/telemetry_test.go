@@ -528,3 +528,9 @@ func TestRudderTelemetry(t *testing.T) {
 		assert.Equal(t, "abc123", config.RudderKey)
 	})
 }
+
+func TestIsDefaultArray(t *testing.T) {
+	assert.True(t, isDefaultArray([]string{"one", "two"}, []string{"one", "two"}))
+	assert.False(t, isDefaultArray([]string{"one", "two"}, []string{"one", "two", "three"}))
+	assert.False(t, isDefaultArray([]string{"one", "two"}, []string{"one", "three"}))
+}
