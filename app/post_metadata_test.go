@@ -1339,10 +1339,20 @@ func TestGetFirstLinkAndImages(t *testing.T) {
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
 		},
-		"multiple images domain restricted": {
+		"image domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo"},
+		},
+		"multiple images is domain restricted": {
 			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo](http://example.com/logo3)",
 			ExpectedFirstLink: "",
 			ExpectedImages:    []string{},
+		},
+		"multiple images domain is not restricted": {
+			Input:             "this is a ![our logo](http://example1.com/logo) and ![their logo](http://example1.com/logo2) and ![my logo](http://example1.com/logo3)",
+			ExpectedFirstLink: "",
+			ExpectedImages:    []string{"http://example1.com/logo", "http://example1.com/logo2", "http://example1.com/logo3"},
 		},
 		"multiple images with duplicate domain is restricted": {
 			Input:             "this is a ![our logo](http://example.com/logo) and ![their logo](http://example.com/logo2) and ![my logo which is their logo](http://example.com/logo2)",
