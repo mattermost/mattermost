@@ -71,6 +71,7 @@ func RenderWebError(config *model.Config, w http.ResponseWriter, r *http.Request
 	fmt.Fprintln(w, `<!DOCTYPE html><html><head></head>`)
 	fmt.Fprintln(w, `<body onload="window.location = '`+template.HTMLEscapeString(template.JSEscapeString(destination))+`'">`)
 	fmt.Fprintln(w, `<noscript><meta http-equiv="refresh" content="0; url=`+template.HTMLEscapeString(destination)+`"></noscript>`)
+	fmt.Fprintln(w, `<!-- web error message -->`)
 	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
 	fmt.Fprintln(w, `</body></html>`)
 }
@@ -130,6 +131,7 @@ func RenderMobileMessage(w http.ResponseWriter, message string) {
 				</style>
 			</head>
 			<body>
+				<!-- mobile app message -->
 				<div class="container-fluid">
 					<div class="message-container">
 						`+message+`
