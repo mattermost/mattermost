@@ -252,7 +252,7 @@ store-layers: ## Generate layers for the store
 
 filesstore-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
+	$(GOBIN)/mockery -dir shared/filesstore -all -output shared/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
