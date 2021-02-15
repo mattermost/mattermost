@@ -58,7 +58,7 @@ issues:
 
     - linters:
       - misspell
-      path: "corelibs/markdown/html_entities.go"
+      path: "pkg/markdown/html_entities.go"
 
     - linters:
       - unparam
