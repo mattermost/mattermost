@@ -2965,7 +2965,7 @@ func (s *ImportSettings) SetDefaults() {
 // ExportSettings defines configuration settings for file exports.
 type ExportSettings struct {
 	// The directory where to store the exported files.
-	Directory *string
+	Directory *string // telemetry: none
 	// The number of days to retain the exported files before deleting them.
 	RetentionDays *int
 }

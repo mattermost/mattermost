@@ -64,6 +64,7 @@ const (
 	TrackConfigGuestAccounts     = "config_guest_accounts"
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
+	TrackConfigExport            = "config_export"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -813,6 +814,10 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
 		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
+	})
+
+	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
+		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 }
 
