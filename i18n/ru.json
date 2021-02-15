@@ -7634,5 +7634,77 @@
   {
     "id": "api.server.warn_metric.mfa.notification_body",
     "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о принудительной многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Теперь Вы можете закрыть эту вкладку браузера."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Авторизация завершена"
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Ошибка получения ссылки обновления лицензии"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Параметры Before и After запроса getThreadsForUser являются взаимоисключающими"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Невозможно записать файл."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Нет доступа к файловому хранилищу."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Невозможно удалить файл."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Невозможно удалить каталог."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Невозможно прочитать файл."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Невозможно перенести файл."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Невозможно отобразить каталог."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Невозможно получить размер файла."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Невозможно получить время последнего изменения файла."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Невозможно проверить существование файла."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Невозможно добавить данные к файлу."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Невозможно найти файл экспорта."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Изменение {{.Name}} не разрешено по соображениям безопасности."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Обратно к {{.SiteName}}"
   }
 ]
