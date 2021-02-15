@@ -25,7 +25,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/testlib"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -1226,6 +1225,21 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 		require.Len(t, plugins, 1)
 		require.Equal(t, newerPrepackagePlugin.Manifest, plugins[0].Manifest)
 	})
+
+	t.Run("prepackaged plugins are not shown in Cloud", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
+		CheckNoError(t, resp)
+
+		require.ElementsMatch(t, marketplacePlugins, plugins)
+		require.Len(t, plugins, 1)
+	})
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
@@ -1537,9 +1551,9 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz.asc"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz.sig"))
 		require.NoError(t, err)
 
 		th2 := SetupConfig(t, func(cfg *model.Config) {
@@ -1672,7 +1686,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		prepackagedPluginsDir, found := fileutils.FindDir(prepackagedPluginsDir)
 		require.True(t, found, "failed to find prepackaged plugins directory")
 
-		err = utils.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
+		err = testlib.CopyFile(filepath.Join(path, "testplugin.tar.gz"), filepath.Join(prepackagedPluginsDir, "testplugin.tar.gz"))
 		require.NoError(t, err)
 
 		th := SetupConfig(t, func(cfg *model.Config) {
