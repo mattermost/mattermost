@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	connSecurityTls      = "TLS"
-	connSecurityStarttls = "STARTTLS"
+	TLS      = "TLS"
+	StartTLS = "STARTTLS"
 )
 
 type SMTPConfig struct {
@@ -138,7 +138,7 @@ func ConnectToSMTPServerAdvanced(config *SMTPConfig) (net.Conn, error) {
 		Timeout: time.Duration(config.ServerTimeout) * time.Second,
 	}
 
-	if config.ConnectionSecurity == connSecurityTls {
+	if config.ConnectionSecurity == TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: config.SkipServerCertificateVerification,
 			ServerName:         config.ServerName,
@@ -195,7 +195,7 @@ func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, config *SMTPConfi
 		}
 	}
 
-	if config.ConnectionSecurity == connSecurityStarttls {
+	if config.ConnectionSecurity == StartTLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: config.SkipServerCertificateVerification,
 			ServerName:         config.ServerName,
