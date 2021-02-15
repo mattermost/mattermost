@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
 const (
@@ -121,6 +122,9 @@ const (
 
 	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
 	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
+
+	EXPORT_SETTINGS_DEFAULT_DIRECTORY      = "./export"
+	EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -1446,6 +1450,28 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
+	}
+}
+
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+	if *s.DriverName == IMAGE_DRIVER_LOCAL {
+		return filesstore.FileBackendSettings{
+			DriverName: *s.DriverName,
+			Directory:  *s.Directory,
+		}
+	}
+	return filesstore.FileBackendSettings{
+		DriverName:              *s.DriverName,
+		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
+		AmazonS3Region:          *s.AmazonS3Region,
+		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
+		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
 	}
 }
 
@@ -2936,6 +2962,37 @@ func (s *ImportSettings) SetDefaults() {
 	}
 }
 
+// ExportSettings defines configuration settings for file exports.
+type ExportSettings struct {
+	// The directory where to store the exported files.
+	Directory *string
+	// The number of days to retain the exported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ExportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ExportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(EXPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -3013,6 +3070,7 @@ type Config struct {
 	CloudSettings             CloudSettings  // telemetry: none
 	FeatureFlags              *FeatureFlags  `json:",omitempty"` // telemetry: none
 	ImportSettings            ImportSettings // telemetry: none
+	ExportSettings            ExportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -3121,6 +3179,7 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags.SetDefaults()
 	}
 	o.ImportSettings.SetDefaults()
+	o.ExportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {

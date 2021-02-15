@@ -182,6 +182,18 @@ func (ts *TelemetryService) sendTelemetry(event string, properties map[string]in
 	}
 }
 
+func isDefaultArray(setting, defaultValue []string) bool {
+	if len(setting) != len(defaultValue) {
+		return false
+	}
+	for i := 0; i < len(setting); i++ {
+		if setting[i] != defaultValue[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func isDefault(setting interface{}, defaultValue interface{}) bool {
 	return setting == defaultValue
 }
@@ -700,6 +712,7 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TrackConfigNativeApp, map[string]interface{}{
+		"isdefault_app_custom_url_schemes":    isDefaultArray(cfg.NativeAppSettings.AppCustomURLSchemes, model.GetDefaultAppCustomURLSchemes()),
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),

@@ -224,6 +224,17 @@ github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
+# github.com/gobwas/httphead v0.1.0
+github.com/gobwas/httphead
+# github.com/gobwas/pool v0.2.1
+github.com/gobwas/pool
+github.com/gobwas/pool/internal/pmath
+github.com/gobwas/pool/pbufio
+github.com/gobwas/pool/pbytes
+# github.com/gobwas/ws v1.1.0-rc.2
+## explicit
+github.com/gobwas/ws
+github.com/gobwas/ws/wsutil
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 ## explicit
 github.com/golang/freetype
@@ -354,6 +365,9 @@ github.com/levigross/exp-html
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
+# github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
+## explicit
+github.com/mailru/easygo/netpoll
 # github.com/mailru/easyjson v0.7.6
 ## explicit
 github.com/mailru/easyjson
