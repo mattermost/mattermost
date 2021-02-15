@@ -4895,26 +4895,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Apertura di una connesione fallita."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Impossibile autenticarsi sul server SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Impossibile chiudere la connessione al server SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Impossibile scrivere il messaggio email."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Errore durante l'impostazione del campo \"Indirizzo Destinatario\"."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Impossibile trovare il comando."
   },

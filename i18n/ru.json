@@ -4900,26 +4900,6 @@
     "translation": "Система"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Не удалось открыть соединение."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Не удалось авторизоваться на SMTP сервере."
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Не удалось закрыть соединение с SMTP сервером."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Не удалось записать почтовое сообщение."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Ошибка настройки адреса «Кому»."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Не удалось найти команду."
   },

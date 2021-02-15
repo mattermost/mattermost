@@ -4890,26 +4890,6 @@
     "translation": "系统"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "打开连接失败。"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "无法验证 SMTP 服务器。"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "未能关闭 SMTP 服务器的连接。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "撰写电子邮件失败。"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "设定收件人地址错误。"
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "找不到该命令。"
   },

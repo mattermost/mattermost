@@ -4895,26 +4895,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Bağlantı açılamadı."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTP sunucusu üzerinde kimlik doğrulanamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTP sunucu bağlantısı kapatılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "E-posta iletisi yazılamadı."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "\"Kime\" adresi ayarlanırken sorun çıktı."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Komut bulunamadı."
   },
@@ -8509,10 +8489,6 @@
   {
     "id": "api.no_license",
     "translation": "Bu uç noktayı kullanabilmek için E10 ya da E20 lisansı gereklidir."
-  },
-  {
-    "id": "api.unable_write_file_response",
-    "translation": "Destek paketi dosyası indirilirken sorun çıktı."
   },
   {
     "id": "api.getThreadsForUser.bad_params",

@@ -144,14 +144,6 @@
     "translation": "Kan inte hitta kommandot."
   },
   {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fel då \"From Address\" skulle anges"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Misslyckades att starta TLS-kommunikationen."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -8489,10 +8481,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
-  },
-  {
-    "id": "api.unable_write_file_response",
-    "translation": "Fel vid nedladdning av supportinformationsfilen."
   },
   {
     "id": "api.unable_to_read_file_from_backend",

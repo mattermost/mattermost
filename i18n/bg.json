@@ -144,26 +144,6 @@
     "translation": "Не можах да намеря командата."
   },
   {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Неуспешно добавяне на данни за съобщения по ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Грешка при настройка „От адрес“"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Неуспешен запис на прикачен файл към ел.поща"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Връзката с TLS не бе успешна."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Неуспешно задаване на HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -8501,10 +8481,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
-  },
-  {
-    "id": "api.unable_write_file_response",
-    "translation": "Грешка при изтеглянето на пакетен файл за поддръжка."
   },
   {
     "id": "api.unable_to_read_file_from_backend",

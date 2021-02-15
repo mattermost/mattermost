@@ -4900,26 +4900,6 @@
     "translation": "System"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Nie można otworzyć połączenia"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Uwierzytelnienie na serwerze SMTP nie powiodło się."
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Nie można zamknąć połączenia z serwerem SMTP"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Nie można napisać wiadomość"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Błąd podczas ustawiania \"Do adresu\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Nie można znaleźć polecenia"
   },

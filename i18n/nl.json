@@ -4895,26 +4895,6 @@
     "translation": "Systeem"
   },
   {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fout bij het openen van de sql verbinding"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Kan niet authenticeren bij de SMTP server"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Er is een probleem opgetreden bij het afsluiten van de verbinding naar de SMTP server"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Kan het e-mail bericht niet schrijven"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Het kanaal kan niet gevonden worden"
   },
@@ -8501,10 +8481,6 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
-  },
-  {
-    "id": "api.unable_write_file_response",
-    "translation": "Fout bij het downloaden van het ondersteuningspakketbestand."
   },
   {
     "id": "api.unable_to_read_file_from_backend",
