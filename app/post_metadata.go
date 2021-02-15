@@ -308,15 +308,13 @@ func (a *App) getCustomEmojisForPost(post *model.Post, reactions []*model.Reacti
 
 func (a *App) isLinkAllowedForPreview(link string) bool {
 	domains := a.normalizeDomains(*a.Config().ServiceSettings.RestrictLinkPreviews)
-	matched := false
 	for _, d := range domains {
 		if strings.Contains(link, d) {
-			matched = true
-			break
+			return false
 		}
 	}
 
-	return !matched
+	return true
 }
 
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
@@ -327,11 +325,10 @@ func (a *App) getFirstLinkAndImages(str string) (string, []string) {
 	images := []string{}
 
 	markdown.Inspect(str, func(blockOrInline interface{}) bool {
-		link := ""
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			link = v.Destination()
-			if firstLink == "" && a.isLinkAllowedForPreview(link) {
+			
+			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(link) {
 				firstLink = link
 			}
 		case *markdown.InlineImage:
