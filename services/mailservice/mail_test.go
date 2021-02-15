@@ -34,6 +34,7 @@ func getConfig() *SMTPConfig {
 		ConnectionSecurity:                "",
 		SkipServerCertificateVerification: false,
 		Hostname:                          "localhost",
+		ServerName:                        server,
 		Server:                            server,
 		Port:                              port,
 		ServerTimeout:                     10,
@@ -249,10 +250,11 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
 		config: &SMTPConfig{
-			Username: "test",
-			Password: "fakepass",
-			Server:   "fakeserver",
-			Port:     "25",
+			Username:   "test",
+			Password:   "fakepass",
+			ServerName: "fakeserver",
+			Server:     "fakeserver",
+			Port:       "25",
 		},
 	}
 	tests := []struct {
