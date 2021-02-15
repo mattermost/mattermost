@@ -66,18 +66,6 @@ func encodeRFC2047Word(s string) string {
 	return mime.BEncoding.Encode("utf-8", s)
 }
 
-type SmtpConnectionInfo struct {
-	SmtpUsername         string
-	SmtpPassword         string
-	SmtpServerName       string
-	SmtpServerHost       string
-	SmtpPort             string
-	SmtpServerTimeout    int
-	SkipCertVerification bool
-	ConnectionSecurity   string
-	Auth                 bool
-}
-
 type authChooser struct {
 	smtp.Auth
 	config *SMTPConfig
