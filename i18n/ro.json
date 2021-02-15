@@ -4900,46 +4900,6 @@
     "translation": "Sistem"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Setarea HELO nu a reușit."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Nu s-a putut deschide conexiunea."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Deschiderea conexiunii TLS nu a reușit."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Autentificarea nu a reușit pe serverul SMTP."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Nu a reuşit să scrie ataşament la e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Nu s-a putut închide conexiunea la serverul SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Eroare setarea \"De La adresa\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Nu s-a putut scrie mesajul de e-mail."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Nu a reușit să adauge date de mesaj email."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Eroare setarea \"La adresa\"."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Nu am putut găsi comanda."
   },

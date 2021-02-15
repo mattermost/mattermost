@@ -4895,46 +4895,6 @@
     "translation": "System"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Fehler beim Setzen von HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fehler beim Öffnen der Verbindung"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Fehler beim Öffnen der TLS Verbindung"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Fehler beim Authentifizieren am SMTP-Server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Fehler beim Hinzufügen des Mailanhanges"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Fehler beim Schließen der Verbindung zum SMTP-Server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fehler beim Setzen von \"Absenderadresse\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Fehler bei Schreiben der E-Mail"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Fehler bei Hinzufügen der E-Mail Daten"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fehler beim Setzen von \"Empfängeradresse\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Der Befehl konnte nicht gefunden werden"
   },

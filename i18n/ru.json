@@ -4900,46 +4900,6 @@
     "translation": "Система"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Не удалось установить HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Не удалось открыть соединение."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Не удалось открыть TLS соединение."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Не удалось авторизоваться на SMTP сервере."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Не удалось записать вложение в электронное письмо"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Не удалось закрыть соединение с SMTP сервером."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Ошибка установки адреса «От кого»"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Не удалось записать почтовое сообщение."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Не удалось добавить данные почтового сообщения."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Ошибка настройки адреса «Кому»."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Не удалось найти команду."
   },
@@ -7674,5 +7634,77 @@
   {
     "id": "api.server.warn_metric.mfa.notification_body",
     "translation": "В вашей системе Mattermost включена многофакторная аутентификация, что дает пользователям возможность защитить свои учетные записи с помощью дополнительных средств аутентификации помимо пароля. Для повышения безопасности всей системы вы можете потребовать, чтобы все учетные записи Mattermost использовали многофакторную аутентификацию.\n\n[Подробнее о принудительной многофакторной аутентификации](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nНажав «Связаться с нами», вы поделитесь своей информацией с Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Теперь Вы можете закрыть эту вкладку браузера."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Авторизация завершена"
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "Ошибка получения ссылки обновления лицензии"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Параметры Before и After запроса getThreadsForUser являются взаимоисключающими"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Невозможно записать файл."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Нет доступа к файловому хранилищу."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Невозможно удалить файл."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Невозможно удалить каталог."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Невозможно прочитать файл."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Невозможно перенести файл."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Невозможно отобразить каталог."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Невозможно получить размер файла."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Невозможно получить время последнего изменения файла."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Невозможно проверить существование файла."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Невозможно добавить данные к файлу."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Невозможно найти файл экспорта."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "Изменение {{.Name}} не разрешено по соображениям безопасности."
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Обратно к {{.SiteName}}"
   }
 ]

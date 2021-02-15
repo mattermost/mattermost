@@ -4890,46 +4890,6 @@
     "translation": "系统"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "设置 HELO 失败。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "打开连接失败。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "未能打开 TLS 连接。"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "无法验证 SMTP 服务器。"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "给邮件添加附件失败"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "未能关闭 SMTP 服务器的连接。"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "设定 \"From Address\" 错误"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "撰写电子邮件失败。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "添加电子邮件消息数据失败。"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "设定收件人地址错误。"
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "找不到该命令。"
   },
@@ -8412,5 +8372,29 @@
   {
     "id": "api.back_to_app",
     "translation": "回到{{.SiteName}}"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "从后端读取文件时出错"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "创建 zip 文件出错。"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "使用此终结点需要 E10 或 E20 许可证。"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "无效的重定向网址"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "无效的自定义网址方案"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser 的 Before 和 After 参数是互斥的"
   }
 ]

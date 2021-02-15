@@ -4895,46 +4895,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Falla a establecer HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Falla al abrir conexión."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Falla al abrir una conexión TLS."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Falla autenticando contra el servidor SMTP."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Error al escribir el archivo adjunto al correo electrónico"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Falla al cerrar la conexión al servidor SMTP."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error ajuste \"Dirección Desde\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Falla al escribir el mensaje del correo electrónico."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Falla al agregar los datos al mensaje del correo electrónico."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error ajuste \"Dirección Para\"."
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "No se encontró el comando."
   },

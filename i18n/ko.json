@@ -4890,46 +4890,6 @@
     "translation": "시스템"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Failed to open TLS connection"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Failed to authenticate on SMTP server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Failed to close connection to SMTP server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email messsage data"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
