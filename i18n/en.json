@@ -2607,24 +2607,12 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
-    "id": "api.templates.upgrade_request_title",
-    "translation": "{{ .UserName }} would like to invite members to your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_info4",
-    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
-  },
-  {
     "id": "api.templates.at_limit_info5",
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
   },
   {
     "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
-  },
-  {
-    "id": "api.templates.upgrade_request_subject",
-    "translation": "Mattermost user request upgrade of workspace"
   },
   {
     "id": "api.templates.at_limit_title",
@@ -2977,6 +2965,18 @@
   {
     "id": "api.templates.upgrade_mattermost_cloud",
     "translation": "Upgrade"
+  },
+  {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost user request upgrade of workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} would like to invite members to your workspace"
   },
   {
     "id": "api.templates.user_access_token_body.info",
@@ -3443,14 +3443,6 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
-    "id": "api.user.send_email_user_limit_admin_notification.error",
-    "translation": "Failed to send email to user limit notification to admin"
-  },
-  {
-    "id": "api.user.send_upgrade_request_email.error",
-    "translation": "Failed to send email to user limit notification to admin"
-  },
-  {
     "id": "api.user.send_mfa_change_email.error",
     "translation": "Unable to send email notification for MFA change."
   },
@@ -3469,6 +3461,10 @@
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
     "translation": "Failed to send update password email successfully"
+  },
+  {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Failed to send email to user limit notification to admin"
   },
   {
     "id": "api.user.send_user_access_token.error",
@@ -5711,10 +5707,6 @@
     "translation": "We could not count the users."
   },
   {
-    "id": "app.user.send_emails.app_error",
-    "translation": "No emails were successfully sent"
-  },
-  {
     "id": "app.user.get_unread_count.app_error",
     "translation": "We could not get the unread message count for the user."
   },
@@ -5757,6 +5749,10 @@
   {
     "id": "app.user.search.app_error",
     "translation": "Unable to find any user matching the search parameters."
+  },
+  {
+    "id": "app.user.send_emails.app_error",
+    "translation": "No emails were successfully sent"
   },
   {
     "id": "app.user.update.find.app_error",
