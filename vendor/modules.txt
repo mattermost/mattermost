@@ -209,6 +209,8 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 ## explicit
 github.com/go-asn1-ber/asn1-ber
+# github.com/go-bindata/go-bindata v3.1.2+incompatible
+## explicit
 # github.com/go-redis/redis/v8 v8.4.9
 ## explicit
 github.com/go-redis/redis/v8
