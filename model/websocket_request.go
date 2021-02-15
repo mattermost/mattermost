@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
+	"github.com/mattermost/mattermost-server/v5/pkg/i18n"
 )
 
 // WebSocketRequest represents a request made to the server through a websocket.

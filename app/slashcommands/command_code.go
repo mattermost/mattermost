@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/corelibs/i18n"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/pkg/i18n"
 )
 
 type CodeProvider struct {
