@@ -18,8 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testStore struct{}
-
 func TestGenerateSecret(t *testing.T) {
 	userID := "user-id"
 	userEmail := "sample@sample.com"
