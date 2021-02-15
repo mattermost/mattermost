@@ -76,8 +76,11 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
+		user, err := th.App.GetUser(bot.UserId)
+		require.Nil(t, err)
+
 		// Check that a post was created to add bot to team and channels
-		channel, err := th.App.GetOrCreateDirectChannel(bot.UserId, th.BasicUser.Id)
+		channel, err := th.App.getOrCreateDirectChannelWithUser(user, th.BasicUser)
 		require.Nil(t, err)
 		posts, err := th.App.GetPosts(channel.Id, 0, 1)
 		require.Nil(t, err)

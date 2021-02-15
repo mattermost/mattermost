@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -194,7 +195,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (es *EmailService) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
-	user, err := es.srv.Store.User().Get(userID)
+	user, err := es.srv.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
@@ -205,7 +206,7 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 
 	var contents string
 	for _, notification := range notifications {
-		sender, err := es.srv.Store.User().Get(notification.post.UserId)
+		sender, err := es.srv.Store.User().Get(context.Background(), notification.post.UserId)
 		if err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue
@@ -239,8 +240,8 @@ func (es *EmailService) sendBatchedEmailNotification(userID string, notification
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	if err := es.sendNotificationMail(user.Email, subject, body.Render()); err != nil {
-		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(err))
+	if nErr := es.sendNotificationMail(user.Email, subject, body.Render()); nErr != nil {
+		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
 }
 

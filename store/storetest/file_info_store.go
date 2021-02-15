@@ -38,7 +38,7 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 	}
 
 	info, err := ss.FileInfo().Save(info)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotEqual(t, len(info.Id), 0)
 
 	defer func() {
@@ -46,7 +46,7 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 	}()
 
 	rinfo, err := ss.FileInfo().Get(info.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, info.Id, rinfo.Id)
 
 	info2, err := ss.FileInfo().Save(&model.FileInfo{
@@ -54,10 +54,10 @@ func testFileInfoSaveGet(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 		DeleteAt:  123,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Get(info2.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	defer func() {
 		ss.FileInfo().PermanentDelete(info2.Id)
@@ -71,14 +71,14 @@ func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
 	}
 
 	info, err := ss.FileInfo().Save(info)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.NotEqual(t, len(info.Id), 0)
 	defer func() {
 		ss.FileInfo().PermanentDelete(info.Id)
 	}()
 
 	rinfo, err := ss.FileInfo().GetByPath(info.Path)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, info.Id, rinfo.Id)
 
 	info2, err := ss.FileInfo().Save(&model.FileInfo{
@@ -86,10 +86,10 @@ func testFileInfoSaveGetByPath(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 		DeleteAt:  123,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.FileInfo().GetByPath(info2.Id)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	defer func() {
 		ss.FileInfo().PermanentDelete(info2.Id)
@@ -126,7 +126,7 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 
 	for i, info := range infos {
 		newInfo, err := ss.FileInfo().Save(info)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		infos[i] = newInfo
 		defer func(id string) {
 			ss.FileInfo().PermanentDelete(id)
@@ -207,7 +207,7 @@ func testFileInfoGetForPost(t *testing.T, ss store.Store) {
 				tc.IncludeDeleted,
 				tc.AllowFromCache,
 			)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.Len(t, postInfos, tc.ExpectedPosts)
 
 		})
@@ -244,7 +244,7 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 
 	for i, info := range infos {
 		newInfo, err := ss.FileInfo().Save(info)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		infos[i] = newInfo
 		defer func(id string) {
 			ss.FileInfo().PermanentDelete(id)
@@ -252,11 +252,11 @@ func testFileInfoGetForUser(t *testing.T, ss store.Store) {
 	}
 
 	userPosts, err := ss.FileInfo().GetForUser(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, userPosts, 3)
 
 	userPosts, err = ss.FileInfo().GetForUser(userId2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, userPosts, 1)
 }
 
@@ -266,7 +266,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 		post.ChannelId = chId
 		post.UserId = user
 		_, err := ss.Post().Save(&post)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		return &post
 	}
 
@@ -283,7 +283,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 			fileInfo.PostId = post.Id
 		}
 		_, err := ss.FileInfo().Save(&fileInfo)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		return fileInfo
 	}
 
@@ -308,7 +308,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 
 	// delete a file
 	_, err := ss.FileInfo().DeleteForPost(file2_2.PostId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		Name            string
@@ -388,7 +388,7 @@ func testFileInfoGetWithOptions(t *testing.T, ss store.Store) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileInfos, err := ss.FileInfo().GetWithOptions(tc.Page, tc.PerPage, tc.Opt)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Len(t, fileInfos, len(tc.ExpectedFileIds))
 			for i := range tc.ExpectedFileIds {
 				assert.Equal(t, tc.ExpectedFileIds[i], fileInfos[i].Id)
@@ -412,26 +412,26 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 			CreatorId: userId,
 			Path:      "file.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		info2, err := ss.FileInfo().Save(&model.FileInfo{
 			CreatorId: userId,
 			Path:      "file2.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		require.Equal(t, "", info1.PostId)
 		require.Equal(t, "", info2.PostId)
 
 		err = ss.FileInfo().AttachToPost(info1.Id, postId, userId)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		info1.PostId = postId
 
 		err = ss.FileInfo().AttachToPost(info2.Id, postId, userId)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		info2.PostId = postId
 
 		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		expected := []*model.FileInfo{info1, info2}
 		sort.Sort(byFileInfoId(expected))
@@ -447,15 +447,15 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 			CreatorId: userId,
 			Path:      "file.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		require.Equal(t, "", info.PostId)
 
 		err = ss.FileInfo().AttachToPost(info.Id, model.NewId(), userId)
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("should not attach files owned from a different user", func(t *testing.T) {
@@ -466,12 +466,12 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 			CreatorId: model.NewId(),
 			Path:      "file.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		require.Equal(t, "", info.PostId)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, userId)
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("should attach files uploaded by nouser", func(t *testing.T) {
@@ -481,14 +481,14 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 			CreatorId: "nouser",
 			Path:      "file.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, "", info.PostId)
 
 		err = ss.FileInfo().AttachToPost(info.Id, postId, model.NewId())
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		data, err := ss.FileInfo().GetForPost(postId, true, false, false)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		info.PostId = postId
 		assert.EqualValues(t, []*model.FileInfo{info}, data)
 	})
@@ -524,7 +524,7 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 
 	for i, info := range infos {
 		newInfo, err := ss.FileInfo().Save(info)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		infos[i] = newInfo
 		defer func(id string) {
 			ss.FileInfo().PermanentDelete(id)
@@ -532,10 +532,10 @@ func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {
 	}
 
 	_, err := ss.FileInfo().DeleteForPost(postId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	infos, err = ss.FileInfo().GetForPost(postId, true, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, infos)
 }
 
@@ -545,10 +545,10 @@ func testFileInfoPermanentDelete(t *testing.T, ss store.Store) {
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = ss.FileInfo().PermanentDelete(info.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
@@ -560,7 +560,7 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 		CreateAt:  1000,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
@@ -568,7 +568,7 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 		CreateAt:  1200,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
@@ -576,17 +576,17 @@ func testFileInfoPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Path:      "file.txt",
 		CreateAt:  2000,
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	postFiles, err := ss.FileInfo().GetForPost(postId, true, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, postFiles, 3)
 
 	_, err = ss.FileInfo().PermanentDeleteBatch(1500, 1000)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	postFiles, err = ss.FileInfo().GetForPost(postId, true, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, postFiles, 1)
 }
 
@@ -599,10 +599,10 @@ func testFileInfoPermanentDeleteByUser(t *testing.T, ss store.Store) {
 		CreatorId: userId,
 		Path:      "file.txt",
 	})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	_, err = ss.FileInfo().PermanentDeleteByUser(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, ss store.Store) {
