@@ -28,10 +28,10 @@ func TestSchemeStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		scheme, err := cachedStore.Scheme().Get("123")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, scheme, &fakeScheme)
 		mockStore.Scheme().(*mocks.SchemeStore).AssertNumberOfCalls(t, "Get", 1)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, scheme, &fakeScheme)
 		cachedStore.Scheme().Get("123")
 		mockStore.Scheme().(*mocks.SchemeStore).AssertNumberOfCalls(t, "Get", 1)

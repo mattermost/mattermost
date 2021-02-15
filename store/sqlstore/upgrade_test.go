@@ -87,7 +87,7 @@ func TestSaveSchemaVersion(t *testing.T) {
 		t.Run("set earliest version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, Version300)
 			props, err := ss.System().Get()
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			require.Equal(t, Version300, props["Version"])
 			require.Equal(t, Version300, sqlStore.GetCurrentSchemaVersion())
@@ -96,7 +96,7 @@ func TestSaveSchemaVersion(t *testing.T) {
 		t.Run("set current version", func(t *testing.T) {
 			saveSchemaVersion(sqlStore, CurrentSchemaVersion)
 			props, err := ss.System().Get()
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			require.Equal(t, CurrentSchemaVersion, props["Version"])
 			require.Equal(t, CurrentSchemaVersion, sqlStore.GetCurrentSchemaVersion())

@@ -3575,6 +3575,10 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Invalid Origin header set during websocket upgrade."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -7936,7 +7940,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
