@@ -531,12 +531,12 @@ func TestSanitizeTeam(t *testing.T) {
 	}
 
 	t.Run("not a user of the team", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: model.NewId(),
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},
@@ -549,12 +549,12 @@ func TestSanitizeTeam(t *testing.T) {
 	})
 
 	t.Run("user of the team", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: team.Id,
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},
@@ -567,12 +567,12 @@ func TestSanitizeTeam(t *testing.T) {
 	})
 
 	t.Run("team admin", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: team.Id,
 					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
@@ -585,12 +585,12 @@ func TestSanitizeTeam(t *testing.T) {
 	})
 
 	t.Run("team admin of another team", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: model.NewId(),
 					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
@@ -603,12 +603,12 @@ func TestSanitizeTeam(t *testing.T) {
 	})
 
 	t.Run("system admin, not a user of team", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: model.NewId(),
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},
@@ -621,12 +621,12 @@ func TestSanitizeTeam(t *testing.T) {
 	})
 
 	t.Run("system admin, user of team", func(t *testing.T) {
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: team.Id,
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},
@@ -657,17 +657,17 @@ func TestSanitizeTeams(t *testing.T) {
 			},
 		}
 
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: teams[0].Id,
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: teams[1].Id,
 					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
@@ -694,12 +694,12 @@ func TestSanitizeTeams(t *testing.T) {
 			},
 		}
 
-		userId := model.NewId()
+		userID := model.NewId()
 		session := model.Session{
 			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
-					UserId: userId,
+					UserId: userID,
 					TeamId: teams[0].Id,
 					Roles:  model.TEAM_USER_ROLE_ID,
 				},

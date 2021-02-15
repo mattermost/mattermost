@@ -130,6 +130,10 @@ func (a *App) initJobs() {
 		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
 	}
 
+	if jobsExportProcessInterface != nil {
+		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
+	}
+
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
 	}

@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/ldap"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
 const (
@@ -817,6 +818,7 @@ type ClusterSettings struct {
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -861,6 +863,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -1094,6 +1100,7 @@ type SqlSettings struct {
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1138,6 +1145,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = NewInt(300000)
 	}
 
 	if s.Trace == nil {
@@ -1439,6 +1450,28 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3Trace == nil {
 		s.AmazonS3Trace = NewBool(false)
+	}
+}
+
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+	if *s.DriverName == IMAGE_DRIVER_LOCAL {
+		return filesstore.FileBackendSettings{
+			DriverName: *s.DriverName,
+			Directory:  *s.Directory,
+		}
+	}
+	return filesstore.FileBackendSettings{
+		DriverName:              *s.DriverName,
+		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
+		AmazonS3Region:          *s.AmazonS3Region,
+		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
+		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
 	}
 }
 
@@ -3214,7 +3247,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+	if err := o.MessageExportSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3275,6 +3308,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.ConnMaxLifetimeMilliseconds < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.QueryTimeout <= 0 {
@@ -3653,7 +3690,7 @@ func (s *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-func (s *MessageExportSettings) isValid(fs FileSettings) *AppError {
+func (s *MessageExportSettings) isValid() *AppError {
 	if s.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	}

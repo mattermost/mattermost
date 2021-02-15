@@ -334,6 +334,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+//nolint:unparam
 func userCreateCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -376,13 +377,13 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if systemAdmin {
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user system_admin", false); err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
 		// created as a system admin unless explicitly specified.
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+		if _, err := a.UpdateUserRolesWithUser(ruser, "system_user", false); err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
 	}
@@ -426,7 +427,7 @@ func usersToBots(args []string, a *app.App) {
 	}
 }
 
-func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
+func getUpdatedPassword(command *cobra.Command) (string, error) {
 	password, err := command.Flags().GetString("password")
 	if err != nil {
 		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
@@ -500,7 +501,7 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
 	}
 
-	password, err := getUpdatedPassword(command, a, user)
+	password, err := getUpdatedPassword(command)
 	if err != nil {
 		return err
 	}

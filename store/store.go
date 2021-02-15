@@ -252,8 +252,10 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
+	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamId string) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
@@ -320,20 +322,21 @@ type UserStore interface {
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error)
 	UpdateMfaSecret(userId, secret string) error
 	UpdateMfaActive(userId string, active bool) error
-	Get(id string) (*model.User, error)
+	Get(ctx context.Context, id string) (*model.User, error)
+	GetMany(ctx context.Context, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error)
-	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, error)
+	GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfiles(options *model.UserGetOptions) ([]*model.User, error)
-	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error)
+	GetProfileByIds(ctx context.Context, userIds []string, options *UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error)
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, error)
 	InvalidateProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, error)
@@ -375,7 +378,7 @@ type UserStore interface {
 	GetTeamGroupUsers(teamID string) ([]*model.User, error)
 	GetChannelGroupUsers(channelID string) ([]*model.User, error)
 	PromoteGuestToUser(userID string) error
-	DemoteUserToGuest(userID string) error
+	DemoteUserToGuest(userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
 	AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
