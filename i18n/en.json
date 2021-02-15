@@ -709,7 +709,7 @@
   },
   {
     "id": "api.command_custom_status.hint",
-    "translation": "[:emoji:] [text] or clear"
+    "translation": "[:emoji_name:] [status_message] or clear"
   },
   {
     "id": "api.command_custom_status.name",

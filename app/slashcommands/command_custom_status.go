@@ -62,7 +62,7 @@ func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, mess
 		Emoji: DefaultCustomStatusEmoji,
 		Text:  message,
 	}
-	firstEmojiLocations := model.EMOJI_PATTERN.FindIndex([]byte(message))
+	firstEmojiLocations := model.ALL_EMOJI_PATTERN.FindIndex([]byte(message))
 	if len(firstEmojiLocations) > 0 && firstEmojiLocations[0] == 0 {
 		// emoji found at starting index
 		customStatus.Emoji = message[firstEmojiLocations[0]+1 : firstEmojiLocations[1]-1]
