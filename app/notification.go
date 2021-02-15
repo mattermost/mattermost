@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"sort"
 	"strconv"
@@ -28,7 +29,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
-		props, err := a.Srv().Store.User().GetAllProfilesInChannel(channel.Id, true)
+		props, err := a.Srv().Store.User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
 		pchan <- store.StoreResult{Data: props, NErr: err}
 		close(pchan)
 	}()

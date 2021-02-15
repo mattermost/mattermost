@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/corelibs/mlog"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -23,6 +22,51 @@ const (
 
 type LocalFileBackend struct {
 	directory string
+}
+
+// copyFile will copy a file from src path to dst path.
+// Overwrites any existing files at dst.
+// Permissions are copied from file at src to the new file at dst.
+func copyFile(src, dst string) (err error) {
+	in, err := os.Open(src)
+	if err != nil {
+		return
+	}
+	defer in.Close()
+
+	if err = os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return
+	}
+	defer func() {
+		if e := out.Close(); e != nil {
+			err = e
+		}
+	}()
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return
+	}
+
+	err = out.Sync()
+	if err != nil {
+		return
+	}
+
+	stat, err := os.Stat(src)
+	if err != nil {
+		return
+	}
+	err = os.Chmod(dst, stat.Mode())
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (b *LocalFileBackend) TestConnection() error {
@@ -81,7 +125,7 @@ func (b *LocalFileBackend) FileModTime(path string) (time.Time, error) {
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) error {
-	if err := utils.CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
+	if err := copyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return errors.Wrapf(err, "unable to copy file from %s to %s", oldPath, newPath)
 	}
 	return nil
