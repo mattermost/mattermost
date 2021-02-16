@@ -1374,3 +1374,23 @@ func TestDeactivateGuests(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), user.DeleteAt)
 }
+
+func TestUpdateUserRolesWithUser(t *testing.T) {
+	// InitBasic is used to let the first CreateUser call not be
+	// a system_admin
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Create normal user.
+	user := th.CreateUser()
+	assert.Equal(t, user.Roles, model.SYSTEM_USER_ROLE_ID)
+
+	// Upgrade to sysadmin.
+	user, err := th.App.UpdateUserRolesWithUser(user, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
+	require.Nil(t, err)
+	assert.Equal(t, user.Roles, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
+
+	// Test bad role.
+	_, err = th.App.UpdateUserRolesWithUser(user, "does not exist", false)
+	require.NotNil(t, err)
+}

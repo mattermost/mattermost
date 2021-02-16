@@ -122,6 +122,13 @@ func (a *App) initJobs() {
 	if jobsImportDeleteInterface != nil {
 		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
 	}
+	if jobsExportDeleteInterface != nil {
+		a.srv.Jobs.ExportDelete = jobsExportDeleteInterface(a)
+	}
+
+	if jobsExportProcessInterface != nil {
+		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
+	}
 
 	if jobsExportProcessInterface != nil {
 		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
