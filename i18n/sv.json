@@ -144,46 +144,6 @@
     "translation": "Kan inte hitta kommandot."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Fel när \"To Address\" skulle sättas."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Misslyckades att tillföra meddelandedatat till mejlet."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Misslyckades skriva mejl-meddelandet."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Fel då \"From Address\" skulle anges"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Misslyckades avsluta kommunikationen med SMTP-servern."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Misslyckades att bifoga fil till e-postmeddelandet"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Misslyckad autentisering på SMTP-servern."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Misslyckades att starta TLS-kommunikationen."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Misslyckades att starta kommunikationen."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Misslyckades sätta HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -1825,7 +1785,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 10 filer. För att ladda upp fler filer, posta fler meddelanden."
+    "translation": "Ogiltiga fil-id. Notera begränsningen av maximalt 5 filer. För att ladda upp fler filer, posta fler meddelanden."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -5545,7 +5505,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Ett fel uppkom under kontroll av JSON-data vid export."
+    "translation": "Ett fel uppkom vid rangering av JSON-data vid export."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -8523,10 +8483,6 @@
     "translation": "Använd endast en av parametrarna Before eller After för getThreadsForUser"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Fel vid nedladdning av supportinformationsfilen."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Fel när filen lästes från servern"
   },
@@ -8537,5 +8493,53 @@
   {
     "id": "api.no_license",
     "translation": "För att använda denna endpoint behövs en E10 eller E20-licens."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Misslyckades kopiera fil vid export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Kunde inte rangera svaret."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Ogiltigt värde för RetentionDays. Värdet ska vara större än 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Värdet för Directory ska inte vara tomt."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Det gick inte att ansluta till SMTP-servern"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Misslyckades att läsa bifogade filer vid export."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Misslyckades att skapa zip-arkivet vid export."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Misslyckades att lägga till filen i zip-arkivet vid export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Misslyckades skapa katalogen vid export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Misslyckades skapa filen vid export."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Det gick inte hitta export-filen."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Ogiltig Origin header vid websocket-uppgraderingen."
   }
 ]
