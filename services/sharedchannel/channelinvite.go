@@ -16,20 +16,29 @@ import (
 
 // channelInviteMsg represents an invitation for a remote cluster to start sharing a channel.
 type channelInviteMsg struct {
-	ChannelId   string `json:"channel_id"`
-	TeamId      string `json:"team_id"`
-	ReadOnly    bool   `json:"read_only"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Header      string `json:"header"`
-	Purpose     string `json:"purpose"`
-	Type        string `json:"type"`
+	ChannelId            string   `json:"channel_id"`
+	TeamId               string   `json:"team_id"`
+	ReadOnly             bool     `json:"read_only"`
+	Name                 string   `json:"name"`
+	DisplayName          string   `json:"display_name"`
+	Header               string   `json:"header"`
+	Purpose              string   `json:"purpose"`
+	Type                 string   `json:"type"`
+	DirectParticipantIDs []string `json:"direct_participant_ids"`
+}
+
+type InviteOption func(msg *channelInviteMsg)
+
+func WithDirectParticipantID(participantID string) InviteOption {
+	return func(msg *channelInviteMsg) {
+		msg.DirectParticipantIDs = append(msg.DirectParticipantIDs, participantID)
+	}
 }
 
 // SendChannelInvite asynchronously sends a channel invite to a remote cluster. The remote cluster is
 // expected to create a new channel with the same channel id, and respond with status OK.
 // If an error occurs on the remote cluster then an ephemeral message is posted to in the channel for userId.
-func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster) error {
+func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, description string, rc *model.RemoteCluster, options ...InviteOption) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot invite remote cluster for channel id %s; Remote Cluster Service not enabled", channel.Id)
@@ -49,6 +58,10 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 		Header:      sc.ShareHeader,
 		Purpose:     sc.SharePurpose,
 		Type:        channel.Type,
+	}
+
+	for _, option := range options {
+		option(&invite)
 	}
 
 	json, err := json.Marshal(invite)
@@ -118,22 +131,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 	// create channel if it doesn't exist; the channel may already exist, such as if it was shared then unshared at some point.
 	channel, err := scs.server.GetStore().Channel().Get(invite.ChannelId, true)
 	if err != nil {
-		channelNew := &model.Channel{
-			Id:          invite.ChannelId,
-			TeamId:      invite.TeamId,
-			Type:        invite.Type,
-			DisplayName: invite.DisplayName,
-			Name:        invite.Name,
-			Header:      invite.Header,
-			Purpose:     invite.Purpose,
-			CreatorId:   rc.CreatorId,
-			Shared:      model.NewBool(true),
-		}
-
-		// check user perms?
-		var appErr *model.AppError
-		if channel, appErr = scs.app.CreateChannelWithUser(channelNew, rc.CreatorId); appErr != nil {
-			return fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
+		if channel, err = scs.handleChannelCreation(invite, rc); err != nil {
+			return err
 		}
 	}
 
@@ -154,6 +153,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		ShareHeader:      channel.Header,
 		CreatorId:        rc.CreatorId,
 		RemoteId:         rc.RemoteId,
+		Type:             channel.Type,
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().Save(sharedChannel); err != nil {
@@ -177,4 +177,43 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 	}
 	return nil
+}
+
+func (scs *Service) handleChannelCreation(invite channelInviteMsg, rc *model.RemoteCluster) (*model.Channel, error) {
+	if invite.Type == model.CHANNEL_DIRECT {
+		return scs.createDirectChannel(invite)
+	}
+
+	channelNew := &model.Channel{
+		Id:          invite.ChannelId,
+		TeamId:      invite.TeamId,
+		Type:        invite.Type,
+		DisplayName: invite.DisplayName,
+		Name:        invite.Name,
+		Header:      invite.Header,
+		Purpose:     invite.Purpose,
+		CreatorId:   rc.CreatorId,
+		Shared:      model.NewBool(true),
+	}
+
+	// check user perms?
+	channel, appErr := scs.app.CreateChannelWithUser(channelNew, rc.CreatorId)
+	if appErr != nil {
+		return nil, fmt.Errorf("cannot create channel `%s`: %w", invite.ChannelId, appErr)
+	}
+
+	return channel, nil
+}
+
+func (scs *Service) createDirectChannel(invite channelInviteMsg) (*model.Channel, error) {
+	if len(invite.DirectParticipantIDs) != 2 {
+		return nil, fmt.Errorf("cannot create direct channel `%s` insufficient participant count `%d`", invite.ChannelId, len(invite.DirectParticipantIDs))
+	}
+
+	channel, err := scs.app.GetOrCreateDirectChannel(invite.DirectParticipantIDs[0], invite.DirectParticipantIDs[1], model.WithID(invite.ChannelId))
+	if err != nil {
+		return nil, fmt.Errorf("cannot create direct channel `%s`: %w", invite.ChannelId, err)
+	}
+
+	return channel, nil
 }

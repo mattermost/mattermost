@@ -173,6 +173,38 @@ func (_m *MockAppIface) FileReader(path string) (filesstore.ReadCloseSeeker, *mo
 	return r0, r1
 }
 
+// GetOrCreateDirectChannel provides a mock function with given fields: userId, otherUserId, channelOptions
+func (_m *MockAppIface) GetOrCreateDirectChannel(userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	_va := make([]interface{}, len(channelOptions))
+	for _i := range channelOptions {
+		_va[_i] = channelOptions[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userId, otherUserId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(string, string, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(userId, otherUserId, channelOptions...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, ...model.ChannelOption) *model.AppError); ok {
+		r1 = rf(userId, otherUserId, channelOptions...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(channel, channelModerationsPatch)

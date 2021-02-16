@@ -205,7 +205,7 @@ func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	}
 
 	// Notify shared channel sync service
-	s.ServerSyncSharedChannelHandler(event)
+	s.SharedChannelSyncHandler(event)
 }
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
