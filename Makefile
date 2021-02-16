@@ -251,7 +251,7 @@ store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 migration-prereqs: ## Builds prerequisite packages for migrations
-	$(GO) get -tags 'postgres' -modfile=go.tools.mod -u github.com/golang-migrate/migrate/v4/cmd/migrate
+	$(GO) get -tags 'postgres' -modfile=go.tools.mod github.com/golang-migrate/migrate/v4/cmd/migrate
 
 new-migration: migration-prereqs ## Creates a new migration
 	@echo "Generating new migration for mysql"

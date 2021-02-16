@@ -211,28 +211,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 		Select("Teams.*").
 		From("Teams")
 
-	for _, db := range sqlStore.GetAllConns() {
-		tablem := db.AddTableWithName(teamMember{}, "TeamMembers").SetKeys(false, "TeamId", "UserId")
-		tablem.ColMap("TeamId").SetMaxSize(26)
-		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(64)
-	}
-
 	return s
-}
-
-func (s SqlTeamStore) createIndexesIfNotExists() {
-	s.CreateIndexIfNotExists("idx_teams_name", "Teams", "Name")
-	s.RemoveIndexIfExists("idx_teams_description", "Teams")
-	s.CreateIndexIfNotExists("idx_teams_invite_id", "Teams", "InviteId")
-	s.CreateIndexIfNotExists("idx_teams_update_at", "Teams", "UpdateAt")
-	s.CreateIndexIfNotExists("idx_teams_create_at", "Teams", "CreateAt")
-	s.CreateIndexIfNotExists("idx_teams_delete_at", "Teams", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
-
-	s.CreateIndexIfNotExists("idx_teammembers_team_id", "TeamMembers", "TeamId")
-	s.CreateIndexIfNotExists("idx_teammembers_user_id", "TeamMembers", "UserId")
-	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
 // Save adds the team to the database if a team with the same name does not already

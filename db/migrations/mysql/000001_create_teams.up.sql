@@ -13,5 +13,11 @@ CREATE TABLE IF NOT EXISTS Teams (
     UpdateAt bigint(20) DEFAULT NULL,
     DeleteAt bigint(20) DEFAULT NULL,
     PRIMARY KEY (Id),
-    UNIQUE KEY Name (Name)
+    UNIQUE KEY Name (Name),
+    KEY idx_teams_name (Name),
+    KEY idx_teams_invite_id (InviteId),
+    KEY idx_teams_update_at (UpdateAt),
+    KEY idx_teams_create_at (CreateAt),
+    KEY idx_teams_delete_at (DeleteAt),
+    KEY idx_teams_scheme_id (SchemeId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

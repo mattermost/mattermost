@@ -14,3 +14,10 @@ CREATE TABLE IF NOT EXISTS teams (
     deleteat bigint,
     UNIQUE(name)
 );
+
+CREATE INDEX IF NOT EXISTS idx_teams_name ON teams (name) ;
+CREATE INDEX IF NOT EXISTS idx_teams_invite_id ON teams (inviteid);
+CREATE INDEX IF NOT EXISTS idx_teams_update_at ON teams (updateat);
+CREATE INDEX IF NOT EXISTS idx_teams_create_at ON teams (createat);
+CREATE INDEX IF NOT EXISTS idx_teams_delete_at ON teams (deleteat);
+CREATE INDEX IF NOT EXISTS idx_teams_scheme_id ON teams (schemeid);

@@ -203,6 +203,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
 	err := store.GetMaster().CreateTablesIfNotExists()
+
 	if err != nil {
 		if IsDuplicate(err) {
 			mlog.Warn("Duplicate key error occurred; assuming table already created and proceeding.", mlog.Err(err))
@@ -219,7 +220,6 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		os.Exit(ExitGenericFailure)
 	}
 
-	store.stores.team.(*SqlTeamStore).createIndexesIfNotExists()
 	store.stores.channel.(*SqlChannelStore).createIndexesIfNotExists()
 	store.stores.post.(*SqlPostStore).createIndexesIfNotExists()
 	store.stores.thread.(*SqlThreadStore).createIndexesIfNotExists()
