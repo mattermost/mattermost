@@ -108,7 +108,7 @@ func (workers *Workers) Start() *Workers {
 	mlog.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
-		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
+		if workers.DataRetention != nil {
 			go workers.DataRetention.Run()
 		}
 

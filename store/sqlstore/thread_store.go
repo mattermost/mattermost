@@ -151,7 +151,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
 	fetchConditions := sq.And{
-		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": ""}},
+		sq.Or{sq.Eq{"Channels.TeamId": teamId}, sq.Eq{"Channels.TeamId": nil}},
 		sq.Eq{"ThreadMemberships.UserId": userId},
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
@@ -344,7 +344,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
-		model.Post
+		model.NullablePost
 	}
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
@@ -356,11 +356,15 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 
 	var thread JoinedThread
 	query, args, _ := s.getQueryBuilder().
-		Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions, ThreadMemberships.Following").
+		Select(`Threads.*,
+			Posts.*,
+			ThreadMemberships.LastViewed as LastViewedAt,
+			ThreadMemberships.UnreadMentions as UnreadMentions,
+			ThreadMemberships.Following`).
 		From("Threads").
 		Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 		LeftJoin("Posts ON Posts.Id = Threads.PostId").
-		LeftJoin("Channels ON Posts.ChannelId = Channels.Id").
+		LeftJoin("Channels ON Threads.ChannelId = Channels.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Threads.PostId").
 		Where(fetchConditions).ToSql()
 	err := s.GetReplica().SelectOne(&thread, query, args...)
@@ -394,7 +398,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
 		Participants:   users,
-		Post:           &thread.Post,
+		Post:           thread.NullablePost.ToPost(),
 	}
 
 	return result, nil
