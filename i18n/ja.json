@@ -4890,46 +4890,6 @@
     "translation": "システム"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELOを設定できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLSで接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTPサーバーの認証に失敗しました。"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "電子メールへ添付を書き込むことができませんでした"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTPサーバーへの接続を終了できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "設定エラー \"送信元電子メールアドレス\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "電子メールメッセージを書けませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "電子メールメッセージデータを追加できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "設定エラー \"宛先電子メールアドレス\"。"
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "コマンドが見付かりません。"
   },
@@ -8496,5 +8456,37 @@
   {
     "id": "api.back_to_app",
     "translation": "{{.SiteName}} に戻る"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL設定の最大接続アイドル時間が不正です。0以上の数にしてください。"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "ユーザースレッドが存在しないか、フォローしていません"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "リクエストにAuthDataかAuthServiceパラメータのどちらかが不足しています。"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "ファイルの最終更新日時を取得できませんでした。"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zipファイル作成時にエラーが発生しました。"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "このエンドポイントを使用するにはE10もしくはE20ライセンスが必要です。"
   }
 ]
