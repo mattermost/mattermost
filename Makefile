@@ -100,7 +100,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v0.2.2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-incident-management-v1.3.1
+PLUGIN_PACKAGES += mattermost-plugin-incident-collaboration-v1.3.2
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.1.0
@@ -576,7 +576,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=session_serial_gen.go,team_member_serial_gen.go,user_serial_gen.go -emptyStrCmp -tFatal -configtelemetry"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \

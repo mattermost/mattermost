@@ -265,6 +265,7 @@ func getPluginInfo(dir string) (*PluginInterfaceInfo, error) {
 	packages, err := parser.ParseDir(pluginInfo.FileSet, dir, nil, parser.ParseComments)
 	if err != nil {
 		log.Println("Parser error in dir "+dir+": ", err)
+		return nil, err
 	}
 
 	for _, pkg := range packages {

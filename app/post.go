@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,7 +54,7 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string, setOnl
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(post.UserId)
+			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
 			if nErr != nil {
 				var nfErr *store.ErrNotFound
 				switch {
@@ -191,7 +192,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}()
 	}
 
-	user, nErr := a.Srv().Store.User().Get(post.UserId)
+	user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

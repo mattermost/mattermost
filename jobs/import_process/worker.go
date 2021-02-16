@@ -165,7 +165,7 @@ func (w *ImportProcessWorker) doJob(job *model.Job) {
 	}
 
 	// do the actual import.
-	appErr, lineNumber := w.app.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), dir)
+	appErr, lineNumber := w.app.BulkImportWithPath(jsonFile, false, runtime.NumCPU(), filepath.Join(dir, app.ExportDataDir))
 	if appErr != nil {
 		job.Data["line_number"] = strconv.Itoa(lineNumber)
 		w.setJobError(job, appErr)
