@@ -91,11 +91,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
 	// already sets that for us
-	err = writeFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
-	if err != nil {
-		c.Err = err
-		return
-	}
+	writeFileResponse(fileName, FileMime, 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
