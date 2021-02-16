@@ -14,16 +14,19 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"github.com/xtgo/uuid"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+func randomString() string {
+	return uuid.NewRandom().String()
+}
 
 type FileBackendTestSuite struct {
 	suite.Suite
 
-	settings model.FileSettings
+	settings FileBackendSettings
 	backend  FileBackend
 }
 
@@ -42,9 +45,9 @@ func TestLocalFileBackendTestSuite(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	suite.Run(t, &FileBackendTestSuite{
-		settings: model.FileSettings{
-			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
-			Directory:  &dir,
+		settings: FileBackendSettings{
+			DriverName: driverLocal,
+			Directory:  dir,
 		},
 	})
 }
@@ -71,25 +74,23 @@ func runBackendTest(t *testing.T, encrypt bool) {
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 
 	suite.Run(t, &FileBackendTestSuite{
-		settings: model.FileSettings{
-			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
-			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
-			AmazonS3Region:          model.NewString(""),
-			AmazonS3Endpoint:        model.NewString(s3Endpoint),
-			AmazonS3PathPrefix:      model.NewString(""),
-			AmazonS3SSL:             model.NewBool(false),
-			AmazonS3SSE:             model.NewBool(encrypt),
+		settings: FileBackendSettings{
+			DriverName:              driverS3,
+			AmazonS3AccessKeyId:     "minioaccesskey",
+			AmazonS3SecretAccessKey: "miniosecretkey",
+			AmazonS3Bucket:          "mattermost-test",
+			AmazonS3Region:          "",
+			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3PathPrefix:      "",
+			AmazonS3SSL:             false,
+			AmazonS3SSE:             encrypt,
 		},
 	})
 }
 
 func (s *FileBackendTestSuite) SetupTest() {
-	utils.TranslationsPreInit()
-
-	backend, err := NewFileBackend(&s.settings, true)
-	require.Nil(s.T(), err)
+	backend, err := NewFileBackend(s.settings)
+	require.NoError(s.T(), err)
 	s.backend = backend
 
 	// This is needed to create the bucket if it doesn't exist.
@@ -102,7 +103,7 @@ func (s *FileBackendTestSuite) TestConnection() {
 
 func (s *FileBackendTestSuite) TestReadWriteFile() {
 	b := []byte("test")
-	path := "tests/" + model.NewId()
+	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -118,7 +119,7 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 
 func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 	b := []byte("testimage")
-	path := "tests/" + model.NewId() + ".png"
+	path := "tests/" + randomString() + ".png"
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -134,7 +135,7 @@ func (s *FileBackendTestSuite) TestReadWriteFileImage() {
 
 func (s *FileBackendTestSuite) TestFileExists() {
 	b := []byte("testimage")
-	path := "tests/" + model.NewId() + ".png"
+	path := "tests/" + randomString() + ".png"
 
 	_, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -151,8 +152,8 @@ func (s *FileBackendTestSuite) TestFileExists() {
 
 func (s *FileBackendTestSuite) TestCopyFile() {
 	b := []byte("test")
-	path1 := "tests/" + model.NewId()
-	path2 := "tests/" + model.NewId()
+	path1 := "tests/" + randomString()
+	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -175,8 +176,8 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 	b := []byte("test")
-	path1 := "tests/" + model.NewId()
-	path2 := "tests/newdirectory/" + model.NewId()
+	path1 := "tests/" + randomString()
+	path2 := "tests/newdirectory/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -196,8 +197,8 @@ func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
 
 func (s *FileBackendTestSuite) TestMoveFile() {
 	b := []byte("test")
-	path1 := "tests/" + model.NewId()
-	path2 := "tests/" + model.NewId()
+	path1 := "tests/" + randomString()
+	path2 := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path1)
 	s.Nil(err)
@@ -218,7 +219,7 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 
 func (s *FileBackendTestSuite) TestRemoveFile() {
 	b := []byte("test")
-	path := "tests/" + model.NewId()
+	path := "tests/" + randomString()
 
 	written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 	s.Nil(err)
@@ -245,8 +246,8 @@ func (s *FileBackendTestSuite) TestRemoveFile() {
 
 func (s *FileBackendTestSuite) TestListDirectory() {
 	b := []byte("test")
-	path1 := "19700101/" + model.NewId()
-	path2 := "19800101/" + model.NewId()
+	path1 := "19700101/" + randomString()
+	path2 := "19800101/" + randomString()
 
 	paths, err := s.backend.ListDirectory("19700101")
 	s.Nil(err)
@@ -316,7 +317,7 @@ func (s *FileBackendTestSuite) TestRemoveDirectory() {
 
 func (s *FileBackendTestSuite) TestAppendFile() {
 	s.Run("should fail if target file is missing", func() {
-		path := "tests/" + model.NewId()
+		path := "tests/" + randomString()
 		b := make([]byte, 1024)
 		written, err := s.backend.AppendFile(bytes.NewReader(b), path)
 		s.Error(err)
@@ -330,7 +331,7 @@ func (s *FileBackendTestSuite) TestAppendFile() {
 		for i := range b {
 			b[i] = 'A'
 		}
-		path := "tests/" + model.NewId()
+		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
 		s.Nil(err)
@@ -376,7 +377,7 @@ func (s *FileBackendTestSuite) TestFileSize() {
 
 	s.Run("valid file", func() {
 		data := make([]byte, rand.Intn(1024*1024)+1)
-		path := "tests/" + model.NewId()
+		path := "tests/" + randomString()
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
 		s.Nil(err)
@@ -397,7 +398,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 	})
 
 	s.Run("valid file", func() {
-		path := "tests/" + model.NewId()
+		path := "tests/" + randomString()
 		data := []byte("some data")
 
 		written, err := s.backend.WriteFile(bytes.NewReader(data), path)
@@ -412,7 +413,7 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 		// We wait 1 second so that the times will differ enough to be testable.
 		time.Sleep(1 * time.Second)
 
-		path2 := "tests/" + model.NewId()
+		path2 := "tests/" + randomString()
 		written, err = s.backend.WriteFile(bytes.NewReader(data), path2)
 		s.Nil(err)
 		s.EqualValues(len(data), written)
@@ -426,27 +427,25 @@ func (s *FileBackendTestSuite) TestFileModTime() {
 }
 
 func BenchmarkS3WriteFile(b *testing.B) {
-	utils.TranslationsPreInit()
-
-	settings := &model.FileSettings{
-		DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-		AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
-		AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
-		AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
-		AmazonS3Region:          model.NewString(""),
-		AmazonS3Endpoint:        model.NewString("localhost:9000"),
-		AmazonS3PathPrefix:      model.NewString(""),
-		AmazonS3SSL:             model.NewBool(false),
-		AmazonS3SSE:             model.NewBool(false),
+	settings := FileBackendSettings{
+		DriverName:              driverS3,
+		AmazonS3AccessKeyId:     "minioaccesskey",
+		AmazonS3SecretAccessKey: "miniosecretkey",
+		AmazonS3Bucket:          "mattermost-test",
+		AmazonS3Region:          "",
+		AmazonS3Endpoint:        "localhost:9000",
+		AmazonS3PathPrefix:      "",
+		AmazonS3SSL:             false,
+		AmazonS3SSE:             false,
 	}
 
-	backend, err := NewFileBackend(settings, true)
-	require.Nil(b, err)
+	backend, err := NewFileBackend(settings)
+	require.NoError(b, err)
 
 	// This is needed to create the bucket if it doesn't exist.
-	require.Nil(b, backend.TestConnection())
+	require.NoError(b, backend.TestConnection())
 
-	path := "tests/" + model.NewId()
+	path := "tests/" + randomString()
 	size := 1 * 1024 * 1024
 	data := make([]byte, size)
 
@@ -455,7 +454,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		written, err := backend.WriteFile(bytes.NewReader(data), path)
 		defer backend.RemoveFile(path)
-		require.Nil(b, err)
+		require.NoError(b, err)
 		require.Equal(b, len(data), int(written))
 	}
 
