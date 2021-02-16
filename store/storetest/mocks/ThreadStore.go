@@ -51,13 +51,13 @@ func (_m *ThreadStore) CreateMembershipIfNeeded(userId string, postID string, fo
 	return r0
 }
 
-// Delete provides a mock function with given fields: postID
-func (_m *ThreadStore) Delete(postID string) error {
-	ret := _m.Called(postID)
+// Delete provides a mock function with given fields: postId
+func (_m *ThreadStore) Delete(postId string) error {
+	ret := _m.Called(postId)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(postID)
+		r0 = rf(postId)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -148,13 +148,13 @@ func (_m *ThreadStore) GetMembershipsForUser(userId string, teamID string) ([]*m
 	return r0, r1
 }
 
-// GetPosts provides a mock function with given fields: threadID, since
-func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
-	ret := _m.Called(threadID, since)
+// GetPosts provides a mock function with given fields: threadId, since
+func (_m *ThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
+	ret := _m.Called(threadId, since)
 
 	var r0 []*model.Post
 	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
-		r0 = rf(threadID, since)
+		r0 = rf(threadId, since)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
@@ -163,7 +163,7 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(threadID, since)
+		r1 = rf(threadId, since)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -171,13 +171,13 @@ func (_m *ThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, er
 	return r0, r1
 }
 
-// GetThreadForUser provides a mock function with given fields: userId, teamID, threadID, extended
-func (_m *ThreadStore) GetThreadForUser(userId string, teamID string, threadID string, extended bool) (*model.ThreadResponse, error) {
-	ret := _m.Called(userId, teamID, threadID, extended)
+// GetThreadForUser provides a mock function with given fields: userId, teamId, threadId, extended
+func (_m *ThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
+	ret := _m.Called(userId, teamId, threadId, extended)
 
 	var r0 *model.ThreadResponse
 	if rf, ok := ret.Get(0).(func(string, string, string, bool) *model.ThreadResponse); ok {
-		r0 = rf(userId, teamID, threadID, extended)
+		r0 = rf(userId, teamId, threadId, extended)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ThreadResponse)
@@ -186,7 +186,7 @@ func (_m *ThreadStore) GetThreadForUser(userId string, teamID string, threadID s
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
-		r1 = rf(userId, teamID, threadID, extended)
+		r1 = rf(userId, teamId, threadId, extended)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -223,7 +223,7 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamId string, opts mode
 
 	var r0 *model.Threads
 	if rf, ok := ret.Get(0).(func(string, string, model.GetUserThreadsOpts) *model.Threads); ok {
-		r0 = rf(userId, teamID, opts)
+		r0 = rf(userId, teamId, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Threads)
@@ -232,7 +232,7 @@ func (_m *ThreadStore) GetThreadsForUser(userId string, teamId string, opts mode
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, model.GetUserThreadsOpts) error); ok {
-		r1 = rf(userId, teamID, opts)
+		r1 = rf(userId, teamId, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

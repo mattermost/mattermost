@@ -638,9 +638,9 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 	return r0, r1
 }
 
-// GetNewUsersForTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamId, offset, limit, viewRestrictions)
+// GetNewUsersForTeam provides a mock function with given fields: teamID, offset, limit, viewRestrictions
+func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamID, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
@@ -799,13 +799,13 @@ func (_m *UserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions)
 	return r0, r1
 }
 
-// GetProfilesNotInChannel provides a mock function with given fields: teamID, channelID, groupConstrained, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
-	ret := _m.Called(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
+// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+	ret := _m.Called(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) []*model.User); ok {
-		r0 = rf(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
+		r0 = rf(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -814,7 +814,7 @@ func (_m *UserStore) GetProfilesNotInChannel(teamID string, channelID string, gr
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) error); ok {
-		r1 = rf(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
+		r1 = rf(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		r1 = ret.Error(1)
 	}

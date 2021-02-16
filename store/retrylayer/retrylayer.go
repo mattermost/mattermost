@@ -8378,11 +8378,11 @@ func (s *RetryLayerThreadStore) CreateMembershipIfNeeded(userId string, postID s
 
 }
 
-func (s *RetryLayerThreadStore) Delete(postID string) error {
+func (s *RetryLayerThreadStore) Delete(postId string) error {
 
 	tries := 0
 	for {
-		err := s.ThreadStore.Delete(postID)
+		err := s.ThreadStore.Delete(postId)
 		if err == nil {
 			return nil
 		}
@@ -8478,11 +8478,11 @@ func (s *RetryLayerThreadStore) GetMembershipsForUser(userId string, teamID stri
 
 }
 
-func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model.Post, error) {
+func (s *RetryLayerThreadStore) GetPosts(threadId string, since int64) ([]*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetPosts(threadID, since)
+		result, err := s.ThreadStore.GetPosts(threadId, since)
 		if err == nil {
 			return result, nil
 		}
@@ -8498,11 +8498,11 @@ func (s *RetryLayerThreadStore) GetPosts(threadID string, since int64) ([]*model
 
 }
 
-func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamID string, threadID string, extended bool) (*model.ThreadResponse, error) {
+func (s *RetryLayerThreadStore) GetThreadForUser(userId string, teamId string, threadId string, extended bool) (*model.ThreadResponse, error) {
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadForUser(userId, teamID, threadID, extended)
+		result, err := s.ThreadStore.GetThreadForUser(userId, teamId, threadId, extended)
 		if err == nil {
 			return result, nil
 		}
@@ -8542,7 +8542,7 @@ func (s *RetryLayerThreadStore) GetThreadsForUser(userId string, teamId string, 
 
 	tries := 0
 	for {
-		result, err := s.ThreadStore.GetThreadsForUser(userId, teamID, opts)
+		result, err := s.ThreadStore.GetThreadsForUser(userId, teamId, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -9448,7 +9448,7 @@ func (s *RetryLayerUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 
 }
 
-func (s *RetryLayerUserStore) GetNewUsersForTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
@@ -9588,11 +9588,11 @@ func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGe
 
 }
 
-func (s *RetryLayerUserStore) GetProfilesNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetProfilesNotInChannel(teamID, channelID, groupConstrained, offset, limit, viewRestrictions)
+		result, err := s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 		if err == nil {
 			return result, nil
 		}

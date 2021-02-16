@@ -377,7 +377,7 @@ func (a *App) handleCreationEvent(userID, otherUserID string, channel *model.Cha
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, channel)
 				return true
-			}, plugin.ChannelHasBeenCreatedId)
+			}, plugin.ChannelHasBeenCreatedID)
 		})
 	}
 
