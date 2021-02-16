@@ -27,6 +27,16 @@ type Data struct {
 	Html  map[string]template.HTML
 }
 
+func NewFromTemplate(templates *template.Template) (*Templates, error) {
+	ret := &Templates{
+		stop:    make(chan struct{}),
+		stopped: make(chan struct{}),
+		watch:   false,
+	}
+	ret.templates.Store(templates)
+	return ret, nil
+}
+
 func New(directory string, watch bool) (*Templates, error) {
 	mlog.Debug("Parsing server templates", mlog.String("templates_directory", directory))
 
