@@ -110,6 +110,7 @@ func (a *App) InitServer() {
 			} else {
 				if a.srv.dndTask != nil {
 					a.srv.dndTask.Cancel()
+					a.srv.dndTask = nil
 				}
 			}
 		})
