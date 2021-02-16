@@ -2424,7 +2424,6 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	if err != nil {
 		return nil, err
 	}
-	prevUnreadMentions := membership.UnreadMentions
 	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamID, timestamp)
 	if err != nil {
 		return nil, err
@@ -2442,7 +2441,7 @@ func (a *App) UpdateThreadReadForUser(userID, teamID, threadID string, timestamp
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, teamID, "", userID, nil)
 	message.Add("thread_id", threadID)
 	message.Add("timestamp", timestamp)
-	message.Add("unread_mentions_diff", membership.UnreadMentions-prevUnreadMentions)
+	message.Add("unread_mentions", membership.UnreadMentions)
 	message.Add("channel_id", post.ChannelId)
 	a.Publish(message)
 	return a.GetThreadForUser(userID, teamID, threadID, false)
