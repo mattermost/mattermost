@@ -25,6 +25,7 @@ const (
 	JOB_TYPE_IMPORT_PROCESS                 = "import_process"
 	JOB_TYPE_IMPORT_DELETE                  = "import_delete"
 	JOB_TYPE_EXPORT_PROCESS                 = "export_process"
+	JOB_TYPE_EXPORT_DELETE                  = "export_delete"
 	JOB_TYPE_CLOUD                          = "cloud"
 
 	JOB_STATUS_PENDING          = "pending"
@@ -72,6 +73,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_IMPORT_PROCESS:
 	case JOB_TYPE_IMPORT_DELETE:
 	case JOB_TYPE_EXPORT_PROCESS:
+	case JOB_TYPE_EXPORT_DELETE:
 	case JOB_TYPE_CLOUD:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)

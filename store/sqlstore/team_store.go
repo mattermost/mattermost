@@ -1157,15 +1157,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx context.Context, userId string) ([]*mo
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
-
-	var db *gorp.DbMap
-	if hasMaster(ctx) {
-		db = s.GetMaster()
-	} else {
-		db = s.GetReplica()
-	}
-
-	_, err = db.Select(&dbMembers, queryString, args...)
+	_, err = s.SqlStore.DBFromContext(ctx).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}

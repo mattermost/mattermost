@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -449,4 +450,26 @@ func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config)
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(0)
 		}
 	}
+}
+
+func (s *Server) MailServiceConfig() *mailservice.SMTPConfig {
+	emailSettings := s.Config().EmailSettings
+	hostname := utils.GetHostnameFromSiteURL(*s.Config().ServiceSettings.SiteURL)
+	cfg := mailservice.SMTPConfig{
+		Hostname:                          hostname,
+		ConnectionSecurity:                *emailSettings.ConnectionSecurity,
+		SkipServerCertificateVerification: *emailSettings.SkipServerCertificateVerification,
+		ServerName:                        *emailSettings.SMTPServer,
+		Server:                            *emailSettings.SMTPServer,
+		Port:                              *emailSettings.SMTPPort,
+		ServerTimeout:                     *emailSettings.SMTPServerTimeout,
+		Username:                          *emailSettings.SMTPUsername,
+		Password:                          *emailSettings.SMTPPassword,
+		EnableSMTPAuth:                    *emailSettings.EnableSMTPAuth,
+		SendEmailNotifications:            *emailSettings.SendEmailNotifications,
+		FeedbackName:                      *emailSettings.FeedbackName,
+		FeedbackEmail:                     *emailSettings.FeedbackEmail,
+		ReplyToAddress:                    *emailSettings.ReplyToAddress,
+	}
+	return &cfg
 }
