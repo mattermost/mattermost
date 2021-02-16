@@ -12,12 +12,12 @@ import (
 	"crypto/ecdsa"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -11012,7 +11012,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
@@ -13431,6 +13431,28 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 
 	defer span.Finish()
 	resultVar0 := a.app.SendAckToPushProxy(ack)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAdminUpgradeRequestEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendAdminUpgradeRequestEmail(username, subscription)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

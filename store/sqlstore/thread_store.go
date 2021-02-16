@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -291,7 +292,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 	var users []*model.User
 	if opts.Extended {
 		var err error
-		users, err = s.User().GetProfileByIds(userIds, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), userIds, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
@@ -303,7 +304,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 
 	result := &model.Threads{
 		Total:               totalCount,
-		Threads:             nil,
+		Threads:             []*model.ThreadResponse{},
 		TotalUnreadMentions: totalUnreadMentions,
 		TotalUnreadThreads:  totalUnreadThreads,
 	}
@@ -383,7 +384,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 	var users []*model.User
 	if extended {
 		var err error
-		users, err = s.User().GetProfileByIds(thread.Participants, &store.UserGetByIdsOpts{}, true)
+		users, err = s.User().GetProfileByIds(context.Background(), thread.Participants, &store.UserGetByIdsOpts{}, true)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get threads for user id=%s", userId)
 		}
