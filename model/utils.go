@@ -484,24 +484,6 @@ func ParseHashtags(text string) (string, string) {
 	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
 }
 
-func IsFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	for _, imgExt := range IMAGE_EXTENSIONS {
-		if ext == imgExt {
-			return true
-		}
-	}
-	return false
-}
-
-func GetImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if IMAGE_MIME_TYPES[ext] == "" {
-		return "image"
-	}
-	return IMAGE_MIME_TYPES[ext]
-}
-
 func ClearMentionTags(post string) string {
 	post = strings.Replace(post, "<mention>", "", -1)
 	post = strings.Replace(post, "</mention>", "", -1)
