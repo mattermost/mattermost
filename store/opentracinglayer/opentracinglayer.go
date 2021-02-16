@@ -2807,7 +2807,7 @@ func (s *OpenTracingLayerEmojiStore) Delete(emoji *model.Emoji, time int64) erro
 	return err
 }
 
-func (s *OpenTracingLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
+func (s *OpenTracingLayerEmojiStore) Get(ctx context.Context, id string, allowFromCache bool) (*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -2816,7 +2816,7 @@ func (s *OpenTracingLayerEmojiStore) Get(id string, allowFromCache bool) (*model
 	}()
 
 	defer span.Finish()
-	result, err := s.EmojiStore.Get(id, allowFromCache)
+	result, err := s.EmojiStore.Get(ctx, id, allowFromCache)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2825,7 +2825,7 @@ func (s *OpenTracingLayerEmojiStore) Get(id string, allowFromCache bool) (*model
 	return result, err
 }
 
-func (s *OpenTracingLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
+func (s *OpenTracingLayerEmojiStore) GetByName(ctx context.Context, name string, allowFromCache bool) (*model.Emoji, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "EmojiStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -2834,7 +2834,7 @@ func (s *OpenTracingLayerEmojiStore) GetByName(name string, allowFromCache bool)
 	}()
 
 	defer span.Finish()
-	result, err := s.EmojiStore.GetByName(name, allowFromCache)
+	result, err := s.EmojiStore.GetByName(ctx, name, allowFromCache)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
