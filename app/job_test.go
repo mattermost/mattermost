@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -87,7 +86,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 		Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
 	}
 
-	// Initially the system manager should not have access to create these jobs
+	// Initially the system read only admin should not have access to create these jobs
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
 		assert.Equal(t, false, hasPermission)
@@ -102,11 +101,10 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	_, err := th.App.UpdateRole(role)
 	require.Nil(t, err)
 
-	// Now system manager should have ability to create a Belve Post Index job but not the others
+	// Now system read only admin should have ability to create a Belve Post Index job but not the others
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
 		expectedHasPermission := testCase.Job.Type == model.JOB_TYPE_BLEVE_POST_INDEXING
-		fmt.Printf("\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n", testCase)
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -117,7 +115,7 @@ func TestSessionHasPermissionToCreateJob(t *testing.T) {
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
 
-	// Now system manager should have ability to create all jobs
+	// Now system read only admin should have ability to create all jobs
 	for _, testCase := range testCases {
 		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(session, &testCase.Job)
 		assert.Equal(t, true, hasPermission)
