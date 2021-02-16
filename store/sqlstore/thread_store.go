@@ -146,7 +146,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
-		model.Post
+		model.NullablePost
 	}
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
@@ -156,7 +156,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		sq.Eq{"ThreadMemberships.Following": true},
 	}
 	if !opts.Deleted {
-		fetchConditions = sq.And{fetchConditions, sq.Eq{"Posts.DeleteAt": 0}}
+		fetchConditions = sq.And{
+			fetchConditions,
+			sq.Eq{"COALESCE(Posts.DeleteAt, 0)": 0},
+		}
 	}
 
 	pageSize := uint64(30)
@@ -328,7 +331,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			UnreadReplies:  thread.UnreadReplies,
 			UnreadMentions: thread.UnreadMentions,
 			Participants:   participants,
-			Post:           &thread.Post,
+			Post:           thread.NullablePost.ToPost(),
 		})
 	}
 
