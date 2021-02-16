@@ -608,7 +608,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t, nil)
+		ds, err := newTestDatabaseStore(nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
@@ -624,7 +624,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
-		ds, err := newTestDatabaseStore(t, nil)
+		ds, err := newTestDatabaseStore(nil)
 		require.NoError(t, err)
 		defer ds.Close()
 
