@@ -105,8 +105,10 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("job", job)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.App.Session(), job)
+
+	if !hasPermission {
+		c.SetPermissionError(permissionRequired)
 		return
 	}
 

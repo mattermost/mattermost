@@ -103,6 +103,7 @@ var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
 var PERMISSION_MANAGE_REMOTE_CLUSTERS *Permission
 var PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT *Permission
 var PERMISSION_PURGE_BLEVE_INDEXES *Permission
+var PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -550,8 +551,15 @@ func initializePermissions() {
 
 	PERMISSION_PURGE_BLEVE_INDEXES = &Permission{
 		"purge_bleve_indexes",
-		"authentication.permissions.download_compliance_export_result.name",
-		"authentication.permissions.download_compliance_export_result.description",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB = &Permission{
+		"create_post_bleve_indexes_job",
+		"",
+		"",
 		PermissionScopeSystem,
 	}
 
@@ -1032,6 +1040,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_REMOTE_CLUSTERS,
 		PERMISSION_DOWNLOAD_COMPLIANCE_EXPORT_RESULT,
 		PERMISSION_PURGE_BLEVE_INDEXES,
+		PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB,
 	}
 
 	TeamScopedPermissions := []*Permission{

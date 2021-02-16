@@ -585,7 +585,7 @@ func (a *App) getAddExperimentalSubsectionPermissions() (permissionsMap, error) 
 	// Give the ancillary permissions MANAGE_JOBS and PURGE_BLEVE_INDEXES to anyone with WRITE_EXPERIMENTAL_BLEVE
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(model.PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL_BLEVE.Id),
-		Add: []string{model.PERMISSION_MANAGE_JOBS.Id, model.PERMISSION_PURGE_BLEVE_INDEXES.Id},
+		Add: []string{model.PERMISSION_CREATE_POST_BLEVE_INDEXES_JOB.Id, model.PERMISSION_PURGE_BLEVE_INDEXES.Id},
 	})
 
 	return transformations, nil
