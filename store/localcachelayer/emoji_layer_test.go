@@ -6,11 +6,12 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiStore(t *testing.T) {
@@ -27,11 +28,11 @@ func TestEmojiStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		emoji, err := cachedStore.Emoji().Get("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, emoji, &fakeEmoji)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
 		emoji, err = cachedStore.Emoji().Get("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, emoji, &fakeEmoji)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "Get", 1)
 	})
@@ -43,11 +44,11 @@ func TestEmojiStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		emoji, err := cachedStore.Emoji().GetByName("name123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, emoji, &fakeEmoji)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)
 		emoji, err = cachedStore.Emoji().GetByName("name123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, emoji, &fakeEmoji)
 		mockStore.Emoji().(*mocks.EmojiStore).AssertNumberOfCalls(t, "GetByName", 1)
 	})

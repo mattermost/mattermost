@@ -5,6 +5,7 @@ package slashcommands
 
 import (
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -36,7 +37,7 @@ func (*ShrugProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Comm
 
 func (*ShrugProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
-	if len(message) > 0 {
+	if message != "" {
 		rmsg = message + " " + rmsg
 	}
 

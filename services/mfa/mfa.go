@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
+	"github.com/mattermost/rsc/qr"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/configservice"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/rsc/qr"
 )
 
 const (
@@ -42,7 +43,7 @@ func getIssuerFromUrl(uri string) string {
 	issuer := "Mattermost"
 	siteUrl := strings.TrimSpace(uri)
 
-	if len(siteUrl) > 0 {
+	if siteUrl != "" {
 		siteUrl = strings.TrimPrefix(siteUrl, "https://")
 		siteUrl = strings.TrimPrefix(siteUrl, "http://")
 		issuer = strings.TrimPrefix(siteUrl, "www.")

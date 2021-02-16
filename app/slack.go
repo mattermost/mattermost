@@ -5,10 +5,10 @@ package app
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"mime/multipart"
 	"regexp"
-
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -83,13 +83,13 @@ func expandAnnouncement(text string) string {
 func replaceUserIds(userStore store.UserStore, text string) string {
 	rgx, err := regexp.Compile("<@([a-zA-Z0-9]+)>")
 	if err == nil {
-		userIds := make([]string, 0)
+		userIDs := make([]string, 0)
 		matches := rgx.FindAllStringSubmatch(text, -1)
 		for _, match := range matches {
-			userIds = append(userIds, match[1])
+			userIDs = append(userIDs, match[1])
 		}
 
-		if users, err := userStore.GetProfileByIds(userIds, nil, true); err == nil {
+		if users, err := userStore.GetProfileByIds(context.Background(), userIDs, nil, true); err == nil {
 			for _, user := range users {
 				text = strings.Replace(text, "<@"+user.Id+">", "@"+user.Username, -1)
 			}

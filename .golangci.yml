@@ -27,6 +27,7 @@ linters:
     - unused
     - varcheck
     - misspell
+    - goimports
     # TODO: enable this later
     # - errcheck
 
@@ -36,7 +37,7 @@ issues:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
-      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+      text: "SetupEnterprise"
 
     - linters:
       - scopelint
@@ -52,9 +53,14 @@ issues:
       text: "should have|should be|should replace|stutters|underscore|annoying|error strings should not be capitalized"
 
     - linters:
-      - golint      
+      - golint
       path: "model/"
 
     - linters:
       - misspell
       path: "utils/markdown/html_entities.go"
+
+    - linters:
+      - unparam
+      path: "app/plugin_api_tests"
+      text: "is always nil"

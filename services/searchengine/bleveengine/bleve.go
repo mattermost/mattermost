@@ -11,25 +11,27 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/jobs"
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzer/keyword"
 	"github.com/blevesearch/bleve/analysis/analyzer/standard"
 	"github.com/blevesearch/bleve/mapping"
+
+	"github.com/mattermost/mattermost-server/v5/jobs"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
 	EngineName   = "bleve"
 	PostIndex    = "posts"
+	FileIndex    = "files"
 	UserIndex    = "users"
 	ChannelIndex = "channels"
 )
 
 type BleveEngine struct {
 	PostIndex    bleve.Index
+	FileIndex    bleve.Index
 	UserIndex    bleve.Index
 	ChannelIndex bleve.Index
 	Mutex        sync.RWMutex
@@ -83,6 +85,23 @@ func getPostIndexMapping() *mapping.IndexMappingImpl {
 	return indexMapping
 }
 
+func getFileIndexMapping() *mapping.IndexMappingImpl {
+	fileMapping := bleve.NewDocumentMapping()
+	fileMapping.AddFieldMappingsAt("Id", keywordMapping)
+	fileMapping.AddFieldMappingsAt("CreatorId", keywordMapping)
+	fileMapping.AddFieldMappingsAt("ChannelId", keywordMapping)
+	fileMapping.AddFieldMappingsAt("CreateAt", dateMapping)
+	fileMapping.AddFieldMappingsAt("Name", standardMapping)
+	fileMapping.AddFieldMappingsAt("Content", standardMapping)
+	fileMapping.AddFieldMappingsAt("Extension", keywordMapping)
+	fileMapping.AddFieldMappingsAt("Content", standardMapping)
+
+	indexMapping := bleve.NewIndexMapping()
+	indexMapping.AddDocumentMapping("_default", fileMapping)
+
+	return indexMapping
+}
+
 func getUserIndexMapping() *mapping.IndexMappingImpl {
 	userMapping := bleve.NewDocumentMapping()
 	userMapping.AddFieldMappingsAt("Id", keywordMapping)
@@ -132,6 +151,11 @@ func (b *BleveEngine) openIndexes() *model.AppError {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_post_index.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	b.FileIndex, err = b.createOrOpenIndex(FileIndex, getFileIndexMapping())
+	if err != nil {
+		return model.NewAppError("Bleveengine.Start", "bleveengine.create_file_index.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	b.UserIndex, err = b.createOrOpenIndex(UserIndex, getUserIndexMapping())
 	if err != nil {
 		return model.NewAppError("Bleveengine.Start", "bleveengine.create_user_index.error", nil, err.Error(), http.StatusInternalServerError)
@@ -163,6 +187,10 @@ func (b *BleveEngine) closeIndexes() *model.AppError {
 	if b.IsActive() {
 		if err := b.PostIndex.Close(); err != nil {
 			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_post_index.error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		if err := b.FileIndex.Close(); err != nil {
+			return model.NewAppError("Bleveengine.Stop", "bleveengine.stop_file_index.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if err := b.UserIndex.Close(); err != nil {
@@ -201,6 +229,14 @@ func (b *BleveEngine) RefreshIndexes() *model.AppError {
 
 func (b *BleveEngine) GetVersion() int {
 	return 0
+}
+
+func (b *BleveEngine) GetFullVersion() string {
+	return "0"
+}
+
+func (b *BleveEngine) GetPlugins() []string {
+	return []string{}
 }
 
 func (b *BleveEngine) GetName() string {

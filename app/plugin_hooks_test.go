@@ -15,16 +15,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
@@ -183,7 +182,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 		assert.Equal(t, "message", post.Message)
 		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
-		require.Nil(t, errSingle)
+		require.NoError(t, errSingle)
 		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
@@ -227,7 +226,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 		assert.Equal(t, "message_fromplugin", post.Message)
 		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
-		require.Nil(t, errSingle)
+		require.NoError(t, errSingle)
 		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
 
@@ -864,7 +863,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 		require.Contains(t, activationErrors[0].Error(), "simulate failure")
 	})
 
@@ -894,7 +893,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 
 		cause := errors.Cause(activationErrors[0])
 		require.IsType(t, &model.AppError{}, cause)

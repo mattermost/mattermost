@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -95,7 +96,7 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 		targetChannelId = channel.Id
 	}
 
-	if len(parsedMessage) > 0 {
+	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId

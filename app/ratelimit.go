@@ -9,12 +9,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type RateLimiter struct {
@@ -76,25 +77,23 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	limited, context, err := rl.throttledRateLimiter.RateLimit(key, 1)
 	if err != nil {
-		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken.", mlog.Err(err))
+		mlog.Error("Internal server error when rate limiting. Rate Limiting broken.", mlog.Err(err))
 		return false
 	}
 
 	setRateLimitHeaders(w, context)
 
 	if limited {
-		mlog.Error("Denied due to throttling settings code=429", mlog.String("key", key))
+		mlog.Debug("Denied due to throttling settings code=429", mlog.String("key", key))
 		http.Error(w, "limit exceeded", 429)
 	}
 
 	return limited
 }
 
-func (rl *RateLimiter) UserIdRateLimit(userId string, w http.ResponseWriter) bool {
+func (rl *RateLimiter) UserIdRateLimit(userID string, w http.ResponseWriter) bool {
 	if rl.useAuth {
-		if rl.RateLimitWriter(userId, w) {
-			return true
-		}
+		return rl.RateLimitWriter(userID, w)
 	}
 	return false
 }
@@ -102,9 +101,8 @@ func (rl *RateLimiter) UserIdRateLimit(userId string, w http.ResponseWriter) boo
 func (rl *RateLimiter) RateLimitHandler(wrappedHandler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := rl.GenerateKey(r)
-		limited := rl.RateLimitWriter(key, w)
 
-		if !limited {
+		if !rl.RateLimitWriter(key, w) {
 			wrappedHandler.ServeHTTP(w, r)
 		}
 	})

@@ -4,11 +4,16 @@
 package commands
 
 import (
+	"bytes"
 	"net"
 	"os"
 	"os/signal"
 	"runtime/debug"
+	"runtime/pprof"
 	"syscall"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -18,8 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
 var serverCmd = &cobra.Command{
@@ -49,7 +52,7 @@ func serverCmdF(command *cobra.Command, args []string) error {
 		mlog.Warn("Error loading custom configuration defaults: " + err.Error())
 	}
 
-	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, customDefaults)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnvironment()), !disableConfigWatch, false, customDefaults)
 	if err != nil {
 		return errors.Wrap(err, "failed to load configuration")
 	}
@@ -77,6 +80,21 @@ func runServer(configStore *config.Store, usedPlatform bool, interruptChan chan 
 		return err
 	}
 	defer server.Shutdown()
+	// We add this after shutdown so that it can be called
+	// before server shutdown happens as it can close
+	// the advanced logger and prevent the mlog call from working properly.
+	defer func() {
+		// A panic pass-through layer which just logs it
+		// and sends it upwards.
+		if x := recover(); x != nil {
+			var buf bytes.Buffer
+			pprof.Lookup("goroutine").WriteTo(&buf, 2)
+			mlog.Critical("A panic occurred",
+				mlog.Any("error", x),
+				mlog.String("stack", buf.String()))
+			panic(x)
+		}
+	}()
 
 	if usedPlatform {
 		mlog.Warn("The platform binary has been deprecated, please switch to using the mattermost binary.")

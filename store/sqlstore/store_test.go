@@ -13,15 +13,15 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchtest"
-	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 type storeType struct {
@@ -268,13 +268,13 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, replicas, len(testCase.DataSourceReplicas))
 
 				for replica := range replicas {
-					assert.NotEqual(t, store.GetMaster(), replica)
+					assert.NotSame(t, store.GetMaster(), replica)
 				}
 
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -283,20 +283,20 @@ func TestGetReplica(t *testing.T) {
 				assert.Len(t, searchReplicas, len(testCase.DataSourceSearchReplicas))
 
 				for searchReplica := range searchReplicas {
-					assert.NotEqual(t, store.GetMaster(), searchReplica)
+					assert.NotSame(t, store.GetMaster(), searchReplica)
 					for replica := range replicas {
-						assert.NotEqual(t, searchReplica, replica)
+						assert.NotSame(t, searchReplica, replica)
 					}
 				}
-
 			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
-
-			} else if assert.Len(t, searchReplicas, 1) {
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
+			} else if len(testCase.DataSourceReplicas) == 0 && assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -330,7 +330,7 @@ func TestGetReplica(t *testing.T) {
 			} else if assert.Len(t, replicas, 1) {
 				// Otherwise ensure the replicas contains only the master.
 				for replica := range replicas {
-					assert.Equal(t, store.GetMaster(), replica)
+					assert.Same(t, store.GetMaster(), replica)
 				}
 			}
 
@@ -343,13 +343,14 @@ func TestGetReplica(t *testing.T) {
 				}
 
 			} else if len(testCase.DataSourceReplicas) > 0 {
-				// If no search replicas were defined, but replicas were, ensure they are equal.
-				assert.Equal(t, replicas, searchReplicas)
-
+				assert.Equal(t, len(replicas), len(searchReplicas))
+				for k := range replicas {
+					assert.True(t, searchReplicas[k])
+				}
 			} else if assert.Len(t, searchReplicas, 1) {
 				// Otherwise ensure the search replicas contains the master.
 				for searchReplica := range searchReplicas {
-					assert.Equal(t, store.GetMaster(), searchReplica)
+					assert.Same(t, store.GetMaster(), searchReplica)
 				}
 			}
 		})
@@ -370,7 +371,7 @@ func TestGetDbVersion(t *testing.T) {
 			store := New(*settings, nil)
 
 			version, err := store.GetDbVersion(false)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
 		})
 	}
@@ -514,6 +515,7 @@ func makeSqliteSettings() *model.SqlSettings {
 	dataSource := ":memory:"
 	maxIdleConns := 1
 	connMaxLifetimeMilliseconds := 3600000
+	connMaxIdleTimeMilliseconds := 300000
 	maxOpenConns := 1
 	queryTimeout := 5
 
@@ -522,6 +524,7 @@ func makeSqliteSettings() *model.SqlSettings {
 		DataSource:                  &dataSource,
 		MaxIdleConns:                &maxIdleConns,
 		ConnMaxLifetimeMilliseconds: &connMaxLifetimeMilliseconds,
+		ConnMaxIdleTimeMilliseconds: &connMaxIdleTimeMilliseconds,
 		MaxOpenConns:                &maxOpenConns,
 		QueryTimeout:                &queryTimeout,
 	}

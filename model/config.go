@@ -19,7 +19,9 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
 const (
@@ -120,6 +122,9 @@ const (
 
 	IMPORT_SETTINGS_DEFAULT_DIRECTORY      = "./import"
 	IMPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
+
+	EXPORT_SETTINGS_DEFAULT_DIRECTORY      = "./export"
+	EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS = 30
 
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
@@ -236,6 +241,10 @@ const (
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
+func GetDefaultAppCustomURLSchemes() []string {
+	return []string{"mmauth://", "mmauthbeta://"}
+}
+
 var ServerTLSSupportedCiphers = map[string]uint16{
 	"TLS_RSA_WITH_RC4_128_SHA":                tls.TLS_RSA_WITH_RC4_128_SHA,
 	"TLS_RSA_WITH_3DES_EDE_CBC_SHA":           tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA,
@@ -264,31 +273,31 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 type ServiceSettings struct {
 	SiteURL                                           *string  `access:"environment,authentication,write_restrictable"`
 	WebsocketURL                                      *string  `access:"write_restrictable,cloud_restrictable"`
-	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`
-	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	LicenseFileLocation                               *string  `access:"write_restrictable,cloud_restrictable"`             // telemetry: none
+	ListenAddress                                     *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	ConnectionSecurity                                *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	TLSCertFile                                       *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	TLSKeyFile                                        *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"`
+	TLSMinVer                                         *string  `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	TLSStrictTransport                                *bool    `access:"write_restrictable,cloud_restrictable"`
-	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"`
-	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"`
+	TLSStrictTransportMaxAge                          *int64   `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	TLSOverwriteCiphers                               []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	UseLetsEncrypt                                    *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	LetsEncryptCertificateCacheFile                   *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	LetsEncryptCertificateCacheFile                   *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	Forward80To443                                    *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	TrustedProxyIPHeader                              []string `access:"write_restrictable,cloud_restrictable"`
+	TrustedProxyIPHeader                              []string `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	ReadTimeout                                       *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	WriteTimeout                                      *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	IdleTimeout                                       *int     `access:"write_restrictable,cloud_restrictable"`
 	MaximumLoginAttempts                              *int     `access:"authentication,write_restrictable,cloud_restrictable"`
-	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"`
+	GoroutineHealthThreshold                          *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	GoogleDeveloperKey                                *string  `access:"site,write_restrictable,cloud_restrictable"`
 	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
 	EnableIncomingWebhooks                            *bool    `access:"integrations"`
 	EnableOutgoingWebhooks                            *bool    `access:"integrations"`
 	IncomingWebhooksTriggerOutgoingWebhooks           *bool    `access:"integrations"`
 	EnableCommands                                    *bool    `access:"integrations"`
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // Deprecated: do not use
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
@@ -312,17 +321,17 @@ type ServiceSettings struct {
 	SessionLengthSSOInDays                            *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	SessionCacheInMinutes                             *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	SessionIdleTimeoutInMinutes                       *int     `access:"environment,write_restrictable,cloud_restrictable"`
-	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"`
-	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"`
+	WebsocketSecurePort                               *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
+	WebsocketPort                                     *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	WebserverMode                                     *string  `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableCustomEmoji                                 *bool    `access:"site"`
 	EnableEmojiPicker                                 *bool    `access:"site"`
 	EnableGifPicker                                   *bool    `access:"integrations"`
 	GfycatApiKey                                      *string  `access:"integrations"`
 	GfycatApiSecret                                   *string  `access:"integrations"`
-	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // Deprecated: do not use
 	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental,write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool    `access:"write_restrictable,cloud_restrictable"`
@@ -338,10 +347,9 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
 	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
 	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
-	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
-	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // Deprecated: do not use
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental"`
@@ -354,14 +362,15 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool `access:"site"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
-	LocalModeSocketLocation                           *string
-	EnableAWSMetering                                 *bool
-	SplitKey                                          *string `access:"environment,write_restrictable"`
-	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"`
-	DebugSplit                                        *bool   `access:"environment,write_restrictable"`
+	LocalModeSocketLocation                           *string // telemetry: none
+	EnableAWSMetering                                 *bool   // telemetry: none
+	SplitKey                                          *string `access:"environment,write_restrictable"` // telemetry: none
+	FeatureFlagSyncIntervalSeconds                    *int    `access:"environment,write_restrictable"` // telemetry: none
+	DebugSplit                                        *bool   `access:"environment,write_restrictable"` // telemetry: none
 	ThreadAutoFollow                                  *bool   `access:"experimental"`
 	CollapsedThreads                                  *string `access:"experimental"`
 	ManagedResourcePaths                              *string `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableLegacySidebar                               *bool   `access:"experimental"`
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -704,10 +713,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
-	}
-
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -803,24 +808,29 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.ManagedResourcePaths == nil {
 		s.ManagedResourcePaths = NewString("")
 	}
+
+	if s.EnableLegacySidebar == nil {
+		s.EnableLegacySidebar = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
 	Enable                             *bool   `access:"environment,write_restrictable"`
-	ClusterName                        *string `access:"environment,write_restrictable,cloud_restrictable"`
-	OverrideHostname                   *string `access:"environment,write_restrictable,cloud_restrictable"`
+	ClusterName                        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	OverrideHostname                   *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	NetworkInterface                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	BindAddress                        *string `access:"environment,write_restrictable,cloud_restrictable"`
 	AdvertiseAddress                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	UseIpAddress                       *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	UseExperimentalGossip              *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableGossipCompression            *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableExperimentalGossipEncryption *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	ReadOnlyConfig                     *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	StreamingPort                      *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConns                       *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	MaxIdleConnsPerHost                *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	IdleConnTimeoutMilliseconds        *int    `access:"environment,write_restrictable,cloud_restrictable"`
+	GossipPort                         *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	StreamingPort                      *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConns                       *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	MaxIdleConnsPerHost                *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	IdleConnTimeoutMilliseconds        *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -853,11 +863,15 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 
 	if s.UseExperimentalGossip == nil {
-		s.UseExperimentalGossip = NewBool(false)
+		s.UseExperimentalGossip = NewBool(true)
 	}
 
 	if s.EnableExperimentalGossipEncryption == nil {
 		s.EnableExperimentalGossipEncryption = NewBool(false)
+	}
+
+	if s.EnableGossipCompression == nil {
+		s.EnableGossipCompression = NewBool(true)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -888,7 +902,7 @@ func (s *ClusterSettings) SetDefaults() {
 type MetricsSettings struct {
 	Enable           *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	BlockProfileRate *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	ListenAddress    *string `access:"environment,write_restrictable,cloud_restrictable"`
+	ListenAddress    *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -968,15 +982,15 @@ func (s *AnalyticsSettings) SetDefaults() {
 
 type SSOSettings struct {
 	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"`
-	Id                *string `access:"authentication"`
-	Scope             *string `access:"authentication"`
-	AuthEndpoint      *string `access:"authentication"`
-	TokenEndpoint     *string `access:"authentication"`
-	UserApiEndpoint   *string `access:"authentication"`
-	DiscoveryEndpoint *string `access:"authentication"`
-	ButtonText        *string `access:"authentication"`
-	ButtonColor       *string `access:"authentication"`
+	Secret            *string `access:"authentication"` // telemetry: none
+	Id                *string `access:"authentication"` // telemetry: none
+	Scope             *string `access:"authentication"` // telemetry: none
+	AuthEndpoint      *string `access:"authentication"` // telemetry: none
+	TokenEndpoint     *string `access:"authentication"` // telemetry: none
+	UserApiEndpoint   *string `access:"authentication"` // telemetry: none
+	DiscoveryEndpoint *string `access:"authentication"` // telemetry: none
+	ButtonText        *string `access:"authentication"` // telemetry: none
+	ButtonColor       *string `access:"authentication"` // telemetry: none
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint, buttonColor string) {
@@ -1023,14 +1037,14 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 
 type Office365Settings struct {
 	Enable            *bool   `access:"authentication"`
-	Secret            *string `access:"authentication"`
-	Id                *string `access:"authentication"`
+	Secret            *string `access:"authentication"` // telemetry: none
+	Id                *string `access:"authentication"` // telemetry: none
 	Scope             *string `access:"authentication"`
-	AuthEndpoint      *string `access:"authentication"`
-	TokenEndpoint     *string `access:"authentication"`
-	UserApiEndpoint   *string `access:"authentication"`
-	DiscoveryEndpoint *string `access:"authentication"`
-	DirectoryId       *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"` // telemetry: none
+	TokenEndpoint     *string `access:"authentication"` // telemetry: none
+	UserApiEndpoint   *string `access:"authentication"` // telemetry: none
+	DiscoveryEndpoint *string `access:"authentication"` // telemetry: none
+	DirectoryId       *string `access:"authentication"` // telemetry: none
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1086,14 +1100,15 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 
 type SqlSettings struct {
 	DriverName                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
-	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	DataSource                  *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	DataSourceReplicas          []string `access:"environment,write_restrictable,cloud_restrictable"`
 	DataSourceSearchReplicas    []string `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxIdleConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	ConnMaxLifetimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
+	ConnMaxIdleTimeMilliseconds *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	MaxOpenConns                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	Trace                       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
-	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"`
+	AtRestEncryptKey            *string  `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryTimeout                *int     `access:"environment,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch       *bool    `access:"environment,write_restrictable,cloud_restrictable"`
 }
@@ -1117,7 +1132,7 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure an encryption key has been specified.
-		if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
+		if s.AtRestEncryptKey == nil || *s.AtRestEncryptKey == "" {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1135,6 +1150,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.ConnMaxLifetimeMilliseconds == nil {
 		s.ConnMaxLifetimeMilliseconds = NewInt(3600000)
+	}
+
+	if s.ConnMaxIdleTimeMilliseconds == nil {
+		s.ConnMaxIdleTimeMilliseconds = NewInt(300000)
 	}
 
 	if s.Trace == nil {
@@ -1159,8 +1178,8 @@ type LogSettings struct {
 	FileJson               *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	FileLocation           *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	EnableDiagnostics      *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	EnableSentry           *bool   `access:"environment,write_restrictable,cloud_restrictable"`
+	EnableDiagnostics      *bool   `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSentry           *bool   `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingConfig  *string `access:"environment,write_restrictable,cloud_restrictable"`
 }
 
@@ -1212,7 +1231,7 @@ func (s *LogSettings) SetDefaults() {
 
 type ExperimentalAuditSettings struct {
 	FileEnabled           *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
-	FileName              *string `access:"experimental,write_restrictable,cloud_restrictable"`
+	FileName              *string `access:"experimental,write_restrictable,cloud_restrictable"` // telemetry: none
 	FileMaxSizeMB         *int    `access:"experimental,write_restrictable,cloud_restrictable"`
 	FileMaxAgeDays        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
 	FileMaxBackups        *int    `access:"experimental,write_restrictable,cloud_restrictable"`
@@ -1338,14 +1357,14 @@ type FileSettings struct {
 	DriverName              *string `access:"environment,write_restrictable,cloud_restrictable"`
 	Directory               *string `access:"environment,write_restrictable,cloud_restrictable"`
 	EnablePublicLink        *bool   `access:"site,cloud_restrictable"`
-	PublicLinkSalt          *string `access:"site,cloud_restrictable"`
-	InitialFont             *string `access:"environment,cloud_restrictable"`
-	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3SecretAccessKey *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Bucket          *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3PathPrefix      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Region          *string `access:"environment,write_restrictable,cloud_restrictable"`
-	AmazonS3Endpoint        *string `access:"environment,write_restrictable,cloud_restrictable"`
+	PublicLinkSalt          *string `access:"site,cloud_restrictable"`                           // telemetry: none
+	InitialFont             *string `access:"environment,cloud_restrictable"`                    // telemetry: none
+	AmazonS3AccessKeyId     *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3SecretAccessKey *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Bucket          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3PathPrefix      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Region          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	AmazonS3Endpoint        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3SSL             *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	AmazonS3SignV2          *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	AmazonS3SSE             *bool   `access:"environment,write_restrictable,cloud_restrictable"`
@@ -1366,7 +1385,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.MaxFileSize == nil {
-		s.MaxFileSize = NewInt64(52428800) // 50 MB
+		s.MaxFileSize = NewInt64(MB * 100)
 	}
 
 	if s.DriverName == nil {
@@ -1383,7 +1402,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if isUpdate {
 		// When updating an existing configuration, ensure link salt has been specified.
-		if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
+		if s.PublicLinkSalt == nil || *s.PublicLinkSalt == "" {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
 		}
 	} else {
@@ -1416,7 +1435,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3Region = NewString("")
 	}
 
-	if s.AmazonS3Endpoint == nil || len(*s.AmazonS3Endpoint) == 0 {
+	if s.AmazonS3Endpoint == nil || *s.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		s.AmazonS3Endpoint = NewString("s3.amazonaws.com")
 	}
@@ -1439,6 +1458,28 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
+func (s *FileSettings) ToFileBackendSettings(enableComplianceFeature bool) filesstore.FileBackendSettings {
+	if *s.DriverName == IMAGE_DRIVER_LOCAL {
+		return filesstore.FileBackendSettings{
+			DriverName: *s.DriverName,
+			Directory:  *s.Directory,
+		}
+	}
+	return filesstore.FileBackendSettings{
+		DriverName:              *s.DriverName,
+		AmazonS3AccessKeyId:     *s.AmazonS3AccessKeyId,
+		AmazonS3SecretAccessKey: *s.AmazonS3SecretAccessKey,
+		AmazonS3Bucket:          *s.AmazonS3Bucket,
+		AmazonS3PathPrefix:      *s.AmazonS3PathPrefix,
+		AmazonS3Region:          *s.AmazonS3Region,
+		AmazonS3Endpoint:        *s.AmazonS3Endpoint,
+		AmazonS3SSL:             s.AmazonS3SSL == nil || *s.AmazonS3SSL,
+		AmazonS3SignV2:          s.AmazonS3SignV2 != nil && *s.AmazonS3SignV2,
+		AmazonS3SSE:             s.AmazonS3SSE != nil && *s.AmazonS3SSE && enableComplianceFeature,
+		AmazonS3Trace:           s.AmazonS3Trace != nil && *s.AmazonS3Trace,
+	}
+}
+
 type EmailSettings struct {
 	EnableSignUpWithEmail             *bool   `access:"authentication"`
 	EnableSignInWithEmail             *bool   `access:"authentication"`
@@ -1451,16 +1492,16 @@ type EmailSettings struct {
 	ReplyToAddress                    *string `access:"site,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site"`
 	EnableSMTPAuth                    *bool   `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPUsername                      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPPassword                      *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPServer                        *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPPort                          *string `access:"environment,write_restrictable,cloud_restrictable"`
+	SMTPUsername                      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	SMTPPassword                      *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	SMTPServer                        *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	SMTPPort                          *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
 	ConnectionSecurity                *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SendPushNotifications             *bool   `access:"environment"`
-	PushNotificationServer            *string `access:"environment"`
+	PushNotificationServer            *string `access:"environment"` // telemetry: none
 	PushNotificationContents          *string `access:"site"`
-	PushNotificationBuffer            *int
+	PushNotificationBuffer            *int    // telemetry: none
 	EnableEmailBatching               *bool   `access:"site"`
 	EmailBatchingBufferSize           *int    `access:"experimental"`
 	EmailBatchingInterval             *int    `access:"experimental"`
@@ -1529,11 +1570,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.SMTPPassword = NewString("")
 	}
 
-	if s.SMTPServer == nil || len(*s.SMTPServer) == 0 {
+	if s.SMTPServer == nil || *s.SMTPServer == "" {
 		s.SMTPServer = NewString("localhost")
 	}
 
-	if s.SMTPPort == nil || len(*s.SMTPPort) == 0 {
+	if s.SMTPPort == nil || *s.SMTPPort == "" {
 		s.SMTPPort = NewString("10025")
 	}
 
@@ -1737,15 +1778,15 @@ func (s *SupportSettings) SetDefaults() {
 
 type AnnouncementSettings struct {
 	EnableBanner          *bool   `access:"site"`
-	BannerText            *string `access:"site"`
+	BannerText            *string `access:"site"` // telemetry: none
 	BannerColor           *string `access:"site"`
 	BannerTextColor       *string `access:"site"`
 	AllowBannerDismissal  *bool   `access:"site"`
 	AdminNoticesEnabled   *bool   `access:"site"`
 	UserNoticesEnabled    *bool   `access:"site"`
-	NoticesURL            *string `access:"site,write_restrictable"`
-	NoticesFetchFrequency *int    `access:"site,write_restrictable"`
-	NoticesSkipCache      *bool   `access:"site,write_restrictable"`
+	NoticesURL            *string `access:"site,write_restrictable"` // telemetry: none
+	NoticesFetchFrequency *int    `access:"site,write_restrictable"` // telemetry: none
+	NoticesSkipCache      *bool   `access:"site,write_restrictable"` // telemetry: none
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1816,23 +1857,23 @@ func (s *ThemeSettings) SetDefaults() {
 type TeamSettings struct {
 	SiteName                                                  *string  `access:"site"`
 	MaxUsersPerTeam                                           *int     `access:"site"`
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // Deprecated: do not use
 	EnableUserCreation                                        *bool    `access:"authentication"`
 	EnableOpenServer                                          *bool    `access:"authentication"`
 	EnableUserDeactivation                                    *bool    `access:"experimental"`
-	RestrictCreationToDomains                                 *string  `access:"authentication"`
+	RestrictCreationToDomains                                 *string  `access:"authentication"` // telemetry: none
 	EnableCustomBrand                                         *bool    `access:"site"`
 	CustomBrandText                                           *string  `access:"site"`
 	CustomDescriptionText                                     *string  `access:"site"`
 	RestrictDirectMessage                                     *string  `access:"site"`
-	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string  `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string  `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string  `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string  `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string  `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string  `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string  `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string  `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string  `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string  `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // Deprecated: do not use
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // Deprecated: do not use
 	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental"`
 	UserStatusAwayTimeout                                     *int64   `access:"experimental"`
 	MaxChannelsPerTeam                                        *int64   `access:"site"`
@@ -2009,15 +2050,15 @@ type LdapSettings struct {
 	// Basic
 	Enable             *bool   `access:"authentication"`
 	EnableSync         *bool   `access:"authentication"`
-	LdapServer         *string `access:"authentication"`
-	LdapPort           *int    `access:"authentication"`
+	LdapServer         *string `access:"authentication"` // telemetry: none
+	LdapPort           *int    `access:"authentication"` // telemetry: none
 	ConnectionSecurity *string `access:"authentication"`
-	BaseDN             *string `access:"authentication"`
-	BindUsername       *string `access:"authentication"`
-	BindPassword       *string `access:"authentication"`
+	BaseDN             *string `access:"authentication"` // telemetry: none
+	BindUsername       *string `access:"authentication"` // telemetry: none
+	BindPassword       *string `access:"authentication"` // telemetry: none
 
 	// Filtering
-	UserFilter        *string `access:"authentication"`
+	UserFilter        *string `access:"authentication"` // telemetry: none
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
 	EnableAdminFilter *bool
@@ -2055,7 +2096,7 @@ type LdapSettings struct {
 	LoginButtonBorderColor *string `access:"authentication"`
 	LoginButtonTextColor   *string `access:"authentication"`
 
-	Trace *bool `access:"authentication"`
+	Trace *bool `access:"authentication"` // telemetry: none
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2205,7 +2246,7 @@ func (s *LdapSettings) SetDefaults() {
 
 type ComplianceSettings struct {
 	Enable      *bool   `access:"compliance"`
-	Directory   *string `access:"compliance"`
+	Directory   *string `access:"compliance"` // telemetry: none
 	EnableDaily *bool   `access:"compliance"`
 }
 
@@ -2254,11 +2295,11 @@ type SamlSettings struct {
 	Encrypt     *bool `access:"authentication"`
 	SignRequest *bool `access:"authentication"`
 
-	IdpUrl                      *string `access:"authentication"`
-	IdpDescriptorUrl            *string `access:"authentication"`
-	IdpMetadataUrl              *string `access:"authentication"`
-	ServiceProviderIdentifier   *string `access:"authentication"`
-	AssertionConsumerServiceURL *string `access:"authentication"`
+	IdpUrl                      *string `access:"authentication"` // telemetry: none
+	IdpDescriptorUrl            *string `access:"authentication"` // telemetry: none
+	IdpMetadataUrl              *string `access:"authentication"` // telemetry: none
+	ServiceProviderIdentifier   *string `access:"authentication"` // telemetry: none
+	AssertionConsumerServiceURL *string `access:"authentication"` // telemetry: none
 
 	SignatureAlgorithm *string `access:"authentication"`
 	CanonicalAlgorithm *string `access:"authentication"`
@@ -2266,9 +2307,9 @@ type SamlSettings struct {
 	ScopingIDPProviderId *string `access:"authentication"`
 	ScopingIDPName       *string `access:"authentication"`
 
-	IdpCertificateFile    *string `access:"authentication"`
-	PublicCertificateFile *string `access:"authentication"`
-	PrivateKeyFile        *string `access:"authentication"`
+	IdpCertificateFile    *string `access:"authentication"` // telemetry: none
+	PublicCertificateFile *string `access:"authentication"` // telemetry: none
+	PrivateKeyFile        *string `access:"authentication"` // telemetry: none
 
 	// User Mapping
 	IdAttribute          *string `access:"authentication"`
@@ -2431,9 +2472,10 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `access:"site,write_restrictable,cloud_restrictable"`
-	AndroidAppDownloadLink *string `access:"site,write_restrictable,cloud_restrictable"`
-	IosAppDownloadLink     *string `access:"site,write_restrictable,cloud_restrictable"`
+	AppCustomURLSchemes    []string `access:"site,write_restrictable,cloud_restrictable"` // telemetry: none
+	AppDownloadLink        *string  `access:"site,write_restrictable,cloud_restrictable"`
+	AndroidAppDownloadLink *string  `access:"site,write_restrictable,cloud_restrictable"`
+	IosAppDownloadLink     *string  `access:"site,write_restrictable,cloud_restrictable"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2447,6 +2489,10 @@ func (s *NativeAppSettings) SetDefaults() {
 
 	if s.IosAppDownloadLink == nil {
 		s.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
+	}
+
+	if s.AppCustomURLSchemes == nil {
+		s.AppCustomURLSchemes = GetDefaultAppCustomURLSchemes()
 	}
 }
 
@@ -2464,8 +2510,8 @@ type ElasticsearchSettings struct {
 	ChannelIndexShards            *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	UserIndexReplicas             *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	UserIndexShards               *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	AggregatePostsAfterDays       *int    `access:"environment,write_restrictable,cloud_restrictable"`
-	PostsAggregatorJobStartTime   *string `access:"environment,write_restrictable,cloud_restrictable"`
+	AggregatePostsAfterDays       *int    `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
+	PostsAggregatorJobStartTime   *string `access:"environment,write_restrictable,cloud_restrictable"` // telemetry: none
 	IndexPrefix                   *string `access:"environment,write_restrictable,cloud_restrictable"`
 	LiveIndexingBatchSize         *int    `access:"environment,write_restrictable,cloud_restrictable"`
 	BulkIndexingTimeWindowSeconds *int    `access:"environment,write_restrictable,cloud_restrictable"`
@@ -2561,7 +2607,7 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	IndexDir                      *string `access:"experimental"`
+	IndexDir                      *string `access:"experimental"` // telemetry: none
 	EnableIndexing                *bool   `access:"experimental"`
 	EnableSearching               *bool   `access:"experimental"`
 	EnableAutocomplete            *bool   `access:"experimental"`
@@ -2654,10 +2700,10 @@ type PluginSettings struct {
 	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
-	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
-	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"`
-	Plugins                     map[string]map[string]interface{} `access:"plugins"`
-	PluginStates                map[string]*PluginState           `access:"plugins"`
+	Directory                   *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	ClientDirectory             *string                           `access:"plugins,write_restrictable,cloud_restrictable"` // telemetry: none
+	Plugins                     map[string]map[string]interface{} `access:"plugins"`                                       // telemetry: none
+	PluginStates                map[string]*PluginState           `access:"plugins"`                                       // telemetry: none
 	EnableMarketplace           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
@@ -2921,6 +2967,37 @@ func (s *ImportSettings) SetDefaults() {
 	}
 }
 
+// ExportSettings defines configuration settings for file exports.
+type ExportSettings struct {
+	// The directory where to store the exported files.
+	Directory *string // telemetry: none
+	// The number of days to retain the exported files before deleting them.
+	RetentionDays *int
+}
+
+func (s *ExportSettings) isValid() *AppError {
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.RetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// SetDefaults applies the default settings to the struct.
+func (s *ExportSettings) SetDefaults() {
+	if s.Directory == nil || *s.Directory == "" {
+		s.Directory = NewString(EXPORT_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if s.RetentionDays == nil {
+		s.RetentionDays = NewInt(EXPORT_SETTINGS_DEFAULT_RETENTION_DAYS)
+	}
+}
+
 type ConfigFunc func() *Config
 
 const ConfigAccessTagType = "access"
@@ -2990,14 +3067,15 @@ type Config struct {
 	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings
+	JobSettings               JobSettings // telemetry: none
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
-	CloudSettings             CloudSettings
-	FeatureFlags              *FeatureFlags `json:",omitempty"`
-	ImportSettings            ImportSettings
+	CloudSettings             CloudSettings  // telemetry: none
+	FeatureFlags              *FeatureFlags  `json:",omitempty"` // telemetry: none
+	ImportSettings            ImportSettings // telemetry: none
+	ExportSettings            ExportSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -3106,10 +3184,11 @@ func (o *Config) SetDefaults() {
 		o.FeatureFlags.SetDefaults()
 	}
 	o.ImportSettings.SetDefaults()
+	o.ExportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.EmailSettings.EnableEmailBatching {
+	if *o.ServiceSettings.SiteURL == "" && *o.EmailSettings.EnableEmailBatching {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3117,7 +3196,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*o.ServiceSettings.SiteURL) == 0 && *o.ServiceSettings.AllowCookiesForSubdomains {
+	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3173,7 +3252,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
+	if err := o.MessageExportSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3236,11 +3315,15 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.ConnMaxIdleTimeMilliseconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*s.DataSource) == 0 {
+	if *s.DataSource == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -3369,47 +3452,47 @@ func (s *LdapSettings) isValid() *AppError {
 
 func (s *SamlSettings) isValid() *AppError {
 	if *s.Enable {
-		if len(*s.IdpUrl) == 0 || !IsValidHttpUrl(*s.IdpUrl) {
+		if *s.IdpUrl == "" || !IsValidHttpUrl(*s.IdpUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpDescriptorUrl) == 0 || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
+		if *s.IdpDescriptorUrl == "" || !IsValidHttpUrl(*s.IdpDescriptorUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.IdpCertificateFile) == 0 {
+		if *s.IdpCertificateFile == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_cert.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.UsernameAttribute) == 0 {
+		if *s.UsernameAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.ServiceProviderIdentifier) == 0 {
+		if *s.ServiceProviderIdentifier == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if *s.Verify {
-			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
+			if *s.AssertionConsumerServiceURL == "" || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
 		if *s.Encrypt {
-			if len(*s.PrivateKeyFile) == 0 {
+			if *s.PrivateKeyFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_private_key.app_error", nil, "", http.StatusBadRequest)
 			}
 
-			if len(*s.PublicCertificateFile) == 0 {
+			if *s.PublicCertificateFile == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_public_cert.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 
-		if len(*s.EmailAttribute) == 0 {
+		if *s.EmailAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_email_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3420,7 +3503,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_canonical_algorithm.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if len(*s.GuestAttribute) > 0 {
+		if *s.GuestAttribute != "" {
 			if !(strings.Contains(*s.GuestAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_guest_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3429,7 +3512,7 @@ func (s *SamlSettings) isValid() *AppError {
 			}
 		}
 
-		if len(*s.AdminAttribute) > 0 {
+		if *s.AdminAttribute != "" {
 			if !(strings.Contains(*s.AdminAttribute, "=")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_admin_attribute.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -3530,7 +3613,7 @@ func (s *ServiceSettings) isValid() *AppError {
 
 func (s *ElasticsearchSettings) isValid() *AppError {
 	if *s.EnableIndexing {
-		if len(*s.ConnectionUrl) == 0 {
+		if *s.ConnectionUrl == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -3568,7 +3651,7 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 
 func (bs *BleveSettings) isValid() *AppError {
 	if *bs.EnableIndexing {
-		if len(*bs.IndexDir) == 0 {
+		if *bs.IndexDir == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
 		}
 	} else {
@@ -3603,7 +3686,7 @@ func (s *DataRetentionSettings) isValid() *AppError {
 }
 
 func (s *LocalizationSettings) isValid() *AppError {
-	if len(*s.AvailableLocales) > 0 {
+	if *s.AvailableLocales != "" {
 		if !strings.Contains(*s.AvailableLocales, *s.DefaultClientLocale) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -3612,7 +3695,7 @@ func (s *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-func (s *MessageExportSettings) isValid(fs FileSettings) *AppError {
+func (s *MessageExportSettings) isValid() *AppError {
 	if s.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3698,33 +3781,33 @@ func (o *Config) GetSanitizeOptions() map[string]bool {
 }
 
 func (o *Config) Sanitize() {
-	if o.LdapSettings.BindPassword != nil && len(*o.LdapSettings.BindPassword) > 0 {
+	if o.LdapSettings.BindPassword != nil && *o.LdapSettings.BindPassword != "" {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 
-	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
+	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
-	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+	if o.EmailSettings.SMTPPassword != nil && *o.EmailSettings.SMTPPassword != "" {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if len(*o.GitLabSettings.Secret) > 0 {
+	if *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
-	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+	if o.GoogleSettings.Secret != nil && *o.GoogleSettings.Secret != "" {
 		*o.GoogleSettings.Secret = FAKE_SETTING
 	}
 
-	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+	if o.Office365Settings.Secret != nil && *o.Office365Settings.Secret != "" {
 		*o.Office365Settings.Secret = FAKE_SETTING
 	}
 
-	if o.OpenIdSettings.Secret != nil && len(*o.OpenIdSettings.Secret) > 0 {
+	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
 		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
@@ -3741,11 +3824,11 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
-	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+	if o.ServiceSettings.GfycatApiSecret != nil && *o.ServiceSettings.GfycatApiSecret != "" {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 

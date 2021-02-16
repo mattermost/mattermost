@@ -13,10 +13,10 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUploadSession(t *testing.T) {
@@ -105,9 +105,8 @@ func TestUploadData(t *testing.T) {
 		FileSize:  8 * 1024 * 1024,
 	}
 
-	var err error
-	us, err = th.App.CreateUploadSession(us)
-	require.Nil(t, err)
+	us, uploadSessionAppErr := th.App.CreateUploadSession(us)
+	require.Nil(t, uploadSessionAppErr)
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
@@ -120,16 +119,16 @@ func TestUploadData(t *testing.T) {
 			N: 1024 * 1024,
 		}
 
-		ok, err := th.App.FileExists(us.Path)
+		ok, appErr := th.App.FileExists(us.Path)
 		require.False(t, ok)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
 		u := *us
 		u.Path = ""
-		info, err := th.App.UploadData(&u, rd)
+		info, appErr := th.App.UploadData(&u, rd)
 		require.Nil(t, info)
-		require.NotNil(t, err)
-		require.NotEqual(t, "app.upload.upload_data.first_part_too_small.app_error", err.Id)
+		require.NotNil(t, appErr)
+		require.NotEqual(t, "app.upload.upload_data.first_part_too_small.app_error", appErr.Id)
 	})
 
 	t.Run("first part too small", func(t *testing.T) {
@@ -138,18 +137,18 @@ func TestUploadData(t *testing.T) {
 			N: 1024 * 1024,
 		}
 
-		ok, err := th.App.FileExists(us.Path)
+		ok, appErr := th.App.FileExists(us.Path)
 		require.False(t, ok)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
-		info, err := th.App.UploadData(us, rd)
+		info, appErr := th.App.UploadData(us, rd)
 		require.Nil(t, info)
-		require.NotNil(t, err)
-		require.Equal(t, "app.upload.upload_data.first_part_too_small.app_error", err.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.upload.upload_data.first_part_too_small.app_error", appErr.Id)
 
-		ok, err = th.App.FileExists(us.Path)
+		ok, appErr = th.App.FileExists(us.Path)
 		require.False(t, ok)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 	})
 
 	t.Run("resume success", func(t *testing.T) {
@@ -157,73 +156,76 @@ func TestUploadData(t *testing.T) {
 			R: bytes.NewReader(data),
 			N: 5 * 1024 * 1024,
 		}
-		info, err := th.App.UploadData(us, rd)
+		info, appErr := th.App.UploadData(us, rd)
 		require.Nil(t, info)
-		require.Nil(t, err)
+		require.Nil(t, appErr)
 
 		rd = &io.LimitedReader{
 			R: bytes.NewReader(data[5*1024*1024:]),
 			N: 3 * 1024 * 1024,
 		}
-		info, err = th.App.UploadData(us, rd)
-		require.Nil(t, err)
+		info, appErr = th.App.UploadData(us, rd)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
-		d, err := th.App.ReadFile(us.Path)
-		require.Nil(t, err)
+		d, appErr := th.App.ReadFile(us.Path)
+		require.Nil(t, appErr)
 		require.Equal(t, data, d)
 	})
 
 	t.Run("all at once success", func(t *testing.T) {
 		us.Id = model.NewId()
-		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		var appErr *model.AppError
+		us, appErr = th.App.CreateUploadSession(us)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
-		info, err := th.App.UploadData(us, bytes.NewReader(data))
-		require.Nil(t, err)
+		info, appErr := th.App.UploadData(us, bytes.NewReader(data))
+		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
-		d, err := th.App.ReadFile(us.Path)
-		require.Nil(t, err)
+		d, appErr := th.App.ReadFile(us.Path)
+		require.Nil(t, appErr)
 		require.Equal(t, data, d)
 	})
 
 	t.Run("small file success", func(t *testing.T) {
 		us.Id = model.NewId()
 		us.FileSize = 1024 * 1024
-		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		var appErr *model.AppError
+		us, appErr = th.App.CreateUploadSession(us)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
 		rd := &io.LimitedReader{
 			R: bytes.NewReader(data),
 			N: 1024 * 1024,
 		}
-		info, err := th.App.UploadData(us, rd)
-		require.Nil(t, err)
+		info, appErr := th.App.UploadData(us, rd)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 
-		d, err := th.App.ReadFile(us.Path)
-		require.Nil(t, err)
+		d, appErr := th.App.ReadFile(us.Path)
+		require.Nil(t, appErr)
 		require.Equal(t, data[:1024*1024], d)
 	})
 
 	t.Run("image processing", func(t *testing.T) {
 		testDir, _ := fileutils.FindDir("tests")
 		data, err := ioutil.ReadFile(filepath.Join(testDir, "test.png"))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.NotEmpty(t, data)
 
 		us.Id = model.NewId()
 		us.Filename = "test.png"
 		us.FileSize = int64(len(data))
-		us, err = th.App.CreateUploadSession(us)
-		require.Nil(t, err)
+		var appErr *model.AppError
+		us, appErr = th.App.CreateUploadSession(us)
+		require.Nil(t, appErr)
 		require.NotEmpty(t, us)
 
-		info, err := th.App.UploadData(us, bytes.NewReader(data))
-		require.Nil(t, err)
+		info, appErr := th.App.UploadData(us, bytes.NewReader(data))
+		require.Nil(t, appErr)
 		require.NotEmpty(t, info)
 		require.NotZero(t, info.Width)
 		require.NotZero(t, info.Height)
@@ -245,9 +247,9 @@ func TestUploadDataConcurrent(t *testing.T) {
 		FileSize:  8 * 1024 * 1024,
 	}
 
-	var err error
-	us, err = th.App.CreateUploadSession(us)
-	require.Nil(t, err)
+	var appErr *model.AppError
+	us, appErr = th.App.CreateUploadSession(us)
+	require.Nil(t, appErr)
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
@@ -303,7 +305,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	// Verify that only 1 request was able to finish the upload.
 	require.Equal(t, int32(n-1), nErrs)
 
-	d, err := th.App.ReadFile(us.Path)
-	require.Nil(t, err)
+	d, appErr := th.App.ReadFile(us.Path)
+	require.Nil(t, appErr)
 	require.Equal(t, data, d)
 }

@@ -19,12 +19,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/mattermost/mattermost-server/v5/utils/testutils"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var testDir = ""
@@ -66,7 +67,7 @@ func testDoUploadFileRequest(t testing.TB, c *model.Client4, url string, blob []
 		req.ContentLength = contentLength
 	}
 	req.Header.Set("Content-Type", contentType)
-	if len(c.AuthToken) > 0 {
+	if c.AuthToken != "" {
 		req.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 

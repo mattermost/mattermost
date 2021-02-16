@@ -173,13 +173,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(channel.Type) > 0 && channel.Type != oldChannel.Type {
+	if channel.Type != "" && channel.Type != oldChannel.Type {
 		c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.typechange.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if oldChannel.Name == model.DEFAULT_CHANNEL {
-		if len(channel.Name) > 0 && channel.Name != oldChannel.Name {
+		if channel.Name != "" && channel.Name != oldChannel.Name {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 			return
 		}
@@ -190,11 +190,11 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oldChannelDisplayName := oldChannel.DisplayName
 
-	if len(channel.DisplayName) > 0 {
+	if channel.DisplayName != "" {
 		oldChannel.DisplayName = channel.DisplayName
 	}
 
-	if len(channel.Name) > 0 {
+	if channel.Name != "" {
 		oldChannel.Name = channel.Name
 		auditRec.AddMeta("new_channel_name", oldChannel.Name)
 	}
@@ -1870,7 +1870,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", team.Id)
 	auditRec.AddMeta("team_name", team.Name)
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP || channel.Type == model.CHANNEL_PRIVATE {
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		c.Err = model.NewAppError("moveChannel", "api.channel.move_channel.type.invalid", nil, "", http.StatusForbidden)
 		return
 	}

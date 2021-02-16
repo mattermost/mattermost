@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -82,6 +83,7 @@ type Params struct {
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
+	ExportName                string
 
 	// Cloud
 	InvoiceId string
@@ -343,6 +345,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["warn_metric_id"]; ok {
 		params.WarnMetricId = val
+	}
+
+	if val, ok := props["export_name"]; ok {
+		params.ExportName = val
 	}
 
 	return params

@@ -7,14 +7,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
+var emptyConfig, readOnlyConfig, minimalConfig, minimalConfigNoFF, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig, customConfigDefaults *model.Config
 
 func init() {
 	emptyConfig = &model.Config{}
@@ -39,7 +39,12 @@ func init() {
 			DefaultClientLocale: sToP("en"),
 		},
 	}
+
 	minimalConfig.SetDefaults()
+
+	minimalConfigNoFF = minimalConfig.Clone()
+	minimalConfigNoFF.FeatureFlags = nil
+
 	invalidConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: sToP("invalid"),
@@ -140,7 +145,7 @@ func TestMergeConfigs(t *testing.T) {
 func TestConfigEnvironmentOverrides(t *testing.T) {
 	memstore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil)
+	base, err := config.NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	originalConfig := &model.Config{}
 	originalConfig.ServiceSettings.SiteURL = newString("http://notoverriden.ca")
@@ -169,7 +174,7 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 
 	memstore, err := config.NewMemoryStore()
 	require.NoError(t, err)
-	base, err := config.NewStoreFromBacking(memstore, nil)
+	base, err := config.NewStoreFromBacking(memstore, nil, false)
 	require.NoError(t, err)
 	oldCfg := base.Get()
 	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)

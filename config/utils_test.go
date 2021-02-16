@@ -6,9 +6,10 @@ package config
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -157,8 +158,8 @@ func TestIsDatabaseDSN(t *testing.T) {
 			Expected: true,
 		},
 		{
-			Name:     "Mysql DSN",
-			DSN:      "mysql://localhost",
+			Name:     "Postgresql DSN",
+			DSN:      "postgres://localhost",
 			Expected: true,
 		},
 		{

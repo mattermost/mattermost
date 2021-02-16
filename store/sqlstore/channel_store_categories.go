@@ -6,12 +6,12 @@ package sqlstore
 import (
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-
-	sq "github.com/Masterminds/squirrel"
-	"github.com/pkg/errors"
 )
 
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
@@ -324,7 +324,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	}
 
 	// now we re-order the categories according to the new order
-	if err = s.updateSidebarCategoryOrderT(transaction, userId, teamId, newOrder); err != nil {
+	if err = s.updateSidebarCategoryOrderT(transaction, newOrder); err != nil {
 		return nil, err
 	}
 
@@ -541,7 +541,7 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 	return ids, nil
 }
 
-func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transaction, userId, teamId string, categoryOrder []string) error {
+func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transaction, categoryOrder []string) error {
 	var newOrder []interface{}
 	runningOrder := 0
 	for _, categoryId := range categoryOrder {
@@ -595,7 +595,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 		}
 	}
 
-	if err = s.updateSidebarCategoryOrderT(transaction, userId, teamId, categoryOrder); err != nil {
+	if err = s.updateSidebarCategoryOrderT(transaction, categoryOrder); err != nil {
 		return err
 	}
 
@@ -606,6 +606,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	return nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, []*model.SidebarCategoryWithChannels, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -943,6 +944,7 @@ func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.P
 	return nil
 }
 
+//nolint:unparam
 func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error {
 	// if channel is being moved, remove it from the categories, since it's possible that there's no matching category in the new team
 	if _, err := s.GetMaster().Exec("DELETE FROM SidebarChannels WHERE ChannelId=:ChannelId", map[string]interface{}{"ChannelId": channel.Id}); err != nil {
@@ -962,7 +964,20 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=:TeamId AND SidebarCategories.UserId=:UserId"
 	} else {
-		deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.UserId = :UserId AND   cat.TeamId = :TeamId"
+		deleteQuery = `
+			DELETE FROM
+				SidebarChannels
+			WHERE
+				CategoryId IN (
+					SELECT
+						CategoryId
+					FROM
+						SidebarChannels,
+						SidebarCategories
+					WHERE
+						SidebarChannels.CategoryId = SidebarCategories.Id
+						AND SidebarCategories.TeamId = :TeamId
+						AND SidebarChannels.UserId = :UserId)`
 	}
 	if _, err := s.GetMaster().Exec(deleteQuery, params); err != nil {
 		return errors.Wrap(err, "failed to delete from SidebarChannels")

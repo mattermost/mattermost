@@ -236,7 +236,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.SharedChannels == nil {
-		f.SharedChannels = NewBool(false)
+		f.SharedChannels = NewBool(*f.FutureFeatures)
 	}
 
 	if f.RemoteClusterService == nil {
@@ -296,7 +296,7 @@ func (lr *LicenseRecord) IsValid() *AppError {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(lr.Bytes) == 0 || len(lr.Bytes) > 10000 {
+	if lr.Bytes == "" || len(lr.Bytes) > 10000 {
 		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 

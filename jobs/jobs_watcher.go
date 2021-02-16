@@ -156,6 +156,27 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_IMPORT_DELETE {
+			if watcher.workers.ImportDelete != nil {
+				select {
+				case watcher.workers.ImportDelete.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_EXPORT_PROCESS {
+			if watcher.workers.ExportProcess != nil {
+				select {
+				case watcher.workers.ExportProcess.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_EXPORT_DELETE {
+			if watcher.workers.ExportDelete != nil {
+				select {
+				case watcher.workers.ExportDelete.JobChannel() <- *job:
+				default:
+				}
+			}
 		} else if job.Type == model.JOB_TYPE_CLOUD {
 			if watcher.workers.Cloud != nil {
 				select {

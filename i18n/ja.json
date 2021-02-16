@@ -1082,14 +1082,6 @@
     "translation": "このサーバーではファイル添付が無効になっています。"
   },
   {
-    "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "ファイルの存在を確認できませんでした。"
-  },
-  {
-    "id": "api.file.file_exists.s3.app_error",
-    "translation": "ファイルの存在を確認できませんでした。"
-  },
-  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "公開リンクが不正です。"
   },
@@ -1110,44 +1102,12 @@
     "translation": "ファイルの公開リンクを取得できません。ファイルは現在のユーザーが読むことができる投稿に添付されている必要があります。"
   },
   {
-    "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "S3内でファイルをコピーできませんでした。"
-  },
-  {
-    "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "ファイルをS3から削除できません。"
-  },
-  {
-    "id": "api.file.move_file.rename.app_error",
-    "translation": "ローカルでファイルを移動できません。"
-  },
-  {
     "id": "api.file.no_driver.app_error",
     "translation": "ファイルドライバーが選択されていません。"
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "ローカルサーバーファイルストレージからの読み込みに失敗しました。"
-  },
-  {
-    "id": "api.file.read_file.s3.app_error",
-    "translation": "S3ストレージからの読み込みに失敗しました。"
-  },
-  {
-    "id": "api.file.reader.reading_local.app_error",
-    "translation": "ローカルサーバーファイルストレージの読み込み開始に失敗しました。"
-  },
-  {
-    "id": "api.file.reader.s3.app_error",
-    "translation": "S3ストレージからの読み込み開始に失敗しました。"
-  },
-  {
-    "id": "api.file.test_connection.local.connection.app_error",
-    "translation": "指定されたパスへの権限が無いか、もしくはその他のエラーが発生しました。"
-  },
-  {
-    "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "バケットが存在するかのチェックでエラーが発生しました。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1184,18 +1144,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "{{.Filename}} ファイルをアップロードできませんでした。ファイルサイズ{{.Length}}バイトが許容されている{{.Limit}}バイトを超えています。"
-  },
-  {
-    "id": "api.file.write_file.s3.app_error",
-    "translation": "S3への書き込みでエラーが発生しました。"
-  },
-  {
-    "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "新しいファイルのためにディレクトリーを作成しようとして失敗しました。"
-  },
-  {
-    "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "ローカルサーバーストレージへの書き込みに失敗しました。"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -2111,7 +2059,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "サポートされていないOAuthサービスプロバイダーです。"
+    "translation": "OAuth 2.0 を通じた {{.Service}} SSOはこのサーバーでは利用できません。"
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -4599,7 +4547,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "ファイルIDが不正です。アップロードは最大5ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
+    "translation": "ファイルIDが不正です。アップロードは最大10ファイルまでに制限されています。それ以上のファイルをアップロードするには追加の投稿を行ってください。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4940,70 +4888,6 @@
   {
     "id": "system.message.name",
     "translation": "システム"
-  },
-  {
-    "id": "utils.file.list_directory.local.app_error",
-    "translation": "ローカルサーバーストレージのディレクトリ一覧表示に失敗しました。"
-  },
-  {
-    "id": "utils.file.list_directory.s3.app_error",
-    "translation": "S3のディレクトリ一覧表示に失敗しました。"
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "ローカルサーバーストレージからのディレクトリ削除に失敗しました。"
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "S3からのディレクトリ削除に失敗しました。"
-  },
-  {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "ローカルサーバーファイルストレージからのファイル削除に失敗しました。"
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "S3からのファイル削除に失敗しました。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "HELOを設定できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "TLSで接続できませんでした。"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTPサーバーの認証に失敗しました。"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "電子メールへ添付を書き込むことができませんでした"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "SMTPサーバーへの接続を終了できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "設定エラー \"送信元電子メールアドレス\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "電子メールメッセージを書けませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "電子メールメッセージデータを追加できませんでした。"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "設定エラー \"宛先電子メールアドレス\"。"
   },
   {
     "id": "web.command_webhook.command.app_error",
@@ -5919,11 +5803,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "エンタープライズライセンスの有効期限が切れ、一部の機能が無効になることがあります。更新してください。"
+    "translation": "エンタープライズエディションのライセンスの有効期限が切れ、一部の機能が無効になることがあります。今すぐライセンスを更新してください。"
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "ライセンスを更新する"
+    "translation": "今すぐライセンスを更新する"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7282,10 +7166,6 @@
     "translation": "すでにMattermost Enterprise Editionが起動しているため、アップグレードできません。"
   },
   {
-    "id": "api.file.append_file.writing.app_error",
-    "translation": "S3への書き込みでエラーが発生しました。"
-  },
-  {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
     "translation": "データをアップロードできませんでした。最初の部分は少なくとも {{.Size}} バイト以上である必要があります。"
   },
@@ -7504,18 +7384,6 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "SAMLへ移行できませんでした。"
-  },
-  {
-    "id": "api.file.append_file.s3.app_error",
-    "translation": "ファイルをS3に追加する際にエラーが発生しました。"
-  },
-  {
-    "id": "api.file.append_file.opening.app_error",
-    "translation": "ファイルを開く際にエラーが発生しました。"
-  },
-  {
-    "id": "api.file.append_file.no_exist.app_error",
-    "translation": "ファイルが存在しません。"
   },
   {
     "id": "api.config.migrate_config.app_error",
@@ -7878,10 +7746,6 @@
     "translation": "チャンネルメンバーを抽出できませんでした。"
   },
   {
-    "id": "api.file.test_connection.s3.bucket_create.app_error",
-    "translation": "バケットを作成できません。"
-  },
-  {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
     "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした。"
   },
@@ -7970,10 +7834,6 @@
     "translation": "ファイルを移動できませんでした。"
   },
   {
-    "id": "api.file.test_connection.s3.list_objects.app_error",
-    "translation": "オブジェクトを一覧化する際にエラーが発生しました。"
-  },
-  {
     "id": "api.cloud.license_error",
     "translation": "あなたのライセンスはクラウドリクエストをサポートしていません。"
   },
@@ -8004,10 +7864,6 @@
   {
     "id": "api.templates.at_limit_info1",
     "translation": "現在、ワークスペースには10名を超えるユーザーが存在します - 素晴らしい！さらにチームメンバーを招待する予定がある場合、Mattermost Cloud Professoinalへのアップグレードを是非ご検討ください。"
-  },
-  {
-    "id": "api.file.new_backend.s3.app_error",
-    "translation": "S3への接続中にエラーが発生しました。"
   },
   {
     "id": "app.user.permanent_delete.app_error",
@@ -8160,10 +8016,6 @@
   {
     "id": "app.user.update_thread_follow_for_user.app_error",
     "translation": "スレッドの以下の状態を更新できませんでした"
-  },
-  {
-    "id": "app.user.update_password.app_error",
-    "translation": "ユーザーパスワードを更新できませんでした。"
   },
   {
     "id": "app.user.update_failed_pwd_attempts.app_error",
@@ -8410,18 +8262,6 @@
     "translation": "あなたが追加、もしくは削除しようとした以下の権限に許可されていないものがあります"
   },
   {
-    "id": "api.roles.patch_roles.admin_role.error",
-    "translation": "システム管理者の役割の編集や変更はできません"
-  },
-  {
-    "id": "api.file.file_size.s3.app_error",
-    "translation": "ファイルサイズを取得できませんでした。"
-  },
-  {
-    "id": "api.file.file_size.local.app_error",
-    "translation": "ファイルサイズを取得できませんでした。"
-  },
-  {
     "id": "api.config.patch_config.restricted_merge.app_error",
     "translation": "設定をマージできませんでした。"
   },
@@ -8432,5 +8272,221 @@
   {
     "id": "api.templates.over_limit_suspended_contact_support",
     "translation": "サポートに連絡する"
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "グローバルリレーファイルを書き込めませんでした。"
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "CSVファイルを書き込めませんでした。"
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "エクスポートファイルを書き込めませんでした。"
+  },
+  {
+    "id": "app.license.generate_renewal_token.no_license",
+    "translation": "ライセンスがありません"
+  },
+  {
+    "id": "app.license.generate_renewal_token.bad_license",
+    "translation": "このタイプのライセンスは更新トークンの生成をサポートしていません"
+  },
+  {
+    "id": "app.license.generate_renewal_token.app_error",
+    "translation": "新しい更新トークンを生成できませんでした。"
+  },
+  {
+    "id": "api.license.request_renewal_link.app_error",
+    "translation": "ライセンス更新リンクを取得する際にエラーが発生しました"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "ファイルを書き込めませんでした。"
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "ファイルストレージにアクセスできませんでした。"
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "ファイルを削除できませんでした。"
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "ディレクトリを削除できませんでした。"
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "ファイルを読み込めませんでした。"
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "ファイルを移動できませんでした。"
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "ディレクトリを一覧化できませんでした。"
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "ファイルサイズを取得できませんでした。"
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "ファイルリーダーを取得できませんでした。"
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "ファイルの存在を確認できませんでした。"
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "ファイルにデータを追加できませんでした。"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
+    "translation": "検索結果をデコードできませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.search_failed",
+    "translation": "検索を完了できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.search_files.disabled",
+    "translation": "Elasticsearchによるファイル検索はこのサーバーでは無効化されています"
+  },
+  {
+    "id": "ent.elasticsearch.index_file.error",
+    "translation": "ファイルにインデックスを付与できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_files.error",
+    "translation": "ユーザーのファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post_files.error",
+    "translation": "投稿のファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_file.error",
+    "translation": "ファイルを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "ファイルに対するElasticsearchテンプレートを作成できませんでした"
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "ファイルインデックスを閉じることができませんでした。"
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "ファイル検索を完了できませんでした。"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "ファイルバッチにインデックスを付与できませんでした。"
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "ファイルにインデックスを付与できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "ユーザーのファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "投稿のファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "ファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "ファイルを削除できませんでした。"
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Bleveファイルインデックスを作成する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Discovery Documentからエンドポイントを取り出す際にエラーが発生しました。"
+  },
+  {
+    "id": "model.reaction.is_valid.update_at.app_error",
+    "translation": "更新日時は有効な時刻でなくてはなりません。"
+  },
+  {
+    "id": "error",
+    "translation": "エラー"
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "アプリにリダイレクトします。"
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "このブラウザのタブを閉じることができます。"
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "認証が完了しました"
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "ダウンロードしようとしているジョブ種別は現在サポートされていません"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "不正なリダイレクトURLが指定されています"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "不正なカスタムURLスキームが指定されています"
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "セキュリティ上の理由により {{.Name}} の変更は許可されていません。"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "{{.SiteName}} に戻る"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "SQL設定の最大接続アイドル時間が不正です。0以上の数にしてください。"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "ユーザースレッドが存在しないか、フォローしていません"
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "リクエストにAuthDataかAuthServiceパラメータのどちらかが不足しています。"
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "ファイルの最終更新日時を取得できませんでした。"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "getThreadsForUser に対する Before と After のパラメータが矛盾しています"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "バックエンドからファイルを読み出す際にエラーが発生しました"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Zipファイル作成時にエラーが発生しました。"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "このエンドポイントを使用するにはE10もしくはE20ライセンスが必要です。"
   }
 ]

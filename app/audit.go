@@ -10,6 +10,7 @@ import (
 	"os/user"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -31,8 +32,8 @@ var (
 	LevelCLI     = mlog.LvlAuditCLI
 )
 
-func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userId, 0, limit)
+func (a *App) GetAudits(userID string, limit int) (model.Audits, *model.AppError) {
+	audits, err := a.Srv().Store.Audit().Get(userID, 0, limit)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {
@@ -45,8 +46,8 @@ func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError
 	return audits, nil
 }
 
-func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
-	audits, err := a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+func (a *App) GetAuditsPage(userID string, page int, perPage int) (model.Audits, *model.AppError) {
+	audits, err := a.Srv().Store.Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
 		var outErr *store.ErrOutOfBounds
 		switch {

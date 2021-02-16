@@ -4,6 +4,7 @@
 package jobs
 
 import (
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -14,6 +15,7 @@ import (
 type JobServer struct {
 	ConfigService configservice.ConfigService
 	Store         store.Store
+	metrics       einterfaces.MetricsInterface
 	Workers       *Workers
 	Schedulers    *Schedulers
 
@@ -29,13 +31,17 @@ type JobServer struct {
 	ProductNotices          tjobs.ProductNoticesJobInterface
 	ActiveUsers             tjobs.ActiveUsersJobInterface
 	ImportProcess           tjobs.ImportProcessInterface
+	ImportDelete            tjobs.ImportDeleteInterface
+	ExportProcess           tjobs.ExportProcessInterface
+	ExportDelete            tjobs.ExportDeleteInterface
 	Cloud                   ejobs.CloudJobInterface
 }
 
-func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {
+func NewJobServer(configService configservice.ConfigService, store store.Store, metrics einterfaces.MetricsInterface) *JobServer {
 	return &JobServer{
 		ConfigService: configService,
 		Store:         store,
+		metrics:       metrics,
 	}
 }
 

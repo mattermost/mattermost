@@ -8,10 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var PluginCmd = &cobra.Command{
@@ -103,7 +104,7 @@ func init() {
 }
 
 func pluginAddCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginDeleteCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginEnableCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
@@ -181,7 +182,7 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginDisableCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
@@ -264,7 +265,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}
@@ -295,7 +296,7 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 }
 
 func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
+	a, err := InitDBCommandContextCobraReadWrite(command)
 	if err != nil {
 		return err
 	}

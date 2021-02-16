@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"context"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
@@ -114,7 +116,7 @@ func TestDeleteUserBotUser(t *testing.T) {
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
-	_, err := th.App.Srv().Store.User().Get(th.BasicUser.Id)
+	_, err := th.App.Srv().Store.User().Get(context.Background(), th.BasicUser.Id)
 	require.Error(t, err)
 
 	// Make a bot
@@ -130,7 +132,7 @@ func TestDeleteUserBotUser(t *testing.T) {
 	require.Nil(t, nErr)
 
 	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
-	_, err = th.App.Srv().Store.User().Get(user.Id)
+	_, err = th.App.Srv().Store.User().Get(context.Background(), user.Id)
 	require.Error(t, err)
 	_, nErr = th.App.Srv().Store.Bot().Get(user.Id, true)
 	require.Error(t, nErr)
@@ -198,7 +200,7 @@ func TestConvertUser(t *testing.T) {
 		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
 		require.NotNil(t, err)
 
-		user, appErr := th.App.Srv().Store.User().Get(th.BasicUser2.Id)
+		user, appErr := th.App.Srv().Store.User().Get(context.Background(), th.BasicUser2.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "newusername", user.Username)
 		require.Equal(t, "valid@email.com", user.Email)

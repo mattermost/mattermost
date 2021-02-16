@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	s3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -17,7 +18,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // S3FileBackend contains all necessary information to communicate with
@@ -41,19 +41,37 @@ const (
 	bucketNotFound = "NoSuchBucket"
 )
 
+var (
+	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
+	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
+)
+
+func isFileExtImage(ext string) bool {
+	ext = strings.ToLower(ext)
+	return imageExtensions[ext]
+}
+
+func getImageMimeType(ext string) string {
+	ext = strings.ToLower(ext)
+	if imageMimeTypes[ext] == "" {
+		return "image"
+	}
+	return imageMimeTypes[ext]
+}
+
 // NewS3FileBackend returns an instance of an S3FileBackend.
-func NewS3FileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (*S3FileBackend, error) {
+func NewS3FileBackend(settings FileBackendSettings) (*S3FileBackend, error) {
 	backend := &S3FileBackend{
-		endpoint:   *settings.AmazonS3Endpoint,
-		accessKey:  *settings.AmazonS3AccessKeyId,
-		secretKey:  *settings.AmazonS3SecretAccessKey,
-		secure:     settings.AmazonS3SSL == nil || *settings.AmazonS3SSL,
-		signV2:     settings.AmazonS3SignV2 != nil && *settings.AmazonS3SignV2,
-		region:     *settings.AmazonS3Region,
-		bucket:     *settings.AmazonS3Bucket,
-		pathPrefix: *settings.AmazonS3PathPrefix,
-		encrypt:    settings.AmazonS3SSE != nil && *settings.AmazonS3SSE && enableComplianceFeatures,
-		trace:      settings.AmazonS3Trace != nil && *settings.AmazonS3Trace,
+		endpoint:   settings.AmazonS3Endpoint,
+		accessKey:  settings.AmazonS3AccessKeyId,
+		secretKey:  settings.AmazonS3SecretAccessKey,
+		secure:     settings.AmazonS3SSL,
+		signV2:     settings.AmazonS3SignV2,
+		region:     settings.AmazonS3Region,
+		bucket:     settings.AmazonS3Bucket,
+		pathPrefix: settings.AmazonS3PathPrefix,
+		encrypt:    settings.AmazonS3SSE,
+		trace:      settings.AmazonS3Trace,
 	}
 	cli, err := backend.s3New()
 	if err != nil {
@@ -205,6 +223,17 @@ func (b *S3FileBackend) FileSize(path string) (int64, error) {
 	return info.Size, nil
 }
 
+func (b *S3FileBackend) FileModTime(path string) (time.Time, error) {
+	path = filepath.Join(b.pathPrefix, path)
+
+	info, err := b.client.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
+	if err != nil {
+		return time.Time{}, errors.Wrapf(err, "unable to get modification time for file %s", path)
+	}
+
+	return info.LastModified, nil
+}
+
 func (b *S3FileBackend) CopyFile(oldPath, newPath string) error {
 	oldPath = filepath.Join(b.pathPrefix, oldPath)
 	newPath = filepath.Join(b.pathPrefix, newPath)
@@ -252,8 +281,8 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) error {
 func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
-		contentType = model.GetImageMimeType(ext)
+	if ext := filepath.Ext(path); isFileExtImage(ext) {
+		contentType = getImageMimeType(ext)
 	} else {
 		contentType = "binary/octet-stream"
 	}
@@ -274,8 +303,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 	}
 
 	var contentType string
-	if ext := filepath.Ext(fp); model.IsFileExtImage(ext) {
-		contentType = model.GetImageMimeType(ext)
+	if ext := filepath.Ext(fp); isFileExtImage(ext) {
+		contentType = getImageMimeType(ext)
 	} else {
 		contentType = "binary/octet-stream"
 	}
@@ -338,9 +367,9 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
 	return out
 }
 
-func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
+func (b *S3FileBackend) ListDirectory(path string) ([]string, error) {
 	path = filepath.Join(b.pathPrefix, path)
-	if !strings.HasSuffix(path, "/") && len(path) > 0 {
+	if !strings.HasSuffix(path, "/") && path != "" {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
 		path = path + "/"
@@ -363,7 +392,7 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, error) {
 		}
 	}
 
-	return &paths, nil
+	return paths, nil
 }
 
 func (b *S3FileBackend) RemoveDirectory(path string) error {
@@ -393,17 +422,4 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 	options.PartSize = 1024 * 1024 * 5
 
 	return options
-}
-
-func CheckMandatoryS3Fields(settings *model.FileSettings) error {
-	if settings.AmazonS3Bucket == nil || len(*settings.AmazonS3Bucket) == 0 {
-		return errors.New("missing s3 bucket settings")
-	}
-
-	// if S3 endpoint is not set call the set defaults to set that
-	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
-		settings.SetDefaults(true)
-	}
-
-	return nil
 }

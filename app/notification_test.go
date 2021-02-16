@@ -68,6 +68,53 @@ func TestSendNotifications(t *testing.T) {
 	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
+
+	t.Run("replies to post created by OAuth bot should not notify user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		testUserNotNotified := func(t *testing.T, user *model.User) {
+			rootPost := &model.Post{
+				UserId:    user.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "a message",
+				Props:     model.StringInterface{"from_webhook": "true", "override_username": "a bot"},
+			}
+
+			rootPost, appErr = th.App.CreatePostMissingChannel(rootPost, false)
+			require.Nil(t, appErr)
+
+			childPost := &model.Post{
+				UserId:    th.BasicUser2.Id,
+				ChannelId: th.BasicChannel.Id,
+				RootId:    rootPost.Id,
+				Message:   "a reply",
+			}
+			childPost, appErr = th.App.CreatePostMissingChannel(childPost, false)
+			require.Nil(t, appErr)
+
+			postList := model.PostList{
+				Order: []string{rootPost.Id, childPost.Id},
+				Posts: map[string]*model.Post{rootPost.Id: rootPost, childPost.Id: childPost},
+			}
+			mentions, err = th.App.SendNotifications(childPost, th.BasicTeam, th.BasicChannel, th.BasicUser2, &postList, true)
+			require.NoError(t, err)
+			require.False(t, utils.StringInSlice(user.Id, mentions))
+		}
+
+		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ANY
+		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, appErr)
+		t.Run("user wants notifications on all comments", func(t *testing.T) {
+			testUserNotNotified(t, th.BasicUser)
+		})
+
+		th.BasicUser.NotifyProps[model.COMMENTS_NOTIFY_PROP] = model.COMMENTS_NOTIFY_ROOT
+		th.BasicUser, appErr = th.App.UpdateUser(th.BasicUser, false)
+		require.Nil(t, appErr)
+		t.Run("user wants notifications on root comment", func(t *testing.T) {
+			testUserNotNotified(t, th.BasicUser)
+		})
+	})
 }
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
@@ -96,7 +143,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
 				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
-				require.Nil(t, appErr2)
+				require.NoError(t, appErr2)
 				assert.Equal(t, int64(1), channelUnread.MentionCount)
 			})
 		}
@@ -116,7 +163,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		for i, user := range users {
 			t.Run(fmt.Sprintf("user-%d", i+1), func(t *testing.T) {
 				channelUnread, appErr2 := th.Server.Store.Channel().GetChannelUnread(th.BasicChannel.Id, user.Id)
-				require.Nil(t, appErr2)
+				require.NoError(t, appErr2)
 				assert.Equal(t, int64(2), channelUnread.MentionCount)
 			})
 		}
@@ -138,7 +185,7 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 
 		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, sent)
 	})
 
@@ -148,7 +195,7 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 
 		sent, err := th.App.sendOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.False(t, sent)
 	})
 }
@@ -179,7 +226,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
@@ -192,7 +239,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
 
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Len(t, outOfChannelUsers, 1)
 		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
@@ -206,7 +253,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -220,7 +267,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, directChannel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -234,7 +281,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, groupChannel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -249,7 +296,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -263,7 +310,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -274,7 +321,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, channel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -308,7 +355,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 
 		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(user1, post, constrainedChannel, potentialMentions)
 
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Len(t, outOfChannelUsers, 1)
 		assert.Equal(t, nonChannelMember.Id, outOfChannelUsers[0].Id)
 		assert.Len(t, outOfGroupUsers, 1)
@@ -1924,51 +1971,51 @@ func TestAddMention(t *testing.T) {
 	t.Run("should initialize Mentions and store new mentions", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMention(userID1, KeywordMention)
+		m.addMention(userID2, CommentMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: KeywordMention,
-			userId2: CommentMention,
+			userID1: KeywordMention,
+			userID2: CommentMention,
 		}, m.Mentions)
 	})
 
 	t.Run("should replace existing mentions with higher priority ones", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, ThreadMention)
-		m.addMention(userId2, DMMention)
+		m.addMention(userID1, ThreadMention)
+		m.addMention(userID2, DMMention)
 
-		m.addMention(userId1, ChannelMention)
-		m.addMention(userId2, KeywordMention)
+		m.addMention(userID1, ChannelMention)
+		m.addMention(userID2, KeywordMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: ChannelMention,
-			userId2: KeywordMention,
+			userID1: ChannelMention,
+			userID2: KeywordMention,
 		}, m.Mentions)
 	})
 
 	t.Run("should not replace high priority mentions with low priority ones", func(t *testing.T) {
 		m := &ExplicitMentions{}
 
-		userId1 := model.NewId()
-		userId2 := model.NewId()
+		userID1 := model.NewId()
+		userID2 := model.NewId()
 
-		m.addMention(userId1, KeywordMention)
-		m.addMention(userId2, CommentMention)
+		m.addMention(userID1, KeywordMention)
+		m.addMention(userID2, CommentMention)
 
-		m.addMention(userId1, DMMention)
-		m.addMention(userId2, ThreadMention)
+		m.addMention(userID1, DMMention)
+		m.addMention(userID2, ThreadMention)
 
 		assert.Equal(t, map[string]MentionType{
-			userId1: KeywordMention,
-			userId2: CommentMention,
+			userID1: KeywordMention,
+			userID2: CommentMention,
 		}, m.Mentions)
 	})
 }
@@ -2472,7 +2519,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 0)
 	})
 
@@ -2483,7 +2530,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group2 := th.CreateGroup()
 	t.Run("should only return groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
 		require.Equal(t, groupsMap[*group1.Name], group1)
@@ -2507,7 +2554,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group2.Name])
 		require.Equal(t, groupsMap[*group1.Name], group1)
@@ -2532,7 +2579,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 2)
 		require.Nil(t, groupsMap[*group3.Name])
 		require.Equal(t, groupsMap[*group2.Name], group2)
@@ -2541,7 +2588,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 1)
 		require.Nil(t, groupsMap[*group3.Name])
 		require.Nil(t, groupsMap[*group2.Name])
@@ -2554,7 +2601,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 
 	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, groupsMap, 3)
 		require.Equal(t, groupsMap[*group1.Name], group1)
 		require.Equal(t, groupsMap[*group2.Name], group2)

@@ -6,11 +6,12 @@ package localcachelayer
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestTermsOfServiceStore(t *testing.T) {
@@ -28,11 +29,11 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 		require.NoError(t, err)
 
 		termsOfService, err := cachedStore.TermsOfService().GetLatest(true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, termsOfService, &fakeTermsOfService)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 1)
 		termsOfService, err = cachedStore.TermsOfService().GetLatest(true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, termsOfService, &fakeTermsOfService)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "GetLatest", 1)
 	})
@@ -44,11 +45,11 @@ func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 		require.NoError(t, err)
 
 		termsOfService, err := cachedStore.TermsOfService().Get("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, termsOfService, &fakeTermsOfService)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 1)
 		termsOfService, err = cachedStore.TermsOfService().Get("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, termsOfService, &fakeTermsOfService)
 		mockStore.TermsOfService().(*mocks.TermsOfServiceStore).AssertNumberOfCalls(t, "Get", 1)
 	})

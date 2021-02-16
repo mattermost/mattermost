@@ -6,9 +6,10 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHealthCheckJob(t *testing.T) {
@@ -49,7 +50,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// First health check
 	hooks, err := env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
@@ -59,7 +60,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// Second health check
 	hooks, err = env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()
@@ -69,7 +70,7 @@ func TestHealthCheckJob(t *testing.T) {
 
 	// Third health check, plugin should be deactivated by the job
 	hooks, err = env.HooksForPlugin(id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	hooks.MessageWillBePosted(&plugin.Context{}, &model.Post{})
 	job.CheckPlugin(id)
 	bundles = env.Active()

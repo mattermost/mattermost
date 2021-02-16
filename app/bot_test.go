@@ -76,8 +76,11 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
+		user, err := th.App.GetUser(bot.UserId)
+		require.Nil(t, err)
+
 		// Check that a post was created to add bot to team and channels
-		channel, err := th.App.GetOrCreateDirectChannel(bot.UserId, th.BasicUser.Id)
+		channel, err := th.App.getOrCreateDirectChannelWithUser(user, th.BasicUser)
 		require.Nil(t, err)
 		posts, err := th.App.GetPosts(channel.Id, 0, 1)
 		require.Nil(t, err)
@@ -775,7 +778,7 @@ func TestSetBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{
@@ -827,7 +830,7 @@ func TestGetBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{
@@ -874,7 +877,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{

@@ -10,9 +10,10 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -117,6 +118,17 @@ func getTestResourcesToSetup() []testResourceDetails {
 	return testResourcesToSetup
 }
 
+func CopyFile(src, dst string) error {
+	fileBackend, err := filesstore.NewFileBackend(filesstore.FileBackendSettings{DriverName: "local", Directory: ""})
+	if err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	if err = fileBackend.CopyFile(src, dst); err != nil {
+		return errors.Wrapf(err, "failed to copy file %s to %s", src, dst)
+	}
+	return nil
+}
+
 func SetupTestResources() (string, error) {
 	testResourcesToSetup := getTestResourcesToSetup()
 
@@ -151,9 +163,8 @@ func SetupTestResources() (string, error) {
 
 		if testResource.action == actionCopy {
 			if testResource.resType == resourceTypeFile {
-				err = utils.CopyFile(testResource.src, resourceDestInTemp)
-				if err != nil {
-					return "", errors.Wrapf(err, "failed to copy file %s to %s", testResource.src, resourceDestInTemp)
+				if err = CopyFile(testResource.src, resourceDestInTemp); err != nil {
+					return "", err
 				}
 			} else if testResource.resType == resourceTypeFolder {
 				err = utils.CopyDir(testResource.src, resourceDestInTemp)

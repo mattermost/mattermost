@@ -4,16 +4,16 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"bytes"
-	"io/ioutil"
-
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -130,6 +130,8 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
+		defer ReturnSessionToPool(session)
+
 		csrfCheckPassed := false
 
 		if err == nil && cookieAuth && r.Method != "GET" {
@@ -155,18 +157,18 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
 				csrfErrorMessage := "CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated"
 				sid := ""
-				userId := ""
+				userID := ""
 
 				if session != nil {
 					sid = session.Id
-					userId = session.UserId
+					userID = session.UserId
 				}
 
 				fields := []mlog.Field{
 					mlog.String("path", r.URL.Path),
 					mlog.String("ip", r.RemoteAddr),
 					mlog.String("session_id", sid),
-					mlog.String("user_id", userId),
+					mlog.String("user_id", userID),
 				}
 
 				if *a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
@@ -180,7 +182,7 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 			csrfCheckPassed = true
 		}
 
-		if session != nil && err == nil && csrfCheckPassed {
+		if (session != nil && session.Id != "") && err == nil && csrfCheckPassed {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 			context.SessionId = session.Id
 		}

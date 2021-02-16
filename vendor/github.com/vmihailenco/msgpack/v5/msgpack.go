@@ -1,5 +1,7 @@
 package msgpack
 
+import "fmt"
+
 type Marshaler interface {
 	MarshalMsgpack() ([]byte, error)
 }
@@ -20,8 +22,10 @@ type CustomDecoder interface {
 
 type RawMessage []byte
 
-var _ CustomEncoder = (RawMessage)(nil)
-var _ CustomDecoder = (*RawMessage)(nil)
+var (
+	_ CustomEncoder = (RawMessage)(nil)
+	_ CustomDecoder = (*RawMessage)(nil)
+)
 
 func (m RawMessage) EncodeMsgpack(enc *Encoder) error {
 	return enc.write(m)
@@ -34,4 +38,15 @@ func (m *RawMessage) DecodeMsgpack(dec *Decoder) error {
 	}
 	*m = msg
 	return nil
+}
+
+//------------------------------------------------------------------------------
+
+type unexpectedCodeError struct {
+	code byte
+	hint string
+}
+
+func (err unexpectedCodeError) Error() string {
+	return fmt.Sprintf("msgpack: unexpected code=%x decoding %s", err.code, err.hint)
 }
