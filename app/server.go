@@ -1182,6 +1182,12 @@ func (s *Server) startLocalModeServer() error {
 	}
 
 	socket := *s.configStore.Get().ServiceSettings.LocalModeSocketLocation
+	if _, err := os.Stat(socket); !os.IsNotExist(err) {
+		if err = os.Remove(socket); err != nil {
+			return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		}
+	}
+
 	unixListener, err := net.Listen("unix", socket)
 	if err != nil {
 		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
