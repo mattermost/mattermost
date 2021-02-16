@@ -383,5 +383,6 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) 
 	_, err = ss.ChannelMemberHistory().PermanentDeleteBatchForRetentionPolicies(nowMillis, limit)
 	require.NoError(t, err)
 	result, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime, leaveTime, channel.Id)
+	require.NoError(t, err)
 	require.Empty(t, result, "history should have been deleted by channel policy")
 }
