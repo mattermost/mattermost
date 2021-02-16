@@ -1325,6 +1325,10 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Unable to find export file."
+  },
+  {
     "id": "api.file.append_file.app_error",
     "translation": "Unable to append data to the file."
   },
@@ -1579,6 +1583,10 @@
   {
     "id": "api.migrate_to_saml.error",
     "translation": "Unable to migrate SAML."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "E10 or E20 license required to use this endpoint."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -2599,6 +2607,10 @@
     "translation": "Alternatively, you can disable users in the Admin Console to open up spots for more users or stay below the free user limit."
   },
   {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternatively, you can disable users in the Admin Console to open up spots for users and stay below the free user limit."
+  },
+  {
     "id": "api.templates.at_limit_subject",
     "translation": "Mattermost Cloud User Limit Reached"
   },
@@ -2955,6 +2967,18 @@
     "translation": "Upgrade"
   },
   {
+    "id": "api.templates.upgrade_request_info4",
+    "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
+  },
+  {
+    "id": "api.templates.upgrade_request_subject",
+    "translation": "Mattermost user request upgrade of workspace"
+  },
+  {
+    "id": "api.templates.upgrade_request_title",
+    "translation": "{{ .UserName }} would like to invite members to your workspace"
+  },
+  {
     "id": "api.templates.user_access_token_body.info",
     "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
   },
@@ -3049,6 +3073,14 @@
   {
     "id": "api.templates.welcome_subject",
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Error creating zip file."
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Error reading file from backend"
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
@@ -3431,6 +3463,10 @@
     "translation": "Failed to send update password email successfully"
   },
   {
+    "id": "api.user.send_upgrade_request_email.error",
+    "translation": "Failed to send email to user limit notification to admin"
+  },
+  {
     "id": "api.user.send_user_access_token.error",
     "translation": "Failed to send \"Personal access token added\" email successfully"
   },
@@ -3557,6 +3593,10 @@
   {
     "id": "api.user.verify_email.token_parse.error",
     "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Invalid Origin header set during websocket upgrade."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -4071,6 +4111,22 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Failed to copy file during export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Failed to create file during export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Failed to create directory during export."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Failed to create zip header during export."
+  },
+  {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
     "translation": "Unable to copy custom emoji images"
   },
@@ -4081,6 +4137,14 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Unable to marshal response."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Failed to add file to zip archive during export."
   },
   {
     "id": "app.file_info.get.app_error",
@@ -4129,6 +4193,10 @@
   {
     "id": "app.import.attachment.file_upload.error",
     "translation": "Error uploading the file: \"{{.FilePath}}\""
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Failed to read file attachment during import."
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -5683,6 +5751,10 @@
     "translation": "Unable to find any user matching the search parameters."
   },
   {
+    "id": "app.user.send_emails.app_error",
+    "translation": "No emails were successfully sent"
+  },
+  {
     "id": "app.user.update.find.app_error",
     "translation": "Unable to find the existing account to update."
   },
@@ -6623,6 +6695,10 @@
     "translation": "Unable to set the email To address."
   },
   {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Unable to connect to the smtp server"
+  },
+  {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
     "translation": "Unable to get the information of the export temporary file."
   },
@@ -7259,6 +7335,14 @@
     "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
   },
   {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Value for Directory should not be empty."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Invalid value for RetentionDays. Value should be greater than 0"
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local' or 'amazons3'."
   },
@@ -7880,7 +7964,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 10 files maximum. Please use additional posts for more files."
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -8337,46 +8421,6 @@
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Failed to open connection."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Failed to open TLS connection."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Failed to authenticate on SMTP server."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Failed to close connection to SMTP server."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email message data."
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\"."
   },
   {
     "id": "web.command_webhook.command.app_error",

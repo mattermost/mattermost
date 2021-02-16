@@ -933,7 +933,6 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		_, err = f.Write(cfgData)
 		require.NoError(t, err)
 
-		ioutil.WriteFile(path, cfgData, 0644)
 		require.True(t, wasCalled(called, 5*time.Second), "callback should have been called when config written")
 	})
 

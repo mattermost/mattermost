@@ -53,7 +53,6 @@ func TestNoticeValidation(t *testing.T) {
 	type args struct {
 		client               model.NoticeClientType
 		clientVersion        string
-		locale               string
 		sku                  string
 		postCount, userCount int64
 		cloud                bool
@@ -550,7 +549,20 @@ func TestNoticeValidation(t *testing.T) {
 			if model.BuildNumber == "" {
 				model.BuildNumber = "5.26.1"
 			}
-			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(
+				th.App.Config(),
+				th.App.Srv().Store.Preference(),
+				"test",
+				tt.args.client,
+				clientVersion,
+				tt.args.postCount,
+				tt.args.userCount,
+				tt.args.systemAdmin,
+				tt.args.teamAdmin,
+				tt.args.cloud,
+				tt.args.sku,
+				tt.args.notice,
+			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)
@@ -574,8 +586,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes, appErr := notices.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes, err := notices.Marshal()
+	require.NoError(t, err)
 
 	notices2 := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{
@@ -590,8 +602,8 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		Repeatable: nil,
 	}}
-	noticesBytes2, appErr := notices2.Marshal()
-	require.NoError(t, appErr)
+	noticesBytes2, err := notices2.Marshal()
+	require.NoError(t, err)
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, "notices.json") {
 			w.Write(noticesBytes)
@@ -607,7 +619,7 @@ func TestNoticeFetch(t *testing.T) {
 	})
 
 	// fetch fake notices
-	appErr = th.App.UpdateProductNotices()
+	appErr := th.App.UpdateProductNotices()
 	require.Nil(t, appErr)
 
 	// get them for specified user
@@ -626,7 +638,7 @@ func TestNoticeFetch(t *testing.T) {
 
 	// validate views table
 	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 1)
 
 	// fetch another set
@@ -645,6 +657,6 @@ func TestNoticeFetch(t *testing.T) {
 
 	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
 	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, views, 0)
 }

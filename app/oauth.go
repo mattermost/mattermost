@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
@@ -128,12 +129,12 @@ func (a *App) GetOAuthApps(page, perPage int) ([]*model.OAuthApp, *model.AppErro
 	return oauthApps, nil
 }
 
-func (a *App) GetOAuthAppsByCreator(userId string, page, perPage int) ([]*model.OAuthApp, *model.AppError) {
+func (a *App) GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAppsByUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	oauthApps, err := a.Srv().Store.OAuth().GetAppByUser(userId, page*perPage, perPage)
+	oauthApps, err := a.Srv().Store.OAuth().GetAppByUser(userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetOAuthAppsByCreator", "app.oauth.get_app_by_user.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -141,8 +142,8 @@ func (a *App) GetOAuthAppsByCreator(userId string, page, perPage int) ([]*model.
 	return oauthApps, nil
 }
 
-func (a *App) GetOAuthImplicitRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	session, err := a.GetOAuthAccessTokenForImplicitFlow(userId, authRequest)
+func (a *App) GetOAuthImplicitRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	session, err := a.GetOAuthAccessTokenForImplicitFlow(userID, authRequest)
 	if err != nil {
 		return "", err
 	}
@@ -157,8 +158,8 @@ func (a *App) GetOAuthImplicitRedirect(userId string, authRequest *model.Authori
 	return fmt.Sprintf("%s#%s", authRequest.RedirectUri, values.Encode()), nil
 }
 
-func (a *App) GetOAuthCodeRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	authData := &model.AuthData{UserId: userId, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectUri, State: authRequest.State, Scope: authRequest.Scope}
+func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	authData := &model.AuthData{UserId: userID, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectUri, State: authRequest.State, Scope: authRequest.Scope}
 	authData.Code = model.NewId() + model.NewId()
 
 	if _, err := a.Srv().Store.OAuth().SaveAuthData(authData); err != nil {
@@ -168,7 +169,7 @@ func (a *App) GetOAuthCodeRedirect(userId string, authRequest *model.AuthorizeRe
 	return authRequest.RedirectUri + "?code=" + url.QueryEscape(authData.Code) + "&state=" + url.QueryEscape(authData.State), nil
 }
 
-func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+func (a *App) AllowOAuthAppAccessToUser(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -196,9 +197,9 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	var err *model.AppError
 	switch authRequest.ResponseType {
 	case model.AUTHCODE_RESPONSE_TYPE:
-		redirectURI, err = a.GetOAuthCodeRedirect(userId, authRequest)
+		redirectURI, err = a.GetOAuthCodeRedirect(userID, authRequest)
 	case model.IMPLICIT_RESPONSE_TYPE:
-		redirectURI, err = a.GetOAuthImplicitRedirect(userId, authRequest)
+		redirectURI, err = a.GetOAuthImplicitRedirect(userID, authRequest)
 	default:
 		return authRequest.RedirectUri + "?error=unsupported_response_type&state=" + authRequest.State, nil
 	}
@@ -210,7 +211,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 
 	// This saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
-		UserId:   userId,
+		UserId:   userID,
 		Category: model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP,
 		Name:     authRequest.ClientId,
 		Value:    authRequest.Scope,
@@ -224,7 +225,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	return redirectURI, nil
 }
 
-func (a *App) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForImplicitFlow(userID string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -234,7 +235,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(userId string, authRequest *mod
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound)
 	}
 
-	user, err := a.GetUser(userId)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +289,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		user, nErr = a.Srv().Store.User().Get(authData.UserId)
+		user, nErr = a.Srv().Store.User().Get(context.Background(), authData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
@@ -347,7 +348,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
 		}
 
-		user, nErr := a.Srv().Store.User().Get(accessData.UserId)
+		user, nErr := a.Srv().Store.User().Get(context.Background(), accessData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
@@ -409,11 +410,11 @@ func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData
 	return accessRsp, nil
 }
 
-func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamId, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError) {
+func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamID, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = action
-	if teamId != "" {
-		stateProps["team_id"] = teamId
+	if teamID != "" {
+		stateProps["team_id"] = teamID
 	}
 
 	if redirectTo != "" {
@@ -430,11 +431,11 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 	return authUrl, nil
 }
 
-func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamId string) (string, *model.AppError) {
+func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamID string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAUTH_ACTION_SIGNUP
-	if teamId != "" {
-		stateProps["team_id"] = teamId
+	if teamID != "" {
+		stateProps["team_id"] = teamID
 	}
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
@@ -445,12 +446,12 @@ func (a *App) GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, ser
 	return authUrl, nil
 }
 
-func (a *App) GetAuthorizedAppsForUser(userId string, page, perPage int) ([]*model.OAuthApp, *model.AppError) {
+func (a *App) GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetAuthorizedAppsForUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	apps, err := a.Srv().Store.OAuth().GetAuthorizedApps(userId, page*perPage, perPage)
+	apps, err := a.Srv().Store.OAuth().GetAuthorizedApps(userID, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetAuthorizedAppsForUser", "app.oauth.get_apps.find.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -463,13 +464,13 @@ func (a *App) GetAuthorizedAppsForUser(userId string, page, perPage int) ([]*mod
 	return apps, nil
 }
 
-func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
+func (a *App) DeauthorizeOAuthAppForUser(userID, appId string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	// Revoke app sessions
-	accessData, err := a.Srv().Store.OAuth().GetAccessDataByUserForApp(userId, appId)
+	accessData, err := a.Srv().Store.OAuth().GetAccessDataByUserForApp(userID, appId)
 	if err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.oauth.get_access_data_by_user_for_app.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -485,7 +486,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
 	}
 
 	// Deauthorize the app
-	if err := a.Srv().Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
+	if err := a.Srv().Store.Preference().Delete(userID, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -544,22 +545,22 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 	return nil
 }
 
-func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	defer body.Close()
 
 	action := props["action"]
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		return a.CreateOAuthUser(service, body, teamId, tokenUser)
+		return a.CreateOAuthUser(service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_LOGIN:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
 		return a.CompleteSwitchWithOAuth(service, body, props["email"], tokenUser)
 	case model.OAUTH_ACTION_SSO_TO_EMAIL:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	default:
-		return a.LoginByOAuth(service, body, teamId, tokenUser)
+		return a.LoginByOAuth(service, body, teamID, tokenUser)
 	}
 }
 
@@ -580,7 +581,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OauthProvider, *model.
 	return provider, nil
 }
 
-func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -606,7 +607,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
-			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId, tokenUser)
+			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamID, tokenUser)
 		} else {
 			return nil, err
 		}
@@ -621,8 +622,8 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string, to
 		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}
-		if teamId != "" {
-			err = a.AddUserToTeamByTeamId(teamId, user)
+		if teamID != "" {
+			err = a.AddUserToTeamByTeamId(teamID, user)
 		}
 	}
 
@@ -833,7 +834,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	http.SetCookie(w, httpCookie)
 
-	teamId := stateProps["team_id"]
+	teamID := stateProps["team_id"]
 
 	mlog.Debug("OAuth redirect uri: " + redirectUri)
 
@@ -914,7 +915,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	// Note that resp.Body is not closed here, so it must be closed by the caller
-	return resp.Body, teamId, stateProps, userFromToken, nil
+	return resp.Body, teamID, stateProps, userFromToken, nil
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {
