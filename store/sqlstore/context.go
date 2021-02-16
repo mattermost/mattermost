@@ -36,9 +36,9 @@ func hasMaster(ctx context.Context) bool {
 }
 
 // DBFromContext is a helper utility that returns the DB handle from a given context.
-func (s *SqlStore) DBFromContext(ctx context.Context) *gorp.DbMap {
+func (ss *SqlStore) DBFromContext(ctx context.Context) *gorp.DbMap {
 	if hasMaster(ctx) {
-		return s.GetMaster()
+		return ss.GetMaster()
 	}
-	return s.GetReplica()
+	return ss.GetReplica()
 }
