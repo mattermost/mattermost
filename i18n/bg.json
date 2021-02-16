@@ -144,46 +144,6 @@
     "translation": "Не можах да намеря командата."
   },
   {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Грешка при настройка „До адрес“."
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Неуспешно добавяне на данни за съобщения по ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Неуспешно писане на съобщение за ел.поща."
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Грешка при настройка „От адрес“"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Неуспешна връзка с SMTP сървъра."
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Неуспешен запис на прикачен файл към ел.поща"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Неуспешно удостоверяване на SMTP сървър."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Връзката с TLS не бе успешна."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Неуспешно отваряне на връзката."
-  },
-  {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Неуспешно задаване на HELO."
-  },
-  {
     "id": "system.message.name",
     "translation": "Система"
   },
@@ -1637,7 +1597,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 10 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
+    "translation": "Невалидни id на файлове. Обърнете внимание, че качванията са ограничени до 5 файла максимум. Моля, използвайте допълнителни публикации за повече файлове."
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -8523,10 +8483,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Грешка при изтеглянето на пакетен файл за поддръжка."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Грешка при четене на файл от сървъра"
   },
@@ -8537,5 +8493,53 @@
   {
     "id": "api.no_license",
     "translation": "Нужен е E10 или E20 лиценз за използване на тази крайна точка."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Невалидна стойност за RetentionDays. Трябва да е по-голяма от 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "Стойността за Директория не може да е празна."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Неуспешно свързване с smtp сървър"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Неуспешно четене на прикачения файл при вноса."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Неуспешно добавяне на файл в zip архива при износа."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Неуспешно построяване на заявката."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Неуспешно създаване на zip заглавка при износа."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Неуспешно създаване на директория при износа."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Неуспешно създаване на файла при износа."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Неуспешно копиране на файла при износа."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Неуспешно търсене на износния файл."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Невалидна Origin заглавка при обновяване на websocket."
   }
 ]
