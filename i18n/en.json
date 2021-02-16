@@ -4096,7 +4096,7 @@
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": "Failed to created file during export."
+    "translation": "Failed to create file during export."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
