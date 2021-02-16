@@ -607,7 +607,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		EnablePostUsernameOverride bool
 		EnablePostIconOverride     bool
 		ExpectedUsername           string
-		ExpectedIconUrl            string
+		ExpectedIconURL            string
 		WebhookResponse            *model.OutgoingWebhookResponse
 	}
 
@@ -637,7 +637,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
 				ExpectedUsername:           "some-user-name",
-				ExpectedIconUrl:            "http://some-icon/",
+				ExpectedIconURL:            "http://some-icon/",
 			},
 			"Should not override username and Icon": {
 				EnablePostUsernameOverride: false,
@@ -647,7 +647,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 				EnablePostUsernameOverride: true,
 				EnablePostIconOverride:     true,
 				ExpectedUsername:           "webhookuser",
-				ExpectedIconUrl:            "http://webhok/icon",
+				ExpectedIconURL:            "http://webhok/icon",
 				WebhookResponse:            &model.OutgoingWebhookResponse{Text: &webHookResponse, Username: "webhookuser", IconURL: "http://webhok/icon"},
 			},
 		}
@@ -692,8 +692,8 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			case webhookPost := <-createdPost:
 				assert.Equal(t, webhookPost.Message, "sample response text from test server")
 				assert.Equal(t, webhookPost.GetProp("from_webhook"), "true")
-				if testCase.ExpectedIconUrl != "" {
-					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconUrl)
+				if testCase.ExpectedIconURL != "" {
+					assert.Equal(t, webhookPost.GetProp("override_icon_url"), testCase.ExpectedIconURL)
 				} else {
 					assert.Nil(t, webhookPost.GetProp("override_icon_url"))
 				}
@@ -740,7 +740,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		assert.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
@@ -754,7 +754,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -765,7 +765,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.Equal(t, io.ErrUnexpectedEOF, err)
 	})
 
@@ -776,7 +776,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
@@ -796,7 +796,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
 	})
 
@@ -806,7 +806,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.Nil(t, err)
+		require.NoError(t, err)
 		require.Nil(t, resp)
 	})
 }

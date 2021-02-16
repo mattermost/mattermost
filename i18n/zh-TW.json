@@ -4890,46 +4890,6 @@
     "translation": "系統"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "設定 HELO 時失敗"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "開啟連線失敗"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "開啟 TLS 連線失敗"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "SMTP 伺服器驗證失敗"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "無法寫入附加檔案到電子郵件"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "關閉對 SMTP 伺服器的連線失敗"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "無法設定寄件人地址"
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "撰寫電子郵件訊息失敗"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "新增電子郵件訊息失敗"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "無法設定收件人地址"
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "找不到命令"
   },

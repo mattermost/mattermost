@@ -41,37 +41,49 @@ func condenseSiteURL(siteURL string) string {
 }
 
 type EmailService struct {
-	srv              *Server
-	EmailRateLimiter *throttled.GCRARateLimiter
-	EmailBatching    *EmailBatchingJob
+	srv                     *Server
+	PerHourEmailRateLimiter *throttled.GCRARateLimiter
+	PerDayEmailRateLimiter  *throttled.GCRARateLimiter
+	EmailBatching           *EmailBatchingJob
 }
 
 func NewEmailService(srv *Server) (*EmailService, error) {
 	service := &EmailService{srv: srv}
-	if err := service.setupInviteEmailRateLimiting(); err != nil {
+	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err
 	}
 	service.InitEmailBatching()
 	return service, nil
 }
 
-func (es *EmailService) setupInviteEmailRateLimiting() error {
+func (es *EmailService) setUpRateLimiters() error {
 	store, err := memstore.New(emailRateLimitingMemstoreSize)
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
 	}
 
-	quota := throttled.RateQuota{
+	perHourQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
 		MaxBurst: emailRateLimitingMaxBurst,
 	}
 
-	rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-	if err != nil || rateLimiter == nil {
+	perDayQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerDay(1),
+		MaxBurst: 0,
+	}
+
+	perHourRateLimiter, err := throttled.NewGCRARateLimiter(store, perHourQuota)
+	if err != nil || perHourRateLimiter == nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	es.EmailRateLimiter = rateLimiter
+	perDayRateLimiter, err := throttled.NewGCRARateLimiter(store, perDayQuota)
+	if err != nil || perDayRateLimiter == nil {
+		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
+	}
+
+	es.PerHourEmailRateLimiter = perHourRateLimiter
+	es.PerDayEmailRateLimiter = perDayRateLimiter
 	return nil
 }
 
@@ -188,7 +200,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userID string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -216,7 +228,7 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 	}
 
 	if !verified && *es.srv.Config().EmailSettings.RequireEmailVerification {
-		token, err := es.CreateVerifyEmailToken(userId, email)
+		token, err := es.CreateVerifyEmailToken(userID, email)
 		if err != nil {
 			return err
 		}
@@ -292,7 +304,7 @@ func (es *EmailService) SendPasswordResetEmail(email string, token *model.Token,
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -324,10 +336,10 @@ func (es *EmailService) sendMfaChangeEmail(email string, activated bool, locale,
 }
 
 func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) *model.AppError {
-	if es.EmailRateLimiter == nil {
+	if es.PerHourEmailRateLimiter == nil {
 		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
-	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
@@ -383,10 +395,10 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 }
 
 func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) *model.AppError {
-	if es.EmailRateLimiter == nil {
+	if es.PerHourEmailRateLimiter == nil {
 		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
-	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.PerHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
@@ -462,8 +474,8 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 				}
 			}
 
-			if err := es.sendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); err != nil {
-				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
+			if nErr := es.sendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); nErr != nil {
+				mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
 			}
 		}
 	}
@@ -545,35 +557,37 @@ func (es *EmailService) SendRemoveExpiredLicenseEmail(email string, locale, site
 	return nil
 }
 
-func (es *EmailService) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
+func (es *EmailService) sendNotificationMail(to, subject, htmlBody string) error {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
 	return es.sendMail(to, subject, htmlBody)
 }
 
-func (es *EmailService) sendMail(to, subject, htmlBody string) *model.AppError {
+func (es *EmailService) sendMail(to, subject, htmlBody string) error {
 	return es.sendMailWithCC(to, subject, htmlBody, "")
 }
 
-func (es *EmailService) sendMailWithCC(to, subject, htmlBody string, ccMail string) *model.AppError {
+func (es *EmailService) sendMailWithCC(to, subject, htmlBody string, ccMail string) error {
 	license := es.srv.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance, ccMail)
+	mailConfig := es.srv.MailServiceConfig()
+
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, mailConfig, license != nil && *license.Features.Compliance, ccMail)
 }
 
-func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
+func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) error {
 	license := es.srv.License()
-	config := es.srv.Config()
+	mailConfig := es.srv.MailServiceConfig()
 
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, mailConfig, license != nil && *license.Features.Compliance, "")
 }
 
-func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+func (es *EmailService) CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, *model.AppError) {
 	tokenExtra := struct {
 		UserId string
 		Email  string
 	}{
-		userId,
+		userID,
 		newEmail,
 	}
 	jsonData, err := json.Marshal(tokenExtra)
@@ -613,7 +627,30 @@ func (es *EmailService) SendAtUserLimitWarningEmail(email string, locale string,
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendAtUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return true, nil
+}
+
+// SendUpgradeEmail formats an email template and sends an email to an admin specified in the email arg
+func (es *EmailService) SendUpgradeEmail(user, email, locale, siteURL string) (bool, *model.AppError) {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.upgrade_request_subject")
+
+	bodyPage := es.newEmailTemplate("cloud_upgrade_request_email", locale)
+	bodyPage.Props["Title"] = T("api.templates.upgrade_request_title", map[string]interface{}{"UserName": user})
+	bodyPage.Props["Info4"] = T("api.templates.upgrade_request_info4")
+	bodyPage.Props["Info5"] = T("api.templates.at_limit_info5")
+	bodyPage.Props["BillingPath"] = "admin_console/billing/subscription"
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Button"] = T("api.templates.upgrade_mattermost_cloud")
+	bodyPage.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	bodyPage.Props["Footer"] = T("api.templates.copyright")
+
+	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return false, model.NewAppError("SendUpgradeEmail", "api.user.send_upgrade_request_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -635,7 +672,7 @@ func (es *EmailService) SendOverUserLimitWarningEmail(email string, locale strin
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -660,7 +697,7 @@ func (es *EmailService) SendOverUserLimitThirtyDayWarningEmail(email string, loc
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -684,7 +721,7 @@ func (es *EmailService) SendOverUserLimitNinetyDayWarningEmail(email string, loc
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -706,7 +743,7 @@ func (es *EmailService) SendOverUserLimitWorkspaceSuspendedWarningEmail(email st
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -727,7 +764,7 @@ func (es *EmailService) SendOverUserFourteenDayWarningEmail(email string, locale
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -748,7 +785,7 @@ func (es *EmailService) SendOverUserSevenDayWarningEmail(email string, locale st
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -767,7 +804,7 @@ func (es *EmailService) SendSuspensionEmailToSupport(email string, installationI
 	bodyPage.Props["UserCount"] = userCount
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendOverUserLimitWarningEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -792,7 +829,7 @@ func (es *EmailService) SendPaymentFailedEmail(email string, locale string, fail
 	bodyPage.Props["FailedReason"] = failedPayment.FailureMessage
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return false, model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -814,7 +851,7 @@ func (es *EmailService) SendNoCardPaymentFailedEmail(email string, locale string
 	bodyPage.Props["Footer"] = T("api.templates.copyright")
 
 	if err := es.sendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
+		return model.NewAppError("SendPaymentFailedEmail", "api.user.send_password_reset.send.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
