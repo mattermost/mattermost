@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -505,6 +506,7 @@ func (es *EmailService) newEmailTemplateData(locale string) *mtemplates.Data {
 			"Footer":       localT("api.templates.email_footer"),
 			"Organization": organization,
 		},
+		Html: map[string]template.HTML{},
 	}
 }
 
