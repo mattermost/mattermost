@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS teams (
     alloweddomains VARCHAR(1000),
     inviteid VARCHAR(32),
     schemeid VARCHAR(26),
+    allowopeninvite boolean,
+    lastteamiconupdate bigint,
     createat bigint,
     updateat bigint,
     deleteat bigint,

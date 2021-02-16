@@ -159,13 +159,11 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	for _, conn := range store.GetAllConns() {
-		err := store.migrate(conn.Db)
-		if err != nil {
-			mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(ExitGenericFailure)
-		}
+	err := store.migrate(store.GetMaster().Db)
+	if err != nil {
+		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(ExitGenericFailure)
 	}
 
 	store.stores.team = newSqlTeamStore(store)
@@ -202,7 +200,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 	store.stores.scheme = newSqlSchemeStore(store)
 	store.stores.group = newSqlGroupStore(store)
 	store.stores.productNotices = newSqlProductNoticesStore(store)
-	err := store.GetMaster().CreateTablesIfNotExists()
+	err = store.GetMaster().CreateTablesIfNotExists()
 
 	if err != nil {
 		if IsDuplicate(err) {

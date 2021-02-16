@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS teammembers (
     userid VARCHAR(26) NOT NULL,
     roles VARCHAR(64),
     deleteat bigint,
+    schemeuser boolean,
+    schemeadmin boolean,
+    schemeguest boolean,
     PRIMARY KEY (teamid, userid)
 );
 
