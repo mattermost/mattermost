@@ -4895,46 +4895,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Falha ao definir HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Falha ao abrir conexão"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Falha ao abrir a conexão TLS"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Falha ao autenticar no servidor de SMTP"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Falha ao escrever o anexo para o e-mail"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Falha ao fechar a conexão com servidor SMTP"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Erro em configurar \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Falha ao escrever a mensagem de email"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Falha ao adicionar os dados a mensagem de email"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Erro em configurar \"To Address\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Não foi possível encontrar o comando"
   },
@@ -5848,11 +5808,11 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "A licença corporativa expirou e alguns recursos podem ser desativados.Por favor renovar."
+    "translation": "Sua licença Enterprise Edition expirou e alguns recursos podem ser desativados. Por favor renove usa licença agora."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renovar Licença"
+    "translation": "Renovar Licença Agora"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -8333,5 +8293,105 @@
   {
     "id": "api.license.request_renewal_link.app_error",
     "translation": "Erro ao obter o link de renovação da licença"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Voltar para {{.SiteName}}"
+  },
+  {
+    "id": "api.unable_to_read_file_from_backend",
+    "translation": "Erro ao ler o arquivo do backend"
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Erro ao criar arquivo zip."
+  },
+  {
+    "id": "api.oauth.redirecting_back",
+    "translation": "Redirecionando você de volta para o aplicativo."
+  },
+  {
+    "id": "api.oauth.close_browser",
+    "translation": "Você pode fechar esta guia do navegador agora."
+  },
+  {
+    "id": "api.oauth.auth_complete",
+    "translation": "Autenticação completa"
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Licença E10 ou E20 necessária para usar este endpoint."
+  },
+  {
+    "id": "api.job.unable_to_download_job.incorrect_job_type",
+    "translation": "O tipo de trabalho que você está tentando baixar não é compatível no momento"
+  },
+  {
+    "id": "api.invalid_redirect_url",
+    "translation": "URL de redirecionamento fornecido é inválido"
+  },
+  {
+    "id": "api.invalid_custom_url_scheme",
+    "translation": "Esquema de URL personalizado fornecido é inválido"
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Os parâmetros Antes e Depois de getThreadsForUser são mutuamente exclusivos"
+  },
+  {
+    "id": "api.file.write_file.app_error",
+    "translation": "Não foi possível gravar o arquivo."
+  },
+  {
+    "id": "api.file.test_connection.app_error",
+    "translation": "Não é possível acessar o armazenamento de arquivos."
+  },
+  {
+    "id": "api.file.remove_file.app_error",
+    "translation": "Não foi possível remover o arquivo."
+  },
+  {
+    "id": "api.file.remove_directory.app_error",
+    "translation": "Não foi possível remover o diretório."
+  },
+  {
+    "id": "api.file.read_file.app_error",
+    "translation": "Não é possível ler o arquivo."
+  },
+  {
+    "id": "api.file.move_file.app_error",
+    "translation": "Não é possível mover arquivos."
+  },
+  {
+    "id": "api.file.list_directory.app_error",
+    "translation": "Não foi possível listar o diretório."
+  },
+  {
+    "id": "api.file.file_size.app_error",
+    "translation": "Não foi possível obter o tamanho do arquivo."
+  },
+  {
+    "id": "api.file.file_reader.app_error",
+    "translation": "Não é possível obter um leitor de arquivos."
+  },
+  {
+    "id": "api.file.file_mod_time.app_error",
+    "translation": "Não é possível obter última modificação para o arquivo."
+  },
+  {
+    "id": "api.file.file_exists.app_error",
+    "translation": "Não foi possível verificar se o arquivo existe."
+  },
+  {
+    "id": "api.file.append_file.app_error",
+    "translation": "Não foi possível anexar dados ao arquivo."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Não foi possível encontrar o arquivo de exportação."
+  },
+  {
+    "id": "api.config.update_config.not_allowed_security.app_error",
+    "translation": "A alteração de {{.Name}} não é permitida por motivos de segurança."
   }
 ]

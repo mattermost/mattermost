@@ -3575,6 +3575,10 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Invalid Origin header set during websocket upgrade."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -4092,7 +4096,7 @@
   },
   {
     "id": "app.export.export_attachment.create_file.error",
-    "translation": "Failed to created file during export."
+    "translation": "Failed to create file during export."
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",

@@ -1964,7 +1964,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Persoonlijk toegangstoken is toegevoegd aan je account."
+    "translation": "Persoonlijk toegangstoken is toegevoegd aan je account"
   },
   {
     "id": "api.templates.user_access_token_subject",
@@ -2116,7 +2116,7 @@
   },
   {
     "id": "api.user.create_user.disabled.app_error",
-    "translation": "User creation is disabled."
+    "translation": "Aanmaken van gebruikers is uitgeschakeld."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2128,31 +2128,31 @@
   },
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
-    "translation": "De aanmeld link is verlopen"
+    "translation": "De aanmeldlink is verlopen."
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
-    "translation": "De aanmeld link is niet geldig"
+    "translation": "De aanmeldlink is niet geldig."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "AD/LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
-    "translation": "Authentication Transfer not configured or available on this server."
+    "translation": "Authenticatieoverdracht is niet geconfigureerd of beschikbaar op deze server."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Unable to get user by email."
+    "translation": "Kan gebruiker niet ophalen via e-mail."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "AS/LDAP is niet beschikbaar op deze server"
+    "translation": "AD/LDAP is niet beschikbaar op deze server."
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Dit gebruikers account gebruikt geen AD/LDAP"
+    "translation": "Dit gebruikersaccount gebruikt geen AD/LDAP."
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2160,7 +2160,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Het is verboden voor Bots om in te loggen."
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -4895,46 +4895,6 @@
     "translation": "Systeem"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Fout bij het openen van de sql verbinding"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Fout bij het openen van TLS verbinding"
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Kan niet authenticeren bij de SMTP server"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Er is een probleem opgetreden bij het afsluiten van de verbinding naar de SMTP server"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Error setting \"From Address\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Kan het e-mail bericht niet schrijven"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Kan geen e-mail bericht toevoegen"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Error setting \"To Address\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Het kanaal kan niet gevonden worden"
   },
@@ -5856,7 +5816,7 @@
   },
   {
     "id": "api.user.create_user.guest_accounts.license.app_error",
-    "translation": "Je licentie ondersteunt geen gastaccounts"
+    "translation": "Je licentie ondersteunt geen gastaccounts."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",
@@ -8523,10 +8483,6 @@
     "translation": "Voor en Na parameters voor getThreadsForUser sluiten elkaar uit"
   },
   {
-    "id": "api.unable_write_file_response",
-    "translation": "Fout bij het downloaden van het ondersteuningspakketbestand."
-  },
-  {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Fout bij het lezen van het bestand vanuit backend"
   },
@@ -8537,5 +8493,53 @@
   {
     "id": "api.no_license",
     "translation": "E10 of E20 licentie vereist om dit eindpunt te gebruiken."
+  },
+  {
+    "id": "app.export.export_attachment.copy_file.error",
+    "translation": "Bestand niet gekopieerd tijdens export."
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "Kan exportbestand niet vinden."
+  },
+  {
+    "id": "model.config.is_valid.export.retention_days_too_low.app_error",
+    "translation": "Ongeldige waarde voor RetentionDays. Waarde moet groter zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.export.directory.app_error",
+    "translation": "De waarde voor Directory mag niet leeg zijn."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
+    "translation": "Kan geen verbinding maken met de smtp server"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Fout bij het lezen van de bestandsbijlage tijdens het importeren."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Kan bestand niet toevoegen aan zip-archief tijdens export."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Kan het antwoord niet verwerken."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Kon geen zip-header aanmaken tijdens export."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Kan geen map aanmaken tijdens export."
+  },
+  {
+    "id": "app.export.export_attachment.create_file.error",
+    "translation": "Kan geen bestand aanmaken tijdens export."
+  },
+  {
+    "id": "api.web_socket.connect.check_origin.app_error",
+    "translation": "Ongeldige Origin header was ingesteld tijdens websocket upgrade."
   }
 ]
