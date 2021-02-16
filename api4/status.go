@@ -118,7 +118,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.Config().FeatureFlags.CustomUserStatuses || !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
-		c.Err = model.NewAppError("updateUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -150,7 +150,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if !c.App.Config().FeatureFlags.CustomUserStatuses || !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
-		c.Err = model.NewAppError("removeUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("removeUserCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -174,7 +174,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	if !c.App.Config().FeatureFlags.CustomUserStatuses || !*c.App.Config().TeamSettings.EnableCustomUserStatuses {
-		c.Err = model.NewAppError("removeUserRecentCustomStatus", "api.custom_status.disabled", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("removeUserRecentCustomStatus", "api.custom_status.disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 
