@@ -378,7 +378,7 @@ func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppE
 	}
 
 	if err := a.addRecentCustomStatus(userID, cs); err != nil {
-		return err
+		a.Log().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 
 	return nil
