@@ -141,7 +141,7 @@ func TestEscapeForHtml(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, escapeforHTML(tc.In))
+			assert.Equal(t, tc.Expected, escapeForHTML(tc.In))
 		})
 	}
 }

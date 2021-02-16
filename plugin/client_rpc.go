@@ -268,7 +268,7 @@ func (s *apiRPCServer) LoadPluginConfiguration(args *Z_LoadPluginConfigurationAr
 }
 
 func init() {
-	hookNameToId["ServeHTTP"] = ServeHTTPId
+	hookNameToId["ServeHTTP"] = ServeHTTPID
 }
 
 type Z_ServeHTTPArgs struct {
@@ -279,7 +279,7 @@ type Z_ServeHTTPArgs struct {
 }
 
 func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !g.implemented[ServeHTTPId] {
+	if !g.implemented[ServeHTTPID] {
 		http.NotFound(w, r)
 		return
 	}
