@@ -48,15 +48,20 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var openChannelsCount int64
 		g.Go(func() error {
 			var err error
-			openChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_OPEN)
-			return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if openChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_OPEN); err != nil {
+				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var privateChannelsCount int64
 		g.Go(func() error {
 			var err error
 			privateChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_PRIVATE)
-			return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if err != nil {
+				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var usersCount int64
@@ -64,14 +69,18 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if teamID == "" {
 			g.Go(func() error {
 				var err error
-				inactiveUsersCount, err = a.Srv().Store.User().AnalyticsGetInactiveUsersCount()
-				return model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				if inactiveUsersCount, err = a.Srv().Store.User().AnalyticsGetInactiveUsersCount(); err != nil {
+					return model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
 			})
 		} else {
 			g.Go(func() error {
 				var err error
-				usersCount, err = a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamID})
-				return model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				if usersCount, err = a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamID}); err != nil {
+					return model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
 			})
 		}
 
@@ -79,30 +88,38 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			g.Go(func() error {
 				var err error
-				postsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, false)
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				if postsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, false); err != nil {
+					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
 			})
 		}
 
 		var teamsCount int64
 		g.Go(func() error {
 			var err error
-			teamsCount, err = a.Srv().Store.Team().AnalyticsTeamCount(false)
-			return model.NewAppError("GetAnalytics", "app.team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if teamsCount, err = a.Srv().Store.Team().AnalyticsTeamCount(false); err != nil {
+				return model.NewAppError("GetAnalytics", "app.team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var dailyActiveUsersCount int64
 		g.Go(func() error {
 			var err error
-			dailyActiveUsersCount, err = a.Srv().Store.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			return model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if dailyActiveUsersCount, err = a.Srv().Store.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false}); err != nil {
+				return model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var monthlyActiveUsersCount int64
 		g.Go(func() error {
 			var err error
-			monthlyActiveUsersCount, err = a.Srv().Store.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			return model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if monthlyActiveUsersCount, err = a.Srv().Store.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false}); err != nil {
+				return model.NewAppError("GetAnalytics", "app.user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		if err := g.Wait(); err != nil {
@@ -215,29 +232,37 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var incomingWebhookCount int64
 		g.Go(func() error {
 			var err error
-			incomingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsIncomingCount(teamID)
-			return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if incomingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsIncomingCount(teamID); err != nil {
+				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var outgoingWebhookCount int64
 		g.Go(func() error {
 			var err error
-			outgoingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamID)
-			return model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if outgoingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamID); err != nil {
+				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var commandsCount int64
 		g.Go(func() error {
 			var err error
-			commandsCount, err = a.Srv().Store.Command().AnalyticsCommandCount(teamID)
-			return model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			if commandsCount, err = a.Srv().Store.Command().AnalyticsCommandCount(teamID); err != nil {
+				return model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var sessionsCount int64
 		g.Go(func() error {
 			var err error
-			sessionsCount, err = a.Srv().Store.Session().AnalyticsSessionCount()
-			return model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if sessionsCount, err = a.Srv().Store.Session().AnalyticsSessionCount(); err != nil {
+				return model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
 		})
 
 		var filesCount int64
@@ -245,14 +270,18 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			g.Go(func() error {
 				var err error
-				filesCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, true, false)
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				if filesCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, true, false); err != nil {
+					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
 			})
 
 			g.Go(func() error {
 				var err error
-				hashtagsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, true)
-				return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				if hashtagsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, true); err != nil {
+					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
 			})
 		}
 
