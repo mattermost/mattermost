@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -125,7 +126,7 @@ func getUserFromEvent(s *Server, event *model.WebSocketEvent, key string) (*mode
 		return nil, fmt.Errorf("received websocket message that is eligible for sending an invitation but message does not have `%s` present", key)
 	}
 
-	user, err := s.Store.User().Get(userID)
+	user, err := s.Store.User().Get(context.Background(), userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't find user for creating shared channel invitation for a DM")
 	}
