@@ -61,3 +61,38 @@ func TestSendInviteEmailRateLimits(t *testing.T) {
 	assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
 	assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 }
+
+func TestSendAdminUpgradeRequestEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+
+	mockSubscription := &model.Subscription{
+		ID:         "MySubscriptionID",
+		CustomerID: "MyCustomer",
+		ProductID:  "SomeProductId",
+		AddOns:     []string{},
+		StartAt:    1000000000,
+		EndAt:      2000000000,
+		CreateAt:   1000000000,
+		Seats:      100,
+		DNS:        "some.dns.server",
+		IsPaidTier: "false",
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.CloudUserLimit = 10
+	})
+
+	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	require.Nil(t, err)
+
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription)
+	require.Nil(t, err)
+
+	// second attempt by the same user to send emails is blocked by rate limiter
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	require.NotNil(t, err)
+	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
+}
