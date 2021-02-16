@@ -251,18 +251,14 @@ store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 migration-prereqs: ## Builds prerequisite packages for migrations
-ifeq ($(PLATFORM),Windows)
-	@powershell ./exe/migration_prereqs.ps1
-else
-	@./scripts/migration-prereqs
-endif
+	$(GO) get -tags 'postgres' -modfile=go.tools.mod -u github.com/golang-migrate/migrate/v4/cmd/migrate
 
 new-migration: migration-prereqs ## Creates a new migration
 	@echo "Generating new migration for mysql"
-	@migrate create -ext sql -dir db/migrations/mysql -seq $(name)
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/mysql -seq $(name)
 
 	@echo "Generating new migration for postgres"
-	@migrate create -ext sql -dir db/migrations/postgres -seq $(name)
+	$(GOBIN)/migrate create -ext sql -dir db/migrations/postgres -seq $(name)
 
 migrations: ## Generates bindata migrations
 	@echo Generating bindata for migrations
