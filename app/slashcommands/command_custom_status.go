@@ -43,7 +43,7 @@ func (*CustomStatusProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *mod
 
 func (*CustomStatusProvider) DoCommand(a *app.App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.Config().FeatureFlags.CustomUserStatuses || !*a.Config().TeamSettings.EnableCustomUserStatuses {
-		return &model.CommandResponse{}
+		return nil
 	}
 
 	if message == CmdCustomStatusClear {
