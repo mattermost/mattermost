@@ -965,7 +965,6 @@ const RemoteClusterSiteURLUniqueIndex = "remote_clusters_site_url_unique"
 func upgradeDatabaseToVersion532(sqlStore *SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, Version5310, Version5320) {
 	// allow 10 files per post
-	sqlStore.AlterColumnTypeIfExists("Posts", "FileIds", "text", "varchar(300)")
 	sqlStore.CreateColumnIfNotExists("ThreadMemberships", "UnreadMentions", "bigint", "bigint", "0")
 
 	// Shared channels support
