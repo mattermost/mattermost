@@ -166,9 +166,10 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
  */
 func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
-	var bodyPage *utils.HTMLTemplate
+	var templateName = "post_body_generic"
+	data := a.Srv().EmailService.newEmailTemplateData(recipient.Locale)
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
+		templateName = "post_body_full"
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage, err := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
@@ -176,16 +177,14 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 			mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
 			normalizedPostMessage = postMessage
 		}
-		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
-	} else {
-		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
+		data.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	}
 
-	bodyPage.Props["SiteURL"] = a.GetSiteURL()
+	data.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
-		bodyPage.Props["TeamLink"] = landingURL + "/pl/" + post.Id
+		data.Props["TeamLink"] = landingURL + "/pl/" + post.Id
 	} else {
-		bodyPage.Props["TeamLink"] = landingURL
+		data.Props["TeamLink"] = landingURL
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
@@ -199,51 +198,51 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	}
 	if channel.Type == model.CHANNEL_DIRECT {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.full")
-			bodyPage.Props["Info1"] = ""
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.full")
+			data.Props["Info1"] = ""
 			info["SenderName"] = senderName
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.direct.full", info)
+			data.Props["Info2"] = translateFunc("app.notification.body.text.direct.full", info)
 		} else {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.direct.generic", info)
+			data.Props["Info"] = translateFunc("app.notification.body.text.direct.generic", info)
 		}
 	} else if channel.Type == model.CHANNEL_GROUP {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.full")
-			bodyPage.Props["Info1"] = translateFunc("app.notification.body.text.group_message.full",
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.full")
+			data.Props["Info1"] = translateFunc("app.notification.body.text.group_message.full",
 				map[string]interface{}{
 					"ChannelName": channelName,
 				})
 			info["SenderName"] = senderName
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.group_message.full2", info)
+			data.Props["Info2"] = translateFunc("app.notification.body.text.group_message.full2", info)
 		} else {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.generic", map[string]interface{}{
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.group_message.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.group_message.generic", info)
+			data.Props["Info"] = translateFunc("app.notification.body.text.group_message.generic", info)
 		}
 	} else {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.full")
-			bodyPage.Props["Info1"] = translateFunc("app.notification.body.text.notification.full",
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.full")
+			data.Props["Info1"] = translateFunc("app.notification.body.text.notification.full",
 				map[string]interface{}{
 					"ChannelName": channelName,
 				})
 			info["SenderName"] = senderName
-			bodyPage.Props["Info2"] = translateFunc("app.notification.body.text.notification.full2", info)
+			data.Props["Info2"] = translateFunc("app.notification.body.text.notification.full2", info)
 		} else {
-			bodyPage.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
+			data.Props["BodyText"] = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			bodyPage.Props["Info"] = translateFunc("app.notification.body.text.notification.generic", info)
+			data.Props["Info"] = translateFunc("app.notification.body.text.notification.generic", info)
 		}
 	}
 
-	bodyPage.Props["Button"] = translateFunc("api.templates.post_body.button")
+	data.Props["Button"] = translateFunc("api.templates.post_body.button")
 
-	return bodyPage.Render()
+	return a.Srv().Templates().Render(templateName, data)
 }
 
 type formattedPostTime struct {
