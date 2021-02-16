@@ -76,7 +76,7 @@ func (a *authChooser) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	a.Auth = LoginAuth(a.config.Username, a.config.Password, smtpAddress)
 	for _, method := range server.Auth {
 		if method == "PLAIN" {
-			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.Server+":"+a.config.Port)
+			a.Auth = smtp.PlainAuth("", a.config.Username, a.config.Password, a.config.ServerName+":"+a.config.Port)
 			break
 		}
 	}
