@@ -704,6 +704,30 @@
     "translation": "code"
   },
   {
+    "id": "api.command_collapse.desc",
+    "translation": "Turn on auto-collapsing of image previews"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "collapse"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Image links now collapse by default"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error setting the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error clearing the status."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Your status was cleared."
+  },
+  {
     "id": "api.command_custom_status.desc",
     "translation": "Set or clear your status"
   },
@@ -716,32 +740,8 @@
     "translation": "status"
   },
   {
-    "id": "api.command_custom_status.app_error",
-    "translation": "Error setting the status."
-  },
-  {
-    "id": "api.command_custom_status.clear.app_error",
-    "translation": "Error clearing the status."
-  },
-  {
     "id": "api.command_custom_status.success",
     "translation": "Your status is set to “{{.EmojiName}} {{.StatusMessage}}”. You can change your status from the status popover in the channel sidebar header."
-  },
-  {
-    "id": "api.command_custom_status.clear.success",
-    "translation": "Your status was cleared."
-  },
-  {
-    "id": "api.command_collapse.desc",
-    "translation": "Turn on auto-collapsing of image previews"
-  },
-  {
-    "id": "api.command_collapse.name",
-    "translation": "collapse"
-  },
-  {
-    "id": "api.command_collapse.success",
-    "translation": "Image links now collapse by default"
   },
   {
     "id": "api.command_dnd.desc",
