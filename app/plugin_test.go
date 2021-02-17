@@ -75,7 +75,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 	}
 
 	_, nErr := th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
 	ret, err = th.App.GetPluginKey(pluginId, "key2")
@@ -535,7 +535,7 @@ func TestPluginSync(t *testing.T) {
 
 				// Check if installed
 				pluginStatus, err := env.Statuses()
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Len(t, pluginStatus, 1)
 				require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 			})
@@ -553,7 +553,7 @@ func TestPluginSync(t *testing.T) {
 
 				// Check if removed
 				pluginStatus, err := env.Statuses()
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Empty(t, pluginStatus)
 			})
 
@@ -571,7 +571,7 @@ func TestPluginSync(t *testing.T) {
 				appErr = th.App.SyncPlugins()
 				checkNoError(t, appErr)
 				pluginStatus, err := env.Statuses()
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Len(t, pluginStatus, 0)
 			})
 
@@ -590,7 +590,7 @@ func TestPluginSync(t *testing.T) {
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Len(t, pluginStatus, 0)
 			})
 
@@ -614,7 +614,7 @@ func TestPluginSync(t *testing.T) {
 				checkNoError(t, appErr)
 
 				pluginStatus, err := env.Statuses()
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Len(t, pluginStatus, 1)
 				require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 
@@ -657,7 +657,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 
 	// Verify the plugin was installed and set to deactivated.
 	pluginStatus, err := env.Statuses()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, pluginStatus, 1)
 	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 	require.Equal(t, pluginStatus[0].State, model.PluginStateNotRunning)
@@ -669,7 +669,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 
 	// Verify the plugin was activated due to config change.
 	pluginStatus, err = env.Statuses()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, pluginStatus, 1)
 	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 	require.Equal(t, pluginStatus[0].State, model.PluginStateRunning)
@@ -681,7 +681,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 
 	// Verify the plugin was deactivated due to config change.
 	pluginStatus, err = env.Statuses()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, pluginStatus, 1)
 	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 	require.Equal(t, pluginStatus[0].State, model.PluginStateNotRunning)

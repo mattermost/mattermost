@@ -64,6 +64,7 @@ const (
 	TrackConfigGuestAccounts     = "config_guest_accounts"
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
+	TrackConfigExport            = "config_export"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -436,6 +437,8 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 		"managed_resource_paths":                                  isDefault(*cfg.ServiceSettings.ManagedResourcePaths, ""),
 		"enable_legacy_sidebar":                                   *cfg.ServiceSettings.EnableLegacySidebar,
+		"thread_auto_follow":                                      *cfg.ServiceSettings.ThreadAutoFollow,
+		"enable_link_previews":                                    *cfg.ServiceSettings.EnableLinkPreviews,
 	})
 
 	ts.sendTelemetry(TrackConfigTeam, map[string]interface{}{
@@ -783,7 +786,7 @@ func (ts *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
-		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
+		"global_relay_smtp_server_timeout":      *cfg.MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout,
 		"download_export_results":               *cfg.MessageExportSettings.DownloadExportResults,
 	})
 
@@ -811,6 +814,10 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
 		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
+	})
+
+	ts.sendTelemetry(TrackConfigExport, map[string]interface{}{
+		"retention_days": *cfg.ExportSettings.RetentionDays,
 	})
 }
 

@@ -122,6 +122,13 @@ func (a *App) initJobs() {
 	if jobsImportDeleteInterface != nil {
 		a.srv.Jobs.ImportDelete = jobsImportDeleteInterface(a)
 	}
+	if jobsExportDeleteInterface != nil {
+		a.srv.Jobs.ExportDelete = jobsExportDeleteInterface(a)
+	}
+
+	if jobsExportProcessInterface != nil {
+		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
+	}
 
 	if jobsExportProcessInterface != nil {
 		a.srv.Jobs.ExportProcess = jobsExportProcessInterface(a)
@@ -490,7 +497,8 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			subject := T("api.templates.warn_metric_ack.subject")
 			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
-			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+			mailConfig := a.Srv().MailServiceConfig()
+			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADVISOR_ADDRESS, subject, bodyPage.Render(), mailConfig, false, sender.Email); err != nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}

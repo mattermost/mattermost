@@ -4900,46 +4900,6 @@
     "translation": "Система"
   },
   {
-    "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Не вдалося встановити HELO"
-  },
-  {
-    "id": "utils.mail.connect_smtp.open.app_error",
-    "translation": "Не вдалося відкрити з'єднання."
-  },
-  {
-    "id": "utils.mail.connect_smtp.open_tls.app_error",
-    "translation": "Не вдалося відкрити TLS з'єднання."
-  },
-  {
-    "id": "utils.mail.new_client.auth.app_error",
-    "translation": "Не вдалося авторизуватися на SMTP сервері"
-  },
-  {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Не вдалося надіслати вкладення електронною поштою"
-  },
-  {
-    "id": "utils.mail.send_mail.close.app_error",
-    "translation": "Не вдалося закрити з'єднання з SMTP сервером"
-  },
-  {
-    "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Помилка встановлення \"Від адреси\""
-  },
-  {
-    "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Не вдалося записати поштове повідомлення"
-  },
-  {
-    "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Не вдалося додати дані поштового повідомлення"
-  },
-  {
-    "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Помилка встановлення \"Для адреси\""
-  },
-  {
     "id": "web.command_webhook.command.app_error",
     "translation": "Не вдалося знайти команду"
   },
