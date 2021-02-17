@@ -2249,27 +2249,6 @@ func TestSearchHashtagPosts(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-func TestSearchUnderscorePosts(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.LoginBasic()
-	Client := th.Client
-
-	message := "test_with_underscore"
-	assert.NotNil(t, th.CreateMessagePost(message))
-
-	message = " test with underscore"
-	assert.NotNil(t, th.CreateMessagePost(message))
-
-	posts, resp := Client.SearchPosts(th.BasicTeam.Id, "test_with_underscore", false)
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 1, "wrong search results")
-
-	Client.Logout()
-	_, resp = Client.SearchPosts(th.BasicTeam.Id, "#sgtitlereview", false)
-	CheckUnauthorizedStatus(t, resp)
-}
-
 func TestSearchPostsInChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
