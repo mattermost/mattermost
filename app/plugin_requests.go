@@ -89,7 +89,15 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
-	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	pluginsEnv := a.GetPluginsEnvironment()
+
+	// Check if someone has nullified the pluginsEnv in the meantime
+	if pluginsEnv == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	publicFilesPath, err := pluginsEnv.PublicFilesPath(pluginID)
 	if err != nil {
 		http.NotFound(w, r)
 		return
