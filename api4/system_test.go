@@ -73,7 +73,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err := ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
@@ -86,7 +86,7 @@ func TestGetPing(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		respBytes, err = ioutil.ReadAll(resp.Body)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		respString = string(respBytes)
 		require.Contains(t, respString, "testvalue")
 	}, "ping feature flag test")
