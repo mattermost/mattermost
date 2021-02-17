@@ -23,7 +23,7 @@ func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 
 // SendAdminUpgradeRequestEmail takes the username of user trying to alert admins and then applies rate limit of n (number of admins) emails per user per day
 // before sending the emails.
-func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
+func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription, aT string) *model.AppError {
 	if a.Srv().License() == nil || (a.Srv().License() != nil && !*a.Srv().License().Features.Cloud) {
 		return nil
 	}
@@ -59,7 +59,7 @@ func (a *App) SendAdminUpgradeRequestEmail(username string, subscription *model.
 	countNotOks := 0
 
 	for admin := range sysAdmins {
-		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL)
+		ok, err := a.Srv().EmailService.SendUpgradeEmail(username, sysAdmins[admin].Email, sysAdmins[admin].Locale, *a.Config().ServiceSettings.SiteURL, aT)
 		if !ok || err != nil {
 			a.Log().Error("Error sending upgrade request email", mlog.Err(err))
 			countNotOks++

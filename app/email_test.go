@@ -85,14 +85,14 @@ func TestSendAdminUpgradeRequestEmail(t *testing.T) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 10
 	})
 
-	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	err := th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.InviteLimitation)
 	require.Nil(t, err)
 
-	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription)
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser2.Username, mockSubscription, model.JoinLimitation)
 	require.Nil(t, err)
 
 	// second attempt by the same user to send emails is blocked by rate limiter
-	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription)
+	err = th.App.SendAdminUpgradeRequestEmail(th.BasicUser.Username, mockSubscription, model.InviteLimitation)
 	require.NotNil(t, err)
 	assert.Equal(t, err.Id, "app.email.rate_limit_exceeded.app_error")
 }

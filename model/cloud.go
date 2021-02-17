@@ -6,6 +6,8 @@ package model
 const (
 	EventTypeFailedPayment       = "failed-payment"
 	EventTypeFailedPaymentNoCard = "failed-payment-no-card"
+	JoinLimitation               = "join"
+	InviteLimitation             = "invite"
 )
 
 // Product model represents a product on the cloud system.
@@ -132,4 +134,10 @@ type FailedPayment struct {
 type SubscriptionStats struct {
 	RemainingSeats int    `json:"remaining_seats"`
 	IsPaidTier     string `json:"is_paid_tier"`
+}
+
+// FreeTierUpgradeRequestType represents the structure payload that is sent to /subscription/limitreached/invite
+// to determine what action prompted the upgrade request
+type FreeTierUpgradeRequestType struct {
+	Action string `json:"action"`
 }

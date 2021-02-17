@@ -409,7 +409,25 @@ func sendAdminUpgradeRequestEmail(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub); err != nil {
+	body, e := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.app_error", nil, e.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	var upgReqT *model.FreeTierUpgradeRequestType
+	if e = json.Unmarshal(body, &upgReqT); err != nil {
+		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", "api.cloud.app_error", nil, e.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if upgReqT == nil || upgReqT.Action == "" || (upgReqT.Action != model.JoinLimitation && upgReqT.Action != model.InviteLimitation) {
+		c.SetInvalidParam("action")
+		return
+	}
+
+	if err = c.App.SendAdminUpgradeRequestEmail(user.Username, sub, upgReqT.Action); err != nil {
 		c.Err = model.NewAppError("Api4.sendAdminUpgradeRequestEmail", err.Id, nil, err.Error(), err.StatusCode)
 		return
 	}
