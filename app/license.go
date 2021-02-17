@@ -124,13 +124,15 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	s.ReloadConfig()
 	s.InvalidateAllCaches()
 
-	// start job server if necessary - this handles the edge case where a license file is uploaded, but the job server
+	// restart job server workers - this handles the edge case where a license file is uploaded, but the job server
 	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
 	// functioning as expected
-	if *s.Config().JobSettings.RunJobs && s.Jobs != nil && s.Jobs.Workers != nil {
+	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+		s.Jobs.StopWorkers()
+		s.Jobs.InitWorkers()
 		s.Jobs.StartWorkers()
 	}
-	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil && s.Jobs.Schedulers != nil {
+	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 		s.Jobs.StartSchedulers()
 	}
 

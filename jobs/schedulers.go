@@ -4,8 +4,8 @@
 package jobs
 
 import (
+	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -18,15 +18,26 @@ type Schedulers struct {
 	configChanged        chan *model.Config
 	clusterLeaderChanged chan bool
 	listenerId           string
-	startOnce            sync.Once
 	jobs                 *JobServer
 	isLeader             bool
+	running              bool
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
 }
 
-func (srv *JobServer) InitSchedulers() *Schedulers {
+var (
+	ErrSchedulersNotRunning    = errors.New("job schedulers are not running")
+	ErrSchedulersRunning       = errors.New("job schedulers are running")
+	ErrSchedulersUninitialized = errors.New("job schedulers are not initialized")
+)
+
+func (srv *JobServer) InitSchedulers() error {
+	srv.mut.Lock()
+	defer srv.mut.Unlock()
+	if srv.schedulers != nil && srv.schedulers.running {
+		return ErrSchedulersRunning
+	}
 	mlog.Debug("Initialising schedulers.")
 
 	schedulers := &Schedulers{
@@ -87,89 +98,91 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
-	return schedulers
+	srv.schedulers = schedulers
+
+	return nil
 }
 
-func (schedulers *Schedulers) Start() *Schedulers {
+func (schedulers *Schedulers) Start() {
 	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {
-		schedulers.startOnce.Do(func() {
-			mlog.Info("Starting schedulers.")
+		mlog.Info("Starting schedulers.")
 
-			defer func() {
-				mlog.Info("Schedulers stopped.")
-				close(schedulers.stopped)
-			}()
+		defer func() {
+			mlog.Info("Schedulers stopped.")
+			close(schedulers.stopped)
+		}()
 
-			now := time.Now()
-			for idx, scheduler := range schedulers.schedulers {
-				if !scheduler.Enabled(schedulers.jobs.Config()) {
-					schedulers.nextRunTimes[idx] = nil
-				} else {
-					schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
-				}
+		now := time.Now()
+		for idx, scheduler := range schedulers.schedulers {
+			if !scheduler.Enabled(schedulers.jobs.Config()) {
+				schedulers.nextRunTimes[idx] = nil
+			} else {
+				schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
 			}
+		}
 
-			for {
-				timer := time.NewTimer(1 * time.Minute)
-				select {
-				case <-schedulers.stop:
-					mlog.Debug("Schedulers received stop signal.")
-					timer.Stop()
-					return
-				case now = <-timer.C:
-					cfg := schedulers.jobs.Config()
+		for {
+			timer := time.NewTimer(1 * time.Minute)
+			select {
+			case <-schedulers.stop:
+				mlog.Debug("Schedulers received stop signal.")
+				timer.Stop()
+				return
+			case now = <-timer.C:
+				cfg := schedulers.jobs.Config()
 
-					for idx, nextTime := range schedulers.nextRunTimes {
-						if nextTime == nil {
-							continue
-						}
+				for idx, nextTime := range schedulers.nextRunTimes {
+					if nextTime == nil {
+						continue
+					}
 
-						if time.Now().After(*nextTime) {
-							scheduler := schedulers.schedulers[idx]
-							if scheduler != nil {
-								if schedulers.isLeader && scheduler.Enabled(cfg) {
-									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
-										mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
-									} else {
-										schedulers.setNextRunTime(cfg, idx, now, true)
-									}
+					if time.Now().After(*nextTime) {
+						scheduler := schedulers.schedulers[idx]
+						if scheduler != nil {
+							if schedulers.isLeader && scheduler.Enabled(cfg) {
+								if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
+									mlog.Error("Failed to schedule job", mlog.String("scheduler", scheduler.Name()), mlog.Err(err))
+								} else {
+									schedulers.setNextRunTime(cfg, idx, now, true)
 								}
 							}
 						}
 					}
-				case newCfg := <-schedulers.configChanged:
-					for idx, scheduler := range schedulers.schedulers {
-						if !schedulers.isLeader || !scheduler.Enabled(newCfg) {
-							schedulers.nextRunTimes[idx] = nil
-						} else {
-							schedulers.setNextRunTime(newCfg, idx, now, false)
-						}
-					}
-				case isLeader := <-schedulers.clusterLeaderChanged:
-					for idx := range schedulers.schedulers {
-						schedulers.isLeader = isLeader
-						if !isLeader {
-							schedulers.nextRunTimes[idx] = nil
-						} else {
-							schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
-						}
+				}
+			case newCfg := <-schedulers.configChanged:
+				for idx, scheduler := range schedulers.schedulers {
+					if !schedulers.isLeader || !scheduler.Enabled(newCfg) {
+						schedulers.nextRunTimes[idx] = nil
+					} else {
+						schedulers.setNextRunTime(newCfg, idx, now, false)
 					}
 				}
-				timer.Stop()
+			case isLeader := <-schedulers.clusterLeaderChanged:
+				for idx := range schedulers.schedulers {
+					schedulers.isLeader = isLeader
+					if !isLeader {
+						schedulers.nextRunTimes[idx] = nil
+					} else {
+						schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
+					}
+				}
 			}
-		})
+			timer.Stop()
+		}
 	}()
 
-	return schedulers
+	schedulers.running = true
 }
 
-func (schedulers *Schedulers) Stop() *Schedulers {
+func (schedulers *Schedulers) Stop() {
 	mlog.Info("Stopping schedulers.")
 	close(schedulers.stop)
 	<-schedulers.stopped
-	return schedulers
+	schedulers.jobs.ConfigService.RemoveConfigListener(schedulers.listenerId)
+	schedulers.listenerId = ""
+	schedulers.running = false
 }
 
 func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now time.Time, pendingJobs bool) {
