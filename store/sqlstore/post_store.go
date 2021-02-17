@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,8 +41,65 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
+func postSliceColumnsWithTypes() []struct {
+	Name string
+	Type reflect.Kind
+} {
+	return []struct {
+		Name string
+		Type reflect.Kind
+	}{
+		{"Id", reflect.String},
+		{"CreateAt", reflect.Int64},
+		{"UpdateAt", reflect.Int64},
+		{"EditAt", reflect.Int64},
+		{"DeleteAt", reflect.Int64},
+		{"IsPinned", reflect.Bool},
+		{"UserId", reflect.String},
+		{"ChannelId", reflect.String},
+		{"RootId", reflect.String},
+		{"ParentId", reflect.String},
+		{"OriginalId", reflect.String},
+		{"Message", reflect.String},
+		{"Type", reflect.String},
+		{"Props", reflect.Map},
+		{"Hashtags", reflect.String},
+		{"Filenames", reflect.Slice},
+		{"FileIds", reflect.Slice},
+		{"HasReactions", reflect.Bool},
+	}
+}
+
 func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceCoalesceQuery() string {
+	// TODO: calculate this once in an init() function?
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		var defaultValue string
+		switch colInfo.Type {
+		case reflect.String:
+			defaultValue = "''"
+		case reflect.Int64:
+			defaultValue = "0"
+		case reflect.Bool:
+			defaultValue = "false"
+		case reflect.Map:
+			defaultValue = "'{}'"
+		case reflect.Slice:
+			defaultValue = "'[]'"
+		}
+		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
+	}
+	return strings.Join(cols, ",")
 }
 
 func postToSlice(post *model.Post) []interface{} {

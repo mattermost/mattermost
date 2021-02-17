@@ -147,7 +147,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
-		model.NullablePost
+		model.Post
 	}
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed"
@@ -240,7 +240,10 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 		}
 		var threads []*JoinedThread
 		query, args, _ := s.getQueryBuilder().
-			Select("Threads.*, Posts.*, ThreadMemberships.LastViewed as LastViewedAt, ThreadMemberships.UnreadMentions as UnreadMentions").
+			Select(`Threads.*,
+				` + postSliceCoalesceQuery() + `,
+				ThreadMemberships.LastViewed as LastViewedAt,
+				ThreadMemberships.UnreadMentions as UnreadMentions`).
 			From("Threads").
 			Column(sq.Alias(sq.Expr(unreadRepliesQuery), "UnreadReplies")).
 			LeftJoin("Posts ON Posts.Id = Threads.PostId").
@@ -332,7 +335,7 @@ func (s *SqlThreadStore) GetThreadsForUser(userId, teamId string, opts model.Get
 			UnreadReplies:  thread.UnreadReplies,
 			UnreadMentions: thread.UnreadMentions,
 			Participants:   participants,
-			Post:           thread.NullablePost.ToPost(),
+			Post:           thread.Post.ToNilIfInvalid(),
 		})
 	}
 
@@ -348,7 +351,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		UnreadReplies  int64
 		UnreadMentions int64
 		Participants   model.StringArray
-		model.NullablePost
+		model.Post
 	}
 
 	unreadRepliesQuery := "SELECT COUNT(Posts.Id) From Posts Where Posts.RootId=ThreadMemberships.PostId AND Posts.UpdateAt >= ThreadMemberships.LastViewed AND Posts.DeleteAt=0"
@@ -361,7 +364,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 	var thread JoinedThread
 	query, args, _ := s.getQueryBuilder().
 		Select(`Threads.*,
-			Posts.*,
+			` + postSliceCoalesceQuery() + `,
 			ThreadMemberships.LastViewed as LastViewedAt,
 			ThreadMemberships.UnreadMentions as UnreadMentions,
 			ThreadMemberships.Following`).
@@ -402,7 +405,7 @@ func (s *SqlThreadStore) GetThreadForUser(userId, teamId, threadId string, exten
 		UnreadReplies:  thread.UnreadReplies,
 		UnreadMentions: thread.UnreadMentions,
 		Participants:   users,
-		Post:           thread.NullablePost.ToPost(),
+		Post:           thread.Post.ToNilIfInvalid(),
 	}
 
 	return result, nil

@@ -104,6 +104,7 @@ type Post struct {
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
+/*
 // NullablePost is used when doing a LEFT JOIN on Posts and we may get some
 // null rows back.
 type NullablePost struct {
@@ -125,6 +126,7 @@ type NullablePost struct {
 	FileIds      *StringArray
 	HasReactions *bool
 }
+*/
 
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
@@ -721,6 +723,14 @@ func (o *Post) IsFromOAuthBot() bool {
 	return props["from_webhook"] == "true" && props["override_username"] != ""
 }
 
+func (o *Post) ToNilIfInvalid() *Post {
+	if o.Id == "" {
+		return nil
+	}
+	return o
+}
+
+/*
 func (np *NullablePost) ToPost() *Post {
 	if np.Id == nil {
 		return nil
@@ -745,3 +755,4 @@ func (np *NullablePost) ToPost() *Post {
 	p.HasReactions = *np.HasReactions
 	return p
 }
+*/
