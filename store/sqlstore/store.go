@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"context"
-	"database/sql"
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
@@ -175,7 +174,7 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 
 	store.initConnection()
 
-	err := store.migrate(store.GetMaster().Db)
+	err := store.migrate()
 	if err != nil {
 		mlog.Critical("Failed to apply database migrations.", mlog.Err(err))
 		time.Sleep(time.Second)
@@ -1275,17 +1274,21 @@ func (ss *SqlStore) UpdateLicense(license *model.License) {
 	ss.license = license
 }
 
-func (ss *SqlStore) migrate(conn *sql.DB) error {
+func (ss *SqlStore) migrate() error {
 	var driver database.Driver
 	var err error
 
+	// W hen WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
+	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
+	conn := setupConnection("master", *ss.settings.DataSource, ss.settings)
+
 	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		driver, err = mysqlmigrate.WithInstance(conn, &mysqlmigrate.Config{})
+		driver, err = mysqlmigrate.WithInstance(conn.Db, &mysqlmigrate.Config{})
 		if err != nil {
 			return err
 		}
 	} else {
-		driver, err = postgres.WithInstance(conn, &postgres.Config{})
+		driver, err = postgres.WithInstance(conn.Db, &postgres.Config{SchemaName: "migrations"})
 		if err != nil {
 			return err
 		}
@@ -1321,7 +1324,7 @@ func (ss *SqlStore) migrate(conn *sql.DB) error {
 		return err
 	}
 
-	return nil
+	return conn.Db.Close()
 }
 
 type mattermConverter struct{}
