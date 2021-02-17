@@ -635,10 +635,14 @@ func (s *Server) runJobs() {
 	}
 
 	if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
-		s.Jobs.StartWorkers()
+		if err := s.Jobs.StartWorkers(); err != nil {
+			mlog.Error("Failed to start job server workers", mlog.Err(err))
+		}
 	}
 	if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
-		s.Jobs.StartSchedulers()
+		if err := s.Jobs.StartSchedulers(); err != nil {
+			mlog.Error("Failed to start job server schedulers", mlog.Err(err))
+		}
 	}
 
 	if *s.Config().ServiceSettings.EnableAWSMetering {
@@ -845,8 +849,12 @@ func (s *Server) Shutdown() {
 
 	// This must be done after the cluster is stopped.
 	if s.Jobs != nil {
-		s.Jobs.StopWorkers()
-		s.Jobs.StopSchedulers()
+		if err = s.Jobs.StopWorkers(); err != nil {
+			mlog.Warn("Failed to stop job server workers", mlog.Err(err))
+		}
+		if err = s.Jobs.StopSchedulers(); err != nil {
+			mlog.Warn("Failed to stop job server schedulers", mlog.Err(err))
+		}
 	}
 
 	if s.Store != nil {
