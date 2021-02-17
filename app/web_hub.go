@@ -114,6 +114,9 @@ func (a *App) InvalidateWebConnSessionCacheForUser(userID string) {
 func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
+	// Wait until all messages have finished reading.
+	s.webConnSemaWg.Wait()
+	// Now stop the hub.
 	for _, hub := range s.hubs {
 		hub.Stop()
 	}
@@ -205,7 +208,7 @@ func (s *Server) PublishSkipClusterSend(event *model.WebSocketEvent) {
 	}
 
 	// Notify shared channel sync service
-	s.ServerSyncSharedChannelHandler(event)
+	s.SharedChannelSyncHandler(event)
 }
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {

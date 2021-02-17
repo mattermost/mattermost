@@ -32,7 +32,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudDelinquentEmailJobsEnabled = false
 	f.CollapsedThreads = false
 	f.EnableRemoteClusterService = false
-	f.PluginIncidentManagement = "1.3.2"
+	f.PluginIncidentManagement = "1.4.0"
 }
 
 func (f *FeatureFlags) Plugins() map[string]string {

@@ -157,13 +157,20 @@ func (_m *ChannelStore) CountPostsAfter(channelId string, timestamp int64, userI
 	return r0, r1
 }
 
-// CreateDirectChannel provides a mock function with given fields: userId, otherUserId
-func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
-	ret := _m.Called(userId, otherUserId)
+// CreateDirectChannel provides a mock function with given fields: userId, otherUserId, channelOptions
+func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	_va := make([]interface{}, len(channelOptions))
+	for _i := range channelOptions {
+		_va[_i] = channelOptions[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, userId, otherUserId)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User) *model.Channel); ok {
-		r0 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -171,8 +178,8 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User) error); ok {
-		r1 = rf(userId, otherUserId)
+	if rf, ok := ret.Get(1).(func(*model.User, *model.User, ...model.ChannelOption) error); ok {
+		r1 = rf(userId, otherUserId, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}

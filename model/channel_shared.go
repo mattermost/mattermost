@@ -28,6 +28,7 @@ type SharedChannel struct {
 	CreateAt         int64  `json:"create_at"`
 	UpdateAt         int64  `json:"update_at"`
 	RemoteId         string `json:"remote_id,omitempty"` // if not "home"
+	Type             string `db:"-"`
 }
 
 func (sc *SharedChannel) ToJson() string {
@@ -46,7 +47,7 @@ func (sc *SharedChannel) IsValid() *AppError {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "ChannelId="+sc.ChannelId, http.StatusBadRequest)
 	}
 
-	if !IsValidId(sc.TeamId) {
+	if sc.Type != CHANNEL_DIRECT && !IsValidId(sc.TeamId) {
 		return NewAppError("SharedChannel.IsValid", "model.channel.is_valid.id.app_error", nil, "TeamId="+sc.TeamId, http.StatusBadRequest)
 	}
 
@@ -148,7 +149,7 @@ func (sc *SharedChannelRemote) IsValid() *AppError {
 	}
 
 	if !IsValidId(sc.CreatorId) {
-		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "CreatorId", http.StatusBadRequest)
+		return NewAppError("SharedChannelRemote.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "id="+sc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
 }

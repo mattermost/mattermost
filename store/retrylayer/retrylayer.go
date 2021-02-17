@@ -704,11 +704,11 @@ func (s *RetryLayerChannelStore) CountPostsAfter(channelId string, timestamp int
 
 }
 
-func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error) {
+func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUserId *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+		result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId, channelOptions...)
 		if err == nil {
 			return result, nil
 		}
