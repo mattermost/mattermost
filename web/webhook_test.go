@@ -144,8 +144,8 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
 		// System-Admin Owned Hook
-		adminHook, err := th.App.CreateIncomingWebhookForChannel(th.SystemAdminUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
-		require.NoError(t, err)
+		adminHook, appErr := th.App.CreateIncomingWebhookForChannel(th.SystemAdminUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+		require.Nil(t, appErr)
 		adminUrl := ApiClient.Url + "/hooks/" + adminHook.Id
 
 		resp, err = http.Post(adminUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL)))
