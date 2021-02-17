@@ -91,7 +91,7 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 
 	pluginsEnv := a.GetPluginsEnvironment()
 
-	// Check if someone has nullify the pluginsEnv in the meantime
+	// Check if someone has nullified the pluginsEnv in the meantime
 	if pluginsEnv == nil {
 		http.NotFound(w, r)
 		return

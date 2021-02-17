@@ -9,14 +9,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/config"
-
 	"github.com/gorilla/mux"
-
-	"github.com/mattermost/mattermost-server/v5/model"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestServePluginPublicRequest(t *testing.T) {
