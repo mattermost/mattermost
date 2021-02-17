@@ -32,6 +32,8 @@ var noticesCache = utils.RequestCache{}
 var cachedPostCount int64
 var cachedUserCount int64
 
+var cachedDBMSVersion string
+
 // previously fetched notices
 var cachedNotices model.ProductNotices
 var rcStripRegexp = regexp.MustCompile(`(.*?)(-rc\d+)(.*?)`)
@@ -52,7 +54,8 @@ func cleanupVersion(originalVersion string) string {
 
 func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userID string,
 	client model.NoticeClientType, clientVersion string, postCount int64, userCount int64, isSystemAdmin bool,
-	isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+	isTeamAdmin bool, isCloud bool, sku, dbName, dbVer string,
+	notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -144,6 +147,27 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 		}
 	}
 
+	if cnd.DeprecatingDependency != nil {
+		extDepVersion, err := semver.NewVersion(cnd.DeprecatingDependency.MinimumVersion)
+		if err != nil {
+			return false, errors.Wrapf(err, "Cannot parse external dependency version %s", cnd.DeprecatingDependency.MinimumVersion)
+		}
+
+		switch cnd.DeprecatingDependency.Name {
+		case model.DATABASE_DRIVER_MYSQL, model.DATABASE_DRIVER_POSTGRES:
+			if dbName != cnd.DeprecatingDependency.Name {
+				return false, nil
+			}
+			serverDBMSVersion, err := semver.NewVersion(dbVer)
+			if err != nil {
+				return false, errors.Wrapf(err, "Cannot parse DBMS version %s", dbVer)
+			}
+			return extDepVersion.GreaterThan(serverDBMSVersion), nil
+		default:
+			return false, nil
+		}
+	}
+
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
 		if !validateConfigEntry(config, k, v) {
@@ -225,6 +249,7 @@ func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClient
 
 	sku := a.Srv().ClientLicense()["SkuShortName"]
 	isCloud := a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+	dbName := *a.Srv().Config().SqlSettings.DriverName
 
 	filteredNotices := make([]model.NoticeMessage, 0)
 
@@ -262,6 +287,8 @@ func (a *App) GetProductNotices(userID, teamID string, client model.NoticeClient
 			isTeamAdmin,
 			isCloud,
 			sku,
+			dbName,
+			cachedDBMSVersion,
 			&cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
@@ -315,6 +342,13 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	if err != nil {
 		mlog.Warn("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
+
+	cachedDBMSVersion, err = a.Srv().Store.GetDbVersion(false)
+	if err != nil {
+		mlog.Warn("Failed to get DBMS version", mlog.String("error", err.Error()))
+	}
+
+	cachedDBMSVersion = strings.Split(cachedDBMSVersion, " ")[0] // get rid of trailing strings attached to the version
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
 	if err != nil {
