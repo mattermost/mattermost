@@ -581,9 +581,9 @@ func (s *SqlRetentionPolicyStore) RemoveTeams(policyId string, teamIds []string)
 	return err
 }
 
-// RemoveStaleRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
+// RemoveOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
-func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
+func (s *SqlRetentionPolicyStore) RemoveOrphanedRows(limit int64) (deleted int64, err error) {
 	// We need the extra level of nesting to deal with MySQL's locking
 	const rpcDeleteQuery = `
 	DELETE FROM RetentionPoliciesChannels WHERE ChannelId IN (
@@ -591,6 +591,7 @@ func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
 			SELECT ChannelId FROM RetentionPoliciesChannels
 			LEFT JOIN Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id
 			WHERE Channels.Id IS NULL
+			LIMIT :Limit
 		) AS A
 	)`
 	const rptDeleteQuery = `
@@ -599,12 +600,26 @@ func (s *SqlRetentionPolicyStore) RemoveStaleRows() error {
 			SELECT TeamId FROM RetentionPoliciesTeams
 			LEFT JOIN Teams ON RetentionPoliciesTeams.TeamId = Teams.Id
 			WHERE Teams.Id IS NULL
+			LIMIT :Limit
 		) AS A
 	)`
-	_, err := s.GetMaster().Exec(rpcDeleteQuery)
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(rpcDeleteQuery, props)
 	if err != nil {
-		return err
+		return
 	}
-	_, err = s.GetMaster().Exec(rptDeleteQuery)
-	return err
+	rpcDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	result, err = s.GetMaster().Exec(rptDeleteQuery, props)
+	if err != nil {
+		return
+	}
+	rptDeleted, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	deleted = rpcDeleted + rptDeleted
+	return
 }
