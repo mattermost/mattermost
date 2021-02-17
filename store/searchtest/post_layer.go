@@ -215,7 +215,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{EngineAll},
+		Tags: []string{EngineMySql, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
