@@ -106,8 +106,11 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("job", job)
 
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.App.Session(), job)
-
 	if !hasPermission {
+		if permissionRequired == nil {
+			c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
+			return
+		}
 		c.SetPermissionError(permissionRequired)
 		return
 	}
