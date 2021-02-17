@@ -9,6 +9,7 @@ import (
 	dbsql "database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -155,6 +156,21 @@ func New(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlS
 		rrCounter: 0,
 		srCounter: 0,
 		settings:  &settings,
+	}
+
+	// We need to tell the sql driver that we want to use multiStatements
+	// in order to make migrations work.
+	if store.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		u, err := url.Parse(*settings.DataSource)
+		if err != nil {
+			mlog.Critical("Invalid database url found", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(ExitGenericFailure)
+		}
+		q := u.Query()
+		q.Set("multiStatements", "true")
+		u.RawQuery = q.Encode()
+		settings.DataSource = model.NewString(u.String())
 	}
 
 	store.initConnection()

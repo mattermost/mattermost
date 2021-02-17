@@ -11,8 +11,6 @@ CREATE TABLE IF NOT EXISTS Teams (
     CompanyName varchar(64) DEFAULT NULL,
     AllowedDomains text,
     InviteId varchar(32) DEFAULT NULL,
-    AllowOpenInvite bool,
-    LastTeamIconUpdate bigint,
     SchemeId varchar(26) DEFAULT NULL,
     PRIMARY KEY (Id),
     UNIQUE KEY Name (Name),
@@ -23,3 +21,33 @@ CREATE TABLE IF NOT EXISTS Teams (
     KEY idx_teams_delete_at (DeleteAt),
     KEY idx_teams_scheme_id (SchemeId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Teams'
+        AND table_schema = DATABASE()
+        AND column_name = 'AllowOpenInvite'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Teams ADD AllowOpenInvite bool;'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+SET @preparedStatement = (SELECT IF(
+    (
+        SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_name = 'Teams'
+        AND table_schema = DATABASE()
+        AND column_name = 'LastTeamIconUpdate'
+    ) > 0,
+    'SELECT 1',
+    'ALTER TABLE Teams ADD LastTeamIconUpdate bigint;'
+));
+
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;

@@ -1,3 +1,7 @@
+ALTER TABLE teams
+DROP COLUMN IF EXISTS allowopeninvite;
+DROP COLUMN IF EXISTS lastteamiconupdate;
+
 DROP INDEX IF EXISTS idx_teams_name;
 DROP INDEX IF EXISTS idx_teams_invite_id;
 DROP INDEX IF EXISTS idx_teams_update_at;
