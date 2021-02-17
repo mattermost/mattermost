@@ -22,7 +22,7 @@ func TestTermsOfServiceIsValid(t *testing.T) {
 	assert.NotNil(t, s.IsValid(), "should be invalid")
 
 	s.UserId = NewId()
-	assert.NotNil(t, s.IsValid(), "should be invalid")
+	assert.Nil(t, s.IsValid(), "should be valid")
 
 	s.Text = strings.Repeat("0", POST_MESSAGE_MAX_RUNES_V2+1)
 	assert.NotNil(t, s.IsValid(), "should be invalid")

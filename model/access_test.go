@@ -65,5 +65,5 @@ func TestAccessIsValid(t *testing.T) {
 	require.NotNil(t, ad.IsValid())
 
 	ad.RedirectUri = "http://example.com"
-	require.NotNil(t, ad.IsValid())
+	require.Nil(t, ad.IsValid())
 }

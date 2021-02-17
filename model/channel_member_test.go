@@ -36,16 +36,16 @@ func TestChannelMemberIsValid(t *testing.T) {
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps["desktop"] = CHANNEL_NOTIFY_ALL
-	require.NotNil(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be valid")
 
 	o.NotifyProps["mark_unread"] = "123456789012345678901"
 	require.NotNil(t, o.IsValid(), "should be invalid")
 
 	o.NotifyProps["mark_unread"] = CHANNEL_MARK_UNREAD_ALL
-	require.NotNil(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be valid")
 
 	o.Roles = ""
-	require.NotNil(t, o.IsValid(), "should be invalid")
+	require.Nil(t, o.IsValid(), "should be invalid")
 }
 
 func TestChannelUnreadJson(t *testing.T) {
