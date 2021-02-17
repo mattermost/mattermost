@@ -29,7 +29,7 @@ func TestRequireHookId(t *testing.T) {
 		c.Params = &Params{HookId: "abc"}
 		c.RequireHookId()
 
-		require.Error(t, c.Err, "Should have set Error in context")
+		require.NotNil(t, c.Err, "Should have set Error in context")
 		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode, "Should have set status as 400")
 	})
 }
