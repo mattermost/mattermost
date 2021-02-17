@@ -51,7 +51,7 @@ func (u userCache) Add(id string) {
 
 // postsToSyncMessages takes a slice of posts and converts to a `RemoteClusterMsg` which can be
 // sent to a remote cluster.
-func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, lastSyncAt int64) ([]syncMsg, error) {
+func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteCluster, nextSyncAt int64) ([]syncMsg, error) {
 	syncMessages := make([]syncMsg, 0, len(posts))
 
 	uCache := make(userCache)
@@ -62,7 +62,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 		}
 
 		// any reactions originating from the remote cluster are filtered out
-		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, lastSyncAt, rc.RemoteId, true)
+		reactions, err := scs.server.GetStore().Reaction().GetForPostSince(p.Id, nextSyncAt, rc.RemoteId, true)
 		if err != nil {
 			return nil, err
 		}
@@ -72,9 +72,9 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 		// Don't resend an existing post where only the reactions changed.
 		// Posts we must send:
 		//   - new posts (EditAt == 0)
-		//   - edited posts (EditAt >= lastSyncAt)
+		//   - edited posts (EditAt >= nextSyncAt)
 		//   - deleted posts (DeleteAt > 0)
-		if p.EditAt > 0 && p.EditAt < lastSyncAt && p.DeleteAt == 0 {
+		if p.EditAt > 0 && p.EditAt < nextSyncAt && p.DeleteAt == 0 {
 			postSync = nil
 		}
 
@@ -89,7 +89,7 @@ func (scs *Service) postsToSyncMessages(posts []*model.Post, rc *model.RemoteClu
 			postSync.Message = scs.processPermalinkToRemote(postSync)
 
 			// get any file attachments
-			attachments, err = scs.postToAttachments(postSync, rc, lastSyncAt)
+			attachments, err = scs.postToAttachments(postSync, rc, nextSyncAt)
 			if err != nil {
 				scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceError, "Could not fetch attachments for post",
 					mlog.String("post_id", postSync.Id),

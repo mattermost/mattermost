@@ -15887,9 +15887,9 @@ func (a *OpenTracingAppLayer) UpdateSharedChannel(sc *model.SharedChannel) (*mod
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
+func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {
 	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelRemoteLastSyncAt")
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSharedChannelRemoteNextSyncAt")
 
 	a.ctx = newCtx
 	a.app.Srv().Store.SetContext(newCtx)
@@ -15899,7 +15899,7 @@ func (a *OpenTracingAppLayer) UpdateSharedChannelRemoteLastSyncAt(id string, syn
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateSharedChannelRemoteLastSyncAt(id, syncTime)
+	resultVar0 := a.app.UpdateSharedChannelRemoteNextSyncAt(id, syncTime)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

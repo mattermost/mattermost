@@ -98,8 +98,8 @@ func (a *App) HasRemote(channelID string, remoteID string) (bool, error) {
 	return a.Srv().Store.SharedChannel().HasRemote(channelID, remoteID)
 }
 
-func (a *App) UpdateSharedChannelRemoteLastSyncAt(id string, syncTime int64) error {
-	return a.Srv().Store.SharedChannel().UpdateRemoteLastSyncAt(id, syncTime)
+func (a *App) UpdateSharedChannelRemoteNextSyncAt(id string, syncTime int64) error {
+	return a.Srv().Store.SharedChannel().UpdateRemoteNextSyncAt(id, syncTime)
 }
 
 func (a *App) DeleteSharedChannelRemote(id string) (bool, error) {

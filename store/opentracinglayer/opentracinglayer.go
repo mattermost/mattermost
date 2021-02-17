@@ -5366,6 +5366,24 @@ func (s *OpenTracingLayerPostStore) GetSingle(id string) (*model.Post, error) {
 	return result, err
 }
 
+func (s *OpenTracingLayerPostStore) GetSingleIncDeleted(id string) (*model.Post, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetSingleIncDeleted")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.PostStore.GetSingleIncDeleted(id)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerPostStore) InvalidateLastPostTimeCache(channelId string) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.InvalidateLastPostTimeCache")
@@ -7012,16 +7030,16 @@ func (s *OpenTracingLayerSharedChannelStore) UpdateRemote(remote *model.SharedCh
 	return result, err
 }
 
-func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+func (s *OpenTracingLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateRemoteLastSyncAt")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SharedChannelStore.UpdateRemoteNextSyncAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+	err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

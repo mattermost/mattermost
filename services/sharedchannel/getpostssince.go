@@ -38,17 +38,12 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 
 	countPosts := len(posts)
 	if countPosts == 0 {
-		return sinceResult{}, nil
+		return sinceResult{nextSince: since}, nil
 	}
 
 	var hasMore bool
 	if countPosts > MaxPostsPerSync {
 		hasMore = true
-
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "getPostsSince will repeat",
-			mlog.String("remote", rc.DisplayName),
-		)
-
 		peekUpdateAt := posts[countPosts-1].UpdateAt
 		posts = posts[:MaxPostsPerSync] // trim the peeked at record
 
@@ -80,7 +75,7 @@ func (scs *Service) getPostsSince(channelId string, rc *model.RemoteCluster, sin
 func countPostsAtMillisecond(posts []*model.Post, milli int64) int {
 	// walk backward through the slice until we find a post with UpdateAt that differs from milli.
 	var count int
-	for i := len(posts); i >= 0; i-- {
+	for i := len(posts) - 1; i >= 0; i-- {
 		if posts[i].UpdateAt != milli {
 			return count
 		}

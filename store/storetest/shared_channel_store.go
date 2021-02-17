@@ -29,7 +29,7 @@ func TestSharedChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, ss) })
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, ss) })
-	t.Run("UpdateSharedChannelRemoteLastSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteLastSyncAt(t, ss) })
+	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteNextSyncAt(t, ss) })
 	t.Run("DeleteSharedChannelRemote", func(t *testing.T) { testDeleteSharedChannelRemote(t, ss) })
 
 	t.Run("SaveSharedChannelUser", func(t *testing.T) { testSaveSharedChannelUser(t, ss) })
@@ -626,8 +626,8 @@ func testHasRemote(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateSharedChannelRemoteLastSyncAt(t *testing.T, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remote_update_last_sync_at")
+func testUpdateSharedChannelRemoteNextSyncAt(t *testing.T, ss store.Store) {
+	channel, err := createTestChannel(ss, "test_remote_update_next_sync_at")
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
@@ -642,17 +642,17 @@ func testUpdateSharedChannelRemoteLastSyncAt(t *testing.T, ss store.Store) {
 
 	future := model.GetMillis() + 3600000 // 1 hour in the future
 
-	t.Run("Update LastSyncAt for remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteLastSyncAt(remoteSaved.Id, future)
-		require.Nil(t, err, "updateLastSyncAt should not error", err)
+	t.Run("Update NextSyncAt for remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteNextSyncAt(remoteSaved.Id, future)
+		require.Nil(t, err, "update NextSyncAt should not error", err)
 
 		r, err := ss.SharedChannel().GetRemote(remoteSaved.Id)
 		require.NoError(t, err)
-		require.Equal(t, future, r.LastSyncAt)
+		require.Equal(t, future, r.NextSyncAt)
 	})
 
-	t.Run("Update LastSyncAt for non-existent shared channel remote", func(t *testing.T) {
-		err := ss.SharedChannel().UpdateRemoteLastSyncAt(model.NewId(), future)
+	t.Run("Update NextSyncAt for non-existent shared channel remote", func(t *testing.T) {
+		err := ss.SharedChannel().UpdateRemoteNextSyncAt(model.NewId(), future)
 		require.Error(t, err, "update non-existent remote should error", err)
 	})
 }

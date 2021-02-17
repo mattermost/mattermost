@@ -517,6 +517,29 @@ func (s *SqlPostStore) GetSingle(id string) (*model.Post, error) {
 	return &post, nil
 }
 
+func (s *SqlPostStore) GetSingleIncDeleted(id string) (*model.Post, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"Id": id}).
+		ToSql()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "getsingleincldeleted_tosql")
+	}
+
+	var post model.Post
+	err = s.GetReplica().SelectOne(&post, query, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
+	}
+	return &post, nil
+}
+
 type etagPosts struct {
 	Id       string
 	UpdateAt int64
@@ -925,7 +948,7 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Gt{"UpdateAt": options.Since}).
+		Where(sq.GtOrEq{"UpdateAt": options.Since}).
 		Where(sq.Eq{"ChannelId": options.ChannelId}).
 		Limit(uint64(options.Limit)).
 		OrderBy("UpdateAt" + order)
@@ -950,11 +973,6 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	if err != nil {
 		return nil, errors.Wrap(err, "getpostssinceforsync_tosql")
 	}
-
-	mlog.Debug("GetPostsSinceForSync",
-		mlog.String("sql", queryString),
-		mlog.Any("args", args),
-	)
 
 	var posts []*model.Post
 

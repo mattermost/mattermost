@@ -79,6 +79,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, des
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 			return
 		}
+		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
 	})
 }

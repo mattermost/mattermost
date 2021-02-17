@@ -456,8 +456,8 @@ func (_m *SharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (*
 	return r0, r1
 }
 
-// UpdateRemoteLastSyncAt provides a mock function with given fields: id, syncTime
-func (_m *SharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+// UpdateRemoteNextSyncAt provides a mock function with given fields: id, syncTime
+func (_m *SharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 	ret := _m.Called(id, syncTime)
 
 	var r0 error

@@ -5794,6 +5794,26 @@ func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, error) {
 
 }
 
+func (s *RetryLayerPostStore) GetSingleIncDeleted(id string) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetSingleIncDeleted(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
 func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelId string) {
 
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
@@ -7606,11 +7626,11 @@ func (s *RetryLayerSharedChannelStore) UpdateRemote(remote *model.SharedChannelR
 
 }
 
-func (s *RetryLayerSharedChannelStore) UpdateRemoteLastSyncAt(id string, syncTime int64) error {
+func (s *RetryLayerSharedChannelStore) UpdateRemoteNextSyncAt(id string, syncTime int64) error {
 
 	tries := 0
 	for {
-		err := s.SharedChannelStore.UpdateRemoteLastSyncAt(id, syncTime)
+		err := s.SharedChannelStore.UpdateRemoteNextSyncAt(id, syncTime)
 		if err == nil {
 			return nil
 		}

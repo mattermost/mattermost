@@ -24,6 +24,7 @@ const (
 	MaxRetries                   = 3
 	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
 	NotifyRemoteOfflineThreshold = time.Second * 10
+	NotifyMinimumDelay           = time.Second * 2
 )
 
 // Mocks can be re-generated with `make sharedchannel-mocks`.

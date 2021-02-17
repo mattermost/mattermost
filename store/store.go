@@ -282,6 +282,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
+	GetSingleIncDeleted(id string) (*model.Post, error)
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
 	PermanentDeleteByChannel(channelId string) error
@@ -817,7 +818,7 @@ type SharedChannelStore interface {
 	HasRemote(channelID string, remoteId string) (bool, error)
 	GetRemoteByIds(channelId string, remoteId string) (*model.SharedChannelRemote, error)
 	GetRemotes(channelId string) ([]*model.SharedChannelRemote, error)
-	UpdateRemoteLastSyncAt(id string, syncTime int64) error
+	UpdateRemoteNextSyncAt(id string, syncTime int64) error
 	DeleteRemote(remoteId string) (bool, error)
 	GetRemotesStatus(channelId string) ([]*model.SharedChannelRemoteStatus, error)
 
