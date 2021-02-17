@@ -40,6 +40,7 @@ func TestCreateJob(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateJob(job)
 	CheckBadRequestStatus(t, resp)
 
+	job.Type = model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING
 	_, resp = th.Client.CreateJob(job)
 	CheckForbiddenStatus(t, resp)
 }

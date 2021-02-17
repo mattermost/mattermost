@@ -1481,6 +1481,10 @@
     "translation": "input/output error"
   },
   {
+    "id": "api.job.unable_to_create_job.incorrect_job_type",
+    "translation": "The job type of the job you are trying to create is invalid"
+  },
+  {
     "id": "api.job.unable_to_download_job",
     "translation": "Unable to download this job"
   },

@@ -13575,6 +13575,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionToChannelByPost(session model.
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToCreateJob")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SessionHasPermissionToCreateJob(session, job)
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToManageBot")
