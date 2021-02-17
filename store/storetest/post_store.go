@@ -2540,31 +2540,16 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 }
 
 func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
-		Name:        "team" + model.NewId(),
-		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
-	})
-	require.Nil(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "DisplayName",
-		Name:        "channel" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
-	}, -1)
-	require.Nil(t, err)
-
 	o1 := &model.Post{}
-	o1.ChannelId = channel.Id
+	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1.CreateAt = 1000
-	o1, err = ss.Post().Save(o1)
+	o1, err := ss.Post().Save(o1)
 	require.NoError(t, err)
 
 	o2 := &model.Post{}
-	o2.ChannelId = channel.Id
+	o2.ChannelId = model.NewId()
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o2.CreateAt = 1000
@@ -2572,7 +2557,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	o3 := &model.Post{}
-	o3.ChannelId = channel.Id
+	o3.ChannelId = model.NewId()
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o3.CreateAt = 100000
@@ -2589,64 +2574,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	require.Error(t, err, "Should have not found post 2 after purge")
 
 	_, err = ss.Post().Get(o3.Id, false, false, false)
-	require.Nil(t, err, "Should have found post 3 after purge")
-
-	t.Run("with data retention policies", func(t *testing.T) {
-		channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
-			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: 30,
-			},
-			ChannelIds: []string{channel.Id},
-		})
-		require.Nil(t, err)
-		post := &model.Post{
-			ChannelId: channel.Id,
-			UserId:    model.NewId(),
-			Message:   "message",
-			CreateAt:  1,
-		}
-		post, err = ss.Post().Save(post)
-		require.Nil(t, err)
-
-		_, err = ss.Post().PermanentDeleteBatch(2000, 1000)
-		require.Nil(t, err)
-		_, err = ss.Post().Get(post.Id, false, false, false)
-		require.Nil(t, err, "global policy should have been ignored due to granular policy")
-
-		nowMillis := post.CreateAt + channelPolicy.PostDuration*24*60*60*1000 + 1
-		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
-		require.Nil(t, err)
-		_, err = ss.Post().Get(post.Id, false, false, false)
-		require.NotNil(t, err, "post should have been deleted by channel policy")
-
-		// Create a team policy which is stricter than the channel policy
-		teamPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithApplied{
-			RetentionPolicy: model.RetentionPolicy{
-				DisplayName:  "DisplayName",
-				PostDuration: 20,
-			},
-			TeamIds: []string{team.Id},
-		})
-		require.Nil(t, err)
-		post.Id = ""
-		post, err = ss.Post().Save(post)
-		require.Nil(t, err)
-
-		nowMillis = post.CreateAt + teamPolicy.PostDuration*24*60*60*1000 + 1
-		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
-		require.Nil(t, err)
-		_, err = ss.Post().Get(post.Id, false, false, false)
-		require.Nil(t, err, "channel policy should have overridden team policy")
-
-		// Delete channel policy and re-run team policy
-		err = ss.RetentionPolicy().Delete(channelPolicy.Id)
-		require.Nil(t, err)
-		_, err = ss.Post().PermanentDeleteBatchForRetentionPolicies(nowMillis, 1000)
-		require.Nil(t, err)
-		_, err = ss.Post().Get(post.Id, false, false, false)
-		require.NotNil(t, err, "post should have been deleted by team policy")
-	})
+	require.NoError(t, err, "Should have not found post 3 after purge")
 }
 
 func testPostStoreGetOldest(t *testing.T, ss store.Store) {

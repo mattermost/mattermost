@@ -174,33 +174,12 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	return nil
 }
 
-// PermanentDeleteBatch deletes a batch of reactions whose corresponding posts are older
-// than endTime.
 func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	// Granular policies override global ones
-	const selectQuery = `
-		SELECT Reactions.PostId FROM Reactions
-		LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN Teams ON Channels.TeamId = Teams.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		WHERE RetentionPoliciesChannels.ChannelId IS NULL
-		      AND RetentionPoliciesTeams.TeamId IS NULL
-		      AND Posts.CreateAt < :EndTime
-		LIMIT :Limit`
 	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Reactions WHERE PostId IN (
-		` + selectQuery + `
-		)`
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
 	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Reactions FROM Reactions INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Reactions.PostId = A.PostId`
+		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
 	}
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
@@ -211,51 +190,6 @@ func (s *SqlReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "unable to get rows affected for deleted Reactions")
-	}
-	return rowsAffected, nil
-}
-
-// PermanentDeleteBatchForRetentionPolicies deletes a batch of reactions whose corresponding posts are older
-// than endTime, and fall under the scope of a granular retention policy.
-func (s *SqlReactionStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies.
-	// A reaction will be deleted if its corresponding post was already deleted by a retention policy.
-	const selectQuery = `
-		SELECT Reactions.PostId FROM Reactions
-		LEFT JOIN Posts ON Reactions.PostId = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
-			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR (
-				RetentionPoliciesChannels.PolicyId IS NULL
-				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-			)
-		WHERE :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			OR Posts.Id IS NULL
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Reactions WHERE PostId IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Reactions FROM Reactions INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Reactions.PostId = A.PostId`
-	}
-	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Reactions")
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Reactions")
 	}
 	return rowsAffected, nil
 }

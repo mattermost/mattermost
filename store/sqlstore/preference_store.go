@@ -259,37 +259,34 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 	return nil
 }
 
-func (s SqlPreferenceStore) PermanentDeleteFlagsBatch(endTime, limit int64) (int64, error) {
-	// Granular policies override global ones
-	const selectQuery = `
-		SELECT Preferences.Name FROM Preferences
-		LEFT JOIN Posts ON Preferences.Name = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN Teams ON Channels.TeamId = Teams.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		WHERE Category = :Category
-		      AND RetentionPoliciesChannels.ChannelId IS NULL
-		      AND RetentionPoliciesTeams.TeamId IS NULL
-		      AND Posts.CreateAt < :EndTime
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Preferences
-		WHERE Name IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Preferences FROM Preferences INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Preferences.Name = A.Name`
-	}
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
+	query :=
+		`DELETE FROM
+			Preferences
+		WHERE
+			Category = :Category
+			AND Name IN (
+				SELECT
+					*
+				FROM (
+					SELECT
+						Preferences.Name
+					FROM
+						Preferences
+					LEFT JOIN
+						Posts
+					ON
+						Preferences.Name = Posts.Id
+					WHERE
+						Preferences.Category = :Category
+						AND Posts.Id IS null
+					LIMIT
+						:Limit
+				)
+				AS t
+			)`
 
-	props := map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "EndTime": endTime, "Limit": limit}
-	sqlResult, err := s.GetMaster().Exec(query, props)
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
 	if err != nil {
 		return int64(0), errors.Wrap(err, "failed to delete Preference")
 	}
@@ -299,52 +296,5 @@ func (s SqlPreferenceStore) PermanentDeleteFlagsBatch(endTime, limit int64) (int
 		return int64(0), errors.Wrap(err, "unable to get rows affected")
 	}
 
-	return rowsAffected, nil
-}
-
-func (s *SqlPreferenceStore) PermanentDeleteFlagsBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies.
-	// This will delete a preference if its corresponding post was already deleted was by
-	// a retention policy.
-	const selectQuery = `
-		SELECT Preferences.Name FROM Preferences
-		LEFT JOIN Posts ON Preferences.Name = Posts.Id
-		LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		LEFT JOIN RetentionPolicies ON
-			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR (
-				RetentionPoliciesChannels.PolicyId IS NULL
-				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-			)
-		WHERE Category = :Category AND (
-			:Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-			OR Posts.Id IS NULL
-		)
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Preferences
-		WHERE Name IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Preferences FROM Preferences INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Preferences.Name = A.Name`
-	}
-	props := map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Preferences")
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Preferences")
-	}
 	return rowsAffected, nil
 }

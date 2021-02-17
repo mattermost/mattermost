@@ -162,18 +162,25 @@ func (_m *RetentionPolicyStore) RemoveChannels(policyId string, channelIds []str
 	return r0
 }
 
-// RemoveStaleRows provides a mock function with given fields:
-func (_m *RetentionPolicyStore) RemoveStaleRows() error {
-	ret := _m.Called()
+// RemoveOrphanedRows provides a mock function with given fields: limit
+func (_m *RetentionPolicyStore) RemoveOrphanedRows(limit int64) (int64, error) {
+	ret := _m.Called(limit)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
-		r0 = rf()
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64) int64); ok {
+		r0 = rf(limit)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // RemoveTeams provides a mock function with given fields: policyId, teamIds

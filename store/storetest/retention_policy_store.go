@@ -22,7 +22,7 @@ func TestRetentionPolicyStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("RemoveChannels", func(t *testing.T) { testRetentionPolicyStoreRemoveChannels(t, ss, s) })
 	t.Run("AddTeams", func(t *testing.T) { testRetentionPolicyStoreAddTeams(t, ss, s) })
 	t.Run("RemoveTeams", func(t *testing.T) { testRetentionPolicyStoreRemoveTeams(t, ss, s) })
-	t.Run("RemoveStaleRows", func(t *testing.T) { testRetentionPolicyStoreRemoveStaleRows(t, ss, s) })
+	t.Run("RemoveOrphanedRows", func(t *testing.T) { testRetentionPolicyStoreRemoveOrphanedRows(t, ss, s) })
 }
 
 func CheckRetentionPolicyEnrichedAreEqual(t *testing.T, p1, p2 *model.RetentionPolicyEnriched) {
@@ -567,7 +567,7 @@ func testRetentionPolicyStoreRemoveTeams(t *testing.T, ss store.Store, s SqlStor
 	cleanupRetentionPolicyTest(s)
 }
 
-func testRetentionPolicyStoreRemoveStaleRows(t *testing.T, ss store.Store, s SqlStore) {
+func testRetentionPolicyStoreRemoveOrphanedRows(t *testing.T, ss store.Store, s SqlStore) {
 	team := createTeamsForRetentionPolicy(t, ss, 1)[0]
 	channel := createChannelsForRetentionPolicy(t, ss, team, 1)[0]
 	proposal := createRetentionPolicyAppliedFromDisplayInfo("Policy 1",
@@ -579,7 +579,7 @@ func testRetentionPolicyStoreRemoveStaleRows(t *testing.T, ss store.Store, s Sql
 	require.Nil(t, err)
 	err = ss.Team().PermanentDelete(team.Id)
 	require.Nil(t, err)
-	err = ss.RetentionPolicy().RemoveStaleRows()
+	_, err = ss.RetentionPolicy().RemoveOrphanedRows(1000)
 	require.Nil(t, err)
 
 	policy, err = ss.RetentionPolicy().Get(policy.Id)

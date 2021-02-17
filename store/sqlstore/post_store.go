@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -41,65 +40,8 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func postSliceColumnsWithTypes() []struct {
-	Name string
-	Type reflect.Kind
-} {
-	return []struct {
-		Name string
-		Type reflect.Kind
-	}{
-		{"Id", reflect.String},
-		{"CreateAt", reflect.Int64},
-		{"UpdateAt", reflect.Int64},
-		{"EditAt", reflect.Int64},
-		{"DeleteAt", reflect.Int64},
-		{"IsPinned", reflect.Bool},
-		{"UserId", reflect.String},
-		{"ChannelId", reflect.String},
-		{"RootId", reflect.String},
-		{"ParentId", reflect.String},
-		{"OriginalId", reflect.String},
-		{"Message", reflect.String},
-		{"Type", reflect.String},
-		{"Props", reflect.Map},
-		{"Hashtags", reflect.String},
-		{"Filenames", reflect.Slice},
-		{"FileIds", reflect.Slice},
-		{"HasReactions", reflect.Bool},
-	}
-}
-
 func postSliceColumns() []string {
-	colInfos := postSliceColumnsWithTypes()
-	cols := make([]string, len(colInfos))
-	for i, colInfo := range colInfos {
-		cols[i] = colInfo.Name
-	}
-	return cols
-}
-
-func postSliceCoalesceQuery() string {
-	// TODO: calculate this once in an init() function?
-	colInfos := postSliceColumnsWithTypes()
-	cols := make([]string, len(colInfos))
-	for i, colInfo := range colInfos {
-		var defaultValue string
-		switch colInfo.Type {
-		case reflect.String:
-			defaultValue = "''"
-		case reflect.Int64:
-			defaultValue = "0"
-		case reflect.Bool:
-			defaultValue = "false"
-		case reflect.Map:
-			defaultValue = "'{}'"
-		case reflect.Slice:
-			defaultValue = "'[]'"
-		}
-		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
-	}
-	return strings.Join(cols, ",")
+	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions"}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -1834,29 +1776,11 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
-	// Granular policies override global ones
-	const selectQuery = `
-		SELECT Posts.Id FROM Posts
-		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
-		INNER JOIN Teams ON Channels.TeamId = Teams.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		WHERE RetentionPoliciesChannels.ChannelId IS NULL
-		      AND RetentionPoliciesTeams.TeamId IS NULL
-		      AND Posts.CreateAt < :EndTime
-		LIMIT :Limit`
 	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Posts WHERE Id IN (
-		` + selectQuery + `
-		)`
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
 	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Posts FROM Posts INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Posts.Id = A.Id`
+		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
 	}
 
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
@@ -1865,50 +1789,6 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Posts")
-	}
-	return rowsAffected, nil
-}
-
-// PermanentDeleteBatchForRetentionPolicies deletes a batch of posts which belong to a
-// granular (i.e. team or channel-specific) retention policy. `now` must be a Unix timestamp
-// in milliseconds.
-func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now int64, limit int64) (int64, error) {
-	// Channel-specific policies override team-specific policies.
-	// This will not delete a Post if the Channel to which it belonged has already been deleted.
-	const selectQuery = `
-		SELECT Posts.Id FROM Posts
-		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
-		LEFT JOIN RetentionPoliciesChannels ON Posts.ChannelId = RetentionPoliciesChannels.ChannelId
-		LEFT JOIN RetentionPoliciesTeams ON Channels.TeamId = RetentionPoliciesTeams.TeamId
-		INNER JOIN RetentionPolicies ON
-			RetentionPoliciesChannels.PolicyId = RetentionPolicies.Id
-			OR (
-				RetentionPoliciesChannels.PolicyId IS NULL
-				AND RetentionPoliciesTeams.PolicyId = RetentionPolicies.Id
-			)
-		WHERE :Now - Posts.CreateAt >= RetentionPolicies.PostDuration * 24 * 60 * 60 * 1000
-		LIMIT :Limit`
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-		DELETE FROM Posts WHERE Id IN (
-		` + selectQuery + `
-		)`
-	} else {
-		// MySQL does not support the LIMIT clause in a subquery with IN
-		query = `
-		DELETE Posts FROM Posts INNER JOIN (
-		` + selectQuery + `
-		) AS A ON Posts.Id = A.Id`
-	}
-	props := map[string]interface{}{"Now": now, "Limit": limit}
-	result, err := s.GetMaster().Exec(query, props)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete Posts")
-	}
-	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to delete Posts")
 	}
