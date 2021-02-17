@@ -23,10 +23,10 @@ func TestListImports(t *testing.T) {
 
 	uploadNewImport := func(c *model.Client4, t *testing.T) string {
 		file, err := os.Open(testsDir + "/import_test.zip")
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		info, err := file.Stat()
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		us := &model.UploadSession{
 			Filename: info.Name(),
@@ -51,7 +51,7 @@ func TestListImports(t *testing.T) {
 
 	t.Run("no permissions", func(t *testing.T) {
 		imports, resp := th.Client.ListImports()
-		require.Error(t, resp.Error)
+		require.NotNil(t, resp.Error)
 		require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 		require.Nil(t, imports)
 	})
@@ -71,7 +71,7 @@ func TestListImports(t *testing.T) {
 
 		importDir := filepath.Join(dataDir, "import")
 		f, err := os.Create(filepath.Join(importDir, "import.zip.tmp"))
-		require.Nil(t, err)
+		require.NoError(t, err)
 		f.Close()
 
 		imports, resp := c.ListImports()
@@ -81,7 +81,7 @@ func TestListImports(t *testing.T) {
 		require.Contains(t, imports, id+"_import_test.zip")
 		require.Contains(t, imports, id2+"_import_test.zip")
 
-		require.Nil(t, os.RemoveAll(importDir))
+		require.NoError(t, os.RemoveAll(importDir))
 	}, "expected imports")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
@@ -101,6 +101,6 @@ func TestListImports(t *testing.T) {
 		require.Len(t, imports, 1)
 		require.Equal(t, id+"_import_test.zip", imports[0])
 
-		require.Nil(t, os.RemoveAll(importDir))
+		require.NoError(t, os.RemoveAll(importDir))
 	}, "change import directory")
 }
