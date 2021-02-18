@@ -87,15 +87,15 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelID str
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
+func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, session.UserId); err == nil {
 
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
 		if channel.TeamId != "" {
 			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 		}
@@ -192,14 +192,14 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelID string, perm
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
-func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
+func (a *App) HasPermissionToChannelByPost(askingUserId string, postID string, permission *model.Permission) bool {
+	if channelMember, err := a.Srv().Store.Channel().GetMemberForPost(postID, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	if channel, err := a.Srv().Store.Channel().GetForPost(postId); err == nil {
+	if channel, err := a.Srv().Store.Channel().GetForPost(postID); err == nil {
 		return a.HasPermissionToTeam(askingUserId, channel.TeamId, permission)
 	}
 

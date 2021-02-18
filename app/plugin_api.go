@@ -552,8 +552,8 @@ func (api *PluginAPI) RemoveReaction(reaction *model.Reaction) *model.AppError {
 	return api.app.DeleteReactionForPost(reaction)
 }
 
-func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.AppError) {
-	return api.app.GetReactionsForPost(postId)
+func (api *PluginAPI) GetReactions(postID string) ([]*model.Reaction, *model.AppError) {
+	return api.app.GetReactionsForPost(postID)
 }
 
 func (api *PluginAPI) SendEphemeralPost(userID string, post *model.Post) *model.Post {
@@ -564,33 +564,33 @@ func (api *PluginAPI) UpdateEphemeralPost(userID string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userID, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userID, postId string) {
-	api.app.DeleteEphemeralPost(userID, postId)
+func (api *PluginAPI) DeleteEphemeralPost(userID, postID string) {
+	api.app.DeleteEphemeralPost(userID, postID)
 }
 
-func (api *PluginAPI) DeletePost(postId string) *model.AppError {
-	_, err := api.app.DeletePost(postId, api.id)
+func (api *PluginAPI) DeletePost(postID string) *model.AppError {
+	_, err := api.app.DeletePost(postID, api.id)
 	return err
 }
 
-func (api *PluginAPI) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	return api.app.GetPostThread(postId, false, false, false)
+func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
+	return api.app.GetPostThread(postID, false, false, false)
 }
 
-func (api *PluginAPI) GetPost(postId string) (*model.Post, *model.AppError) {
-	return api.app.GetSinglePost(postId)
+func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
+	return api.app.GetSinglePost(postID)
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
 	return api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 }
 
-func (api *PluginAPI) GetPostsAfter(channelID, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
-func (api *PluginAPI) GetPostsBefore(channelID, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postId, Page: page, PerPage: perPage})
+func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
+	return api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
