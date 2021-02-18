@@ -212,7 +212,7 @@ func newSqlTeamStore(sqlStore *SqlStore) store.TeamStore {
 		From("Teams")
 
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Team{}, "Teams")
+		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
