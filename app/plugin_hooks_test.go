@@ -36,20 +36,20 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	require.NoError(t, err)
 
 	app.SetPluginsEnvironment(env)
-	pluginIds := []string{}
+	pluginIDs := []string{}
 	activationErrors := []error{}
 	for _, code := range pluginCode {
-		pluginId := model.NewId()
-		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		pluginID := model.NewId()
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, code, backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
-		_, _, activationErr := env.Activate(pluginId)
-		pluginIds = append(pluginIds, pluginId)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		_, _, activationErr := env.Activate(pluginID)
+		pluginIDs = append(pluginIDs, pluginID)
 		activationErrors = append(activationErrors, activationErr)
 
 		app.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
 				Enable: true,
 			}
 		})
@@ -58,7 +58,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	return func() {
 		os.RemoveAll(pluginDir)
 		os.RemoveAll(webappPluginDir)
-	}, pluginIds, activationErrors
+	}, pluginIDs, activationErrors
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
@@ -966,7 +966,7 @@ func TestActiveHooks(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
-		tearDown, pluginIds, _ := SetAppEnvironmentWithPlugins(t,
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
 			[]string{
 				`
 			package main
@@ -999,10 +999,10 @@ func TestActiveHooks(t *testing.T) {
 		`}, th.App, th.App.NewPluginAPI)
 		defer tearDown()
 
-		require.Len(t, pluginIds, 1)
-		pluginId := pluginIds[0]
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
@@ -1018,15 +1018,15 @@ func TestActiveHooks(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
-		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginId)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
 		require.Error(t, err)
 		require.Nil(t, hooks)
 
-		// Should fail to find pluginId as it was deleted when deactivated
-		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginId)
+		// Should fail to find pluginID as it was deleted when deactivated
+		path, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
 		require.Error(t, err)
 		require.Empty(t, path)
 	})
@@ -1051,8 +1051,8 @@ func TestHookMetrics(t *testing.T) {
 
 		th.App.SetPluginsEnvironment(env)
 
-		pluginId := model.NewId()
-		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		pluginID := model.NewId()
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		code :=
 			`
 	package main
@@ -1084,30 +1084,30 @@ func TestHookMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
 
 		// Setup mocks before activating
-		metricsMock.On("ObservePluginHookDuration", pluginId, "Implemented", true, mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnActivate", true, mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnDeactivate", true, mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "OnConfigurationChange", true, mock.Anything).Return()
-		metricsMock.On("ObservePluginHookDuration", pluginId, "UserHasBeenCreated", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "Implemented", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnActivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnDeactivate", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "OnConfigurationChange", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginHookDuration", pluginID, "UserHasBeenCreated", true, mock.Anything).Return()
 
 		// Don't care about these calls.
 		metricsMock.On("ObservePluginApiDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookIterationDuration", mock.Anything, mock.Anything, mock.Anything).Return()
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
-		_, _, activationErr := env.Activate(pluginId)
+		_, _, activationErr := env.Activate(pluginID)
 		require.NoError(t, activationErr)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
 				Enable: true,
 			}
 		})
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
@@ -1124,8 +1124,8 @@ func TestHookMetrics(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		metricsMock.AssertExpectations(t)
 	})

@@ -374,9 +374,9 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	if result[0] != "plugins" {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
-	pluginId := result[1]
+	pluginID := result[1]
 
-	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
+	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginID)
 
 	base, err := url.Parse(path)
 	if err != nil {
@@ -407,7 +407,7 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	r.Header.Set("Mattermost-User-Id", a.Session().UserId)
 	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session().Token)
 	params := make(map[string]string)
-	params["plugin_id"] = pluginId
+	params["plugin_id"] = pluginID
 	r = mux.SetURLVars(r, params)
 
 	a.ServePluginRequest(w, r)

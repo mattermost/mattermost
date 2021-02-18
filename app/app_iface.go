@@ -417,8 +417,8 @@ type AppIface interface {
 	ClientConfigHash() string
 	Cloud() einterfaces.CloudInterface
 	Cluster() einterfaces.ClusterInterface
-	CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError)
-	CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError)
+	CompareAndDeletePluginKey(pluginID string, key string, oldValue []byte) (bool, *model.AppError)
+	CompareAndSetPluginKey(pluginID string, key string, oldValue, newValue []byte) (bool, *model.AppError)
 	CompleteOAuth(service string, body io.ReadCloser, teamID string, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError)
 	CompleteSwitchWithOAuth(service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
@@ -463,7 +463,7 @@ type AppIface interface {
 	DeactivateMfa(userID string) *model.AppError
 	DeauthorizeOAuthAppForUser(userID, appID string) *model.AppError
 	DeleteAllExpiredPluginKeys() *model.AppError
-	DeleteAllKeysForPlugin(pluginId string) *model.AppError
+	DeleteAllKeysForPlugin(pluginID string) *model.AppError
 	DeleteBrandImage() *model.AppError
 	DeleteChannel(channel *model.Channel, userID string) *model.AppError
 	DeleteCommand(commandID string) *model.AppError
@@ -477,7 +477,7 @@ type AppIface interface {
 	DeleteIncomingWebhook(hookID string) *model.AppError
 	DeleteOAuthApp(appID string) *model.AppError
 	DeleteOutgoingWebhook(hookID string) *model.AppError
-	DeletePluginKey(pluginId string, key string) *model.AppError
+	DeletePluginKey(pluginID string, key string) *model.AppError
 	DeletePost(postId, deleteByID string) (*model.Post, *model.AppError)
 	DeletePostFiles(post *model.Post)
 	DeletePreferences(userID string, preferences model.Preferences) *model.AppError
@@ -635,7 +635,7 @@ type AppIface interface {
 	GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError)
 	GetPermalinkPost(postId string, userID string) (*model.PostList, *model.AppError)
 	GetPinnedPosts(channelID string) (*model.PostList, *model.AppError)
-	GetPluginKey(pluginId string, key string) ([]byte, *model.AppError)
+	GetPluginKey(pluginID string, key string) ([]byte, *model.AppError)
 	GetPlugins() (*model.PluginsResponse, *model.AppError)
 	GetPostAfterTime(channelID string, time int64) (*model.Post, *model.AppError)
 	GetPostIdAfterTime(channelID string, time int64) (string, *model.AppError)
@@ -788,7 +788,7 @@ type AppIface interface {
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListExports() ([]string, *model.AppError)
 	ListImports() ([]string, *model.AppError)
-	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
+	ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamID string) ([]*model.Command, *model.AppError)
 	Log() *mlog.Logger
 	LoginByOAuth(service string, userData io.Reader, teamID string, tokenUser *model.User) (*model.User, *model.AppError)
@@ -843,7 +843,7 @@ type AppIface interface {
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
-	RegisterPluginCommand(pluginId string, command *model.Command) error
+	RegisterPluginCommand(pluginID string, command *model.Command) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
@@ -936,9 +936,9 @@ type AppIface interface {
 	SetIpAddress(s string)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
-	SetPluginKey(pluginId string, key string, value []byte) *model.AppError
-	SetPluginKeyWithExpiry(pluginId string, key string, value []byte, expireInSeconds int64) *model.AppError
-	SetPluginKeyWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
+	SetPluginKey(pluginID string, key string, value []byte) *model.AppError
+	SetPluginKeyWithExpiry(pluginID string, key string, value []byte, expireInSeconds int64) *model.AppError
+	SetPluginKeyWithOptions(pluginID string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 	SetPluginsEnvironment(pluginsEnvironment *plugin.Environment)
 	SetProfileImage(userID string, imageData *multipart.FileHeader) *model.AppError
 	SetProfileImageFromFile(userID string, file io.Reader) *model.AppError
@@ -982,8 +982,8 @@ type AppIface interface {
 	ToggleMuteChannel(channelID, userID string) (*model.ChannelMember, *model.AppError)
 	TotalWebsocketConnections() int
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
-	UnregisterPluginCommand(pluginId, teamID, trigger string)
-	UnregisterPluginCommands(pluginId string)
+	UnregisterPluginCommand(pluginID, teamID, trigger string)
+	UnregisterPluginCommands(pluginID string)
 	UpdateActive(user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIDs []string, userID string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)

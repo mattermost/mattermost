@@ -51,9 +51,9 @@ func getDefaultPluginSettingsSchema() string {
 	return string(ret)
 }
 
-func setDefaultPluginConfig(th *TestHelper, pluginId string) {
+func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.PluginSettings.Plugins[pluginId] = map[string]interface{}{
+		cfg.PluginSettings.Plugins[pluginID] = map[string]interface{}{
 			"BasicChannelName":     th.BasicChannel.Name,
 			"BasicChannelId":       th.BasicChannel.Id,
 			"BasicTeamName":        th.BasicTeam.Name,
@@ -68,7 +68,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginId string) {
 	})
 }
 
-func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIds []string, app *App) string {
+func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, app *App) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -90,21 +90,21 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	env, err := plugin.NewEnvironment(app.NewPluginAPI, pluginDir, webappPluginDir, app.Log(), nil)
 	require.NoError(t, err)
 
-	require.Equal(t, len(pluginCodes), len(pluginIds))
-	require.Equal(t, len(pluginManifests), len(pluginIds))
+	require.Equal(t, len(pluginCodes), len(pluginIDs))
+	require.Equal(t, len(pluginManifests), len(pluginIDs))
 
-	for i, pluginId := range pluginIds {
-		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+	for i, pluginID := range pluginIDs {
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		utils.CompileGo(t, pluginCodes[i], backend)
 
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifests[i]), 0600)
-		manifest, activated, reterr := env.Activate(pluginId)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifests[i]), 0600)
+		manifest, activated, reterr := env.Activate(pluginID)
 		require.NoError(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
 
 		app.UpdateConfig(func(cfg *model.Config) {
-			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+			cfg.PluginSettings.PluginStates[pluginID] = &model.PluginState{
 				Enable: true,
 			}
 		})
@@ -115,8 +115,8 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) string {
-	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginId}, app)
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App) string {
+	return setupMultiPluginApiTest(t, []string{pluginCode}, []string{pluginManifest}, []string{pluginID}, app)
 }
 
 func TestPublicFilesPathConfiguration(t *testing.T) {
@@ -1496,8 +1496,8 @@ func TestApiMetrics(t *testing.T) {
 
 		th.App.SetPluginsEnvironment(env)
 
-		pluginId := model.NewId()
-		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
+		pluginID := model.NewId()
+		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
 		code :=
 			`
 	package main
@@ -1521,7 +1521,7 @@ func TestApiMetrics(t *testing.T) {
 	}
 `
 		utils.CompileGo(t, code, backend)
-		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
+		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "backend": {"executable": "backend.exe"}}`), 0600)
 
 		// Don't care about these mocks
 		metricsMock.On("ObservePluginHookDuration", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
@@ -1529,12 +1529,12 @@ func TestApiMetrics(t *testing.T) {
 		metricsMock.On("ObservePluginMultiHookDuration", mock.Anything).Return()
 
 		// Setup mocks
-		metricsMock.On("ObservePluginApiDuration", pluginId, "UpdateUser", true, mock.Anything).Return()
+		metricsMock.On("ObservePluginApiDuration", pluginID, "UpdateUser", true, mock.Anything).Return()
 
-		_, _, activationErr := env.Activate(pluginId)
+		_, _, activationErr := env.Activate(pluginID)
 		require.NoError(t, activationErr)
 
-		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		user1 := &model.User{
 			Email:       model.NewId() + "success+test@example.com",
@@ -1551,8 +1551,8 @@ func TestApiMetrics(t *testing.T) {
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
 		// Disable plugin
-		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginId))
-		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginId))
+		require.True(t, th.App.GetPluginsEnvironment().Deactivate(pluginID))
+		require.False(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		metricsMock.AssertExpectations(t)
 	})
