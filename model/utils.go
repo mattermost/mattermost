@@ -185,14 +185,6 @@ func NewRandomString(length int) string {
 	return encoding.EncodeToString(data)[:length]
 }
 
-// NewRandomBase32String returns a base32 encoded string of a random slice
-// of bytes of the given size. The resulting entropy will be (8 * size) bits.
-func NewRandomBase32String(size int) string {
-	data := make([]byte, size)
-	rand.Read(data)
-	return base32.StdEncoding.EncodeToString(data)
-}
-
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
@@ -482,24 +474,6 @@ func ParseHashtags(text string) (string, string) {
 	}
 
 	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
-}
-
-func IsFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	for _, imgExt := range IMAGE_EXTENSIONS {
-		if ext == imgExt {
-			return true
-		}
-	}
-	return false
-}
-
-func GetImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if IMAGE_MIME_TYPES[ext] == "" {
-		return "image"
-	}
-	return IMAGE_MIME_TYPES[ext]
 }
 
 func ClearMentionTags(post string) string {

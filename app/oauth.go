@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
@@ -288,7 +289,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		user, nErr = a.Srv().Store.User().Get(authData.UserId)
+		user, nErr = a.Srv().Store.User().Get(context.Background(), authData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
@@ -347,7 +348,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
 		}
 
-		user, nErr := a.Srv().Store.User().Get(accessData.UserId)
+		user, nErr := a.Srv().Store.User().Get(context.Background(), accessData.UserId)
 		if nErr != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
@@ -766,11 +767,11 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
 	if scope != "" {
-		authUrl += "&scope=" + utils.UrlEncode(scope)
+		authUrl += "&scope=" + utils.URLEncode(scope)
 	}
 
 	if loginHint != "" {
-		authUrl += "&login_hint=" + utils.UrlEncode(loginHint)
+		authUrl += "&login_hint=" + utils.URLEncode(loginHint)
 	}
 
 	return authUrl, nil
@@ -934,7 +935,7 @@ func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, 
 	stateProps["email"] = email
 
 	if service == model.USER_AUTH_SERVICE_SAML {
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + utils.UrlEncode(email), nil
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + utils.URLEncode(email), nil
 	}
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, "")

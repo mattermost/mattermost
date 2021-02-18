@@ -12,12 +12,12 @@ import (
 	"crypto/ecdsa"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/gorilla/websocket"
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -878,7 +878,7 @@ func (a *OpenTracingAppLayer) BuildSamlMetadataObject(idpMetadata []byte) (*mode
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
+func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, outPath string, opts app.BulkExportOpts) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.BulkExport")
 
@@ -890,7 +890,7 @@ func (a *OpenTracingAppLayer) BulkExport(writer io.Writer, file string, pathToEm
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.BulkExport(writer, file, pathToEmojiDir, dirNameToExportEmoji)
+	resultVar0 := a.app.BulkExport(writer, outPath, opts)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -2754,6 +2754,28 @@ func (a *OpenTracingAppLayer) DeleteEphemeralPost(userID string, postId string) 
 
 	defer span.Finish()
 	a.app.DeleteEphemeralPost(userID, postId)
+}
+
+func (a *OpenTracingAppLayer) DeleteExport(name string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteExport")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DeleteExport(name)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DeleteFlaggedPosts(postId string) {
@@ -6704,7 +6726,7 @@ func (a *OpenTracingAppLayer) GetOpenGraphMetadata(requestURL string) *opengraph
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserId string) (*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserID string) (*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOrCreateDirectChannel")
 
@@ -6716,7 +6738,7 @@ func (a *OpenTracingAppLayer) GetOrCreateDirectChannel(userID string, otherUserI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userID, otherUserId)
+	resultVar0, resultVar1 := a.app.GetOrCreateDirectChannel(userID, otherUserID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8612,6 +8634,28 @@ func (a *OpenTracingAppLayer) GetThreadMembershipsForUser(userID string, teamID 
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetThreadMentionsForUserPerChannel(userId string, teamId string) (map[string]int64, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadMentionsForUserPerChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetThreadMentionsForUserPerChannel(userId, teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetThreadsForUser(userID string, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetThreadsForUser")
@@ -10401,6 +10445,28 @@ func (a *OpenTracingAppLayer) ListDirectory(path string) ([]string, *model.AppEr
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ListExports() ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListExports")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ListExports()
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) ListImports() ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ListImports")
@@ -10792,7 +10858,7 @@ func (a *OpenTracingAppLayer) NewPluginAPI(manifest *model.Manifest) plugin.API 
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
+func (a *OpenTracingAppLayer) NewWebConn(ws net.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *app.WebConn {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NewWebConn")
 
@@ -11814,6 +11880,28 @@ func (a *OpenTracingAppLayer) RemoveConfigListener(id string) {
 	a.app.RemoveConfigListener(id)
 }
 
+func (a *OpenTracingAppLayer) RemoveCustomStatus(userID string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveCustomStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveCustomStatus(userID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) RemoveDirectory(path string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveDirectory")
@@ -11937,6 +12025,28 @@ func (a *OpenTracingAppLayer) RemovePluginFromData(data model.PluginEventData) {
 
 	defer span.Finish()
 	a.app.RemovePluginFromData(data)
+}
+
+func (a *OpenTracingAppLayer) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveRecentCustomStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveRecentCustomStatus(userID, status)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) RemoveSamlIdpCertificate() *model.AppError {
@@ -13154,6 +13264,28 @@ func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck)
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SendAdminUpgradeRequestEmail(username string, subscription *model.Subscription) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAdminUpgradeRequestEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendAdminUpgradeRequestEmail(username, subscription)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SendAutoResponse(channel *model.Channel, receiver *model.User, post *model.Post) (bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAutoResponse")
@@ -13649,6 +13781,28 @@ func (a *OpenTracingAppLayer) SetBotIconImageFromMultiPartFile(botUserId string,
 
 	defer span.Finish()
 	resultVar0 := a.app.SetBotIconImageFromMultiPartFile(botUserId, imageData)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetCustomStatus")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SetCustomStatus(userID, cs)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -15657,6 +15811,28 @@ func (a *OpenTracingAppLayer) UpdateUserRoles(userID string, newRoles string, se
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.UpdateUserRoles(userID, newRoles, sendWebSocketEvent)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateUserRolesWithUser(user *model.User, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateUserRolesWithUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateUserRolesWithUser(user, newRoles, sendWebSocketEvent)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

@@ -6,7 +6,6 @@ package mailservice
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -19,84 +18,73 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/filesstore"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+func getConfig() *SMTPConfig {
+	server := os.Getenv("MM_EMAILSETTINGS_SMTPSERVER")
+	if server == "" {
+		server = "localhost"
+	}
+	port := os.Getenv("MM_EMAILSETTINGS_SMTPPORT")
+	if port == "" {
+		port = "10025"
+	}
+
+	return &SMTPConfig{
+		ConnectionSecurity:                "",
+		SkipServerCertificateVerification: false,
+		Hostname:                          "localhost",
+		ServerName:                        server,
+		Server:                            server,
+		Port:                              port,
+		ServerTimeout:                     10,
+		Username:                          "",
+		Password:                          "",
+		EnableSMTPAuth:                    false,
+		SendEmailNotifications:            true,
+		FeedbackName:                      "",
+		FeedbackEmail:                     "test@example.com",
+		ReplyToAddress:                    "test@example.com",
+	}
+}
+
 func TestMailConnectionFromConfig(t *testing.T) {
-	store := config.NewTestMemoryStore()
-	cfg := store.Get()
+	cfg := getConfig()
 
 	conn, err := ConnectToSMTPServer(cfg)
-	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
+	require.NoError(t, err, "Should connect to the SMTP Server %v", err)
 
 	_, err = NewSMTPClient(context.Background(), conn, cfg)
 
-	require.Nil(t, err, "Should get new SMTP client")
+	require.NoError(t, err, "Should get new SMTP client")
 
-	*cfg.EmailSettings.SMTPServer = "wrongServer"
-	*cfg.EmailSettings.SMTPPort = "553"
+	cfg.Server = "wrongServer"
+	cfg.Port = "553"
 
 	_, err = ConnectToSMTPServer(cfg)
 
-	require.NotNil(t, err, "Should not connect to the SMTP Server")
+	require.Error(t, err, "Should not connect to the SMTP Server")
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	store := config.NewTestMemoryStore()
-	cfg := store.Get()
+	cfg := getConfig()
 
-	conn, err := ConnectToSMTPServerAdvanced(
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
-			SmtpPort:             *cfg.EmailSettings.SMTPPort,
-		},
-	)
-	require.Nil(t, err, "Should connect to the SMTP Server")
+	conn, err := ConnectToSMTPServerAdvanced(cfg)
+	require.NoError(t, err, "Should connect to the SMTP Server")
 	defer conn.Close()
 
-	_, err2 := NewSMTPClientAdvanced(
-		context.Background(),
-		conn,
-		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-			SmtpServerHost:       *cfg.EmailSettings.SMTPServer,
-			SmtpPort:             *cfg.EmailSettings.SMTPPort,
-			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
-			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
-			SmtpServerTimeout:    1,
-		},
-	)
-	require.Nil(t, err2, "Should get new SMTP client")
+	_, err2 := NewSMTPClientAdvanced(context.Background(), conn, cfg)
+	require.NoError(t, err2, "Should get new SMTP client")
 
 	l, err3 := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
-	require.Nil(t, err3, "Should've open a network socket and listen")
+	require.NoError(t, err3, "Should've open a network socket and listen")
 	defer l.Close()
+	cfg.Server = strings.Split(l.Addr().String(), ":")[0]
+	cfg.Port = strings.Split(l.Addr().String(), ":")[1]
+	cfg.ServerTimeout = 1
 
-	connInfo := &SmtpConnectionInfo{
-		ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-		SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-		SmtpServerName:       *cfg.EmailSettings.SMTPServer,
-		SmtpServerHost:       strings.Split(l.Addr().String(), ":")[0],
-		SmtpPort:             strings.Split(l.Addr().String(), ":")[1],
-		Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
-		SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
-		SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
-		SmtpServerTimeout:    1,
-	}
-
-	conn2, err := ConnectToSMTPServerAdvanced(connInfo)
-	require.Nil(t, err, "Should connect to the SMTP Server")
+	conn2, err := ConnectToSMTPServerAdvanced(cfg)
+	require.NoError(t, err, "Should connect to the SMTP Server")
 	defer conn2.Close()
 
 	ctx := context.Background()
@@ -106,33 +94,20 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	_, err4 := NewSMTPClientAdvanced(
 		ctx,
 		conn2,
-		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
-		connInfo,
+		cfg,
 	)
-	require.NotNil(t, err4, "Should get a timeout get while creating a new SMTP client")
-	assert.Equal(t, err4.Id, "utils.mail.connect_smtp.open_tls.app_error")
+	require.Error(t, err4, "Should get a timeout get while creating a new SMTP client")
+	assert.Contains(t, err4.Error(), "unable to connect to the SMTP server")
 
-	_, err5 := ConnectToSMTPServerAdvanced(
-		&SmtpConnectionInfo{
-			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
-			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       "wrongServer",
-			SmtpServerHost:       "wrongServer",
-			SmtpPort:             "553",
-		},
-	)
-	require.NotNil(t, err5, "Should not connect to the SMTP Server")
+	cfg.Server = "wrongServer"
+	cfg.Port = "553"
+
+	_, err5 := ConnectToSMTPServerAdvanced(cfg)
+	require.Error(t, err5, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	utils.T = utils.GetUserTranslations("en")
-
-	fsInner, err := config.NewFileStore("config.json", false)
-	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
-	require.Nil(t, err)
-
-	cfg := fs.Get()
+	cfg := getConfig()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -143,7 +118,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	DeleteMailBox(emailTo)
 
 	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, emailCC)
-	require.Nil(t, err2, "Should connect to the SMTP Server")
+	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
@@ -159,21 +134,14 @@ func TestSendMailUsingConfig(t *testing.T) {
 		if len(resultsMailbox) > 0 {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.Nil(t, err, "Could not get message from mailbox")
+			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 		}
 	}
 }
 
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
-	utils.T = utils.GetUserTranslations("en")
-
-	fsInner, err := config.NewFileStore("config.json", false)
-	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
-	require.Nil(t, err)
-
-	cfg := fs.Get()
+	cfg := getConfig()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -188,7 +156,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		"test2.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 	}
 	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, emailCC)
-	require.Nil(t, err2, "Should connect to the SMTP Server")
+	require.NoError(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
@@ -204,7 +172,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		if len(resultsMailbox) > 0 {
 			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
 			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.Nil(t, err, "Could not get message from mailbox")
+			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, emailBody, resultsEmail.Body.Text, "Wrong received message %s", resultsEmail.Body.Text)
 			// Usign the message size because the inbucket API doesn't return embedded attachments through the API
 			require.Greater(t, resultsEmail.Size, 1500, "the file size should be more because the embedded attachemtns")
@@ -213,42 +181,23 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	utils.T = utils.GetUserTranslations("en")
-
-	fsInner, err := config.NewFileStore("config.json", false)
-	require.Nil(t, err)
-	fs, err := config.NewStoreFromBacking(fsInner, nil, false)
-	require.Nil(t, err)
-
-	cfg := fs.Get()
+	cfg := getConfig()
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
 
-	fileBackend, err := filesstore.NewFileBackend(&cfg.FileSettings, true)
-	assert.Nil(t, err)
-
 	// create two files with the same name that will both be attached to the email
-	filePath1 := fmt.Sprintf("test1/%s", "file1.txt")
-	filePath2 := fmt.Sprintf("test2/%s", "file2.txt")
-	fileContents1 := []byte("hello world")
-	fileContents2 := []byte("foo bar")
-	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents1), filePath1)
-	assert.Nil(t, err)
-	_, err = fileBackend.WriteFile(bytes.NewReader(fileContents2), filePath2)
-	assert.Nil(t, err)
-	defer fileBackend.RemoveFile(filePath1)
-	defer fileBackend.RemoveFile(filePath2)
+	file1, err := ioutil.TempFile("", "*")
+	require.NoError(t, err)
+	defer os.Remove(file1.Name())
+	file1.Write([]byte("hello world"))
+	file1.Close()
+	file2, err := ioutil.TempFile("", "*")
 
-	attachments := make([]*model.FileInfo, 2)
-	attachments[0] = &model.FileInfo{
-		Name: "file1.txt",
-		Path: filePath1,
-	}
-	attachments[1] = &model.FileInfo{
-		Name: "file2.txt",
-		Path: filePath2,
-	}
+	require.NoError(t, err)
+	defer os.Remove(file2.Name())
+	file2.Write([]byte("foo bar"))
+	file2.Close()
 
 	embeddedFiles := map[string]io.Reader{
 		"test": bytes.NewReader([]byte("test data")),
@@ -264,13 +213,12 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		replyTo:       mail.Address{Name: "ReplyTo", Address: "reply_to@mattermost.com"},
 		subject:       "Testing this email",
 		htmlBody:      "This is a test from autobot",
-		attachments:   attachments,
 		embeddedFiles: embeddedFiles,
 		mimeHeaders:   headers,
 	}
 
 	err = sendMailUsingConfigAdvanced(mail, cfg, true)
-	require.Nil(t, err, "Should connect to the STMP Server: %v", err)
+	require.NoError(t, err, "Should connect to the STMP Server: %v", err)
 
 	//Check if the email was send to the right email address
 	var resultsMailbox JSONMessageHeaderInbucket
@@ -279,13 +227,13 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 		resultsMailbox, mailErr = GetMailBox(mail.smtpTo)
 		return mailErr
 	})
-	require.Nil(t, err, "No emails found for address %s. error: %v", mail.smtpTo, err)
+	require.NoError(t, err, "No emails found for address %s. error: %v", mail.smtpTo, err)
 	require.NotEqual(t, len(resultsMailbox), 0)
 
 	require.Contains(t, resultsMailbox[0].To[0], mail.mimeTo, "Wrong To recipient")
 
 	resultsEmail, err := GetMessageFromMailbox(mail.smtpTo, resultsMailbox[0].ID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Contains(t, mail.htmlBody, resultsEmail.Body.Text, "Wrong received message")
 
@@ -297,37 +245,16 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 
 	// check that the custom mime headers came through - header case seems to get mutated
 	assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
-
-	// ensure that the attachments were successfully sent
-	assert.Len(t, resultsEmail.Attachments, 3)
-
-	attachmentsFilenames := []string{
-		resultsEmail.Attachments[0].Filename,
-		resultsEmail.Attachments[1].Filename,
-		resultsEmail.Attachments[2].Filename,
-	}
-	assert.Contains(t, attachmentsFilenames, "file1.txt")
-	assert.Contains(t, attachmentsFilenames, "file2.txt")
-	assert.Contains(t, attachmentsFilenames, "test")
-
-	attachment1 := string(resultsEmail.Attachments[0].Bytes)
-	attachment2 := string(resultsEmail.Attachments[1].Bytes)
-	attachment3 := string(resultsEmail.Attachments[2].Bytes)
-	attachmentsData := []string{attachment1, attachment2, attachment3}
-
-	assert.Contains(t, attachmentsData, string(fileContents1))
-	assert.Contains(t, attachmentsData, string(fileContents2))
-	assert.Contains(t, attachmentsData, "test data")
 }
 
 func TestAuthMethods(t *testing.T) {
 	auth := &authChooser{
-		connectionInfo: &SmtpConnectionInfo{
-			SmtpUsername:   "test",
-			SmtpPassword:   "fakepass",
-			SmtpServerName: "fakeserver",
-			SmtpServerHost: "fakeserver",
-			SmtpPort:       "25",
+		config: &SMTPConfig{
+			Username:   "test",
+			Password:   "fakepass",
+			ServerName: "fakeserver",
+			Server:     "fakeserver",
+			Port:       "25",
 		},
 	}
 	tests := []struct {
@@ -392,14 +319,8 @@ func (m *mockMailer) Close() error { return nil }
 
 func TestSendMail(t *testing.T) {
 	dir, err := ioutil.TempDir(".", "mail-test-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer os.RemoveAll(dir)
-	settings := model.FileSettings{
-		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
-		Directory:  &dir,
-	}
-	mockBackend, appErr := filesstore.NewFileBackend(&settings, true)
-	require.Nil(t, appErr)
 	mocm := &mockMailer{}
 
 	testCases := map[string]struct {
@@ -421,9 +342,9 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, nil}
-			appErr = SendMail(mocm, mail, mockBackend, time.Now())
-			require.Nil(t, appErr)
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil}
+			err = SendMail(mocm, mail, time.Now())
+			require.NoError(t, err)
 			if tc.contains != "" {
 				require.Contains(t, string(mocm.data), tc.contains)
 			}

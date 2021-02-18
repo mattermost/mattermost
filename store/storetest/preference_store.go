@@ -43,7 +43,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 		},
 	}
 	err := ss.Preference().Save(&preferences)
-	require.Nil(t, err, "saving preference returned error")
+	require.NoError(t, err, "saving preference returned error")
 
 	for _, preference := range preferences {
 		data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name)
@@ -53,7 +53,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
 	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err, "saving preference returned error")
+	require.NoError(t, err, "saving preference returned error")
 
 	for _, preference := range preferences {
 		data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name)
@@ -90,15 +90,15 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	data, err := ss.Preference().Get(userId, category, name)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, preferences[0].ToJson(), data.ToJson(), "got incorrect preference")
 
 	// make sure getting a missing preference fails
 	_, err = ss.Preference().Get(model.NewId(), model.NewId(), model.NewId())
-	require.NotNil(t, err, "no error on getting a missing preference")
+	require.Error(t, err, "no error on getting a missing preference")
 }
 
 func testPreferenceGetCategory(t *testing.T, ss store.Store) {
@@ -133,10 +133,10 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferencesByCategory, err := ss.Preference().GetCategory(userId, category)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 2, len(preferencesByCategory), "got the wrong number of preferences")
 	require.True(
 		t,
@@ -146,7 +146,7 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 
 	// make sure getting a missing preference category doesn't fail
 	preferencesByCategory, err = ss.Preference().GetCategory(model.NewId(), model.NewId())
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 0, len(preferencesByCategory), "shouldn't have got any preferences")
 }
 
@@ -182,10 +182,10 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	result, err := ss.Preference().GetAll(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, 3, len(result), "got the wrong number of preferences")
 
 	for i := 0; i < 3; i++ {
@@ -226,10 +226,10 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = ss.Preference().PermanentDeleteByUser(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func testPreferenceDelete(t *testing.T, ss store.Store) {
@@ -241,16 +241,16 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(preference.UserId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	err = ss.Preference().Delete(preference.UserId, preference.Category, preference.Name)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	preferences, err = ss.Preference().GetAll(preference.UserId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
@@ -273,17 +273,17 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, preferences, 2, "should've returned 2 preferences")
 
 	err = ss.Preference().DeleteCategory(userId, category)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferences, err = ss.Preference().GetAll(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preferences")
 }
 
@@ -308,25 +308,25 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	}
 
 	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	preferences, err = ss.Preference().GetAll(userId2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	err = ss.Preference().DeleteCategoryAndName(category, name)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preferences, err = ss.Preference().GetAll(userId)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preference")
 
 	preferences, err = ss.Preference().GetAll(userId2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, preferences, "should've returned no preference")
 }
 
@@ -340,7 +340,7 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1.CreateAt = 1000
 	o1, err := ss.Post().Save(o1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	preference1 := model.Preference{
 		UserId:   userId,
@@ -357,14 +357,14 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	}
 
 	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, nErr)
+	require.NoError(t, nErr)
 
 	_, nErr = ss.Preference().CleanupFlagsBatch(10000)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference1.Name)
-	assert.Nil(t, nErr)
+	assert.NoError(t, nErr)
 
 	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
-	assert.NotNil(t, nErr)
+	assert.Error(t, nErr)
 }
