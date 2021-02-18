@@ -14,20 +14,20 @@ type CommandStore struct {
 	mock.Mock
 }
 
-// AnalyticsCommandCount provides a mock function with given fields: teamId
-func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
-	ret := _m.Called(teamId)
+// AnalyticsCommandCount provides a mock function with given fields: teamID
+func (_m *CommandStore) AnalyticsCommandCount(teamID string) (int64, error) {
+	ret := _m.Called(teamID)
 
 	var r0 int64
 	if rf, ok := ret.Get(0).(func(string) int64); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamId)
+		r1 = rf(teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,13 +35,13 @@ func (_m *CommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	return r0, r1
 }
 
-// Delete provides a mock function with given fields: commandId, time
-func (_m *CommandStore) Delete(commandId string, time int64) error {
-	ret := _m.Called(commandId, time)
+// Delete provides a mock function with given fields: commandID, time
+func (_m *CommandStore) Delete(commandID string, time int64) error {
+	ret := _m.Called(commandID, time)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
-		r0 = rf(commandId, time)
+		r0 = rf(commandID, time)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -72,13 +72,13 @@ func (_m *CommandStore) Get(id string) (*model.Command, error) {
 	return r0, r1
 }
 
-// GetByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
-	ret := _m.Called(teamId)
+// GetByTeam provides a mock function with given fields: teamID
+func (_m *CommandStore) GetByTeam(teamID string) ([]*model.Command, error) {
+	ret := _m.Called(teamID)
 
 	var r0 []*model.Command
 	if rf, ok := ret.Get(0).(func(string) []*model.Command); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Command)
@@ -87,7 +87,7 @@ func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamId)
+		r1 = rf(teamID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -95,13 +95,13 @@ func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	return r0, r1
 }
 
-// GetByTrigger provides a mock function with given fields: teamId, trigger
-func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
-	ret := _m.Called(teamId, trigger)
+// GetByTrigger provides a mock function with given fields: teamID, trigger
+func (_m *CommandStore) GetByTrigger(teamID string, trigger string) (*model.Command, error) {
+	ret := _m.Called(teamID, trigger)
 
 	var r0 *model.Command
 	if rf, ok := ret.Get(0).(func(string, string) *model.Command); ok {
-		r0 = rf(teamId, trigger)
+		r0 = rf(teamID, trigger)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Command)
@@ -110,7 +110,7 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Comm
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamId, trigger)
+		r1 = rf(teamID, trigger)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -118,13 +118,13 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) (*model.Comm
 	return r0, r1
 }
 
-// PermanentDeleteByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) PermanentDeleteByTeam(teamId string) error {
-	ret := _m.Called(teamId)
+// PermanentDeleteByTeam provides a mock function with given fields: teamID
+func (_m *CommandStore) PermanentDeleteByTeam(teamID string) error {
+	ret := _m.Called(teamID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(teamId)
+		r0 = rf(teamID)
 	} else {
 		r0 = ret.Error(0)
 	}
