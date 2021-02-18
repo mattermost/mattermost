@@ -57,8 +57,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var privateChannelsCount int64
 		g.Go(func() error {
 			var err error
-			privateChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_PRIVATE)
-			if err != nil {
+			if privateChannelsCount, err = a.Srv().Store.Channel().AnalyticsTypeCount(teamID, model.CHANNEL_PRIVATE); err != nil {
 				return model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 			return nil
