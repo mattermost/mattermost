@@ -778,7 +778,7 @@ func TestSetBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{
@@ -830,7 +830,7 @@ func TestGetBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{
@@ -877,7 +877,7 @@ func TestDeleteBotIconImage(t *testing.T) {
 		defer svgFile.Close()
 
 		expectedData, fileErr := ioutil.ReadAll(svgFile)
-		require.Nil(t, fileErr)
+		require.NoError(t, fileErr)
 		require.NotNil(t, expectedData)
 
 		bot, err := th.App.ConvertUserToBot(&model.User{

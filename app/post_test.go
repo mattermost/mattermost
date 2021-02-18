@@ -137,14 +137,14 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			var err error
-			post, err = th.App.CreatePostAsUser(&model.Post{
+			var appErr *model.AppError
+			post, appErr = th.App.CreatePostAsUser(&model.Post{
 				UserId:        th.BasicUser.Id,
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
 				PendingPostId: pendingPostId,
 			}, "", true)
-			require.Nil(t, err)
+			require.Nil(t, appErr)
 			require.Equal(t, post.Message, "plugin delayed")
 		}()
 
@@ -200,22 +200,22 @@ func TestAttachFilesToPost(t *testing.T) {
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.Nil(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.Nil(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
 
@@ -228,27 +228,27 @@ func TestAttachFilesToPost(t *testing.T) {
 			Path:      "path.txt",
 			PostId:    model.NewId(),
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		info2, err := th.App.Srv().Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 		})
-		require.Nil(t, err)
+		require.NoError(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err = th.App.attachFilesToPost(post)
-		assert.Nil(t, err)
+		appErr := th.App.attachFilesToPost(post)
+		assert.Nil(t, appErr)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id, false)
-		assert.Nil(t, err)
+		infos, appErr := th.App.GetFileInfosForPost(post.Id, false)
+		assert.Nil(t, appErr)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
 
-		updated, err := th.App.GetSinglePost(post.Id)
-		require.Nil(t, err)
+		updated, appErr := th.App.GetSinglePost(post.Id)
+		require.Nil(t, appErr)
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
 	})
@@ -854,15 +854,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -878,15 +878,15 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp("from_webhook", "true")
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
-		_, appErr = th.App.CreatePostAsUser(post, "", true)
+		_, appErr := th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -910,14 +910,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 
 		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
 		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
@@ -1893,11 +1893,11 @@ func TestThreadMembership(t *testing.T) {
 
 		// first user should now be part of the thread since they replied to a post
 		memberships, err2 := th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 		// second user should also be part of a thread since they were mentioned
 		memberships, err2 = th.App.GetThreadMembershipsForUser(user2.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 1)
 
 		post2, err := th.App.CreatePost(&model.Post{
@@ -1917,7 +1917,7 @@ func TestThreadMembership(t *testing.T) {
 
 		// first user should now be part of two threads
 		memberships, err2 = th.App.GetThreadMembershipsForUser(user1.Id, th.BasicTeam.Id)
-		require.Nil(t, err2)
+		require.NoError(t, err2)
 		require.Len(t, memberships, 2)
 	})
 }
@@ -1952,7 +1952,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		}, channel, false, true)
 		require.Nil(t, err)
 		thread, nErr := th.App.Srv().Store.Thread().Get(postRoot.Id)
-		require.Nil(t, nErr)
+		require.NoError(t, nErr)
 		require.Len(t, thread.Participants, 2)
 		th.App.MarkChannelAsUnreadFromPost(postRoot.Id, user1.Id)
 		l, err := th.App.GetPostsForChannelAroundLastUnread(channel.Id, user1.Id, 10, 10, true, true, false)
