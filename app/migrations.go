@@ -16,6 +16,7 @@ const EmojisPermissionsMigrationKey = "EmojisPermissionsMigrationComplete"
 const GuestRolesCreationMigrationKey = "GuestRolesCreationMigrationComplete"
 const SystemConsoleRolesCreationMigrationKey = "SystemConsoleRolesCreationMigrationComplete"
 const ContentExtractionConfigMigrationKey = "ContentExtractionConfigMigrationComplete"
+const usersLimitToAutoEnableContentExtraction = 500
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -293,7 +294,7 @@ func (a *App) doContentExtractionConfigMigration() {
 	if usersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{}); err != nil {
 		mlog.Critical("Failed to get the users count for migrating the content extraction, using default value", mlog.Err(err))
 	} else {
-		if usersCount < 500 {
+		if usersCount < usersLimitToAutoEnableContentExtraction {
 			a.UpdateConfig(func(config *model.Config) {
 				config.FileSettings.ExtractContent = model.NewBool(true)
 			})

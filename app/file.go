@@ -778,6 +778,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			file, aerr := a.FileReader(t.fileinfo.Path)
 			if aerr != nil {
 				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+				return
 			}
 			defer file.Close()
 			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
@@ -785,6 +786,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			})
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err))
+				return
 			}
 			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
 				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
@@ -1047,6 +1049,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 			file, aerr := a.FileReader(infoCopy.Path)
 			if aerr != nil {
 				mlog.Error("Failed to open file for extract file content", mlog.Err(aerr))
+				return
 			}
 			defer file.Close()
 			text, err := docextractor.Extract(infoCopy.Name, file, docextractor.ExtractSettings{
@@ -1054,6 +1057,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 			})
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err))
+				return
 			}
 			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
 				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
