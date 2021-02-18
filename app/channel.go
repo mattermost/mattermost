@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -2370,8 +2371,13 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 		return nil, err
 	}
 
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
-		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, post.RootId)
+	if *a.Config().ServiceSettings.ThreadAutoFollow {
+		threadId := post.RootId
+		if post.RootId == "" {
+			threadId = post.Id
+		}
+
+		threadMembership, _ := a.Srv().Store.Thread().GetMembershipForUser(user.Id, threadId)
 		if threadMembership != nil {
 			channel, nErr := a.Srv().Store.Channel().Get(post.ChannelId, true)
 			if nErr != nil {
@@ -2384,6 +2390,20 @@ func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.
 			_, nErr = a.Srv().Store.Thread().UpdateMembership(threadMembership)
 			if nErr != nil {
 				return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+			thread, _ := a.Srv().Store.Thread().GetThreadForUser(userID, channel.TeamId, threadId, true)
+			a.sanitizeProfiles(thread.Participants, false)
+			thread.Post.SanitizeProps()
+
+			payload := thread.ToJson()
+			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
+			if preference, err := a.Srv().Store.Preference().Get(userID, model.PREFERENCE_CATEGORY_COLLAPSED_THREADS_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+				sendEvent, _ = strconv.ParseBool(preference.Value)
+			}
+			if sendEvent {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, channel.TeamId, "", userID, nil)
+				message.Add("thread", payload)
+				a.Publish(message)
 			}
 		}
 	}

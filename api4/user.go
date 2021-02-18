@@ -2945,13 +2945,13 @@ func updateReadStateThreadByUser(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	_, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
+	thread, err := c.App.UpdateThreadReadForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, c.Params.Timestamp)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	w.Write([]byte(thread.ToJson()))
 
 	auditRec.Success()
 }
