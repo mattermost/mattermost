@@ -31,7 +31,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	conn, _, _, err := upgrader.Upgrade(r, w)
 	if err != nil {
-		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
