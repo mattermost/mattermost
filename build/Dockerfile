@@ -18,6 +18,7 @@ RUN apk add --no-cache \
   netcat-openbsd \
   xmlsec-dev \
   tzdata \
+  sudo \
   && rm -rf /tmp/*
 
 # Get Mattermost
@@ -26,7 +27,8 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
   else echo "please set the MM_PACKAGE" ; fi \
   && addgroup -g ${PGID} mattermost \
   && adduser -D -u ${PUID} -G mattermost -h /mattermost -D mattermost \
-  && chown -R mattermost:mattermost /mattermost /mattermost/plugins /mattermost/client/plugins
+  && chown -R mattermost:mattermost /mattermost /mattermost/plugins /mattermost/client/plugins \
+  && echo 'mattermost ALL=NOPASSWD: /usr/sbin/update-ca-certificates' >> /etc/sudoers
 
 USER mattermost
 
