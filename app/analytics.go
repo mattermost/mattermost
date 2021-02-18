@@ -226,10 +226,10 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 		rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
-		var g errgroup.Group
+		var g2 errgroup.Group
 
 		var incomingWebhookCount int64
-		g.Go(func() error {
+		g2.Go(func() error {
 			var err error
 			if incomingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsIncomingCount(teamID); err != nil {
 				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -238,7 +238,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		})
 
 		var outgoingWebhookCount int64
-		g.Go(func() error {
+		g2.Go(func() error {
 			var err error
 			if outgoingWebhookCount, err = a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamID); err != nil {
 				return model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -247,7 +247,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		})
 
 		var commandsCount int64
-		g.Go(func() error {
+		g2.Go(func() error {
 			var err error
 			if commandsCount, err = a.Srv().Store.Command().AnalyticsCommandCount(teamID); err != nil {
 				return model.NewAppError("GetAnalytics", "app.analytics.getanalytics.internal_error", nil, err.Error(), http.StatusInternalServerError)
@@ -256,7 +256,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		})
 
 		var sessionsCount int64
-		g.Go(func() error {
+		g2.Go(func() error {
 			var err error
 			if sessionsCount, err = a.Srv().Store.Session().AnalyticsSessionCount(); err != nil {
 				return model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -267,7 +267,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 		var filesCount int64
 		var hashtagsCount int64
 		if !skipIntensiveQueries {
-			g.Go(func() error {
+			g2.Go(func() error {
 				var err error
 				if filesCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, true, false); err != nil {
 					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -275,7 +275,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 				return nil
 			})
 
-			g.Go(func() error {
+			g2.Go(func() error {
 				var err error
 				if hashtagsCount, err = a.Srv().Store.Post().AnalyticsPostCount(teamID, false, true); err != nil {
 					return model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -284,7 +284,7 @@ func (a *App) GetAnalytics(name string, teamID string) (model.AnalyticsRows, *mo
 			})
 		}
 
-		if err := g.Wait(); err != nil {
+		if err := g2.Wait(); err != nil {
 			return nil, err.(*model.AppError)
 		}
 
