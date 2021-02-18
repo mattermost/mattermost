@@ -62,6 +62,8 @@ func TestNoticeValidation(t *testing.T) {
 		notice               *model.ProductNotice
 		dbmsName             string
 		dbmsVer              string
+		searchEngineName     string
+		searchEngineVer      string
 	}
 	messages := map[string]model.NoticeMessageInternal{
 		"en": {
@@ -635,6 +637,8 @@ func TestNoticeValidation(t *testing.T) {
 				tt.args.sku,
 				tt.args.dbmsName,
 				tt.args.dbmsVer,
+				tt.args.searchEngineName,
+				tt.args.searchEngineVer,
 				tt.args.notice,
 			); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
