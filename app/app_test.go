@@ -484,18 +484,18 @@ func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 	assert.Equal(t, expectedKey, th.App.dbHealthCheckKey())
 
 	_, err := th.App.Srv().Store.System().GetByName(expectedKey)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	err = th.App.DBHealthCheckWrite()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	systemVal, err := th.App.Srv().Store.System().GetByName(expectedKey)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, systemVal)
 
 	err = th.App.DBHealthCheckDelete()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	_, err = th.App.Srv().Store.System().GetByName(expectedKey)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }

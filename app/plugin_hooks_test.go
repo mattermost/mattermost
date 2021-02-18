@@ -182,7 +182,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 		assert.Equal(t, "message", post.Message)
 		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
-		require.Nil(t, errSingle)
+		require.NoError(t, errSingle)
 		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
@@ -226,7 +226,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 
 		assert.Equal(t, "message_fromplugin", post.Message)
 		retrievedPost, errSingle := th.App.Srv().Store.Post().GetSingle(post.Id)
-		require.Nil(t, errSingle)
+		require.NoError(t, errSingle)
 		assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 	})
 
@@ -863,7 +863,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 		require.Contains(t, activationErrors[0].Error(), "simulate failure")
 	})
 
@@ -893,7 +893,7 @@ func TestErrorString(t *testing.T) {
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
-		require.NotNil(t, activationErrors[0])
+		require.Error(t, activationErrors[0])
 
 		cause := errors.Cause(activationErrors[0])
 		require.IsType(t, &model.AppError{}, cause)
