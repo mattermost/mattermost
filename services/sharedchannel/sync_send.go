@@ -238,9 +238,9 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 	if task.retryPost != nil {
 		posts = []*model.Post{task.retryPost}
 	} else {
-		result, err := scs.getPostsSince(task.channelId, rc, scr.NextSyncAt)
-		if err != nil {
-			return err
+		result, err2 := scs.getPostsSince(task.channelId, rc, scr.NextSyncAt)
+		if err2 != nil {
+			return err2
 		}
 		posts = result.posts
 		repeat = result.hasMore
@@ -256,16 +256,16 @@ func (scs *Service) updateForRemote(task syncTask, rc *model.RemoteCluster) erro
 			mlog.Bool("repeat", repeat),
 		)
 		return nil
-	} else {
-		scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found posts to sync",
-			mlog.String("remote", rc.DisplayName),
-			mlog.String("channel_id", task.channelId),
-			mlog.Int64("lastSyncAt", scr.NextSyncAt),
-			mlog.Int64("nextSince", nextSince),
-			mlog.Int("count", len(posts)),
-			mlog.Bool("repeat", repeat),
-		)
 	}
+
+	scs.server.GetLogger().Log(mlog.LvlSharedChannelServiceDebug, "sync task found posts to sync",
+		mlog.String("remote", rc.DisplayName),
+		mlog.String("channel_id", task.channelId),
+		mlog.Int64("lastSyncAt", scr.NextSyncAt),
+		mlog.Int64("nextSince", nextSince),
+		mlog.Int("count", len(posts)),
+		mlog.Bool("repeat", repeat),
+	)
 
 	if !rc.IsOnline() {
 		scs.notifyRemoteOffline(posts, rc)
