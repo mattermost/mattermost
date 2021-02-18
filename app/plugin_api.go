@@ -85,8 +85,8 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 	return response, nil
 }
 
-func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
-	session, err := api.app.GetSessionById(sessionId)
+func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
+	session, err := api.app.GetSessionById(sessionID)
 
 	if err != nil {
 		return nil, err
