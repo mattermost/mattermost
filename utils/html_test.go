@@ -102,7 +102,7 @@ func TestHTMLTemplate_RenderError(t *testing.T) {
 	assert.Equal(t, "foo", buf.String())
 }
 
-func TestTranslateAsHtml(t *testing.T) {
+func TestTranslateAsHTML(t *testing.T) {
 	assert.EqualValues(t, "<p><strong>&lt;i&gt;foo&lt;/i&gt;</strong></p>", TranslateAsHtml(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
 		"Foo": "<i>foo</i>",
 	}))

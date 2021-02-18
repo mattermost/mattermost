@@ -120,7 +120,7 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	return nil
 }
 
-func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+func TranslateAsHTML(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
 	message := t(translationID, escapeForHtml(args))
 	message = strings.Replace(message, "[[", "<strong>", -1)
 	message = strings.Replace(message, "]]", "</strong>", -1)
