@@ -5973,9 +5973,8 @@ func (c *Client4) UpdateThreadFollowForUser(userId, teamId, threadId string, sta
 	return BuildResponse(r)
 }
 
-func (c *Client4) SendAdminUpgradeRequestEmail(upgReqT *FreeTierUpgradeRequestType) *Response {
-	payload, _ := json.Marshal(upgReqT)
-	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", string(payload))
+func (c *Client4) SendAdminUpgradeRequestEmail() *Response {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/subscription/limitreached/invite", "")
 	if appErr != nil {
 		return BuildErrorResponse(r, appErr)
 	}

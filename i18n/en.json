@@ -2971,20 +2971,12 @@
     "translation": "Because your workspace has reached the user limit for the free version of Mattermost cloud, invitations cannot be sent. Upgrade now to allow more users to join your workspace."
   },
   {
-    "id": "api.templates.upgrade_request_info4_2",
-    "translation": "Someone recently tried to join your workspace but was unable to as your workspace has reached the user limit for the free version of Mattermost cloud. Upgrade now to allow more users to join your workspace."
-  },
-  {
     "id": "api.templates.upgrade_request_subject",
     "translation": "Mattermost user request upgrade of workspace"
   },
   {
     "id": "api.templates.upgrade_request_title",
     "translation": "{{ .UserName }} would like to invite members to your workspace"
-  },
-  {
-    "id": "api.templates.upgrade_request_title2",
-    "translation": "New users are unable to join your workspace"
   },
   {
     "id": "api.templates.user_access_token_body.info",
