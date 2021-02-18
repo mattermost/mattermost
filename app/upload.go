@@ -304,6 +304,7 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 			})
 			if err != nil {
 				mlog.Error("Failed to extract file content", mlog.Err(err))
+				return
 			}
 			if storeErr := a.Srv().Store.FileInfo().SetContent(infoCopy.Id, text); storeErr != nil {
 				mlog.Error("Failed to save the extracted file content", mlog.Err(storeErr))
