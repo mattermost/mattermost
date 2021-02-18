@@ -632,24 +632,24 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmoji(emojiId)
 }
 
-func (api *PluginAPI) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIds)
+func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
+	return api.app.CopyFileInfos(userID, fileIDs)
 }
 
-func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	return api.app.GetFileInfo(fileId)
+func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	return api.app.GetFileInfo(fileID)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
 	return api.app.GetFileInfos(page, perPage, opt)
 }
 
-func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
+func (api *PluginAPI) GetFileLink(fileID string) (string, *model.AppError) {
 	if !*api.app.Config().FileSettings.EnablePublicLink {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	info, err := api.app.GetFileInfo(fileId)
+	info, err := api.app.GetFileInfo(fileID)
 	if err != nil {
 		return "", err
 	}
@@ -665,8 +665,8 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
-func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
-	return api.app.GetFile(fileId)
+func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
+	return api.app.GetFile(fileID)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {

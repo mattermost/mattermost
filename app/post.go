@@ -365,14 +365,14 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
-	for _, fileId := range post.FileIds {
-		err := a.Srv().Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+	for _, fileID := range post.FileIds {
+		err := a.Srv().Store.FileInfo().AttachToPost(fileID, post.Id, post.UserId)
 		if err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(err))
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileID), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
-		attachedIds = append(attachedIds, fileId)
+		attachedIds = append(attachedIds, fileID)
 	}
 
 	if len(post.FileIds) != len(attachedIds) {

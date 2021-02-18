@@ -1554,7 +1554,7 @@ func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *m
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
+func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CopyFileInfos")
 
@@ -1566,7 +1566,7 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userID string, fileIds []string) ([]
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CopyFileInfos(userID, fileIds)
+	resultVar0, resultVar1 := a.app.CopyFileInfos(userID, fileIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5431,7 +5431,7 @@ func (a *OpenTracingAppLayer) GetErrorListForEmailsOverLimit(emailList []string,
 	return resultVar0, resultVar1, resultVar2
 }
 
-func (a *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFile(fileID string) ([]byte, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFile")
 
@@ -5443,7 +5443,7 @@ func (a *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFile(fileId)
+	resultVar0, resultVar1 := a.app.GetFile(fileID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -5453,7 +5453,7 @@ func (a *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+func (a *OpenTracingAppLayer) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFileInfo")
 
@@ -5465,7 +5465,7 @@ func (a *OpenTracingAppLayer) GetFileInfo(fileId string) (*model.FileInfo, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetFileInfo(fileId)
+	resultVar0, resultVar1 := a.app.GetFileInfo(fileID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

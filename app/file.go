@@ -427,7 +427,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
 
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
-	fileIds := make([]string, 0, len(filenames))
+	fileIDs := make([]string, 0, len(filenames))
 	for _, info := range infos {
 		if _, nErr = a.Srv().Store.FileInfo().Save(info); nErr != nil {
 			mlog.Error(
@@ -441,14 +441,14 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		}
 
 		savedInfos = append(savedInfos, info)
-		fileIds = append(fileIds, info.Id)
+		fileIDs = append(fileIDs, info.Id)
 	}
 
 	// Copy and save the updated post
 	newPost := post.Clone()
 
 	newPost.Filenames = []string{}
-	newPost.FileIds = fileIds
+	newPost.FileIds = fileIDs
 
 	// Update Posts to clear Filenames and set FileIds
 	if _, nErr = a.Srv().Store.Post().Update(newPost, post); nErr != nil {
@@ -469,10 +469,10 @@ func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
 	return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
 }
 
-func GeneratePublicLinkHash(fileId, salt string) string {
+func GeneratePublicLinkHash(fileID, salt string) string {
 	hash := sha256.New()
 	hash.Write([]byte(salt))
-	hash.Write([]byte(fileId))
+	hash.Write([]byte(fileID))
 
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
@@ -1174,8 +1174,8 @@ func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
 	wg.Wait()
 }
 
-func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
+func (a *App) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
+	fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1210,8 +1210,8 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 	return fileInfos, nil
 }
 
-func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
-	info, err := a.GetFileInfo(fileId)
+func (a *App) GetFile(fileID string) ([]byte, *model.AppError) {
+	info, err := a.GetFileInfo(fileID)
 	if err != nil {
 		return nil, err
 	}
@@ -1224,13 +1224,13 @@ func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
 	return data, nil
 }
 
-func (a *App) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
+func (a *App) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
 	now := model.GetMillis()
 
-	for _, fileId := range fileIds {
-		fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
+	for _, fileID := range fileIDs {
+		fileInfo, err := a.Srv().Store.FileInfo().Get(fileID)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {

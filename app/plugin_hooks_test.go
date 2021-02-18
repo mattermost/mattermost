@@ -573,8 +573,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
 
-		fileId := response.FileInfos[0].Id
-		fileInfo, err := th.App.GetFileInfo(fileId)
+		fileID := response.FileInfos[0].Id
+		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
@@ -648,9 +648,9 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, response)
 		assert.Equal(t, 1, len(response.FileInfos))
-		fileId := response.FileInfos[0].Id
+		fileID := response.FileInfos[0].Id
 
-		fileInfo, err := th.App.GetFileInfo(fileId)
+		fileInfo, err := th.App.GetFileInfo(fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)

@@ -121,7 +121,7 @@ func TestParseOldFilenames(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	fileId := model.NewId()
+	fileID := model.NewId()
 
 	tests := []struct {
 		description string
@@ -147,7 +147,7 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "ChannelId in Filename should not match",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", model.NewId(), th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", model.NewId(), th.BasicUser.Id, fileID),
 			},
 			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
@@ -156,7 +156,7 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "UserId in Filename should not match",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, model.NewId(), fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, model.NewId(), fileID),
 			},
 			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
@@ -165,7 +165,7 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "../ in filename should not parse",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/../../../file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/../../../file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
 			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
@@ -174,8 +174,8 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "Should only parse valid filenames",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/../otherfile.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/../otherfile.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
 			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
@@ -183,7 +183,7 @@ func TestParseOldFilenames(t *testing.T) {
 				{
 					th.BasicChannel.Id,
 					th.BasicUser.Id,
-					fileId,
+					fileID,
 					"file.png",
 				},
 			},
@@ -191,7 +191,7 @@ func TestParseOldFilenames(t *testing.T) {
 		{
 			description: "Valid Filename should parse",
 			filenames: []string{
-				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileId),
+				fmt.Sprintf("/%v/%v/%v/file.png", th.BasicChannel.Id, th.BasicUser.Id, fileID),
 			},
 			channelID: th.BasicChannel.Id,
 			userID:    th.BasicUser.Id,
@@ -199,7 +199,7 @@ func TestParseOldFilenames(t *testing.T) {
 				{
 					th.BasicChannel.Id,
 					th.BasicUser.Id,
-					fileId,
+					fileID,
 					"file.png",
 				},
 			},
@@ -256,17 +256,17 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	require.NoError(t, fileErr)
 	defer file.Close()
 
-	fileId := model.NewId()
-	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileId)
+	fileID := model.NewId()
+	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
+	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
+	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)

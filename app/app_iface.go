@@ -424,7 +424,7 @@ type AppIface interface {
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
 	Context() context.Context
-	CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError)
+	CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError)
 	CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError)
 	CreateChannelWithUser(channel *model.Channel, userID string) (*model.Channel, *model.AppError)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
@@ -570,8 +570,8 @@ type AppIface interface {
 	GetEmojiImage(emojiId string) ([]byte, string, *model.AppError)
 	GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
 	GetErrorListForEmailsOverLimit(emailList []string, cloudUserLimit int64) ([]string, []*model.EmailInviteWithError, *model.AppError)
-	GetFile(fileId string) ([]byte, *model.AppError)
-	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+	GetFile(fileID string) ([]byte, *model.AppError)
+	GetFileInfo(fileID string) (*model.FileInfo, *model.AppError)
 	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPost(postID string, fromMaster bool) ([]*model.FileInfo, *model.AppError)
 	GetFileInfosForPostWithMigration(postID string) ([]*model.FileInfo, *model.AppError)
